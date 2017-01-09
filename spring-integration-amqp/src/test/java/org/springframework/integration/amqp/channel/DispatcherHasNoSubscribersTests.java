@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
@@ -54,6 +54,7 @@ import com.rabbitmq.client.Channel;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.1
  *
  */
@@ -65,7 +66,7 @@ public class DispatcherHasNoSubscribersTests {
 		final Channel channel = mock(Channel.class);
 		DeclareOk declareOk = mock(DeclareOk.class);
 		when(declareOk.getQueue()).thenReturn("noSubscribersChannel");
-		when(channel.queueDeclare(anyString(), anyBoolean(), anyBoolean(), anyBoolean(), any(Map.class)))
+		when(channel.queueDeclare(anyString(), anyBoolean(), anyBoolean(), anyBoolean(), isNull()))
 				.thenReturn(declareOk);
 		Connection connection = mock(Connection.class);
 		doAnswer(invocation -> channel).when(connection).createChannel(anyBoolean());
@@ -128,7 +129,7 @@ public class DispatcherHasNoSubscribersTests {
 		Log logger = mock(Log.class);
 		final ArrayList<String> logList = new ArrayList<String>();
 		doAnswer(invocation -> {
-			String message = invocation.getArgumentAt(0, String.class);
+			String message = invocation.getArgument(0);
 			if (message.startsWith("Dispatcher has no subscribers")) {
 				logList.add(message);
 			}

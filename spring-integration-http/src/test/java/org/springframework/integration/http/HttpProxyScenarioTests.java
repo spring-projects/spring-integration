@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.isNull;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -120,7 +121,7 @@ public class HttpProxyScenarioTests {
 		final String contentDispositionValue = "attachment; filename=\"test.txt\"";
 
 		Mockito.doAnswer(invocation -> {
-			URI uri = invocation.getArgumentAt(0, URI.class);
+			URI uri = invocation.getArgument(0);
 			assertEquals(new URI("http://testServer/test?foo=bar&FOO=BAR"), uri);
 			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 			HttpHeaders httpHeaders = httpEntity.getHeaders();
@@ -131,9 +132,9 @@ public class HttpProxyScenarioTests {
 			MultiValueMap<String, String> responseHeaders = new LinkedMultiValueMap<String, String>(httpHeaders);
 			responseHeaders.set("Connection", "close");
 			responseHeaders.set("Content-Disposition", contentDispositionValue);
-			return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
+			return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
 		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
-				Mockito.any(HttpEntity.class),  (Class<?>) Mockito.any(Class.class));
+				Mockito.any(HttpEntity.class), (Class<?>) isNull());
 
 		PropertyAccessor dfa = new DirectFieldAccessor(this.handler);
 		dfa.setPropertyValue("restTemplate", template);
@@ -173,7 +174,7 @@ public class HttpProxyScenarioTests {
 
 		RestTemplate template = Mockito.spy(new RestTemplate());
 		Mockito.doAnswer(invocation -> {
-			URI uri = invocation.getArgumentAt(0, URI.class);
+			URI uri = invocation.getArgument(0);
 			assertEquals(new URI("http://testServer/testmp"), uri);
 			HttpEntity<?> httpEntity = (HttpEntity<?>) invocation.getArguments()[2];
 			HttpHeaders httpHeaders = httpEntity.getHeaders();
@@ -190,7 +191,7 @@ public class HttpProxyScenarioTests {
 			responseHeaders.set("Content-Type", "text/plain");
 			return new ResponseEntity<Object>(responseHeaders, HttpStatus.OK);
 		}).when(template).exchange(Mockito.any(URI.class), Mockito.any(HttpMethod.class),
-				Mockito.any(HttpEntity.class),  (Class<?>) Mockito.any(Class.class));
+				Mockito.any(HttpEntity.class), (Class<?>) isNull());
 
 		PropertyAccessor dfa = new DirectFieldAccessor(this.handlermp);
 		dfa.setPropertyValue("restTemplate", template);

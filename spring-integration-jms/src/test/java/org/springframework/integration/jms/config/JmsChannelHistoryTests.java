@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class JmsChannelHistoryTests {
 
 		doAnswer(invocation -> {
 			@SuppressWarnings("unchecked")
-			Message<String> msg = invocation.getArgumentAt(0, Message.class);
+			Message<String> msg = invocation.getArgument(0);
 			MessageHistory history = MessageHistory.read(msg);
 			assertTrue(history.get(0).contains("jmsChannel"));
 			return null;

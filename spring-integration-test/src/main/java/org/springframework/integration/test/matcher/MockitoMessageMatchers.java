@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 
 package org.springframework.integration.test.matcher;
 
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
 import java.util.Map;
 
 import org.hamcrest.Matcher;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
+import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 
 import org.springframework.messaging.Message;
 
@@ -33,7 +35,7 @@ import org.springframework.messaging.Message;
  * This class contains expressive factory methods for the most common Mockito
  * matchers needed when matching {@link Message}s. If you need a different
  * matching strategy, any Hamcrest matcher can be used in Mockito through
- * {@link Mockito#argThat(Matcher)}.
+ * {@link Mockito#argThat(ArgumentMatcher)}.
  *
  * Example usage:
  * <p>
@@ -64,6 +66,7 @@ import org.springframework.messaging.Message;
  *
  * @author Alex Peters
  * @author Iwein Fuld
+ * @author Artem Bilan
  *
  */
 public class MockitoMessageMatchers {
@@ -74,28 +77,28 @@ public class MockitoMessageMatchers {
 
 	@SuppressWarnings("unchecked")
 	public static <T> Message<T> messageWithPayload(Matcher<T> payloadMatcher) {
-		return argThat(hasPayload(payloadMatcher));
+		return argThat(new HamcrestArgumentMatcher<>(hasPayload(payloadMatcher)));
 	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> Message<T> messageWithPayload(T payload) {
-		return argThat(hasPayload(payload));
+		return argThat(new HamcrestArgumentMatcher<>(hasPayload(payload)));
 	}
 
 	public static Message<?> messageWithHeaderEntry(String key, Object value) {
-		return argThat(hasHeader(key, value));
+		return argThat(new HamcrestArgumentMatcher<>(hasHeader(key, value)));
 	}
 
 	public static Message<?> messageWithHeaderKey(String key) {
-		return argThat(HeaderMatcher.hasHeaderKey(key));
+		return argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.hasHeaderKey(key)));
 	}
 
-	public static <T> Message<?> messageWithHeaderEntry(String key,
-			Matcher<T> valueMatcher) {
-		return argThat(HeaderMatcher.<T>hasHeader(key, valueMatcher));
+	public static <T> Message<?> messageWithHeaderEntry(String key, Matcher<T> valueMatcher) {
+		return argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.<T>hasHeader(key, valueMatcher)));
 	}
 
 	public static Message<?> messageWithHeaderEntries(Map<String, ?> entries) {
-		return argThat(HeaderMatcher.hasAllHeaders(entries));
+		return argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.hasAllHeaders(entries)));
 	}
+
 }

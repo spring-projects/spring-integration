@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.integration.file.remote.handler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -64,7 +64,7 @@ public class FileTransferringMessageHandlerTests {
 
 		when(sf.getSession()).thenReturn(session);
 		doAnswer(invocation -> {
-			String path =  invocation.getArgumentAt(1, String.class);
+			String path =  invocation.getArgument(1);
 			assertFalse(path.startsWith("/"));
 			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
@@ -87,8 +87,8 @@ public class FileTransferringMessageHandlerTests {
 		final AtomicReference<String> finalPath = new AtomicReference<String>();
 		when(sf.getSession()).thenReturn(session);
 		doAnswer(invocation -> {
-			temporaryPath.set(invocation.getArgumentAt(0, String.class));
-			finalPath.set(invocation.getArgumentAt(1, String.class));
+			temporaryPath.set(invocation.getArgument(0));
+			finalPath.set(invocation.getArgument(1));
 			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
@@ -110,7 +110,7 @@ public class FileTransferringMessageHandlerTests {
 
 		when(sf.getSession()).thenReturn(session);
 		doAnswer(invocation -> {
-			String path =  invocation.getArgumentAt(1, String.class);
+			String path =  invocation.getArgument(1);
 			assertFalse(path.startsWith("/"));
 			return null;
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
@@ -195,4 +195,5 @@ public class FileTransferringMessageHandlerTests {
 		when(session.isOpen()).thenReturn(false);
 		return session;
 	}
+
 }

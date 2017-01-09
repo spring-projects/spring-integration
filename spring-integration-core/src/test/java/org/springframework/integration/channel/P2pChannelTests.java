@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,9 +55,9 @@ public class P2pChannelTests {
 	private void verifySubscriptions(final AbstractSubscribableChannel channel) {
 		final Log logger = mock(Log.class);
 		when(logger.isInfoEnabled()).thenReturn(true);
-		final List<String> logs = new ArrayList<String>();
+		final List<String> logs = new ArrayList<>();
 		doAnswer(invocation -> {
-			logs.add(invocation.getArgumentAt(0, String.class));
+			logs.add(invocation.getArgument(0));
 			return null;
 		}).when(logger).info(Mockito.anyString());
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, field -> {

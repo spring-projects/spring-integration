@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.jms;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -29,7 +31,6 @@ import javax.jms.Session;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.internal.stubbing.answers.DoesNothing;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -73,7 +74,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 		final QueueChannel requestChannel = new QueueChannel();
 		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
 		Log logger = spy(TestUtils.getPropertyValue(listener, "logger", Log.class));
-		doAnswer(new DoesNothing()).when(logger).error(Matchers.anyString(), Matchers.any(Throwable.class));
+		doAnswer(new DoesNothing()).when(logger).error(anyString(), any(Throwable.class));
 		new DirectFieldAccessor(listener).setPropertyValue("logger", logger);
 		listener.setRequestChannel(requestChannel);
 		QueueChannel errorChannel = new QueueChannel();

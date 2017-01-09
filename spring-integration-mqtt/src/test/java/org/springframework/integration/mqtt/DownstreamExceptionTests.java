@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.integration.mqtt;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.contains;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -75,9 +75,9 @@ public class DownstreamExceptionTests {
 	public void testNoErrorChannel() throws Exception {
 		service.n = 0;
 		Log logger = spy(TestUtils.getPropertyValue(noErrorChannel, "logger", Log.class));
-		final  CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch latch = new CountDownLatch(1);
 		doAnswer(invocation -> {
-			if ((invocation.getArgumentAt(0, String.class)).contains("Unhandled")) {
+			if (((String) invocation.getArgument(0)).contains("Unhandled")) {
 				latch.countDown();
 			}
 			return null;

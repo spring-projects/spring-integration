@@ -83,7 +83,7 @@
 				org.hamcrest.Matchers.*,
 				org.mockito.Mockito.*,
 				org.mockito.BDDMockito.*,
-				org.mockito.Matchers.*,
+				org.mockito.ArgumentMatchers.*,
 				org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*,
 				org.springframework.test.web.servlet.result.MockMvcResultMatchers.*,
 				org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*,

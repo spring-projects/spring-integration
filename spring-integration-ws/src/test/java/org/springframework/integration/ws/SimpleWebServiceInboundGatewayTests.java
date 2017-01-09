@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package org.springframework.integration.ws;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,7 +39,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -114,7 +115,7 @@ public class SimpleWebServiceInboundGatewayTests {
 
 
 	private Message<?> messageWithPayload(final Object payload) {
-		return argThat(new BaseMatcher<Message<?>>() {
+		return argThat(new HamcrestArgumentMatcher<>(new BaseMatcher<Message<?>>() {
 
 			@Override
 			public boolean matches(Object candidate) {
@@ -126,7 +127,7 @@ public class SimpleWebServiceInboundGatewayTests {
 				description.appendText("A message with payload: " + payload);
 			}
 
-		});
+		}));
 	}
 
 	private Answer<Boolean> withReplyTo(final MessageChannel replyChannel) {

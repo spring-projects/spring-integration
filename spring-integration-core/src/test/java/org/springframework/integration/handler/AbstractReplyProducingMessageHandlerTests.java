@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,35 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.containsString;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Iwein Fuld
  * @author Gunnar Hillert
  */
-@RunWith(org.mockito.runners.MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class AbstractReplyProducingMessageHandlerTests {
 
 	private AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			return requestMessage;
 		}
+
 	};
 
 	private Message<?> message = MessageBuilder.withPayload("test").build();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@ import javax.mail.internet.MimeMessage;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -82,13 +80,10 @@ public class MessageWithContentTypeTests {
 		MimeMessage mMessage = new TestMimeMessage();
 		// MOCKS
 		when(sender.createMimeMessage()).thenReturn(mMessage);
-		doAnswer(new Answer<Object>() {
-			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				MimeMessage mimeMessage = invocation.getArgumentAt(0, MimeMessage.class);
-				assertEquals("text/html", mimeMessage.getDataHandler().getContentType());
-				return null;
-			}
+		doAnswer(invocation -> {
+			MimeMessage mimeMessage = invocation.getArgument(0);
+			assertEquals("text/html", mimeMessage.getDataHandler().getContentType());
+			return null;
 		}).when(sender).send(Mockito.any(MimeMessage.class));
 
 		// handle message
@@ -102,4 +97,5 @@ public class MessageWithContentTypeTests {
 			super(Session.getDefaultInstance(new Properties()));
 		}
 	}
+
 }

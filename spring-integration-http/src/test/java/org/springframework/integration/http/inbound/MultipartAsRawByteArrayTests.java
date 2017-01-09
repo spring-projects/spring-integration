@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -32,7 +33,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -73,14 +73,14 @@ public class MultipartAsRawByteArrayTests {
 
 			@Override
 			public Integer answer(InvocationOnMock invocation) throws Throwable {
-				byte[] buff = invocation.getArgumentAt(0, byte[].class);
+				byte[] buff = invocation.getArgument(0);
 				buff[0] = 'f';
 				buff[1] = 'o';
 				buff[2] = 'o';
 				return done++ > 0 ? -1 : 3;
 			}
 
-		}).when(sis).read(Matchers.any(byte[].class));
+		}).when(sis).read(any(byte[].class));
 		when(request.getInputStream()).thenReturn(sis);
 		when(request.getMethod()).thenReturn("POST");
 		when(request.getHeaderNames()).thenReturn(mock(Enumeration.class));

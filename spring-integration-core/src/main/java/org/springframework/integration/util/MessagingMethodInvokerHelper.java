@@ -578,7 +578,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 			}
 		}
-		else if (org.springframework.util.ClassUtils.isCglibProxyClass(targetClass)) {
+		else if (org.springframework.util.ClassUtils.isCglibProxyClass(targetClass)
+				|| targetClass.getSimpleName().contains("$MockitoMock$")) {
 			Class<?> superClass = targetObject.getClass().getSuperclass();
 			if (!Object.class.equals(superClass)) {
 				targetClass = superClass;

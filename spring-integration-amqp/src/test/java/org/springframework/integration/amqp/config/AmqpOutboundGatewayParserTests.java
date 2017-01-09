@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -34,7 +34,6 @@ import org.mockito.Mockito;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -132,7 +131,7 @@ public class AmqpOutboundGatewayParserTests {
 			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
 		})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), any(CorrelationData.class));
+				Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = context.getBean("toRabbit1", MessageChannel.class);
@@ -141,7 +140,7 @@ public class AmqpOutboundGatewayParserTests {
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).sendAndReceive(Mockito.any(String.class),
 				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
-				any(CorrelationData.class));
+				isNull());
 
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
@@ -197,7 +196,7 @@ public class AmqpOutboundGatewayParserTests {
 			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
 		})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), any(CorrelationData.class));
+				Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = context.getBean("toRabbit2", MessageChannel.class);
@@ -206,7 +205,7 @@ public class AmqpOutboundGatewayParserTests {
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).sendAndReceive(Mockito.any(String.class),
 				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
-				any(CorrelationData.class));
+				isNull());
 
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
@@ -248,7 +247,7 @@ public class AmqpOutboundGatewayParserTests {
 			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
 		})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), any(CorrelationData.class));
+				Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 		MessageChannel requestChannel = context.getBean("toRabbit3", MessageChannel.class);
@@ -257,7 +256,7 @@ public class AmqpOutboundGatewayParserTests {
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).sendAndReceive(Mockito.any(String.class),
 				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
-				any(CorrelationData.class));
+				isNull());
 
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
@@ -301,7 +300,7 @@ public class AmqpOutboundGatewayParserTests {
 			return new org.springframework.amqp.core.Message("hello".getBytes(), amqpProperties);
 		})
 				.when(amqpTemplate).sendAndReceive(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), any(CorrelationData.class));
+				Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
 
 
@@ -311,7 +310,7 @@ public class AmqpOutboundGatewayParserTests {
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).sendAndReceive(Mockito.any(String.class),
 				Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class),
-				any(CorrelationData.class));
+				isNull());
 
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);

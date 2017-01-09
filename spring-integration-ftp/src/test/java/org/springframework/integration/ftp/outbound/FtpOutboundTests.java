@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -44,8 +44,6 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -73,6 +71,7 @@ import org.springframework.util.FileCopyUtils;
 public class FtpOutboundTests {
 
 	private static FTPClient ftpClient;
+
 	private TestFtpSessionFactory sessionFactory;
 
 	@Before
@@ -159,9 +158,9 @@ public class FtpOutboundTests {
 
 		Log logger = spy(TestUtils.getPropertyValue(handler, "remoteFileTemplate.logger", Log.class));
 		when(logger.isWarnEnabled()).thenReturn(true);
-		final AtomicReference<String> logged = new AtomicReference<String>();
+		final AtomicReference<String> logged = new AtomicReference<>();
 		doAnswer(invocation -> {
-			logged.set(invocation.getArgumentAt(0, String.class));
+			logged.set(invocation.getArgument(0));
 			invocation.callRealMethod();
 			return null;
 		}).when(logger).warn(Mockito.anyString());
@@ -228,27 +227,20 @@ public class FtpOutboundTests {
 				when(ftpClient.login("kermit", "frog")).thenReturn(true);
 				when(ftpClient.changeWorkingDirectory(Mockito.anyString())).thenReturn(true);
 				when(ftpClient.printWorkingDirectory()).thenReturn("remote-target-dir");
-				when(ftpClient.storeFile(Mockito.anyString(), any(InputStream.class))).thenAnswer(new Answer<Boolean>() {
-					@Override
-					public Boolean answer(InvocationOnMock invocation) throws Throwable {
-						String fileName = invocation.getArgumentAt(0, String.class);
-						InputStream fis = invocation.getArgumentAt(1, InputStream.class);
-						FileCopyUtils.copy(fis, new FileOutputStream(fileName));
-						return true;
-					}
+				when(ftpClient.storeFile(Mockito.anyString(), any(InputStream.class))).thenAnswer(invocation -> {
+					String fileName = invocation.getArgument(0);
+					InputStream fis = invocation.getArgument(1);
+					FileCopyUtils.copy(fis, new FileOutputStream(fileName));
+					return true;
 				});
-				when(ftpClient.rename(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<Boolean>() {
-					@Override
-					public Boolean answer(InvocationOnMock invocation)
-							throws Throwable {
-						File file = new File(invocation.getArgumentAt(0, String.class));
-						File renameToFile = new File(invocation.getArgumentAt(1, String.class));
-						file.renameTo(renameToFile);
-						return true;
-					}
+				when(ftpClient.rename(Mockito.anyString(), Mockito.anyString())).thenAnswer(invocation -> {
+					File file = new File((String) invocation.getArgument(0));
+					File renameToFile = new File((String) invocation.getArgument(1));
+					file.renameTo(renameToFile);
+					return true;
 				});
 				String[] files = new File("remote-test-dir").list();
-				Collection<Object> ftpFiles = new ArrayList<Object>();
+				Collection<FTPFile> ftpFiles = new ArrayList<>();
 				for (String fileName : files) {
 					FTPFile file = new FTPFile();
 					file.setName(fileName);
@@ -258,13 +250,15 @@ public class FtpOutboundTests {
 					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName),
 							any(OutputStream.class))).thenReturn(true);
 				}
-				when(ftpClient.listFiles("remote-test-dir/")).thenReturn(ftpFiles.toArray(new FTPFile[]{}));
+				when(ftpClient.listFiles("remote-test-dir/"))
+						.thenReturn(ftpFiles.toArray(new FTPFile[ftpFiles.size()]));
 				return ftpClient;
 			}
 			catch (Exception e) {
 				throw new RuntimeException("Failed to create mock client", e);
 			}
 		}
+
 	}
 
 }

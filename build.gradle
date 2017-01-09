@@ -3,7 +3,7 @@ buildscript {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
 	dependencies {
-		classpath 'io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE'
+		classpath 'io.spring.gradle:dependency-management-plugin:1.0.0.RC2'
 		classpath 'io.spring.gradle:spring-io-plugin:0.0.6.RELEASE'
 		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
@@ -61,7 +61,7 @@ subprojects { subproject ->
 	apply plugin: 'jacoco'
 	apply plugin: 'checkstyle'
 
-	if (project.hasProperty('platformVersion')) {
+	if (project.hasProperty('platformVersion') && !(subproject.name ==~ /.*-bom/)) {
 		apply plugin: 'spring-io'
 
 		dependencyManagement {
@@ -112,7 +112,7 @@ subprojects { subproject ->
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
 		log4jVersion = '1.2.17'
-		mockitoVersion = '1.10.19'
+		mockitoVersion = '2.5.4'
 		mysqlVersion = '5.1.34'
 		pahoMqttClientVersion = '1.0.2'
 		postgresVersion = '9.1-901-1.jdbc4'

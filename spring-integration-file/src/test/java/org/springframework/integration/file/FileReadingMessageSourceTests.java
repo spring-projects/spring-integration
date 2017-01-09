@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,7 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.messaging.Message;
 
@@ -154,9 +154,6 @@ public class FileReadingMessageSourceTests {
 		// record the comparator to reverse order the files
 		when(comparator.compare(file1, file2)).thenReturn(1);
 		when(comparator.compare(file1, file3)).thenReturn(1);
-		when(comparator.compare(file2, file3)).thenReturn(1);
-		when(comparator.compare(file2, file1)).thenReturn(-1);
-		when(comparator.compare(file3, file1)).thenReturn(-1);
 		when(comparator.compare(file3, file2)).thenReturn(-1);
 
 		when(inputDirectoryMock.listFiles()).thenReturn(new File[]{file2, file3, file1});

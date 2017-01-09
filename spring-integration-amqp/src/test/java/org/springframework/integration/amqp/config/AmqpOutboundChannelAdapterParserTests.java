@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -40,7 +42,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.internal.stubbing.answers.DoesNothing;
 
@@ -156,8 +157,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 				.setHeader("foobar", "foobar")
 				.build();
 		requestChannel.send(message);
-		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class), Mockito.any(CorrelationData.class));
+		Mockito.verify(amqpTemplate, Mockito.times(1)).send(anyString(),
+				isNull(), Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 
 		shouldBePersistent.set(true);
 		message = MessageBuilder.withPayload("hello")
@@ -211,9 +212,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		MessageChannel requestChannel = context.getBean("amqpOutboundChannelAdapterWithinChain", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").build();
 		requestChannel.send(message);
-		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(org.springframework.amqp.core.Message.class),
-				Mockito.any(CorrelationData.class));
+		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class),
+				isNull(), Mockito.any(org.springframework.amqp.core.Message.class), isNull());
 	}
 
 	@Test
@@ -316,7 +316,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		handler.afterPropertiesSet();
 		handler.start();
 		handler.stop();
-		verify(logger, never()).error(Matchers.anyString(), any(RuntimeException.class));
+		verify(logger, never()).error(anyString(), any(RuntimeException.class));
 		handler.setLazyConnect(false);
 		handler.start();
 		verify(logger).error("Failed to eagerly establish the connection.", toBeThrown);
