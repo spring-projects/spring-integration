@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.isNull;
 
 import java.lang.reflect.Field;
 
@@ -33,7 +34,6 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,7 +120,7 @@ public class AmqpInboundGatewayParserTests {
 			assertEquals("bar", properties.getHeaders().get("bar"));
 			return null;
 		}).when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(Message.class), Mockito.any(CorrelationData.class));
+				Mockito.any(Message.class), isNull());
 		ReflectionUtils.setField(amqpTemplateField, gateway, amqpTemplate);
 
 		AbstractMessageListenerContainer mlc =
@@ -140,7 +140,7 @@ public class AmqpInboundGatewayParserTests {
 		listener.onMessage(amqpMessage, null);
 
 		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
-				Mockito.any(Message.class), Mockito.any(CorrelationData.class));
+				Mockito.any(Message.class), isNull());
 	}
 
 	@Test

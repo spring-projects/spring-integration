@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -309,7 +309,7 @@ public class RemoteFileOutboundGatewayTests {
 		}).when(session).rename(anyString(), anyString());
 		final List<String> madeDirs = new ArrayList<String>();
 		doAnswer(invocation -> {
-			madeDirs.add(invocation.getArgumentAt(0, String.class));
+			madeDirs.add(invocation.getArgument(0));
 			return null;
 		}).when(session).mkdir(anyString());
 		when(sessionFactory.getSession()).thenReturn(session);
@@ -909,7 +909,7 @@ public class RemoteFileOutboundGatewayTests {
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<String>();
 		doAnswer(invocation -> {
-			written.set(invocation.getArgumentAt(1, String.class));
+			written.set(invocation.getArgument(1));
 			return null;
 		}).when(session).write(any(InputStream.class), anyString());
 		tempFolder.newFile("baz.txt");
@@ -943,7 +943,7 @@ public class RemoteFileOutboundGatewayTests {
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<String>();
 		doAnswer(invocation -> {
-			written.set(invocation.getArgumentAt(1, String.class));
+			written.set(invocation.getArgument(1));
 			return null;
 		}).when(session).write(any(InputStream.class), anyString());
 		tempFolder.newFile("baz.txt");

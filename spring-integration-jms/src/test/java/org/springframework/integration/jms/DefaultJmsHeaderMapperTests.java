@@ -533,7 +533,7 @@ public class DefaultJmsHeaderMapperTests {
 
 		Session session = Mockito.mock(Session.class);
 
-		Mockito.doAnswer(invocation -> new StubTextMessage(invocation.getArgumentAt(0, String.class))).when(session)
+		Mockito.doAnswer(invocation -> new StubTextMessage(invocation.getArgument(0))).when(session)
 				.createTextMessage(Mockito.anyString());
 
 		javax.jms.Message request = converter.toMessage(new Foo(), session);

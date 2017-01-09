@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -38,7 +38,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -159,7 +159,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
-		verify(exceptionRegistry, times(TOTAL_EXECUTIONS)).add((Exception) anyObject());
+		verify(exceptionRegistry, times(TOTAL_EXECUTIONS)).add(any(Exception.class));
 	}
 
 	@Test
@@ -178,10 +178,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 			throw e;
 		}).when(handlerA).handleMessage(message);
 
-		doAnswer(invocation -> {
-			allDone.countDown();
-			return null;
-		}).when(handlerB).handleMessage(message);
 
 		Runnable messageSenderTask = () -> {
 			try {
@@ -204,7 +200,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
-		verify(exceptionRegistry, times(TOTAL_EXECUTIONS)).add((Exception) anyObject());
+		verify(exceptionRegistry, times(TOTAL_EXECUTIONS)).add(any(Exception.class));
 	}
 
 	@Test
@@ -286,7 +282,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(handlerA, times(14)).handleMessage(message);
 		verify(handlerB, times(13)).handleMessage(message);
 		verify(handlerC, times(13)).handleMessage(message);
-		verify(exceptionRegistry, times(14)).add((Exception) anyObject());
+		verify(exceptionRegistry, times(14)).add(any(Exception.class));
 	}
 
 	@Test
@@ -339,7 +335,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(handlerA, times(14)).handleMessage(message);
 		verify(handlerB, times(13)).handleMessage(message);
 		verify(handlerC, times(13)).handleMessage(message);
-		verify(exceptionRegistry, times(14)).add((Exception) anyObject());
+		verify(exceptionRegistry, times(14)).add(any(Exception.class));
 	}
 
 	@Test
@@ -420,7 +416,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerC, never()).handleMessage(message);
-		verify(exceptionRegistry, never()).add((Exception) anyObject());
+		verify(exceptionRegistry, never()).add(any(Exception.class));
 	}
 
 	@Test
@@ -440,7 +436,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 			allDone.countDown();
 			return null;
 		}).when(handlerB).handleMessage(message);
-		doAnswer(invocation -> null).when(handlerC).handleMessage(message);
 
 		Runnable messageSenderTask = () -> {
 			try {

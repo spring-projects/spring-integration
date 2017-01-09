@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -63,10 +64,10 @@ public class OutboundEndpointTests {
 		RabbitTemplate amqpTemplate = spy(new RabbitTemplate(connectionFactory));
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
 		willDoNothing()
-				.given(amqpTemplate).send(anyString(), anyString(), any(Message.class), any(CorrelationData.class));
-		willAnswer(invocation -> invocation.getArgumentAt(2, Message.class))
+				.given(amqpTemplate).send(anyString(), anyString(), any(Message.class), isNull());
+		willAnswer(invocation -> invocation.getArgument(2))
 				.given(amqpTemplate)
-					.sendAndReceive(anyString(), anyString(), any(Message.class), any(CorrelationData.class));
+					.sendAndReceive(anyString(), anyString(), any(Message.class), isNull());
 		endpoint.setExchangeName("foo");
 		endpoint.setRoutingKey("bar");
 		endpoint.setDelayExpressionString("42");
@@ -74,19 +75,19 @@ public class OutboundEndpointTests {
 		endpoint.afterPropertiesSet();
 		endpoint.handleMessage(new GenericMessage<>("foo"));
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
-		verify(amqpTemplate).send(eq("foo"), eq("bar"), captor.capture(), any(CorrelationData.class));
+		verify(amqpTemplate).send(eq("foo"), eq("bar"), captor.capture(), isNull());
 		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(42));
 		endpoint.setExpectReply(true);
 		endpoint.setOutputChannel(new NullChannel());
 		endpoint.handleMessage(new GenericMessage<>("foo"));
-		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture(), any(CorrelationData.class));
+		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture(), isNull());
 		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(42));
 
 		endpoint.setDelay(23);
 		endpoint.setRoutingKey("baz");
 		endpoint.afterPropertiesSet();
 		endpoint.handleMessage(new GenericMessage<>("foo"));
-		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("baz"), captor.capture(), any(CorrelationData.class));
+		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("baz"), captor.capture(), isNull());
 		assertThat(captor.getValue().getMessageProperties().getDelay(), equalTo(23));
 	}
 
@@ -98,7 +99,7 @@ public class OutboundEndpointTests {
 		amqpTemplate.setTaskScheduler(mock(TaskScheduler.class));
 		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(amqpTemplate);
 		willAnswer(
-				invocation -> amqpTemplate.new RabbitMessageFuture("foo", invocation.getArgumentAt(2, Message.class)))
+				invocation -> amqpTemplate.new RabbitMessageFuture("foo", invocation.getArgument(2)))
 					.given(amqpTemplate).sendAndReceive(anyString(), anyString(), any(Message.class));
 		gateway.setExchangeName("foo");
 		gateway.setRoutingKey("bar");
@@ -120,10 +121,9 @@ public class OutboundEndpointTests {
 		final AtomicReference<Message> amqpMessage =
 				new AtomicReference<Message>();
 		willAnswer(invocation -> {
-			amqpMessage.set(invocation.getArgumentAt(2, Message.class));
+			amqpMessage.set(invocation.getArgument(2));
 			return null;
-		}).given(amqpTemplate).send(anyString(), anyString(), any(Message.class),
-				any(CorrelationData.class));
+		}).given(amqpTemplate).send(isNull(), isNull(), any(Message.class), isNull());
 		org.springframework.messaging.Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(MessageHeaders.CONTENT_TYPE, "bar")
 				.build();
@@ -144,10 +144,10 @@ public class OutboundEndpointTests {
 		final AtomicReference<Message> amqpMessage =
 				new AtomicReference<Message>();
 		willAnswer(invocation -> {
-			amqpMessage.set(invocation.getArgumentAt(2, Message.class));
+			amqpMessage.set(invocation.getArgument(2));
 			return null;
 		}).given(amqpTemplate)
-				.doSendAndReceiveWithTemporary(anyString(), anyString(), any(Message.class), any(CorrelationData.class));
+				.doSendAndReceiveWithTemporary(isNull(), isNull(), any(Message.class), isNull());
 		org.springframework.messaging.Message<?> message = MessageBuilder.withPayload("foo")
 				.setHeader(MessageHeaders.CONTENT_TYPE, "bar")
 				.setReplyChannel(new QueueChannel())

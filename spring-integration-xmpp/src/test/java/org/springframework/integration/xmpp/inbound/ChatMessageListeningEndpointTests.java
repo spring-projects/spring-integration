@@ -21,9 +21,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -37,7 +39,6 @@ import org.apache.commons.logging.Log;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.util.PacketParserUtils;
@@ -74,21 +75,21 @@ public class ChatMessageListeningEndpointTests {
 	 * Should add/remove StanzaListener when endpoint started/stopped
 	 */
 	public void testLifecycle() {
-		final Set<StanzaListener> packetListSet = new HashSet<StanzaListener>();
+		final Set<StanzaListener> packetListSet = new HashSet<>();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(connection);
 
 		willAnswer(invocation -> {
-			packetListSet.add(invocation.getArgumentAt(0, StanzaListener.class));
+			packetListSet.add(invocation.getArgument(0));
 			return null;
 		}).given(connection)
-				.addAsyncStanzaListener(Mockito.any(StanzaListener.class), Mockito.any(StanzaFilter.class));
+				.addAsyncStanzaListener(any(StanzaListener.class), isNull());
 
 		willAnswer(invocation -> {
-			packetListSet.remove(invocation.getArguments()[0]);
+			packetListSet.remove((StanzaListener) invocation.getArgument(0));
 			return null;
 		}).given(connection)
-				.removeAsyncStanzaListener(Mockito.any(StanzaListener.class));
+				.removeAsyncStanzaListener(any(StanzaListener.class));
 
 		assertEquals(0, packetListSet.size());
 		endpoint.setOutputChannel(new QueueChannel());
@@ -262,7 +263,5 @@ public class ChatMessageListeningEndpointTests {
 		}
 
 	}
-
-
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,9 +114,9 @@ public class UriVariableTests {
 	public void testHttpUriVariables() {
 		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(this.httpOutboundGateway, "webServiceTemplate", WebServiceTemplate.class);
 		webServiceTemplate = Mockito.spy(webServiceTemplate);
-		final AtomicReference<String> uri = new AtomicReference<String>();
+		final AtomicReference<String> uri = new AtomicReference<>();
 		doAnswer(invocation -> {
-			uri.set(invocation.getArgumentAt(0, String.class));
+			uri.set(invocation.getArgument(0));
 			throw new WebServiceIOException("intentional");
 		}).when(webServiceTemplate)
 				.sendAndReceive(Mockito.anyString(),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.contains;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -122,7 +122,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		});
 		when(txAdvice.invoke(any(MethodInvocation.class))).thenAnswer(invocation -> {
 			count.incrementAndGet();
-			return invocation.getArgumentAt(0, MethodInvocation.class).proceed();
+			return ((MethodInvocation) invocation.getArgument(0)).proceed();
 		});
 
 		pollerMetadata.setAdviceChain(adviceChain);
@@ -195,7 +195,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		TaskScheduler taskScheduler = mock(TaskScheduler.class);
 
 		willAnswer(invocation -> {
-			Runnable task = invocation.getArgumentAt(0, Runnable.class);
+			Runnable task = invocation.getArgument(0);
 			task.run();
 			return null;
 		})

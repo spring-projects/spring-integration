@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.xmpp.outbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -31,7 +31,6 @@ import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -64,18 +63,12 @@ public class ChatMessageSendingMessageHandlerTests {
 		// first Message new
 		handler.handleMessage(message);
 
-		class EqualSmackMessage extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
-
-			@Override
-			public boolean matches(Object msg) {
-				org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
-				boolean bodyMatches = smackMessage.getBody().equals("Test Message");
-				boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
-				return bodyMatches & toMatches;
-			}
-		}
-
-		verify(connection, times(1)).sendStanza(Mockito.argThat(new EqualSmackMessage()));
+		verify(connection, times(1))
+				.sendStanza(Mockito.argThat((org.jivesoftware.smack.packet.Message smackMessage) -> {
+					boolean bodyMatches = smackMessage.getBody().equals("Test Message");
+					boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
+					return bodyMatches & toMatches;
+				}));
 
 		// assuming we know thread ID although currently we do not provide this capability
 		message = MessageBuilder.withPayload("Hello Kitty").
@@ -83,22 +76,17 @@ public class ChatMessageSendingMessageHandlerTests {
 				setHeader(XmppHeaders.THREAD, "123").
 				build();
 
-		class EqualSmackMessageWithThreadId extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
-
-			@Override
-			public boolean matches(Object msg) {
-				org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
-				boolean bodyMatches = smackMessage.getBody().equals("Hello Kitty");
-				boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
-				boolean threadIdMatches = smackMessage.getThread().equals("123");
-				return bodyMatches & toMatches & threadIdMatches;
-			}
-		}
 		reset(connection);
 		handler.handleMessage(message);
 
 		// in threaded conversation we need to look for existing chat
-		verify(connection, times(1)).sendStanza(Mockito.argThat(new EqualSmackMessageWithThreadId()));
+		verify(connection, times(1))
+				.sendStanza(Mockito.argThat((org.jivesoftware.smack.packet.Message smackMessage) -> {
+					boolean bodyMatches = smackMessage.getBody().equals("Hello Kitty");
+					boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
+					boolean threadIdMatches = smackMessage.getThread().equals("123");
+					return bodyMatches & toMatches & threadIdMatches;
+				}));
 
 		reset(connection);
 		final String json = "{\"foo\": \"bar\"}";
@@ -107,20 +95,14 @@ public class ChatMessageSendingMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 
-		class EqualExtension extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
-
-			@Override
-			public boolean matches(Object msg) {
-				org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
-				boolean bodyMatches = smackMessage.getBody() == null;
-				boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
-				GcmPacketExtension gcmPacketExtension = GcmPacketExtension.from(smackMessage);
-				boolean jsonMatches = gcmPacketExtension != null && gcmPacketExtension.getJson().equals(json);
-				return bodyMatches & toMatches & jsonMatches;
-			}
-		}
-
-		verify(connection, times(1)).sendStanza(Mockito.argThat(new EqualExtension()));
+		verify(connection, times(1))
+				.sendStanza(Mockito.argThat((org.jivesoftware.smack.packet.Message smackMessage) -> {
+					boolean bodyMatches = smackMessage.getBody() == null;
+					boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
+					GcmPacketExtension gcmPacketExtension = GcmPacketExtension.from(smackMessage);
+					boolean jsonMatches = gcmPacketExtension != null && gcmPacketExtension.getJson().equals(json);
+					return bodyMatches & toMatches & jsonMatches;
+				}));
 	}
 
 	@Test

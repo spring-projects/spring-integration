@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.xmpp.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
@@ -64,12 +64,12 @@ public class PresenceListeningEndpointTests {
 		instances.put(connection, roster);
 
 		doAnswer(invocation -> {
-			rosterSet.add(invocation.getArgumentAt(0, RosterListener.class));
+			rosterSet.add(invocation.getArgument(0));
 			return null;
 		}).when(roster).addRosterListener(any(RosterListener.class));
 
 		doAnswer(invocation -> {
-			rosterSet.remove(invocation.getArgumentAt(0, RosterListener.class));
+			rosterSet.remove((RosterListener) invocation.getArgument(0));
 			return null;
 		}).when(roster).removeRosterListener(any(RosterListener.class));
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);

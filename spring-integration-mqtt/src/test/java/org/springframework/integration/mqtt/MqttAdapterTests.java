@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -81,6 +81,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.0
  *
  */
@@ -154,7 +155,7 @@ public class MqttAdapterTests {
 		final MqttToken token = mock(MqttToken.class);
 		final AtomicBoolean connectCalled = new AtomicBoolean();
 		doAnswer(invocation -> {
-			MqttConnectOptions options = invocation.getArgumentAt(0, MqttConnectOptions.class);
+			MqttConnectOptions options = invocation.getArgument(0);
 			assertEquals(23, options.getConnectionTimeout());
 			assertEquals(45, options.getKeepAliveInterval());
 			assertEquals("pass", new String(options.getPassword()));
@@ -173,7 +174,7 @@ public class MqttAdapterTests {
 		final AtomicBoolean publishCalled = new AtomicBoolean();
 		doAnswer(invocation -> {
 			assertEquals("mqtt-foo", invocation.getArguments()[0]);
-			MqttMessage message = invocation.getArgumentAt(1, MqttMessage.class);
+			MqttMessage message = invocation.getArgument(1);
 			assertEquals("Hello, world!", new String(message.getPayload()));
 			publishCalled.set(true);
 			return deliveryToken;
@@ -219,7 +220,7 @@ public class MqttAdapterTests {
 				waitToFail.await(10, TimeUnit.SECONDS);
 				throw reconnectException;
 			}
-			MqttConnectOptions options = invocation.getArgumentAt(0, MqttConnectOptions.class);
+			MqttConnectOptions options = invocation.getArgument(0);
 			assertEquals(23, options.getConnectionTimeout());
 			assertEquals(45, options.getKeepAliveInterval());
 			assertEquals("pass", new String(options.getPassword()));
@@ -238,7 +239,7 @@ public class MqttAdapterTests {
 
 		final AtomicReference<MqttCallback> callback = new AtomicReference<MqttCallback>();
 		doAnswer(invocation -> {
-			callback.set(invocation.getArgumentAt(0, MqttCallback.class));
+			callback.set(invocation.getArgument(0));
 			return null;
 		}).when(client).setCallback(any(MqttCallback.class));
 
@@ -255,7 +256,7 @@ public class MqttAdapterTests {
 		ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
 		final BlockingQueue<MqttIntegrationEvent> events = new LinkedBlockingQueue<MqttIntegrationEvent>();
 		doAnswer(invocation -> {
-			events.add(invocation.getArgumentAt(0, MqttIntegrationEvent.class));
+			events.add(invocation.getArgument(0));
 			return null;
 		}).when(applicationEventPublisher).publishEvent(any(MqttIntegrationEvent.class));
 		adapter.setApplicationEventPublisher(applicationEventPublisher);
@@ -353,18 +354,18 @@ public class MqttAdapterTests {
 				TestUtils.getPropertyValue(handler, "topicProcessor", MessageProcessor.class).processMessage(message));
 		assertEquals(1,
 				TestUtils.getPropertyValue(handler, "converter.qosProcessor", MessageProcessor.class)
-					.processMessage(message));
+						.processMessage(message));
 		assertEquals(Boolean.TRUE,
 				TestUtils.getPropertyValue(handler, "converter.retainedProcessor", MessageProcessor.class)
-					.processMessage(message));
+						.processMessage(message));
 
 		handler = ctx.getBean("handlerWithNullExpressions", MqttPahoMessageHandler.class);
 		assertEquals(1,
 				TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
-					.fromMessage(message, null).getQos());
+						.fromMessage(message, null).getQos());
 		assertEquals(Boolean.TRUE,
 				TestUtils.getPropertyValue(handler, "converter", DefaultPahoMessageConverter.class)
-					.fromMessage(message, null).isRetained());
+						.fromMessage(message, null).isRetained());
 		ctx.close();
 	}
 

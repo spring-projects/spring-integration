@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.twitter.outbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -29,7 +30,6 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -79,11 +79,11 @@ public class TwitterSearchOutboundGatewayTests {
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		doAnswer(invocation -> {
-			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			SearchParameters searchParameters = invocation.getArgument(0);
 			assertEquals("foo", searchParameters.getQuery());
 			assertEquals(Integer.valueOf(20), searchParameters.getCount());
 			return searchResults;
-		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
+		}).when(this.searchOps).search(any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = this.outputChannel.receive(0);
 		assertNotNull(reply);
@@ -102,11 +102,11 @@ public class TwitterSearchOutboundGatewayTests {
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		doAnswer(invocation -> {
-			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			SearchParameters searchParameters = invocation.getArgument(0);
 			assertEquals("foo", searchParameters.getQuery());
 			assertEquals(Integer.valueOf(30), searchParameters.getCount());
 			return searchResults;
-		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
+		}).when(this.searchOps).search(any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = this.outputChannel.receive(0);
 		assertNotNull(reply);
@@ -125,13 +125,13 @@ public class TwitterSearchOutboundGatewayTests {
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		doAnswer(invocation -> {
-			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			SearchParameters searchParameters = invocation.getArgument(0);
 			assertEquals("bar", searchParameters.getQuery());
 			assertEquals(Integer.valueOf(1), searchParameters.getCount());
 			assertEquals(Long.valueOf(2), searchParameters.getSinceId());
 			assertEquals(Long.valueOf(3), searchParameters.getMaxId());
 			return searchResults;
-		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
+		}).when(this.searchOps).search(any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = this.outputChannel.receive(0);
 		assertNotNull(reply);
@@ -149,10 +149,10 @@ public class TwitterSearchOutboundGatewayTests {
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		final SearchParameters parameters = new SearchParameters("bar");
 		doAnswer(invocation -> {
-			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			SearchParameters searchParameters = invocation.getArgument(0);
 			assertSame(parameters, searchParameters);
 			return searchResults;
-		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
+		}).when(this.searchOps).search(any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<SearchParameters>(parameters));
 		Message<?> reply = this.outputChannel.receive(0);
 		assertNotNull(reply);
@@ -171,12 +171,12 @@ public class TwitterSearchOutboundGatewayTests {
 		SearchMetadata searchMetadata = mock(SearchMetadata.class);
 		final SearchResults searchResults = new SearchResults(Collections.singletonList(tweet), searchMetadata);
 		doAnswer(invocation -> {
-			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			SearchParameters searchParameters = invocation.getArgument(0);
 			assertEquals("foobar", searchParameters.getQuery());
 			assertEquals(Integer.valueOf(5), searchParameters.getCount());
 			assertEquals(Long.valueOf(11), searchParameters.getSinceId());
 			return searchResults;
-		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
+		}).when(this.searchOps).search(any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("bar"));
 		Message<?> reply = this.outputChannel.receive(0);
 		assertNotNull(reply);
@@ -193,11 +193,11 @@ public class TwitterSearchOutboundGatewayTests {
 		List<Tweet> empty = new ArrayList<Tweet>(0);
 		final SearchResults searchResults = new SearchResults(empty, searchMetadata);
 		doAnswer(invocation -> {
-			SearchParameters searchParameters = invocation.getArgumentAt(0, SearchParameters.class);
+			SearchParameters searchParameters = invocation.getArgument(0);
 			assertEquals("foo", searchParameters.getQuery());
 			assertEquals(Integer.valueOf(20), searchParameters.getCount());
 			return searchResults;
-		}).when(this.searchOps).search(Matchers.any(SearchParameters.class));
+		}).when(this.searchOps).search(any(SearchParameters.class));
 		this.gateway.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> reply = this.outputChannel.receive(0);
 		assertNotNull(reply);

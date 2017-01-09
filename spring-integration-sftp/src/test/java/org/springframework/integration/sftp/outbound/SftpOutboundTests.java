@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -210,7 +210,7 @@ public class SftpOutboundTests {
 		handler.afterPropertiesSet();
 		final List<String> madeDirs = new ArrayList<String>();
 		doAnswer(invocation -> {
-			madeDirs.add(invocation.getArgumentAt(0, String.class));
+			madeDirs.add(invocation.getArgument(0));
 			return null;
 		}).when(session).mkdir(anyString());
 		handler.handleMessage(new GenericMessage<String>("qux"));
@@ -385,16 +385,16 @@ public class SftpOutboundTests {
 				ChannelSftp channel = mock(ChannelSftp.class);
 
 				doAnswer(invocation -> {
-					File file = new File(invocation.getArgumentAt(1, String.class));
+					File file = new File((String) invocation.getArgument(1));
 					assertTrue(file.getName().endsWith(".writing"));
-					FileCopyUtils.copy(invocation.getArgumentAt(0, InputStream.class), new FileOutputStream(file));
+					FileCopyUtils.copy((InputStream) invocation.getArgument(0), new FileOutputStream(file));
 					return null;
 				}).when(channel).put(Mockito.any(InputStream.class), Mockito.anyString());
 
 				doAnswer(invocation -> {
-					File file = new File(invocation.getArgumentAt(0, String.class));
+					File file = new File((String) invocation.getArgument(0));
 					assertTrue(file.getName().endsWith(".writing"));
-					File renameToFile = new File(invocation.getArgumentAt(1, String.class));
+					File renameToFile = new File((String) invocation.getArgument(1));
 					file.renameTo(renameToFile);
 					return null;
 				}).when(channel).rename(Mockito.anyString(), Mockito.anyString());

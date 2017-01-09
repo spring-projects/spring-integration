@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -67,7 +68,6 @@ import org.apache.log4j.Level;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -303,7 +303,7 @@ public class TcpNioConnectionTests {
 			Socket socket = mock(Socket.class);
 			Mockito.when(channel.socket()).thenReturn(socket);
 			doAnswer(invocation -> {
-				ByteBuffer buffer = invocation.getArgumentAt(0, ByteBuffer.class);
+				ByteBuffer buffer = invocation.getArgument(0);
 				buffer.position(1);
 				return 1;
 			}).when(channel).read(Mockito.any(ByteBuffer.class));
@@ -343,21 +343,18 @@ public class TcpNioConnectionTests {
 			Socket socket = mock(Socket.class);
 			Mockito.when(channel.socket()).thenReturn(socket);
 			doAnswer(invocation -> {
-				ByteBuffer buffer = invocation.getArgumentAt(0, ByteBuffer.class);
+				ByteBuffer buffer = invocation.getArgument(0);
 				buffer.position(1025);
 				buffer.put((byte) '\r');
 				buffer.put((byte) '\n');
 				return 1027;
 			}).when(channel).read(Mockito.any(ByteBuffer.class));
-			final TcpNioConnection connection = new TcpNioConnection(channel, false, false, null, null);
+			final TcpNioConnection connection = new TcpNioConnection(channel, false, false,
+					null, null);
 			connection.setTaskExecutor(exec);
-			connection.registerListener(new TcpListener() {
-
-				@Override
-				public boolean onMessage(Message<?> message) {
-					messageLatch.countDown();
-					return false;
-				}
+			connection.registerListener(message -> {
+				messageLatch.countDown();
+				return false;
 			});
 			connection.setMapper(new TcpMessageMapper());
 			connection.setDeserializer(new ByteArrayCrLfSerializer());
@@ -501,7 +498,7 @@ public class TcpNioConnectionTests {
 
 			@Override
 			public Integer answer(InvocationOnMock invocation) throws Throwable {
-				ByteBuffer buff = invocation.getArgumentAt(0, ByteBuffer.class);
+				ByteBuffer buff = invocation.getArgument(0);
 				byte[] bytes = written.toByteArray();
 				buff.put(bytes);
 				return bytes.length;
@@ -516,7 +513,7 @@ public class TcpNioConnectionTests {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				ByteBuffer buff = invocation.getArgumentAt(0, ByteBuffer.class);
+				ByteBuffer buff = invocation.getArgument(0);
 				byte[] bytes = new byte[buff.limit()];
 				buff.get(bytes);
 				written.write(bytes);
@@ -771,7 +768,7 @@ public class TcpNioConnectionTests {
 				readerLatch.countDown();
 				return null;
 			}
-		}).when(logger).trace(Matchers.contains("checking data avail"));
+		}).when(logger).trace(contains("checking data avail"));
 
 		doAnswer(new Answer<Void>() {
 
@@ -781,7 +778,7 @@ public class TcpNioConnectionTests {
 				readerLatch.countDown();
 				return null;
 			}
-		}).when(logger).trace(Matchers.contains("Nio assembler continuing"));
+		}).when(logger).trace(contains("Nio assembler continuing"));
 
 		socket.getOutputStream().write("foo\r\n".getBytes());
 

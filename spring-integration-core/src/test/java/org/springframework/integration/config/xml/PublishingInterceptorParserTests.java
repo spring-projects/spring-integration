@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,6 +36,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -60,12 +61,12 @@ public class PublishingInterceptorParserTests {
 		MessageHandler handler = Mockito.mock(MessageHandler.class);
 		defaultChannel.subscribe(handler);
 		doAnswer(invocation -> {
-			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			Message<?> message = invocation.getArgument(0);
 			assertEquals("hello", message.getPayload());
 			return null;
-		}).when(handler).handleMessage((Message<?>) anyObject());
+		}).when(handler).handleMessage(any(Message.class));
 		testBean.echoDefaultChannel("hello");
-		verify(handler, times(1)).handleMessage((Message<?>) anyObject());
+		verify(handler, times(1)).handleMessage(any(Message.class));
 	}
 
 	@Test
@@ -73,13 +74,13 @@ public class PublishingInterceptorParserTests {
 		MessageHandler handler = Mockito.mock(MessageHandler.class);
 		echoChannel.subscribe(handler);
 		doAnswer(invocation -> {
-			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			Message<?> message = invocation.getArgument(0);
 			assertEquals("bar", message.getHeaders().get("foo"));
 			assertEquals("Echoing: hello", message.getPayload());
 			return null;
-		}).when(handler).handleMessage((Message<?>) anyObject());
+		}).when(handler).handleMessage(any(Message.class));
 		testBean.echo("hello");
-		verify(handler, times(1)).handleMessage((Message<?>) anyObject());
+		verify(handler, times(1)).handleMessage(any(Message.class));
 	}
 
 	/**
@@ -104,6 +105,7 @@ public class PublishingInterceptorParserTests {
 		public String echoDefaultChannel(String str) {
 			return str;
 		}
+
 	}
 
 
@@ -112,6 +114,7 @@ public class PublishingInterceptorParserTests {
 		public String echo(String str) {
 			return str;
 		}
+
 	}
 
 }

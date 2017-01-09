@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class XmppHeaderEnricherParserTests {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		MessageHandler handler = mock(MessageHandler.class);
 		doAnswer(invocation -> {
-			Message message = invocation.getArgumentAt(0, Message.class);
+			Message message = invocation.getArgument(0);
 			String chatToUser = (String) message.getHeaders().get(XmppHeaders.TO);
 			assertNotNull(chatToUser);
 			assertEquals("test1@example.org", chatToUser);

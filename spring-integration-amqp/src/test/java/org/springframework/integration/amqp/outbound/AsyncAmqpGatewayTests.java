@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -39,7 +40,6 @@ import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Matchers;
 
 import org.springframework.amqp.core.AmqpReplyTimeoutException;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
@@ -126,7 +126,7 @@ public class AsyncAmqpGatewayTests {
 			invocation.callRealMethod();
 			replyTimeoutLatch.countDown();
 			return null;
-		}).given(logger).debug(Matchers.startsWith("Reply not required and async timeout for"));
+		}).given(logger).debug(startsWith("Reply not required and async timeout for"));
 		new DirectFieldAccessor(gateway).setPropertyValue("logger", logger);
 		QueueChannel outputChannel = new QueueChannel();
 		outputChannel.setBeanName("output");
