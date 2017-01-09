@@ -118,7 +118,7 @@ public class ConnectionEventTests {
 		assertTrue(theEvent.get(0) instanceof TcpConnectionExceptionEvent);
 		assertTrue(theEvent.get(0).toString().endsWith("[factory=foo, connectionId=" + conn.getConnectionId() + "]"));
 		assertThat(theEvent.get(0).toString(),
-				containsString("RuntimeException: foo, failedMessage=GenericMessage [payload=bar"));
+				containsString("RuntimeException: foo"));
 		TcpConnectionExceptionEvent event = (TcpConnectionExceptionEvent) theEvent.get(0);
 		assertNotNull(event.getCause());
 		assertSame(toBeThrown, event.getCause().getCause());
