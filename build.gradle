@@ -87,7 +87,7 @@ subprojects { subproject ->
 	}
 
 	ext {
-		activeMqVersion = '5.13.4'
+		activeMqVersion = '5.14.3'
 		aspectjVersion = '1.8.9'
 		apacheSshdVersion = '0.14.0'
 		boonVersion = '0.33'
@@ -95,7 +95,7 @@ subprojects { subproject ->
 		commonsDbcpVersion = '1.4'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.4'
-		curatorVersion = '2.10.0'
+		curatorVersion = '2.11.1'
 		derbyVersion = '10.11.1.1'
 		eclipseLinkVersion = '2.5.2'
 		ftpServerVersion = '1.0.6'
@@ -106,7 +106,7 @@ subprojects { subproject ->
 		hibernateVersion = '5.2.5.Final'
 		hsqldbVersion = '2.3.3'
 		h2Version = '1.4.180'
-		jackson2Version = '2.7.3'
+		jackson2Version = '2.8.5'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.5.5'
 		jedisVersion = '2.9.0'
@@ -129,7 +129,6 @@ subprojects { subproject ->
 		romeToolsVersion = '1.7.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.21"
-		tomcatVersion = "8.0.33"
 		smackVersion = '4.1.7'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.BUILD-SNAPSHOT'
 		springDataJpaVersion = '2.0.0.M1'
@@ -141,6 +140,7 @@ subprojects { subproject ->
 		springRetryVersion = '1.2.0.RC1'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
 		springWsVersion = '2.4.0.RELEASE'
+		tomcatVersion = "8.5.9"
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
 	}
@@ -594,8 +594,6 @@ project('spring-integration-stomp') {
 		testCompile project(":spring-integration-event")
 		testCompile "org.apache.activemq:activemq-stomp:$activeMqVersion"
 		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
-
-		testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
 	}
 }
 
@@ -644,8 +642,6 @@ project('spring-integration-websocket') {
 
 		testCompile project(":spring-integration-event")
 		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
-
-		testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
 	}
 }
 

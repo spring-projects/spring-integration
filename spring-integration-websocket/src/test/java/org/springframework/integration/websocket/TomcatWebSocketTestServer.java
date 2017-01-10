@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class TomcatWebSocketTestServer implements InitializingBean, DisposableBe
 		context.addApplicationListener(WsContextListener.class.getName());
 		Tomcat.addServlet(context, "dispatcherServlet", new DispatcherServlet(this.serverContext))
 				.setAsyncSupported(true);
-		context.addServletMapping("/", "dispatcherServlet");
+		context.addServletMappingDecoded("/", "dispatcherServlet");
 	}
 
 	private String createTempDir() {
