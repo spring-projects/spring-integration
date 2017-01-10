@@ -35,7 +35,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.tomcat.websocket.WsWebSocketContainer;
+import org.apache.tomcat.websocket.Constants;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -94,8 +94,8 @@ public class ClientWebSocketContainerTests {
 		};
 
 		Map<String, Object> userProperties = new HashMap<String, Object>();
-		userProperties.put(WsWebSocketContainer.IO_TIMEOUT_MS_PROPERTY,
-				"" + (WsWebSocketContainer.IO_TIMEOUT_MS_DEFAULT * 6));
+		userProperties.put(Constants.IO_TIMEOUT_MS_PROPERTY,
+				"" + (Constants.IO_TIMEOUT_MS_DEFAULT * 6));
 		webSocketClient.setUserProperties(userProperties);
 
 		ClientWebSocketContainer container =
