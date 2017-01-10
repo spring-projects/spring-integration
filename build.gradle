@@ -129,7 +129,6 @@ subprojects { subproject ->
 		romeToolsVersion = '1.7.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.21"
-		tomcatVersion = "8.0.33"
 		smackVersion = '4.1.7'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.BUILD-SNAPSHOT'
 		springDataJpaVersion = '2.0.0.M1'
@@ -141,6 +140,7 @@ subprojects { subproject ->
 		springRetryVersion = '1.2.0.RC1'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
 		springWsVersion = '2.4.0.RELEASE'
+		tomcatVersion = "8.5.6"
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
 	}
@@ -594,8 +594,6 @@ project('spring-integration-stomp') {
 		testCompile project(":spring-integration-event")
 		testCompile "org.apache.activemq:activemq-stomp:$activeMqVersion"
 		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
-
-		testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
 	}
 }
 
@@ -644,8 +642,6 @@ project('spring-integration-websocket') {
 
 		testCompile project(":spring-integration-event")
 		testCompile "org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion"
-
-		testRuntime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
 	}
 }
 
