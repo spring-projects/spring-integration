@@ -61,6 +61,14 @@ subprojects { subproject ->
 	apply plugin: 'jacoco'
 	apply plugin: 'checkstyle'
 
+	sourceSets {
+		test {
+			resources {
+				srcDirs = ['src/test/resources', 'src/test/java']
+			}
+		}
+	}
+
 	if (project.hasProperty('platformVersion') && !(subproject.name ==~ /.*-bom/)) {
 		apply plugin: 'spring-io'
 
@@ -140,14 +148,6 @@ subprojects { subproject ->
 	eclipse {
 		project {
 			natures += 'org.springframework.ide.eclipse.core.springnature'
-		}
-	}
-
-	sourceSets {
-		test {
-			resources {
-				srcDirs = ['src/test/resources', 'src/test/java']
-			}
 		}
 	}
 
