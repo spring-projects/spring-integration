@@ -188,8 +188,8 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 			}
 			return;
 		}
-		final BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 		this.getTaskExecutor().execute(() -> {
+			BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			String statusMessage;
 			if (logger.isDebugEnabled()) {
 				logger.debug("Reading stderr");

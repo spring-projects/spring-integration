@@ -97,6 +97,9 @@ public class TestMailServer {
 					write("220 foo SMTP");
 					while (!socket.isClosed()) {
 						String line = reader.readLine();
+						if (line == null) {
+							break;
+						}
 						if (line.contains("EHLO")) {
 							write("250-foo hello [0,0,0,0], foo");
 							write("250-AUTH LOGIN PLAIN");
