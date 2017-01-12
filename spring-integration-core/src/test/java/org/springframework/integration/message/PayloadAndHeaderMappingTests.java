@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.handler.annotation.Header;
@@ -40,13 +44,26 @@ import org.springframework.messaging.handler.annotation.Payload;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class PayloadAndHeaderMappingTests {
 
+	private static final ConfigurableApplicationContext applicationContext = TestUtils.createTestApplicationContext();
+
 	private TestBean bean;
 
+	@BeforeClass
+	public static void start() {
+		applicationContext.refresh();
+	}
+
+	@AfterClass
+	public static void stop() {
+		applicationContext.close();
+	}
 
 	@Before
 	public void setup() {
@@ -678,8 +695,8 @@ public class PayloadAndHeaderMappingTests {
 	public void twoPayloadExpressions() throws Exception {
 		MessageHandler handler = this.getHandler("twoPayloadExpressions", String.class, String.class);
 		Map<String, Object> payload = new HashMap<String, Object>();
-		payload.put("foo", new Integer(123));
-		payload.put("bar", new Integer(456));
+		payload.put("foo", 123);
+		payload.put("bar", 456);
 		Message<?> message = MessageBuilder.withPayload(payload).build();
 		handler.handleMessage(message);
 		assertNull(bean.lastHeaders);
@@ -689,7 +706,11 @@ public class PayloadAndHeaderMappingTests {
 
 
 	private ServiceActivatingHandler getHandler(String methodName, Class<?>... types) throws Exception {
-		return new ServiceActivatingHandler(bean, TestBean.class.getMethod(methodName, types));
+		ServiceActivatingHandler serviceActivatingHandler =
+				new ServiceActivatingHandler(bean, TestBean.class.getMethod(methodName, types));
+		serviceActivatingHandler.setBeanFactory(applicationContext);
+		serviceActivatingHandler.afterPropertiesSet();
+		return serviceActivatingHandler;
 	}
 
 

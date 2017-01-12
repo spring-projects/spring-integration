@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,17 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		this.delegate.setBeanFactory(beanFactory);
+	}
+
+	/**
+	 * A {@code boolean} flag to use SpEL Expression evaluation or
+	 * {@link org.springframework.messaging.handler.invocation.InvocableHandlerMethod}
+	 * for target method invocation.
+	 * @param useSpelInvoker to use SpEL Expression evaluation or not.
+	 * @since 5.0
+	 */
+	public void setUseSpelInvoker(boolean useSpelInvoker) {
+		this.delegate.setUseSpelInvoker(useSpelInvoker);
 	}
 
 	@Override

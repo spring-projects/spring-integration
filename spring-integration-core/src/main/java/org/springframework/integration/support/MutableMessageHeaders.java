@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.support;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.messaging.MessageHeaders;
 
@@ -27,6 +28,8 @@ import org.springframework.messaging.MessageHeaders;
  *
  * @author Stuart Williams
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class MutableMessageHeaders extends MessageHeaders {
@@ -34,7 +37,13 @@ public class MutableMessageHeaders extends MessageHeaders {
 	private static final long serialVersionUID = 3084692953798643018L;
 
 	public MutableMessageHeaders(Map<String, Object> headers) {
-		super(headers);
+		super(headers,
+				(headers != null ?
+						(UUID) headers.get(MessageHeaders.ID)
+						: null),
+				(headers != null ?
+						(Long) headers.get(MessageHeaders.TIMESTAMP)
+						: null));
 	}
 
 	@Override

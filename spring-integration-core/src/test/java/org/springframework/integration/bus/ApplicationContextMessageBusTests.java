@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ApplicationContextMessageBusTests {
 
@@ -74,7 +75,7 @@ public class ApplicationContextMessageBusTests {
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
-		Message<?> result = targetChannel.receive(3000);
+		Message<?> result = targetChannel.receive(10000);
 		assertEquals("test", result.getPayload());
 		context.stop();
 	}
@@ -88,19 +89,19 @@ public class ApplicationContextMessageBusTests {
 		QueueChannel targetChannel = new QueueChannel();
 		context.registerChannel("targetChannel", targetChannel);
 		context.refresh();
-		Message<?> result = targetChannel.receive(100);
+		Message<?> result = targetChannel.receive(10);
 		assertNull(result);
 		context.stop();
 	}
 
 	@Test
-	public void autodetectionWithApplicationContext() {
+	public void autoDetectionWithApplicationContext() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
 		context.start();
 		PollableChannel sourceChannel = (PollableChannel) context.getBean("sourceChannel");
 		sourceChannel.send(new GenericMessage<String>("test"));
 		PollableChannel targetChannel = (PollableChannel) context.getBean("targetChannel");
-		Message<?> result = targetChannel.receive(3000);
+		Message<?> result = targetChannel.receive(10000);
 		assertEquals("test", result.getPayload());
 		context.close();
 	}
@@ -136,7 +137,7 @@ public class ApplicationContextMessageBusTests {
 		context.registerEndpoint("testEndpoint2", endpoint2);
 		context.refresh();
 		inputChannel.send(new GenericMessage<String>("testing"));
-		Message<?> message1 = outputChannel1.receive(3000);
+		Message<?> message1 = outputChannel1.receive(10000);
 		Message<?> message2 = outputChannel2.receive(0);
 		context.stop();
 		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);

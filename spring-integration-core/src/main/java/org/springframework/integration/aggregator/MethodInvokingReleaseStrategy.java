@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.store.MessageGroup;
 
@@ -28,8 +29,9 @@ import org.springframework.integration.store.MessageGroup;
  *
  * @author Marius Bogoevici
  * @author Dave Syer
+ * @author Artme Bilan
  */
-public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFactoryAware {
+public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFactoryAware, Lifecycle {
 
 	private final MethodInvokingMessageListProcessor<Boolean> adapter;
 
@@ -55,6 +57,21 @@ public class MethodInvokingReleaseStrategy implements ReleaseStrategy, BeanFacto
 	@Override
 	public boolean canRelease(MessageGroup messages) {
 		return this.adapter.process(messages.getMessages(), null);
+	}
+
+	@Override
+	public void start() {
+		this.adapter.start();
+	}
+
+	@Override
+	public void stop() {
+		this.adapter.stop();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.adapter.isRunning();
 	}
 
 }

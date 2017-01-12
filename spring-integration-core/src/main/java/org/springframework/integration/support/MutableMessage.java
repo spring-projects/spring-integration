@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -58,11 +57,6 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 		this.payload = payload;
 
 		this.headers = new MutableMessageHeaders(headers);
-
-		if (headers != null) {
-			this.headers.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-			this.headers.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
-		}
 	}
 
 
