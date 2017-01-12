@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,7 +146,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		if (getOutputChannel() == null) {
 			Map<?, ?> routingSlipHeader = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
 			if (routingSlipHeader != null) {
-				Assert.isTrue(routingSlipHeader.size() == 1, "The RoutingSlip header value must be a SingletonMap");
+				Assert.isTrue(routingSlipHeader.size() == 1,
+						"The RoutingSlip header value must be a SingletonMap");
 				Object key = routingSlipHeader.keySet().iterator().next();
 				Object value = routingSlipHeader.values().iterator().next();
 				Assert.isInstanceOf(List.class, key, "The RoutingSlip key must be List");
@@ -174,6 +175,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 			if (replyChannel == null) {
 				replyChannel = requestHeaders.getReplyChannel();
+				if (replyChannel == null && reply instanceof Message) {
+					replyChannel = ((Message<?>) reply).getHeaders().getReplyChannel();
+				}
 			}
 		}
 
