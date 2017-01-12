@@ -70,7 +70,7 @@ public final class MessageChannelReactiveUtils {
 	}
 
 
-	private final static class SubscribableChannelPublisherAdapter<T> implements Publisher<Message<T>> {
+	private static final class SubscribableChannelPublisherAdapter<T> implements Publisher<Message<T>> {
 
 		private final SubscribableChannel channel;
 
@@ -93,7 +93,7 @@ public final class MessageChannelReactiveUtils {
 
 	}
 
-	private final static class PollableChannelPublisherAdapter<T> implements Publisher<Message<T>> {
+	private static final class PollableChannelPublisherAdapter<T> implements Publisher<Message<T>> {
 
 		private final PollableChannel channel;
 

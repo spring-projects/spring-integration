@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 
 import org.reactivestreams.Publisher;
 
-import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.core.MessageSource;
@@ -269,12 +268,13 @@ public final class IntegrationFlows {
 	}
 
 	/**
-	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlowBuilder} chain,
-	 * which becomes as a {@code requestChannel} for the Messaging Gateway(s) built on the provided
-	 * service interface.
-	 * <p> A gateway proxy bean for provided service interface is registered
-	 * under a name of the {@link IntegrationFlow} bean plus {@code .gateway} suffix.
-	 * @param serviceInterface the class with a {@link MessagingGateway} annotation.
+	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlowBuilder}
+	 * chain, which becomes as a {@code requestChannel} for the Messaging Gateway(s) built
+	 * on the provided service interface.
+	 * <p>A gateway proxy bean for provided service interface is registered under a name of
+	 * the {@link IntegrationFlow} bean plus {@code .gateway} suffix.
+	 * @param serviceInterface the class with a
+	 * {@link org.springframework.integration.annotation.MessagingGateway} annotation.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
 	public static IntegrationFlowBuilder from(Class<?> serviceInterface) {

@@ -34,7 +34,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.BarrierMessageHandler;
-import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
@@ -54,7 +53,6 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
-import org.springframework.integration.gateway.GatewayMessageHandler;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.BeanNameMessageProcessor;
 import org.springframework.integration.handler.BridgeHandler;
@@ -1725,7 +1723,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link ResequencingMessageHandler} with default options.
+	 * Populate the
+	 * {@link org.springframework.integration.aggregator.ResequencingMessageHandler} with
+	 * default options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B resequence() {
@@ -1733,7 +1733,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link ResequencingMessageHandler} with provided options from {@link ResequencerSpec}.
+	 * Populate the
+	 * {@link org.springframework.integration.aggregator.ResequencingMessageHandler} with
+	 * provided options from {@link ResequencerSpec}.
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
@@ -1743,7 +1745,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *                    .phase(100))
 	 * }
 	 * </pre>
-	 * @param resequencer the {@link Consumer} to provide {@link ResequencingMessageHandler} options.
+	 * @param resequencer the {@link Consumer} to provide
+	 * {@link org.springframework.integration.aggregator.ResequencingMessageHandler} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see ResequencerSpec
 	 */
@@ -2254,8 +2257,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the "artificial" {@link GatewayMessageHandler} for the provided
-	 * {@code requestChannel} to send a request with default options.
+	 * Populate the "artificial"
+	 * {@link org.springframework.integration.gateway.GatewayMessageHandler} for the
+	 * provided {@code requestChannel} to send a request with default options.
 	 * Uses {@link org.springframework.integration.gateway.RequestReplyExchanger} Proxy
 	 * on the background.
 	 * @param requestChannel the {@link MessageChannel} bean name.
@@ -2266,12 +2270,15 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the "artificial" {@link GatewayMessageHandler} for the provided
-	 * {@code requestChannel} to send a request with options from {@link GatewayEndpointSpec}.
-	 * Uses {@link org.springframework.integration.gateway.RequestReplyExchanger} Proxy
-	 * on the background.
+	 * Populate the "artificial"
+	 * {@link org.springframework.integration.gateway.GatewayMessageHandler} for the
+	 * provided {@code requestChannel} to send a request with options from
+	 * {@link GatewayEndpointSpec}. Uses
+	 * {@link org.springframework.integration.gateway.RequestReplyExchanger} Proxy on the
+	 * background.
 	 * @param requestChannel the {@link MessageChannel} bean name.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint
+	 * options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B gateway(String requestChannel, Consumer<GatewayEndpointSpec> endpointConfigurer) {
@@ -2279,10 +2286,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the "artificial" {@link GatewayMessageHandler} for the provided
-	 * {@code requestChannel} to send a request with default options.
-	 * Uses {@link org.springframework.integration.gateway.RequestReplyExchanger} Proxy
-	 * on the background.
+	 * Populate the "artificial"
+	 * {@link org.springframework.integration.gateway.GatewayMessageHandlerGatewayMessageHandler}
+	 * for the provided {@code requestChannel} to send a request with default options.
+	 * Uses {@link org.springframework.integration.gateway.RequestReplyExchanger} Proxy on
+	 * the background.
 	 * @param requestChannel the {@link MessageChannel} to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
@@ -2291,12 +2299,15 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the "artificial" {@link GatewayMessageHandler} for the provided
-	 * {@code requestChannel} to send a request with options from {@link GatewayEndpointSpec}.
-	 * Uses {@link org.springframework.integration.gateway.RequestReplyExchanger} Proxy
-	 * on the background.
+	 * Populate the "artificial"
+	 * {@link org.springframework.integration.gateway.GatewayMessageHandler} for the
+	 * provided {@code requestChannel} to send a request with options from
+	 * {@link GatewayEndpointSpec}. Uses
+	 * {@link org.springframework.integration.gateway.RequestReplyExchanger} Proxy on the
+	 * background.
 	 * @param requestChannel the {@link MessageChannel} to use.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint
+	 * options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B gateway(MessageChannel requestChannel, Consumer<GatewayEndpointSpec> endpointConfigurer) {
@@ -2304,8 +2315,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the "artificial" {@link GatewayMessageHandler} for the provided
-	 * {@code subflow}.
+	 * Populate the "artificial"
+	 * {@link org.springframework.integration.gateway.GatewayMessageHandler} for the
+	 * provided {@code subflow}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
@@ -2320,8 +2332,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the "artificial" {@link GatewayMessageHandler} for the provided
-	 * {@code subflow} with options from {@link GatewayEndpointSpec}.
+	 * Populate the "artificial"
+	 * {@link org.springframework.integration.gateway.GatewayMessageHandler} for the
+	 * provided {@code subflow} with options from {@link GatewayEndpointSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
