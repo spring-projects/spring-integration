@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
@@ -33,7 +34,8 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 2.0
  */
-public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEvaluator {
+public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEvaluator
+		implements Lifecycle {
 
 	private final MessagingMethodInvokerHelper<T> delegate;
 
@@ -78,6 +80,21 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 		catch (Exception e) {
 			throw new IllegalStateException("Failed to process message list", e);
 		}
+	}
+
+	@Override
+	public void start() {
+		this.delegate.start();
+	}
+
+	@Override
+	public void stop() {
+		this.delegate.stop();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.delegate.isRunning();
 	}
 
 }

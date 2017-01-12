@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -33,12 +34,12 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  */
-public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, BeanFactoryAware {
+public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, BeanFactoryAware, Lifecycle {
 
 	private final MethodInvokingMessageProcessor<?> processor;
 
 	public MethodInvokingCorrelationStrategy(Object object, String methodName) {
-		this.processor = new MethodInvokingMessageProcessor<Object>(object, methodName, true);
+		this.processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
 	}
 
 	public MethodInvokingCorrelationStrategy(Object object, Method method) {
@@ -58,6 +59,21 @@ public class MethodInvokingCorrelationStrategy implements CorrelationStrategy, B
 	@Override
 	public Object getCorrelationKey(Message<?> message) {
 		return this.processor.processMessage(message);
+	}
+
+	@Override
+	public void start() {
+		this.processor.start();
+	}
+
+	@Override
+	public void stop() {
+		this.processor.stop();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.processor.isRunning();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
@@ -28,6 +30,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
  *
  */
 public class CorrelationStrategyAdapterTests {
@@ -43,6 +46,8 @@ public class CorrelationStrategyAdapterTests {
 	public void testMethodName() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(), "getKey");
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.start();
 		assertEquals("b", adapter.getCorrelationKey(message));
 	}
 
@@ -50,6 +55,8 @@ public class CorrelationStrategyAdapterTests {
 	public void testCorrelationStrategyAdapterObjectMethod() {
 		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(),
 				ReflectionUtils.findMethod(SimpleMessageCorrelator.class, "getKey", Message.class));
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.start();
 		assertEquals("b", adapter.getCorrelationKey(message));
 	}
 
@@ -57,6 +64,8 @@ public class CorrelationStrategyAdapterTests {
 	public void testCorrelationStrategyAdapterPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimplePojoCorrelator(), "getKey");
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.start();
 		assertEquals("foo", adapter.getCorrelationKey(message));
 	}
 
@@ -64,6 +73,8 @@ public class CorrelationStrategyAdapterTests {
 	public void testHeaderPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter =
 				new MethodInvokingCorrelationStrategy(new SimpleHeaderCorrelator(), "getKey");
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.start();
 		assertEquals("b", adapter.getCorrelationKey(message));
 	}
 
@@ -71,6 +82,8 @@ public class CorrelationStrategyAdapterTests {
 	public void testHeadersPojoMethod() {
 		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new MultiHeaderCorrelator(),
 				ReflectionUtils.findMethod(MultiHeaderCorrelator.class, "getKey", String.class, String.class));
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		adapter.start();
 		assertEquals("bd", adapter.getCorrelationKey(message));
 	}
 

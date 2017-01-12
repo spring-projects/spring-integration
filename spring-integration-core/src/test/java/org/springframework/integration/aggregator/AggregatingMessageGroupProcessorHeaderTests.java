@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -48,6 +50,11 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 
 	private final MethodInvokingMessageGroupProcessor methodInvokingProcessor =
 			new MethodInvokingMessageGroupProcessor(new TestAggregatorBean(), "aggregate");
+
+	{
+		this.methodInvokingProcessor.setBeanFactory(mock(BeanFactory.class));
+		this.methodInvokingProcessor.start();
+	}
 
 	@Test
 	public void singleMessageUsingDefaultProcessor() {
