@@ -2287,7 +2287,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Populate the "artificial"
-	 * {@link org.springframework.integration.gateway.GatewayMessageHandlerGatewayMessageHandler}
+	 * {@link org.springframework.integration.gateway.GatewayMessageHandler}
 	 * for the provided {@code requestChannel} to send a request with default options.
 	 * Uses {@link org.springframework.integration.gateway.RequestReplyExchanger} Proxy on
 	 * the background.
