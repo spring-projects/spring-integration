@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,11 +53,11 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Artem Bilan
@@ -148,12 +148,12 @@ public class HttpDslTests {
 		public IntegrationFlow httpProxyFlow() {
 			return IntegrationFlows
 					.from(Http.inboundGateway("/service")
-							.requestMapping(r -> r.params("name"))
-							.payloadFunction(httpEntity ->
-									((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
-											.getRequest()
-											.getQueryString()))
-					.handle(Http.outboundGateway(m -> "/service/internal?" + m.getPayload())
+							.requestMapping(r -> r.params("name")))
+					.handle(Http.<MultiValueMap<String, String>>outboundGateway(m ->
+									UriComponentsBuilder.fromPath("/service/internal")
+											.queryParams(m.getPayload())
+											.build()
+											.toUri())
 									.expectedResponseType(String.class),
 							e -> e.id("serviceInternalGateway"))
 					.get();
