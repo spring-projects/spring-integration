@@ -39,6 +39,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ExpressionEvalMap;
@@ -58,6 +59,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.util.concurrent.SettableListenableFuture;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
@@ -85,7 +90,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
-	private final RestTemplate restTemplate;
+	private RestTemplate restTemplate;
+
+	private AsyncRestTemplate asyncRestTemplate;
 
 	private volatile StandardEvaluationContext evaluationContext;
 
@@ -128,7 +135,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * @param uri The URI.
 	 */
 	public HttpRequestExecutingMessageHandler(String uri) {
-		this(uri, null);
+		this(uri, (RestTemplate) null);
 	}
 
 	/**
@@ -137,7 +144,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * @param uriExpression The URI expression.
 	 */
 	public HttpRequestExecutingMessageHandler(Expression uriExpression) {
-		this(uriExpression, null);
+		this(uriExpression, (RestTemplate) null);
 	}
 
 	/**
@@ -165,6 +172,34 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		Assert.notNull(uriExpression, "URI Expression is required");
 		this.restTemplate = (restTemplate == null ? new RestTemplate() : restTemplate);
 		this.uriExpression = uriExpression;
+	}
+
+	/**
+	 * Create a handler that will send requests to the provided URI using a provided AsyncRestTemplate
+	 * @param uri The URI.
+	 * @param asyncRestTemplate The rest template.
+	 */
+	public HttpRequestExecutingMessageHandler(String uri, AsyncRestTemplate asyncRestTemplate) {
+		this(new LiteralExpression(uri), asyncRestTemplate);
+		/*
+		 *  We'd prefer to do this assertion first, but the compiler doesn't allow it. However,
+		 *  it's safe because the literal expression simply wraps the String variable, even
+		 *  when null.
+		 */
+		Assert.hasText(uri, "URI is required");
+	}
+
+	/**
+	 * Create a handler that will send requests to the provided URI using a provided AsyncRestTemplate
+	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
+	 * {@link BeanFactory}.
+	 * @param asyncRestTemplate The rest template.
+	 */
+	public HttpRequestExecutingMessageHandler(Expression uriExpression, AsyncRestTemplate asyncRestTemplate) {
+		Assert.notNull(uriExpression, "URI Expression is required");
+		this.asyncRestTemplate = (asyncRestTemplate == null ? new AsyncRestTemplate() : asyncRestTemplate);
+		this.uriExpression = uriExpression;
+		this.setAsync(true);
 	}
 
 	/**
@@ -265,7 +300,12 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
-		this.restTemplate.setErrorHandler(errorHandler);
+		if (!this.isAsync()) {
+			this.restTemplate.setErrorHandler(errorHandler);
+		}
+		else {
+			this.asyncRestTemplate.setErrorHandler(errorHandler);
+		}
 	}
 
 	/**
@@ -277,7 +317,12 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
-		this.restTemplate.setMessageConverters(messageConverters);
+		if (!this.isAsync()) {
+			this.restTemplate.setMessageConverters(messageConverters);
+		}
+		else {
+			this.asyncRestTemplate.setMessageConverters(messageConverters);
+		}
 	}
 
 	/**
@@ -297,7 +342,26 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 */
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
+		if (this.isAsync()) {
+			throw new IllegalArgumentException("ClientHttpRequestFactory cannot be set in async mode");
+		}
+
 		this.restTemplate.setRequestFactory(requestFactory);
+	}
+
+	/**
+	 * Set the {@link AsyncClientHttpRequestFactory} for the underlying {@link AsyncRestTemplate}.
+	 *
+	 * @param asyncRequestFactory The request factory.
+	 *
+	 * @see AsyncRestTemplate#setAsyncRequestFactory(AsyncClientHttpRequestFactory)
+	 */
+	public void setAsyncRequestFactory(AsyncClientHttpRequestFactory asyncRequestFactory) {
+		if (!this.isAsync()) {
+			throw new IllegalArgumentException("AsyncClientHttpRequestFactory cannot be set in sync mode");
+		}
+
+		this.asyncRestTemplate.setAsyncRequestFactory(asyncRequestFactory);
 	}
 
 	/**
@@ -371,33 +435,41 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 					: UriComponentsBuilder.fromUri((URI) uri);
 			UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 			realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
-			ResponseEntity<?> httpResponse;
-			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-				httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, (ParameterizedTypeReference<?>) expectedResponseType);
-			}
-			else {
-				httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
-			}
-			if (this.expectReply) {
-				HttpHeaders httpHeaders = httpResponse.getHeaders();
-				Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
-				if (this.transferCookies) {
-					this.doConvertSetCookie(headers);
-				}
-				AbstractIntegrationMessageBuilder<?> replyBuilder = null;
-				if (httpResponse.hasBody()) {
-					Object responseBody = httpResponse.getBody();
-					replyBuilder = (responseBody instanceof Message<?>) ?
-							this.getMessageBuilderFactory().fromMessage((Message<?>) responseBody) : this.getMessageBuilderFactory().withPayload(responseBody);
 
+			if (!this.isAsync()) {
+				ResponseEntity<?> httpResponse;
+				if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+					httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, (ParameterizedTypeReference<?>) expectedResponseType);
 				}
 				else {
-					replyBuilder = this.getMessageBuilderFactory().withPayload(httpResponse);
+					httpResponse = this.restTemplate.exchange(realUri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
 				}
-				replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode());
-				return replyBuilder.copyHeaders(headers).build();
+				return getReply(httpResponse);
 			}
-			return null;
+			else {
+				SettableListenableFuture<Object> replyMessageFuture = new SettableListenableFuture<>();
+				ListenableFuture<? extends ResponseEntity<?>> responseFuture;
+				if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+					responseFuture = this.asyncRestTemplate.exchange(realUri, httpMethod, httpRequest, (ParameterizedTypeReference<?>) expectedResponseType);
+				}
+				else {
+					responseFuture = this.asyncRestTemplate.exchange(realUri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
+				}
+
+				responseFuture.addCallback(new ListenableFutureCallback<ResponseEntity<?>>() {
+					@Override
+					public void onFailure(Throwable ex) {
+						replyMessageFuture.setException(ex);
+					}
+
+					@Override
+					public void onSuccess(ResponseEntity<?> result) {
+						replyMessageFuture.set(HttpRequestExecutingMessageHandler.this.getReply(result));
+					}
+				});
+
+				return replyMessageFuture;
+			}
 		}
 		catch (MessagingException e) {
 			throw e;
@@ -406,6 +478,29 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI ["
 					+ (realUri == null ? uri : realUri) + "]", e);
 		}
+	}
+
+	private Object getReply(ResponseEntity<?> httpResponse) {
+		if (this.expectReply) {
+			HttpHeaders httpHeaders = httpResponse.getHeaders();
+			Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
+			if (this.transferCookies) {
+				this.doConvertSetCookie(headers);
+			}
+			AbstractIntegrationMessageBuilder<?> replyBuilder = null;
+			if (httpResponse.hasBody()) {
+				Object responseBody = httpResponse.getBody();
+				replyBuilder = (responseBody instanceof Message<?>) ?
+						this.getMessageBuilderFactory().fromMessage((Message<?>) responseBody) : this.getMessageBuilderFactory().withPayload(responseBody);
+
+			}
+			else {
+				replyBuilder = this.getMessageBuilderFactory().withPayload(httpResponse);
+			}
+			replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode());
+			return replyBuilder.copyHeaders(headers).build();
+		}
+		return null;
 	}
 
 	/**
