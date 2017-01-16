@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http.config;
 
+import org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -39,7 +40,14 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
+		BeanDefinitionBuilder builder;
+		boolean async = element.getLocalName().contains("async");
+		if (async) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(AsyncHttpRequestExecutingMessageHandler.class);
+		}
+		else {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
+		}
 		builder.addPropertyValue("expectReply", false);
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
 

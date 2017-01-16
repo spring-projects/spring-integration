@@ -56,6 +56,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -80,8 +81,14 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Autowired @Qualifier("restTemplateConfig")
 	private AbstractEndpoint restTemplateConfig;
 
+	@Autowired @Qualifier("asyncRestTemplateConfig")
+	private AbstractEndpoint asyncRestTemplateConfig;
+
 	@Autowired @Qualifier("customRestTemplate")
 	private RestTemplate customRestTemplate;
+
+	@Autowired @Qualifier("asyncRestTemplate")
+	private AsyncRestTemplate asyncRestTemplate;
 
 	@Autowired @Qualifier("withUrlAndTemplate")
 	private AbstractEndpoint withUrlAndTemplate;
@@ -170,6 +177,13 @@ public class HttpOutboundChannelAdapterParserTests {
 		RestTemplate restTemplate =
 			TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate", RestTemplate.class);
 		assertEquals(customRestTemplate, restTemplate);
+	}
+
+	@Test
+	public void asyncRestTemplateConfig() {
+		AsyncRestTemplate asyncRestTemplate =
+				TestUtils.getPropertyValue(this.asyncRestTemplateConfig, "handler.asyncRestTemplate", AsyncRestTemplate.class);
+		assertEquals(this.asyncRestTemplate, asyncRestTemplate);
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)

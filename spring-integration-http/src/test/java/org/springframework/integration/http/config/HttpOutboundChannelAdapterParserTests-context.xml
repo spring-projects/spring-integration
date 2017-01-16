@@ -16,7 +16,11 @@
 
 	<outbound-channel-adapter id="restTemplateConfig" url="http://localhost/test1" channel="requests" rest-template="customRestTemplate"/>
 
+	<outbound-async-channel-adapter id="asyncRestTemplateConfig" url="http://localhost/test1" channel="requests" rest-template="asyncRestTemplate"/>
+
 	<beans:bean id="customRestTemplate" class="org.springframework.web.client.RestTemplate"/>
+
+	<beans:bean id="asyncRestTemplate" class="org.springframework.web.client.AsyncRestTemplate"/>
 
 	<outbound-channel-adapter id="fullConfig"
 			url="http://localhost/test2/{foo}"
@@ -93,6 +97,8 @@
 	</outbound-channel-adapter>
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
+
+	<beans:bean id="testAsyncRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 
 	<beans:bean id="testErrorHandler" class="org.springframework.integration.http.config.HttpOutboundChannelAdapterParserTests$StubErrorHandler"/>
 
