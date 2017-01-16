@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
@@ -92,12 +93,15 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 	protected void configureFilter(BeanDefinitionBuilder builder, Element element, ParserContext parserContext,
 			String filterAttribute, String patternPrefix, String propertyName) {
 		String filter = element.getAttribute(filterAttribute);
+		String filterExpression = element.getAttribute(filterAttribute + "-expression");
 		String fileNamePattern = element.getAttribute(patternPrefix + "-pattern");
 		String fileNameRegex = element.getAttribute(patternPrefix + "-regex");
 		boolean hasFilter = StringUtils.hasText(filter);
+		boolean hasFilterExpression = StringUtils.hasText(filterExpression);
 		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
 		boolean hasFileNameRegex = StringUtils.hasText(fileNameRegex);
 		int count = hasFilter ? 1 : 0;
+		count += hasFilterExpression ? 1 : 0;
 		count += hasFileNamePattern ? 1 : 0;
 		count += hasFileNameRegex ? 1 : 0;
 		if (count > 1) {
@@ -106,6 +110,13 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		}
 		else if (hasFilter) {
 			builder.addPropertyReference(propertyName, filter);
+		}
+		else if (hasFilterExpression) {
+			BeanDefinition expressionFilterBeanDefinition =
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFileListFilter.class)
+							.addConstructorArgValue(filterExpression)
+							.getBeanDefinition();
+			builder.addPropertyValue(propertyName, expressionFilterBeanDefinition);
 		}
 		else if (hasFileNamePattern) {
 			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(

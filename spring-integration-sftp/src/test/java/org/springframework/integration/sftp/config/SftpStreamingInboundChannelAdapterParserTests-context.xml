@@ -40,7 +40,7 @@
 				session-factory="csf"
 				auto-startup="false"
 				phase="23"
-				filename-pattern="*.txt"
+				filter-expression="new org.springframework.util.AntPathMatcher().match('*.txt', filename)"
 				remote-file-separator="X"
 				remote-directory-expression="'foo/bar'">
 			<int:poller fixed-rate="1000" />

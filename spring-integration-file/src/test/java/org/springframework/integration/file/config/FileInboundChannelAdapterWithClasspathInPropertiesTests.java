@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,44 @@
 
 package org.springframework.integration.file.config;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+
+import java.io.File;
+import java.util.Iterator;
+import java.util.Set;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.File;
-
-import static org.junit.Assert.assertEquals;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
 @ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 
-	@Autowired(required = true)
+	@Autowired
 	private FileReadingMessageSource source;
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 	private DirectFieldAccessor accessor;
 
@@ -48,10 +63,25 @@ public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void inputDirectory() throws Exception {
 		File expected = new ClassPathResource("").getFile();
 		File actual = (File) accessor.getPropertyValue("directory");
 		assertEquals("'directory' should be set", expected, actual);
+
+		FileListFilter<File> fileListFilter =
+				TestUtils.getPropertyValue(this.source, "scanner.filter", FileListFilter.class);
+		assertThat(fileListFilter, instanceOf(CompositeFileListFilter.class));
+		Set<FileListFilter<File>> fileFilters =
+				TestUtils.getPropertyValue(fileListFilter, "fileFilters", Set.class);
+		assertEquals(2, fileFilters.size());
+		Iterator<FileListFilter<File>> iterator = fileFilters.iterator();
+		iterator.next();
+		FileListFilter<File> expressionFilter = iterator.next();
+		assertThat(expressionFilter, instanceOf(ExpressionFileListFilter.class));
+		assertEquals("true",
+				TestUtils.getPropertyValue(expressionFilter, "expression.expression", String.class));
+		assertSame(this.beanFactory, TestUtils.getPropertyValue(expressionFilter, "beanFactory"));
 	}
 
 }

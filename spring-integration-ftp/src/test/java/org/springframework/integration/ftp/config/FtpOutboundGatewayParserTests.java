@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Command;
@@ -108,7 +109,7 @@ public class FtpOutboundGatewayParserTests {
 		assertEquals(Long.valueOf(777), sendTimeout);
 		assertTrue(TestUtils.getPropertyValue(gateway, "requiresReply", Boolean.class));
 		assertThat(TestUtils.getPropertyValue(gateway, "mputFilter"),
-				Matchers.instanceOf(RegexPatternFileListFilter.class));
+				Matchers.instanceOf(ExpressionFileListFilter.class));
 		assertEquals(FileExistsMode.APPEND, TestUtils.getPropertyValue(gateway, "fileExistsMode"));
 	}
 

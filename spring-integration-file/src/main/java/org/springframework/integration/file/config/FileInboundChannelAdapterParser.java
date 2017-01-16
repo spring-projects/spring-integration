@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.locking.NioFileLocker;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -87,8 +88,13 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		String preventDuplicates = element.getAttribute("prevent-duplicates");
 		String ignoreHidden = element.getAttribute("ignore-hidden");
 		String filter = element.getAttribute("filter");
-		if (!StringUtils.hasText(filter) && !StringUtils.hasText(filenamePattern) && !StringUtils.hasText(filenameRegex)
-				&& !StringUtils.hasText(preventDuplicates) && !StringUtils.hasText(ignoreHidden)) {
+		String filterExpression = element.getAttribute("filter-expression");
+		if (!StringUtils.hasText(filter)
+				&& !StringUtils.hasText(filenamePattern)
+				&& !StringUtils.hasText(filenameRegex)
+				&& !StringUtils.hasText(preventDuplicates)
+				&& !StringUtils.hasText(ignoreHidden)
+				&& !StringUtils.hasText(filterExpression)) {
 			return null;
 		}
 		BeanDefinitionBuilder factoryBeanBuilder =
@@ -96,6 +102,17 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		factoryBeanBuilder.setRole(BeanDefinition.ROLE_SUPPORT);
 		if (StringUtils.hasText(filter)) {
 			factoryBeanBuilder.addPropertyReference("filter", filter);
+		}
+		if (StringUtils.hasText(filterExpression)) {
+			if (StringUtils.hasText(filter)) {
+				parserContext.getReaderContext()
+						.error("At most one of 'filter' or 'filter-expression' can be provided.", element);
+			}
+			BeanDefinition expressionFilterBeanDefinition =
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFileListFilter.class)
+							.addConstructorArgValue(filterExpression)
+							.getBeanDefinition();
+			factoryBeanBuilder.addPropertyValue("filter", expressionFilterBeanDefinition);
 		}
 		if (StringUtils.hasText(filenamePattern)) {
 			if (StringUtils.hasText(filter)) {
@@ -113,8 +130,8 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(factoryBeanBuilder, element, "prevent-duplicates");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(factoryBeanBuilder, element, "ignore-hidden");
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				factoryBeanBuilder.getBeanDefinition(), parserContext.getRegistry());
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(factoryBeanBuilder.getBeanDefinition(),
+				parserContext.getRegistry());
 	}
 
 }

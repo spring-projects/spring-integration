@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.util.StringUtils;
@@ -32,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0
  *
  */
@@ -93,12 +95,14 @@ public final class FileParserUtils {
 	static void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, ParserContext parserContext,
 			Class<? extends FileListFilter<?>> patternClass, Class<? extends FileListFilter<?>> regexClass) {
 		String filter = element.getAttribute("filter");
+		String filterExpression = element.getAttribute("filter-expression");
 		String fileNamePattern = element.getAttribute("filename-pattern");
 		String fileNameRegex = element.getAttribute("filename-regex");
 		boolean hasFilter = StringUtils.hasText(filter);
+		boolean hasFilterExpression = StringUtils.hasText(filterExpression);
 		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
 		boolean hasFileNameRegex = StringUtils.hasText(fileNameRegex);
-		if (hasFilter || hasFileNamePattern || hasFileNameRegex) {
+		if (hasFilter || hasFilterExpression || hasFileNamePattern || hasFileNameRegex) {
 			int count = 0;
 			if (hasFilter) {
 				count++;
@@ -109,12 +113,23 @@ public final class FileParserUtils {
 			if (hasFileNameRegex) {
 				count++;
 			}
+			if (hasFilterExpression) {
+				count++;
+			}
 			if (count != 1) {
 				parserContext.getReaderContext().error("at most one of 'filename-pattern', " +
-						"'filename-regex', or 'filter' is allowed on remote file inbound adapter", element);
+						"'filename-regex', 'filter' or 'filter-expression' is allowed on remote file inbound adapter",
+						element);
 			}
 			if (hasFilter) {
 				synchronizerBuilder.addPropertyReference("filter", filter);
+			}
+			else if (hasFilterExpression) {
+				BeanDefinition expressionFilterBeanDefinition =
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionFileListFilter.class)
+								.addConstructorArgValue(filterExpression)
+								.getBeanDefinition();
+				synchronizerBuilder.addPropertyValue("filter", expressionFilterBeanDefinition);
 			}
 			else if (hasFileNamePattern) {
 				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(patternClass);

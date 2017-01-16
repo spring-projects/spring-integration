@@ -69,7 +69,7 @@ metadata store on every update (if the store implements `Flushable`).
 A common problem with reading files is that a file may be detected before it is ready.
 The default `AcceptOnceFileListFilter` does not prevent this.
 In most cases, this can be prevented if the file-writing process renames each file as soon as it is ready for reading.
-A filename-pattern or filename-regex filter that accepts only files that are ready (e.g.
+A `filename-pattern` or `filename-regex` filter that accepts only files that are ready (e.g.
 based on a known suffix), composed with the default `AcceptOnceFileListFilter` allows for this.
 The `CompositeFileListFilter` enables the composition.
 [source,xml]
@@ -104,6 +104,16 @@ to, say, network glitches.
 <bean id="filter" class="org.springframework.integration.file.filters.LastModifiedFileListFilter">
     <property name="age" value="120" />
 </bean>
+----
+
+Starting with _version 5.0_ an `ExpressionFileListFilter` has been introduced to allow to execute SpEL expression against file as a context evaluation root object.
+For this purpose all the XML components for file handling (local and remote), alongside with an existing `filter` attribute, have been supplied with the `filter-expression` option:
+[source, xml]
+----
+<int-file:inbound-channel-adapter
+        directory="${inputdir}"
+        filter-expression="name matches '.text'"
+        auto-startup="false"/>
 ----
 
 *Message Headers*
