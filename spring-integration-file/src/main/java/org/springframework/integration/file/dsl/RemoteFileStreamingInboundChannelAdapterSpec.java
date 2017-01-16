@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,17 @@
 
 package org.springframework.integration.file.dsl;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
@@ -38,12 +43,15 @@ import org.springframework.messaging.Message;
  *
  * @since 5.0
  */
-public abstract class
-	RemoteFileStreamingInboundChannelAdapterSpec<F, S extends RemoteFileStreamingInboundChannelAdapterSpec<F, S, MS>,
+public abstract class RemoteFileStreamingInboundChannelAdapterSpec<F,
+		S extends RemoteFileStreamingInboundChannelAdapterSpec<F, S, MS>,
 		MS extends AbstractRemoteFileStreamingMessageSource<F>>
-		extends MessageSourceSpec<S, MS> {
+		extends MessageSourceSpec<S, MS>
+		implements ComponentsRegistration {
 
 	private CompositeFileListFilter<F> filter;
+
+	private ExpressionFileListFilter<F> expressionFileListFilter;
 
 	/**
 	 * Configure the file name path separator used by the remote system. Defaults to '/'.
@@ -107,6 +115,40 @@ public abstract class
 			this.filter.addFilter(filter);
 		}
 		return _this();
+	}
+
+	/**
+	 * Configure the {@link ExpressionFileListFilter}.
+	 * @param expression the SpEL expression for files filtering.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see ExpressionFileListFilter
+	 */
+	public S filterExpression(String expression) {
+		this.expressionFileListFilter = new ExpressionFileListFilter<>(expression);
+		return filter(this.expressionFileListFilter);
+	}
+
+	/**
+	 * Configure the {@link ExpressionFileListFilter}.
+	 * @param filterFunction the {@link Function} for files filtering.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see ExpressionFileListFilter
+	 */
+	public S filterFunction(Function<F, Boolean> filterFunction) {
+		this.expressionFileListFilter = new ExpressionFileListFilter<>(new FunctionExpression<>(filterFunction));
+		return filter(this.expressionFileListFilter);
+	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		if (this.expressionFileListFilter != null) {
+			return Collections.singleton(this.expressionFileListFilter);
+		}
+		else {
+			return null;
+		}
 	}
 
 	/**

@@ -76,6 +76,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
+			<xsd:attribute name="filter-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						The SpEL expression to evaluate against file to accept it for processing or not.
+						Mutually exclusive with 'filter' attribute.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
             <xsd:attribute name="filename-pattern" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[

@@ -339,6 +339,14 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="filter-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+						The SpEL expression to evaluate against file to accept it for processing or not.
+						Mutually exclusive with 'filter' attribute.
+					]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="filename-pattern" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -376,6 +384,14 @@
 								bean. This filter acts on the local file system when using the 'mput' command.
 								Only one of 'mput-filter', 'mput-pattern', or 'mput-regex' is allowed.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mput-filter-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+						The SpEL expression to evaluate against file to accept it for processing or not.
+						Mutually exclusive with 'mput-filter' attribute.
+					]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="mput-pattern" type="xsd:string">
@@ -545,6 +561,14 @@
 							bean. This filter is applied to files on the remote server and
 							only files that pass the filter are retrieved.
 						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="filter-expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+						The SpEL expression to evaluate against file to accept it for processing or not.
+						Mutually exclusive with 'filter' attribute.
+					]]></xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attributeGroup ref="integration:maxFetchGroup" />

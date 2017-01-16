@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpStreamingMessageSource;
@@ -45,6 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -53,6 +55,9 @@ public class SftpStreamingInboundChannelAdapterParserTests {
 
 	@Autowired
 	private SourcePollingChannelAdapter sftpInbound;
+
+	@Autowired
+	private SourcePollingChannelAdapter contextLoadsWithNoComparator;
 
 	@Autowired
 	private MessageChannel sftpChannel;
@@ -74,6 +79,10 @@ public class SftpStreamingInboundChannelAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(source, "filter"), instanceOf(SftpSimplePatternFileListFilter.class));
 		assertSame(this.csf, TestUtils.getPropertyValue(source, "remoteFileTemplate.sessionFactory"));
 		assertEquals(31, TestUtils.getPropertyValue(source, "maxFetchSize"));
+
+		source = TestUtils.getPropertyValue(this.contextLoadsWithNoComparator, "source",
+				SftpStreamingMessageSource.class);
+		assertThat(TestUtils.getPropertyValue(source, "filter"), instanceOf(ExpressionFileListFilter.class));
 	}
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultSftpSessionFactory> {

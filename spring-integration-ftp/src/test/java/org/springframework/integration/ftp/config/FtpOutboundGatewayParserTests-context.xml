@@ -34,7 +34,7 @@
 							  expression="payload"
 							  order="1"
 							  mode="APPEND"
-							  mput-regex=".*">
+							  mput-filter-expression="name matches '.*'">
 		<int:poller fixed-delay="1000"/>
 	</int-ftp:outbound-gateway>
 
