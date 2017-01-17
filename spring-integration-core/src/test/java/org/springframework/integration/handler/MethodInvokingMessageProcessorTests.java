@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.StopWatch;
 
 
 /**
@@ -317,6 +318,7 @@ public class MethodInvokingMessageProcessorTests {
 		TestDifferentErrorService service = new TestDifferentErrorService();
 		Method method = TestErrorService.class.getMethod("checked", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
 		processor.processMessage(new GenericMessage<String>("foo"));
 	}
 
@@ -567,7 +569,37 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals("BAR", helper.process(new GenericMessage<>("bar")));
 	}
 
+	@Test
+	public void testPerformanceSpelVersusInvocable() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 42).build();
+
+		StopWatch stopWatch = new StopWatch("SpEL vs Invocable Performance");
+
+		stopWatch.start("SpEL");
+		for (int i = 0; i < 10000; i++) {
+			processor.processMessage(message);
+		}
+		stopWatch.stop();
+
+		processor = new MethodInvokingMessageProcessor(service, method);
+
+		stopWatch.start("Invocable");
+		for (int i = 0; i < 10000; i++) {
+			processor.processMessage(message);
+		}
+		stopWatch.stop();
+
+		logger.warn(stopWatch.prettyPrint());
+	}
+
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
+
 		private Throwable cause;
 
 		private final Class<? extends Exception> type;
@@ -578,7 +610,6 @@ public class MethodInvokingMessageProcessorTests {
 
 		@Override
 		public boolean matchesSafely(Exception item) {
-			logger.debug(item);
 			cause = item.getCause();
 			assertNotNull("There is no cause for " + item, cause);
 			return type.isAssignableFrom(cause.getClass());
@@ -588,6 +619,7 @@ public class MethodInvokingMessageProcessorTests {
 		public void describeTo(Description description) {
 			description.appendText("cause to be ").appendValue(type).appendText("but was ").appendValue(cause);
 		}
+
 	}
 
 	@SuppressWarnings("unused")
@@ -617,6 +649,7 @@ public class MethodInvokingMessageProcessorTests {
 		public String checked(String input) throws Exception {
 			throw new CheckedException("Expected test exception");
 		}
+
 	}
 
 	@SuppressWarnings("serial")

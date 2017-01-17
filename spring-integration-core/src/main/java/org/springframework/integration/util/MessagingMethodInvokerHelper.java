@@ -48,6 +48,7 @@ import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationException;
@@ -134,6 +135,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private Method method;
 
+	private boolean useSpelInvoker;
+
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
@@ -163,11 +166,26 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this(targetObject, annotationType, (String) null, expectedType, canProcessMessageList);
 	}
 
+	/**
+	 * A {@code boolean} flag to use SpEL Expression evaluation or {@link InvocableHandlerMethod}
+	 * for target method invocation.
+	 * @param useSpelInvoker to use SpEL Expression evaluation or not.
+	 * @since 5.0
+	 */
+	public void setUseSpelInvoker(boolean useSpelInvoker) {
+		this.useSpelInvoker = useSpelInvoker;
+	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		this.messageHandlerMethodFactory.setBeanFactory(beanFactory);
+	}
+
+	@Override
+	public void setConversionService(ConversionService conversionService) {
+		super.setConversionService(conversionService);
+		this.messageHandlerMethodFactory.setConversionService(conversionService);
 	}
 
 	public T process(Message<?> message) throws Exception {
@@ -359,11 +377,17 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 		}
 		HandlerMethod candidate = this.findHandlerMethodForParameters(parameters);
+		Expression expression = candidate.expression;
 		Assert.notNull(candidate, "No candidate methods found for messages.");
 
 		T result = null;
 		try {
-			result = candidate.invoke(parameters);
+			if (this.useSpelInvoker) {
+				invokeExpression(expression, parameters);
+			}
+			else {
+				result = candidate.invoke(parameters);
+			}
 		}
 		catch (MethodArgumentResolutionException | MessageConversionException e) {
 			if (e instanceof MessageConversionException) {
@@ -372,30 +396,16 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					throw e;
 				}
 			}
-			Expression expression = candidate.expression;
 			if (logger.isInfoEnabled()) {
 				logger.info("Failed to invoke [ " + candidate.invocableHandlerMethod +
 						"] with provided arguments [ " + parameters + " ]. \n" +
 						"Falling back to SpEL invocation for expression [ " +
 						expression.getExpressionString() + " ]");
 			}
-			try {
-				result = (T) evaluateExpression(expression, parameters);
-			}
-			catch (Exception ex) {
-				Throwable evaluationException = ex;
-				if ((ex instanceof EvaluationException || ex instanceof MessageHandlingException)
-						&& e.getCause() != null) {
-					evaluationException = e.getCause();
-				}
-				if (evaluationException instanceof Exception) {
-					throw (Exception) evaluationException;
-				}
-				else {
-					throw new IllegalStateException("Cannot process message", evaluationException);
-				}
-			}
+
+			result = invokeExpression(expression, parameters);
 		}
+
 		if (result != null && this.expectedType != null) {
 			return (T) getEvaluationContext(true)
 					.getTypeConverter()
@@ -403,6 +413,26 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 		else {
 			return result;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private T invokeExpression(Expression expression, ParametersWrapper parameters) throws Exception {
+		try {
+			return (T) evaluateExpression(expression, parameters);
+		}
+		catch (Exception e) {
+			Throwable evaluationException = e;
+			if ((e instanceof EvaluationException || e instanceof MessageHandlingException)
+					&& e.getCause() != null) {
+				evaluationException = e.getCause();
+			}
+			if (evaluationException instanceof Exception) {
+				throw (Exception) evaluationException;
+			}
+			else {
+				throw new IllegalStateException("Cannot process message", evaluationException);
+			}
 		}
 	}
 
