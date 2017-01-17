@@ -19,8 +19,11 @@ package org.springframework.integration.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,9 +42,19 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.expression.EvaluationException;
+import org.springframework.expression.Expression;
+import org.springframework.expression.TypeConverter;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.handler.support.CollectionArgumentResolver;
@@ -48,11 +62,15 @@ import org.springframework.integration.handler.support.PayloadExpressionArgument
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
+import org.springframework.messaging.handler.invocation.MethodArgumentResolutionException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -94,6 +112,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private volatile String displayString;
 
+	private volatile boolean requiresReply;
+
 	private final Map<Class<?>, HandlerMethod> handlerMethods;
 
 	private final Map<Class<?>, HandlerMethod> handlerMessageMethods;
@@ -109,6 +129,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private Class<? extends Annotation> annotationType;
 
 	private volatile boolean initialized;
+
+	private String methodName;
+
+	private Method method;
+
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
@@ -165,28 +190,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		if (this.targetObject instanceof Lifecycle) {
 			((Lifecycle) this.targetObject).start();
 		}
-
-		if (!this.initialized) {
-			PayloadExpressionArgumentResolver payloadExpressionArgumentResolver =
-					new PayloadExpressionArgumentResolver();
-			payloadExpressionArgumentResolver.setBeanFactory(getBeanFactory());
-
-			PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
-			payloadsArgumentResolver.setBeanFactory(getBeanFactory());
-
-			CollectionArgumentResolver collectionArgumentResolver =
-					new CollectionArgumentResolver(this.canProcessMessageList);
-			collectionArgumentResolver.setBeanFactory(getBeanFactory());
-
-			List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
-			customArgumentResolvers.add(payloadExpressionArgumentResolver);
-			customArgumentResolvers.add(payloadsArgumentResolver);
-			customArgumentResolvers.add(collectionArgumentResolver);
-
-			this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
-			this.messageHandlerMethodFactory.afterPropertiesSet();
-			this.initialized = true;
-		}
 	}
 
 	@Override
@@ -210,7 +213,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.annotationType = annotationType;
 		this.canProcessMessageList = canProcessMessageList;
 		Assert.notNull(method, "method must not be null");
-
+		this.method = method;
+		this.requiresReply = expectedType != null;
 		if (expectedType != null) {
 			Assert.isTrue(method.getReturnType() != Void.class && method.getReturnType() != Void.TYPE,
 					"method must have a return type");
@@ -239,6 +243,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
 			String methodName, Class<?> expectedType, boolean canProcessMessageList) {
 		this.annotationType = annotationType;
+		this.methodName = methodName;
 		this.canProcessMessageList = canProcessMessageList;
 		Assert.notNull(targetObject, "targetObject must not be null");
 		if (expectedType != null) {
@@ -290,12 +295,107 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.displayString = sb.toString() + "]";
 	}
 
+	private void prepareEvaluationContext() {
+		StandardEvaluationContext context = getEvaluationContext(false);
+		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
+		if (this.method != null) {
+			context.registerMethodFilter(targetType, new FixedMethodFilter(this.method));
+			if (this.expectedType != null) {
+				Assert.state(context.getTypeConverter()
+								.canConvert(TypeDescriptor.valueOf((this.method).getReturnType()), this.expectedType),
+						"Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
+			}
+		}
+		else {
+			AnnotatedMethodFilter filter = new AnnotatedMethodFilter(this.annotationType, this.methodName,
+					this.requiresReply);
+			Assert.state(canReturnExpectedType(filter, targetType, context.getTypeConverter()),
+					"Cannot convert to expected type (" + this.expectedType + ") from " + this.method);
+			context.registerMethodFilter(targetType, filter);
+		}
+		context.setVariable("target", this.targetObject);
+	}
+
+	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,
+			TypeConverter typeConverter) {
+		if (this.expectedType == null) {
+			return true;
+		}
+		List<Method> methods = filter.filter(Arrays.asList(ReflectionUtils.getAllDeclaredMethods(targetType)));
+		for (Method method : methods) {
+			if (typeConverter.canConvert(TypeDescriptor.valueOf(method.getReturnType()), this.expectedType)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	@SuppressWarnings("unchecked")
 	private T processInternal(ParametersWrapper parameters) throws Exception {
+		if (!this.initialized) {
+			synchronized (this) {
+				if (!this.initialized) {
+					PayloadExpressionArgumentResolver payloadExpressionArgumentResolver =
+							new PayloadExpressionArgumentResolver();
+					payloadExpressionArgumentResolver.setBeanFactory(getBeanFactory());
+
+					PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
+					payloadsArgumentResolver.setBeanFactory(getBeanFactory());
+
+					CollectionArgumentResolver collectionArgumentResolver =
+							new CollectionArgumentResolver(this.canProcessMessageList);
+					collectionArgumentResolver.setBeanFactory(getBeanFactory());
+
+					List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
+					customArgumentResolvers.add(payloadExpressionArgumentResolver);
+					customArgumentResolvers.add(payloadsArgumentResolver);
+					customArgumentResolvers.add(collectionArgumentResolver);
+
+					this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
+					this.messageHandlerMethodFactory.afterPropertiesSet();
+					prepareEvaluationContext();
+					this.initialized = true;
+				}
+			}
+		}
 		HandlerMethod candidate = this.findHandlerMethodForParameters(parameters);
 		Assert.notNull(candidate, "No candidate methods found for messages.");
 
-		T result = candidate.invoke(parameters);
+		T result = null;
+		try {
+			result = candidate.invoke(parameters);
+		}
+		catch (MethodArgumentResolutionException | MessageConversionException e) {
+			if (e instanceof MessageConversionException) {
+				if (e.getCause() instanceof ConversionFailedException &&
+						!(e.getCause().getCause() instanceof ConverterNotFoundException)) {
+					throw e;
+				}
+			}
+			Expression expression = candidate.expression;
+			if (logger.isInfoEnabled()) {
+				logger.info("Failed to invoke [ " + candidate.invocableHandlerMethod +
+						"] with provided arguments [ " + parameters + " ]. \n" +
+						"Falling back to SpEL invocation for expression [ " +
+						expression.getExpressionString() + " ]");
+			}
+			try {
+				result = (T) evaluateExpression(expression, parameters);
+			}
+			catch (Exception ex) {
+				Throwable evaluationException = ex;
+				if ((ex instanceof EvaluationException || ex instanceof MessageHandlingException)
+						&& e.getCause() != null) {
+					evaluationException = e.getCause();
+				}
+				if (evaluationException instanceof Exception) {
+					throw (Exception) evaluationException;
+				}
+				else {
+					throw new IllegalStateException("Cannot process message", evaluationException);
+				}
+			}
+		}
 		if (result != null && this.expectedType != null) {
 			return (T) getEvaluationContext(true)
 					.getTypeConverter()
@@ -599,6 +699,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	 */
 	private static class HandlerMethod {
 
+		private static final SpelExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+
+		private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER =
+				new LocalVariableTableParameterNameDiscoverer();
+
 		private static final TypeDescriptor messageTypeDescriptor = TypeDescriptor.valueOf(Message.class);
 
 		private static final TypeDescriptor messageListTypeDescriptor = new TypeDescriptor(
@@ -609,6 +714,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		@SuppressWarnings("unused")
 		private static final Collection<Message<?>> dummyMessages = Collections.emptyList();
 
+		private final Expression expression;
 
 		private final InvocableHandlerMethod invocableHandlerMethod;
 
@@ -623,8 +729,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		HandlerMethod(InvocableHandlerMethod invocableHandlerMethod, boolean canProcessMessageList) {
 			this.invocableHandlerMethod = invocableHandlerMethod;
 			this.canProcessMessageList = canProcessMessageList;
-			analyzeMethod();
+			this.expression = generateExpression(this.invocableHandlerMethod.getMethod());
 		}
+
 
 		@SuppressWarnings("unchecked")
 		public <T> T invoke(ParametersWrapper parameters) throws Exception {
@@ -632,7 +739,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			if (this.canProcessMessageList) {
 				message = new MutableMessage<>(parameters.getMessages(), parameters.getHeaders());
 			}
-			return (T) this.invocableHandlerMethod.invoke(message, parameters.getHeaders());
+			return (T) this.invocableHandlerMethod.invoke(message);
+		}
+
+		public Expression getExpression() {
+			return this.expression;
 		}
 
 		Class<?> getTargetParameterType() {
@@ -648,64 +759,116 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			return this.invocableHandlerMethod.toString();
 		}
 
-		private void analyzeMethod() {
-
-			MethodParameter[] methodParameters = this.invocableHandlerMethod.getMethodParameters();
-
+		private Expression generateExpression(Method method) {
+			StringBuilder sb = new StringBuilder("#target." + method.getName() + "(");
+			Class<?>[] parameterTypes = method.getParameterTypes();
+			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 			boolean hasUnqualifiedMapParameter = false;
-
-			for (MethodParameter methodParameter : methodParameters) {
+			for (int i = 0; i < parameterTypes.length; i++) {
+				if (i != 0) {
+					sb.append(", ");
+				}
+				MethodParameter methodParameter = new MethodParameter(method, i);
 				TypeDescriptor parameterTypeDescriptor = new TypeDescriptor(methodParameter);
 				Class<?> parameterType = parameterTypeDescriptor.getObjectType();
 				Annotation mappingAnnotation =
-						MessagingAnnotationUtils.findMessagePartAnnotation(methodParameter.getParameterAnnotations(),
-								true);
+						MessagingAnnotationUtils.findMessagePartAnnotation(parameterAnnotations[i], true);
 				if (mappingAnnotation != null) {
 					Class<? extends Annotation> annotationType = mappingAnnotation.annotationType();
 					if (annotationType.equals(Payload.class)) {
+						sb.append("payload");
 						String qualifierExpression = (String) AnnotationUtils.getValue(mappingAnnotation);
+						if (StringUtils.hasText(qualifierExpression)) {
+							sb.append(".")
+									.append(qualifierExpression);
+						}
 						if (!StringUtils.hasText(qualifierExpression)) {
-							setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
+							this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 						}
 					}
-					else if (annotationType.equals(Payloads.class)) {
-						Assert.isTrue(canProcessMessageList,
+					if (annotationType.equals(Payloads.class)) {
+						Assert.isTrue(this.canProcessMessageList,
 								"The @Payloads annotation can only be applied if method handler canProcessMessageList.");
 						Assert.isTrue(Collection.class.isAssignableFrom(parameterType),
 								"The @Payloads annotation can only be applied to a Collection-typed parameter.");
+						sb.append("messages.![payload");
 						String qualifierExpression = ((Payloads) mappingAnnotation).value();
+						if (StringUtils.hasText(qualifierExpression)) {
+							sb.append(".")
+									.append(qualifierExpression);
+						}
+						sb.append("]");
 						if (!StringUtils.hasText(qualifierExpression)) {
-							setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
+							this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 						}
 					}
 					else if (annotationType.equals(Headers.class)) {
 						Assert.isTrue(Map.class.isAssignableFrom(parameterType),
 								"The @Headers annotation can only be applied to a Map-typed parameter.");
+						sb.append("headers");
+					}
+					else if (annotationType.equals(Header.class)) {
+						sb.append(this.determineHeaderExpression(mappingAnnotation, methodParameter));
 					}
 				}
 				else if (parameterTypeDescriptor.isAssignableTo(messageTypeDescriptor)) {
 					this.messageMethod = true;
-					setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
+					sb.append("message");
+					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
 				else if (this.canProcessMessageList &&
 						(parameterTypeDescriptor.isAssignableTo(messageListTypeDescriptor)
 								|| parameterTypeDescriptor.isAssignableTo(messageArrayTypeDescriptor))) {
-					setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
+					sb.append("messages");
+					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
 				else if (Collection.class.isAssignableFrom(parameterType) || parameterType.isArray()) {
-					setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
+					if (this.canProcessMessageList) {
+						sb.append("messages.![payload]");
+					}
+					else {
+						sb.append("payload");
+					}
+					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
 				else if (Iterator.class.isAssignableFrom(parameterType)) {
-					setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
+					if (this.canProcessMessageList) {
+						Type type = method.getGenericParameterTypes()[i];
+						Type parameterizedType = null;
+						if (type instanceof ParameterizedType) {
+							parameterizedType = ((ParameterizedType) type).getActualTypeArguments()[0];
+							if (parameterizedType instanceof ParameterizedType) {
+								parameterizedType = ((ParameterizedType) parameterizedType).getRawType();
+							}
+						}
+						if (parameterizedType != null && Message.class.isAssignableFrom((Class<?>) parameterizedType)) {
+							sb.append("messages.iterator()");
+						}
+						else {
+							sb.append("messages.![payload].iterator()");
+						}
+					}
+					else {
+						sb.append("payload.iterator()");
+					}
+					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
 				else if (Map.class.isAssignableFrom(parameterType)) {
+					if (Properties.class.isAssignableFrom(parameterType)) {
+						sb.append("payload instanceof T(java.util.Map) or "
+								+ "(payload instanceof T(String) and payload.contains('=')) ? payload : headers");
+					}
+					else {
+						sb.append("(payload instanceof T(java.util.Map) ? payload : headers)");
+					}
 					Assert.isTrue(!hasUnqualifiedMapParameter,
 							"Found more than one Map typed parameter without any qualification. "
 									+ "Consider using @Payload or @Headers on at least one of the parameters.");
 					hasUnqualifiedMapParameter = true;
 				}
 				else {
-					setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
+					sb.append("payload");
+					this.setExclusiveTargetParameterType(parameterTypeDescriptor, methodParameter);
 				}
 			}
 			if (hasUnqualifiedMapParameter) {
@@ -715,9 +878,43 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 									+ "Consider adding the @Payload and or @Headers annotations as appropriate.");
 				}
 			}
+			sb.append(")");
 			if (this.targetParameterTypeDescriptor == null) {
 				this.targetParameterTypeDescriptor = TypeDescriptor.valueOf(Void.class);
 			}
+			return EXPRESSION_PARSER.parseExpression(sb.toString());
+		}
+
+		private String determineHeaderExpression(Annotation headerAnnotation, MethodParameter methodParameter) {
+			methodParameter.initParameterNameDiscovery(PARAMETER_NAME_DISCOVERER);
+			String headerName = null;
+			String relativeExpression = "";
+			AnnotationAttributes annotationAttributes =
+					(AnnotationAttributes) AnnotationUtils.getAnnotationAttributes(headerAnnotation);
+			String valueAttribute = annotationAttributes.getString(AnnotationUtils.VALUE);
+			if (!StringUtils.hasText(valueAttribute)) {
+				headerName = methodParameter.getParameterName();
+			}
+			else if (valueAttribute.indexOf('.') != -1) {
+				String[] tokens = valueAttribute.split("\\.", 2);
+				headerName = tokens[0];
+				if (StringUtils.hasText(tokens[1])) {
+					relativeExpression = "." + tokens[1];
+				}
+			}
+			else {
+				headerName = valueAttribute;
+			}
+			Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is "
+					+ "disabled or header name is not explicitly provided via @Header annotation.");
+			String headerRetrievalExpression = "headers['" + headerName + "']";
+			String fullHeaderExpression = headerRetrievalExpression + relativeExpression;
+			String fallbackExpression = (annotationAttributes.getBoolean("required")
+					&& !methodParameter.getParameterType().getName().equals("java.util.Optional"))
+					? "T(org.springframework.util.Assert).isTrue(false, 'required header not available: "
+					+ headerName + "')"
+					: "null";
+			return headerRetrievalExpression + " != null ? " + fullHeaderExpression + " : " + fallbackExpression;
 		}
 
 		private void setExclusiveTargetParameterType(TypeDescriptor targetParameterType,

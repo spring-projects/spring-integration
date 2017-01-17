@@ -53,10 +53,10 @@ public class PayloadExpressionArgumentResolver extends AbstractExpressionEvaluat
 		Expression expression = this.expressionCache.get(parameter);
 		if (expression == null) {
 			Payload ann = parameter.getParameterAnnotation(Payload.class);
-			expression = EXPRESSION_PARSER.parseExpression("payload." + ann.expression());
+			expression = EXPRESSION_PARSER.parseExpression(ann.expression());
 			this.expressionCache.put(parameter, expression);
 		}
-		return evaluateExpression(expression, message, parameter.getParameterType());
+		return evaluateExpression(expression, message.getPayload(), parameter.getParameterType());
 	}
 
 }

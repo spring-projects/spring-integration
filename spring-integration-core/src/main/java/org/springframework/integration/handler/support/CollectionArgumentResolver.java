@@ -62,7 +62,7 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 			}
 			else {
 				value = messages.stream()
-						.map(Message::getPayload)
+						.map(m -> m.getPayload())
 						.collect(Collectors.toList());
 			}
 			parameter.decreaseNestingLevel();

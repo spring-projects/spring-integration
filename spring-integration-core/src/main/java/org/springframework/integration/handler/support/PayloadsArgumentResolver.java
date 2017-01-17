@@ -79,7 +79,7 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 		}
 		else {
 			List<?> payloads = messages.stream()
-					.map(Message::getPayload)
+					.<Object>map(Message::getPayload)
 					.collect(Collectors.toList());
 
 			return getEvaluationContext()

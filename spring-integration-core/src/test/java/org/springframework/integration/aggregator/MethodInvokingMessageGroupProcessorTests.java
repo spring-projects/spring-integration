@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -38,7 +37,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -101,10 +99,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor =
-				new MethodInvokingMessageGroupProcessor(new AnnotatedAggregatorMethod());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new AnnotatedAggregatorMethod());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat(((Message<?>) result).getPayload(), is(7));
@@ -125,9 +120,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat(((Message<?>) result).getPayload(), is(7));
@@ -148,9 +141,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat(((Message<?>) result).getPayload(), is(7));
@@ -174,9 +165,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
@@ -203,9 +192,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
@@ -232,9 +219,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat(((Message<?>) result).getPayload(), is("[1, 2, 4]"));
@@ -255,9 +240,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat(((Message<?>) result).getPayload(), is(7));
@@ -278,10 +261,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
-
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat(((Message<?>) result).getPayload(), is(7));
@@ -304,8 +284,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-
 		GenericConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<ArrayList<?>, Iterator<?>>() {
 
@@ -316,9 +294,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		});
 		processor.setConversionService(conversionService);
-
-		processor.start();
-
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat(((Message<?>) result).getPayload(), is(7));
@@ -348,10 +323,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
-
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat(((Message<?>) result).getPayload(), is(7));
@@ -378,11 +350,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor =
-				new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
-
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertTrue(((Message<?>) result).getPayload() instanceof Iterator<?>);
@@ -409,11 +377,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		}
 
-		MethodInvokingMessageGroupProcessor processor =
-				new MethodInvokingMessageGroupProcessor(new AnnotatedParametersAggregator());
-		processor.setBeanFactory(mock(BeanFactory.class));
-		processor.start();
-
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new AnnotatedParametersAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		Object payload = ((Message<?>) result).getPayload();
@@ -440,8 +404,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		SingleAnnotationTestBean bean = new SingleAnnotationTestBean();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(bean);
-		aggregator.setBeanFactory(mock(BeanFactory.class));
-		aggregator.start();
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
 		group.add(new GenericMessage<String>("foo"));
 		group.add(new GenericMessage<String>("bar"));
@@ -462,9 +424,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		SingleAnnotationTestBean bean = new SingleAnnotationTestBean();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(bean);
-		aggregator.setBeanFactory(mock(BeanFactory.class));
-		aggregator.start();
-
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
 		group.add(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		group.add(MessageBuilder.withPayload("bar").setHeader("foo", "bar").build());
@@ -485,9 +444,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		SingleAnnotationTestBean bean = new SingleAnnotationTestBean();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(bean);
-		aggregator.setBeanFactory(mock(BeanFactory.class));
-		aggregator.start();
-
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
 		group.add(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		group.add(MessageBuilder.withPayload("bar").setHeader("foo", "bar").build());
@@ -531,9 +487,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		NoAnnotationTestBean bean = new NoAnnotationTestBean();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(bean);
-		aggregator.setBeanFactory(mock(BeanFactory.class));
-		aggregator.start();
-
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
 		group.add(new GenericMessage<String>("foo"));
 		group.add(new GenericMessage<String>("bar"));
@@ -583,7 +536,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		proxyFactory.setProxyTargetClass(true);
 		testBean = (GreetingService) proxyFactory.getProxy();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(testBean);
-		aggregator.setBeanFactory(mock(BeanFactory.class));
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(aggregator);
 		handler.setReleaseStrategy(new MessageCountReleaseStrategy());
 		handler.setOutputChannel(output);
@@ -609,7 +561,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		handler.setReleaseStrategy(new MessageCountReleaseStrategy());
 		handler.setOutputChannel(output);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, handler);
-		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.start();
 
 		Message<?> message = MessageBuilder.withPayload("proxy").setCorrelationId("abc").build();
