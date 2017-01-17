@@ -41,6 +41,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
@@ -594,6 +595,19 @@ public class MethodInvokingMessageProcessorTests {
 			processor.processMessage(message);
 		}
 		stopWatch.stop();
+
+
+		System.setProperty("spring.expression.compiler.mode", SpelCompilerMode.IMMEDIATE.name());
+		processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+
+		stopWatch.start("Compiled SpEL");
+		for (int i = 0; i < 10000; i++) {
+			processor.processMessage(message);
+		}
+		stopWatch.stop();
+
+		System.clearProperty("spring.expression.compiler.mode");
 
 		logger.warn(stopWatch.prettyPrint());
 	}
