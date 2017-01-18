@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -68,6 +69,7 @@ public class AggregatorWithGemfireLocksTests {
 	private volatile Exception exception;
 
 	@Test
+	@Ignore("Until INT-4211")
 	public void testLockSingleGroup() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
@@ -80,6 +82,7 @@ public class AggregatorWithGemfireLocksTests {
 	}
 
 	@Test
+	@Ignore("Until INT-4211")
 	public void testLockThreeGroups() throws Exception {
 		this.releaseStrategy.reset(3);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
@@ -100,6 +103,7 @@ public class AggregatorWithGemfireLocksTests {
 	}
 
 	@Test
+	@Ignore("Until INT-4211")
 	public void testDistributedAggregator() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));

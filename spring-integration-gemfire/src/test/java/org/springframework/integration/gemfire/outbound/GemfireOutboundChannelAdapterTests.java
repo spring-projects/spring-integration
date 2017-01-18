@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,6 +70,7 @@ public class GemfireOutboundChannelAdapterTests {
 	}
 
 	@Test
+	@Ignore("Until INT-4211")
 	public void testWriteMapPayload() {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("foo", "bar");
@@ -80,6 +82,7 @@ public class GemfireOutboundChannelAdapterTests {
 	}
 
 	@Test
+	@Ignore("Until INT-4211")
 	public void testWriteExpressions() {
 		Message<?> message = MessageBuilder.withPayload("Hello").build();
 		cacheChannel2.send(message);
@@ -89,6 +92,7 @@ public class GemfireOutboundChannelAdapterTests {
 	}
 
 	@Test //INT-2275
+	@Ignore("Until INT-4211")
 	public void testWriteWithinChain() {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("foo", "bar");

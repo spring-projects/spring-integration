@@ -19,6 +19,7 @@ package org.springframework.integration.gemfire.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -66,6 +67,7 @@ public class GemfireInboundChannelAdapterTests {
 	LocalRegion region3;
 
 	@Test
+	@Ignore("Until INT-4211")
 	public void testGemfireInboundChannelAdapterWithExpression() {
 
 		EventHandler eventHandler1 = new EventHandler();
@@ -77,6 +79,7 @@ public class GemfireInboundChannelAdapterTests {
 	}
 
 	@Test
+	@Ignore("Until INT-4211")
 	public void testGemfireInboundChannelAdapterDefault() {
 		EventHandler eventHandler2 = new EventHandler();
 		channel2.subscribe(eventHandler2);
@@ -89,6 +92,7 @@ public class GemfireInboundChannelAdapterTests {
 	}
 
 	@Test
+	@Ignore("Until INT-4211")
 	public void testErrorChannel() {
 		channel3.subscribe(message -> {
 			throw new MessagingException("got an error");
