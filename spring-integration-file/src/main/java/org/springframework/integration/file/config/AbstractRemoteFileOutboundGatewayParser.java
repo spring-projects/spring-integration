@@ -105,8 +105,11 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractCo
 		count += hasFileNamePattern ? 1 : 0;
 		count += hasFileNameRegex ? 1 : 0;
 		if (count > 1) {
-			parserContext.getReaderContext().error("at most one of '" + patternPrefix + "-pattern', " +
-					"'" + patternPrefix + "-regex', or '" + filterAttribute + "' is allowed on a remote file outbound gateway", element);
+			parserContext.getReaderContext()
+					.error("at most one of '" + patternPrefix + "-pattern', " +
+					"'" + patternPrefix + "-regex', '" + filterAttribute +
+					"' or '" + filterAttribute + "-expression' is allowed on a remote file outbound gateway",
+							element);
 		}
 		else if (hasFilter) {
 			builder.addPropertyReference(propertyName, filter);
