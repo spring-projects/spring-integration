@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -90,6 +91,7 @@ public abstract class TestUtils {
 		ThreadPoolTaskScheduler scheduler = createTaskScheduler(10);
 		scheduler.setErrorHandler(errorHandler);
 		registerBean("taskScheduler", scheduler, context);
+		registerBean("integrationConversionService", new DefaultFormattingConversionService(), context);
 		return context;
 	}
 

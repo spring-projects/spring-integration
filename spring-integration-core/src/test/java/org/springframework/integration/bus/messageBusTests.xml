@@ -33,4 +33,6 @@
 	<bean id="handler" class="org.springframework.integration.message.TestHandlers"
 		factory-method="echoHandler" />
 
+	<bean id="integrationConversionService" class="org.springframework.core.convert.support.DefaultConversionService"/>
+
 </beans>

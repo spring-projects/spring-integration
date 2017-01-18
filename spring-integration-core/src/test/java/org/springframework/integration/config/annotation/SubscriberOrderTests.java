@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,18 +32,20 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class SubscriberOrderTests {
 
 	@Test
 	public void directChannelAndFailoverDispatcherWithSingleCallPerMethod() {
-		GenericApplicationContext context = new GenericApplicationContext();
+		GenericApplicationContext context = TestUtils.createTestApplicationContext();
 		context.registerBeanDefinition("postProcessor", new RootBeanDefinition(MessagingAnnotationPostProcessor.class));
 		RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
 		context.registerBeanDefinition("input", channelDefinition);
@@ -70,7 +72,7 @@ public class SubscriberOrderTests {
 
 	@Test
 	public void directChannelAndFailoverDispatcherWithMultipleCallsPerMethod() {
-		GenericApplicationContext context = new GenericApplicationContext();
+		GenericApplicationContext context = TestUtils.createTestApplicationContext();
 		context.registerBeanDefinition("postProcessor", new RootBeanDefinition(MessagingAnnotationPostProcessor.class));
 		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.rootBeanDefinition(DirectChannel.class);
 		channelBuilder.addConstructorArgValue(null);
@@ -112,7 +114,7 @@ public class SubscriberOrderTests {
 
 	@Test
 	public void directChannelAndRoundRobinDispatcher() {
-		GenericApplicationContext context = new GenericApplicationContext();
+		GenericApplicationContext context = TestUtils.createTestApplicationContext();
 		context.registerBeanDefinition("postProcessor", new RootBeanDefinition(MessagingAnnotationPostProcessor.class));
 		RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
 		channelDefinition.getConstructorArgumentValues().addGenericArgumentValue(new RoundRobinLoadBalancingStrategy());

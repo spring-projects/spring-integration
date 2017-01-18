@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,7 @@ public class ServiceActivatorEndpointTests {
 
 	@Test
 	public void returnAddressHeaderWithChannelName() {
+		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		QueueChannel channel = new QueueChannel(1);
 		channel.setBeanName("testChannel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
@@ -98,10 +99,12 @@ public class ServiceActivatorEndpointTests {
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("FOO", reply.getPayload());
+		testApplicationContext.close();
 	}
 
 	@Test
 	public void dynamicReplyChannel() throws Exception {
+		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		final QueueChannel replyChannel1 = new QueueChannel();
 		final QueueChannel replyChannel2 = new QueueChannel();
 		replyChannel2.setBeanName("replyChannel2");
@@ -116,7 +119,7 @@ public class ServiceActivatorEndpointTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel("replyChannel2", replyChannel2);
 		endpoint.setChannelResolver(channelResolver);
-		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.setBeanFactory(testApplicationContext);
 		endpoint.afterPropertiesSet();
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
 				.setReplyChannel(replyChannel1).build();
@@ -134,6 +137,7 @@ public class ServiceActivatorEndpointTests {
 		reply2 = replyChannel2.receive(0);
 		assertNotNull(reply2);
 		assertEquals("foobar", reply2.getPayload());
+		testApplicationContext.close();
 	}
 
 	@Test

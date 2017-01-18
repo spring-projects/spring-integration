@@ -59,6 +59,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.handler.support.CollectionArgumentResolver;
+import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.support.MutableMessage;
@@ -368,6 +369,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					customArgumentResolvers.add(payloadExpressionArgumentResolver);
 					customArgumentResolvers.add(payloadsArgumentResolver);
 					customArgumentResolvers.add(collectionArgumentResolver);
+					MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
+
+					customArgumentResolvers.add(mapArgumentResolver);
 
 					this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
 					this.messageHandlerMethodFactory.afterPropertiesSet();
@@ -382,17 +386,23 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		T result = null;
 		try {
-			if (this.useSpelInvoker) {
-				invokeExpression(expression, parameters);
+			if (this.useSpelInvoker || candidate.spelOnly) {
+				result = invokeExpression(expression, parameters);
 			}
 			else {
 				result = candidate.invoke(parameters);
 			}
 		}
-		catch (MethodArgumentResolutionException | MessageConversionException e) {
+		catch (MethodArgumentResolutionException | MessageConversionException | IllegalStateException e) {
 			if (e instanceof MessageConversionException) {
 				if (e.getCause() instanceof ConversionFailedException &&
 						!(e.getCause().getCause() instanceof ConverterNotFoundException)) {
+					throw e;
+				}
+			}
+			else if (e instanceof IllegalStateException) {
+				if (e.getCause() instanceof IllegalArgumentException
+						&& !"argument type mismatch".equals(e.getCause().getMessage())) {
 					throw e;
 				}
 			}
@@ -756,6 +766,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		private volatile boolean messageMethod;
 
+		private volatile boolean spelOnly;
+
 		HandlerMethod(InvocableHandlerMethod invocableHandlerMethod, boolean canProcessMessageList) {
 			this.invocableHandlerMethod = invocableHandlerMethod;
 			this.canProcessMessageList = canProcessMessageList;
@@ -930,6 +942,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				headerName = tokens[0];
 				if (StringUtils.hasText(tokens[1])) {
 					relativeExpression = "." + tokens[1];
+					this.spelOnly = true;
 				}
 			}
 			else {

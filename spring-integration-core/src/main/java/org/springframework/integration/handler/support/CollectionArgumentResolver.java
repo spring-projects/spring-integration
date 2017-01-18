@@ -17,6 +17,8 @@
 package org.springframework.integration.handler.support;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.stream.Collectors;
 
 import org.springframework.core.MethodParameter;
@@ -43,7 +45,9 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		Class<?> parameterType = parameter.getParameterType();
-		return Collection.class.isAssignableFrom(parameterType) || parameterType.isArray();
+		return Collection.class.isAssignableFrom(parameterType)
+				|| Iterator.class.isAssignableFrom(parameterType)
+				|| parameterType.isArray();
 	}
 
 	@Override
@@ -62,16 +66,26 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 			}
 			else {
 				value = messages.stream()
-						.map(m -> m.getPayload())
+						.map(Message::getPayload)
 						.collect(Collectors.toList());
 			}
 			parameter.decreaseNestingLevel();
 		}
-		return getEvaluationContext()
-				.getTypeConverter()
-				.convertValue(value,
-						TypeDescriptor.forObject(value),
-						TypeDescriptor.valueOf(parameter.getParameterType()));
+		if (Iterator.class.isAssignableFrom(parameter.getParameterType())) {
+			if (value instanceof Iterable) {
+				return ((Iterable) value).iterator();
+			}
+			else {
+				return Collections.singleton(value).iterator();
+			}
+		}
+		else {
+			return getEvaluationContext()
+					.getTypeConverter()
+					.convertValue(value,
+							TypeDescriptor.forObject(value),
+							TypeDescriptor.valueOf(parameter.getParameterType()));
+		}
 	}
 
 }

@@ -22,13 +22,13 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.FilterFactoryBean;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * @author Mark Fisher
@@ -38,8 +38,9 @@ public class FilterAnnotationMethodResolutionTests {
 
 	@Test
 	public void resolveAnnotatedMethod() throws Exception {
+		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		FilterFactoryBean factoryBean = new FilterFactoryBean();
-		factoryBean.setBeanFactory(new DefaultListableBeanFactory());
+		factoryBean.setBeanFactory(testApplicationContext);
 		AnnotatedTestFilter filter = new AnnotatedTestFilter();
 		factoryBean.setTargetObject(filter);
 		MessageHandler handler = factoryBean.getObject();
@@ -49,6 +50,7 @@ public class FilterAnnotationMethodResolutionTests {
 		assertNotNull(result);
 		assertTrue(filter.invokedCorrectMethod);
 		assertFalse(filter.invokedIncorrectMethod);
+		testApplicationContext.close();
 	}
 
 

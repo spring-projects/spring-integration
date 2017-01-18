@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,18 @@ package org.springframework.integration.router.config;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.RouterFactoryBean;
-import org.springframework.messaging.MessageChannel;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 4.2.5
  *
  */
@@ -41,19 +39,20 @@ public class RouterFactoryBeanTests {
 
 	@Test
 	public void testOutputChannelName() throws Exception {
+		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
 		RouterFactoryBean fb = new RouterFactoryBean();
 		fb.setTargetObject(this);
 		fb.setTargetMethodName("foo");
 		fb.setDefaultOutputChannelName("bar");
-		BeanFactory beanFactory = mock(BeanFactory.class);
 		QueueChannel bar = new QueueChannel();
-		doReturn(bar).when(beanFactory).getBean("bar", MessageChannel.class);
-		fb.setBeanFactory(beanFactory);
+		testApplicationContext.registerBean("bar", bar);
+		fb.setBeanFactory(testApplicationContext);
 		MessageHandler handler = fb.getObject();
 		this.routeAttempted = false;
 		handler.handleMessage(new GenericMessage<>("foo"));
 		assertNotNull(bar.receive(10000));
 		assertTrue(this.routeAttempted);
+		testApplicationContext.close();
 	}
 
 	public String foo() {
