@@ -249,6 +249,7 @@ public class MessagingGatewayTests {
 	@Test
 	public void validateErrorChannelWithSuccessfulReply() {
 		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+		testApplicationContext.refresh();
 		DirectChannel reqChannel = new DirectChannel();
 		reqChannel.subscribe(message -> {
 			throw new RuntimeException("ooops");

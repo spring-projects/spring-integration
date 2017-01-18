@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import org.springframework.messaging.MessageHandler;
 
 /**
  * @author Mark Fisher
+ * @author Artme Bilan
+ *
  * @since 2.0
  */
 public class FilterAnnotationMethodResolutionTests {
@@ -39,6 +41,7 @@ public class FilterAnnotationMethodResolutionTests {
 	@Test
 	public void resolveAnnotatedMethod() throws Exception {
 		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+		testApplicationContext.refresh();
 		FilterFactoryBean factoryBean = new FilterFactoryBean();
 		factoryBean.setBeanFactory(testApplicationContext);
 		AnnotatedTestFilter filter = new AnnotatedTestFilter();
@@ -80,6 +83,7 @@ public class FilterAnnotationMethodResolutionTests {
 			this.invokedCorrectMethod = true;
 			return true;
 		}
+
 	}
 
 }

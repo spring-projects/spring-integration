@@ -85,13 +85,14 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void returnAddressHeaderWithChannelName() {
 		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+		testApplicationContext.refresh();
 		QueueChannel channel = new QueueChannel(1);
 		channel.setBeanName("testChannel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel("testChannel", channel);
 		ServiceActivatingHandler endpoint = this.createEndpoint();
 		endpoint.setChannelResolver(channelResolver);
-		endpoint.setBeanFactory(mock(BeanFactory.class));
+		endpoint.setBeanFactory(testApplicationContext);
 		endpoint.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo")
 				.setReplyChannelName("testChannel").build();
@@ -105,6 +106,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void dynamicReplyChannel() throws Exception {
 		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+		testApplicationContext.refresh();
 		final QueueChannel replyChannel1 = new QueueChannel();
 		final QueueChannel replyChannel2 = new QueueChannel();
 		replyChannel2.setBeanName("replyChannel2");

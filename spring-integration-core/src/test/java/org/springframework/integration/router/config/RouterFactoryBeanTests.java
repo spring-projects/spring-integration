@@ -40,6 +40,7 @@ public class RouterFactoryBeanTests {
 	@Test
 	public void testOutputChannelName() throws Exception {
 		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+		testApplicationContext.refresh();
 		RouterFactoryBean fb = new RouterFactoryBean();
 		fb.setTargetObject(this);
 		fb.setTargetMethodName("foo");

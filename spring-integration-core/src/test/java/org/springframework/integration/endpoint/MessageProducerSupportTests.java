@@ -83,6 +83,7 @@ public class MessageProducerSupportTests {
 	@Test
 	public void validateSuccessfulErrorFlowDoesNotThrowErrors() {
 		TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+		testApplicationContext.refresh();
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(message -> {
 			throw new RuntimeException("problems");
