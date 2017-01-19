@@ -72,7 +72,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param uri The URI.
 	 */
 	public HttpRequestExecutingMessageHandler(String uri) {
-		this(uri, null);
+		this(uri, (RestTemplate) null);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @param uriExpression The URI expression.
 	 */
 	public HttpRequestExecutingMessageHandler(Expression uriExpression) {
-		this(uriExpression, null);
+		this(uriExpression, (RestTemplate) null);
 	}
 
 	/**
@@ -148,6 +148,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 */
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
+		if (this.isAsync()) {
+			throw new IllegalArgumentException("ClientHttpRequestFactory cannot be set in async mode");
+		}
+
 		this.restTemplate.setRequestFactory(requestFactory);
 	}
 
