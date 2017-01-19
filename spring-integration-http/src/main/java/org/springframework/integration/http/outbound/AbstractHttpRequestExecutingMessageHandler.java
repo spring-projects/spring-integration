@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * Base class for http outbound adapter/gateway.
+ *
+ * @author Mark Fisher
+ * @author Oleg Zhurakousky
+ * @author Gary Russell
+ * @author Gunnar Hillert
+ * @author Artem Bilan
+ * @author Wallace Wadge
+ * @author Shiliang Li
+ * @since 5.0
+ */
 public abstract class AbstractHttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
@@ -190,14 +202,14 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	/**
-	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
+	 * Set the {@link ResponseErrorHandler} for the underlying implementation.
 	 *
 	 * @param errorHandler The error handler.
 	 */
 	public abstract void setErrorHandler(ResponseErrorHandler errorHandler);
 
 	/**
-	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestTemplate}.
+	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying implementation.
 	 * Converters configured via this method will override the default converters.
 	 *
 	 * @param messageConverters The message converters.
@@ -282,7 +294,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 			realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 
-			return this.getResponse(expectedResponseType, realUri, httpMethod, httpRequest);
+			return this.exchange(realUri, httpMethod, httpRequest, expectedResponseType);
 		}
 		catch (MessagingException e) {
 			throw e;
@@ -293,7 +305,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		}
 	}
 
-	abstract protected Object getResponse(Object expectedResponseType, URI realUri, HttpMethod httpMethod, HttpEntity<?> httpRequest);
+	abstract protected Object exchange(URI realUri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType);
 
 	protected Object getReply(ResponseEntity<?> httpResponse) {
 		if (this.expectReply) {
@@ -313,7 +325,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				replyBuilder = this.getMessageBuilderFactory().withPayload(httpResponse);
 			}
 			replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode());
-			return replyBuilder.copyHeaders(headers).build();
+			return replyBuilder.copyHeaders(headers);
 		}
 		return null;
 	}

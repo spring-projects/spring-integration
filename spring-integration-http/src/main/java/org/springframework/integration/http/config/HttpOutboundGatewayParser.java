@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Shiliang Li
  */
 public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -53,19 +54,32 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		}
 
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
-
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
-
 		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 
-		String restTemplate = element.getAttribute("rest-template");
-		if (StringUtils.hasText(restTemplate)) {
-			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
-			builder.addConstructorArgReference(restTemplate);
+		if (async) {
+			String asyncTemplateRef = element.getAttribute("async-rest-template");
+			if (StringUtils.hasText(asyncTemplateRef)) {
+				HttpAdapterParsingUtils.verifyNoAsyncRestTemplateAttributes(element, parserContext);
+				builder.addConstructorArgReference(asyncTemplateRef);
+			}
+			else {
+				for (String referenceAttributeName : HttpAdapterParsingUtils.ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+					IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+				}
+			}
 		}
 		else {
-			for (String referenceAttributeName : HttpAdapterParsingUtils.REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
-				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+			String restTemplateRef = element.getAttribute("rest-template");
+
+			if (StringUtils.hasText(restTemplateRef)) {
+				HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
+				builder.addConstructorArgReference(restTemplateRef);
+			}
+			else {
+				for (String referenceAttributeName : HttpAdapterParsingUtils.SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+					IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+				}
 			}
 		}
 

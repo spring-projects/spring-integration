@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ import java.util.List;
  * A {@link MessageHandler} implementation that executes HTTP requests by delegating
  * to a {@link AsyncRestTemplate} instance.
  * @see HttpRequestExecutingMessageHandler
+ * @author Shiliang Li
+ * @since 5.0
  */
 public class AsyncHttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
 	private AsyncRestTemplate asyncRestTemplate;
@@ -141,7 +143,7 @@ public class AsyncHttpRequestExecutingMessageHandler extends AbstractHttpRequest
 	}
 
 	@Override
-	protected Object getResponse(Object expectedResponseType, URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest) {
+	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType) {
 		SettableListenableFuture<Object> replyMessageFuture = new SettableListenableFuture<>();
 		ListenableFuture<? extends ResponseEntity<?>> responseFuture;
 		if (expectedResponseType instanceof ParameterizedTypeReference<?>) {

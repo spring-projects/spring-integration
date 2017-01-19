@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import java.util.List;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Wallace Wadge
+ * @author Shiliang Li
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
@@ -152,7 +153,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	@Override
-	protected Object getResponse(Object expectedResponseType, URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest) {
+	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType) {
 		ResponseEntity<?> httpResponse;
 		if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
 			httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, (ParameterizedTypeReference<?>) expectedResponseType);
