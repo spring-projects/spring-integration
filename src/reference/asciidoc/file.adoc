@@ -640,7 +640,7 @@ However, this can cause data loss in the event of a failure.
 Several flushing strategies, to mitigate this data loss, are provided:
 
 - `flushInterval` - if a file is not written to for this period of time, it is automatically flushed.
-This is approximate and may be up to `1.33x` this time.
+This is approximate and may be up to `1.33x` this time (with an average of `1.167x`).
 - Send a message to the message handler's `trigger` method containing a regular expression.
 Files with absolute path names matching the pattern will be flushed.
 - Provide the handler with a custom `MessageFlushPredicate` implementation to modify the action taken when a message

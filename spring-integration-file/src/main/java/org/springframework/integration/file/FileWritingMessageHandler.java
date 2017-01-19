@@ -299,7 +299,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	/**
 	 * Set the frequency to flush buffers when {@link FileExistsMode#APPEND_NO_FLUSH} is
-	 * being used.
+	 * being used. The interval is approximate; the actual interval will be between
+	 * {@code flushInterval} and {@code flushInterval * 1.33} with an average of
+	 * {@code flushInterval * 1.167}.
 	 * @param flushInterval the interval.
 	 * @since 4.3
 	 */
