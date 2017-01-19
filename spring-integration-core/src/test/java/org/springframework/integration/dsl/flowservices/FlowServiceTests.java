@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -57,8 +58,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StringUtils;
 
 /**
@@ -66,8 +66,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 5.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class FlowServiceTests {
 
@@ -82,13 +81,12 @@ public class FlowServiceTests {
 	private PollableChannel myFlowAdapterOutput;
 
 	@Test
-	public void testFlowService() {
+	public void testFlowServiceAndLogAsLastNoError() {
 		assertNotNull(this.myFlow);
-		QueueChannel replyChannel = new QueueChannel();
-		this.input.send(MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build());
-		Message<?> receive = replyChannel.receive(1000);
-		assertNotNull(receive);
-		assertEquals("FOO", receive.getPayload());
+		this.input.send(MessageBuilder.withPayload("foo").build());
+		Object result = this.myFlow.resultOverLoggingHandler.get();
+		assertNotNull(result);
+		assertEquals("FOO", result);
 	}
 
 	@Test
@@ -119,7 +117,9 @@ public class FlowServiceTests {
 
 		@Bean
 		public IntegrationFlow testGateway() {
-			return f -> f.gateway("processChannel", g -> g.replyChannel("replyChannel"));
+			return f -> f.gateway("processChannel", g -> g.replyChannel("replyChannel"))
+					.log()
+					.bridge(null);
 		}
 
 		@Bean
@@ -136,9 +136,15 @@ public class FlowServiceTests {
 	@Component
 	public static class MyFlow implements IntegrationFlow {
 
+		private final AtomicReference<Object> resultOverLoggingHandler = new AtomicReference<>();
+
 		@Override
 		public void configure(IntegrationFlowDefinition<?> f) {
-			f.<String, String>transform(String::toUpperCase);
+			f.<String, String>transform(String::toUpperCase)
+					.log(LoggingHandler.Level.ERROR, m -> {
+						resultOverLoggingHandler.set(m.getPayload());
+						return m;
+					});
 		}
 
 	}
