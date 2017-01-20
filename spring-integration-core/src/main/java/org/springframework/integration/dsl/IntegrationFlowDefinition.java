@@ -127,6 +127,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	private StandardIntegrationFlow integrationFlow;
 
+	private boolean implicitChannel;
+
 	IntegrationFlowDefinition() {
 	}
 
@@ -396,7 +398,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the {@code Wire Tap} EI Pattern specific
 	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
 	 * to the current {@link #currentMessageChannel}.
-	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
+	 * <p> It is useful when an implicit {@link MessageChannel} is used between endpoints:
 	 * <pre class="code">
 	 * {@code
 	 *  .transform("payload")
@@ -407,11 +409,14 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
 	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
 	 * @param wireTapSpec the {@link WireTapSpec} to use.
+	 * <p> When this EIP-method is used in the end of flow, it appends {@code nullChannel} to terminate flow properly,
+	 * Otherwise {@code Dispatcher has no subscribers} exception is thrown for implicit {@link DirectChannel}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B wireTap(WireTapSpec wireTapSpec) {
 		WireTap interceptor = wireTapSpec.get();
 		if (this.currentMessageChannel == null || !(this.currentMessageChannel instanceof ChannelInterceptorAware)) {
+			this.implicitChannel = true;
 			channel(new DirectChannel());
 		}
 		addComponent(wireTapSpec);
@@ -2889,9 +2894,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				}
 			}
 
-			Optional<Object> lastComponent = this.integrationComponents.stream().reduce((first, second) -> second);
-			if (lastComponent.get() instanceof WireTapSpec) {
-//				channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+			if (this.implicitChannel) {
+				Optional<Object> lastComponent = this.integrationComponents.stream().reduce((first, second) -> second);
+				if (lastComponent.get() instanceof WireTapSpec) {
+					channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+				}
 			}
 
 			this.integrationFlow = new StandardIntegrationFlow(this.integrationComponents);
