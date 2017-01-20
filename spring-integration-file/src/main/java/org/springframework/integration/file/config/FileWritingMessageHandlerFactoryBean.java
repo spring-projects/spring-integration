@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,8 @@ public class FileWritingMessageHandlerFactoryBean
 
 	private volatile Long flushInterval;
 
+	private volatile Boolean flushWhenIdle;
+
 	private volatile MessageFlushPredicate flushPredicate;
 
 	public void setFileExistsMode(String fileExistsModeAsString) {
@@ -127,6 +129,10 @@ public class FileWritingMessageHandlerFactoryBean
 		this.flushInterval = flushInterval;
 	}
 
+	public void setFlushWhenIdle(boolean flushWhenIdle) {
+		this.flushWhenIdle = flushWhenIdle;
+	}
+
 	public void setFlushPredicate(MessageFlushPredicate flushPredicate) {
 		this.flushPredicate = flushPredicate;
 	}
@@ -182,6 +188,9 @@ public class FileWritingMessageHandlerFactoryBean
 		}
 		if (this.flushInterval != null) {
 			handler.setFlushInterval(this.flushInterval);
+		}
+		if (this.flushWhenIdle != null) {
+			handler.setFlushWhenIdle(this.flushWhenIdle);
 		}
 		if (this.flushPredicate != null) {
 			handler.setFlushPredicate(this.flushPredicate);

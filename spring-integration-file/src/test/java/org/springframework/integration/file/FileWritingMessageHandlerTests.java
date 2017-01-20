@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,11 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -39,14 +43,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 
+import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -514,6 +521,25 @@ public class FileWritingMessageHandlerTests {
 		});
 		assertThat(file.length(), equalTo(24L));
 		assertTrue(called.get());
+
+		handler.stop();
+		Log logger = spy(TestUtils.getPropertyValue(handler, "logger", Log.class));
+		new DirectFieldAccessor(handler).setPropertyValue("logger", logger);
+		when(logger.isDebugEnabled()).thenReturn(true);
+		final AtomicInteger flushes = new AtomicInteger();
+		doAnswer(i -> {
+			flushes.incrementAndGet();
+			return null;
+		}).when(logger).debug(startsWith("Flushed:"));
+		handler.setFlushInterval(50);
+		handler.setFlushWhenIdle(false);
+		handler.start();
+		for (int i = 0; i < 40; i++) {
+			handler.handleMessage(new GenericMessage<String>("foo"));
+			Thread.sleep(5);
+		}
+		assertThat(flushes.get(), greaterThanOrEqualTo(2));
+		handler.stop();
 	}
 
 	void assertFileContentIsMatching(Message<?> result) throws IOException {

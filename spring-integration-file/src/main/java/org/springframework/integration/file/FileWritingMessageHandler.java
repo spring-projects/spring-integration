@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,6 +147,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile int bufferSize = DEFAULT_BUFFER_SIZE;
 
 	private volatile long flushInterval = DEFAULT_FLUSH_INTERVAL;
+
+	private volatile boolean flushWhenIdle = true;
 
 	private volatile ScheduledFuture<?> flushTask;
 
@@ -306,10 +308,25 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * Set the frequency to flush buffers when {@link FileExistsMode#APPEND_NO_FLUSH} is
 	 * being used.
 	 * @param flushInterval the interval.
+	 * @see #setFlushWhenIdle(boolean)
 	 * @since 4.3
 	 */
 	public void setFlushInterval(long flushInterval) {
 		this.flushInterval = flushInterval;
+	}
+
+	/**
+	 * Determine whether the {@link #setFlushInterval(long) flushInterval} applies only
+	 * to idle files (default) or whether to flush on that interval after the first
+	 * write to a previously flushed or new file.
+	 * @param flushWhenIdle false to flush on the interval after the first write
+	 * to a closed file.
+	 * @see #setFlushInterval(long)
+	 * @see #setBufferSize(int)
+	 * @since 4.3.7
+	 */
+	public void setFlushWhenIdle(boolean flushWhenIdle) {
+		this.flushWhenIdle = flushWhenIdle;
 	}
 
 	@Override
@@ -894,6 +911,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		private final BufferedOutputStream  stream;
 
+		private final long firstWrite = System.currentTimeMillis();
+
 		private volatile long lastWrite;
 
 		private FileState(BufferedWriter writer) {
@@ -932,7 +951,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				while (iterator.hasNext()) {
 					Entry<String, FileState> entry = iterator.next();
 					FileState state = entry.getValue();
-					if (state.lastWrite < expired) {
+					if (state.lastWrite < expired ||
+							(!FileWritingMessageHandler.this.flushWhenIdle && state.firstWrite < expired)) {
 						iterator.remove();
 						state.close();
 						if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
