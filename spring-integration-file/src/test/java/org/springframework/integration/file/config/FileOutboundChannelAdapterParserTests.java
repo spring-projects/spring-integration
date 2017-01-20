@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,6 +139,7 @@ public class FileOutboundChannelAdapterParserTests {
 		assertNotNull(expression);
 		assertEquals("'foo.txt'", expression.getExpressionString());
 		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
+		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("flushWhenIdle"));
 	}
 
 	@Test
@@ -156,6 +157,7 @@ public class FileOutboundChannelAdapterParserTests {
 		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
 		assertEquals(".writing", handlerAccessor.getPropertyValue("temporaryFileSuffix"));
+		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("flushWhenIdle"));
 	}
 
 	@Test

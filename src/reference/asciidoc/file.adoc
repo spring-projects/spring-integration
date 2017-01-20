@@ -661,6 +661,9 @@ or `FileWritingMessageHandler.MessageFlushPredicate` implementation.
 The predicates are called for each open file.
 See the java docs for these interfaces for more information.
 
+When using `flushInterval`, the interval starts at the last write - the file is flushed only if it is idle for the interval.
+Starting with _version 4.3.7_, and additional property `flushWhenIdle` can be set to `false`, meaning that the interval starts with the first write to a previously flushed (or new) file.
+
 [[file-timestamps]]
 ==== File Timestamps
 
