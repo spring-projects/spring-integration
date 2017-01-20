@@ -895,12 +895,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		private volatile long lastWrite;
 
-		private volatile long lastFlush;
+		private volatile long firstWrite;
 
 		FileState(BufferedWriter writer) {
 			this.writer = writer;
 			this.stream = null;
-			this.lastFlush = System.currentTimeMillis();
+			this.firstWrite = System.currentTimeMillis();
 		}
 
 		FileState(BufferedOutputStream stream) {
@@ -940,7 +940,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					Entry<String, FileState> entry = iterator.next();
 					FileState state = entry.getValue();
 					if (state.lastWrite < expired ||
-							(!FileWritingMessageHandler.this.flushWhenIdle && state.lastFlush < expired)) {
+							(!FileWritingMessageHandler.this.flushWhenIdle && state.firstWrite < expired)) {
 						iterator.remove();
 						state.close();
 						if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
