@@ -167,7 +167,8 @@ public class FlowServiceTests {
 					.enrichHeaders(Collections.singletonMap("foo", "FOO"))
 					.filter(this)
 					.handle(this)
-					.channel(MessageChannels.queue("myFlowAdapterOutput"));
+					.channel(MessageChannels.queue("myFlowAdapterOutput"))
+					.log();
 		}
 
 		public String messageSource() {
