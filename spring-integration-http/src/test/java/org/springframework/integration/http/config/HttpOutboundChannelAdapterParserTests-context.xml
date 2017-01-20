@@ -16,7 +16,9 @@
 
 	<outbound-channel-adapter id="restTemplateConfig" url="http://localhost/test1" channel="requests" rest-template="customRestTemplate"/>
 
-	<outbound-async-channel-adapter id="asyncRestTemplateConfig" url="http://localhost/test1" channel="requests" async-rest-template="asyncRestTemplate"/>
+	<outbound-async-channel-adapter id="asyncMinimalConfig" url="http://localhost/test1" channel="requests" />
+
+	<outbound-async-channel-adapter id="asyncRestTemplateConfig" url="http://localhost/test1" channel="requests" async-rest-template="asyncRestTemplate" />
 
 	<beans:bean id="customRestTemplate" class="org.springframework.web.client.RestTemplate"/>
 
