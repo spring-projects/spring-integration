@@ -93,8 +93,10 @@ public class OutboundEndpointTests {
 	@Test
 	public void testAsyncDelayExpression() {
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+		container.setQueueNames("foo");
 		AsyncRabbitTemplate amqpTemplate = spy(new AsyncRabbitTemplate(new RabbitTemplate(connectionFactory),
-				new SimpleMessageListenerContainer(connectionFactory), "replyTo"));
+				container, "replyTo"));
 		amqpTemplate.setTaskScheduler(mock(TaskScheduler.class));
 		AsyncAmqpOutboundGateway gateway = new AsyncAmqpOutboundGateway(amqpTemplate);
 		willAnswer(
