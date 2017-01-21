@@ -107,6 +107,7 @@ public class OutboundEndpointTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setOutputChannel(new NullChannel());
 		gateway.afterPropertiesSet();
+		gateway.start();
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
 		gateway.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture());

@@ -98,7 +98,6 @@ public class AsyncAmqpGatewayTests {
 		AsyncRabbitTemplate asyncTemplate = new AsyncRabbitTemplate(template, container);
 		asyncTemplate.setEnableConfirms(true);
 		asyncTemplate.setMandatory(true);
-		asyncTemplate.start();
 
 		SimpleMessageListenerContainer receiver = new SimpleMessageListenerContainer(ccf);
 		receiver.setBeanName("receiver");
@@ -145,6 +144,7 @@ public class AsyncAmqpGatewayTests {
 		gateway.setRoutingKey("asyncQ1");
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.afterPropertiesSet();
+		gateway.start();
 
 		Message<?> message = MessageBuilder.withPayload("foo").setErrorChannel(errorChannel).build();
 
