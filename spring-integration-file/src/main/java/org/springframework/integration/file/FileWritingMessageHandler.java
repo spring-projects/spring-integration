@@ -893,14 +893,13 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		private final BufferedOutputStream stream;
 
-		private volatile long lastWrite;
+		private final long firstWrite = System.currentTimeMillis();
 
-		private volatile long firstWrite;
+		private volatile long lastWrite;
 
 		FileState(BufferedWriter writer) {
 			this.writer = writer;
 			this.stream = null;
-			this.firstWrite = System.currentTimeMillis();
 		}
 
 		FileState(BufferedOutputStream stream) {
