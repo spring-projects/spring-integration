@@ -29,7 +29,6 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -39,7 +38,7 @@ import java.util.List;
 
 /**
  * A {@link MessageHandler} implementation that executes HTTP requests by delegating
- * to a {@link AsyncRestTemplate} instance.
+ * to an {@link AsyncRestTemplate} instance.
  * @see HttpRequestExecutingMessageHandler
  * @author Shiliang Li
  * @since 5.0
@@ -53,7 +52,7 @@ public class AsyncHttpRequestExecutingMessageHandler extends AbstractHttpRequest
 	 * @param uri The URI.
 	 */
 	public AsyncHttpRequestExecutingMessageHandler(URI uri) {
-		this(new ValueExpression<URI>(uri));
+		this(new ValueExpression<>(uri));
 	}
 
 	/**
@@ -153,17 +152,9 @@ public class AsyncHttpRequestExecutingMessageHandler extends AbstractHttpRequest
 			responseFuture = this.asyncRestTemplate.exchange(uri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
 		}
 
-		responseFuture.addCallback(new ListenableFutureCallback<ResponseEntity<?>>() {
-			@Override
-			public void onFailure(Throwable ex) {
-				replyMessageFuture.setException(ex);
-			}
-
-			@Override
-			public void onSuccess(ResponseEntity<?> result) {
-				replyMessageFuture.set(AsyncHttpRequestExecutingMessageHandler.this.getReply(result));
-			}
-		});
+		responseFuture.addCallback(
+				result -> replyMessageFuture.set(getReply(result)),
+				replyMessageFuture::setException);
 
 		return replyMessageFuture;
 	}

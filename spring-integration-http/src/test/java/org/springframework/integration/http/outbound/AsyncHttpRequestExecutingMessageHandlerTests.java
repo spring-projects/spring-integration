@@ -18,36 +18,40 @@ package org.springframework.integration.http.outbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import org.junit.Test;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.SettableListenableFuture;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.RestClientException;
-
-import java.net.URI;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Shiliang Li
  * @since 5.0
  */
-public class AsyncHttpRequestExecutingMessageHandlerTest {
+public class AsyncHttpRequestExecutingMessageHandlerTests {
 
 	@Test
 	public void testAsyncReturn() {
+		AsyncRestTemplate asyncRestTemplate = new AsyncRestTemplate();
+		String destinationUri = "http://www.springsource.org/spring-integration";
+		MockRestServiceServer
+				.createServer(asyncRestTemplate)
+				.expect(requestTo(destinationUri))
+				.andExpect(method(HttpMethod.POST))
+				.andRespond(withSuccess());
+
 		AsyncHttpRequestExecutingMessageHandler asyncHandler = new AsyncHttpRequestExecutingMessageHandler(
-				"http://www.springsource.org/spring-integration",
-				new MockAsyncRestTemplate());
+				destinationUri,
+				asyncRestTemplate);
 		QueueChannel ackChannel = MessageChannels.queue().get();
 		asyncHandler.setOutputChannel(ackChannel);
 		asyncHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
@@ -55,20 +59,5 @@ public class AsyncHttpRequestExecutingMessageHandlerTest {
 		assertNotNull(ack);
 		assertNotNull(ack.getHeaders());
 		assertEquals(ack.getHeaders().get(HttpHeaders.STATUS_CODE), HttpStatus.OK);
-	}
-
-	private static class MockAsyncRestTemplate extends AsyncRestTemplate {
-
-		private final AtomicReference<HttpEntity<?>> lastRequestEntity = new AtomicReference<>();
-
-		@Override
-		public <T> ListenableFuture<ResponseEntity<T>> exchange(URI uri, HttpMethod method, HttpEntity<?> requestEntity, Class<T> responseType) throws RestClientException {
-			this.lastRequestEntity.set(requestEntity);
-			SettableListenableFuture<ResponseEntity<T>> futureReponse = new SettableListenableFuture<>();
-			ResponseEntity<T> response = new ResponseEntity<>(HttpStatus.OK);
-			futureReponse.set(response);
-
-			return futureReponse;
-		}
 	}
 }
