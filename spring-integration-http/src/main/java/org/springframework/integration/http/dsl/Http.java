@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,14 @@ import org.springframework.integration.http.inbound.HttpRequestHandlingMessaging
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 /**
  * The HTTP components Factory.
  *
  * @author Artem Bilan
+ * @author Shiliang Li
  *
  * @since 5.0
  */
@@ -126,6 +128,93 @@ public final class Http {
 	}
 
 	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for one-way adapter based on provided {@link URI}.
+	 * @param uri the {@link URI} to send requests.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncChannelAdapter(URI uri) {
+		return outboundAsyncChannelAdapter(uri, null);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for one-way adapter based on provided {@code uri}.
+	 * @param uri the {@code uri} to send requests.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncChannelAdapter(String uri) {
+		return outboundAsyncChannelAdapter(uri, null);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for one-way adapter based on provided {@code Function}
+	 * to evaluate target {@code uri} against request message.
+	 * @param uriFunction the {@code Function} to evaluate {@code uri} at runtime.
+	 * @param <P> the expected payload type.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static <P> AsyncHttpMessageHandlerSpec outboundAsyncChannelAdapter(Function<Message<P>, ?> uriFunction) {
+		return outboundAsyncChannelAdapter(new FunctionExpression<>(uriFunction));
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for one-way adapter based on provided SpEL {@link Expression}
+	 * to evaluate target {@code uri} against request message.
+	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncChannelAdapter(Expression uriExpression) {
+		return outboundAsyncChannelAdapter(uriExpression, null);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for one-way adapter
+	 * based on provided {@link URI} and {@link AsyncRestTemplate}.
+	 * @param uri the {@link URI} to send requests.
+	 * @param asyncRestTemplate {@link AsyncRestTemplate} to use.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncChannelAdapter(URI uri, AsyncRestTemplate asyncRestTemplate) {
+		return new AsyncHttpMessageHandlerSpec(uri, asyncRestTemplate).expectReply(false);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for one-way adapter
+	 * based on provided {@code uri} and {@link AsyncRestTemplate}.
+	 * @param uri the {@code uri} to send requests.
+	 * @param asyncRestTemplate {@link AsyncRestTemplate} to use.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncChannelAdapter(String uri, AsyncRestTemplate asyncRestTemplate) {
+		return new AsyncHttpMessageHandlerSpec(uri, asyncRestTemplate).expectReply(false);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for one-way adapter
+	 * based on provided {@code Function} to evaluate target {@code uri} against request message
+	 * and {@link AsyncRestTemplate} for HTTP exchanges.
+	 * @param uriFunction the {@code Function} to evaluate {@code uri} at runtime.
+	 * @param asyncRestTemplate {@link AsyncRestTemplate} to use.
+	 * @param <P> the expected payload type.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static <P> AsyncHttpMessageHandlerSpec outboundAsyncChannelAdapter(Function<Message<P>, ?> uriFunction,
+			AsyncRestTemplate asyncRestTemplate) {
+		return outboundAsyncChannelAdapter(new FunctionExpression<>(uriFunction), asyncRestTemplate);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for one-way adapter
+	 * based on provided SpEL {@link Expression} to evaluate target {@code uri}
+	 * against request message and {@link AsyncRestTemplate} for HTTP exchanges.
+	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
+	 * @param asyncRestTemplate {@link AsyncRestTemplate} to use.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncChannelAdapter(Expression uriExpression, AsyncRestTemplate asyncRestTemplate) {
+		return new AsyncHttpMessageHandlerSpec(uriExpression, asyncRestTemplate).expectReply(false);
+	}
+
+	/**
 	 * Create an {@link HttpMessageHandlerSpec} builder for request-reply gateway based on provided {@link URI}.
 	 * @param uri the {@link URI} to send requests.
 	 * @return the HttpMessageHandlerSpec instance
@@ -210,6 +299,93 @@ public final class Http {
 	 */
 	public static HttpMessageHandlerSpec outboundGateway(Expression uriExpression, RestTemplate restTemplate) {
 		return new HttpMessageHandlerSpec(uriExpression, restTemplate);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for request-reply gateway based on provided {@link URI}.
+	 * @param uri the {@link URI} to send requests.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncGateway(URI uri) {
+		return outboundAsyncGateway(uri, null);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for request-reply gateway based on provided {@code uri}.
+	 * @param uri the {@code uri} to send requests.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncGateway(String uri) {
+		return outboundAsyncGateway(uri, null);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided {@code Function} to evaluate target {@code uri} against request message.
+	 * @param uriFunction the {@code Function} to evaluate {@code uri} at runtime.
+	 * @param <P> the expected payload type.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static <P> AsyncHttpMessageHandlerSpec outboundAsyncGateway(Function<Message<P>, ?> uriFunction) {
+		return outboundAsyncGateway(new FunctionExpression<>(uriFunction));
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided SpEL {@link Expression} to evaluate target {@code uri} against request message.
+	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncGateway(Expression uriExpression) {
+		return outboundAsyncGateway(uriExpression, null);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided {@link URI} and {@link RestTemplate}.
+	 * @param uri the {@link URI} to send requests.
+	 * @param asyncRestTemplate {@link AsyncRestTemplate} to use.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncGateway(URI uri, AsyncRestTemplate asyncRestTemplate) {
+		return new AsyncHttpMessageHandlerSpec(uri, asyncRestTemplate);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided {@code uri} and {@link RestTemplate}.
+	 * @param uri the {@code uri} to send requests.
+	 * @param asyncRestTemplate {@link AsyncRestTemplate} to use.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncGateway(String uri, AsyncRestTemplate asyncRestTemplate) {
+		return new AsyncHttpMessageHandlerSpec(uri, asyncRestTemplate);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided {@code Function} to evaluate target {@code uri} against request message
+	 * and {@link RestTemplate} for HTTP exchanges.
+	 * @param uriFunction the {@code Function} to evaluate {@code uri} at runtime.
+	 * @param asyncRestTemplate {@link AsyncRestTemplate} to use.
+	 * @param <P> the expected payload type.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static <P> AsyncHttpMessageHandlerSpec outboundAsyncGateway(Function<Message<P>, ?> uriFunction,
+			AsyncRestTemplate asyncRestTemplate) {
+		return outboundAsyncGateway(new FunctionExpression<>(uriFunction), asyncRestTemplate);
+	}
+
+	/**
+	 * Create an {@link AsyncHttpMessageHandlerSpec} builder for request-reply gateway
+	 * based on provided SpEL {@link Expression} to evaluate target {@code uri}
+	 * against request message and {@link AsyncRestTemplate} for HTTP exchanges.
+	 * @param uriExpression the SpEL {@link Expression} to evaluate {@code uri} at runtime.
+	 * @param asyncRestTemplate {@link AsyncRestTemplate} to use.
+	 * @return the AsyncHttpMessageHandlerSpec instance
+	 */
+	public static AsyncHttpMessageHandlerSpec outboundAsyncGateway(Expression uriExpression, AsyncRestTemplate asyncRestTemplate) {
+		return new AsyncHttpMessageHandlerSpec(uriExpression, asyncRestTemplate);
 	}
 
 	/**
