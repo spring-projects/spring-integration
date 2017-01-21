@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,6 +106,7 @@ public class OutboundEndpointTests {
 		gateway.setBeanFactory(mock(BeanFactory.class));
 		gateway.setOutputChannel(new NullChannel());
 		gateway.afterPropertiesSet();
+		gateway.start();
 		ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
 		gateway.handleMessage(new GenericMessage<>("foo"));
 		verify(amqpTemplate).sendAndReceive(eq("foo"), eq("bar"), captor.capture());
