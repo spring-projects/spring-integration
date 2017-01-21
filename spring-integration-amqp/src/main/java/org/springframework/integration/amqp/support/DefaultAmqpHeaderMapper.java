@@ -159,6 +159,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			if (StringUtils.hasText(contentType)) {
 				headers.put(AmqpHeaders.CONTENT_TYPE, contentType);
 			}
+			@SuppressWarnings("deprecation")
 			byte[] correlationId = amqpMessageProperties.getCorrelationId();
 			if (correlationId != null && correlationId.length > 0) {
 				headers.put(AmqpHeaders.CORRELATION_ID, correlationId);
@@ -248,6 +249,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Maps headers from a Spring Integration MessageHeaders instance to the MessageProperties
 	 * of an AMQP Message.
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void populateStandardHeaders(Map<String, Object> headers, MessageProperties amqpMessageProperties) {
 		String appId = getHeaderIfAvailable(headers, AmqpHeaders.APP_ID, String.class);
