@@ -61,6 +61,9 @@ See <<file-reading>> for more information.
 The tail adapter now supports `idleEventInterval` to emit events when there is no data in the file during that period.
 See <<file-tailing>> for more information.
 
+The flush predicates for the `FileWritingMessageHandler` now have an additional parameter.
+See <<file-flushing>> for more information.
+
 ==== (S)FTP Changes
 
 The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.

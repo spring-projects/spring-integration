@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,9 +188,23 @@ public class FileWritingMessageHandlerSpec
 	 * @param flushInterval the interval.
 	 * @return the spec.
 	 * @see FileWritingMessageHandler#setBufferSize(int)
+	 * @see #flushWhenIdle(boolean)
 	 */
 	public FileWritingMessageHandlerSpec flushInterval(long flushInterval) {
 		this.target.setFlushInterval(flushInterval);
+		return this;
+	}
+
+	/**
+	 * Set the flush when idle flag to false if you wish the interval to apply to when
+	 * the file was opened rather than when the file was last written.
+	 * @param flushWhenIdle false to flush if the interval since the file was opened has elapsed.
+	 * @return the spec.
+	 * @see FileWritingMessageHandler#setFlushWhenIdle(boolean)
+	 * @see #flushInterval(long)
+	 */
+	public FileWritingMessageHandlerSpec flushWhenIdle(boolean flushWhenIdle) {
+		this.target.setFlushWhenIdle(flushWhenIdle);
 		return this;
 	}
 
