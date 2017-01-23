@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package org.springframework.integration.file.config;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.File;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,10 +31,6 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.File;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Iwein Fuld

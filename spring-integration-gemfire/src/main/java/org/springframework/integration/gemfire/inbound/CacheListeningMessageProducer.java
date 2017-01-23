@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,15 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
-
 import org.apache.geode.cache.CacheClosedException;
 import org.apache.geode.cache.CacheListener;
 import org.apache.geode.cache.EntryEvent;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.util.CacheListenerAdapter;
+
+import org.springframework.integration.endpoint.ExpressionMessageProducerSupport;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * An inbound endpoint that listens to a GemFire region for events and then publishes Messages to
@@ -45,7 +44,7 @@ import org.apache.geode.cache.util.CacheListenerAdapter;
  * @author Artem Bilan
  * @since 2.1
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class CacheListeningMessageProducer extends ExpressionMessageProducerSupport {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
@@ -104,33 +103,33 @@ public class CacheListeningMessageProducer extends ExpressionMessageProducerSupp
 		@Override
 		public void afterCreate(EntryEvent event) {
 			if (CacheListeningMessageProducer.this.supportedEventTypes.contains(EventType.CREATED)) {
-				this.processEvent(event);
+				processEvent(event);
 			}
 		}
 
 		@Override
 		public void afterUpdate(EntryEvent event) {
 			if (CacheListeningMessageProducer.this.supportedEventTypes.contains(EventType.UPDATED)) {
-				this.processEvent(event);
+				processEvent(event);
 			}
 		}
 
 		@Override
 		public void afterInvalidate(EntryEvent event) {
 			if (CacheListeningMessageProducer.this.supportedEventTypes.contains(EventType.INVALIDATED)) {
-				this.processEvent(event);
+				processEvent(event);
 			}
 		}
 
 		@Override
 		public void afterDestroy(EntryEvent event) {
 			if (CacheListeningMessageProducer.this.supportedEventTypes.contains(EventType.DESTROYED)) {
-				this.processEvent(event);
+				processEvent(event);
 			}
 		}
 
 		private void processEvent(EntryEvent event) {
-				this.publish(evaluatePayloadExpression(event));
+			publish(evaluatePayloadExpression(event));
 
 		}
 

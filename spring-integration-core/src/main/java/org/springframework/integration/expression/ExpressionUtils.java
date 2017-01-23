@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.expression;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
@@ -24,9 +27,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.utils.IntegrationUtils;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Utility class with static methods for helping with establishing environments for
@@ -40,6 +40,7 @@ import org.apache.commons.logging.LogFactory;
 public abstract class ExpressionUtils {
 
 	private static final Log logger = LogFactory.getLog(ExpressionUtils.class);
+
 	/**
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
 	 * property accessor property and the supplied {@link ConversionService} in its

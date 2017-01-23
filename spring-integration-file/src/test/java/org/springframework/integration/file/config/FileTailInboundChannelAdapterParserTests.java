@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ import org.springframework.integration.file.tail.OSDelegatingFileTailingMessageP
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * @author Gary Russell
@@ -52,10 +52,12 @@ import org.springframework.test.annotation.DirtiesContext;
 @DirtiesContext
 public class FileTailInboundChannelAdapterParserTests {
 
-	@Autowired @Qualifier("default")
+	@Autowired
+	@Qualifier("default")
 	private OSDelegatingFileTailingMessageProducer defaultAdapter;
 
-	@Autowired @Qualifier("native")
+	@Autowired
+	@Qualifier("native")
 	private OSDelegatingFileTailingMessageProducer nativeAdapter;
 
 	@Autowired

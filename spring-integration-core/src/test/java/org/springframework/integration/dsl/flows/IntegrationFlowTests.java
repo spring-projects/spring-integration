@@ -716,7 +716,7 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow recoveryFlow() {
 			return IntegrationFlows.from(recoveryChannel())
-					.<MessagingException, Message>transform(MessagingException::getFailedMessage)
+					.<MessagingException, Message<?>>transform(MessagingException::getFailedMessage)
 					.get();
 
 		}

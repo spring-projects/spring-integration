@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.geode.cache.CacheFactory;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -36,8 +37,6 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.redis.metadata.RedisMetadataStore;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-
-import org.apache.geode.cache.CacheFactory;
 
 /**
  * @author Gary Russell
@@ -94,15 +93,15 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 		final FileSystemPersistentAcceptOnceFileListFilter filter =
 				new FileSystemPersistentAcceptOnceFileListFilter(store, "foo:");
 		final File file = File.createTempFile("foo", ".txt");
-		assertEquals(1, filter.filterFiles(new File[] {file}).size());
+		assertEquals(1, filter.filterFiles(new File[] { file }).size());
 		String ts = store.get("foo:" + file.getAbsolutePath());
 		assertEquals(String.valueOf(file.lastModified()), ts);
-		assertEquals(0, filter.filterFiles(new File[] {file}).size());
+		assertEquals(0, filter.filterFiles(new File[] { file }).size());
 		file.setLastModified(file.lastModified() + 5000L);
-		assertEquals(1, filter.filterFiles(new File[] {file}).size());
+		assertEquals(1, filter.filterFiles(new File[] { file }).size());
 		ts = store.get("foo:" + file.getAbsolutePath());
 		assertEquals(String.valueOf(file.lastModified()), ts);
-		assertEquals(0, filter.filterFiles(new File[] {file}).size());
+		assertEquals(0, filter.filterFiles(new File[] { file }).size());
 
 		suspend.set(true);
 		file.setLastModified(file.lastModified() + 5000L);

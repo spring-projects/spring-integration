@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.junit.Assert.assertTrue;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
@@ -29,8 +29,8 @@ import javax.xml.transform.sax.SAXResult;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.messaging.MessagingException;
 import org.springframework.xml.transform.StringResult;
 
 /**

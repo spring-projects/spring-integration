@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package org.springframework.integration.xmpp.ignore;
 
+import java.util.Date;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
-
-import java.util.Date;
+import org.springframework.messaging.Message;
 
 /**
  * Generates XMPP messages every 2s and forwards them on a channel which in turn publishes the message through XMPP.
@@ -36,6 +37,7 @@ public class XmppMessageProducer implements MessageSource<String> {
 	private static final Log logger = LogFactory.getLog(XmppMessageProducer.class);
 
 	private volatile int counter;
+
 	private String recipient;
 
 	public void setRecipient(final String recipient) {

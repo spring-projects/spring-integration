@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.messaging.MessagingException;
 import org.springframework.xml.transform.StringResult;
 
 /**

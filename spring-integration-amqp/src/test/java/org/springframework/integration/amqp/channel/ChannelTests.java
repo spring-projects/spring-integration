@@ -23,8 +23,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
@@ -79,7 +79,7 @@ public class ChannelTests extends LogAdjustingTestSupport {
 
 	@ClassRule
 	public static final BrokerRunning brokerIsRunning =
-		BrokerRunning.isRunningWithEmptyQueues("pollableWithEP", "withEP", "testConvertFail");
+			BrokerRunning.isRunningWithEmptyQueues("pollableWithEP", "withEP", "testConvertFail");
 
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
@@ -257,7 +257,7 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		MessageListener listener = TestUtils.getPropertyValue(channel, "container.messageListener",
 				MessageListener.class);
 		willThrow(new MessageConversionException("foo", new IllegalStateException("bar")))
-			.given(messageConverter).fromMessage(any(org.springframework.amqp.core.Message.class));
+				.given(messageConverter).fromMessage(any(org.springframework.amqp.core.Message.class));
 		this.exception.expect(MessageConversionException.class);
 		this.exception.expectCause(instanceOf(IllegalStateException.class));
 		listener.onMessage(mock(org.springframework.amqp.core.Message.class));

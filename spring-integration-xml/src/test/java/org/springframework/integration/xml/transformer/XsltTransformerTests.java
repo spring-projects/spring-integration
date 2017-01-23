@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,9 +49,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class XsltTransformerTests {
+
 	private final String docAsString = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+
 	@Autowired
 	private ApplicationContext applicationContext;
+
 	@Autowired
 	@Qualifier("output")
 	private QueueChannel output;

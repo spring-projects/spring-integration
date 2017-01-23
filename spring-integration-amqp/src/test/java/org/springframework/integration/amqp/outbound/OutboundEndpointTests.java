@@ -21,12 +21,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.BDDMockito.willAnswer;
-import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -67,7 +67,7 @@ public class OutboundEndpointTests {
 				.given(amqpTemplate).send(anyString(), anyString(), any(Message.class), isNull());
 		willAnswer(invocation -> invocation.getArgument(2))
 				.given(amqpTemplate)
-					.sendAndReceive(anyString(), anyString(), any(Message.class), isNull());
+				.sendAndReceive(anyString(), anyString(), any(Message.class), isNull());
 		endpoint.setExchangeName("foo");
 		endpoint.setRoutingKey("bar");
 		endpoint.setDelayExpressionString("42");
