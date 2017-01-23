@@ -162,6 +162,8 @@ public class FileTests {
 			}
 		}
 		DirectFieldAccessor dfa = new DirectFieldAccessor(targetFileWritingMessageHandler);
+		assertEquals(Boolean.FALSE, dfa.getPropertyValue("flushWhenIdle"));
+		assertEquals(60000L, dfa.getPropertyValue("flushInterval"));
 		dfa.setPropertyValue("fileNameGenerator", fileNameGenerator);
 		this.fileFlow1Input.send(message);
 
@@ -331,7 +333,9 @@ public class FileTests {
 					.handle(Files.outboundAdapter(tmpDir.getRoot())
 									.fileNameGenerator(message -> null)
 									.fileExistsMode(FileExistsMode.APPEND_NO_FLUSH)
-									.flushPredicate((fileAbsolutePath, lastWrite, filterMessage) -> {
+									.flushInterval(60000)
+									.flushWhenIdle(false)
+									.flushPredicate((fileAbsolutePath, firstWrite, lastWrite, filterMessage) -> {
 										flushPredicateCalled().countDown();
 										return true;
 									}),

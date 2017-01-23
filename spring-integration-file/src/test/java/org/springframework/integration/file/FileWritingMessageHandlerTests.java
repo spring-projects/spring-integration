@@ -480,7 +480,7 @@ public class FileWritingMessageHandlerTests {
 
 		handler.setFlushInterval(30000);
 		final AtomicBoolean called = new AtomicBoolean();
-		handler.setFlushPredicate((fileAbsolutePath, lastWrite, triggerMessage) -> {
+		handler.setFlushPredicate((fileAbsolutePath, firstWrite, lastWrite, triggerMessage) -> {
 			called.set(true);
 			return true;
 		});
@@ -491,7 +491,7 @@ public class FileWritingMessageHandlerTests {
 
 		handler.handleMessage(new GenericMessage<InputStream>(new ByteArrayInputStream("bux".getBytes())));
 		called.set(false);
-		handler.flushIfNeeded((fileAbsolutePath, lastWrite) -> {
+		handler.flushIfNeeded((fileAbsolutePath, firstWrite, lastWrite) -> {
 			called.set(true);
 			return true;
 		});
