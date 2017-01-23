@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
+import org.apache.geode.cache.Region;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,8 +33,6 @@ import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
-
-import org.apache.geode.cache.Region;
 
 /**
  * @author Mark Fisher
@@ -55,7 +54,9 @@ public class CacheListeningMessageProducerTests {
 	public static void setup() throws Exception {
 		cacheFactoryBean = new CacheFactoryBean();
 
-		regionFactoryBean = new RegionFactoryBean<String, String>() { };
+		regionFactoryBean = new RegionFactoryBean<String, String>() {
+
+		};
 		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
 		regionFactoryBean.setCache(cacheFactoryBean.getObject());
 		setRegionAttributes(regionFactoryBean);

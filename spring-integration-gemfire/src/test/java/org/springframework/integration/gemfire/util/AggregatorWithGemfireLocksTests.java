@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,7 +68,6 @@ public class AggregatorWithGemfireLocksTests {
 	private volatile Exception exception;
 
 	@Test
-	@Ignore("Until INT-4211")
 	public void testLockSingleGroup() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
@@ -82,7 +80,6 @@ public class AggregatorWithGemfireLocksTests {
 	}
 
 	@Test
-	@Ignore("Until INT-4211")
 	public void testLockThreeGroups() throws Exception {
 		this.releaseStrategy.reset(3);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
@@ -103,7 +100,6 @@ public class AggregatorWithGemfireLocksTests {
 	}
 
 	@Test
-	@Ignore("Until INT-4211")
 	public void testDistributedAggregator() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
@@ -112,7 +108,6 @@ public class AggregatorWithGemfireLocksTests {
 				in2.send(new GenericMessage<String>("bar", stubHeaders(2, 2, 1)));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				exception = e;
 			}
 		});
@@ -129,7 +124,6 @@ public class AggregatorWithGemfireLocksTests {
 				in.send(new GenericMessage<String>(payload, stubHeaders(sequence, 2, correlation)));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				exception = e;
 			}
 		};
