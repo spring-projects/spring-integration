@@ -29,6 +29,17 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
+ * A {@link HandlerMethodArgumentResolver} implementation to resolve argument
+ * for the {@link MethodParameter} as a {@link Map} or {@link Properties}.
+ * <p>
+ * The {@link Message#getHeaders()} is used when {@link MethodParameter} is marked
+ * with the {@link Headers} annotation or {@link Message#getPayload()} isn't {@link Map}
+ * or {@link Properties} compatible.
+ * <p>
+ * If {@link MethodParameter} is of {@link Properties} type and {@link Message#getPayload()}
+ * is a {@link String} containing {@code =} symbol, the {@link MapArgumentResolver} uses
+ * {@link ConversionService} trying to convert that {@link String} to the {@link Properties} object.
+ *
  * @author Artem Bilan
  *
  * @since 5.0

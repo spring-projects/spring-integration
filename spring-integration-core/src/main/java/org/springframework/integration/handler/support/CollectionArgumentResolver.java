@@ -29,6 +29,18 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.util.Assert;
 
 /**
+ * A {@link HandlerMethodArgumentResolver} implementation for {@link Collection},
+ * {@link Iterator} or {@code array} {@link MethodParameter}.
+ * <p>
+ * If {@link #canProcessMessageList} is set to {@code true}, only messages
+ * with a payload of {@code Collection<Message<?>>) are supported.
+ * Depending on the {@link MethodParameter#getNestedParameterType()} the whole
+ * {@code Collection<Message<?>>) or just payloads of those messages can be use as an actual argument.
+ * <p>
+ * If the value isn't compatible with {@link MethodParameter},
+ * the {@link org.springframework.core.convert.ConversionService} is used
+ * to convert the value to the target type.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
@@ -57,7 +69,7 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 
 		if (this.canProcessMessageList) {
 			Assert.state(value instanceof Collection,
-					"This Argument Resolver support only messages with payload as Collection<Message<?>>");
+					"This Argument Resolver only supports messages with a payload of Collection<Message<?>>");
 			Collection<Message<?>> messages = (Collection<Message<?>>) value;
 
 			parameter.increaseNestingLevel();
@@ -71,6 +83,7 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 			}
 			parameter.decreaseNestingLevel();
 		}
+
 		if (Iterator.class.isAssignableFrom(parameter.getParameterType())) {
 			if (value instanceof Iterable) {
 				return ((Iterable) value).iterator();
