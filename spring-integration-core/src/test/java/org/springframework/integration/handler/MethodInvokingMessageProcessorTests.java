@@ -576,17 +576,17 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testPerformanceSpelVersusInvocable() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
-		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
+		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
 
-		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 42).build();
+		Message<Integer> message = MessageBuilder.withPayload(42).build();
 
 		StopWatch stopWatch = new StopWatch("SpEL vs Invocable Performance");
 
 		stopWatch.start("SpEL");
-		int count = 10_000;
+		int count = 20_000;
 		for (int i = 0; i < count; i++) {
 			processor.processMessage(message);
 		}
@@ -613,8 +613,6 @@ public class MethodInvokingMessageProcessorTests {
 			processor.processMessage(message);
 		}
 		stopWatch.stop();
-
-		System.clearProperty("spring.expression.compiler.mode");
 
 		logger.warn(stopWatch.prettyPrint());
 	}
@@ -727,8 +725,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	}
 
-	@SuppressWarnings("unused")
-	private static class AnnotatedTestService {
+	public static class AnnotatedTestService {
 
 		AnnotatedTestService() {
 			super();
