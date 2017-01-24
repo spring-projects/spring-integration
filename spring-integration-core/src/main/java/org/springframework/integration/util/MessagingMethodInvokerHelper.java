@@ -979,7 +979,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 	}
 
-	private static class ParametersWrapper {
+	public static class ParametersWrapper {
 
 		private final Object payload;
 
