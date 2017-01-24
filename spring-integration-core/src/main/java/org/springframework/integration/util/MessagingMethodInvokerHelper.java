@@ -785,10 +785,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			return (T) this.invocableHandlerMethod.invoke(message);
 		}
 
-		public Expression getExpression() {
-			return this.expression;
-		}
-
 		Class<?> getTargetParameterType() {
 			return this.targetParameterType;
 		}
@@ -979,7 +975,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 	}
 
-	private static class ParametersWrapper {
+	public static class ParametersWrapper {
 
 		private final Object payload;
 

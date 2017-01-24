@@ -40,13 +40,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelEvaluationException;
+import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -573,17 +576,19 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testPerformanceSpelVersusInvocable() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
-		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
+		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
 
-		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 42).build();
+		Message<Integer> message = MessageBuilder.withPayload(42).build();
 
 		StopWatch stopWatch = new StopWatch("SpEL vs Invocable Performance");
 
+		int count = 20_000;
+
 		stopWatch.start("SpEL");
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < count; i++) {
 			processor.processMessage(message);
 		}
 		stopWatch.stop();
@@ -591,23 +596,24 @@ public class MethodInvokingMessageProcessorTests {
 		processor = new MethodInvokingMessageProcessor(service, method);
 
 		stopWatch.start("Invocable");
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < count; i++) {
 			processor.processMessage(message);
 		}
 		stopWatch.stop();
 
+		// Update the parser configuration compiler mode
+		SpelParserConfiguration config = TestUtils.getPropertyValue(processor,
+				"delegate.handlerMethod.EXPRESSION_PARSER.configuration", SpelParserConfiguration.class);
+		new DirectFieldAccessor(config).setPropertyValue("compilerMode", SpelCompilerMode.IMMEDIATE);
 
-		System.setProperty("spring.expression.compiler.mode", SpelCompilerMode.IMMEDIATE.name());
 		processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
 
 		stopWatch.start("Compiled SpEL");
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < count; i++) {
 			processor.processMessage(message);
 		}
 		stopWatch.stop();
-
-		System.clearProperty("spring.expression.compiler.mode");
 
 		logger.warn(stopWatch.prettyPrint());
 	}
@@ -720,8 +726,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	}
 
-	@SuppressWarnings("unused")
-	private static class AnnotatedTestService {
+	public static class AnnotatedTestService {
 
 		AnnotatedTestService() {
 			super();
