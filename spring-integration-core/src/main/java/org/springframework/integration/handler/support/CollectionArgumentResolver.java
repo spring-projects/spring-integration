@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * If {@link #canProcessMessageList} is set to {@code true}, only messages
  * with a payload of {@code Collection<Message<?>>) are supported.
  * Depending on the {@link MethodParameter#getNestedParameterType()} the whole
- * {@code Collection<Message<?>>) or just payloads of those messages can be use as an actual argument.
+ * {@code Collection<Message<?>>} or just payloads of those messages can be use as an actual argument.
  * <p>
  * If the value isn't compatible with {@link MethodParameter},
  * the {@link org.springframework.core.convert.ConversionService} is used

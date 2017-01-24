@@ -22,7 +22,7 @@ import java.util.Properties;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.integration.util.BeanFactoryTypeConverter;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -44,17 +44,10 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
  *
  * @since 5.0
  */
-public class MapArgumentResolver implements HandlerMethodArgumentResolver {
+public class MapArgumentResolver extends AbstractExpressionEvaluator
+		implements HandlerMethodArgumentResolver {
 
 	private static final TypeDescriptor PROPERTIES_TYPE = TypeDescriptor.valueOf(Properties.class);
-
-	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
-
-	public void setConversionService(ConversionService conversionService) {
-		if (conversionService != null) {
-			this.typeConverter.setConversionService(conversionService);
-		}
-	}
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
@@ -73,8 +66,9 @@ public class MapArgumentResolver implements HandlerMethodArgumentResolver {
 					map = (Map<String, Object>) payload;
 				}
 				else if (payload instanceof String && ((String) payload).contains("=")) {
-					return this.typeConverter.convertValue(payload, TypeDescriptor.valueOf(String.class),
-							PROPERTIES_TYPE);
+					return getEvaluationContext()
+							.getTypeConverter()
+							.convertValue(payload, TypeDescriptor.valueOf(String.class), PROPERTIES_TYPE);
 				}
 			}
 			Properties properties = new Properties();

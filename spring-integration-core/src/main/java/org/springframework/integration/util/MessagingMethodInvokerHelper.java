@@ -63,7 +63,6 @@ import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.support.MutableMessage;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -367,10 +366,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					collectionArgumentResolver.setBeanFactory(getBeanFactory());
 
 					MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
-					ConversionService conversionService = IntegrationUtils.getConversionService(getBeanFactory());
-					if (conversionService != null) {
-						mapArgumentResolver.setConversionService(conversionService);
-					}
+					mapArgumentResolver.setBeanFactory(getBeanFactory());
 
 					List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
 					customArgumentResolvers.add(payloadExpressionArgumentResolver);
