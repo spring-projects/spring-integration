@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * {@link Iterator} or {@code array} {@link MethodParameter}.
  * <p>
  * If {@link #canProcessMessageList} is set to {@code true}, only messages
- * with a payload of {@code Collection<Message<?>>) are supported.
+ * with a payload of {@code Collection<Message<?>>} are supported.
  * Depending on the {@link MethodParameter#getNestedParameterType()} the whole
  * {@code Collection<Message<?>>} or just payloads of those messages can be use as an actual argument.
  * <p>
