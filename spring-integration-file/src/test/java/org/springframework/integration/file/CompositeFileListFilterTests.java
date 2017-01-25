@@ -16,12 +16,14 @@
 
 package org.springframework.integration.file;
 
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -84,6 +86,19 @@ public class CompositeFileListFilterTests {
 		when(fileFilterMock2.filterFiles(isA(File[].class))).thenReturn(new ArrayList<File>());
 		when(fileFilterMock1.filterFiles(isA(File[].class))).thenReturn(new ArrayList<File>());
 		assertTrue(compositeFileFilter.filterFiles(new File[] { fileMock }).isEmpty());
+		compositeFileFilter.close();
+	}
+
+	@Test
+	public void excludeFromLaterFilters() throws Exception {
+		CompositeFileListFilter<File> compositeFileFilter = new CompositeFileListFilter<File>();
+		compositeFileFilter.addFilter(fileFilterMock1);
+		compositeFileFilter.addFilter(fileFilterMock2);
+		List<File> noFiles = new ArrayList<File>();
+		when(fileFilterMock1.filterFiles(isA(File[].class))).thenReturn(noFiles);
+		assertEquals(noFiles, compositeFileFilter.filterFiles(new File[] { fileMock }));
+		verify(fileFilterMock1).filterFiles(argThat(arrayWithSize(1)));
+		verify(fileFilterMock2).filterFiles(argThat(arrayWithSize(0)));
 		compositeFileFilter.close();
 	}
 }
