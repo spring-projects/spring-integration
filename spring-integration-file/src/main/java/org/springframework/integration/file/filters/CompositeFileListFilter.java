@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,17 +32,18 @@ import org.springframework.util.Assert;
 /**
  * Simple {@link FileListFilter} that predicates its matches against <b>all</b> of the
  * configured {@link FileListFilter}.
+ * @param <F> The type that will be filtered.
  *
  * @author Iwein Fuld
  * @author Josh Long
  * @author Gary Russell
  * @author Artem Bilan
  *
- * @param <F> The type that will be filtered.
+ *
  */
 public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>, Closeable {
 
-	private final Set<FileListFilter<F>> fileFilters;
+	protected final Set<FileListFilter<F>> fileFilters; // NOSONAR
 
 
 	public CompositeFileListFilter() {
