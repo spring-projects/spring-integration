@@ -23,13 +23,15 @@ import org.springframework.util.Assert;
 
 /**
  * The {@link CompositeFileListFilter} extension which chains the result
- * of the previous filter to the next one.
+ * of the previous filter to the next one. If a filter in the chain returns
+ * an empty list, the remaining filters are not invoked.
+ * @param <F> The type that will be filtered.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 4.3.7
  *
- * @param <F> The type that will be filtered.
  */
 public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 
@@ -38,6 +40,9 @@ public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 		Assert.notNull(files, "'files' should not be null");
 		List<F> leftOver = Arrays.asList(files);
 		for (FileListFilter<F> fileFilter : this.fileFilters) {
+			if (leftOver.size() == 0) {
+				break;
+			}
 			@SuppressWarnings("unchecked")
 			F[] fileArray = (F[]) leftOver.toArray();
 			leftOver = fileFilter.filterFiles(fileArray);

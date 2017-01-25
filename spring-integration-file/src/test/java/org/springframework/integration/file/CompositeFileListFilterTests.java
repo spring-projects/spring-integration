@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
@@ -102,7 +103,7 @@ public class CompositeFileListFilterTests {
 		assertEquals(noFiles, compositeFileFilter.filterFiles(new File[] { this.fileMock }));
 
 		verify(fileFilterMock1).filterFiles(argThat(arrayWithSize(1)));
-		verify(fileFilterMock2).filterFiles(argThat(arrayWithSize(0)));
+		verify(fileFilterMock2, never()).filterFiles(isA(File[].class));
 
 		compositeFileFilter.close();
 	}

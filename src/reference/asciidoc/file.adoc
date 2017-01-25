@@ -118,6 +118,7 @@ Say we have files `a.txt`, `a.done`, and `b.txt`.
 The pattern filter only passes `a.txt` and `b.txt`, the "done" filter will see all three files and only pass `a.txt`.
 The final result of the composite filter is only `a.txt` is released.
 
+NOTE: With the `ChainFileListFilter`, if any filter in the chain returns an empty list, the remaining filters are not invoked.
 
 Starting with _version 5.0_ an `ExpressionFileListFilter` has been introduced to allow to execute SpEL expression against file as a context evaluation root object.
 For this purpose all the XML components for file handling (local and remote), alongside with an existing `filter` attribute, have been supplied with the `filter-expression` option:
