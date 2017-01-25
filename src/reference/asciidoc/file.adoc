@@ -106,6 +106,19 @@ to, say, network glitches.
 </bean>
 ----
 
+Starting with _version 4.3.7_ a `ChainFileListFilter` (an extension of `CompositeFileListFilter`) has been introduced to allow scenarios when subsequent filters should only see the result of the previous filter.
+(With the `CompositeFileListFilter`, all filters see all the files, but only files that pass all filters are passed by the `CompositeFileListFilter`).
+An example of where the new behavior is required is a combination of `LastModifiedFileListFilter` and `AcceptOnceFileListFilter`, when we do not wish to accept the file until some amount of time has elapsed.
+With the `CompositeFileListFilter`, since the `AcceptOnceFileListFilter` sees all the files on the first pass, it won't pass it later when the other filter does.
+The `CompositeFileListFilter` approach is useful when a pattern filter is combined with a custom filter that looks for a secondary indicating file transfer is complete.
+The pattern filter might only pass the primary file (e.g. `foo.txt`) but the "done" filter needs to see if, say `foo.done` is present.
+
+Say we have files `a.txt`, `a.done`, and `b.txt`.
+
+The pattern filter only passes `a.txt` and `b.txt`, the "done" filter will see all three files and only pass `a.txt`.
+The final result of the composite filter is only `a.txt` is released.
+
+
 Starting with _version 5.0_ an `ExpressionFileListFilter` has been introduced to allow to execute SpEL expression against file as a context evaluation root object.
 For this purpose all the XML components for file handling (local and remote), alongside with an existing `filter` attribute, have been supplied with the `filter-expression` option:
 [source, xml]
