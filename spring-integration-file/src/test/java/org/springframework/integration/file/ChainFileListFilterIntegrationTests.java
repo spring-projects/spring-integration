@@ -12,7 +12,10 @@ import org.springframework.integration.file.filters.LastModifiedFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 
 /**
+ * INT-4216
+ * 
  * @author Aaron Grant
+ * @since 4.3.8
  */
 public class ChainFileListFilterIntegrationTests {
 

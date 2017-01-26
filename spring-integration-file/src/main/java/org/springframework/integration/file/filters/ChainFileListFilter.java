@@ -45,7 +45,7 @@ public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 				break;
 			}
 			@SuppressWarnings("unchecked")
-			F[] fileArray = leftOver.toArray((F[]) Array.newInstance(files[0].getClass(), leftOver.size()));
+			F[] fileArray = leftOver.toArray((F[]) Array.newInstance(leftOver.get(0).getClass(), leftOver.size()));
 			leftOver = fileFilter.filterFiles(fileArray);
 		}
 		return leftOver;
