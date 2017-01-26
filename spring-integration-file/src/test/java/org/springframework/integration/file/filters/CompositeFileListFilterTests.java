@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.filters;
 
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
@@ -32,10 +32,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
-
-import org.springframework.integration.file.filters.ChainFileListFilter;
-import org.springframework.integration.file.filters.CompositeFileListFilter;
-import org.springframework.integration.file.filters.FileListFilter;
 
 /**
  * @author Iwein Fuld

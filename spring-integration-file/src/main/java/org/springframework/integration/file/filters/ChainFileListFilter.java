@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,6 +26,7 @@ import org.springframework.util.Assert;
  * The {@link CompositeFileListFilter} extension which chains the result
  * of the previous filter to the next one. If a filter in the chain returns
  * an empty list, the remaining filters are not invoked.
+ *
  * @param <F> The type that will be filtered.
  *
  * @author Artem Bilan
@@ -44,7 +46,7 @@ public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 				break;
 			}
 			@SuppressWarnings("unchecked")
-			F[] fileArray = (F[]) leftOver.toArray();
+			F[] fileArray = leftOver.toArray((F[]) Array.newInstance(leftOver.get(0).getClass(), leftOver.size()));
 			leftOver = fileFilter.filterFiles(fileArray);
 		}
 		return leftOver;
