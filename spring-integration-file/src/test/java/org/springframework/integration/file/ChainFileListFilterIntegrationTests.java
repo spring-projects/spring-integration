@@ -22,7 +22,7 @@ public class ChainFileListFilterIntegrationTests {
 	private class MockOldFile extends File {
 		private static final long serialVersionUID = 1L;
 
-		public MockOldFile(String pathname) {
+		MockOldFile(String pathname) {
 			super(pathname);
 		}
 
