@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 				break;
 			}
 			@SuppressWarnings("unchecked")
-			F[] fileArray = (F[]) leftOver.toArray();
+			F[] fileArray = leftOver.toArray((F[]) Array.newInstance(files[0].getClass(), leftOver.size()));
 			leftOver = fileFilter.filterFiles(fileArray);
 		}
 		return leftOver;
