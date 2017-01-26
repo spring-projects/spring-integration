@@ -29,13 +29,23 @@ public class ChainFileListFilterIntegrationTests {
 		}
 	}
 
-	private File[] files = new File[] { new MockOldFile("file.txt") };
+	private File[] noFiles = new File[0];
+	private File[] oneFile = new File[] { new MockOldFile("file.txt") };
+
+	@Test
+	public void singleModifiedFilterNoFiles() throws IOException {
+		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
+			chain.addFilter(new LastModifiedFileListFilter());
+			List<File> result = chain.filterFiles(noFiles);
+			assertEquals(0, result.size());
+		}
+	}
 
 	@Test
 	public void singlePatternFilter() throws IOException {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
 			chain.addFilter(new SimplePatternFileListFilter("*.txt"));
-			List<File> result = chain.filterFiles(files);
+			List<File> result = chain.filterFiles(oneFile);
 			assertEquals(1, result.size());
 		}
 	}
@@ -44,7 +54,7 @@ public class ChainFileListFilterIntegrationTests {
 	public void singleModifiedFilter() throws IOException {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
 			chain.addFilter(new LastModifiedFileListFilter());
-			List<File> result = chain.filterFiles(files);
+			List<File> result = chain.filterFiles(oneFile);
 			assertEquals(1, result.size());
 		}
 	}
@@ -54,7 +64,7 @@ public class ChainFileListFilterIntegrationTests {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
 			chain.addFilter(new SimplePatternFileListFilter("*.txt"));
 			chain.addFilter(new LastModifiedFileListFilter());
-			List<File> result = chain.filterFiles(files);
+			List<File> result = chain.filterFiles(oneFile);
 			assertEquals(1, result.size());
 		}
 	}
@@ -64,7 +74,7 @@ public class ChainFileListFilterIntegrationTests {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
 			chain.addFilter(new LastModifiedFileListFilter());
 			chain.addFilter(new SimplePatternFileListFilter("*.txt"));
-			List<File> result = chain.filterFiles(files);
+			List<File> result = chain.filterFiles(oneFile);
 			assertEquals(1, result.size());
 		}
 	}
