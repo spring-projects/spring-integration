@@ -262,7 +262,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.displayString = sb.toString() + "]";
 	}
 
-	private void prepareEvaluationContext() {
+	private void prepareEvaluationContext() throws Exception {
 		StandardEvaluationContext context = getEvaluationContext(false);
 		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
 		if (this.method != null) {
@@ -282,6 +282,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			context.registerMethodFilter(targetType, filter);
 		}
 		context.setVariable("target", this.targetObject);
+		context.registerFunction("requiredHeader", ParametersWrapper.class.getDeclaredMethod("getHeader",
+				Map.class, String.class));
 	}
 
 	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,
@@ -845,12 +847,16 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					+ "disabled or header name is not explicitly provided via @Header annotation.");
 			String headerRetrievalExpression = "headers['" + headerName + "']";
 			String fullHeaderExpression = headerRetrievalExpression + relativeExpression;
-			String fallbackExpression = (annotationAttributes.getBoolean("required")
-					&& !methodParameter.getParameterType().getName().equals("java.util.Optional"))
-					? "T(org.springframework.util.Assert).isTrue(false, 'required header not available: "
-					+ headerName + "')"
-					: "null";
-			return headerRetrievalExpression + " != null ? " + fullHeaderExpression + " : " + fallbackExpression;
+			if (annotationAttributes.getBoolean("required")
+					&& !methodParameter.getParameterType().getName().equals("java.util.Optional")) {
+				return "#requiredHeader(headers, '" + headerName + "')" + relativeExpression;
+			}
+			else if (!StringUtils.hasLength(relativeExpression)) {
+				return headerRetrievalExpression + " ?: null";
+			}
+			else {
+				return headerRetrievalExpression + " != null ? " + fullHeaderExpression + " : null";
+			}
 		}
 
 		private synchronized void setExclusiveTargetParameterType(TypeDescriptor targetParameterType,
@@ -871,7 +877,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 	}
 
-	public class ParametersWrapper {
+	public static class ParametersWrapper {
 
 		private final Object payload;
 
@@ -893,6 +899,21 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			this.messages = messages;
 			this.headers = headers;
 			this.message = null;
+		}
+
+		/**
+		 * SpEL Function to retrieve a required header.
+		 * @param headers the headers.
+		 * @param header the header name
+		 * @return the header
+		 * @throws IllegalArgumentException if the header does not exist
+		 */
+		public static Object getHeader(Map<?, ?> headers, String header) {
+			Object object = headers.get(header);
+			if (object == null) {
+				throw new IllegalArgumentException("required header not available: " + header);
+			}
+			return object;
 		}
 
 		public Object getPayload() {
