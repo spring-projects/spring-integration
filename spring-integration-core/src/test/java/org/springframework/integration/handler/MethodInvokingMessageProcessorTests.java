@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -348,6 +349,110 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
+	public void optionalAndRequiredWithAnnotatedMethod() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("optionalAndRequiredHeader", String.class, Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		optionalAndRequiredWithAnnotatedMethodGuts(processor, false);
+	}
+
+	@Test
+	public void compiledOptionalAndRequiredWithAnnotatedMethod() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("optionalAndRequiredHeader", String.class, Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
+		optionalAndRequiredWithAnnotatedMethodGuts(processor, true);
+		assertNotNull(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst"));
+		optionalAndRequiredWithAnnotatedMethodGuts(processor, true);
+		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
+	}
+
+	private void optionalAndRequiredWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor,
+			boolean compiled) {
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader("num", 42)
+				.build();
+		Object result = processor.processMessage(message);
+		assertEquals("null42", result);
+		message = MessageBuilder.withPayload("foo")
+				.setHeader("prop", "bar")
+				.setHeader("num", 42)
+				.build();
+		result = processor.processMessage(message);
+		assertEquals("bar42", result);
+		message = MessageBuilder.withPayload("foo")
+				.setHeader("prop", "bar")
+				.build();
+		try {
+			result = processor.processMessage(message);
+			fail("Expected MessageHandlingException");
+		}
+		catch (MessageHandlingException e) {
+			if (compiled) {
+				assertThat(e.getCause().getMessage(), equalTo("required header not available: num"));
+			}
+			else {
+				assertThat(e.getCause().getCause().getMessage(), equalTo("required header not available: num"));
+			}
+		}
+	}
+
+	@Test
+	public void optionalAndRequiredDottedWithAnnotatedMethod() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, false);
+	}
+
+	@Test
+	public void compiledOptionalAndRequiredDottedWithAnnotatedMethod() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, true);
+		assertNotNull(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst"));
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, true);
+		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
+	}
+
+	private void optionalAndRequiredDottedWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor,
+			boolean compiled) {
+		Message<String> message = MessageBuilder.withPayload("hello")
+				.setHeader("dot2", new DotBean())
+				.build();
+		Object result = processor.processMessage(message);
+		assertEquals("null42", result);
+		message = MessageBuilder.withPayload("hello")
+				.setHeader("dot1", new DotBean())
+				.setHeader("dot2", new DotBean())
+				.build();
+		result = processor.processMessage(message);
+		assertEquals("bar42", result);
+		message = MessageBuilder.withPayload("hello")
+				.setHeader("dot1", new DotBean())
+				.build();
+		try {
+			result = processor.processMessage(message);
+			fail("Expected MessageHandlingException");
+		}
+		catch (MessageHandlingException e) {
+			if (compiled) {
+				assertThat(e.getCause().getMessage(), equalTo("required header not available: dot2"));
+			}
+			else { // interpreted
+				assertThat(e.getCause().getCause().getMessage(), equalTo("required header not available: dot2"));
+			}
+		}
+	}
+
+	@Test
 	public void testOverloadedNonVoidReturningMethodsWithExactMatchForType() {
 		AmbiguousMethodBean bean = new AmbiguousMethodBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo");
@@ -601,10 +706,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 		stopWatch.stop();
 
-		// Update the parser configuration compiler mode
-		SpelParserConfiguration config = TestUtils.getPropertyValue(processor,
-				"delegate.handlerMethod.EXPRESSION_PARSER.configuration", SpelParserConfiguration.class);
-		new DirectFieldAccessor(config).setPropertyValue("compilerMode", SpelCompilerMode.IMMEDIATE);
+		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
 
 		processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
@@ -616,6 +718,16 @@ public class MethodInvokingMessageProcessorTests {
 		stopWatch.stop();
 
 		logger.warn(stopWatch.prettyPrint());
+		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
+	}
+
+	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
+		// Update the parser configuration compiler mode
+		SpelParserConfiguration config = TestUtils.getPropertyValue(processor,
+				"delegate.handlerMethod.EXPRESSION_PARSER.configuration", SpelParserConfiguration.class);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(config);
+		accessor.setPropertyValue("compilerMode", SpelCompilerMode.IMMEDIATE);
+		return accessor;
 	}
 
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
@@ -757,6 +869,11 @@ public class MethodInvokingMessageProcessorTests {
 			return prop + num;
 		}
 
+		public String optionalAndRequiredDottedHeader(@Header(name = "dot1.foo", required = false) String prop,
+				@Header(name = "dot2.baz", required = true) Integer num) {
+			return prop + num;
+		}
+
 		public Properties propertiesMethod(Properties properties) {
 			return properties;
 		}
@@ -841,6 +958,22 @@ public class MethodInvokingMessageProcessorTests {
 		@SuppressWarnings("unused")
 		public void foo(String s, int i) {
 			throw new RuntimeException("expected ineligible");
+		}
+
+	}
+
+	public static class DotBean {
+
+		private final String foo = "bar";
+
+		private final Integer baz = 42;
+
+		public String getFoo() {
+			return this.foo;
+		}
+
+		public Integer getBaz() {
+			return this.baz;
 		}
 
 	}
