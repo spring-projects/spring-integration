@@ -872,12 +872,12 @@ public class MethodInvokingMessageProcessorTests {
 			return num;
 		}
 
-		public Integer requiredHeader(@Header(value = "num") Integer num) {
+		public Integer requiredHeader(@Header("num") Integer num) {
 			return num;
 		}
 
 		public String optionalAndRequiredHeader(@Header(required = false) String prop,
-				@Header(value = "num") Integer num) {
+				@Header("num") Integer num) {
 			return prop + num;
 		}
 
