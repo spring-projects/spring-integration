@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -67,7 +68,7 @@ import org.springframework.util.StopWatch;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class MethodInvokingMessageProcessorTests {
 
 	private static final Log logger = LogFactory.getLog(MethodInvokingMessageProcessorTests.class);
@@ -78,6 +79,7 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testHandlerInheritanceMethodImplInSuper() {
 		class A {
+
 			@SuppressWarnings("unused")
 			public Message<String> myMethod(final Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
@@ -85,10 +87,12 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		class B extends A {
+
 		}
 
 		@SuppressWarnings("unused")
 		class C extends B {
+
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
@@ -99,6 +103,7 @@ public class MethodInvokingMessageProcessorTests {
 	@Test
 	public void testHandlerInheritanceMethodImplInLatestSuper() {
 		class A {
+
 			@SuppressWarnings("unused")
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
@@ -106,6 +111,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		class B extends A {
+
 			@Override
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
@@ -114,6 +120,7 @@ public class MethodInvokingMessageProcessorTests {
 
 		@SuppressWarnings("unused")
 		class C extends B {
+
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
@@ -123,6 +130,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	public void testHandlerInheritanceMethodImplInSubClass() {
 		class A {
+
 			@SuppressWarnings("unused")
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
@@ -130,6 +138,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		class B extends A {
+
 			@Override
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
@@ -137,6 +146,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		class C extends B {
+
 			@Override
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
@@ -150,6 +160,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	public void testHandlerInheritanceMethodImplInSubClassAndSuper() {
 		class A {
+
 			@SuppressWarnings("unused")
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
@@ -157,9 +168,11 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		class B extends A {
+
 		}
 
 		class C extends B {
+
 			@Override
 			public Message<String> myMethod(Message<String> msg) {
 				return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
@@ -345,6 +358,110 @@ public class MethodInvokingMessageProcessorTests {
 				.build();
 		Object result = processor.processMessage(message);
 		assertEquals("bar-42", result);
+	}
+
+	@Test
+	public void optionalAndRequiredWithAnnotatedMethod() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("optionalAndRequiredHeader", String.class, Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		optionalAndRequiredWithAnnotatedMethodGuts(processor, false);
+	}
+
+	@Test
+	public void compiledOptionalAndRequiredWithAnnotatedMethod() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("optionalAndRequiredHeader", String.class, Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
+		optionalAndRequiredWithAnnotatedMethodGuts(processor, true);
+		assertNotNull(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst"));
+		optionalAndRequiredWithAnnotatedMethodGuts(processor, true);
+		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
+	}
+
+	private void optionalAndRequiredWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor,
+			boolean compiled) {
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader("num", 42)
+				.build();
+		Object result = processor.processMessage(message);
+		assertEquals("null42", result);
+		message = MessageBuilder.withPayload("foo")
+				.setHeader("prop", "bar")
+				.setHeader("num", 42)
+				.build();
+		result = processor.processMessage(message);
+		assertEquals("bar42", result);
+		message = MessageBuilder.withPayload("foo")
+				.setHeader("prop", "bar")
+				.build();
+		try {
+			result = processor.processMessage(message);
+			fail("Expected MessageHandlingException");
+		}
+		catch (MessageHandlingException e) {
+			if (compiled) {
+				assertThat(e.getCause().getMessage(), equalTo("required header not available: num"));
+			}
+			else {
+				assertThat(e.getCause().getCause().getMessage(), equalTo("required header not available: num"));
+			}
+		}
+	}
+
+	@Test
+	public void optionalAndRequiredDottedWithAnnotatedMethod() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, false);
+	}
+
+	@Test
+	public void compiledOptionalAndRequiredDottedWithAnnotatedMethod() throws Exception {
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("optionalAndRequiredDottedHeader", String.class, Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		processor.setUseSpelInvoker(true);
+		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, true);
+		assertNotNull(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.expression.compiledAst"));
+		optionalAndRequiredDottedWithAnnotatedMethodGuts(processor, true);
+		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
+	}
+
+	private void optionalAndRequiredDottedWithAnnotatedMethodGuts(MethodInvokingMessageProcessor processor,
+			boolean compiled) {
+		Message<String> message = MessageBuilder.withPayload("hello")
+				.setHeader("dot2", new DotBean())
+				.build();
+		Object result = processor.processMessage(message);
+		assertEquals("null42", result);
+		message = MessageBuilder.withPayload("hello")
+				.setHeader("dot1", new DotBean())
+				.setHeader("dot2", new DotBean())
+				.build();
+		result = processor.processMessage(message);
+		assertEquals("bar42", result);
+		message = MessageBuilder.withPayload("hello")
+				.setHeader("dot1", new DotBean())
+				.build();
+		try {
+			result = processor.processMessage(message);
+			fail("Expected MessageHandlingException");
+		}
+		catch (MessageHandlingException e) {
+			if (compiled) {
+				assertThat(e.getCause().getMessage(), equalTo("required header not available: dot2"));
+			}
+			else { // interpreted
+				assertThat(e.getCause().getCause().getMessage(), equalTo("required header not available: dot2"));
+			}
+		}
 	}
 
 	@Test
@@ -601,10 +718,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 		stopWatch.stop();
 
-		// Update the parser configuration compiler mode
-		SpelParserConfiguration config = TestUtils.getPropertyValue(processor,
-				"delegate.handlerMethod.EXPRESSION_PARSER.configuration", SpelParserConfiguration.class);
-		new DirectFieldAccessor(config).setPropertyValue("compilerMode", SpelCompilerMode.IMMEDIATE);
+		DirectFieldAccessor compilerConfigAccessor = compileImmediate(processor);
 
 		processor = new MethodInvokingMessageProcessor(service, method);
 		processor.setUseSpelInvoker(true);
@@ -616,6 +730,16 @@ public class MethodInvokingMessageProcessorTests {
 		stopWatch.stop();
 
 		logger.warn(stopWatch.prettyPrint());
+		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
+	}
+
+	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
+		// Update the parser configuration compiler mode
+		SpelParserConfiguration config = TestUtils.getPropertyValue(processor,
+				"delegate.handlerMethod.EXPRESSION_PARSER.configuration", SpelParserConfiguration.class);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(config);
+		accessor.setPropertyValue("compilerMode", SpelCompilerMode.IMMEDIATE);
+		return accessor;
 	}
 
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
@@ -748,12 +872,17 @@ public class MethodInvokingMessageProcessorTests {
 			return num;
 		}
 
-		public Integer requiredHeader(@Header(value = "num", required = true) Integer num) {
+		public Integer requiredHeader(@Header(value = "num") Integer num) {
 			return num;
 		}
 
 		public String optionalAndRequiredHeader(@Header(required = false) String prop,
-				@Header(value = "num", required = true) Integer num) {
+				@Header(value = "num") Integer num) {
+			return prop + num;
+		}
+
+		public String optionalAndRequiredDottedHeader(@Header(name = "dot1.foo", required = false) String prop,
+				@Header(name = "dot2.baz") Integer num) {
 			return prop + num;
 		}
 
@@ -841,6 +970,22 @@ public class MethodInvokingMessageProcessorTests {
 		@SuppressWarnings("unused")
 		public void foo(String s, int i) {
 			throw new RuntimeException("expected ineligible");
+		}
+
+	}
+
+	public static class DotBean {
+
+		private final String foo = "bar";
+
+		private final Integer baz = 42;
+
+		public String getFoo() {
+			return this.foo;
+		}
+
+		public Integer getBaz() {
+			return this.baz;
 		}
 
 	}
