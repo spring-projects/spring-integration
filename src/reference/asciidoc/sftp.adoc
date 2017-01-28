@@ -555,6 +555,7 @@ See <<file-splitter>> and <<stream-transformer>> for more information about thes
             filename-pattern="*.txt"
             filename-regex=".*\.txt"
             filter="filter"
+            filter-expression="@myFilterBean.check(#root)"
             remote-file-separator="/"
             comparator="comparator"
             max-fetch-size="1"
@@ -563,7 +564,7 @@ See <<file-splitter>> and <<stream-transformer>> for more information about thes
 </int-sftp:inbound-streaming-channel-adapter>
 ----
 
-Only one of `filename-pattern`, `filename-regex` or `filter` is allowed.
+Only one of `filename-pattern`, `filename-regex`, `filter` or `filter-expression` is allowed.
 
 IMPORTANT: Unlike the non-streaming inbound channel adapter, this adapter does not prevent duplicates by default.
 If you do not delete the remote file (e.g. using an outbound gateway with an rm command) and you wish to prevent the
@@ -935,7 +936,7 @@ _mput_ sends multiple files to the server and supports the following option:
 The message payload must be a `java.io.File` representing a local directory.
 
 The same attributes as the `put` command are supported.
-In addition, files in the local directory can be filtered with one of `mput-pattern`, `mput-regex` or `mput-filter`.
+In addition, files in the local directory can be filtered with one of `mput-pattern`, `mput-regex`, `mput-filter` or `mput-filter-expression`.
 The filter works with recursion, as long as the subdirectories themselves pass the filter.
 Subdirectories that do not pass the filter are not recursed.
 

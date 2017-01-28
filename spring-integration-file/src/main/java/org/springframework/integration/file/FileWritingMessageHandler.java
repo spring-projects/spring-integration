@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,6 +142,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile int bufferSize = DEFAULT_BUFFER_SIZE;
 
 	private volatile long flushInterval = DEFAULT_FLUSH_INTERVAL;
+
+	private volatile boolean flushWhenIdle = true;
 
 	private volatile ScheduledFuture<?> flushTask;
 
@@ -299,12 +301,29 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	/**
 	 * Set the frequency to flush buffers when {@link FileExistsMode#APPEND_NO_FLUSH} is
-	 * being used.
+	 * being used. The interval is approximate; the actual interval will be between
+	 * {@code flushInterval} and {@code flushInterval * 1.33} with an average of
+	 * {@code flushInterval * 1.167}.
 	 * @param flushInterval the interval.
+	 * @see #setFlushWhenIdle(boolean)
 	 * @since 4.3
 	 */
 	public void setFlushInterval(long flushInterval) {
 		this.flushInterval = flushInterval;
+	}
+
+	/**
+	 * Determine whether the {@link #setFlushInterval(long) flushInterval} applies only
+	 * to idle files (default) or whether to flush on that interval after the first
+	 * write to a previously flushed or new file.
+	 * @param flushWhenIdle false to flush on the interval after the first write
+	 * to a closed file.
+	 * @see #setFlushInterval(long)
+	 * @see #setBufferSize(int)
+	 * @since 4.3.7
+	 */
+	public void setFlushWhenIdle(boolean flushWhenIdle) {
+		this.flushWhenIdle = flushWhenIdle;
 	}
 
 	@Override
@@ -819,8 +838,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	/**
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
-	 * selectively flush open files. For each open file the supplied
-	 * {@link MessageFlushPredicate#shouldFlush(String, long, Message)}
+	 * selectively flush and close open files. For each open file the supplied
+	 * {@link MessageFlushPredicate#shouldFlush(String, long, long, Message)}
 	 * method is invoked and if true is returned, the file is flushed.
 	 * @param flushPredicate the {@link FlushPredicate}.
 	 * @since 4.3
@@ -830,7 +849,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
 			FileState state = entry.getValue();
-			if (flushPredicate.shouldFlush(entry.getKey(), state.lastWrite)) {
+			if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite)) {
 				iterator.remove();
 				state.close();
 			}
@@ -839,8 +858,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	/**
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
-	 * selectively flush open files. For each open file the supplied
-	 * {@link MessageFlushPredicate#shouldFlush(String, long, Message)}
+	 * selectively flush and close open files. For each open file the supplied
+	 * {@link MessageFlushPredicate#shouldFlush(String, long, long, Message)}
 	 * method is invoked and if true is returned, the file is flushed.
 	 * @param flushPredicate the {@link MessageFlushPredicate}.
 	 * @param filterMessage an optional message passed into the predicate.
@@ -851,7 +870,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		while (iterator.hasNext()) {
 			Entry<String, FileState> entry = iterator.next();
 			FileState state = entry.getValue();
-			if (flushPredicate.shouldFlush(entry.getKey(), state.lastWrite, filterMessage)) {
+			if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite, filterMessage)) {
 				iterator.remove();
 				state.close();
 			}
@@ -873,6 +892,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		private final BufferedWriter writer;
 
 		private final BufferedOutputStream stream;
+
+		private final long firstWrite = System.currentTimeMillis();
 
 		private volatile long lastWrite;
 
@@ -917,7 +938,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				while (iterator.hasNext()) {
 					Entry<String, FileState> entry = iterator.next();
 					FileState state = entry.getValue();
-					if (state.lastWrite < expired) {
+					if (state.lastWrite < expired ||
+							(!FileWritingMessageHandler.this.flushWhenIdle && state.firstWrite < expired)) {
 						iterator.remove();
 						state.close();
 						if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
@@ -931,41 +953,49 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
-	 * an implementation of this interface is called for each file that has pending data
-	 * to flush when {@link FileWritingMessageHandler#flushIfNeeded(FlushPredicate)}
-	 * is invoked.
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}, an implementation of this
+	 * interface is called for each file that has pending data to flush and close when
+	 * {@link FileWritingMessageHandler#flushIfNeeded(FlushPredicate)} is invoked.
 	 * @since 4.3
 	 *
 	 */
+	@FunctionalInterface
 	public interface FlushPredicate {
 
 		/**
+		 * Return true to cause the file to be flushed and closed.
 		 * @param fileAbsolutePath the path to the file.
-		 * @param lastWrite the time of the last write - {@link System#currentTimeMillis()}.
-		 * @return true if the file should be flushed.
+		 * @param firstWrite the time of the first write to a new or previously closed
+		 * file.
+		 * @param lastWrite the time of the last write -
+		 * {@link System#currentTimeMillis()}.
+		 * @return true if the file should be flushed and closed.
 		 */
-		boolean shouldFlush(String fileAbsolutePath, long lastWrite);
+		boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite);
 
 	}
 
 	/**
 	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
 	 * an implementation of this interface is called for each file that has pending data
-	 * to flush.
+	 * to flush when a trigger message is received.
 	 * @see FileWritingMessageHandler#trigger(Message)
 	 * @since 4.3
 	 *
 	 */
+	@FunctionalInterface
 	public interface MessageFlushPredicate {
 
 		/**
+		 * Return true to cause the file to be flushed and closed.
 		 * @param fileAbsolutePath the path to the file.
+		 * @param firstWrite the time of the first write to a new or previously closed
+		 * file.
 		 * @param lastWrite the time of the last write - {@link System#currentTimeMillis()}.
 		 * @param filterMessage an optional message to be used in the decision process.
-		 * @return true if the file should be flushed.
+		 * @return true if the file should be flushed and closed.
 		 */
-		boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> filterMessage);
+		boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite, Message<?> filterMessage);
 
 	}
 
@@ -979,7 +1009,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 
 		@Override
-		public boolean shouldFlush(String fileAbsolutePath, long lastWrite, Message<?> triggerMessage) {
+		public boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite,
+				Message<?> triggerMessage) {
 			Pattern pattern;
 			if (triggerMessage.getPayload() instanceof String) {
 				pattern = Pattern.compile((String) triggerMessage.getPayload());

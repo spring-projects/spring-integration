@@ -168,6 +168,12 @@ This applies when the outbound gateway returns an `InputStream` or the new (S)FT
 Also a new `markers-json` options has been introduced to convert `FileSplitter.FileMarker` to JSON `String` for relaxed downstream network interaction.
 See <<file-splitter>> for more information.
 
+===== File Filters
+
+A new `ChainFileListFilter` is provided as an alternative to `CompositeFileListFilter`.
+See <<file-reading>> for more information.
+
+
 ==== AMQP Changes
 
 ===== Content Type Message Converter

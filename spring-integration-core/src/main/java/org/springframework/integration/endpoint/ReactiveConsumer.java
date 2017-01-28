@@ -22,11 +22,13 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
@@ -45,13 +47,18 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 	private final Operators.SubscriberAdapter<Message<?>, Message<?>> subscriber;
 
+	private final Lifecycle lifecycleDelegate;
+
 	private volatile Publisher<Message<?>> publisher;
 
 	private ErrorHandler errorHandler;
 
-
-	public ReactiveConsumer(MessageChannel inputChannel, Consumer<Message<?>> consumer) {
-		this(inputChannel, new ConsumerSubscriber(consumer));
+	@SuppressWarnings("unchecked")
+	public ReactiveConsumer(MessageChannel inputChannel, MessageHandler messageHandler) {
+		this(inputChannel,
+				messageHandler instanceof Subscriber
+						? (Subscriber<Message<?>>) messageHandler
+						: new MessageHandlerSubscriber(messageHandler));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -76,6 +83,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 			}
 
 		};
+		this.lifecycleDelegate = subscriber instanceof Lifecycle ? (Lifecycle) subscriber : null;
 	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
@@ -93,24 +101,34 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 	@Override
 	protected void doStart() {
+		if (this.lifecycleDelegate != null) {
+			this.lifecycleDelegate.start();
+		}
 		this.publisher.subscribe(this.subscriber);
 	}
 
 	@Override
 	protected void doStop() {
 		this.subscriber.cancel();
+		if (this.lifecycleDelegate != null) {
+			this.lifecycleDelegate.stop();
+		}
 	}
 
 
-	private static final class ConsumerSubscriber implements Subscriber<Message<?>>, Receiver, Disposable, Trackable {
+	private static final class MessageHandlerSubscriber
+			implements Subscriber<Message<?>>, Receiver, Disposable, Trackable, Lifecycle {
 
 		private final Consumer<Message<?>> consumer;
 
 		private Subscription subscription;
 
-		ConsumerSubscriber(Consumer<Message<?>> consumer) {
-			Assert.notNull(consumer);
-			this.consumer = consumer;
+		private MessageHandler messageHandler;
+
+		MessageHandlerSubscriber(MessageHandler messageHandler) {
+			Assert.notNull(messageHandler, "'messageHandler' must not be null");
+			this.messageHandler = messageHandler;
+			this.consumer = this.messageHandler::handleMessage;
 		}
 
 		@Override
@@ -167,6 +185,26 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		@Override
 		public boolean isTerminated() {
 			return false;
+		}
+
+
+		@Override
+		public void start() {
+			if (this.messageHandler instanceof Lifecycle) {
+				((Lifecycle) this.messageHandler).start();
+			}
+		}
+
+		@Override
+		public void stop() {
+			if (this.messageHandler instanceof Lifecycle) {
+				((Lifecycle) this.messageHandler).stop();
+			}
+		}
+
+		@Override
+		public boolean isRunning() {
+			return !(this.messageHandler instanceof Lifecycle) || ((Lifecycle) this.messageHandler).isRunning();
 		}
 
 	}

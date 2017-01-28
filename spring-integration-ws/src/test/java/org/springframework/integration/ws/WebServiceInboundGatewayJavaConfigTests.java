@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.StringWriter;
 import java.util.Locale;
+
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;

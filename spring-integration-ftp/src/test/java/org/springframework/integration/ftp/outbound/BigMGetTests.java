@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -33,7 +34,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class BigMGetTests extends org.springframework.integration.file.BigMGetTests {
 
-	@Test @Ignore // needs directories and server (FTP and SFTP)
+	@Test
+	@Ignore // needs directories and server (FTP and SFTP)
 	public void doTest() throws Exception {
 		assertEquals(FILES, this.mgetManyFiles().getPayload().size());
 	}

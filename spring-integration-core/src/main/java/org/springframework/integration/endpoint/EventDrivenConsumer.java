@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.router.MessageRouter;
 import org.springframework.integration.support.context.NamedComponent;
@@ -95,7 +94,7 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Integration
 			String channelName = ((NamedComponent) this.inputChannel).getComponentName();
 			String componentType = ((NamedComponent) this.handler).getComponentType();
 			componentType = StringUtils.hasText(componentType) ? componentType : "";
-			String componentName = ((IntegrationObjectSupport) this).getComponentName();
+			String componentName = getComponentName();
 			componentName = (StringUtils.hasText(componentName) && componentName.contains("#")) ? "" : ":" + componentName;
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("{" + componentType + componentName + "} as a subscriber to the '" + channelName + "' channel");

@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -42,6 +43,7 @@ import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
@@ -124,6 +126,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	protected Object currentComponent;
 
 	private StandardIntegrationFlow integrationFlow;
+
+	private boolean implicitChannel;
 
 	IntegrationFlowDefinition() {
 	}
@@ -394,7 +398,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the {@code Wire Tap} EI Pattern specific
 	 * {@link org.springframework.messaging.support.ChannelInterceptor} implementation
 	 * to the current {@link #currentMessageChannel}.
-	 * It is useful when an implicit {@link MessageChannel} is used between endpoints:
+	 * <p> It is useful when an implicit {@link MessageChannel} is used between endpoints:
 	 * <pre class="code">
 	 * {@code
 	 *  .transform("payload")
@@ -405,14 +409,17 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * This method can be used after any {@link #channel} for explicit {@link MessageChannel},
 	 * but with the caution do not impact existing {@link org.springframework.messaging.support.ChannelInterceptor}s.
 	 * @param wireTapSpec the {@link WireTapSpec} to use.
+	 * <p> When this EIP-method is used in the end of flow, it appends {@code nullChannel} to terminate flow properly,
+	 * Otherwise {@code Dispatcher has no subscribers} exception is thrown for implicit {@link DirectChannel}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B wireTap(WireTapSpec wireTapSpec) {
 		WireTap interceptor = wireTapSpec.get();
 		if (this.currentMessageChannel == null || !(this.currentMessageChannel instanceof ChannelInterceptorAware)) {
+			this.implicitChannel = true;
 			channel(new DirectChannel());
 		}
-		addComponents(wireTapSpec.getComponentsToRegister());
+		addComponent(wireTapSpec);
 		((ChannelInterceptorAware) this.currentMessageChannel).addInterceptor(interceptor);
 		return _this();
 	}
@@ -2361,6 +2368,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * as a default logging category.
 	 * <p> The full request {@link Message} will be logged.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log() {
 		return log(LoggingHandler.Level.INFO);
@@ -2374,6 +2382,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * <p> The full request {@link Message} will be logged.
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log(LoggingHandler.Level level) {
 		return log(level, (String) null);
@@ -2386,6 +2395,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * <p> The full request {@link Message} will be logged.
 	 * @param category the logging category to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log(String category) {
 		return log(LoggingHandler.Level.INFO, category);
@@ -2399,6 +2409,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @param category the logging category to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log(LoggingHandler.Level level, String category) {
 		return log(level, category, (Expression) null);
@@ -2414,6 +2425,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param logExpression the SpEL expression to evaluate logger message at runtime
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log(LoggingHandler.Level level, String category, String logExpression) {
 		Assert.hasText(logExpression);
@@ -2429,6 +2441,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <P> the expected payload type.
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public <P> B log(Function<Message<P>, Object> function) {
 		Assert.notNull(function);
@@ -2444,6 +2457,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log(Expression logExpression) {
 		return log(LoggingHandler.Level.INFO, logExpression);
@@ -2460,6 +2474,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log(LoggingHandler.Level level, Expression logExpression) {
 		return log(level, null, logExpression);
@@ -2476,6 +2491,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log(String category, Expression logExpression) {
 		return log(LoggingHandler.Level.INFO, category, logExpression);
@@ -2492,6 +2508,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <P> the expected payload type.
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public <P> B log(LoggingHandler.Level level, Function<Message<P>, Object> function) {
 		return log(level, null, function);
@@ -2507,6 +2524,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <P> the expected payload type.
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public <P> B log(String category, Function<Message<P>, Object> function) {
 		return log(LoggingHandler.Level.INFO, category, function);
@@ -2523,6 +2541,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param <P> the expected payload type.
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public <P> B log(LoggingHandler.Level level, String category, Function<Message<P>, Object> function) {
 		Assert.notNull(function);
@@ -2540,6 +2559,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #wireTap(WireTapSpec)
 	 */
 	public B log(LoggingHandler.Level level, String category, Expression logExpression) {
 		LoggingHandler loggingHandler = new LoggingHandler(level);
@@ -2653,8 +2673,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		}
 
 		RecipientListRouter recipientListRouter = recipientListRouterSpec.get();
-		addComponent(recipientListRouter);
-		addComponents(recipientListRouterSpec.getComponentsToRegister());
+		addComponent(recipientListRouterSpec);
 		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.get().getT2();
 		addComponent(aggregatingMessageHandler);
 		ScatterGatherHandler messageHandler = new ScatterGatherHandler(recipientListRouter, aggregatingMessageHandler);
@@ -2874,6 +2893,14 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 							+ "Add at lest '.bridge()' EIP-method before the end of flow.");
 				}
 			}
+
+			if (this.implicitChannel) {
+				Optional<Object> lastComponent = this.integrationComponents.stream().reduce((first, second) -> second);
+				if (lastComponent.get() instanceof WireTapSpec) {
+					channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+				}
+			}
+
 			this.integrationFlow = new StandardIntegrationFlow(this.integrationComponents);
 		}
 		return this.integrationFlow;

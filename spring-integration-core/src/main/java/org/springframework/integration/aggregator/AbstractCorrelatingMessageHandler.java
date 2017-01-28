@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -85,7 +86,7 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
-		implements DiscardingMessageHandler, DisposableBean, ApplicationEventPublisherAware {
+		implements DiscardingMessageHandler, DisposableBean, ApplicationEventPublisherAware, Lifecycle {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -130,6 +131,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	private volatile boolean expireGroupsUponTimeout = true;
+
+	private volatile boolean running;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -750,6 +753,37 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
+	@Override
+	public void start() {
+		if (!this.running) {
+			this.running = true;
+			if (this.outputProcessor instanceof Lifecycle) {
+				((Lifecycle) this.outputProcessor).start();
+			}
+			if (this.releaseStrategy instanceof Lifecycle) {
+				((Lifecycle) this.releaseStrategy).start();
+			}
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.running) {
+			this.running = false;
+			if (this.outputProcessor instanceof Lifecycle) {
+				((Lifecycle) this.outputProcessor).stop();
+			}
+			if (this.releaseStrategy instanceof Lifecycle) {
+				((Lifecycle) this.releaseStrategy).stop();
+			}
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.running;
+	}
+
 	protected static class SequenceAwareMessageGroup extends SimpleMessageGroup {
 
 		private final SimpleMessageGroup sourceGroup;
@@ -787,7 +821,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				Integer messageSequenceSize = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
 						Integer.class);
 				if (messageSequenceSize == null) {
-					messageSequenceSize = Integer.valueOf(0);
+					messageSequenceSize = 0;
 				}
 				return messageSequenceSize.equals(getSequenceSize())
 						&& !(this.sourceGroup != null ? this.sourceGroup.containsSequence(messageSequenceNumber)

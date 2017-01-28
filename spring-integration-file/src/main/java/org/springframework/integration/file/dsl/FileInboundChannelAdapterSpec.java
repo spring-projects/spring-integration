@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,22 @@
 package org.springframework.integration.file.dsl;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileLocker;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.config.FileListFilterFactoryBean;
 import org.springframework.integration.file.filters.AcceptAllFileListFilter;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
@@ -42,11 +48,14 @@ import org.springframework.util.Assert;
  * @since 5.0
  */
 public class FileInboundChannelAdapterSpec
-		extends MessageSourceSpec<FileInboundChannelAdapterSpec, FileReadingMessageSource> {
+		extends MessageSourceSpec<FileInboundChannelAdapterSpec, FileReadingMessageSource>
+		implements ComponentsRegistration {
 
 	private final FileListFilterFactoryBean fileListFilterFactoryBean = new FileListFilterFactoryBean();
 
 	private FileLocker locker;
+
+	private ExpressionFileListFilter<File> expressionFileListFilter;
 
 	FileInboundChannelAdapterSpec() {
 		this.target = new FileReadingMessageSource();
@@ -115,6 +124,30 @@ public class FileInboundChannelAdapterSpec
 	public FileInboundChannelAdapterSpec filter(FileListFilter<File> filter) {
 		this.fileListFilterFactoryBean.setFilter(filter);
 		return _this();
+	}
+
+	/**
+	 * Configure the {@link ExpressionFileListFilter}.
+	 * @param expression the SpEL expression for files filtering.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see ExpressionFileListFilter
+	 */
+	public FileInboundChannelAdapterSpec filterExpression(String expression) {
+		this.expressionFileListFilter = new ExpressionFileListFilter<>(expression);
+		return filter(this.expressionFileListFilter);
+	}
+
+	/**
+	 * Configure the {@link ExpressionFileListFilter}.
+	 * @param filterFunction the {@link Function} for files filtering.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see ExpressionFileListFilter
+	 */
+	public FileInboundChannelAdapterSpec filterFunction(Function<File, Boolean> filterFunction) {
+		this.expressionFileListFilter = new ExpressionFileListFilter<>(new FunctionExpression<>(filterFunction));
+		return filter(this.expressionFileListFilter);
 	}
 
 	/**
@@ -224,6 +257,16 @@ public class FileInboundChannelAdapterSpec
 	public FileInboundChannelAdapterSpec watchEvents(FileReadingMessageSource.WatchEventType... watchEvents) {
 		this.target.setWatchEvents(watchEvents);
 		return this;
+	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		if (this.expressionFileListFilter != null) {
+			return Collections.singleton(this.expressionFileListFilter);
+		}
+		else {
+			return null;
+		}
 	}
 
 }

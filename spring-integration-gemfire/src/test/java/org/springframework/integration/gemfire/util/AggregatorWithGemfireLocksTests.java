@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,6 @@ public class AggregatorWithGemfireLocksTests {
 				in2.send(new GenericMessage<String>("bar", stubHeaders(2, 2, 1)));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				exception = e;
 			}
 		});
@@ -125,7 +124,6 @@ public class AggregatorWithGemfireLocksTests {
 				in.send(new GenericMessage<String>(payload, stubHeaders(sequence, 2, correlation)));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				exception = e;
 			}
 		};

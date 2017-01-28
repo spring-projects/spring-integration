@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,6 +162,8 @@ public class FileTests {
 			}
 		}
 		DirectFieldAccessor dfa = new DirectFieldAccessor(targetFileWritingMessageHandler);
+		assertEquals(Boolean.FALSE, dfa.getPropertyValue("flushWhenIdle"));
+		assertEquals(60000L, dfa.getPropertyValue("flushInterval"));
 		dfa.setPropertyValue("fileNameGenerator", fileNameGenerator);
 		this.fileFlow1Input.send(message);
 
@@ -331,7 +333,9 @@ public class FileTests {
 					.handle(Files.outboundAdapter(tmpDir.getRoot())
 									.fileNameGenerator(message -> null)
 									.fileExistsMode(FileExistsMode.APPEND_NO_FLUSH)
-									.flushPredicate((fileAbsolutePath, lastWrite, filterMessage) -> {
+									.flushInterval(60000)
+									.flushWhenIdle(false)
+									.flushPredicate((fileAbsolutePath, firstWrite, lastWrite, filterMessage) -> {
 										flushPredicateCalled().countDown();
 										return true;
 									}),
@@ -391,7 +395,7 @@ public class FileTests {
 		public IntegrationFlow fileSplitterFlow() {
 			return IntegrationFlows
 					.from(Files.inboundAdapter(tmpDir.getRoot())
-									.patternFilter("foo.tmp"),
+									.filterFunction(f -> "foo.tmp".equals(f.getName())),
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.split(Files.splitter()
 									.markers()

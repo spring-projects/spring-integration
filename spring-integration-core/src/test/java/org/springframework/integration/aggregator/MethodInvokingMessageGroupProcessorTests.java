@@ -53,6 +53,15 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.support.GenericMessage;
 
+/**
+ * @author Iwein Fuld
+ * @author Dave Syer
+ * @author Mark Fisher
+ * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
+ * @author Gary Russell
+ * @author Artem Bilan
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class MethodInvokingMessageGroupProcessorTests {
 
@@ -93,7 +102,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new AnnotatedAggregatorMethod());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
+		assertThat(((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
@@ -101,6 +110,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
+
 			public Integer and(List<Integer> flags) {
 				int result = 0;
 				for (Integer flag : flags) {
@@ -113,7 +123,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
+		assertThat(((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
@@ -121,6 +131,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
+
 			public Integer and(List<Message<Integer>> flags) {
 				int result = 0;
 				for (Message<Integer> flag : flags) {
@@ -133,7 +144,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
+		assertThat(((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
@@ -141,6 +152,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
+
 			public String and(List<Integer> flags, @Header("foo") List<Integer> header) {
 				List<Integer> result = new ArrayList<Integer>();
 				for (int flag : flags) {
@@ -157,7 +169,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((String) ((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
+		assertThat(((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
 	}
 
 	@Test
@@ -165,6 +177,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
+
 			public String and(@Payloads List<?> rawFlags, @Header("foo") List<Integer> header) {
 				@SuppressWarnings("unchecked")
 				List<Integer> flags = (List<Integer>) rawFlags;
@@ -183,7 +196,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((String) ((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
+		assertThat(((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
 	}
 
 	@Test
@@ -191,6 +204,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
+
 			@Aggregator
 			public String and(@Payloads List<Integer> flags) {
 				List<Integer> result = new ArrayList<Integer>();
@@ -199,6 +213,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 				}
 				return result.toString();
 			}
+
 			public String or(List<Integer> flags) {
 				throw new UnsupportedOperationException("Not expected");
 			}
@@ -207,7 +222,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((String) ((Message<?>) result).getPayload(), is("[1, 2, 4]"));
+		assertThat(((Message<?>) result).getPayload(), is("[1, 2, 4]"));
 	}
 
 	@Test
@@ -215,6 +230,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
+
 			public Integer and(Collection<Integer> flags) {
 				int result = 0;
 				for (Integer flag : flags) {
@@ -227,7 +243,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
+		assertThat(((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
@@ -235,6 +251,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
+
 			public Integer and(int[] flags) {
 				int result = 0;
 				for (int flag : flags) {
@@ -247,7 +264,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
+		assertThat(((Message<?>) result).getPayload(), is(7));
 	}
 
 
@@ -256,6 +273,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class SimpleAggregator {
+
 			public Integer and(Iterator<Integer> flags) {
 				int result = 0;
 				while (flags.hasNext()) {
@@ -268,15 +286,17 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		GenericConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<ArrayList<?>, Iterator<?>>() {
+
 			@Override
 			public Iterator<?> convert(ArrayList<?> source) {
 				return source.iterator();
 			}
+
 		});
 		processor.setConversionService(conversionService);
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
+		assertThat(((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
@@ -284,6 +304,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class UnannotatedAggregator {
+
 			public Integer and(List<Integer> flags) {
 				int result = 0;
 				for (Integer flag : flags) {
@@ -305,7 +326,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
+		assertThat(((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
@@ -313,6 +334,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		@SuppressWarnings("unused")
 		class UnannotatedAggregator {
+
 			public Iterator<?> and(Iterator<Message<?>> flags) {
 
 				return flags;
@@ -392,10 +414,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 	public void testHeaderParameters() throws Exception {
 
 		class SingleAnnotationTestBean {
+
 			@Aggregator
 			public String method1(List<String> input, @Header("foo") String foo) {
 				return input.get(0) + foo;
 			}
+
 		}
 
 		SingleAnnotationTestBean bean = new SingleAnnotationTestBean();
@@ -410,10 +434,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 	public void testHeadersParameters() throws Exception {
 
 		class SingleAnnotationTestBean {
+
 			@Aggregator
 			public String method1(List<String> input, @Headers Map<String, ?> map) {
 				return input.get(0) + map.get("foo");
 			}
+
 		}
 
 		SingleAnnotationTestBean bean = new SingleAnnotationTestBean();
@@ -507,14 +533,16 @@ public class MethodInvokingMessageGroupProcessorTests {
 		QueueChannel output = new QueueChannel();
 		GreetingService testBean = new GreetingBean();
 		ProxyFactory proxyFactory = new ProxyFactory(testBean);
-		proxyFactory.setProxyTargetClass(false);
+		proxyFactory.setProxyTargetClass(true);
 		testBean = (GreetingService) proxyFactory.getProxy();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(testBean);
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(aggregator);
 		handler.setReleaseStrategy(new MessageCountReleaseStrategy());
 		handler.setOutputChannel(output);
+
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, handler);
 		endpoint.start();
+
 		Message<?> message = MessageBuilder.withPayload("proxy").setCorrelationId("abc").build();
 		input.send(message);
 		assertEquals("hello proxy", output.receive(0).getPayload());
@@ -534,6 +562,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		handler.setOutputChannel(output);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, handler);
 		endpoint.start();
+
 		Message<?> message = MessageBuilder.withPayload("proxy").setCorrelationId("abc").build();
 		input.send(message);
 		assertEquals("hello proxy", output.receive(0).getPayload());
@@ -541,7 +570,9 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 
 	public interface GreetingService {
+
 		String sayHello(List<String> names);
+
 	}
 
 

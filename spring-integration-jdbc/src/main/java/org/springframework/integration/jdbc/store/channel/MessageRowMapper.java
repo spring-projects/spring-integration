@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.springframework.core.serializer.support.DeserializingConverter;
-import org.springframework.messaging.Message;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.lob.LobHandler;
+import org.springframework.messaging.Message;
 
 /**
  * Convenience class to be used to unpack a {@link Message} from a result set
@@ -36,6 +36,7 @@ import org.springframework.jdbc.support.lob.LobHandler;
 public class MessageRowMapper implements RowMapper<Message<?>> {
 
 	private final DeserializingConverter deserializer;
+
 	private final LobHandler lobHandler;
 
 	public MessageRowMapper(DeserializingConverter deserializer, LobHandler lobHandler) {

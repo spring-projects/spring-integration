@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.springframework.classify.Classifier;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.messaging.Message;
 import org.springframework.retry.RetryState;
 import org.springframework.retry.support.DefaultRetryState;
 import org.springframework.util.Assert;
@@ -71,8 +71,10 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 
 	public RetryState determineRetryState(Message<?> message) {
 		return new DefaultRetryState(this.keyExpression.getValue(this.evaluationContext, message),
-				this.forceRefreshExpression == null ? false :
-					this.forceRefreshExpression.getValue(this.evaluationContext, message, Boolean.class),
+				this.forceRefreshExpression == null
+						? false
+						: this.forceRefreshExpression.getValue(this.evaluationContext, message, Boolean.class),
 				this.classifier);
 	}
+
 }

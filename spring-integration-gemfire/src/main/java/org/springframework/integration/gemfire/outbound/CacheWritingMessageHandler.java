@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.geode.GemFireCheckedException;
+import org.apache.geode.GemFireException;
+import org.apache.geode.cache.Region;
+
 import org.springframework.data.gemfire.GemfireCallback;
 import org.springframework.data.gemfire.GemfireTemplate;
 import org.springframework.expression.EvaluationContext;
@@ -31,10 +35,6 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-
-import org.apache.geode.GemFireCheckedException;
-import org.apache.geode.GemFireException;
-import org.apache.geode.cache.Region;
 
 /**
  * A {@link MessageHandler} implementation that writes to a GemFire Region. The
@@ -76,7 +76,7 @@ public class CacheWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		Map<?, ?> cacheValues = (this.cacheEntryExpressions.size() > 0) ? evaluateCacheEntries(message) : null;

@@ -68,6 +68,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public class BeanFactoryTypeConverterTests {
@@ -78,7 +79,9 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		List<String> sourceObject = new ArrayList<String>();
 		ArrayList<BeanFactoryTypeConverterTests> convertedCollection =
-			(ArrayList<BeanFactoryTypeConverterTests>) typeConverter.convertValue(sourceObject, TypeDescriptor.forObject(sourceObject), TypeDescriptor.forObject(new ArrayList<BeanFactoryTypeConverterTests>()));
+			(ArrayList<BeanFactoryTypeConverterTests>) typeConverter.convertValue(sourceObject,
+					TypeDescriptor.forObject(sourceObject),
+					TypeDescriptor.forObject(new ArrayList<BeanFactoryTypeConverterTests>()));
 		assertEquals(sourceObject, convertedCollection);
 	}
 
@@ -86,7 +89,8 @@ public class BeanFactoryTypeConverterTests {
 	public void testToStringConversion() {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
-		String converted = (String) typeConverter.convertValue(new Integer(1234), TypeDescriptor.valueOf(Integer.class), TypeDescriptor.valueOf(String.class));
+		String converted = (String) typeConverter.convertValue(1234, TypeDescriptor.valueOf(Integer.class),
+				TypeDescriptor.valueOf(String.class));
 		assertEquals("1234", converted);
 	}
 
@@ -95,7 +99,9 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		@SuppressWarnings("unchecked")
-		Collection<Integer> converted = (Collection<Integer>) typeConverter.convertValue(new Integer(1234), TypeDescriptor.valueOf(Integer.class), TypeDescriptor.forObject(new ArrayList<Integer>(Arrays.asList(1))));
+		Collection<Integer> converted = (Collection<Integer>) typeConverter.convertValue(1234,
+				TypeDescriptor.valueOf(Integer.class),
+				TypeDescriptor.forObject(new ArrayList<Integer>(Arrays.asList(1))));
 		assertEquals(Arrays.asList(1234), converted);
 	}
 
@@ -104,7 +110,8 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		MessageHeaders headers = new GenericMessage<String>("foo").getHeaders();
-		assertSame(headers, typeConverter.convertValue(headers, TypeDescriptor.valueOf(MessageHeaders.class), TypeDescriptor.valueOf(MessageHeaders.class)));
+		assertSame(headers, typeConverter.convertValue(headers, TypeDescriptor.valueOf(MessageHeaders.class),
+				TypeDescriptor.valueOf(MessageHeaders.class)));
 	}
 
 	@Test
@@ -124,7 +131,8 @@ public class BeanFactoryTypeConverterTests {
 			}
 		});
 		MessageHistory history = MessageHistory.read(message);
-		assertSame(history, typeConverter.convertValue(history, TypeDescriptor.valueOf(MessageHistory.class), TypeDescriptor.valueOf(MessageHistory.class)));
+		assertSame(history, typeConverter.convertValue(history, TypeDescriptor.valueOf(MessageHistory.class),
+				TypeDescriptor.valueOf(MessageHistory.class)));
 	}
 
 	@Test
@@ -132,7 +140,8 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		byte[] bytes = new byte[1];
-		assertSame(bytes, typeConverter.convertValue(bytes, TypeDescriptor.valueOf(byte[].class), TypeDescriptor.valueOf(byte[].class)));
+		assertSame(bytes, typeConverter.convertValue(bytes, TypeDescriptor.valueOf(byte[].class),
+				TypeDescriptor.valueOf(byte[].class)));
 	}
 
 	@Test
@@ -140,7 +149,8 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		String string = "foo";
-		assertSame(string, typeConverter.convertValue(string, TypeDescriptor.valueOf(String.class), TypeDescriptor.valueOf(Object.class)));
+		assertSame(string, typeConverter.convertValue(string, TypeDescriptor.valueOf(String.class),
+				TypeDescriptor.valueOf(Object.class)));
 	}
 
 	@Test
@@ -153,7 +163,8 @@ public class BeanFactoryTypeConverterTests {
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter(conversionService);
 		typeConverter.setBeanFactory(new DefaultListableBeanFactory());
 		Object object = new Object();
-		assertEquals("foo", typeConverter.convertValue(object, TypeDescriptor.valueOf(Object.class), TypeDescriptor.valueOf(String.class)));
+		assertEquals("foo", typeConverter.convertValue(object, TypeDescriptor.valueOf(Object.class),
+				TypeDescriptor.valueOf(String.class)));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -189,8 +200,9 @@ public class BeanFactoryTypeConverterTests {
 		assertThat(bars.get("foo").get("foo").iterator().next(), instanceOf(Bar.class));
 
 		Service service = new Service();
-		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<Service>(service, "handle");
+		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<>(service, "handle");
 		processor.setConversionService(conversionService);
+		processor.setUseSpelInvoker(true);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);
@@ -215,13 +227,14 @@ public class BeanFactoryTypeConverterTests {
 		typeConverter.setBeanFactory(beanFactory);
 
 		Service service = new Service();
-		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<Service>(service, "handle");
+		MethodInvokingMessageProcessor<Service> processor = new	MethodInvokingMessageProcessor<>(service, "handle");
 		processor.setConversionService(conversionService);
+		processor.setUseSpelInvoker(true);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		QueueChannel replyChannel = new QueueChannel();
 		handler.setOutputChannel(replyChannel);
 		handler.handleMessage(new GenericMessage<Collection<Foo>>(Collections.singletonList(new Foo())));
-		Message<?> message = replyChannel.receive(0);
+		Message<?> message = replyChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("baz", message.getPayload());
 	}
@@ -334,5 +347,7 @@ public class BeanFactoryTypeConverterTests {
 			assertThat(payload.iterator().next(), instanceOf(Bar.class));
 			return "baz";
 		}
+
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
@@ -33,7 +34,8 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  * @since 2.0
  */
-public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEvaluator {
+public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEvaluator
+		implements Lifecycle {
 
 	private final MessagingMethodInvokerHelper<T> delegate;
 
@@ -64,6 +66,17 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 		this.delegate.setBeanFactory(beanFactory);
 	}
 
+	/**
+	 * A {@code boolean} flag to use SpEL Expression evaluation or
+	 * {@link org.springframework.messaging.handler.invocation.InvocableHandlerMethod}
+	 * for target method invocation.
+	 * @param useSpelInvoker to use SpEL Expression evaluation or not.
+	 * @since 5.0
+	 */
+	public void setUseSpelInvoker(boolean useSpelInvoker) {
+		this.delegate.setUseSpelInvoker(useSpelInvoker);
+	}
+
 	public String toString() {
 		return this.delegate.toString();
 	}
@@ -78,6 +91,21 @@ public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEva
 		catch (Exception e) {
 			throw new IllegalStateException("Failed to process message list", e);
 		}
+	}
+
+	@Override
+	public void start() {
+		this.delegate.start();
+	}
+
+	@Override
+	public void stop() {
+		this.delegate.stop();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.delegate.isRunning();
 	}
 
 }

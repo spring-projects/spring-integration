@@ -198,7 +198,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
 	 * header (if present) is mapped; setting the delay here overrides that value.
 	 * @param delay the delay.
-	 * @since 5.0
+	 * @since 4.3.5
 	 */
 	public void setDelay(int delay) {
 		this.delayExpression = new ValueExpression<>(delay);
@@ -209,7 +209,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
 	 * header (if present) is mapped; setting the expression here overrides that value.
 	 * @param delayExpression the expression.
-	 * @since 5.0
+	 * @since 4.3.5
 	 */
 	public void setDelayExpression(Expression delayExpression) {
 		this.delayExpression = delayExpression;
@@ -220,7 +220,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	 * RabbitMQ delayed message exchange plugin. By default, the {@link AmqpHeaders#DELAY}
 	 * header (if present) is mapped; setting the expression here overrides that value.
 	 * @param delayExpression the expression.
-	 * @since 5.0
+	 * @since 4.3.5
 	 */
 	public void setDelayExpressionString(String delayExpression) {
 		if (delayExpression == null) {

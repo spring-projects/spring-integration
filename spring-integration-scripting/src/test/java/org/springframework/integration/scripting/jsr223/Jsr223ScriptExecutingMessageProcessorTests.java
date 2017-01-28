@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 
@@ -45,6 +45,7 @@ public class Jsr223ScriptExecutingMessageProcessorTests {
 	public void setUp() {
 		executor = ScriptExecutorFactory.getScriptExecutor("jruby");
 	}
+
 	@Test
 	public void testExecuteWithVariables() {
 		Map<String, Object> vars = new HashMap<String, Object>();

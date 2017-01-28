@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,13 +248,15 @@ public class MessagingGatewayTests {
 	// should not fail but it does now
 	@Test
 	public void validateErrorChannelWithSuccessfulReply() {
+		TestUtils.TestApplicationContext testApplicationContext = TestUtils.createTestApplicationContext();
+		testApplicationContext.refresh();
 		DirectChannel reqChannel = new DirectChannel();
 		reqChannel.subscribe(message -> {
 			throw new RuntimeException("ooops");
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
 		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new MyOneWayErrorService());
-		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setBeanFactory(testApplicationContext);
 		handler.afterPropertiesSet();
 		errorChannel.subscribe(handler);
 
@@ -268,6 +270,7 @@ public class MessagingGatewayTests {
 		this.messagingGateway.start();
 
 		this.messagingGateway.send("hello");
+		testApplicationContext.close();
 	}
 
 	public static class MyErrorService {

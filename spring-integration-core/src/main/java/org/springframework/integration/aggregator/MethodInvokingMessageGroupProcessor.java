@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.store.MessageGroup;
@@ -33,9 +34,12 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artme Bilan
+ *
  * @since 2.0
  */
-public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
+public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor
+		implements Lifecycle {
 
 	private final MethodInvokingMessageListProcessor<Object> processor;
 
@@ -84,6 +88,21 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	protected final Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
 		final Collection<Message<?>> messagesUpForProcessing = group.getMessages();
 		return this.processor.process(messagesUpForProcessing, headers);
+	}
+
+	@Override
+	public void start() {
+		this.processor.start();
+	}
+
+	@Override
+	public void stop() {
+		this.processor.stop();
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.processor.isRunning();
 	}
 
 }

@@ -76,6 +76,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
+			<xsd:attribute name="filter-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						The SpEL expression to evaluate against file to accept it for processing or not.
+						Mutually exclusive with 'filter' attribute.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
             <xsd:attribute name="filename-pattern" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[
@@ -541,11 +549,25 @@ Only files matching this regular expression will be picked up by this adapter.
 		<xsd:attribute name="flush-interval" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					When using 'mode=APPEND_NO_FLUSH' if this time (ms) elapses
+					When using 'mode=APPEND_NO_FLUSH', if this time (ms) elapses
 					without any new writes, the data is flushed and the file closed.
 					Default 30000.
 				</xsd:documentation>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="flush-when-idle" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					When using 'mode=APPEND_NO_FLUSH', set to false to indicate the
+					'flush-interval' starts from the first new write to a previously
+					flushed (or new) file. When true, the interval starts from the
+					last write (the file is flushed if it has no writes during the interval).
+					Default true.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="flush-predicate" type="xsd:string">
 			<xsd:annotation>

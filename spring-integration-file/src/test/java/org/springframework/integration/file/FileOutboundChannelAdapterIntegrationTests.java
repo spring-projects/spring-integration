@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.FileCopyUtils;
@@ -47,10 +47,6 @@ public class FileOutboundChannelAdapterIntegrationTests {
 	static final String DEFAULT_ENCODING = "UTF-8";
 
 	static final String SAMPLE_CONTENT = "HelloWorld";
-
-	static File workDir;
-
-	FileWritingMessageHandler handler;
 
 	@Autowired
 	MessageChannel inputChannelSaveToBaseDir;
@@ -79,6 +75,7 @@ public class FileOutboundChannelAdapterIntegrationTests {
 	Message<File> message;
 
 	File sourceFile;
+
 	@Before
 	public void setUp() throws Exception {
 		sourceFile = File.createTempFile("anyFile", ".txt");

@@ -21,6 +21,7 @@
 
 	<file:outbound-channel-adapter id="adapterWithCustomNameGenerator"
 								   channel="testChannel"
+								   flush-when-idle="false"
 								   filename-generator="customFileNameGenerator"
 								   directory="${java.io.tmpdir}"/>
 

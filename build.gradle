@@ -134,7 +134,7 @@ subprojects { subproject ->
 		springDataJpaVersion = '2.0.0.M1'
 		springDataMongoVersion = '2.0.0.M1'
 		springDataRedisVersion = '2.0.0.M1'
-		springGemfireVersion = '2.0.0.M1'
+		springGemfireVersion = '2.0.0.BUILD-SNAPSHOT'
 		springSecurityVersion = '4.2.0.RELEASE'
 		springSocialTwitterVersion = '2.0.0.M1'
 		springRetryVersion = '1.2.0.RC1'

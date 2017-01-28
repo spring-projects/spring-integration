@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.oxm.Marshaller;
@@ -59,7 +60,8 @@ public class MarshallingWebServiceIntegrationTests {
 
 	private static final String input = "<hello/>";
 
-	@Autowired MarshallingWebServiceInboundGateway gateway;
+	@Autowired
+	MarshallingWebServiceInboundGateway gateway;
 
 	@Mock
 	private MessageContext context;
@@ -76,7 +78,8 @@ public class MarshallingWebServiceIntegrationTests {
 
 	private Result stringResult = new StreamResult(output);
 
-	@Before public void setupMocks() {
+	@Before
+	public void setupMocks() {
 		MockitoAnnotations.initMocks(this);
 	}
 
@@ -125,6 +128,7 @@ public class MarshallingWebServiceIntegrationTests {
 	}
 
 	public static class StubEndpoint {
+
 		@ServiceActivator(inputChannel = "requests")
 		public Object handle(Object o) {
 			return o;

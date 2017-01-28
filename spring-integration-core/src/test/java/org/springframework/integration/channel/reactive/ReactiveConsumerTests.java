@@ -75,7 +75,7 @@ public class ReactiveConsumerTests {
 			stopLatch.countDown();
 		};
 
-		MethodInvokingMessageHandler testSubscriber = new MethodInvokingMessageHandler(messageHandler, (String) null);
+		MessageHandler testSubscriber = new MethodInvokingMessageHandler(messageHandler, (String) null);
 
 		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ws.DefaultSoapHeaderMapper;
+import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
+import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
-import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 
 /**
  * Parser for the &lt;outbound-gateway/&gt; element in the 'ws' namespace.
@@ -76,7 +76,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 					String expression = uriVariableElement.getAttribute("expression");
 					BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
 					factoryBeanBuilder.addConstructorArgValue(expression);
-					uriVariableExpressions.put(name,  factoryBeanBuilder.getBeanDefinition());
+					uriVariableExpressions.put(name, factoryBeanBuilder.getBeanDefinition());
 				}
 				builder.addPropertyValue("uriVariableExpressions", uriVariableExpressions);
 			}

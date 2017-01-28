@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,18 @@
 package org.springframework.integration.file.dsl;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
@@ -40,9 +46,14 @@ import org.springframework.messaging.Message;
  * @since 5.0
  */
 public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutboundGatewaySpec<F, S>>
-		extends MessageHandlerSpec<S, AbstractRemoteFileOutboundGateway<F>> {
+		extends MessageHandlerSpec<S, AbstractRemoteFileOutboundGateway<F>>
+		implements ComponentsRegistration {
 
 	private CompositeFileListFilter<F> filter;
+
+	private ExpressionFileListFilter<F> expressionFileListFilter;
+
+	private ExpressionFileListFilter<File> mputExpressionFileListFilter;
 
 	private CompositeFileListFilter<File> mputFilter;
 
@@ -167,6 +178,30 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	}
 
 	/**
+	 * Configure the {@link ExpressionFileListFilter}.
+	 * @param expression the SpEL expression for files filtering.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see ExpressionFileListFilter
+	 */
+	public S filterExpression(String expression) {
+		this.expressionFileListFilter = new ExpressionFileListFilter<>(expression);
+		return filter(this.expressionFileListFilter);
+	}
+
+	/**
+	 * Configure the {@link ExpressionFileListFilter}.
+	 * @param filterFunction the {@link Function} for files filtering.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see ExpressionFileListFilter
+	 */
+	public S filterFunction(Function<F, Boolean> filterFunction) {
+		this.expressionFileListFilter = new ExpressionFileListFilter<>(new FunctionExpression<>(filterFunction));
+		return filter(this.expressionFileListFilter);
+	}
+
+	/**
 	 * A {@link FileListFilter} that runs against the <em>local</em> file system view when
 	 * using {@code MPUT} command.
 	 * @param filter the filter to set
@@ -205,8 +240,32 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * @param regex the {@link SimplePatternFileListFilter} for {@code MPUT} command.
 	 * @return the Spec.
 	 */
-	public S regexMpuFilter(String regex) {
+	public S regexMputFilter(String regex) {
 		return mputFilter(new RegexPatternFileListFilter(regex));
+	}
+
+	/**
+	 * Configure the {@link ExpressionFileListFilter}.
+	 * @param expression the SpEL expression for files filtering.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see ExpressionFileListFilter
+	 */
+	public S mputFilterExpression(String expression) {
+		this.mputExpressionFileListFilter = new ExpressionFileListFilter<>(expression);
+		return mputFilter(this.mputExpressionFileListFilter);
+	}
+
+	/**
+	 * Configure the {@link ExpressionFileListFilter}.
+	 * @param filterFunction the {@link Function} for files filtering.
+	 * @return the spec.
+	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see ExpressionFileListFilter
+	 */
+	public S mputFilterFunction(Function<File, Boolean> filterFunction) {
+		this.mputExpressionFileListFilter = new ExpressionFileListFilter<>(new FunctionExpression<>(filterFunction));
+		return mputFilter(this.mputExpressionFileListFilter);
 	}
 
 	/**
@@ -279,6 +338,20 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		this.target.setChmod(chmod);
 		return _this();
 	}
+
+	@Override
+	public Collection<Object> getComponentsToRegister() {
+		List<Object> componentsToRegister = new ArrayList<>();
+		if (this.expressionFileListFilter != null) {
+			componentsToRegister.add(this.expressionFileListFilter);
+		}
+		if (this.mputExpressionFileListFilter != null) {
+			componentsToRegister.add(this.expressionFileListFilter);
+		}
+
+		return componentsToRegister;
+	}
+
 
 	/**
 	 * Specify a simple pattern to match remote files (e.g. '*.txt').

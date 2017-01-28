@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
@@ -48,7 +49,7 @@ public class AggregatorAnnotationTests {
 
 	@Test
 	public void testAnnotationWithDefaultSettings() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
@@ -57,11 +58,12 @@ public class AggregatorAnnotationTests {
 		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
 		assertEquals(-1L, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
+		context.close();
 	}
 
 	@Test
 	public void testAnnotationWithCustomSettings() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
@@ -70,28 +72,30 @@ public class AggregatorAnnotationTests {
 		assertEquals("discardChannel", getPropertyValue(aggregator, "discardChannelName"));
 		assertEquals(98765432L, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
+		context.close();
 	}
 
 	@Test
 	public void testAnnotationWithCustomReleaseStrategy() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomReleaseStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object releaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
 		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
 		MethodInvokingReleaseStrategy releaseStrategyAdapter = (MethodInvokingReleaseStrategy) releaseStrategy;
-		Object handlerMethods = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
-				.getPropertyValue("adapter")).getPropertyValue("delegate")).getPropertyValue("handlerMethods");
+		Object handlerMethods = new DirectFieldAccessor(releaseStrategyAdapter)
+				.getPropertyValue("adapter.delegate.handlerMethods");
 		assertNull(handlerMethods);
-		Object handlerMethod = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
-				.getPropertyValue("adapter")).getPropertyValue("delegate")).getPropertyValue("handlerMethod");
+		Object handlerMethod = new DirectFieldAccessor(releaseStrategyAdapter)
+				.getPropertyValue("adapter.delegate.handlerMethod");
 		assertTrue(handlerMethod.toString().contains("completionChecker"));
+		context.close();
 	}
 
 	@Test
 	public void testAnnotationWithCustomCorrelationStrategy() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithCorrelationStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
@@ -106,8 +110,9 @@ public class AggregatorAnnotationTests {
 		Object handlerMethod = processorAccessor.getPropertyValue("handlerMethod");
 		assertNotNull(handlerMethod);
 		DirectFieldAccessor handlerMethodAccessor = new DirectFieldAccessor(handlerMethod);
-		Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue("method");
+		Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue("invocableHandlerMethod.method");
 		assertEquals("correlate", completionCheckerMethod.getName());
+		context.close();
 	}
 
 	private MessageHandler getAggregator(ApplicationContext context, final String endpointName) {
