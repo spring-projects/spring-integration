@@ -16,6 +16,9 @@
 
 package org.springframework.integration.http.outbound;
 
+import java.net.URI;
+import java.util.List;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.Expression;
@@ -32,9 +35,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
-
-import java.net.URI;
-import java.util.List;
 
 /**
  * A {@link MessageHandler} implementation that executes HTTP requests by delegating

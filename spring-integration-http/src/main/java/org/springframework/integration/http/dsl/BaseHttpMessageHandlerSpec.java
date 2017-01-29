@@ -16,6 +16,13 @@
 
 package org.springframework.integration.http.dsl;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.Expression;
 import org.springframework.http.HttpHeaders;
@@ -32,14 +39,6 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import java.util.function.Function;
 
 /**
  * The base {@link MessageHandlerSpec} for {@link AbstractHttpRequestExecutingMessageHandler}s.

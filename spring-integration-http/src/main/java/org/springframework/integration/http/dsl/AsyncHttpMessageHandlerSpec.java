@@ -16,6 +16,8 @@
 
 package org.springframework.integration.http.dsl;
 
+import java.net.URI;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.client.AsyncClientHttpRequestFactory;
@@ -24,13 +26,11 @@ import org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMe
 import org.springframework.util.Assert;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.net.URI;
-
 /**
- * The {@link org.springframework.integration.dsl.MessageHandlerSpec} implementation for the {@link org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler}.
+ * The {@link org.springframework.integration.dsl.MessageHandlerSpec} implementation for the {@link AsyncHttpRequestExecutingMessageHandler}.
  * @author Shiliang Li
  * @since 5.0
- * @see org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler
+ * @see AsyncHttpRequestExecutingMessageHandler
  */
 public class AsyncHttpMessageHandlerSpec
 		extends BaseHttpMessageHandlerSpec<AsyncHttpMessageHandlerSpec, AsyncHttpRequestExecutingMessageHandler> {
