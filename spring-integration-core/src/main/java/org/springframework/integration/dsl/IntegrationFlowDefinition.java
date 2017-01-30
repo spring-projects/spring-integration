@@ -45,6 +45,7 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericSelector;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.dsl.channel.WireTapSpec;
@@ -117,7 +118,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	private static final Set<MessageHandler> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
+	private static final Set<MessageProducer> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
 
 	protected final Set<Object> integrationComponents = new LinkedHashSet<>();
 
@@ -2821,12 +2822,21 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 					currentComponent = extractProxyTarget(currentComponent);
 				}
 
-				if (currentComponent instanceof AbstractMessageProducingHandler) {
-					AbstractMessageProducingHandler messageProducer =
-							(AbstractMessageProducingHandler) currentComponent;
+				if (currentComponent instanceof MessageProducer) {
+					MessageProducer messageProducer =
+							(MessageProducer) currentComponent;
 					checkReuse(messageProducer);
 					if (channelName != null) {
-						messageProducer.setOutputChannelName(channelName);
+						if (messageProducer instanceof AbstractMessageProducingHandler) {
+							((AbstractMessageProducingHandler) messageProducer).setOutputChannelName(channelName);
+						}
+						else {
+							throw new BeanCreationException("The 'currentComponent' (" + currentComponent +
+									") doesn't extends 'AbstractMessageProducingHandler' " +
+									"for message channel reference resolution by name. \n" +
+									"Or implement 'AbstractMessageProducingHandler' or consider " +
+									"to use 'MessageChannel'object instead of its name.");
+						}
 					}
 					else {
 						messageProducer.setOutputChannel(outputChannel);
@@ -2927,10 +2937,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		}
 	}
 
-	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
+	private void checkReuse(MessageProducer replyHandler) {
 		Assert.isTrue(!REFERENCED_REPLY_PRODUCERS.contains(replyHandler),
-				"An AbstractMessageProducingHandler may only be referenced once ("
-						+ replyHandler.getComponentName()
+				"A reply MessageProducer may only be referenced once ("
+						+ replyHandler
 						+ ") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
 		REFERENCED_REPLY_PRODUCERS.add(replyHandler);
 	}
