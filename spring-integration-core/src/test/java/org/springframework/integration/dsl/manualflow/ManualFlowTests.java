@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
@@ -51,6 +52,9 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -205,6 +209,46 @@ public class ManualFlowTests {
 		}
 	}
 
+	@Test
+	public void testMessageProducerForOutputChannel() {
+		class MessageProducingHandler implements MessageHandler, MessageProducer {
+
+			private MessageChannel outputChannel;
+
+			@Override
+			public void setOutputChannel(MessageChannel outputChannel) {
+				this.outputChannel = outputChannel;
+			}
+
+			@Override
+			public MessageChannel getOutputChannel() {
+				return this.outputChannel;
+			}
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				this.outputChannel.send(message);
+			}
+
+		}
+
+
+		PollableChannel resultChannel = new QueueChannel();
+
+		IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(flow ->
+						flow.handle(new MessageProducingHandler())
+								.channel(resultChannel))
+						.register();
+
+		this.integrationFlowContext.messagingTemplateFor(flowRegistration.getId())
+				.send(new GenericMessage<>("test"));
+
+		Message<?> receive = resultChannel.receive(1000);
+		assertNotNull(receive);
+		assertEquals("test", receive.getPayload());
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class RootConfiguration {
@@ -261,5 +305,6 @@ public class ManualFlowTests {
 		}
 
 	}
+
 
 }
