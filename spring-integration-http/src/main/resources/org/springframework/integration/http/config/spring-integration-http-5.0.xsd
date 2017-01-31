@@ -387,6 +387,44 @@
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
+			<xsd:attributeGroup ref="syncHttpOutboundCommonAttributes"/>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether the outbound message's payload should be extracted
+						when preparing the request body. Otherwise the Message instance itself
+						will be serialized.
+						The default value is 'true'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-async-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler'
+				with 'expectReply = false' that sends HTTP requests based on incoming messages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="3">
+				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specify an expression for URI variable placeholder within 'url'.
+							This element is mutually exclusive with 'uri-variables-expression' attribute.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:choice>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
+			<xsd:attributeGroup ref="asyncHttpOutboundCommonAttributes"/>
 			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -488,6 +526,101 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
+					<xsd:attributeGroup ref="syncHttpOutboundCommonAttributes"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-async-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler'
+				that sends HTTP requests based on incoming messages and expects HTTP responses.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:choice minOccurs="0" maxOccurs="3">
+						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>
+									Specify an expression for URI variable placeholder within 'url'.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:choice>
+					<xsd:attribute name="request-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								The receiving Message Channel of this endpoint.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mapped-response-headers" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Comma-separated list of names of HttpHeaders to be mapped from the HTTP response into the MessageHeaders.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+	The String "HTTP_RESPONSE_HEADERS" will match against any of the standard HTTP Response headers.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="extract-request-payload" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies whether the outbound message's payload should be extracted
+								when preparing the request body. Otherwise the Message instance itself
+								will be serialized.
+								The default value is 'true'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="transfer-cookies" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	When set to "true", if a response contains a 'Set-Cookie' header, it will be mapped to a 'Cookie' header. This enables simple
+	cookie handling where subsequent HTTP interactions in the same message flow can use a cookie
+	supplied by the server. Default is "false".
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Allows you to specify how long this gateway will wait for
+								the reply message to be sent successfully to the reply channel
+								before throwing an exception. This attribute only applies when the
+								channel might block, for example when using a bounded queue channel that
+								is currently full.
+
+								Also, keep in mind that when sending to a DirectChannel, the
+								invocation will occur in the sender's thread. Therefore,
+								the failing of the send operation may be caused by other
+								components further downstream.
+
+								The "reply-timeout" attribute maps to the "sendTimeout" property of the
+								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+								The attribute will default, if not specified, to '-1', meaning that
+								by default, the Gateway will wait indefinitely. The value is
+								specified in milliseconds.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
+					<xsd:attributeGroup ref="asyncHttpOutboundCommonAttributes"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -726,6 +859,60 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:attributeGroup name="asyncHttpOutboundCommonAttributes">
+		<xsd:attribute name="async-rest-template" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.web.client.AsyncRestTemplate" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					The reference to org.springframework.web.client.AsyncRestTemplate bean to send the HTTP Request.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="async-request-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Reference to a AsyncClientHttpRequestFactory to be used by the underlying RestTemplate.
+					]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.http.client.AsyncClientHttpRequestFactory" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="syncHttpOutboundCommonAttributes">
+		<xsd:attribute name="rest-template" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.web.client.RestTemplate" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="request-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Reference to a ClientHttpRequestFactory to be used by the underlying RestTemplate.
+					]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
 	<xsd:attributeGroup name="httpOutboundCommonAttributes">
 		<xsd:attribute name="url" type="xsd:string" use="optional">
 			<xsd:annotation>
@@ -770,18 +957,6 @@
 				<xsd:documentation>
 					The SpEL expression to determine HTTP method, use when executing requests with this adapter,
 					dynamically. This attribute cannot be provided if http-method has a value.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="rest-template" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.web.client.RestTemplate" />
-					</tool:annotation>
-				</xsd:appinfo>
-				<xsd:documentation>
-					The reference to org.springframework.web.client.RestTemplate bean to send the HTTP Request.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -847,18 +1022,6 @@
 	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
 	The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
 					]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="request-factory" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	Reference to a ClientHttpRequestFactory to be used by the underlying RestTemplate.
-					]]></xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
-					</tool:annotation>
-				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="error-handler" type="xsd:string">

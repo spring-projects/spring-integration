@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Shiliang Li
  *
  * @since 1.0.2
  */
@@ -33,6 +34,8 @@ public class HttpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		registerBeanDefinitionParser("inbound-gateway", new HttpInboundEndpointParser(true));
 		registerBeanDefinitionParser("outbound-channel-adapter", new HttpOutboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-gateway", new HttpOutboundGatewayParser());
+		registerBeanDefinitionParser("outbound-async-channel-adapter", new HttpOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-async-gateway", new HttpOutboundGatewayParser());
 		registerBeanDefinitionParser("graph-controller", new IntegrationGraphControllerParser());
 	}
 
