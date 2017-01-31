@@ -91,11 +91,8 @@ and merging that into the branch you are in currently)
     - Switch back to the topic branch: `git checkout INT-123` (no -b needed since the branch already exists)
     - Rebase the topic branch to minimize the distance between it and your recently synched master branch: `git rebase master`
 (Again, for more detail see http://git-scm.com/book/en/Git-Branching-Rebasing[the Pro Git section on rebasing]).
-* **Note** You cannot rebase if you have already pushed your branch to your remote because you'd be rewriting history
-(see **'The Perils of Rebasing'** in the article).
-If you rebase by mistake, you can undo it as discussed
-http://stackoverflow.com/questions/134882/undoing-a-git-rebase[in this stackoverflow discussion].
-Once you have published your branch, you need to merge in the master rather than rebasing.
+* **Note** When you rebased a branch which has been pushed to remote already, you have to use `git push origin --force` to apply the latest changes to the Pull Request.
+This doesn't apply to the `upstream master` because fo history overriding in case of `--force`.
 * Now, if you issue a pull request, it is much more likely to be merged without conflicts.
 Most likely, any pull request that would produce conflicts will be deferred until the issuer of that pull request makes
 these adjustments.
