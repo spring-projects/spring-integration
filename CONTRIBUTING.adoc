@@ -28,7 +28,7 @@ removing compiler warnings, etc.
 If you have not previously done so, please fill out and
 submit the https://cla.pivotal.io/sign/spring[Contributor License Agreement (CLA)].
 
-Very important, before we can accept any *Spring Integration contributions*, we will need you to sign the CLA. Signing the CLA does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. 
+Very important, before we can accept any *Spring Integration contributions*, we will need you to sign the CLA. Signing the CLA does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do.
 
 == Fork the Repository
 
@@ -91,16 +91,10 @@ and merging that into the branch you are in currently)
     - Switch back to the topic branch: `git checkout INT-123` (no -b needed since the branch already exists)
     - Rebase the topic branch to minimize the distance between it and your recently synched master branch: `git rebase master`
 (Again, for more detail see http://git-scm.com/book/en/Git-Branching-Rebasing[the Pro Git section on rebasing]).
-* **Note** You cannot rebase if you have already pushed your branch to your remote because you'd be rewriting history
-(see **'The Perils of Rebasing'** in the article).
-If you rebase by mistake, you can undo it as discussed
-http://stackoverflow.com/questions/134882/undoing-a-git-rebase[in this stackoverflow discussion].
-Once you have published your branch, you need to merge in the master rather than rebasing.
-* Now, if you issue a pull request, it is much more likely to be merged without conflicts.
-Most likely, any pull request that would produce conflicts will be deferred until the issuer of that pull request makes
-these adjustments.
-* Assuming your pull request is merged into the 'upstream' master, you will actually end up pulling that change into
-your own master eventually, and at that time, you may decide to delete the topic branch from your local repository and
+* **Note** While it is generally recommended to __not__ re-write history by using `push --force`, and we do not do this on `master` (and release) branches in the main repo, we require topic branches for pull requests to be rebased before merging, in order to maintain a clean timeline and avoid "merge" commits.
+* If, while rebasing for the merge, we find significant conflicts, we may ask you to rebase and `push --force` to your topic branch after resolving the conflicts.
+* Assuming your pull request is merged into the 'upstream' master, you will end up pulling that change into
+your own master eventually and, at that time, you may decide to delete the topic branch from your local repository and
 your fork (origin) if you pushed it there.
     - to delete the local branch: `git branch -d INT-123`
     - to delete the branch from your origin: `git push origin :INT-123`
@@ -108,7 +102,7 @@ your fork (origin) if you pushed it there.
 == Maintain a linear commit history
 
 When merging to master, the project __always__ uses fast-forward merges.
-When issuing pull requests, please ensure that your commit history is linear.
+As discussed above, when issuing pull requests, please ensure that your commit history is linear.
 From the command line you can check this using:
 
 ----
