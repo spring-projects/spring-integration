@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,10 +103,9 @@ public final class JpaUtils {
 	 *
 	 */
 	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
-
-		Assert.notNull(queryString);
-		Assert.notNull(entities);
-		Assert.notNull(entityManager);
+		Assert.hasText(queryString, "'queryString' must not be empty");
+		Assert.notNull(entities, "'entities' must not be null");
+		Assert.notNull(entityManager, "'entityManager' must not be null");
 
 		Iterator<T> iterator = entities.iterator();
 

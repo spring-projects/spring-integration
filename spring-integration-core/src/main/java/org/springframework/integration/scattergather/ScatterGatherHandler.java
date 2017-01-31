@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,8 +63,8 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 
 	public ScatterGatherHandler(MessageChannel scatterChannel, MessageHandler gatherer) {
-		Assert.notNull(scatterChannel);
-		Assert.notNull(gatherer);
+		Assert.notNull(scatterChannel, "'scatterChannel' must not be null");
+		Assert.notNull(gatherer, "'gatherer' must not be null");
 		Class<?> gathererClass = AopUtils.getTargetClass(gatherer);
 		checkClass(gathererClass, "org.springframework.integration.aggregator.AggregatingMessageHandler", "gatherer");
 		this.scatterChannel = scatterChannel;
@@ -73,7 +73,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 	public ScatterGatherHandler(MessageHandler scatterer, MessageHandler gatherer) {
 		this(new FixedSubscriberChannel(scatterer), gatherer);
-		Assert.notNull(scatterer);
+		Assert.notNull(scatterer, "'scatterer' must not be null");
 		Class<?> scattererClass = AopUtils.getTargetClass(scatterer);
 		checkClass(scattererClass, "org.springframework.integration.router.RecipientListRouter", "scatterer");
 	}

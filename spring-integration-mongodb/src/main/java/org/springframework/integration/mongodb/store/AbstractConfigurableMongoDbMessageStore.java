@@ -99,8 +99,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 	protected MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
 	public AbstractConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate, String collectionName) {
-		Assert.notNull("'mongoTemplate' must not be null");
-		Assert.hasText("'collectionName' must not be empty");
+		Assert.notNull(mongoTemplate, "'mongoTemplate' must not be null");
+		Assert.hasText(collectionName, "'collectionName' must not be empty");
 		this.collectionName = collectionName;
 		this.mongoTemplate = mongoTemplate;
 		this.mongoDbFactory = null;
@@ -112,8 +112,8 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 
 	public AbstractConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory,
 			MappingMongoConverter mappingMongoConverter, String collectionName) {
-		Assert.notNull("'mongoDbFactory' must not be null");
-		Assert.hasText("'collectionName' must not be empty");
+		Assert.notNull(mongoDbFactory, "'mongoDbFactory' must not be null");
+		Assert.hasText(collectionName, "'collectionName' must not be empty");
 		this.collectionName = collectionName;
 		this.mongoDbFactory = mongoDbFactory;
 		this.mappingMongoConverter = mappingMongoConverter;

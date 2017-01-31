@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,13 +64,15 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 	}
 
 	public S datatype(Class<?>... datatypes) {
-		Assert.noNullElements(datatypes);
+		Assert.notNull(datatypes, "'datatypes' must not be null");
+		Assert.noNullElements(datatypes, "'datatypes' must not contain null elements");
 		this.datatypes.addAll(Arrays.asList(datatypes));
 		return _this();
 	}
 
 	public S interceptor(ChannelInterceptor... interceptors) {
-		Assert.noNullElements(interceptors);
+		Assert.notNull(interceptors, "'interceptors' must not be null");
+		Assert.noNullElements(interceptors, "'interceptors' must not contain null elements");
 		this.interceptors.addAll(Arrays.asList(interceptors));
 		return _this();
 	}

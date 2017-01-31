@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	 * @param file The absolute path of the file.
 	 */
 	public void setFile(File file) {
-		Assert.notNull("'file' cannot be null");
+		Assert.notNull(file, "'file' cannot be null");
 		this.file = file;
 	}
 
@@ -84,7 +84,7 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 	 * @param taskExecutor The task executor.
 	 */
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		Assert.notNull("'taskExecutor' cannot be null");
+		Assert.notNull(taskExecutor, "'taskExecutor' cannot be null");
 		this.taskExecutor = taskExecutor;
 	}
 

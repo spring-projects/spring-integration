@@ -642,6 +642,8 @@ public class AdvisedMessageHandlerTests {
 		RetryTemplate retryTemplate = new RetryTemplate();
 		retryTemplate.setRetryPolicy(new SimpleRetryPolicy() {
 
+			static final long serialVersionUID = -1;
+
 			@Override
 			public boolean canRetry(RetryContext context) {
 				return false;

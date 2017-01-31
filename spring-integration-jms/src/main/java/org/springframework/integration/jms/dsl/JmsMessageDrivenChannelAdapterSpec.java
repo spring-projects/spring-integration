@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		 */
 		public JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C> configureListenerContainer(
 				Consumer<JmsListenerContainerSpec<S, C>> configurer) {
-			Assert.notNull(configurer);
+			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.spec);
 			return _this();
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,12 +43,12 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 	private Map<String, Object> variables = new HashMap<String, Object>();
 
 	ScriptSpec(Resource scriptResource) {
-		Assert.notNull(scriptResource);
+		Assert.notNull(scriptResource, "'scriptResource' must not be null");
 		this.processor = new DslScriptExecutingMessageProcessor(scriptResource);
 	}
 
 	ScriptSpec(String scriptLocation) {
-		Assert.hasText(scriptLocation);
+		Assert.hasText(scriptLocation, "'scriptLocation' must not be empty");
 		this.processor = new DslScriptExecutingMessageProcessor(scriptLocation);
 	}
 
@@ -59,7 +59,7 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 	 * @see DslScriptExecutingMessageProcessor#setLang
 	 */
 	public ScriptSpec lang(String lang) {
-		Assert.hasText(lang);
+		Assert.hasText(lang, "'lang' must not be empty");
 		this.processor.setLang(lang);
 		return this;
 	}
@@ -82,7 +82,7 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 	 * @see org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor
 	 */
 	public ScriptSpec variableGenerator(ScriptVariableGenerator variableGenerator) {
-		Assert.notNull(variableGenerator);
+		Assert.notNull(variableGenerator, "'variableGenerator' must not be null");
 		Assert.state(this.variables.isEmpty(), "'variableGenerator' and 'variables' are mutually exclusive");
 		this.variableGenerator = variableGenerator;
 		return this;
@@ -105,7 +105,7 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 	 * @see DefaultScriptVariableGenerator
 	 */
 	public ScriptSpec variables(Map<String, Object> variables) {
-		Assert.notEmpty(variables);
+		Assert.notEmpty(variables, "'variables' must not be empty");
 		Assert.state(this.variableGenerator == null, "'variableGenerator' and 'variables' are mutually exclusive");
 		this.variables.putAll(variables);
 		return this;
@@ -119,7 +119,7 @@ public class ScriptSpec extends MessageProcessorSpec<ScriptSpec> {
 	 * @see DefaultScriptVariableGenerator
 	 */
 	public ScriptSpec variable(String name, Object value) {
-		Assert.hasText(name);
+		Assert.hasText(name, "'name' must not be empty");
 		Assert.state(this.variableGenerator == null, "'variableGenerator' and 'variables' are mutually exclusive");
 		this.variables.put(name, value);
 		return this;

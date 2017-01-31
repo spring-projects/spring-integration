@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Message Mapper for converting to and from UDP DatagramPackets. When
@@ -149,7 +150,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	 * Prefix raw byte[] from message with 'acknowledge to' and 'message id' "headers".
 	 */
 	private DatagramPacket fromMessageWithAck(Message<?> message) throws Exception {
-		Assert.hasLength(this.ackAddress);
+		Assert.state(StringUtils.hasText(this.ackAddress), "'ackAddress' must not be empty");
 		byte[] bytes = getPayloadAsBytes(message);
 		ByteBuffer buffer = ByteBuffer.allocate(100 + bytes.length);
 		if (this.lengthCheck) {

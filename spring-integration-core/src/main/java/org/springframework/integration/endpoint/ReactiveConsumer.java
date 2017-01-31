@@ -63,8 +63,8 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 	@SuppressWarnings("unchecked")
 	public ReactiveConsumer(MessageChannel inputChannel, Subscriber<Message<?>> subscriber) {
-		Assert.notNull(inputChannel);
-		Assert.notNull(subscriber);
+		Assert.notNull(inputChannel, "'inputChannel' must not be null");
+		Assert.notNull(subscriber, "'subscriber' must not be null");
 
 		Publisher<?> messagePublisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
 		this.publisher = (Publisher<Message<?>>) messagePublisher;

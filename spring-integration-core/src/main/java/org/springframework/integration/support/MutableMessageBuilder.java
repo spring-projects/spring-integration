@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	 * @return A MutableMessageBuilder.
 	 */
 	public static <T> MutableMessageBuilder<T> fromMessage(Message<T> message) {
-		Assert.notNull(message, "message must not be null");
+		Assert.notNull(message, "'message' must not be null");
 		return new MutableMessageBuilder<T>(message);
 	}
 
@@ -88,7 +88,7 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 
 	@Override
 	public AbstractIntegrationMessageBuilder<T> setHeader(String headerName, Object headerValue) {
-		Assert.notNull(headerName);
+		Assert.notNull(headerName, "'headerName' must not be null");
 		if (headerValue == null) {
 			this.removeHeader(headerName);
 		}

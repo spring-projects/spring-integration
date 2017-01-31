@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,12 +82,12 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	}
 
 	public void setControlEncoding(String controlEncoding) {
-		Assert.hasText(controlEncoding);
+		Assert.hasText(controlEncoding, "'controlEncoding' must not be empty");
 		this.controlEncoding = controlEncoding;
 	}
 
 	public void setConfig(FTPClientConfig config) {
-		Assert.notNull(config);
+		Assert.notNull(config, "'config' must not be null");
 		this.config = config;
 	}
 
@@ -96,7 +96,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	}
 
 	public void setHost(String host) {
-		Assert.hasText(host);
+		Assert.hasText(host, "'host' must not be empty");
 		this.host = host;
 	}
 

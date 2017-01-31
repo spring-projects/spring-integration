@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,8 +99,8 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * @see AbstractMappingMessageRouter#setChannelMapping(String, String)
 	 */
 	public RouterSpec<K, R> channelMapping(K key, final String channelName) {
-		Assert.notNull(key);
-		Assert.hasText(channelName);
+		Assert.notNull(key, "'key' must not be null");
+		Assert.hasText(channelName, "'channelName' must not be null");
 		if (key instanceof String) {
 			this.target.setChannelMapping((String) key, channelName);
 		}
@@ -131,8 +131,8 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * @return the router spec.
 	 */
 	public RouterSpec<K, R> subFlowMapping(K key, IntegrationFlow subFlow) {
-		Assert.notNull(key);
-		Assert.notNull(subFlow);
+		Assert.notNull(key, "'key' must not be null");
+		Assert.notNull(subFlow, "'subFlow' must not be null");
 		Assert.state(!(StringUtils.hasText(this.prefix) || StringUtils.hasText(this.suffix)),
 				"The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 

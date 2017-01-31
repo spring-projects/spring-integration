@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ public class EnricherSpec extends MessageHandlerSpec<EnricherSpec, ContentEnrich
 	 * @see ContentEnricher#setPropertyExpressions(Map)
 	 */
 	public EnricherSpec propertyExpression(String key, String expression) {
-		Assert.notNull(key);
+		Assert.notNull(key, "'key' must not be null");
 		this.propertyExpressions.put(key, PARSER.parseExpression(expression));
 		return _this();
 	}
@@ -228,7 +228,7 @@ public class EnricherSpec extends MessageHandlerSpec<EnricherSpec, ContentEnrich
 	 * @see ContentEnricher#setHeaderExpressions(Map)
 	 */
 	public EnricherSpec headerExpression(String name, String expression, Boolean overwrite) {
-		Assert.hasText(expression);
+		Assert.hasText(expression, "'expression' must not be empty");
 		return headerExpression(name, PARSER.parseExpression(expression), overwrite);
 	}
 
@@ -267,15 +267,15 @@ public class EnricherSpec extends MessageHandlerSpec<EnricherSpec, ContentEnrich
 
 	/**
 	 * Set a header value using an explicit {@link HeaderValueMessageProcessor}.
-	 * @param name the header name.
+	 * @param headerName the header name.
 	 * @param headerValueMessageProcessor the headerValueMessageProcessor.
 	 * @param <V> the value type.
 	 * @return the enricher spec.
 	 * @see ContentEnricher#setHeaderExpressions(Map)
 	 */
-	public <V> EnricherSpec header(String name, HeaderValueMessageProcessor<V> headerValueMessageProcessor) {
-		Assert.hasText(name);
-		this.headerExpressions.put(name, headerValueMessageProcessor);
+	public <V> EnricherSpec header(String headerName, HeaderValueMessageProcessor<V> headerValueMessageProcessor) {
+		Assert.hasText(headerName, "'headerName' must not be empty");
+		this.headerExpressions.put(headerName, headerValueMessageProcessor);
 		return _this();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	 * @return the endpoint spec.
 	 */
 	public FilterEndpointSpec discardFlow(IntegrationFlow discardFlow) {
-		Assert.notNull(discardFlow);
+		Assert.notNull(discardFlow, "'discardFlow' must not be null");
 		DirectChannel channel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		discardFlow.configure(flowBuilder);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,7 +204,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public <P> RecipientListRouterSpec recipientFlow(GenericSelector<P> selector, IntegrationFlow subFlow) {
-		Assert.notNull(subFlow);
+		Assert.notNull(subFlow, "'subFlow' must not be null");
 		DirectChannel channel = populateSubFlow(subFlow);
 		return recipient(channel, selector);
 	}
@@ -238,7 +238,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @since 1.2
 	 */
 	public RecipientListRouterSpec recipientFlow(Expression expression, IntegrationFlow subFlow) {
-		Assert.notNull(subFlow);
+		Assert.notNull(subFlow, "'subFlow' must not be null");
 		DirectChannel channel = populateSubFlow(subFlow);
 		return recipient(channel, expression);
 	}
