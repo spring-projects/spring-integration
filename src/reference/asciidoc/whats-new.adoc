@@ -14,6 +14,11 @@ development process.
 The new `MongoDbOutboundGateway` allows you to make queries to the database on demand by sending a message to its request channel.
 See <<mongodb-outbound-gateway>> for more information.
 
+==== HTTP Async Outbound Gateway and Channel Adapter
+
+The new `AsyncHttpRequestExecutingMessageHandler` adds support for AsyncRestTemplate for outbound channel adapter and gateway.
+See <<AsyncHttpRequestExecutingMessageHandler>> for more information.
+
 [[x5.0-general]]
 === General Changes
 

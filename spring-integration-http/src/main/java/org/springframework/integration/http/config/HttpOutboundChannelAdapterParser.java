@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
 
@@ -33,28 +34,51 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Shiliang Li
  * @since 2.0
  */
 public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
-		builder.addPropertyValue("expectReply", false);
-		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
-
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
-
-		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
-
-		String restTemplate = element.getAttribute("rest-template");
-		if (StringUtils.hasText(restTemplate)) {
-			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
-			builder.addConstructorArgReference(restTemplate);
+		BeanDefinitionBuilder builder;
+		boolean async = element.getLocalName().contains("async");
+		if (async) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(AsyncHttpRequestExecutingMessageHandler.class);
 		}
 		else {
-			for (String referenceAttributeName : HttpAdapterParsingUtils.REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
-				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
+		}
+
+		builder.addPropertyValue("expectReply", false);
+		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
+		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
+
+		if (async) {
+			String asyncTemplateRef = element.getAttribute("async-rest-template");
+
+			if (StringUtils.hasText(asyncTemplateRef)) {
+				HttpAdapterParsingUtils.verifyNoAsyncRestTemplateAttributes(element, parserContext);
+				builder.addConstructorArgReference(asyncTemplateRef);
+			}
+			else {
+				for (String referenceAttributeName : HttpAdapterParsingUtils.ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+					IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+				}
+			}
+		}
+		else {
+			String restTemplateRef = element.getAttribute("rest-template");
+
+			if (StringUtils.hasText(restTemplateRef)) {
+				HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
+				builder.addConstructorArgReference(restTemplateRef);
+			}
+			else {
+				for (String referenceAttributeName : HttpAdapterParsingUtils.SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+					IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+				}
 			}
 		}
 

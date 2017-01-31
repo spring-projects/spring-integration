@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,19 +35,34 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Shiliang Li
  * @since 2.0.2
  */
 abstract class HttpAdapterParsingUtils {
 
-	static final String[] REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
+	static final String[] SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
 		"request-factory", "error-handler", "message-converters"
 	};
 
+	static final String[] ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
+			"async-request-factory", "error-handler", "message-converters"
+	};
+
 	static void verifyNoRestTemplateAttributes(Element element, ParserContext parserContext) {
-		for (String attributeName : REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+		for (String attributeName : SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
 			if (element.hasAttribute(attributeName)) {
 				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
 						+ attributeName + "' attribute is not allowed.",
+						parserContext.extractSource(element));
+			}
+		}
+	}
+
+	static void verifyNoAsyncRestTemplateAttributes(Element element, ParserContext parserContext) {
+		for (String attributeName : ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+			if (element.hasAttribute(attributeName)) {
+				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
+								+ attributeName + "' attribute is not allowed.",
 						parserContext.extractSource(element));
 			}
 		}
