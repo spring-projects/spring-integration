@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,16 +32,17 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.Assert;
 
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ConverterParserWithExistingConversionServiceTests {
+
 	@Autowired
 	private ApplicationContext applicationContext;
 
@@ -49,9 +52,10 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 	@Test
 	public void testConversionServiceAvailability() {
-		Assert.isTrue(applicationContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME).equals(conversionService));
-		Assert.isTrue(conversionService.canConvert(TestBean1.class, TestBean2.class));
-		Assert.isTrue(conversionService.canConvert(TestBean1.class, TestBean3.class));
+		assertTrue(applicationContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)
+				.equals(conversionService));
+		assertTrue(conversionService.canConvert(TestBean1.class, TestBean2.class));
+		assertTrue(conversionService.canConvert(TestBean1.class, TestBean3.class));
 	}
 	@Test
 	public void testParentConversionServiceAvailability() {
@@ -63,13 +67,17 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 		childContext.refresh();
 
-		GenericConversionService conversionServiceParent = parentContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, GenericConversionService.class);
-		GenericConversionService conversionServiceChild = childContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, GenericConversionService.class);
-		Assert.isTrue(conversionServiceParent == conversionServiceChild); // validating that they are pointing to the same object
+		GenericConversionService conversionServiceParent =
+				parentContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
+						GenericConversionService.class);
+		GenericConversionService conversionServiceChild =
+				childContext.getBean(IntegrationUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
+						GenericConversionService.class);
+		assertTrue(conversionServiceParent == conversionServiceChild); // validating that they are pointing to the same object
 		conversionServiceChild.addConverter(new TestConverter());
 		conversionServiceChild.addConverter(new TestConverter3());
-		Assert.isTrue(conversionServiceChild.canConvert(TestBean1.class, TestBean2.class));
-		Assert.isTrue(conversionServiceChild.canConvert(TestBean1.class, TestBean3.class));
+		assertTrue(conversionServiceChild.canConvert(TestBean1.class, TestBean2.class));
+		assertTrue(conversionServiceChild.canConvert(TestBean1.class, TestBean3.class));
 		childContext.close();
 		parentContext.close();
 	}

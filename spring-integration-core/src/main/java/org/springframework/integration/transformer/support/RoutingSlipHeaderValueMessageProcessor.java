@@ -54,8 +54,8 @@ public class RoutingSlipHeaderValueMessageProcessor
 	private BeanFactory beanFactory;
 
 	public RoutingSlipHeaderValueMessageProcessor(Object... routingSlipPath) {
-		Assert.notNull(routingSlipPath);
-		Assert.noNullElements(routingSlipPath);
+		Assert.notNull(routingSlipPath, "'routingSlipPath' must not be null");
+		Assert.noNullElements(routingSlipPath, "'routingSlipPath' must not contain null elements");
 		for (Object entry : routingSlipPath) {
 			if (!(entry instanceof String
 					|| entry instanceof MessageChannel

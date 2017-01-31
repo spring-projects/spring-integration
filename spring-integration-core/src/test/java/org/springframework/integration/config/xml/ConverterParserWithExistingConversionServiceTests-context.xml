@@ -14,4 +14,5 @@
 	</int:converter>
 
 	<bean id="integrationConversionService" class="org.springframework.context.support.ConversionServiceFactoryBean"/>
+
 </beans>

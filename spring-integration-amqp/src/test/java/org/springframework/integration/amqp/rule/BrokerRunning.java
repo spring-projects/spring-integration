@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,8 +61,8 @@ public class BrokerRunning extends TestWatcher {
 	 * @return a new rule that assumes an existing running broker
 	 */
 	public static BrokerRunning isRunningWithEmptyQueues(Queue... queues) {
-		Assert.notNull(queues);
-		Assert.noNullElements(queues);
+		Assert.notNull(queues, "'queues' must not be null");
+		Assert.noNullElements(queues, "'queues' must not contain null elements");
 		return new BrokerRunning(queues);
 	}
 
@@ -72,8 +72,8 @@ public class BrokerRunning extends TestWatcher {
 	 * @return a new rule that assumes an existing running broker
 	 */
 	public static BrokerRunning isRunningWithEmptyQueues(String... queues) {
-		Assert.notNull(queues);
-		Assert.noNullElements(queues);
+		Assert.notNull(queues, "'queues' must not be null");
+		Assert.noNullElements(queues, "'queues' must not contain null elements");
 		return new BrokerRunning(queues);
 	}
 

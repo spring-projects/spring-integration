@@ -154,7 +154,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public void setLockRegistry(LockRegistry lockRegistry) {
 		Assert.isTrue(!this.lockRegistrySet, "'this.lockRegistry' can not be reset once its been set");
-		Assert.notNull("'lockRegistry' must not be null");
+		Assert.notNull(lockRegistry, "'lockRegistry' must not be null");
 		this.lockRegistry = lockRegistry;
 		this.lockRegistrySet = true;
 	}
@@ -170,12 +170,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
-		Assert.notNull(correlationStrategy);
+		Assert.notNull(correlationStrategy, "'correlationStrategy' must not be null");
 		this.correlationStrategy = correlationStrategy;
 	}
 
 	public void setReleaseStrategy(ReleaseStrategy releaseStrategy) {
-		Assert.notNull(releaseStrategy);
+		Assert.notNull(releaseStrategy, "'releaseStrategy' must not be null");
 		this.releaseStrategy = releaseStrategy;
 		this.sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
