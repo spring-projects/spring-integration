@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,20 @@ package org.springframework.integration.support.leader;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Level;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
+import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 
 /**
  * @author Dave Syer
@@ -41,9 +40,6 @@ import org.springframework.integration.test.rule.Log4jLevelAdjuster;
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiatorTests {
-
-	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration");
 
 	private CountDownLatch granted;
 
@@ -84,6 +80,7 @@ public class LockRegistryLeaderInitiatorTests {
 		assertThat(this.initiator.getContext().isLeader(), is(true));
 		this.initiator.getContext().yield();
 		assertThat(this.revoked.await(10, TimeUnit.SECONDS), is(true));
+		this.initiator.stop();
 	}
 
 	@Test
@@ -98,6 +95,34 @@ public class LockRegistryLeaderInitiatorTests {
 		this.initiator.stop();
 		assertThat(other.await(10, TimeUnit.SECONDS), is(true));
 		assertThat(another.getContext().isLeader(), is(true));
+	}
+
+	@Test
+	public void testExceptionFromEvent() throws Exception {
+		CountDownLatch onGranted = new CountDownLatch(1);
+
+		LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
+
+		initiator.setLeaderEventPublisher(new DefaultLeaderEventPublisher() {
+
+			@Override
+			public void publishOnGranted(Object source, Context context, String role) {
+				try {
+					throw new RuntimeException("intentional");
+				}
+				finally {
+					onGranted.countDown();
+				}
+			}
+
+		});
+
+		initiator.start();
+
+		assertTrue(onGranted.await(10, TimeUnit.SECONDS));
+		assertTrue(initiator.getContext().isLeader());
+
+		initiator.stop();
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {

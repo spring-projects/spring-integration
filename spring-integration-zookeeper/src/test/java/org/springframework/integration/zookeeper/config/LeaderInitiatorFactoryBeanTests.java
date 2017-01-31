@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.leader.Context;
+import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.AbstractLeaderEvent;
+import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
@@ -82,6 +85,34 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 		this.leaderInitiator.stop();
 		assertTrue(this.config.latch2.await(10, TimeUnit.SECONDS));
 		assertThat(this.config.events.get(1), instanceOf(OnRevokedEvent.class));
+	}
+
+	@Test
+	public void testExceptionFromEvent() throws Exception {
+		CountDownLatch onGranted = new CountDownLatch(1);
+
+		LeaderInitiator initiator = new LeaderInitiator(client, new DefaultCandidate());
+
+		initiator.setLeaderEventPublisher(new DefaultLeaderEventPublisher() {
+
+			@Override
+			public void publishOnGranted(Object source, Context context, String role) {
+				try {
+					throw new RuntimeException("intentional");
+				}
+				finally {
+					onGranted.countDown();
+				}
+			}
+
+		});
+
+		initiator.start();
+
+		assertTrue(onGranted.await(10, TimeUnit.SECONDS));
+		assertTrue(initiator.getContext().isLeader());
+
+		initiator.stop();
 	}
 
 	@Configuration

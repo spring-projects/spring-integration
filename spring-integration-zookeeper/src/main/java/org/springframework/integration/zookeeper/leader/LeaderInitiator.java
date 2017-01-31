@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ import org.springframework.util.StringUtils;
  * @author Patrick Peralta
  * @author Janne Valkealahti
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class LeaderInitiator implements SmartLifecycle {
@@ -44,6 +46,10 @@ public class LeaderInitiator implements SmartLifecycle {
 	private static final Log logger = LogFactory.getLog(LeaderInitiator.class);
 
 	private static final String DEFAULT_NAMESPACE = "/spring-integration/leader/";
+
+	private static final Context NULL_CONTEXT = () -> false;
+
+	private final CuratorContext context = new CuratorContext();
 
 	/**
 	 * Curator client.
@@ -197,6 +203,18 @@ public class LeaderInitiator implements SmartLifecycle {
 	}
 
 	/**
+	 * The context of the initiator or null if not running.
+	 * @return the context (or null if not running)
+	 * @since 5.0
+	 */
+	public Context getContext() {
+		if (this.leaderSelector == null) {
+			return NULL_CONTEXT;
+		}
+		return this.context;
+	}
+
+	/**
 	 * @return the ZooKeeper path used for leadership election by Curator
 	 */
 	private String buildLeaderPath() {
@@ -218,13 +236,16 @@ public class LeaderInitiator implements SmartLifecycle {
 
 		@Override
 		public void takeLeadership(CuratorFramework framework) throws Exception {
-			CuratorContext context = new CuratorContext();
-
 			try {
-				LeaderInitiator.this.candidate.onGranted(context);
+				LeaderInitiator.this.candidate.onGranted(LeaderInitiator.this.context);
 				if (LeaderInitiator.this.leaderEventPublisher != null) {
-					LeaderInitiator.this.leaderEventPublisher.publishOnGranted(LeaderInitiator.this, context,
-							LeaderInitiator.this.candidate.getRole());
+					try {
+						LeaderInitiator.this.leaderEventPublisher.publishOnGranted(LeaderInitiator.this,
+								LeaderInitiator.this.context, LeaderInitiator.this.candidate.getRole());
+					}
+					catch (Exception e) {
+						logger.warn("Error publishing OnGranted event.", e);
+					}
 				}
 
 				// when this method exits, the leadership will be revoked;
@@ -238,10 +259,15 @@ public class LeaderInitiator implements SmartLifecycle {
 				// reset the interrupt flag as the interrupt is handled.
 			}
 			finally {
-				LeaderInitiator.this.candidate.onRevoked(context);
+				LeaderInitiator.this.candidate.onRevoked(LeaderInitiator.this.context);
 				if (LeaderInitiator.this.leaderEventPublisher != null) {
-					LeaderInitiator.this.leaderEventPublisher.publishOnRevoked(LeaderInitiator.this, context,
-							LeaderInitiator.this.candidate.getRole());
+					try {
+						LeaderInitiator.this.leaderEventPublisher.publishOnRevoked(LeaderInitiator.this,
+								LeaderInitiator.this.context, LeaderInitiator.this.candidate.getRole());
+					}
+					catch (Exception e) {
+						logger.warn("Error publishing OnRevoked event.", e);
+					}
 				}
 			}
 		}
@@ -268,7 +294,7 @@ public class LeaderInitiator implements SmartLifecycle {
 
 		@Override
 		public String toString() {
-			return "LockContext{role=" + LeaderInitiator.this.candidate.getRole() +
+			return "CuratorContext{role=" + LeaderInitiator.this.candidate.getRole() +
 					", id=" + LeaderInitiator.this.candidate.getId() +
 					", isLeader=" + isLeader() + "}";
 		}
