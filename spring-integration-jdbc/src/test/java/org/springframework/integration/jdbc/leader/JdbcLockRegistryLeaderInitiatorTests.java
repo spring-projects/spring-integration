@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Level;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
@@ -37,7 +35,6 @@ import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -47,9 +44,6 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  * @since 4.3.1
  */
 public class JdbcLockRegistryLeaderInitiatorTests {
-
-	@Rule
-	public Log4jLevelAdjuster logAdjuster = new Log4jLevelAdjuster(Level.DEBUG, "org.springframework.integration");
 
 	public static EmbeddedDatabase dataSource;
 

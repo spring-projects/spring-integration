@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,21 @@ package org.springframework.integration.leader;
  * Interface that defines the context for candidate leadership.
  * Instances of this object are passed to {@link Candidate candidates}
  * upon granting and revoking of leadership.
+ * <p>
+ * The {@link Context} is {@link FunctionalInterface}
+ * with no-op implementation for the {@link #yield()}.
  *
  * @author Patrick Peralta
  * @author Janne Valkealahti
+ * @author Artem Bilan
  *
  */
+@FunctionalInterface
 public interface Context {
 
 	/**
 	 * Checks if the {@link Candidate} this context was
 	 * passed to is the leader.
-	 *
 	 * @return true if the {@link Candidate} this context was
 	 *         passed to is the leader
 	 */
@@ -41,5 +45,8 @@ public interface Context {
 	 * to relinquish leadership. This method has no effect
 	 * if the candidate is not currently the leader.
 	 */
-	void yield();
+	default void yield() {
+		// no-op
+	}
+
 }
