@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  * @param <S> the target {@link KafkaMessageDrivenChannelAdapterSpec} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 3.0
  */
@@ -170,7 +171,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 			KafkaMessageDrivenChannelAdapterSpec<K, V, KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>>
 			implements ComponentsRegistration {
 
-		private KafkaMessageListenerContainerSpec<K, V> spec;
+		private final KafkaMessageListenerContainerSpec<K, V> spec;
 
 		KafkaMessageDrivenChannelAdapterListenerContainerSpec(KafkaMessageListenerContainerSpec<K, V> spec,
 				KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
@@ -186,7 +187,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 		 */
 		public KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> configureListenerContainer(
 				Consumer<KafkaMessageListenerContainerSpec<K, V>> configurer) {
-			Assert.notNull(configurer);
+			Assert.notNull(configurer, "The 'configurer' cannot be null");
 			configurer.accept(this.spec);
 			return _this();
 		}
