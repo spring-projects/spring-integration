@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,12 +139,12 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
 			synchronized (this) {
-				if (this.getConversionService() == null) {
-					this.setConversionService(DefaultConversionService.getSharedInstance());
+				if (getConversionService() == null) {
+					setConversionService(DefaultConversionService.getSharedInstance());
 				}
 			}
 		}
-		return this.getConversionService();
+		return getConversionService();
 	}
 
 	@Override

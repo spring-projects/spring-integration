@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jms;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 
+import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -99,7 +100,10 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 	protected void onInit() {
 		if (this.destinationExpressionProcessor != null) {
 			this.destinationExpressionProcessor.setBeanFactory(getBeanFactory());
-			this.destinationExpressionProcessor.setConversionService(getConversionService());
+			ConversionService conversionService = getConversionService();
+			if (conversionService != null) {
+				this.destinationExpressionProcessor.setConversionService(conversionService);
+			}
 		}
 	}
 

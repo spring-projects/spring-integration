@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.filter;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.AbstractReplyProducingPostProcessingMessageHandler;
@@ -130,7 +131,10 @@ public class MessageFilter extends AbstractReplyProducingPostProcessingMessageHa
 		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
 					"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
-			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
+			ConversionService conversionService = getConversionService();
+			if (conversionService != null) {
+				((AbstractMessageProcessingSelector) this.selector).setConversionService(conversionService);
+			}
 		}
 		if (this.selector instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.selector).setBeanFactory(this.getBeanFactory());

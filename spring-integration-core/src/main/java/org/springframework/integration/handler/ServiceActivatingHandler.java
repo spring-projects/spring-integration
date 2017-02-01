@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 
@@ -58,7 +59,10 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	@Override
 	protected void doInit() {
 		if (this.processor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor<?>) this.processor).setConversionService(this.getConversionService());
+			ConversionService conversionService = getConversionService();
+			if (conversionService != null) {
+				((AbstractMessageProcessor<?>) this.processor).setConversionService(conversionService);
+			}
 		}
 		if (this.processor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.processor).setBeanFactory(this.getBeanFactory());

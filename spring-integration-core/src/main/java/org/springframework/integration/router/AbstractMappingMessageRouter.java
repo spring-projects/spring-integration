@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -292,8 +292,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 			else if (channelKey instanceof Collection) {
 				addToCollection(channels, (Collection<?>) channelKey, message);
 			}
-			else if (this.getRequiredConversionService().canConvert(channelKey.getClass(), String.class)) {
-				addChannelFromString(channels, this.getConversionService().convert(channelKey, String.class), message);
+			else if (getRequiredConversionService().canConvert(channelKey.getClass(), String.class)) {
+				addChannelFromString(channels, getConversionService().convert(channelKey, String.class), message);
 			}
 			else {
 				throw new MessagingException("unsupported return type for router [" + channelKey.getClass() + "]");

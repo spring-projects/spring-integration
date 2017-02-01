@@ -47,7 +47,7 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 
 	@Override
 	protected void doInit() {
-		ConversionService conversionService = this.getConversionService();
+		ConversionService conversionService = getConversionService();
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
 		}

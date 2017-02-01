@@ -630,8 +630,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (Mono.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;
 		}
-		if (this.getConversionService() != null) {
-			return this.getConversionService().convert(source, expectedReturnType);
+		if (getConversionService() != null) {
+			return getConversionService().convert(source, expectedReturnType);
 		}
 		else {
 			return this.typeConverter.convertIfNecessary(source, expectedReturnType);

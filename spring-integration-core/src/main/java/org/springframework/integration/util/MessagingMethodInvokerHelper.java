@@ -187,7 +187,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	@Override
 	public void setConversionService(ConversionService conversionService) {
 		super.setConversionService(conversionService);
-		this.messageHandlerMethodFactory.setConversionService(conversionService);
+		if (conversionService != null) {
+			this.messageHandlerMethodFactory.setConversionService(conversionService);
+		}
 	}
 
 	public T process(Message<?> message) throws Exception {

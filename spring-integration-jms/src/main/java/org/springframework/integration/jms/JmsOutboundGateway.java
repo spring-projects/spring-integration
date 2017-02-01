@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageTimeoutException;
@@ -535,13 +536,18 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 							^ this.requestDestinationExpressionProcessor != null,
 					"Exactly one of 'requestDestination', 'requestDestinationName', " +
 							"or 'requestDestinationExpression' is required.");
+			ConversionService conversionService = getConversionService();
 			if (this.requestDestinationExpressionProcessor != null) {
 				this.requestDestinationExpressionProcessor.setBeanFactory(getBeanFactory());
-				this.requestDestinationExpressionProcessor.setConversionService(getConversionService());
+				if (conversionService != null) {
+					this.requestDestinationExpressionProcessor.setConversionService(conversionService);
+				}
 			}
 			if (this.replyDestinationExpressionProcessor != null) {
 				this.replyDestinationExpressionProcessor.setBeanFactory(getBeanFactory());
-				this.replyDestinationExpressionProcessor.setConversionService(getConversionService());
+				if (conversionService != null) {
+					this.replyDestinationExpressionProcessor.setConversionService(conversionService);
+				}
 			}
 			/*
 			 *  This is needed because there is no way to detect 2 or more gateways using the same reply queue

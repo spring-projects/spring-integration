@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.messaging.Message;
@@ -49,7 +50,10 @@ class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter
 	public final void onInit() throws Exception {
 		super.onInit();
 		if (this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(this.getConversionService());
+			ConversionService conversionService = getConversionService();
+			if (conversionService != null) {
+				((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
+			}
 		}
 		if (this.messageProcessor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
