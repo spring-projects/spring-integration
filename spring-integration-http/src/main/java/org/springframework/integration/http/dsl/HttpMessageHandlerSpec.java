@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * The {@link MessageHandlerSpec} implementation for the {@link HttpRequestExecutingMessageHandler}.
+ * The {@link BaseHttpMessageHandlerSpec} implementation for the {@link HttpRequestExecutingMessageHandler}.
  *
  * @author Artem Bilan
  * @author Shiliang Li

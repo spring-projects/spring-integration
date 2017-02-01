@@ -61,7 +61,7 @@ abstract class HttpAdapterParsingUtils {
 	static void verifyNoAsyncRestTemplateAttributes(Element element, ParserContext parserContext) {
 		for (String attributeName : ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
 			if (element.hasAttribute(attributeName)) {
-				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
+				parserContext.getReaderContext().error("When providing an 'async-rest-template' reference, the '"
 								+ attributeName + "' attribute is not allowed.",
 						parserContext.extractSource(element));
 			}

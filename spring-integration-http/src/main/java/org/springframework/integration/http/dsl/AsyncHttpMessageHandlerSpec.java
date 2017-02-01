@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.client.AsyncRestTemplate;
 
 /**
- * The {@link org.springframework.integration.dsl.MessageHandlerSpec} implementation for the {@link AsyncHttpRequestExecutingMessageHandler}.
+ * The {@link BaseHttpMessageHandlerSpec} implementation for the {@link AsyncHttpRequestExecutingMessageHandler}.
  * @author Shiliang Li
  * @since 5.0
  * @see AsyncHttpRequestExecutingMessageHandler

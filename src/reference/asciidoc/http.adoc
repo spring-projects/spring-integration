@@ -193,7 +193,7 @@ Of course, this can be an abstract class, or even an interface (such as `java.io
 
 ==== AsyncHttpRequestExecutingMessageHandler
 
-The AsyncHttpRequestExecutingMessageHandler implementation is very similar to HttpRequestExecutingMessageHandler instead of delegating to a AsyncRestTemplate. To configure it, write a bean like this:
+The `AsyncHttpRequestExecutingMessageHandler` implementation is very similar to `HttpRequestExecutingMessageHandler` instead of delegating to a `AsyncRestTemplate`. To configure it, write a bean like this:
 
 [source,xml]
 ----
@@ -204,7 +204,7 @@ The AsyncHttpRequestExecutingMessageHandler implementation is very similar to Ht
 </bean>
 ----
 
-You can configure the AsyncClientHttpRequestFactory instance to use:
+You can configure the `AsyncClientHttpRequestFactory` instance to use:
 
 [source,xml]
 ----

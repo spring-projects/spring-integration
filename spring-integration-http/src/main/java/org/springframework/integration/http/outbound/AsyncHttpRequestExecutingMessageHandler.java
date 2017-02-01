@@ -44,7 +44,8 @@ import org.springframework.web.client.ResponseErrorHandler;
  * @since 5.0
  */
 public class AsyncHttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
-	private AsyncRestTemplate asyncRestTemplate;
+
+	private final AsyncRestTemplate asyncRestTemplate;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.

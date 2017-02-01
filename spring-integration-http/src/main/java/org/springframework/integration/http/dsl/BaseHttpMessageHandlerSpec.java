@@ -309,8 +309,6 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 		return Collections.singletonList(this.headerMapper);
 	}
 
-	protected abstract boolean isRestTemplateSet();
-
 	/**
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
 	 * @param errorHandler The error handler.
@@ -334,4 +332,6 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 		this.target.setMessageConverters(Arrays.asList(messageConverters));
 		return _this();
 	}
+
+	protected abstract boolean isRestTemplateSet();
 }
