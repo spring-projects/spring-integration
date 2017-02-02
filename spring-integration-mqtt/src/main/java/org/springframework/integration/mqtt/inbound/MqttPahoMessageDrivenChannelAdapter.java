@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
@@ -138,6 +139,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	@Override
 	protected void doStart() {
+		Assert.state(getTaskScheduler() != null, "A 'taskScheduler' is required");
 		super.doStart();
 		try {
 			connectAndSubscribe();
@@ -149,7 +151,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	@Override
-	protected void doStop() {
+	protected synchronized void doStop() {
 		cancelReconnect();
 		super.doStop();
 		if (this.client != null) {
@@ -219,7 +221,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 	}
 
-	private void connectAndSubscribe() throws MqttException {
+	private synchronized void connectAndSubscribe() throws MqttException {
 		MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 		this.cleanSession = connectionOptions.isCleanSession();
 		this.consumerStopAction = this.clientFactory.getConsumerStopAction();
@@ -259,10 +261,6 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 			}
-			// cancel() after the publish in case we are on that thread; a send to a QueueChannel would fail.
-			if (this.reconnectFuture != null) {
-				cancelReconnect();
-			}
 		}
 	}
 
@@ -275,7 +273,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private void scheduleReconnect() {
 		try {
-			this.reconnectFuture = this.getTaskScheduler().scheduleWithFixedDelay(new Runnable() {
+			this.reconnectFuture = getTaskScheduler().schedule(new Runnable() {
 
 				@Override
 				public void run() {
@@ -283,16 +281,20 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 						if (logger.isDebugEnabled()) {
 							logger.debug("Attempting reconnect");
 						}
-						if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
-							connectAndSubscribe();
+						synchronized (MqttPahoMessageDrivenChannelAdapter.this) {
+							if (!MqttPahoMessageDrivenChannelAdapter.this.connected) {
+								MqttPahoMessageDrivenChannelAdapter.this.connectAndSubscribe();
+								MqttPahoMessageDrivenChannelAdapter.this.reconnectFuture = null;
+							}
 						}
 					}
 					catch (MqttException e) {
 						logger.error("Exception while connecting and subscribing", e);
+						MqttPahoMessageDrivenChannelAdapter.this.scheduleReconnect();
 					}
 				}
 
-			}, this.recoveryInterval);
+			}, new Date(System.currentTimeMillis() + this.recoveryInterval));
 		}
 		catch (Exception e) {
 			logger.error("Failed to schedule reconnect", e);
@@ -300,7 +302,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	@Override
-	public void connectionLost(Throwable cause) {
+	public synchronized void connectionLost(Throwable cause) {
 		this.logger.error("Lost connection:" + cause.getMessage() + "; retrying...");
 		this.connected = false;
 		scheduleReconnect();

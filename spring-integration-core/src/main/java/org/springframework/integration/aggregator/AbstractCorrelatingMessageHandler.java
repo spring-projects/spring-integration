@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,9 +132,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
-		Assert.notNull(processor);
+		Assert.notNull(processor, "'processor' must not be null");
+		Assert.notNull(store, "'store' must not be null");
 
-		Assert.notNull(store);
 		setMessageStore(store);
 		this.outputProcessor = processor;
 		this.correlationStrategy = (correlationStrategy == null

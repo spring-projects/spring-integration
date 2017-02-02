@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,14 @@
 package org.springframework.integration.mqtt;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -39,12 +42,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.SocketFactory;
 
 import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.logging.Log;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -60,6 +64,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.aop.framework.ProxyFactoryBean;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.channel.NullChannel;
@@ -72,8 +77,10 @@ import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -87,14 +94,7 @@ public class MqttAdapterTests {
 
 	{
 		ProxyFactoryBean pfb = new ProxyFactoryBean();
-		pfb.addAdvice(new MethodInterceptor() {
-
-			@Override
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				return null;
-			}
-
-		});
+		pfb.addAdvice((MethodInterceptor) invocation -> null);
 		pfb.setInterfaces(IMqttToken.class);
 		this.alwaysComplete = (IMqttToken) pfb.getObject();
 	}
@@ -336,6 +336,7 @@ public class MqttAdapterTests {
 		}
 		assertThat(event, instanceOf(MqttSubscribedEvent.class));
 		assertEquals("Connected and subscribed to [baz, fix]", ((MqttSubscribedEvent) event).getMessage());
+		taskScheduler.destroy();
 	}
 
 	@Test
@@ -379,6 +380,34 @@ public class MqttAdapterTests {
 		verifyNotUnsubscribe(client);
 	}
 
+	@Test
+	public void testReconnect() throws Exception {
+		final MqttAsyncClient client = mock(MqttAsyncClient.class);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapter(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		adapter.setRecoveryInterval(10);
+		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
+		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
+		given(logger.isDebugEnabled()).willReturn(true);
+		final AtomicInteger attemptingReconnectCount = new AtomicInteger();
+		willAnswer(i -> {
+			if (attemptingReconnectCount.getAndIncrement() == 0) {
+				adapter.connectionLost(new RuntimeException("while schedule running"));
+			}
+			i.callRealMethod();
+			return null;
+		}).given(logger).debug("Attempting reconnect");
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		adapter.connectionLost(new RuntimeException("initial"));
+		Thread.sleep(1000);
+		// the following assertion should be equalTo, but leq to protect against a slow CI server
+		assertThat(attemptingReconnectCount.get(), lessThanOrEqualTo(2));
+		adapter.stop();
+		taskScheduler.destroy();
+	}
+
 	private MqttPahoMessageDrivenChannelAdapter buildAdapter(final MqttAsyncClient client, Boolean cleanSession,
 			ConsumerStopAction action) throws MqttException, MqttSecurityException {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
@@ -404,6 +433,7 @@ public class MqttAdapterTests {
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("client", factory, "foo");
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		adapter.setOutputChannel(new NullChannel());
+		adapter.setTaskScheduler(mock(TaskScheduler.class));
 		adapter.afterPropertiesSet();
 		return adapter;
 	}
