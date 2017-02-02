@@ -17,6 +17,7 @@
 package org.springframework.integration.mqtt;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
@@ -24,6 +25,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -39,11 +42,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.SocketFactory;
 
 import org.aopalliance.intercept.MethodInterceptor;
+import org.apache.commons.logging.Log;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -57,6 +62,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactoryBean;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -77,6 +83,7 @@ import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -301,6 +308,7 @@ public class MqttAdapterTests {
 		}
 		assertThat(event, instanceOf(MqttSubscribedEvent.class));
 		assertEquals("Connected and subscribed to [baz, fix]", ((MqttSubscribedEvent) event).getMessage());
+		taskScheduler.destroy();
 	}
 
 	@Test
@@ -369,6 +377,34 @@ public class MqttAdapterTests {
 		ctx.close();
 	}
 
+	@Test
+	public void testReconnect() throws Exception {
+		final MqttAsyncClient client = mock(MqttAsyncClient.class);
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapter(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		adapter.setRecoveryInterval(10);
+		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
+		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
+		given(logger.isDebugEnabled()).willReturn(true);
+		final AtomicInteger attemptingReconnectCount = new AtomicInteger();
+		willAnswer(i -> {
+			if (attemptingReconnectCount.getAndIncrement() == 0) {
+				adapter.connectionLost(new RuntimeException("while schedule running"));
+			}
+			i.callRealMethod();
+			return null;
+		}).given(logger).debug("Attempting reconnect");
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		adapter.connectionLost(new RuntimeException("initial"));
+		Thread.sleep(1000);
+		// the following assertion should be equalTo, but leq to protect against a slow CI server
+		assertThat(attemptingReconnectCount.get(), lessThanOrEqualTo(2));
+		adapter.stop();
+		taskScheduler.destroy();
+	}
+
 	private MqttPahoMessageDrivenChannelAdapter buildAdapter(final MqttAsyncClient client, Boolean cleanSession,
 			ConsumerStopAction action) throws MqttException, MqttSecurityException {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
@@ -394,6 +430,7 @@ public class MqttAdapterTests {
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("client", factory, "foo");
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));
 		adapter.setOutputChannel(new NullChannel());
+		adapter.setTaskScheduler(mock(TaskScheduler.class));
 		adapter.afterPropertiesSet();
 		return adapter;
 	}
