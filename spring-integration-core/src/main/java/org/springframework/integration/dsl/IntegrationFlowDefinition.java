@@ -210,7 +210,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public B channel(MessageChannel messageChannel) {
 		Assert.notNull(messageChannel, "'messageChannel' must not be null");
 		if (this.currentMessageChannel != null) {
-			bridge(null);
+			bridge();
 		}
 		this.currentMessageChannel = messageChannel;
 		return registerOutputChannelIfCan(this.currentMessageChannel);
@@ -1102,7 +1102,16 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <H extends MessageHandler> B handle(H messageHandler, Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
 		Assert.notNull(messageHandler, "'messageHandler' must not be null");
-		return this.register(new GenericEndpointSpec<H>(messageHandler), endpointConfigurer);
+		return this.register(new GenericEndpointSpec<>(messageHandler), endpointConfigurer);
+	}
+
+	/**
+	 * Populate a {@link BridgeHandler} to the current integration flow position.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see #bridge(Consumer)
+	 */
+	public B bridge() {
+		return bridge(null);
 	}
 
 	/**
@@ -1120,7 +1129,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see GenericEndpointSpec
 	 */
 	public B bridge(Consumer<GenericEndpointSpec<BridgeHandler>> endpointConfigurer) {
-		return this.register(new GenericEndpointSpec<BridgeHandler>(new BridgeHandler()), endpointConfigurer);
+		return register(new GenericEndpointSpec<>(new BridgeHandler()), endpointConfigurer);
 	}
 
 	/**
@@ -1191,7 +1200,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		Assert.notNull(enricherConfigurer, "'enricherConfigurer' must not be null");
 		EnricherSpec enricherSpec = new EnricherSpec();
 		enricherConfigurer.accept(enricherSpec);
-		return this.handle(enricherSpec.get(), endpointConfigurer);
+		return handle(enricherSpec.get(), endpointConfigurer);
 	}
 
 	/**

@@ -136,7 +136,7 @@ public class ManualFlowTests {
 
 			@Override
 			public void configure(IntegrationFlowDefinition<?> flow) {
-				flow.bridge(null);
+				flow.bridge();
 			}
 
 		}
@@ -283,7 +283,7 @@ public class ManualFlowTests {
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public IntegrationFlow wrongScopeFlow() {
-			return flow -> flow.bridge(null);
+			return IntegrationFlowDefinition::bridge;
 		}
 
 	}
