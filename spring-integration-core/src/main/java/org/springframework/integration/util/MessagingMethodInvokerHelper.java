@@ -108,6 +108,25 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private static final Log logger = LogFactory.getLog(MessagingMethodInvokerHelper.class);
 
+	// Number of times to try an InvocableHandlerMethod before giving up in favor of an expression.
+	private static final int FAILED_ATTEMPTS_THRESHOLD = 100;
+
+	private static final SpelExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+
+	private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER =
+			new LocalVariableTableParameterNameDiscoverer();
+
+	private static final TypeDescriptor messageTypeDescriptor = TypeDescriptor.valueOf(Message.class);
+
+	@SuppressWarnings("unused")
+	private static final Collection<Message<?>> dummyMessages = Collections.emptyList();
+
+	private static final TypeDescriptor messageListTypeDescriptor = new TypeDescriptor(
+			ReflectionUtils.findField(MessagingMethodInvokerHelper.class, "dummyMessages"));
+
+	private static final TypeDescriptor messageArrayTypeDescriptor = TypeDescriptor.valueOf(Message[].class);
+
+
 	private final DefaultMessageHandlerMethodFactory messageHandlerMethodFactory =
 			new DefaultMessageHandlerMethodFactory();
 
@@ -390,36 +409,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		Expression expression = candidate.expression;
 		Assert.notNull(candidate, "No candidate methods found for messages.");
 
-		T result = null;
-		try {
-			if (this.useSpelInvoker || candidate.spelOnly) {
-				result = invokeExpression(expression, parameters);
-			}
-			else {
-				result = candidate.invoke(parameters);
-			}
-		}
-		catch (MethodArgumentResolutionException | MessageConversionException | IllegalStateException e) {
-			if (e instanceof MessageConversionException) {
-				if (e.getCause() instanceof ConversionFailedException &&
-						!(e.getCause().getCause() instanceof ConverterNotFoundException)) {
-					throw e;
-				}
-			}
-			else if (e instanceof IllegalStateException) {
-				if (e.getCause() instanceof IllegalArgumentException
-						&& !"argument type mismatch".equals(e.getCause().getMessage())) {
-					throw e;
-				}
-			}
-			if (logger.isInfoEnabled()) {
-				logger.info("Failed to invoke [ " + candidate.invocableHandlerMethod +
-						"] with provided arguments [ " + parameters + " ]. \n" +
-						"Falling back to SpEL invocation for expression [ " +
-						expression.getExpressionString() + " ]");
-			}
-
+		T result;
+		if (this.useSpelInvoker || candidate.spelOnly) {
 			result = invokeExpression(expression, parameters);
+		}
+		else {
+			result = invokeHandlerMethod(candidate, parameters);
 		}
 
 		if (result != null && this.expectedType != null) {
@@ -429,6 +424,44 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 		else {
 			return result;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private T invokeHandlerMethod(HandlerMethod handlerMethod, ParametersWrapper parameters) throws Exception {
+		try {
+			return (T) handlerMethod.invoke(parameters);
+		}
+		catch (MethodArgumentResolutionException | MessageConversionException | IllegalStateException e) {
+			if (e instanceof MessageConversionException) {
+				if (e.getCause() instanceof ConversionFailedException &&
+						!(e.getCause().getCause() instanceof ConverterNotFoundException)) {
+					throw e;
+				}
+			}
+			else if (e instanceof IllegalStateException) {
+				if (!(e.getCause() instanceof IllegalArgumentException) ||
+						!e.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
+						(!"argument type mismatch".equals(e.getCause().getMessage()) &&
+						// JVM generates GeneratedMethodAccessor### after several calls with less error checking
+						!e.getCause().getMessage().startsWith("java.lang.ClassCastException@"))) {
+					throw e;
+				}
+			}
+
+			Expression expression = handlerMethod.expression;
+
+			if (++handlerMethod.failedAttempts >= FAILED_ATTEMPTS_THRESHOLD) {
+				handlerMethod.spelOnly = true;
+				if (logger.isInfoEnabled()) {
+					logger.info("Failed to invoke [ " + handlerMethod.invocableHandlerMethod +
+							"] with provided arguments [ " + parameters + " ]. \n" +
+							"Falling back to SpEL invocation for expression [ " +
+							expression.getExpressionString() + " ]");
+				}
+			}
+
+			return invokeExpression(expression, parameters);
 		}
 	}
 
@@ -745,21 +778,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	 */
 	private static class HandlerMethod {
 
-		private static final SpelExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
-
-		private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER =
-				new LocalVariableTableParameterNameDiscoverer();
-
-		private static final TypeDescriptor messageTypeDescriptor = TypeDescriptor.valueOf(Message.class);
-
-		private static final TypeDescriptor messageListTypeDescriptor = new TypeDescriptor(
-				ReflectionUtils.findField(HandlerMethod.class, "dummyMessages"));
-
-		private static final TypeDescriptor messageArrayTypeDescriptor = TypeDescriptor.valueOf(Message[].class);
-
-		@SuppressWarnings("unused")
-		private static final Collection<Message<?>> dummyMessages = Collections.emptyList();
-
 		private final Expression expression;
 
 		private final InvocableHandlerMethod invocableHandlerMethod;
@@ -773,6 +791,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		private volatile boolean messageMethod;
 
 		private volatile boolean spelOnly;
+
+		// The number of times InvocableHandlerMethod was attempted and failed - enables us to eventually
+		// give up trying to call it when it just doesn't seem to be possible.
+		// Switching to spelOnly afterwards forever.
+		private volatile int failedAttempts = 0;
 
 		HandlerMethod(InvocableHandlerMethod invocableHandlerMethod, boolean canProcessMessageList) {
 			this.invocableHandlerMethod = invocableHandlerMethod;
@@ -1048,6 +1071,20 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				return this.payload.getClass();
 			}
 			return this.messages.getClass();
+		}
+
+		@Override
+		public String toString() {
+			final StringBuilder sb = new StringBuilder("ParametersWrapper{");
+			if (this.messages != null) {
+				sb.append("messages=").append(this.messages)
+						.append(", headers=").append(this.headers);
+			}
+			else {
+				sb.append("message=").append(this.message);
+			}
+			return sb.append('}')
+					.toString();
 		}
 
 	}

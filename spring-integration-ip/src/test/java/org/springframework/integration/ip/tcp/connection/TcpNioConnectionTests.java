@@ -716,8 +716,8 @@ public class TcpNioConnectionTests {
 			@Override
 			public boolean onMessage(Message<?> message) {
 				if (!(message instanceof ErrorMessage)) {
-					assemblerLatch.countDown();
 					assembler.set(Thread.currentThread());
+					assemblerLatch.countDown();
 				}
 				return false;
 			}

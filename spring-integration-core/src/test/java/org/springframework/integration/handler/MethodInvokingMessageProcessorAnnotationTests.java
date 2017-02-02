@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -38,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
@@ -52,6 +54,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MethodInvokingMessageProcessorAnnotationTests {
@@ -102,7 +105,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<String> messageWithHeader = MessageBuilder.withPayload("foo")
-				.setHeader("num", new Integer(123)).build();
+				.setHeader("num", 123).build();
 		GenericMessage<String> messageWithoutHeader = new GenericMessage<String>("foo");
 
 		processor.processMessage(messageWithHeader);
@@ -113,7 +116,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	public void fromMessageWithRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		Message<String> message = MessageBuilder.withPayload("foo")
-				.setHeader("num", new Integer(123)).build();
+				.setHeader("num", 123).build();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Object result = processor.processMessage(message);
 		assertEquals(123, result);
@@ -133,7 +136,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<String> message = MessageBuilder.withPayload("foo")
-				.setHeader("num", new Integer(123)).build();
+				.setHeader("num", 123).build();
 		Object result = processor.processMessage(message);
 		assertEquals("null123", result);
 	}
@@ -143,7 +146,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<String> message = MessageBuilder.withPayload("foo")
-				.setHeader("num", new Integer(123))
+				.setHeader("num", 123)
 				.setHeader("prop", "bar")
 				.build();
 		Object result = processor.processMessage(message);
@@ -156,10 +159,21 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
+		assertFalse(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
+		for (int i = 0; i < 99; i++) {
+			Object result = processor.processMessage(message);
+			Properties props = (Properties) result;
+			assertEquals("foo", props.getProperty("prop1"));
+			assertEquals("bar", props.getProperty("prop2"));
+			assertFalse(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
+		}
+
 		Object result = processor.processMessage(message);
 		Properties props = (Properties) result;
 		assertEquals("foo", props.getProperty("prop1"));
 		assertEquals("bar", props.getProperty("prop2"));
+
+		assertTrue(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
 	}
 
 	@Test
@@ -210,8 +224,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Method method = TestService.class.getMethod("mapHeaders", Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("attrib1", new Integer(123))
-				.setHeader("attrib2", new Integer(456)).build();
+				.setHeader("attrib1", 123)
+				.setHeader("attrib2", 456).build();
 		Map<String, Object> result = (Map<String, Object>) processor.processMessage(message);
 		assertEquals(123, result.get("attrib1"));
 		assertEquals(456, result.get("attrib2"));
@@ -225,8 +239,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		payload.put("attrib1", 88);
 		payload.put("attrib2", 99);
 		Message<Map<String, Integer>> message = MessageBuilder.withPayload(payload)
-				.setHeader("attrib1", new Integer(123))
-				.setHeader("attrib2", new Integer(456)).build();
+				.setHeader("attrib1", 123)
+				.setHeader("attrib2", 456).build();
 		Map<String, Integer> result = (Map<String, Integer>) processor.processMessage(message);
 		assertEquals(2, result.size());
 		assertEquals(new Integer(88), result.get("attrib1"));
@@ -337,11 +351,19 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	}
 
 
+	private Message<?> getMessage() {
+		MessageBuilder<Employee> builder = MessageBuilder.withPayload(employee);
+		builder.setHeader("day", "monday");
+		builder.setHeader("month", "September");
+		return builder.build();
+	}
+
 	@SuppressWarnings("unused")
 	private static class MultipleMappingAnnotationTestBean {
 
 		public void test(@Payload("payload") @Header("foo") String s) {
 		}
+
 	}
 
 
@@ -379,7 +401,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 			return lastName + ", " + firstName;
 		}
 
-		public String optionalAndRequiredHeader(@Header(required = false) String prop, @Header(value = "num", required = true) Integer num) {
+		public String optionalAndRequiredHeader(@Header(required = false) String prop,
+				@Header(value = "num", required = true) Integer num) {
 			return prop + num;
 		}
 
@@ -444,13 +467,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 			ids.add(id);
 			return "foo";
 		}
-	}
 
-	private Message<?> getMessage() {
-		MessageBuilder<Employee> builder = MessageBuilder.withPayload(employee);
-		builder.setHeader("day", "monday");
-		builder.setHeader("month", "September");
-		return builder.build();
 	}
 
 
@@ -472,6 +489,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		public String getLname() {
 			return lname;
 		}
+
 	}
 
 }
