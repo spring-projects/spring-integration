@@ -21,7 +21,6 @@ import java.net.URI;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.Assert;
