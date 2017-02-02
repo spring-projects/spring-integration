@@ -18,12 +18,16 @@ package org.springframework.integration.http.dsl;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import java.util.Collections;
 import java.util.List;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,10 +36,13 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
@@ -51,9 +58,11 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -61,6 +70,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Artem Bilan
+ * @author Shiliang Li
  *
  * @since 5.0
  */
@@ -74,6 +84,9 @@ public class HttpDslTests {
 
 	@Autowired
 	private HttpRequestExecutingMessageHandler serviceInternalGatewayHandler;
+
+	@Autowired
+	private AsyncHttpRequestExecutingMessageHandler serviceInternalAsyncGatewayHandler;
 
 	private MockMvc mockMvc;
 
@@ -94,6 +107,27 @@ public class HttpDslTests {
 
 		this.mockMvc.perform(
 				get("/service")
+						.with(httpBasic("guest", "guest"))
+						.param("name", "foo"))
+				.andExpect(
+						content()
+								.string("FOO"));
+	}
+
+	@Test
+	public void testHttpAsyncProxyFlow() throws Exception {
+		AsyncRestTemplate asyncRestTemplate = new AsyncRestTemplate();
+		String destinationUri = "http://www.springsource.org/spring-integration";
+		MockRestServiceServer
+				.createServer(asyncRestTemplate)
+				.expect(requestTo(Matchers.startsWith(destinationUri)))
+				.andExpect(method(HttpMethod.POST))
+				.andRespond(withSuccess("FOO", MediaType.TEXT_PLAIN));
+		new DirectFieldAccessor(this.serviceInternalAsyncGatewayHandler)
+				.setPropertyValue("asyncRestTemplate", asyncRestTemplate);
+
+		this.mockMvc.perform(
+				get("/service2")
 						.with(httpBasic("guest", "guest"))
 						.param("name", "foo"))
 				.andExpect(
@@ -156,6 +190,21 @@ public class HttpDslTests {
 											.toUri())
 									.expectedResponseType(String.class),
 							e -> e.id("serviceInternalGateway"))
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow httpAsyncProxyFlow() {
+			return IntegrationFlows
+					.from(Http.inboundGateway("/service2")
+							.requestMapping(r -> r.params("name")))
+					.handle(Http.<MultiValueMap<String, String>>outboundAsyncGateway(m ->
+									UriComponentsBuilder.fromUriString("http://www.springsource.org/spring-integration")
+											.queryParams(m.getPayload())
+											.build()
+											.toUri())
+									.expectedResponseType(String.class),
+							e -> e.id("serviceInternalAsyncGateway"))
 					.get();
 		}
 

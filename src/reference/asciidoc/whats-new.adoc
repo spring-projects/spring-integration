@@ -100,6 +100,8 @@ See <<amqp-inbound-channel-adapter>> for more information.
 The `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty string by default instead of `X-`.
 See <<http-header-mapping>> for more information.
 
+Add support for AsyncRestTemplate for outbound channel adapter and gateway. See <<AsyncHttpRequestExecutingMessageHandler>> for more information.
+
 ==== Aggregator Performance Changes
 
 Aggregators now use a `SimpleSequenceSizeReleaseStrategy` by default, which is more efficient, especially with large groups.
