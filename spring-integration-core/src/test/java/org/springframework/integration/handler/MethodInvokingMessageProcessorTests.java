@@ -736,7 +736,7 @@ public class MethodInvokingMessageProcessorTests {
 	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
 		// Update the parser configuration compiler mode
 		SpelParserConfiguration config = TestUtils.getPropertyValue(processor,
-				"delegate.handlerMethod.EXPRESSION_PARSER.configuration", SpelParserConfiguration.class);
+				"delegate.EXPRESSION_PARSER.configuration", SpelParserConfiguration.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(config);
 		accessor.setPropertyValue("compilerMode", SpelCompilerMode.IMMEDIATE);
 		return accessor;
