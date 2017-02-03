@@ -5,7 +5,7 @@
 === Introduction
 
 The HTTP support allows for the execution of HTTP requests and the processing of inbound HTTP requests.
-Because interaction over HTTP is always synchronous, even if all that is returned is a 200 status code, the HTTP support consists of two gateway implementations: `HttpInboundEndpoint` and `HttpRequestExecutingMessageHandler`.
+the HTTP support consists of the following gateway implementations: `HttpInboundEndpoint`, `HttpRequestExecutingMessageHandler` and `AsyncHttpRequestExecutingMessageHandler`
 
 [[http-inbound]]
 === Http Inbound Components
@@ -125,6 +125,7 @@ The key that is used for that map entry by default is 'reply', but this can be o
 
 [[http-outbound]]
 === Http Outbound Components
+==== HttpRequestExecutingMessageHandler
 
 To configure the `HttpRequestExecutingMessageHandler` write a bean definition like this:
 
@@ -189,6 +190,36 @@ Further to the note above regarding *empty response bodies*, if a response *does
 The `expected-response-type` must be compatible with the (configured or default) `HttpMessageConverter` s and the `Content-Type` header in the response.
 Of course, this can be an abstract class, or even an interface (such as `java.io.Serializable` when using java serialization and `Content-Type: application/x-java-serialized-object`).
 =====
+
+==== AsyncHttpRequestExecutingMessageHandler
+
+The `AsyncHttpRequestExecutingMessageHandler` implementation is very similar to `HttpRequestExecutingMessageHandler` instead of delegating to a `AsyncRestTemplate`. To configure it, write a bean like this:
+
+[source,xml]
+----
+<bean id="httpAsyncOutbound"
+  class="org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler">
+  <constructor-arg value="http://localhost:8080/example" />
+  <property name="outputChannel" ref="responseChannel" />
+</bean>
+----
+
+You can configure the `AsyncClientHttpRequestFactory` instance to use:
+
+[source,xml]
+----
+<bean id="httpOutbound"
+  class="org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler">
+  <constructor-arg value="http://localhost:8080/example" />
+  <property name="outputChannel" ref="responseChannel" />
+  <property name="asyncRequestFactory" ref="customRequestFactory" />
+</bean>
+----
+
+By default the HTTP request will be generated using an instance of `SimpleClientHttpRequestFactory`.
+Use of the Apache Commons HTTP Async Client is also supported through the provided `HttpComponentsAsyncClientHttpRequestFactory` which can be injected as shown above.
+
+For other settings like cookie, converters, etc, please see <<HttpRequestExecutingMessageHandler>> above.
 
 [[http-namespace]]
 === HTTP Namespace Support
@@ -510,6 +541,34 @@ The configuration looks very similar to the gateway:
     request-factory="someRequestFactory"
     order="3"
     auto-startup="false"/>
+----
+
+If you want to execute the http request in an asynchronous way, you can use the outbound-async-gateway or outbound-async-channel-adapter.
+
+[source,xml]
+----
+<int-http:outbound-async-gateway id="asyncExample1"
+    request-channel="requests"
+    url="http://localhost/test"
+    http-method-expression="headers.httpMethod"
+    extract-request-payload="false"
+    expected-response-type-expression="payload"
+    charset="UTF-8"
+    async-request-factory="requestFactory"
+    reply-timeout="1234"
+    reply-channel="replies"/>
+    
+<int-http:outbound-async-channel-adapter id="asyncExample2"
+    url="http://localhost/example"
+    http-method="GET"
+    channel="requests"
+    charset="UTF-8"
+    extract-payload="false"
+    expected-response-type="java.lang.String"
+    async-request-factory="someRequestFactory"
+    order="3"
+    auto-startup="false"/>
+    
 ----
 
 [NOTE]

@@ -14,6 +14,8 @@
 
 	<si:channel id="requests"/>
 
+	<beans:bean id="asyncRestTemplate" class="org.springframework.web.client.AsyncRestTemplate"/>
+
 	<outbound-gateway id="minimalConfig" url="http://localhost/test1" request-channel="requests"/>
 
 	<si:channel id="replies">
@@ -40,6 +42,27 @@
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>
 
+	<outbound-async-gateway id="asyncMinimalConfig" url="http://localhost/test1" request-channel="requests" async-rest-template="asyncRestTemplate"/>
+
+	<outbound-async-gateway id="asyncFullConfig"
+		    url="http://localhost/test2"
+		    http-method="PUT"
+		    request-channel="requests"
+		    async-request-factory="testRequestFactory"
+		    reply-timeout="1234"
+		    message-converters="converterList"
+		    extract-request-payload="false"
+		    expected-response-type="java.lang.String"
+		    mapped-request-headers="requestHeader1, requestHeader2"
+		    mapped-response-headers="responseHeader"
+		    error-handler="testErrorHandler"
+		    reply-channel="replies"
+		    charset="UTF-8"
+		    order="77"
+		    auto-startup="false"
+		    transfer-cookies="true">
+		<uri-variable name="foo" expression="headers.bar"/>
+	</outbound-async-gateway>
 
 	<util:map id="uriVariables">
 		<beans:entry key="foo1" value="bar1"/>
