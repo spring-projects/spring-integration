@@ -160,12 +160,18 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		assertFalse(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 99; i++) {
 			Object result = processor.processMessage(message);
 			Properties props = (Properties) result;
 			assertEquals("foo", props.getProperty("prop1"));
 			assertEquals("bar", props.getProperty("prop2"));
+			assertFalse(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
 		}
+
+		Object result = processor.processMessage(message);
+		Properties props = (Properties) result;
+		assertEquals("foo", props.getProperty("prop1"));
+		assertEquals("bar", props.getProperty("prop2"));
 
 		assertTrue(TestUtils.getPropertyValue(processor, "delegate.handlerMethod.spelOnly", Boolean.class));
 	}

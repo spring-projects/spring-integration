@@ -440,17 +440,18 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 			}
 			else if (e instanceof IllegalStateException) {
-				if (e.getCause() instanceof IllegalArgumentException
-						&& (!"argument type mismatch".equals(e.getCause().getMessage())
+				if (!(e.getCause() instanceof IllegalArgumentException) ||
+						!e.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
+						(!"argument type mismatch".equals(e.getCause().getMessage()) &&
 						// JVM generates GeneratedMethodAccessor### after several calls with less error checking
-						&& !e.getCause().getMessage().startsWith("java.lang.ClassCastException@"))) {
+						!e.getCause().getMessage().startsWith("java.lang.ClassCastException@"))) {
 					throw e;
 				}
 			}
 
 			Expression expression = handlerMethod.expression;
 
-			if (++handlerMethod.failedAttempts == FAILED_ATTEMPTS_THRESHOLD) {
+			if (++handlerMethod.failedAttempts >= FAILED_ATTEMPTS_THRESHOLD) {
 				handlerMethod.spelOnly = true;
 				if (logger.isInfoEnabled()) {
 					logger.info("Failed to invoke [ " + handlerMethod.invocableHandlerMethod +

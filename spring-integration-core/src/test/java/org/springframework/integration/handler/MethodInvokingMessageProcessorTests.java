@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -244,13 +245,13 @@ public class MethodInvokingMessageProcessorTests {
 	public void payloadAndHeaderAnnotationMethodParametersAndObjectAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndHeaderAndReturnObject");
-		Message<?> request = MessageBuilder.withPayload("testing").setHeader("number", new Integer(123)).build();
+		Message<?> request = MessageBuilder.withPayload("testing").setHeader("number", 123).build();
 		Object result = processor.processMessage(request);
 		assertEquals("testing-123", result);
 	}
 
 	@Test
-	public void testVoidMethodsIncludedbyDefault() {
+	public void testVoidMethodsIncludedByDefault() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"testVoidReturningMethods");
 		assertNull(processor.processMessage(MessageBuilder.withPayload("Something").build()));
@@ -271,8 +272,8 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		Object result = processor.processMessage(new GenericMessage<Integer>(new Integer(123)));
-		assertEquals(new Integer(123), result);
+		Object result = processor.processMessage(new GenericMessage<>(123));
+		assertEquals(123, result);
 	}
 
 	@Test
@@ -281,7 +282,7 @@ public class MethodInvokingMessageProcessorTests {
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		Object result = processor.processMessage(new GenericMessage<String>("456"));
-		assertEquals(new Integer(456), result);
+		assertEquals(456, result);
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -731,6 +732,33 @@ public class MethodInvokingMessageProcessorTests {
 
 		logger.warn(stopWatch.prettyPrint());
 		compilerConfigAccessor.setPropertyValue("compilerMode", SpelCompilerMode.OFF);
+	}
+
+
+	@Test
+	public void testNoSpElFallbackWhenUserException() {
+		class A {
+
+			@SuppressWarnings("unused")
+			public void myMethod(Object payload) {
+				throw new IllegalStateException(new IllegalArgumentException("argument type mismatch"));
+			}
+		}
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new A(), "myMethod");
+
+		try {
+			processor.processMessage(new GenericMessage<>("foo"));
+		}
+		catch (Exception e) {
+			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+			assertThat(e.getCause().getCause(), instanceOf(IllegalArgumentException.class));
+			assertEquals(A.class.getName(), e.getCause().getStackTrace()[0].getClassName());
+		}
+
+		assertEquals(0,
+				TestUtils.getPropertyValue(processor, "delegate.handlerMethod.failedAttempts"));
+
 	}
 
 	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
