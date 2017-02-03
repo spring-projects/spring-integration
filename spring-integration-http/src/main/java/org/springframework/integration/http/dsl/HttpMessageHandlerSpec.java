@@ -50,9 +50,7 @@ public class HttpMessageHandlerSpec
 	}
 
 	HttpMessageHandlerSpec(Expression uriExpression, RestTemplate restTemplate) {
-		this.target = new HttpRequestExecutingMessageHandler(uriExpression, restTemplate);
-		this.target.setUriVariableExpressions(this.uriVariableExpressions);
-		this.target.setHeaderMapper(this.headerMapper);
+		super(new HttpRequestExecutingMessageHandler(uriExpression, restTemplate));
 		this.restTemplate = restTemplate;
 	}
 

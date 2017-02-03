@@ -53,11 +53,17 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 		extends MessageHandlerSpec<S, E>
 		implements ComponentsRegistration {
 
-	protected final Map<String, Expression> uriVariableExpressions = new HashMap<>();
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
-	protected HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
+	private HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
 	private boolean headerMapperExplicitlySet;
+
+	public BaseHttpMessageHandlerSpec(E handler) {
+		this.target = handler;
+		this.target.setUriVariableExpressions(this.uriVariableExpressions);
+		this.target.setHeaderMapper(this.headerMapper);
+	}
 
 	S expectReply(boolean expectReply) {
 		this.target.setExpectReply(expectReply);

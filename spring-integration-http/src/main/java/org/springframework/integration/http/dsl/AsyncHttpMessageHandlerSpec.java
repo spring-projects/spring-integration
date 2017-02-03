@@ -46,9 +46,7 @@ public class AsyncHttpMessageHandlerSpec
 	}
 
 	AsyncHttpMessageHandlerSpec(Expression uriExpression, AsyncRestTemplate asyncRestTemplate) {
-		this.target = new AsyncHttpRequestExecutingMessageHandler(uriExpression, asyncRestTemplate);
-		this.target.setUriVariableExpressions(this.uriVariableExpressions);
-		this.target.setHeaderMapper(this.headerMapper);
+		super(new AsyncHttpRequestExecutingMessageHandler(uriExpression, asyncRestTemplate));
 		this.asyncRestTemplate = asyncRestTemplate;
 	}
 
