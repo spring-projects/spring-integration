@@ -886,6 +886,11 @@ public class MethodInvokingMessageProcessorTests {
 			return prop + num;
 		}
 
+		public String optionalAndRequiredDottedHeader(@Header(name = "dot1.foo", required = false) String prop,
+				@Header(name = "dot2.baz", required = true) Integer num) {
+			return prop + num;
+		}
+
 		public Properties propertiesMethod(Properties properties) {
 			return properties;
 		}
