@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
+import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 
 /**
  * An implementation of {@link AbstractInboundFileSynchronizer} for FTP.
@@ -41,7 +43,8 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	 */
 	public FtpInboundFileSynchronizer(SessionFactory<FTPFile> sessionFactory) {
 		super(sessionFactory);
-		setRemoteDirectoryExpression(new LiteralExpression(null));
+		doSetRemoteDirectoryExpression(new LiteralExpression(null));
+		doSetFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "ftpMessageSource"));
 	}
 
 	@Override

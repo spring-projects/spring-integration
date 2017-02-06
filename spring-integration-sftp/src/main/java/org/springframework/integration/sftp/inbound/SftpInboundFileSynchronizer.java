@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.sftp.inbound;
 
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
+import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
@@ -33,6 +35,7 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 
 	public SftpInboundFileSynchronizer(SessionFactory<LsEntry> sessionFactory) {
 		super(sessionFactory);
+		doSetFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpMessageSource"));
 	}
 
 

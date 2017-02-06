@@ -152,11 +152,14 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	/**
 	 * Specify an expression that evaluates to the full path to the remote directory.
-	 *
 	 * @param remoteDirectoryExpression The remote directory expression.
 	 * @since 4.2
 	 */
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		doSetRemoteDirectoryExpression(remoteDirectoryExpression);
+	}
+
+	protected final void doSetRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		Assert.notNull(remoteDirectoryExpression, "'remoteDirectoryExpression' must not be null");
 		this.remoteDirectoryExpression = remoteDirectoryExpression;
 	}
@@ -166,6 +169,10 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 * @param filter the file list filter.
 	 */
 	public void setFilter(FileListFilter<F> filter) {
+		doSetFilter(filter);
+	}
+
+	public void doSetFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
 

@@ -345,6 +345,8 @@ This filter matches on the filename and the remote modified time.
 Since _version 4.0_, this filter requires a `ConcurrentMetadataStore`.
 When used with a shared data store (such as `Redis` with the `RedisMetadataStore`) this allows filter keys to be shared across multiple application or server instances.
 
+Starting with _version 5.0_, the `SftpPersistentAcceptOnceFileListFilter` with in-memory `SimpleMetadataStore` is applied by default for the `SftpInboundFileSynchronizer`.
+
 The above discussion refers to filtering the files before retrieving them.
 Once the files have been retrieved, an additional filter is applied to the files on the file system.
 By default, this is an`AcceptOnceFileListFilter` which, as discussed, retains state in memory and does not consider the file's modified time.
