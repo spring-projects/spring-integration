@@ -569,12 +569,10 @@ See <<file-splitter>> and <<stream-transformer>> for more information about thes
 
 Only one of `filename-pattern`, `filename-regex`, `filter` or `filter-expression` is allowed.
 
-IMPORTANT: Unlike the non-streaming inbound channel adapter, this adapter does not prevent duplicates by default.
-If you do not delete the remote file (e.g. using an outbound gateway with an rm command) and you wish to prevent the
-file being processed again, you can configure an `SftpPersistentFileListFilter` in the `filter` attribute.
-If you don't actually want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
+IMPORTANT: Starting with _version 5.0_, by default, the `SftpStreamingMessageSource` adapter prevents duplicates for remote files via `SftpPersistentFileListFilter` based on the in-memory `SimpleMetadataStore`.
 If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
-The java configuration below shows one technique to remove the remote file after processing.
+If there is a requirement to allow duplicates, the `AcceptAllFileListFilter` can be used.
+The java configuration below shows one technique to remove the remote file after processing, avoiding duplicates.
 
 Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment.
 
@@ -601,10 +599,9 @@ public class SftpJavaApplication {
     @Bean
     @InboundChannelAdapter(channel = "stream")
     public MessageSource<InputStream> ftpMessageSource() {
-        SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(), null);
+        SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template());
         messageSource.setRemoteDirectory("sftpSource/");
-        messageSource.setFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(),
-                           "streaming"));
+        messageSource.setFilter(new AcceptAllFileListFilter<>());
         messageSource.setMaxFetchSize(1);
         return messageSource;
     }

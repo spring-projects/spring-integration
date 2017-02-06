@@ -94,7 +94,10 @@ See <<ftp-inbound>> and <<sftp-inbound>> for more information.
 
 The regex and pattern filters can now be configured to always pass directories.
 This can be useful when using recursion in the outbound gateways.
-See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
+
+All the Inbound Channel Adapters (streaming and synchronization-based) now use an appropriate `AbstractPersistentAcceptOnceFileListFilter` implementation by default to prevent remote files duplicate downloads.
+
+See <<ftp>> and <<sftp>> for more information.
 
 The FTP and SFTP outbound gateways now support the `REPLACE_IF_MODIFIED` `FileExistsMode` when fetching remote files.
 See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
