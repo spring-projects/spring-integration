@@ -26,14 +26,20 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Iterator;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpStreamingMessageSource;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
@@ -76,7 +82,16 @@ public class SftpStreamingInboundChannelAdapterParserTests {
 
 		assertNotNull(TestUtils.getPropertyValue(source, "comparator"));
 		assertThat(TestUtils.getPropertyValue(source, "remoteFileSeparator", String.class), equalTo("X"));
-		assertThat(TestUtils.getPropertyValue(source, "filter"), instanceOf(SftpSimplePatternFileListFilter.class));
+
+		FileListFilter<?> filter = TestUtils.getPropertyValue(source, "filter", FileListFilter.class);
+		assertNotNull(filter);
+		assertThat(filter, instanceOf(CompositeFileListFilter.class));
+		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters", Set.class);
+
+		Iterator<?> filtersIterator = fileFilters.iterator();
+		assertThat(filtersIterator.next(), instanceOf(SftpSimplePatternFileListFilter.class));
+		assertThat(filtersIterator.next(), instanceOf(SftpPersistentAcceptOnceFileListFilter.class));
+
 		assertSame(this.csf, TestUtils.getPropertyValue(source, "remoteFileTemplate.sessionFactory"));
 		assertEquals(31, TestUtils.getPropertyValue(source, "maxFetchSize"));
 

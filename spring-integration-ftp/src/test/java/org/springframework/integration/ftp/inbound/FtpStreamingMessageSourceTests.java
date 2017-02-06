@@ -39,6 +39,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.filters.AcceptAllFileListFilter;
 import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
@@ -128,6 +129,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		public MessageSource<InputStream> ftpMessageSource() {
 			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(),
 					Comparator.comparing(FileInfo::getFilename));
+			messageSource.setFilter(new AcceptAllFileListFilter<>());
 			messageSource.setRemoteDirectory("ftpSource/");
 			return messageSource;
 		}

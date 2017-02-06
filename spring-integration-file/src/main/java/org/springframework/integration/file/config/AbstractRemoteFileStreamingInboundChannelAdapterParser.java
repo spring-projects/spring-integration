@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.util.StringUtils;
@@ -33,6 +34,8 @@ import org.springframework.util.StringUtils;
  * Abstract base class for parsing remote file streaming inbound channel adapters.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  */
 public abstract class AbstractRemoteFileStreamingInboundChannelAdapterParser
@@ -56,7 +59,7 @@ public abstract class AbstractRemoteFileStreamingInboundChannelAdapterParser
 		String remoteFileSeparator = element.getAttribute("remote-file-separator");
 		messageSourceBuilder.addPropertyValue("remoteFileSeparator", remoteFileSeparator);
 		FileParserUtils.configureFilter(messageSourceBuilder, element, parserContext,
-				getSimplePatternFileListFilterClass(), getRegexPatternFileListFilterClass());
+				getSimplePatternFileListFilterClass(), getRegexPatternFileListFilterClass(), getPersistentAcceptOnceFileListFilterClass());
 
 		String comparator = element.getAttribute("comparator");
 		if (StringUtils.hasText(comparator)) {
@@ -73,5 +76,7 @@ public abstract class AbstractRemoteFileStreamingInboundChannelAdapterParser
 	protected abstract Class<? extends FileListFilter<?>> getSimplePatternFileListFilterClass();
 
 	protected abstract Class<? extends FileListFilter<?>> getRegexPatternFileListFilterClass();
+
+	protected abstract Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>> getPersistentAcceptOnceFileListFilterClass();
 
 }

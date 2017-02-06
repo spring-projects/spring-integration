@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,16 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.session.FtpFileInfo;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 
 /**
  * Message source for streaming FTP remote file contents.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -42,7 +46,7 @@ public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 	 * @param template the template.
 	 */
 	public FtpStreamingMessageSource(RemoteFileTemplate<FTPFile> template) {
-		super(template, null);
+		this(template, null);
 	}
 
 	/**
@@ -55,6 +59,7 @@ public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 	public FtpStreamingMessageSource(RemoteFileTemplate<FTPFile> template,
 			Comparator<AbstractFileInfo<FTPFile>> comparator) {
 		super(template, comparator);
+		doSetFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "ftpStreamingMessageSource"));
 	}
 
 	@Override

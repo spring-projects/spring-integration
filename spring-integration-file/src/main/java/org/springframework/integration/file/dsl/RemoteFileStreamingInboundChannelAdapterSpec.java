@@ -25,7 +25,6 @@ import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
@@ -48,8 +47,6 @@ public abstract class RemoteFileStreamingInboundChannelAdapterSpec<F,
 		MS extends AbstractRemoteFileStreamingMessageSource<F>>
 		extends MessageSourceSpec<S, MS>
 		implements ComponentsRegistration {
-
-	private CompositeFileListFilter<F> filter;
 
 	private ExpressionFileListFilter<F> expressionFileListFilter;
 
@@ -101,19 +98,7 @@ public abstract class RemoteFileStreamingInboundChannelAdapterSpec<F,
 	 * @return the spec.
 	 */
 	public S filter(FileListFilter<F> filter) {
-		if (this.filter == null) {
-			if (filter instanceof CompositeFileListFilter) {
-				this.filter = (CompositeFileListFilter<F>) filter;
-			}
-			else {
-				this.filter = new CompositeFileListFilter<F>();
-				this.filter.addFilter(filter);
-			}
-			this.target.setFilter(this.filter);
-		}
-		else {
-			this.filter.addFilter(filter);
-		}
+		this.target.setFilter(filter);
 		return _this();
 	}
 
