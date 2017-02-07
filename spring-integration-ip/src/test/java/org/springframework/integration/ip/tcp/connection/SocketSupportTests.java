@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.Matchers.anyOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -424,7 +425,10 @@ Certificate fingerprints:
 		}
 		catch (IOException e) {
 			if (!(e instanceof ClosedChannelException)) {
-				assertThat(e.getMessage(), containsString("Socket closed during SSL Handshake"));
+				assertThat(e.getMessage(),
+						anyOf(
+								containsString("Socket closed during SSL Handshake"),
+								containsString("Broken pipe")));
 			}
 		}
 	}
@@ -442,7 +446,7 @@ Certificate fingerprints:
 						sslEngine.setNeedClientAuth(true);
 					}
 
-		};
+				};
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);

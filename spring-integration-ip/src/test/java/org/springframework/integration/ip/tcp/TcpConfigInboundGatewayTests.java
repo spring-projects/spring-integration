@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
@@ -30,6 +29,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -162,7 +162,7 @@ public class TcpConfigInboundGatewayTests {
 		crLfGuts(socket);
 	}
 
-	private void crLfGuts(Socket socket) throws SocketException, IOException {
+	private void crLfGuts(Socket socket) throws IOException {
 		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
 		socket.getOutputStream().write((greetings + "\r\n").getBytes());
@@ -192,7 +192,7 @@ public class TcpConfigInboundGatewayTests {
 		stxEtxGuts(socket);
 	}
 
-	private void stxEtxGuts(Socket socket) throws SocketException, IOException {
+	private void stxEtxGuts(Socket socket) throws IOException {
 		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
 		socket.getOutputStream().write(ByteArrayStxEtxSerializer.STX);
@@ -227,8 +227,7 @@ public class TcpConfigInboundGatewayTests {
 		serializedGuts(socket);
 	}
 
-	private void serializedGuts(Socket socket) throws SocketException,
-			IOException, ClassNotFoundException {
+	private void serializedGuts(Socket socket) throws IOException, ClassNotFoundException {
 		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
 		new ObjectOutputStream(socket.getOutputStream()).writeObject(greetings);
@@ -250,7 +249,7 @@ public class TcpConfigInboundGatewayTests {
 		lengthGuts(socket);
 	}
 
-	private void lengthGuts(Socket socket) throws SocketException, IOException {
+	private void lengthGuts(Socket socket) throws IOException {
 		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
 		byte[] header = new byte[4];
@@ -300,4 +299,5 @@ public class TcpConfigInboundGatewayTests {
 	public static void shutDown() {
 		staticContext.close();
 	}
+
 }
