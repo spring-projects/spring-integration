@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -32,7 +33,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
@@ -42,6 +46,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.SpelCompilerMode;
@@ -54,7 +59,9 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
@@ -760,6 +767,37 @@ public class MethodInvokingMessageProcessorTests {
 				TestUtils.getPropertyValue(processor, "delegate.handlerMethod.failedAttempts"));
 
 	}
+
+	@Test
+	public void testProxyInvocation() {
+		final AtomicReference<Object> result = new AtomicReference<>();
+
+		class MyHandler implements MessageHandler {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				result.set(message.getPayload());
+			}
+
+		}
+
+		MessageHandler service = new MyHandler();
+		final AtomicBoolean adviceCalled = new AtomicBoolean();
+		ProxyFactory proxyFactory = new ProxyFactory(service);
+		proxyFactory.addAdvice((MethodInterceptor) i -> {
+			adviceCalled.set(true);
+			return i.proceed();
+		});
+		service = (MessageHandler) proxyFactory.getProxy(getClass().getClassLoader());
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, "handleMessage");
+
+		processor.processMessage(new GenericMessage<>("foo"));
+
+		assertEquals("foo", result.get());
+		assertTrue(adviceCalled.get());
+	}
+
 
 	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
 		// Update the parser configuration compiler mode

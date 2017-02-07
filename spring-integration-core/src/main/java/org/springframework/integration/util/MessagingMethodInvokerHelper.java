@@ -527,6 +527,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 			HandlerMethod handlerMethod1;
 			try {
+				method1 = org.springframework.util.ClassUtils.getMostSpecificMethod(method1, targetObject.getClass());
 				InvocableHandlerMethod invocableHandlerMethod =
 						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, method1);
 				handlerMethod1 = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
@@ -626,9 +627,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 			}
 			if (frameworkMethods.size() == 1) {
+				Method method = org.springframework.util.ClassUtils.getMostSpecificMethod(frameworkMethods.get(0),
+						targetObject.getClass());
 				InvocableHandlerMethod invocableHandlerMethod =
 						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject,
-								frameworkMethods.get(0));
+								method);
 				HandlerMethod handlerMethod = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
 				handlerMethods.put(CANDIDATE_METHODS, Collections.singletonMap(Object.class, handlerMethod));
 				handlerMethods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
@@ -671,6 +674,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 			Method method = targetMethod.get();
 			if (method != null) {
+				method = org.springframework.util.ClassUtils.getMostSpecificMethod(method, targetObject.getClass());
 				InvocableHandlerMethod invocableHandlerMethod =
 						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, method);
 				HandlerMethod handlerMethod = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
