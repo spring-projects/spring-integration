@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,12 +74,12 @@ import org.springframework.util.StringUtils;
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
 		InitializingBean, SmartInitializingSingleton {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
+	protected final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
 
-	private final MultiValueMap<String, String> lazyLifecycleRoles = new LinkedMultiValueMap<String, String>();
+	protected final MultiValueMap<String, String> lazyLifecycleRoles = new LinkedMultiValueMap<String, String>();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
