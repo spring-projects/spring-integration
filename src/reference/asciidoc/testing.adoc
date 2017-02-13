@@ -1,0 +1,294 @@
+[[testing]]
+== Testing support
+
+Spring Integration provides a number of utilities and annotations to help when testing your application.
+Test support is presented by two modules: `spring-integration-test-support` which contains core items and shared utilities, and `spring-integration-test` which provides mocking and application context configuration components for integration tests.
+
+`spring-integration-test-support` (`spring-integration-test` in versions before _5.0_) provides basic, standalone utilities, rules and matchers for unit testing (it also has no dependencies on Spring Integration itself, and is used internally in Framework tests). `spring-integration-test` is aimed to help with integration testing and provides a comprehensive high level API to mock integration components and verify behavior of individual components, including whole integration flows or just parts thereof.
+A thorough treatment of testing in the enterprise is beyond the scope of this reference manual.
+See the http://www.enterpriseintegrationpatterns.com/docs/TestDrivenEAI.pdf[Test-Driven Development in Enterprise Integration Projects] paper, by Gregor Hohpe and Wendy Istvanick, for a source of ideas and principles for testing your target integration solution.
+
+[[testing-intro]]
+=== Introduction
+
+The Spring Integration Test Framework and test utilities are fully based on existing JUnit, Hamcrest and Mockito libraries.
+The Application Context interaction is based on the http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/htmlsingle/#testing[Spring Test Framework].
+Please, refer to the documentation for those projects for further information.
+
+Thanks to the canonical implementation of the EIP in Spring Integration Framework and its first class citizens like `MessageChannel`, `Endpoint` and `MessageHandler` abstractions and supported out-of-the-box loose coupling principles, we can implement integration solutions of any complexity.
+With the Spring Integration API for the flow definitions, we can improve, modify or even replace some part of the flow without impacting (mostly) other components in the integration solution.
+Testing such an integration solution is still a challenge, from an __end-to-end__ perspective, as well as with an __in-isolation__ approach.
+There are several existing tools which help to test or mock some integration protocols and they work very well with Spring Integration Channel Adapters; examples include:
+
+- Spring `MockMVC` and its `MockRestServiceServer` for HTTP;
+- Some RDBMS vendors provide embedded data bases for JDBC or JPA support;
+- ActiveMQ can be embedded for testing JMS or STOMP protocols;
+- There are tools for embedded MongoDB and Redis;
+- Tomcat and Jetty have embedded libraries to test real HTTP, Web Services or WebSockets;
+- The `FtpServer` and `SshServer` from the Apache Mina project can be used for testing (S)FTP protocols;
+- Gemfire and Hazelcast can be run as real data grid nodes in the tests;
+- The Curator Framework provides a `TestingServer` for Zookeeper interaction;
+- Apache Kafka provides admin tools to embed a Kafka Broker in the tests.
+
+Most of these tools and libraries are used in Spring Integration tests and from the GitHub https://github.com/spring-projects/spring-integration[repository], in the `test` directory of each module, you can discover ideas how to build your own tests for integration solutions.
+
+The rest of this chapter describes the testing tools and utilities provided by the Spring Integration Framework.
+
+[[testing-utilities]]
+=== Testing Utilities
+
+The `spring-integration-test-support` module provides utilities and helpers for unit testing.
+
+==== TestUtils
+
+The `TestUtils` class is mostly used for properties assertions in JUnit tests:
+[source,java]
+----
+@Test
+public void loadBalancerRef() {
+    MessageChannel channel = channels.get("lbRefChannel");
+    LoadBalancingStrategy lbStrategy = TestUtils.getPropertyValue(channel,
+                 "dispatcher.loadBalancingStrategy", LoadBalancingStrategy.class);
+    assertTrue(lbStrategy instanceof SampleLoadBalancingStrategy);
+}
+----
+
+`TestUtils.getPropertyValue()` is based on Spring's `DirectFieldAccessor` and provides the ability to get a value from the target private property.
+As you see by the example above it also supports nested properties access, using dotted notation.
+
+The `createTestApplicationContext()` factory method produce a `TestApplicationContext` instance with the supplied Spring Integration environment.
+
+See the JavaDocs of other `TestUtils` methods for more information about this class.
+
+==== SocketUtils
+
+The `SocketUtils` provides several methods to select a random port(s) for exposing server-side components without conflicts:
+
+[source,xml]
+----
+<bean id="socketUtils" class="org.springframework.integration.test.util.SocketUtils" />
+
+<int-syslog:inbound-channel-adapter id="syslog"
+            channel="sysLogs"
+            port="#{socketUtils.findAvailableUdpSocket(1514)}" />
+
+<int:channel id="sysLogs">
+    <int:queue/>
+</int:channel>
+----
+
+Which is used from the unit test as:
+
+[source,java]
+----
+@Autowired @Qualifier("syslog.adapter")
+private UdpSyslogReceivingChannelAdapter adapter;
+
+@Autowired
+private PollableChannel sysLogs;
+...
+@Test
+public void testSimplestUdp() throws Exception {
+    int port = TestUtils.getPropertyValue(adapter1, "udpAdapter.port", Integer.class);
+    byte[] buf = "<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE".getBytes("UTF-8");
+    DatagramPacket packet = new DatagramPacket(buf, buf.length,
+                              new InetSocketAddress("localhost", port));
+    DatagramSocket socket = new DatagramSocket();
+    socket.send(packet);
+    socket.close();
+    Message<?> message = foo.receive(10000);
+    assertNotNull(message);
+}
+----
+
+NOTE: This tecnique is not foolproof; some other process could be allocated the "free" port before your test opens it.
+It is generally more preferable to use a server port `0` and let the operating system select the port for you, then discover the selected port in your test.
+We have converted most framework tests to use this preferred technique.
+
+==== OnlyOnceTrigger
+
+The `OnlyOnceTrigger` is useful for polling endpoints when it is good to produce only one test message and verify the behavior without impacting of unexpected other period messages:
+
+[source,xml]
+----
+<bean id="testTrigger" class="org.springframework.integration.test.util.OnlyOnceTrigger" />
+
+<int:poller id="jpaPoller" trigger="testTrigger">
+    <int:transactional transaction-manager="transactionManager" />
+</int:poller>
+----
+
+[source,java]
+----
+@Autowired
+@Qualifier("jpaPoller")
+PollerMetadata poller;
+
+@Autowired
+OnlyOnceTrigger testTrigger;
+...
+@Test
+@DirtiesContext
+public void testWithEntityClass() throws Exception {
+    this.testTrigger.reset();
+    ...
+    JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
+
+    SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
+    		jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context,
+    		this.getClass().getClassLoader());
+    adapter.start();
+    ...
+}
+----
+
+==== Support Components
+
+The `org.springframework.integration.test.support` package contains various abstract classes which should be implemented in target tests.
+See their JavaDocs for more information.
+
+==== Hamcrest and Mockito Matchers
+
+The `org.springframework.integration.test.matcher` package contains several `Matcher` implementations to assert `Message` and its properties in unit tests:
+[source,java]
+----
+import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
+...
+@Test
+public void transform_withFilePayload_convertedToByteArray() throws Exception {
+    Message<?> result = this.transformer.transform(message);
+    assertThat(result, is(notNullValue()));
+    assertThat(result, hasPayload(is(instanceOf(byte[].class))));
+    assertThat(result, hasPayload(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING)));
+}
+----
+
+The `MockitoMessageMatchers` factory can be used for mocks stubbing and verifications:
+
+[source,java]
+----
+static final Date SOME_PAYLOAD = new Date();
+
+static final String SOME_HEADER_VALUE = "bar";
+
+static final String SOME_HEADER_KEY = "test.foo";
+...
+Message<?> message = MessageBuilder.withPayload(SOME_PAYLOAD)
+                .setHeader(SOME_HEADER_KEY, SOME_HEADER_VALUE)
+                .build();
+MessageHandler handler = mock(MessageHandler.class);
+handler.handleMessage(message);
+verify(handler).handleMessage(messageWithPayload(SOME_PAYLOAD));
+verify(handler).handleMessage(messageWithPayload(is(instanceOf(Date.class))));
+...
+MessageChannel channel = mock(MessageChannel.class);
+when(channel.send(messageWithHeaderEntry(SOME_HEADER_KEY, is(instanceOf(Short.class)))))
+        .thenReturn(true);
+assertThat(channel.send(message), is(false));
+----
+
+Additional utilities will eventually be added or migrated.
+For example `RemoteFileTestSupport` implementations for the (S)FTP tests can be moved from the `test` directory of those particular modules to this `spring-integration-test-support` artifact.
+
+[[test-context]]
+=== Spring Integration and test context
+
+Typically, tests for Spring applications use the Spring Test Framework and since Spring Integration is based on the Spring Framework foundation, everything we can do with the Spring Test Framework is applied as well when testing integration flows.
+The `org.springframework.integration.test.context` package provides some components for enhancing the test context for integration needs.
+First of all we configure our test class with a `@SpringIntegrationTest` annotation to enable the Spring Integration Test Framework:
+
+[source,java]
+----
+@RunWith(SpringRunner.class)
+@SpringIntegrationTest(noAutoStartup = {"inboundChannelAdapter", "*Source*"})
+public class MyIntegrationTests {
+
+    @Autowired
+    private MockIntegrationContext mockIntegrationContext;
+
+}
+----
+
+The `@SpringIntegrationTest` annotation populates a `MockIntegrationContext` bean which can be autowired to the test class to access its methods.
+With the provided `noAutoStartup` option, the Spring Integration Test Framework prevents endpoints that are normally `autoStartup=true` from starting. The endpoints are matched to the provided patterns, which support the following simple pattern styles: `xxx*`, `*xxx`, `*xxx*` and `xxx*yyy`.
+
+This is useful, when we would like to not have real connections to the target systems from Inbound Channel Adapters, for example an AMQP Inbound Gateway, JDBC Polling Channel Adapter, WebSocket Message Producer in client mode etc.
+
+The `MockIntegrationContext` is aimed to be used in the target test-cases for modifications to beans in the real application context, for example those endpoints that have `autoStartup` overridden to false can be replaced with mocks:
+
+[source,java]
+----
+@Test
+public void testMockMessageSource() {
+    MessageSource<String> messageSource = () -> new GenericMessage<>("foo");
+
+    this.mockIntegrationContext.instead("mySourceEndpoint", messageSource);
+
+    Message<?> receive = this.results.receive(10_000);
+    assertNotNull(receive);
+}
+----
+
+See their JavaDocs for more information.
+
+[[testing-mocks]]
+=== Integration Mocks
+
+The `org.springframework.integration.test.mock` package offers tools and utilities for mocking, stubbing and verification of activity on Spring Integration components.
+The mocking functionality is fully based and compatible with the well known Mockito Framework.
+(The current Mockito transitive dependency is of _version 2.5.x_.)
+
+==== MockIntegration
+
+The `MockIntegration` factory provides an API to build mocks for Spring Integration beans which are parts of the integration flow - `MessageSource`, `MessageProducer`, `MessageHandler`, `MessageChannel`.
+The target mocks can be used during configuration phase:
+
+[source,xml]
+----
+<int:inbound-channel-adapter id="inboundChannelAdapter" channel="results">
+    <bean class="org.springframework.integration.test.mock.MockIntegration" factory-method="mockMessageSource">
+        <constructor-arg value="a"/>
+        <constructor-arg>
+            <array>
+                <value>b</value>
+                <value>c</value>
+            </array>
+        </constructor-arg>
+    </bean>
+</int:inbound-channel-adapter>
+----
+
+[source,java]
+----
+@InboundChannelAdapter(channel = "results")
+@Bean
+public MessageSource<Integer> testingMessageSource() {
+    return MockIntegration.mockMessageSource(1, 2, 3);
+}
+...
+StandardIntegrationFlow flow = IntegrationFlows
+        .from(MockIntegration.mockMessageSource("foo", "bar", "baz"))
+        .<String, String>transform(String::toUpperCase)
+        .channel(out)
+        .get();
+IntegrationFlowRegistration registration = this.integrationFlowContext.registration(flow)
+        .register();
+----
+
+as well as in the target test method to replace the real endpoints before performing verifications and assertions.
+For this purpose, the aforementioned `MockIntegrationContext` should be used from the test:
+
+[source,java]
+----
+this.mockIntegrationContext.instead("mySourceEndpoint",
+        MockIntegration.mockMessageSource("foo", "bar", "baz"));
+Message<?> receive = this.results.receive(10_000);
+assertNotNull(receive);
+assertEquals("FOO", receive.getPayload());
+----
+
+[[testing-other-resources]]
+=== Other Resources
+
+As well as exploring the test cases in the framework itself, the https://github.com/spring-projects/spring-integration-samples[spring-integration-samples repository] has some sample apps specifically around testing, such as `testing-examples` and `advanced-testing-examples`.
+In some cases, the samples themselves have comprehensive end-to-end tests, such as the `file-split-ftp` sample.

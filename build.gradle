@@ -157,8 +157,8 @@ subprojects { subproject ->
 
 	// dependencies that are common across all java projects
 	dependencies {
-		if (!(subproject.name ==~ /.*-test/)) {
-			testCompile project(":spring-integration-test")
+		if (!(subproject.name ==~ /.*-test.*/)) {
+			testCompile project(":spring-integration-test-support")
 		}
 
 		testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
@@ -256,7 +256,7 @@ subprojects { subproject ->
 	build.dependsOn jacocoTestReport
 }
 
-project('spring-integration-test') {
+project('spring-integration-test-support') {
 	description = 'Spring Integration Test Support - **No SI Dependencies Allowed**'
 	dependencies {
 		compile ("junit:junit:$junitVersion") {
@@ -609,6 +609,14 @@ project('spring-integration-syslog') {
 	description = 'Spring Integration Syslog Support'
 	dependencies {
 		compile project(":spring-integration-ip")
+	}
+}
+
+project('spring-integration-test') {
+	description = 'Spring Integration Testing Framework'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile project(":spring-integration-test-support")
 	}
 }
 
