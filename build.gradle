@@ -157,7 +157,7 @@ subprojects { subproject ->
 
 	// dependencies that are common across all java projects
 	dependencies {
-		if (!(subproject.name ==~ /.*-test/)) {
+		if (!(subproject.name ==~ /.*-[test|mock]/)) {
 			testCompile project(":spring-integration-test")
 		}
 
@@ -498,6 +498,14 @@ project('spring-integration-mail') {
 
 	// suppress javax.activation path warnings
 	[compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
+}
+
+project('spring-integration-mock') {
+	description = 'Spring Integration Mocks for Testing'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile project(":spring-integration-test")
+	}
 }
 
 project('spring-integration-mongodb') {
