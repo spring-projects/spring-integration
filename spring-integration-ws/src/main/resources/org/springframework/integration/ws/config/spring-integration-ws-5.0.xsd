@@ -100,6 +100,20 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="web-service-template" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a WebServiceTemplate instance.
+						The WebServiceTemplate-specific options like 'message-sender(s)', 'interceptor(s)',
+						'fault-message-resolver' and 'message-factory' must be declared on that instance.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.ws.client.core.WebServiceTemplate"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="uri" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
