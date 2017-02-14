@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -290,9 +290,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				inputChannel = this.channelResolver.resolveDestination(inputChannelName);
 			}
 			catch (DestinationResolutionException e) {
-				inputChannel = new DirectChannel();
-				this.beanFactory.registerSingleton(inputChannelName, inputChannel);
-				inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
+				if (e.getCause() instanceof NoSuchBeanDefinitionException) {
+					inputChannel = new DirectChannel();
+					this.beanFactory.registerSingleton(inputChannelName, inputChannel);
+					inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
+				}
+				else {
+					throw e;
+				}
 			}
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 
@@ -301,7 +306,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return endpoint;
 	}
 
-	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel, List<Annotation> annotations) {
+	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,
+			List<Annotation> annotations) {
 		AbstractEndpoint endpoint;
 		if (inputChannel instanceof PollableChannel) {
 			PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) inputChannel, handler);
