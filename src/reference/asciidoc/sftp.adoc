@@ -58,7 +58,7 @@ If the cache is reset, the session is disconnected only when the last channel is
 The connection will be refreshed if it is found to be disconnected when a new operation obtains a session.
 =====
 
-NOTE: If you experience connectivity problems and would like to trace Session creation as well as see which Sessions are polled you may enable it by setting the logger to TRACE level (e.g., log4j.category.org.springframework.integration.file=TRACE).
+NOTE: If you experience connectivity problems and would like to trace Session creation as well as see which Sessions are polled you may enable it by setting the logger to TRACE level (e.g., log4j.category.org.springframework.integration.sftp=TRACE).
 Please also see <<sftp-jsch-logging>>.
 
 Now all you need to do is inject this _SFTP Session Factory_ into your adapters.
