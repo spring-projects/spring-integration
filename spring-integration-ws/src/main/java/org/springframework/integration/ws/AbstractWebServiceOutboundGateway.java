@@ -60,8 +60,6 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private final WebServiceTemplate webServiceTemplate;
-
 	private final String uri;
 
 	private final DestinationProvider destinationProvider;
@@ -72,11 +70,15 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private volatile WebServiceMessageCallback requestCallback;
 
+	private WebServiceTemplate webServiceTemplate;
+
 	private volatile boolean ignoreEmptyResponses = true;
 
 	private volatile boolean encodeUri = true;
 
 	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
+
+	private boolean webServiceTemplateExplicitlySet;
 
 	public AbstractWebServiceOutboundGateway(final String uri, WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
@@ -137,7 +139,15 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.ignoreEmptyResponses = ignoreEmptyResponses;
 	}
 
+	public void setWebServiceTemplate(WebServiceTemplate webServiceTemplate) {
+		Assert.notNull(webServiceTemplate, "'webServiceTemplate' must not be null");
+		this.webServiceTemplate = webServiceTemplate;
+		this.webServiceTemplateExplicitlySet = true;
+	}
+
 	public void setMessageFactory(WebServiceMessageFactory messageFactory) {
+		Assert.state(!this.webServiceTemplateExplicitlySet,
+				() -> "'messageFactory' must be specified on the provided: " + this.webServiceTemplate);
 		this.webServiceTemplate.setMessageFactory(messageFactory);
 	}
 
@@ -146,18 +156,26 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	public void setFaultMessageResolver(FaultMessageResolver faultMessageResolver) {
+		Assert.state(!this.webServiceTemplateExplicitlySet,
+				() -> "'faultMessageResolver' must be specified on the provided: " + this.webServiceTemplate);
 		this.webServiceTemplate.setFaultMessageResolver(faultMessageResolver);
 	}
 
 	public void setMessageSender(WebServiceMessageSender messageSender) {
+		Assert.state(!this.webServiceTemplateExplicitlySet,
+				() -> "'messageSender' must be specified on the provided: " + this.webServiceTemplate);
 		this.webServiceTemplate.setMessageSender(messageSender);
 	}
 
 	public void setMessageSenders(WebServiceMessageSender... messageSenders) {
+		Assert.state(!this.webServiceTemplateExplicitlySet,
+				() -> "'messageSenders' must be specified on the provided: " + this.webServiceTemplate);
 		this.webServiceTemplate.setMessageSenders(messageSenders);
 	}
 
 	public void setInterceptors(ClientInterceptor... interceptors) {
+		Assert.state(!this.webServiceTemplateExplicitlySet,
+				() -> "'interceptors' must be specified on the provided: " + this.webServiceTemplate);
 		this.webServiceTemplate.setInterceptors(interceptors);
 	}
 

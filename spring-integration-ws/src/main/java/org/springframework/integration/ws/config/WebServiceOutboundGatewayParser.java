@@ -56,7 +56,7 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		String uri = element.getAttribute("uri");
 		String destinationProvider = element.getAttribute("destination-provider");
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
-		if (!(StringUtils.hasText(destinationProvider) ^ StringUtils.hasText(uri))) {
+		if (StringUtils.hasText(destinationProvider) == StringUtils.hasText(uri)) {
 			parserContext.getReaderContext().error(
 					"Exactly one of 'uri' or 'destination-provider' is required.", element);
 		}
@@ -74,7 +74,8 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 				for (Element uriVariableElement : uriVariableElements) {
 					String name = uriVariableElement.getAttribute("name");
 					String expression = uriVariableElement.getAttribute("expression");
-					BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+					BeanDefinitionBuilder factoryBeanBuilder =
+							BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
 					factoryBeanBuilder.addConstructorArgValue(expression);
 					uriVariableExpressions.put(name, factoryBeanBuilder.getBeanDefinition());
 				}
@@ -112,11 +113,21 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 				builder.addConstructorArgValue(null);
 			}
 		}
+
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-callback");
+
+		String webServiceTemplateRef = element.getAttribute("web-service-template");
+
+		if (StringUtils.hasText(webServiceTemplateRef)) {
+			builder.addPropertyReference("webServiceTemplate", webServiceTemplateRef);
+			return;
+		}
+
 		String messageFactoryRef = element.getAttribute("message-factory");
 		if (StringUtils.hasText(messageFactoryRef)) {
 			builder.addConstructorArgReference(messageFactoryRef);
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-callback");
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "fault-message-resolver");
 
 		String messageSenderRef = element.getAttribute("message-sender");
