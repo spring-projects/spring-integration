@@ -125,3 +125,9 @@ The STOMP module has been changed to use `ReactorNettyTcpStompClient`, based on 
 The `Reactor2TcpStompSessionManager` has been renamed to the `ReactorNettyTcpStompSessionManager` according to the `ReactorNettyTcpStompClient` foundation.
 
 See <<stomp>> for more information.
+
+==== Web Services Changes
+
+The `WebServiceOutboundGateway` s can now be supplied with externally configured `WebServiceTemplate` instances.
+
+See <<ws>> for more information.

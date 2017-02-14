@@ -21,7 +21,9 @@ Internally, the parser will configure a fixed URI `DestinationProvider` implemen
 If you do need dynamic resolution of the URI at runtime, however, then the `DestinationProvider` can provide such behavior as looking up the URI from a registry.
 See the Spring Web Services http://docs.spring.io/spring-ws/docs/current/api/org/springframework/ws/client/support/destination/DestinationProvider.html[DestinationProvider] JavaDoc for more information about this strategy.
 
-For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/client.html[client access] as well as the chapter covering http://static.springframework.org/spring-ws/site/reference/html/oxm.html[Object/XML mapping].
+Starting with _version 5.0_ the `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway` can be supplied with an external `WebServiceTemplate` instance, which may be configured for any custom properties, including `checkConnectionForFault` allowing to deal with non-conforming services.
+
+For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/client.html[client access] as well as the chapter covering http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[Object/XML mapping].
 
 [[webservices-inbound]]
 === Inbound Web Service Gateways
@@ -124,6 +126,8 @@ For either outbound gateway type, the "message-factory" attribute can also be co
 
 For the simple inbound gateway type, the "extract-payload" attribute can be set to false to forward the entire `WebServiceMessage` instead of just its payload as a `Message` to the request channel.
 This might be useful, for example, when a custom Transformer works against the `WebServiceMessage` directly.
+
+Starting with _version 5.0_ the `web-service-template` reference attribute is presented for injection a `WebServiceTemplate` with any possible custom properties.
 
 [[outbound-uri]]
 === Outbound URI Configuration
