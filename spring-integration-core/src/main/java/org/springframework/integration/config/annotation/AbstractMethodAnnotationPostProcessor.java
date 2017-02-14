@@ -292,9 +292,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				inputChannel = this.channelResolver.resolveDestination(inputChannelName);
 			}
 			catch (DestinationResolutionException e) {
-				inputChannel = new DirectChannel();
-				this.beanFactory.registerSingleton(inputChannelName, inputChannel);
-				inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
+				if (e.getCause() instanceof NoSuchBeanDefinitionException) {
+					inputChannel = new DirectChannel();
+					this.beanFactory.registerSingleton(inputChannelName, inputChannel);
+					inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
+				}
+				else {
+					throw e;
+				}
 			}
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 
@@ -303,7 +308,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return endpoint;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected AbstractEndpoint doCreateEndpoint(MessageHandler handler, MessageChannel inputChannel,
 			List<Annotation> annotations) {
 		AbstractEndpoint endpoint;
