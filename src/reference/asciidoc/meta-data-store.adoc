@@ -29,7 +29,7 @@ can persist the state at will, be invoking `flush()`.
 [source,xml]
 ----
 <bean id="metadataStore"
-    class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>
+    class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore"/>
 ----
 
 Alternatively, you can provide your own implementation of the `MetadataStore` interface (e.g.
