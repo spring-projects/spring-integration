@@ -130,4 +130,6 @@ See <<stomp>> for more information.
 
 The `WebServiceOutboundGateway` s can now be supplied with an externally configured `WebServiceTemplate` instances.
 
+The `DefaultSoapHeaderMapper` can now map `javax.xml.transform.Source` user-defined headers to SOAP header element.
+
 See <<ws>> for more information.

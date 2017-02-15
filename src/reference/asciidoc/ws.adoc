@@ -240,3 +240,34 @@ assertEquals("username", nodeList.item(0).getNodeName());
 assertEquals("user", nodeList.item(0).getFirstChild().getNodeValue());
 ...
 ----
+
+Starting with _version 5.0_, the `DefaultSoapHeaderMapper` supports `javax.xml.transform.Source` for user-defined headers and populates them as child nodes of the `<soapenv:Header>`:
+[source, java]
+----
+Map<String, Object> headers = new HashMap<>();
+
+String authXml =
+     "<auth xmlns='http://test.auth.org'>"
+           + "<username>user</username>"
+           + "<password>pass</password>"
+           + "</auth>";
+headers.put("auth", new StringSource(authXml));
+...
+DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
+mapper.setRequestHeaderNames("auth");
+----
+And in the end we have SOAP envelope as:
+[source, xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Header>
+        <auth xmlns="http://test.auth.org">
+            <username>user</username>
+            <password>pass</password>
+        </auth>
+    </soapenv:Header>
+    <soapenv:Body>
+        ...
+    </soapenv:Body>
+</soapenv:Envelope>
+----
