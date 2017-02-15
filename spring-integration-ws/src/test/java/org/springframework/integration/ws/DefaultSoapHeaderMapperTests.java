@@ -100,20 +100,20 @@ public class DefaultSoapHeaderMapperTests {
 	@Test
 	public void testRealSoapHeader() throws Exception {
 		String soap =
-				"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">"
-						+ "<soapenv:Header>"
-						+ "<auth>"
+			"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">"
+				+ "<soapenv:Header>"
+					+ "<auth>"
 						+ "<username>user</username>"
 						+ "<password>pass</password>"
-						+ "</auth>"
-						+ "<bar>BAR</bar>"
-						+ "<baz>BAZ</baz>"
-						+ "<qux>qux</qux>"
-						+ "</soapenv:Header>"
-						+ "<soapenv:Body>"
-						+ "<foo>foo</foo>"
-						+ "</soapenv:Body>"
-						+ "</soapenv:Envelope>";
+					+ "</auth>"
+					+ "<bar>BAR</bar>"
+					+ "<baz>BAZ</baz>"
+					+ "<qux>qux</qux>"
+				+ "</soapenv:Header>"
+				+ "<soapenv:Body>"
+					+ "<foo>foo</foo>"
+				+ "</soapenv:Body>"
+			+ "</soapenv:Envelope>";
 		SOAPMessage message = MessageFactory.newInstance()
 				.createMessage(new MimeHeaders(), new ByteArrayInputStream(soap.getBytes("UTF-8")));
 		SoapMessage soapMessage = new SaajSoapMessage(message);
@@ -186,7 +186,7 @@ public class DefaultSoapHeaderMapperTests {
 				"<auth xmlns='http://test.auth.org'>"
 						+ "<username>user</username>"
 						+ "<password>pass</password>"
-						+ "</auth>";
+				+ "</auth>";
 		Source source = new StringSource(docString);
 		headers.put("auth", source);
 
