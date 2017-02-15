@@ -42,7 +42,7 @@ See <<tx-handle-message-advice>> for more information.
 The `SmartLifecycleRoleController` now provides methods to obtain status of endpoints in roles.
 See <<endpoint-roles>> for more information.
 
-The one of the appropriate service methods can now be marked with the `@Primary` to allow fallback for non-matched conditions.
+One of the appropriate service methods can now be marked with the `@Primary` to allow fallback for non-matched conditions.
 See <<service-activator-namespace>> for more information.
 
 ==== JMS Changes
