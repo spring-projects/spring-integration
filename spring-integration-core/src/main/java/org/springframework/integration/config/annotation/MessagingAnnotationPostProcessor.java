@@ -57,6 +57,7 @@ import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ReflectionUtils;
@@ -74,12 +75,12 @@ import org.springframework.util.StringUtils;
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
 		InitializingBean, SmartInitializingSingleton {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
-	protected final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
+	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
 
-	protected final MultiValueMap<String, String> lazyLifecycleRoles = new LinkedMultiValueMap<String, String>();
+	private final MultiValueMap<String, String> lazyLifecycleRoles = new LinkedMultiValueMap<String, String>();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -108,6 +109,20 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				new InboundChannelAdapterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(BridgeFrom.class, new BridgeFromAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(BridgeTo.class, new BridgeToAnnotationPostProcessor(this.beanFactory));
+		Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> customPostProcessors =
+				setupCustomPostProcessors();
+		if (!CollectionUtils.isEmpty(customPostProcessors)) {
+			this.postProcessors.putAll(customPostProcessors);
+		}
+	}
+
+	protected Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> setupCustomPostProcessors() {
+		return null;
+	}
+
+	public <A extends Annotation> void addMessagingAnnotationPostProcessor(Class<A> annotation,
+			MethodAnnotationPostProcessor<A> postProcessor) {
+		this.postProcessors.put(annotation, postProcessor);
 	}
 
 	@Override
@@ -170,7 +185,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 						String autoStartup = MessagingAnnotationUtils.resolveAttribute(annotations, "autoStartup",
 								String.class);
 						if (StringUtils.hasText(autoStartup)) {
-								autoStartup = getBeanFactory().resolveEmbeddedValue(autoStartup);
+							autoStartup = getBeanFactory().resolveEmbeddedValue(autoStartup);
 							if (StringUtils.hasText(autoStartup)) {
 								endpoint.setAutoStartup(Boolean.parseBoolean(autoStartup));
 							}
@@ -178,7 +193,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 						String phase = MessagingAnnotationUtils.resolveAttribute(annotations, "phase", String.class);
 						if (StringUtils.hasText(phase)) {
-								phase = getBeanFactory().resolveEmbeddedValue(phase);
+							phase = getBeanFactory().resolveEmbeddedValue(phase);
 							if (StringUtils.hasText(phase)) {
 								endpoint.setPhase(Integer.parseInt(phase));
 							}
@@ -222,7 +237,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private boolean recursiveFindAnnotation(Class<? extends Annotation> annotationType, Annotation ann,
-											List<Annotation> annotationChain, Set<Annotation> visited) {
+			List<Annotation> annotationChain, Set<Annotation> visited) {
 		if (ann.annotationType().equals(annotationType)) {
 			annotationChain.add(ann);
 			return true;
@@ -246,7 +261,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private String generateBeanName(String originalBeanName, Method method,
-									Class<? extends Annotation> annotationType) {
+			Class<? extends Annotation> annotationType) {
 		String baseName = originalBeanName + "." + method.getName() + "."
 				+ ClassUtils.getShortNameAsProperty(annotationType);
 		String name = baseName;

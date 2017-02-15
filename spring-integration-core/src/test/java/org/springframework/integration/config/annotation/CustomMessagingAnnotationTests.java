@@ -32,6 +32,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -64,7 +65,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class CustomMessagingAnnotationTests {
 
 	@Autowired(required = false)
-	@Qualifier("customMessagingAnnotationTests.Config.logger.log.handler")
+	@Qualifier("customMessagingAnnotationTests.Config.logger.logging.handler")
 	private LoggingHandler loggingHandler;
 
 	@Autowired
@@ -74,9 +75,7 @@ public class CustomMessagingAnnotationTests {
 	public void testLogAnnotation() {
 		assertNotNull(this.loggingHandler);
 
-		org.apache.commons.logging.Log log =
-				spy(TestUtils.getPropertyValue(this.loggingHandler, "messageLogger",
-						org.apache.commons.logging.Log.class));
+		Log log = spy(TestUtils.getPropertyValue(this.loggingHandler, "messageLogger", Log.class));
 
 		given(log.isWarnEnabled())
 				.willReturn(true);
@@ -101,19 +100,16 @@ public class CustomMessagingAnnotationTests {
 	public static class Config {
 
 		@Bean(name = IntegrationContextUtils.MESSAGING_ANNOTATION_POSTPROCESSOR_NAME)
-		public static MessagingAnnotationPostProcessor messagingAnnotationPostProcessor() {
-			return new MessagingAnnotationPostProcessor() {
+		public static MessagingAnnotationPostProcessor messagingAnnotationPostProcessor(
+				ConfigurableListableBeanFactory beanFactory) {
 
-				@Override
-				public void afterPropertiesSet() {
-					super.afterPropertiesSet();
-					this.postProcessors.put(Log.class, new LogAnnotationPostProcessor(getBeanFactory()));
-				}
-
-			};
+			MessagingAnnotationPostProcessor messagingAnnotationPostProcessor = new MessagingAnnotationPostProcessor();
+			messagingAnnotationPostProcessor.
+					addMessagingAnnotationPostProcessor(Logging.class, new LogAnnotationPostProcessor(beanFactory));
+			return messagingAnnotationPostProcessor;
 		}
 
-		@Log(value = "loggingChannel", level = LoggingHandler.Level.WARN)
+		@Logging(value = "loggingChannel", level = LoggingHandler.Level.WARN)
 		public String logger(Message<?> message) {
 			return message.getPayload() + " for " + message.getHeaders().get("bar");
 		}
@@ -124,7 +120,7 @@ public class CustomMessagingAnnotationTests {
 	@Retention(RetentionPolicy.RUNTIME)
 	@Inherited
 	@Documented
-	public @interface Log {
+	public @interface Logging {
 
 		String value();
 
@@ -133,7 +129,7 @@ public class CustomMessagingAnnotationTests {
 
 	}
 
-	private static class LogAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Log> {
+	private static class LogAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Logging> {
 
 		LogAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 			super(beanFactory);
