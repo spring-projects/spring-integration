@@ -38,7 +38,6 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
-	 *
 	 * @param sessionFactory The session factory.
 	 */
 	public FtpInboundFileSynchronizer(SessionFactory<FTPFile> sessionFactory) {

@@ -172,7 +172,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		doSetFilter(filter);
 	}
 
-	public void doSetFilter(FileListFilter<F> filter) {
+	protected final void doSetFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
 

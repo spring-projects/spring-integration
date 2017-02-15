@@ -29,15 +29,20 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<LsEntry> {
 
+	/**
+	 * Create a synchronizer with the {@code SessionFactory} used to acquire {@code Session} instances.
+	 * @param sessionFactory The session factory.
+	 */
 	public SftpInboundFileSynchronizer(SessionFactory<LsEntry> sessionFactory) {
 		super(sessionFactory);
 		doSetFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpMessageSource"));
 	}
-
 
 	@Override
 	protected boolean isFile(LsEntry file) {
