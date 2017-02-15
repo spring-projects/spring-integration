@@ -247,7 +247,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return true;
 	}
 
-	private List<Advice> extractAdviceChain(String beanName, List<Annotation> annotations) {
+	protected List<Advice> extractAdviceChain(String beanName, List<Annotation> annotations) {
 		List<Advice> adviceChain = null;
 		String[] adviceChainNames = MessagingAnnotationUtils.resolveAttribute(annotations, ADVICE_CHAIN_ATTRIBUTE,
 				String[].class);
@@ -454,7 +454,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	@SuppressWarnings("unchecked")
-	<H> H extractTypeIfPossible(Object targetObject, Class<H> expectedType) {
+	protected <H> H extractTypeIfPossible(Object targetObject, Class<H> expectedType) {
 		if (targetObject == null) {
 			return null;
 		}
