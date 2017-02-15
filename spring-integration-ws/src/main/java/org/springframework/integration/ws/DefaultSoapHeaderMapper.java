@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,19 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.StringUtils;
 import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapHeaderElement;
+import org.springframework.ws.soap.SoapHeaderException;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.xml.namespace.QNameUtils;
+import org.springframework.xml.transform.TransformerHelper;
 
 /**
  * A {@link HeaderMapper} implementation for mapping to and from a SoapHeader.
@@ -46,15 +51,19 @@ import org.springframework.xml.namespace.QNameUtils;
  * @author Oleg Zhurakousky
  * @author Stephane Nicoll
  * @author Mauro Molinari
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> implements SoapHeaderMapper {
 
-	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
+	protected static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
 	static {
 		STANDARD_HEADER_NAMES.add(WebServiceHeaders.SOAP_ACTION);
 	}
+
+	protected final TransformerHelper transformerHelper = new TransformerHelper();
 
 	public DefaultSoapHeaderMapper() {
 		super(WebServiceHeaders.PREFIX, STANDARD_HEADER_NAMES, Collections.<String>emptyList());
@@ -117,6 +126,16 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 		if (headerValue instanceof String) {
 			QName qname = QNameUtils.parseQNameString(headerName);
 			soapHeader.addAttribute(qname, (String) headerValue);
+		}
+		else if (headerValue instanceof Source) {
+			Result result = soapHeader.getResult();
+			try {
+				this.transformerHelper.transform((Source) headerValue, result);
+			}
+			catch (TransformerException e) {
+				throw new SoapHeaderException(
+						"Could not transform source [" + headerValue + "] to result [" + result + "]", e);
+			}
 		}
 	}
 

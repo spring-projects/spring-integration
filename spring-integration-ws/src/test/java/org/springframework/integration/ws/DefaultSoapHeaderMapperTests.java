@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,22 +27,29 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 
 import org.junit.Test;
 import org.w3c.dom.NodeList;
 
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapHeaderElement;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.saaj.SaajSoapMessage;
+import org.springframework.xml.namespace.QNameUtils;
+import org.springframework.xml.transform.StringSource;
 
 /**
  * @author Gary Russell
@@ -93,20 +100,20 @@ public class DefaultSoapHeaderMapperTests {
 	@Test
 	public void testRealSoapHeader() throws Exception {
 		String soap =
-			"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">"
-				+ "<soapenv:Header>"
-					+ "<auth>"
+				"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">"
+						+ "<soapenv:Header>"
+						+ "<auth>"
 						+ "<username>user</username>"
 						+ "<password>pass</password>"
-					+ "</auth>"
-					+ "<bar>BAR</bar>"
-					+ "<baz>BAZ</baz>"
-					+ "<qux>qux</qux>"
-				+ "</soapenv:Header>"
-				+ "<soapenv:Body>"
-					+ "<foo>foo</foo>"
-				+ "</soapenv:Body>"
-			+ "</soapenv:Envelope>";
+						+ "</auth>"
+						+ "<bar>BAR</bar>"
+						+ "<baz>BAZ</baz>"
+						+ "<qux>qux</qux>"
+						+ "</soapenv:Header>"
+						+ "<soapenv:Body>"
+						+ "<foo>foo</foo>"
+						+ "</soapenv:Body>"
+						+ "</soapenv:Envelope>";
 		SOAPMessage message = MessageFactory.newInstance()
 				.createMessage(new MimeHeaders(), new ByteArrayInputStream(soap.getBytes("UTF-8")));
 		SoapMessage soapMessage = new SaajSoapMessage(message);
@@ -165,6 +172,58 @@ public class DefaultSoapHeaderMapperTests {
 		assertEquals(1, standardHeaders.size());
 		assertTrue(standardHeaders.containsKey(WebServiceHeaders.SOAP_ACTION));
 		assertEquals("foo", standardHeaders.get(WebServiceHeaders.SOAP_ACTION));
+	}
+
+	@Test
+	public void testFromHeadersToRequest() throws SOAPException, TransformerException {
+		DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
+		mapper.setReplyHeaderNames("foo", "auth", "myHeader");
+
+		Map<String, Object> headers = new HashMap<>();
+		headers.put("foo", "bar");
+
+		String docString =
+				"<auth xmlns='http://test.auth.org'>"
+						+ "<username>user</username>"
+						+ "<password>pass</password>"
+						+ "</auth>";
+		Source source = new StringSource(docString);
+		headers.put("auth", source);
+
+		headers.put("myHeader", new StringSource("<test xmlns='http://test.org'>TEST</test>"));
+
+		SaajSoapMessage message = new SaajSoapMessage(MessageFactory.newInstance().createMessage());
+
+		mapper.fromHeadersToReply(new MessageHeaders(headers), message);
+
+		SoapHeader soapHeader = message.getSoapHeader();
+		assertEquals("bar", soapHeader.getAttributeValue(QNameUtils.parseQNameString("foo")));
+
+		Iterator<SoapHeaderElement> authIterator =
+				soapHeader.examineHeaderElements(QNameUtils.parseQNameString("{http://test.auth.org}auth"));
+
+		assertTrue(authIterator.hasNext());
+
+		SoapHeaderElement auth = authIterator.next();
+		DOMSource authSource = (DOMSource) auth.getSource();
+
+		NodeList nodeList = authSource.getNode().getChildNodes();
+		assertEquals("username", nodeList.item(0).getNodeName());
+		assertEquals("user", nodeList.item(0).getFirstChild().getNodeValue());
+
+		assertEquals("password", nodeList.item(1).getNodeName());
+		assertEquals("pass", nodeList.item(1).getFirstChild().getNodeValue());
+
+		Iterator<SoapHeaderElement> testIterator =
+				soapHeader.examineHeaderElements(QNameUtils.parseQNameString("{http://test.org}test"));
+
+		assertTrue(testIterator.hasNext());
+
+		/*StringResult stringResult = new StringResult();
+		Transformer transformer = TransformerFactory.newInstance().newTransformer();
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		transformer.transform(message.getEnvelope().getSource(), stringResult);
+		System. out. println(stringResult.toString());*/
 	}
 
 }
