@@ -66,7 +66,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
-	private volatile  StandardEvaluationContext evaluationContext;
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile WebServiceMessageCallback requestCallback;
 
@@ -140,6 +140,10 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	public void setWebServiceTemplate(WebServiceTemplate webServiceTemplate) {
+		doSetWebServiceTemplate(webServiceTemplate);
+	}
+
+	protected final void doSetWebServiceTemplate(WebServiceTemplate webServiceTemplate) {
 		Assert.notNull(webServiceTemplate, "'webServiceTemplate' must not be null");
 		this.webServiceTemplate = webServiceTemplate;
 		this.webServiceTemplateExplicitlySet = true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider,
 			SourceExtractor<?> sourceExtractor) {
-		this(destinationProvider, sourceExtractor, (WebServiceMessageFactory) null);
+		this(destinationProvider, sourceExtractor, null);
 	}
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor,
@@ -70,7 +70,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	}
 
 	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor) {
-		this(uri, sourceExtractor, (WebServiceMessageFactory) null);
+		this(uri, sourceExtractor, null);
 	}
 
 	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor,

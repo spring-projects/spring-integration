@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.destination.DestinationProvider;
-import org.springframework.ws.support.MarshallingUtils;
 
 /**
  * An outbound Messaging Gateway for invoking Web Services that also supports
@@ -35,13 +35,13 @@ import org.springframework.ws.support.MarshallingUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @see Marshaller
  * @see Unmarshaller
  */
 public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
-	private volatile Marshaller marshaller;
-	private volatile Unmarshaller unmarshaller;
 
 	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller,
 			Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
@@ -82,23 +82,32 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		this(uri, marshaller, (WebServiceMessageFactory) null);
 	}
 
-	@Override
-	protected Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback) {
-		Object reply = this.getWebServiceTemplate().sendAndReceive(uri,
-				new MarshallingRequestMessageCallback(requestCallback, requestMessage),
-				new MarshallingResponseMessageExtractor());
-		return reply;
+	/**
+	 * Construct an instance based on the provided Web Service URI and {@code WebServiceTemplate}.
+	 * @param uri the Web Service URI to use
+	 * @param webServiceTemplate the WebServiceTemplate
+	 * @since 5.0
+	 */
+	public MarshallingWebServiceOutboundGateway(String uri, WebServiceTemplate webServiceTemplate) {
+		super(uri, null);
+		doSetWebServiceTemplate(webServiceTemplate);
 	}
 
-	@Override
-	public String getComponentType() {
-		return "ws:outbound-gateway(marshaling)";
+	/**
+	 * Construct an instance based on the provided {@code DestinationProvider} and {@code WebServiceTemplate}.
+	 * @param destinationProvider the {@link DestinationProvider} to resolve Web Service URI at runtime
+	 * @param webServiceTemplate the WebServiceTemplate
+	 * @since 5.0
+	 */
+	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider,
+			WebServiceTemplate webServiceTemplate) {
+		super(destinationProvider, null);
+		doSetWebServiceTemplate(webServiceTemplate);
 	}
 
 	/**
 	 * Sets the provided Marshaller and Unmarshaller on this gateway's WebServiceTemplate.
 	 * Neither may be null.
-	 *
 	 * @param marshaller The marshaller.
 	 * @param unmarshaller The unmarshaller.
 	 */
@@ -107,39 +116,39 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		if (unmarshaller == null) {
 			Assert.isInstanceOf(Unmarshaller.class, marshaller,
 					"Marshaller [" + marshaller + "] does not implement the Unmarshaller interface. " +
-					"Please set an Unmarshaller explicitly by using one of the constructors that accepts " +
-					"both Marshaller and Unmarshaller arguments.");
+							"Please set an Unmarshaller explicitly by using one of the constructors that accepts " +
+							"both Marshaller and Unmarshaller arguments.");
 			unmarshaller = (Unmarshaller) marshaller;
 		}
 
 		Assert.notNull(unmarshaller, "unmarshaller must not be null");
-		this.marshaller = marshaller;
-		this.unmarshaller = unmarshaller;
+
+		getWebServiceTemplate().setMarshaller(marshaller);
+		getWebServiceTemplate().setUnmarshaller(unmarshaller);
 	}
 
-	private final class MarshallingRequestMessageCallback extends RequestMessageCallback {
+	@Override
+	public String getComponentType() {
+		return "ws:outbound-gateway(marshaling)";
+	}
 
-		MarshallingRequestMessageCallback(WebServiceMessageCallback requestCallback,
-				Message<?> requestMessage) {
+	@Override
+	protected Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback) {
+		return getWebServiceTemplate()
+				.marshalSendAndReceive(uri, requestMessage.getPayload(),
+						new PassThroughRequestMessageCallback(requestCallback, requestMessage));
+	}
+
+	private final class PassThroughRequestMessageCallback extends RequestMessageCallback {
+
+		PassThroughRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage) {
 			super(requestCallback, requestMessage);
 		}
 
 		@Override
 		public void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException {
-			MarshallingUtils.marshal(MarshallingWebServiceOutboundGateway.this.marshaller, payload, message);
-		}
-	}
-
-	private class MarshallingResponseMessageExtractor extends ResponseMessageExtractor {
-
-		MarshallingResponseMessageExtractor() {
-			super();
 		}
 
-		@Override
-		public Object doExtractData(WebServiceMessage message) throws IOException {
-			return MarshallingUtils.unmarshal(MarshallingWebServiceOutboundGateway.this.unmarshaller, message);
-		}
 	}
 
 }
