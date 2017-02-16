@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.annotation.BridgeFrom;
+import org.springframework.integration.annotation.BridgeTo;
 import org.springframework.integration.annotation.IdempotentReceiver;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
@@ -118,6 +120,15 @@ public class IdempotentReceiverIntegrationTests {
 	private MessageChannel annotatedBeanMessageHandlerChannel2;
 
 	@Autowired
+	private MessageChannel bridgeChannel;
+
+	@Autowired
+	private MessageChannel toBridgeChannel;
+
+	@Autowired
+	private PollableChannel bridgePollableChannel;
+
+	@Autowired
 	private AtomicBoolean txSupplied;
 
 	@Test
@@ -191,6 +202,39 @@ public class IdempotentReceiverIntegrationTests {
 		}
 	}
 
+
+	@Test
+	public void testIdempotentReceiverOnBridgeTo() {
+		PollableChannel replyChannel = new QueueChannel();
+		Message<String> message = MessageBuilder.withPayload("bar").setReplyChannel(replyChannel).build();
+		this.bridgeChannel.send(message);
+
+		Message<?> receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+		assertFalse(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+
+		this.bridgeChannel.send(message);
+		receive = replyChannel.receive(10000);
+		assertNotNull(receive);
+		assertTrue(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
+	}
+
+	@Test
+	public void testIdempotentReceiverOnBridgeFrom() {
+		Message<String> message = MessageBuilder.withPayload("bar").build();
+		this.toBridgeChannel.send(message);
+
+		Message<?> receive = this.bridgePollableChannel.receive(10000);
+		assertNotNull(receive);
+		assertFalse(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+
+		this.toBridgeChannel.send(message);
+		receive = this.bridgePollableChannel.receive(10000);
+		assertNotNull(receive);
+		assertTrue(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE));
+		assertTrue(receive.getHeaders().get(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, Boolean.class));
+	}
 
 	@Configuration
 	@EnableIntegration
@@ -302,6 +346,20 @@ public class IdempotentReceiverIntegrationTests {
 		@Bean
 		public FooService fooService() {
 			return new FooService();
+		}
+
+		@Bean
+		@BridgeTo
+		@IdempotentReceiver("idempotentReceiverInterceptor")
+		public MessageChannel bridgeChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		@BridgeFrom("toBridgeChannel")
+		@IdempotentReceiver("idempotentReceiverInterceptor")
+		public PollableChannel bridgePollableChannel() {
+			return new QueueChannel();
 		}
 
 		@Bean
