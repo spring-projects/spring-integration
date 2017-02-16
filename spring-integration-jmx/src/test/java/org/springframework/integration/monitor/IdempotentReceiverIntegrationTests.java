@@ -206,7 +206,7 @@ public class IdempotentReceiverIntegrationTests {
 	@Test
 	public void testIdempotentReceiverOnBridgeTo() {
 		PollableChannel replyChannel = new QueueChannel();
-		Message<String> message = MessageBuilder.withPayload("bar").setReplyChannel(replyChannel).build();
+		Message<String> message = MessageBuilder.withPayload("bridgeTo").setReplyChannel(replyChannel).build();
 		this.bridgeChannel.send(message);
 
 		Message<?> receive = replyChannel.receive(10000);
@@ -222,7 +222,7 @@ public class IdempotentReceiverIntegrationTests {
 
 	@Test
 	public void testIdempotentReceiverOnBridgeFrom() {
-		Message<String> message = MessageBuilder.withPayload("bar").build();
+		Message<String> message = MessageBuilder.withPayload("bridgeFrom").build();
 		this.toBridgeChannel.send(message);
 
 		Message<?> receive = this.bridgePollableChannel.receive(10000);
