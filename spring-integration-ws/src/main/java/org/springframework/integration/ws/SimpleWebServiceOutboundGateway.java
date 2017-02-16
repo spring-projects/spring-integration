@@ -160,7 +160,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 					return this.result.toString();
 				}
 				else if (this.result instanceof DOMResult) {
-					return  ((DOMResult) this.result).getNode();
+					return ((DOMResult) this.result).getNode();
 				}
 				else {
 					return this.result;
