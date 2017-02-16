@@ -212,6 +212,7 @@ public class WebServiceOutboundGatewayParserTests {
 		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
 		assertEquals(messageSender, ((WebServiceMessageSender[]) accessor.getPropertyValue("messageSenders"))[0]);
 	}
+
 	@Test
 	public void simpleGatewayWithCustomMessageSenderList() {
 		AbstractEndpoint endpoint = this.context.getBean("gatewayWithCustomMessageSenderList", AbstractEndpoint.class);
@@ -283,10 +284,10 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithAllInOneMarshaller");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		MarshallingWebServiceOutboundGateway gateway = (MarshallingWebServiceOutboundGateway) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		Marshaller marshaller = (Marshaller) context.getBean("marshallerAndUnmarshaller");
-		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "marshaller", Marshaller.class));
-		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "unmarshaller", Unmarshaller.class));
+		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
+		Marshaller marshaller = context.getBean("marshallerAndUnmarshaller", Marshaller.class);
+		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class));
+		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class));
 		context.close();
 	}
 
@@ -296,11 +297,11 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshaller");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		MarshallingWebServiceOutboundGateway gateway = (MarshallingWebServiceOutboundGateway) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		Marshaller marshaller = (Marshaller) context.getBean("marshaller");
-		Unmarshaller unmarshaller = (Unmarshaller) context.getBean("unmarshaller");
-		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "marshaller", Marshaller.class));
-		assertEquals(unmarshaller, TestUtils.getPropertyValue(gateway, "unmarshaller", Unmarshaller.class));
+		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
+		Marshaller marshaller = context.getBean("marshaller", Marshaller.class);
+		Unmarshaller unmarshaller = context.getBean("unmarshaller", Unmarshaller.class);
+		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class));
+		assertSame(unmarshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class));
 		context.close();
 	}
 
@@ -310,7 +311,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomRequestCallback");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
@@ -324,10 +325,10 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithAllInOneMarshallerAndMessageFactory");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		MarshallingWebServiceOutboundGateway gateway = (MarshallingWebServiceOutboundGateway) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		Marshaller marshaller = (Marshaller) context.getBean("marshallerAndUnmarshaller");
-		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "marshaller", Marshaller.class));
-		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "unmarshaller", Unmarshaller.class));
+		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
+		Marshaller marshaller = context.getBean("marshallerAndUnmarshaller", Marshaller.class);
+		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class));
+		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class));
 
 		WebServiceMessageFactory messageFactory = (WebServiceMessageFactory) context.getBean("messageFactory");
 		assertEquals(messageFactory, TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory"));
@@ -340,13 +341,16 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		MarshallingWebServiceOutboundGateway gateway = (MarshallingWebServiceOutboundGateway) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 
-		Marshaller marshaller = (Marshaller) context.getBean("marshaller");
-		Unmarshaller unmarshaller = (Unmarshaller) context.getBean("unmarshaller");
-		assertEquals(marshaller, TestUtils.getPropertyValue(gateway, "marshaller", Marshaller.class));
-		assertEquals(unmarshaller, TestUtils.getPropertyValue(gateway, "unmarshaller", Unmarshaller.class));
-		WebServiceMessageFactory messageFactory = (WebServiceMessageFactory) context.getBean("messageFactory");
+		Object gateway = TestUtils.getPropertyValue(endpoint, "handler");
+
+		Marshaller marshaller = context.getBean("marshaller", Marshaller.class);
+		Unmarshaller unmarshaller = context.getBean("unmarshaller", Unmarshaller.class);
+
+		assertSame(marshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.marshaller", Marshaller.class));
+		assertSame(unmarshaller, TestUtils.getPropertyValue(gateway, "webServiceTemplate.unmarshaller", Unmarshaller.class));
+
+		WebServiceMessageFactory messageFactory = context.getBean("messageFactory", WebServiceMessageFactory.class);
 		assertEquals(messageFactory, TestUtils.getPropertyValue(gateway, "webServiceTemplate.messageFactory"));
 		context.close();
 	}
