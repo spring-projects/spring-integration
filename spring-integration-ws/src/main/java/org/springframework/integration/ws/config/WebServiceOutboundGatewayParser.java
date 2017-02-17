@@ -97,9 +97,9 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 	@Override
 	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		String marshallerRef = element.getAttribute("marshaller");
+		String unmarshallerRef = element.getAttribute("unmarshaller");
 		if (StringUtils.hasText(marshallerRef)) {
 			builder.addConstructorArgReference(marshallerRef);
-			String unmarshallerRef = element.getAttribute("unmarshaller");
 			if (StringUtils.hasText(unmarshallerRef)) {
 				builder.addConstructorArgReference(unmarshallerRef);
 			}
@@ -154,6 +154,19 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		if (StringUtils.hasText(interceptorListRef)) {
 			builder.addPropertyReference("interceptors", interceptorListRef);
 		}
+
+		if (StringUtils.hasText(marshallerRef) || StringUtils.hasText(unmarshallerRef)) {
+			String extractPayload = element.getAttribute("extract-payload");
+			if (StringUtils.hasText(extractPayload)) {
+				parserContext.getReaderContext()
+						.warning("Setting 'extract-payload' attribute has no effect when used with " +
+								"a marshalling Web Service Outbound Gateway.", element);
+			}
+		}
+		else {
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+		}
+
 	}
 
 }

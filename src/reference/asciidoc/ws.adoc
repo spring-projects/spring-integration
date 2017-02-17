@@ -271,3 +271,25 @@ And in the end we have SOAP envelope as:
     </soapenv:Body>
 </soapenv:Envelope>
 ----
+
+[[mtom-support]]
+=== MTOM Support
+
+The Marshalling Inbound and Outbound WebService Gateways support attachments directly via build-in functionality in the marshaller, e.g. `Jaxb2Marshaller` provides `mtomEnabled` option.
+Starting with _version 5.0_, the Simple WebService Gateways gateways can operation with inbound and outbound `MimeMessage` s directly and already there we have API to manipulate with attachments.
+When you need to send WebService message with attachments (either reply from server, or client request) you should use `WebServiceMessageFactory` directly and send a `WebServiceMessage` with attachments as a `payload` to the request or reply channel of the gateway:
+[source, java]
+----
+WebServiceMessageFactory messageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance());
+MimeMessage webServiceMessage = (MimeMessage) messageFactory.createWebServiceMessage();
+
+String request = "<test>foo</test>";
+
+TransformerFactory transformerFactory = TransformerFactory.newInstance();
+Transformer transformer = transformerFactory.newTransformer();
+transformer.transform(new StringSource(request), webServiceMessage.getPayloadResult());
+
+webServiceMessage.addAttachment("myAttachment", new ByteArrayResource("my_data".getBytes()), "plain/text");
+
+this.webServiceChannel.send(new GenericMessage<>(webServiceMessage));
+----

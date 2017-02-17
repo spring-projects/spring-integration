@@ -17,6 +17,7 @@
 package org.springframework.integration.ws;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -34,6 +35,8 @@ import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.destination.DestinationProvider;
+import org.springframework.ws.mime.Attachment;
+import org.springframework.ws.mime.MimeMessage;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
@@ -49,6 +52,8 @@ import org.springframework.xml.transform.TransformerObjectSupport;
 public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
 	private final SourceExtractor<?> sourceExtractor;
+
+	private volatile boolean extractPayload = true;
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider) {
 		this(destinationProvider, null, null);
@@ -79,6 +84,15 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
+	/**
+	 *
+	 * @param extractPayload
+	 * @since 5.0
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "ws:outbound-gateway(simple)";
@@ -95,9 +109,10 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		else if (requestPayload instanceof Document) {
 			responseResultInstance = new DOMResult();
 		}
-		return this.getWebServiceTemplate().sendAndReceive(uri,
-				new SimpleRequestMessageCallback(requestCallback, requestMessage),
-				new SimpleResponseMessageExtractor(responseResultInstance));
+		return getWebServiceTemplate()
+				.sendAndReceive(uri,
+						new SimpleRequestMessageCallback(requestCallback, requestMessage),
+						new SimpleResponseMessageExtractor(responseResultInstance));
 	}
 
 	private final class SimpleRequestMessageCallback extends RequestMessageCallback {
@@ -110,7 +125,10 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		public void doWithMessageInternal(WebServiceMessage message, Object payload)
 				throws IOException, TransformerException {
 			Source source = this.extractSource(payload);
-			this.transform(source, message.getPayloadResult());
+			transform(source, message.getPayloadResult());
+			if (message instanceof MimeMessage && payload instanceof MimeMessage) {
+				copyAttachments((MimeMessage) payload, (MimeMessage) message);
+			}
 		}
 
 		private Source extractSource(Object requestPayload) throws IOException, TransformerException {
@@ -128,15 +146,26 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 			else if (requestPayload instanceof Document) {
 				source = new DOMSource((Document) requestPayload);
 			}
+			else if (requestPayload instanceof WebServiceMessage) {
+				source = ((WebServiceMessage) requestPayload).getPayloadSource();
+			}
 			else {
 				throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
 						"'. " + this.getClass().getName() + " only supports 'java.lang.String', '" +
 						Source.class.getName() +
-						"', and '" + Document.class.getName() + "'. Consider either using the '"
+						"', '" + Document.class.getName() + "' and '" + WebServiceMessage.class.getName() + "'. " +
+						"Consider either using the '"
 						+ MarshallingWebServiceOutboundGateway.class.getName() + "' or a Message Transformer.");
 			}
 
 			return source;
+		}
+
+		private void copyAttachments(MimeMessage source, MimeMessage target) {
+			for (Iterator<Attachment> attachments = source.getAttachments(); attachments.hasNext(); ) {
+				Attachment attachment = attachments.next();
+				target.addAttachment(attachment.getContentId(), attachment.getDataHandler());
+			}
 		}
 
 	}
@@ -152,22 +181,27 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 		@Override
 		public Object doExtractData(WebServiceMessage message) throws IOException, TransformerException {
-			Source payloadSource = message.getPayloadSource();
-
-			if (payloadSource != null && this.result != null) {
-				this.transform(payloadSource, this.result);
-				if (this.result instanceof StringResult) {
-					return this.result.toString();
-				}
-				else if (this.result instanceof DOMResult) {
-					return ((DOMResult) this.result).getNode();
-				}
-				else {
-					return this.result;
-				}
+			if (!SimpleWebServiceOutboundGateway.this.extractPayload) {
+				return message;
 			}
+			else {
+				Source payloadSource = message.getPayloadSource();
 
-			return payloadSource;
+				if (payloadSource != null && this.result != null) {
+					this.transform(payloadSource, this.result);
+					if (this.result instanceof StringResult) {
+						return this.result.toString();
+					}
+					else if (this.result instanceof DOMResult) {
+						return ((DOMResult) this.result).getNode();
+					}
+					else {
+						return this.result;
+					}
+				}
+
+				return payloadSource;
+			}
 		}
 
 	}

@@ -275,6 +275,10 @@ Custom conversion to a `Source` is also supported by injecting an implementation
 
 NOTE: If a `SourceFactory` is not set explicitly, the property on the `UnmarshallingTransformer` will by default be set to a http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory].
 
+Starting with _version 5.0_, the `UnmarshallingTransformer` also supports an `org.springframework.ws.mime.MimeMessage` as incoming payload.
+This can be useful in scenarios when we receive a raw `WebServiceMessage` via SOAP with MTOM attachments consideration.
+See <<mtom-support>> for more information.
+
 [source,xml]
 ----
 <bean id="unmarshallingTransformer" class="o.s.i.xml.transformer.UnmarshallingTransformer">

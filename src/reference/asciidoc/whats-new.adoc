@@ -132,4 +132,7 @@ See <<stomp>> for more information.
 
 - The `DefaultSoapHeaderMapper` can now map a `javax.xml.transform.Source` user-defined header to a SOAP header element.
 
+- Simple WebService Inbound and Outbound gateways now can deal with whole `WebServiceMessage` as a `payload`.
+That allows to manipulate MTOM attachments.
+
 See <<ws>> for more information.

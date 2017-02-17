@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.messaging.MessagingException;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.xml.transform.StringSource;
 
 /**
@@ -39,14 +40,18 @@ import org.springframework.xml.transform.StringSource;
  * {@link Unmarshaller}. Expects the payload to be of type {@link Document},
  * {@link String}, {@link File}, {@link Source} or to have an instance of
  * {@link SourceFactory} that can convert to a {@link Source}. If
- * alwaysUseSourceFactory is set to true, then the {@link SourceFactory}
+ * {@link #alwaysUseSourceFactory} is set to true, then the {@link SourceFactory}
  * will be used to create the {@link Source} regardless of payload type.
+ * <p>
+ * The {@link #alwaysUseSourceFactory} is ignored if payload is
+ * {@link org.springframework.ws.mime.MimeMessage}.
  * <p>
  * The Unmarshaller may return a Message, but if the return value is not
  * already a Message instance, a new Message will be created with that
  * return value as its payload.
  *
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
 
@@ -56,15 +61,17 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 
 	private volatile boolean alwaysUseSourceFactory = false;
 
+	private MimeMessageUnmarshallerHelper mimeMessageUnmarshallerHelper;
 
 	public UnmarshallingTransformer(Unmarshaller unmarshaller) {
 		this.unmarshaller = unmarshaller;
+		if (ClassUtils.isPresent("org.springframework.ws.mime.MimeMessage", ClassUtils.getDefaultClassLoader())) {
+			this.mimeMessageUnmarshallerHelper = new MimeMessageUnmarshallerHelper(unmarshaller);
+		}
 	}
-
 
 	/**
 	 * Provide the SourceFactory to be used. Must not be null.
-	 *
 	 * @param sourceFactory The source factory.
 	 */
 	public void setSourceFactory(SourceFactory sourceFactory) {
@@ -74,7 +81,6 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 
 	/**
 	 * If true always delegate to the {@link SourceFactory}.
-	 *
 	 * @param alwaysUseSourceFactory true to always use the source factory.
 	 */
 	public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
@@ -89,34 +95,63 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 	@Override
 	public Object transformPayload(Object payload) {
 		Source source = null;
-		if (this.alwaysUseSourceFactory) {
-			source = this.sourceFactory.createSource(payload);
-		}
-		else if (payload instanceof String) {
-			source = new StringSource((String) payload);
-		}
-		else if (payload instanceof File) {
-			source = new StreamSource((File) payload);
-		}
-		else if (payload instanceof Document) {
-			source = new DOMSource((Document) payload);
-		}
-		else if (payload instanceof Source) {
-			source = (Source) payload;
-		}
-		else {
-			source = this.sourceFactory.createSource(payload);
-		}
-		if (source == null) {
-			throw new MessagingException(
-					"failed to transform message, payload not assignable from javax.xml.transform.Source and no conversion possible");
-		}
+
 		try {
+			if (this.mimeMessageUnmarshallerHelper != null) {
+				Object result = this.mimeMessageUnmarshallerHelper.maybeUnmarshalMimeMessage(payload);
+				if (result != null) {
+					return result;
+				}
+			}
+
+			if (this.alwaysUseSourceFactory) {
+				source = this.sourceFactory.createSource(payload);
+			}
+			else if (payload instanceof String) {
+				source = new StringSource((String) payload);
+			}
+			else if (payload instanceof File) {
+				source = new StreamSource((File) payload);
+			}
+			else if (payload instanceof Document) {
+				source = new DOMSource((Document) payload);
+			}
+			else if (payload instanceof Source) {
+				source = (Source) payload;
+			}
+			else {
+				source = this.sourceFactory.createSource(payload);
+			}
+			if (source == null) {
+				throw new MessagingException(
+						"failed to transform message, payload not assignable from " + Source.class.getName()
+								+ "and no conversion possible");
+			}
 			return this.unmarshaller.unmarshal(source);
 		}
 		catch (IOException e) {
 			throw new MessagingException("failed to unmarshal payload", e);
 		}
+	}
+
+	private static class MimeMessageUnmarshallerHelper {
+
+		private Unmarshaller delegate;
+
+		MimeMessageUnmarshallerHelper(Unmarshaller unmarshaller) {
+			this.delegate = unmarshaller;
+		}
+
+		public Object maybeUnmarshalMimeMessage(Object payload) throws IOException {
+			if (payload instanceof org.springframework.ws.mime.MimeMessage) {
+				return org.springframework.ws.support.MarshallingUtils.unmarshal(this.delegate,
+						(org.springframework.ws.mime.MimeMessage) payload);
+			}
+			else {
+				return null;
+			}
+		}
+
 	}
 
 }

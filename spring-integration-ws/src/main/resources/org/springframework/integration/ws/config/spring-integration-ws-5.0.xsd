@@ -300,6 +300,18 @@ this list can also be simple patterns to be matched against the header names (e.
 						]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="extract-payload">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set to 'true' to extract the WebServiceMessage payload.
+						Otherwise the whole WebServiceMessage is used as integration message payload.
+						This option is only applied for simple gateway.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
 		</xsd:complexType>
 	</xsd:element>
@@ -396,7 +408,18 @@ this list can also be simple patterns to be matched against the header names (e.
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="extract-payload" type="xsd:string"/>
+			<xsd:attribute name="extract-payload">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set to 'true' to extract the WebServiceMessage payload.
+						Otherwise the whole WebServiceMessage is used as integration message payload.
+						This option is only applied for simple gateway.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
 			<xsd:attribute name="header-mapper">
 				<xsd:annotation>
 					<xsd:documentation>
