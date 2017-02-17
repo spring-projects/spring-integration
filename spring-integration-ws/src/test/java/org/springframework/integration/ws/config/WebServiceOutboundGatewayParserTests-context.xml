@@ -38,6 +38,7 @@
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
 	                     ignore-empty-responses="false"
+						 extract-payload="false"
                          requires-reply="true"/>
 
 	<ws:outbound-gateway id="gatewayWithDefaultSourceExtractor"

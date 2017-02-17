@@ -127,7 +127,8 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreEmptyResponses"));
-		Assert.assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("requiresReply"));
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractPayload"));
 	}
 
 	@Test
