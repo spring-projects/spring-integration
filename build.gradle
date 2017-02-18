@@ -108,7 +108,7 @@ subprojects { subproject ->
 		h2Version = '1.4.180'
 		jackson2Version = '2.8.5'
 		javaxActivationVersion = '1.1.1'
-		javaxMailVersion = '1.5.5'
+		javaxMailVersion = '1.5.6'
 		jedisVersion = '2.9.0'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
