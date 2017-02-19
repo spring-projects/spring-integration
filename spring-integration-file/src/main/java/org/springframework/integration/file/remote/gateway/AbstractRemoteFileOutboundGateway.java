@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -954,8 +954,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				 */
 				String fileName = this.getRemoteFilename(fullFileName);
 				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
-				File file = this.get(message, session, actualRemoteDirectory,
+				File file = get(message, session, actualRemoteDirectory,
 						fullFileName, fileName, false);
+				if (this.options.contains(Option.PRESERVE_TIMESTAMP)) {
+					file.setLastModified(getModified(lsEntry.getFileInfo()));
+				}
 				files.add(file);
 			}
 		}
@@ -997,8 +1000,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				 */
 				String fileName = this.getRemoteFilename(fullFileName);
 				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
-				File file = this.get(message, session, actualRemoteDirectory,
+				File file = get(message, session, actualRemoteDirectory,
 						fullFileName, fileName, false);
+				if (this.options.contains(Option.PRESERVE_TIMESTAMP)) {
+					file.setLastModified(getModified(lsEntry.getFileInfo()));
+				}
 				files.add(file);
 			}
 		}
