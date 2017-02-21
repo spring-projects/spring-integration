@@ -848,12 +848,15 @@ _mget_ retrieves multiple remote files based on a pattern and supports the follo
 
 * -P - preserve the timestamps of the remote files
 
+* -R - retrieve the entire directory tree recursively
 
 * -x - Throw an exception if no files match the pattern (otherwise an empty list is returned)
 
 The message payload resulting from an _mget_ operation is a `List<File>` object - a List of File objects, each representing a retrieved file.
 
-The remote directory is provided in the `file_remoteDirectory` header, and the pattern for the file names is provided in the `file_remoteFile` header.
+The expression used to determine the remote path should produce a result that ends with `*` - e.g. `foo/*` will fetch the complete tree under `foo`.
+
+Starting with _version 5.0_, a recursive MGET, combined with the new `FileExistsMode.REPLACE_IF_MODIFIED` mode, can be used to periodically synchronize an entire remote directory tree locally.
 
 [NOTE]
 .Notes for when using recursion (`-R`)

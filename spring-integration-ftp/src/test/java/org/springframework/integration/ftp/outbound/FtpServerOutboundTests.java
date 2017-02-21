@@ -36,6 +36,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,6 +49,7 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.hamcrest.Matchers;
@@ -247,9 +249,11 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testInt3172LocalDirectoryExpressionMGETRecursive() {
+	public void testInt3172LocalDirectoryExpressionMGETRecursive() throws IOException {
 		String dir = "ftpSource/";
 		long modified = setModifiedOnSource1();
+		File secondRemote = new File(getSourceRemoteDirectory(), "ftpSource2.txt");
+		secondRemote.setLastModified(System.currentTimeMillis() - 1_000_000);
 		this.inboundMGetRecursive.send(new GenericMessage<Object>("*"));
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
@@ -268,6 +272,30 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		assertThat(localFiles.get(2).getPath().replaceAll(quoteReplacement(File.separator), "/"),
 				containsString(dir + "subFtpSource"));
 
+		File secondTarget = new File(getTargetLocalDirectory() + File.separator + "ftpSource", "localTarget2.txt");
+		ByteArrayOutputStream remoteContents = new ByteArrayOutputStream();
+		ByteArrayOutputStream localContents = new ByteArrayOutputStream();
+		FileUtils.copyFile(secondRemote, remoteContents);
+		FileUtils.copyFile(secondTarget, localContents);
+		String localAsString = new String(localContents.toByteArray());
+		assertEquals(new String(remoteContents.toByteArray()), localAsString);
+		long oldLastModified = secondRemote.lastModified();
+		FileUtils.copyInputStreamToFile(new ByteArrayInputStream("junk".getBytes()), secondRemote);
+		long newLastModified = secondRemote.lastModified();
+		secondRemote.setLastModified(oldLastModified);
+		this.inboundMGetRecursive.send(new GenericMessage<Object>("*"));
+		this.output.receive(0);
+		localContents = new ByteArrayOutputStream();
+		FileUtils.copyFile(secondTarget, localContents);
+		assertEquals(localAsString, new String(localContents.toByteArray()));
+		secondRemote.setLastModified(newLastModified);
+		this.inboundMGetRecursive.send(new GenericMessage<Object>("*"));
+		this.output.receive(0);
+		localContents = new ByteArrayOutputStream();
+		FileUtils.copyFile(secondTarget, localContents);
+		assertEquals("junk", new String(localContents.toByteArray()));
+		// restore the remote file contents
+		FileUtils.copyInputStreamToFile(new ByteArrayInputStream(localAsString.getBytes()), secondRemote);
 	}
 
 	private long setModifiedOnSource1() {

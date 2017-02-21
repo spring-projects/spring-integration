@@ -617,6 +617,7 @@ This behavior, though, can be changed by setting the _mode_ attribute on the res
 The following options exist:
 
 * REPLACE (Default)
+* REPLACE_IF_DIFFERENT
 * APPEND
 * APPEND_NO_FLUSH
 * FAIL
@@ -630,6 +631,13 @@ _REPLACE_
 
 If the target file already exists, it will be overwritten.
 If the _mode_ attribute is not specified, then this is the default behavior when writing files.
+
+_REPLACE_IF_MODIFIED_
+
+If the target file already exists, it will be overwritten only if the last modified timestamp is different to the source file.
+For `File` payloads, the payload `lastModified` time is compared to the existing file.
+For other payloads, the `FileHeaders.SET_MODIFIED` (`file_setModified`) header is compared to the existing file.
+If the header is missing, or has a value that is not a `Number`, the file is always replaced.
 
 _APPEND_
 
