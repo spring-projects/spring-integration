@@ -679,6 +679,9 @@ Note that, since _version 5.0_, the predicate methods provide another parameter 
 When using `flushInterval`, the interval starts at the last write - the file is flushed only if it is idle for the interval.
 Starting with _version 4.3.7_, and additional property `flushWhenIdle` can be set to `false`, meaning that the interval starts with the first write to a previously flushed (or new) file.
 
+When using `flushInterval`, the interval starts at the last write - the file is flushed only if it is idle for the interval.
+Starting with _version 4.3.7_, and additional property `flushWhenIdle` can be set to `false`, meaning that the interval starts with the first write to a previously flushed (or new) file.
+
 [[file-timestamps]]
 ==== File Timestamps
 
