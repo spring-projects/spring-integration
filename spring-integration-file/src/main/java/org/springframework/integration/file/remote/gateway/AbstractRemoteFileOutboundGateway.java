@@ -587,7 +587,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		else {
 			payload = this.remoteFileTemplate.execute(session1 ->
-					get(requestMessage, session1, remoteDir, remoteFilePath, remoteFilename, true));
+					get(requestMessage, session1, remoteDir, remoteFilePath, remoteFilename, null));
 		}
 		return getMessageBuilderFactory().withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
@@ -831,33 +831,38 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * Copy a remote file to the configured local directory.
 	 *
 	 *
-	 * @param message The message.
-	 * @param session The session.
-	 * @param remoteDir The remote directory.
-	 * @param remoteFilePath The remote file path.
-	 * @param remoteFilename The remote file name.
-	 * @param lsFirst true to execute an 'ls' command first.
+	 * @param message the message.
+	 * @param session the session.
+	 * @param remoteDir the remote directory.
+	 * @param remoteFilePath the remote file path.
+	 * @param remoteFilename the remote file name.
+	 * @param fileInfoParam the remote file info; if null we will execute an 'ls' command
+	 * first.
 	 * @return The file.
 	 * @throws IOException Any IOException.
 	 */
 	protected File get(Message<?> message, Session<F> session, String remoteDir, String remoteFilePath,
-			String remoteFilename, boolean lsFirst) throws IOException {
-		F[] files = null;
-		if (lsFirst) {
-			files = session.list(remoteFilePath);
+			String remoteFilename, F fileInfoParam) throws IOException {
+		F fileInfo = fileInfoParam;
+		if (fileInfo == null) {
+			F[] files = session.list(remoteFilePath);
 			if (files == null) {
 				throw new MessagingException("Session returned null when listing " + remoteFilePath);
 			}
-			if (files.length != 1 || isDirectory(files[0]) || isLink(files[0])) {
+			if (files.length != 1 || files[0] == null || isDirectory(files[0]) || isLink(files[0])) {
 				throw new MessagingException(remoteFilePath + " is not a file");
 			}
+			fileInfo = files[0];
 		}
 		File localFile =
 				new File(generateLocalDirectory(message, remoteDir), generateLocalFileName(message, remoteFilename));
 		FileExistsMode fileExistsMode = this.fileExistsMode;
 		boolean appending = FileExistsMode.APPEND.equals(fileExistsMode);
-		boolean replacing = FileExistsMode.REPLACE.equals(fileExistsMode);
-		if (!localFile.exists() || appending || replacing) {
+		boolean exists = localFile.exists();
+		boolean replacing = FileExistsMode.REPLACE.equals(fileExistsMode)
+				|| (exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)
+						&& localFile.lastModified() != getModified(fileInfo));
+		if (!exists || appending || replacing) {
 			OutputStream outputStream;
 			String tempFileName = localFile.getAbsolutePath() + this.remoteFileTemplate.getTemporaryFileSuffix();
 			File tempFile = new File(tempFileName);
@@ -898,11 +903,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if (!appending && !tempFile.renameTo(localFile)) {
 				throw new MessagingException("Failed to rename local file");
 			}
-			if (lsFirst && this.options.contains(Option.PRESERVE_TIMESTAMP)) {
-				localFile.setLastModified(getModified(files[0]));
+			if (this.options.contains(Option.PRESERVE_TIMESTAMP)) {
+				localFile.setLastModified(getModified(fileInfo));
 			}
 		}
-		else if (FileExistsMode.IGNORE != fileExistsMode) {
+		else if (FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)) {
+			logger.debug("Local file '" + localFile + "' has the same modified timestamp, ignored");
+		}
+		else if (!FileExistsMode.IGNORE.equals(fileExistsMode)) {
 			throw new MessageHandlingException(message, "Local file " + localFile + " already exists");
 		}
 		else {
@@ -955,10 +963,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				String fileName = this.getRemoteFilename(fullFileName);
 				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
 				File file = get(message, session, actualRemoteDirectory,
-						fullFileName, fileName, false);
-				if (this.options.contains(Option.PRESERVE_TIMESTAMP)) {
-					file.setLastModified(getModified(lsEntry.getFileInfo()));
-				}
+						fullFileName, fileName, lsEntry.getFileInfo());
 				files.add(file);
 			}
 		}
@@ -1001,10 +1006,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				String fileName = this.getRemoteFilename(fullFileName);
 				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
 				File file = get(message, session, actualRemoteDirectory,
-						fullFileName, fileName, false);
-				if (this.options.contains(Option.PRESERVE_TIMESTAMP)) {
-					file.setLastModified(getModified(lsEntry.getFileInfo()));
-				}
+						fullFileName, fileName, lsEntry.getFileInfo());
 				files.add(file);
 			}
 		}

@@ -213,8 +213,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * <p>
 	 * Otherwise the LockRegistry is set to {@link PassThruLockRegistry} which
 	 * has no effect.
+	 * <p>
+	 * With {@link FileExistsMode#REPLACE_IF_MODIFIED}, if the file exists,
+	 * it is only replaced if its last modified timestamp is different to the
+	 * source; otherwise, the write is ignored. For {@link File} payloads,
+	 * the actual timestamp of the {@link File} is compared; for other payloads,
+	 * the {@link FileHeaders#SET_MODIFIED} is compared to the existing file.
+	 * If the header is missing, or its value is not a {@link Number}, the file
+	 * is always replaced. This mode will typically only make sense if
+	 * {@link #setPreserveTimestamp(boolean) preserveTimestamp} is true.
 	 *
 	 * @param fileExistsMode Must not be null
+	 * @see #setPreserveTimestamp(boolean)
 	 */
 	public void setFileExistsMode(FileExistsMode fileExistsMode) {
 
@@ -426,26 +436,30 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		File tempFile = new File(destinationDirectoryToUse, generatedFileName + this.temporaryFileSuffix);
 		File resultFile = new File(destinationDirectoryToUse, generatedFileName);
 
-		if (FileExistsMode.FAIL.equals(this.fileExistsMode) && resultFile.exists()) {
+		boolean exists = resultFile.exists();
+		if (exists && FileExistsMode.FAIL.equals(this.fileExistsMode)) {
 			throw new MessageHandlingException(requestMessage,
 					"The destination file already exists at '" + resultFile.getAbsolutePath() + "'.");
 		}
 
-		final boolean ignore = FileExistsMode.IGNORE.equals(this.fileExistsMode) &&
-				(resultFile.exists() ||
-						(StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists()));
-
+		Object timestamp = requestMessage.getHeaders().get(FileHeaders.SET_MODIFIED);
+		if (payload instanceof File) {
+			timestamp = ((File) payload).lastModified();
+		}
+		boolean ignore = (FileExistsMode.IGNORE.equals(this.fileExistsMode)
+						&& (exists || (StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists())))
+				|| ((exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(this.fileExistsMode))
+						&& (timestamp instanceof Number
+								&& ((Number) timestamp).longValue() == resultFile.lastModified()));
 		if (!ignore) {
 			try {
-				Object timestamp = requestMessage.getHeaders().get(FileHeaders.SET_MODIFIED);
-				if (!resultFile.exists() &&
+				if (!exists &&
 						generatedFileName.replaceAll("/", Matcher.quoteReplacement(File.separator))
 								.contains(File.separator)) {
 					resultFile.getParentFile().mkdirs(); //NOSONAR - will fail on the writing below
 				}
 				if (payload instanceof File) {
 					resultFile = handleFileMessage((File) payload, tempFile, resultFile);
-					timestamp = ((File) payload).lastModified();
 				}
 				else if (payload instanceof InputStream) {
 					resultFile = handleInputStreamMessage((InputStream) payload, originalFileFromHeader, tempFile,
@@ -711,6 +725,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			case FAIL:
 			case IGNORE:
 			case REPLACE:
+			case REPLACE_IF_MODIFIED:
 				fileToWriteTo = tempFile;
 				break;
 			default:

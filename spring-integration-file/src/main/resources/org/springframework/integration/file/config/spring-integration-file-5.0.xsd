@@ -828,6 +828,15 @@ Only files matching this regular expression will be picked up by this adapter.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="REPLACE_IF_MODIFIED">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						If the local file already exists, it will be overwritten only
+						if the last modified timestamp does not match the source
+						timestamp. Only applies to local files.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
 			<xsd:enumeration value="APPEND">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -1004,6 +1013,12 @@ Only files matching this regular expression will be picked up by this adapter.
 
 					This is the default behavior when writing files. If the
 					target file already exists, it will be overwritten.
+
+					REPLACE_IF_MODIFIED:
+
+					If the local file already exists, it will be overwritten only
+					if the last modified timestamp does not match the source
+					timestamp. Only applies to local files.
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>

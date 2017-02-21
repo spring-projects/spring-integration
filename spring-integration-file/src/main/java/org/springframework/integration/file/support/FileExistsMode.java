@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,14 @@ public enum FileExistsMode {
 	/**
 	 * If the file already exists, replace it.
 	 */
-	REPLACE;
+	REPLACE,
+
+	/**
+	 * If the file already exists, replace it only if the last modified time
+	 * is different. Only applies to local files.
+	 * @since 5.0
+	 */
+	REPLACE_IF_MODIFIED;
 
 	/**
 	 * For a given non-null and not-empty input string, this method returns the
