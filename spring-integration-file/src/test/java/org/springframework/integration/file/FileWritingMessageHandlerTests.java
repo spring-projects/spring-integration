@@ -518,6 +518,61 @@ public class FileWritingMessageHandlerTests {
 		handler.stop();
 	}
 
+	@Test
+	public void replaceIfDifferent() throws IOException {
+		QueueChannel output = new QueueChannel();
+		this.handler.setOutputChannel(output);
+		this.handler.setPreserveTimestamp(true);
+		this.handler.setFileExistsMode(FileExistsMode.REPLACE_IF_MODIFIED);
+		this.handler.handleMessage(MessageBuilder.withPayload("foo")
+				.setHeader(FileHeaders.FILENAME, "replaceIfDifferent.txt")
+				.setHeader(FileHeaders.SET_MODIFIED, 42_000_000)
+				.build());
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, "foo");
+		assertLastModifiedIs(result, 42_000_000);
+		this.handler.handleMessage(MessageBuilder.withPayload("bar")
+				.setHeader(FileHeaders.FILENAME, "replaceIfDifferent.txt")
+				.setHeader(FileHeaders.SET_MODIFIED, 42_000_000)
+				.build());
+		result = output.receive(0);
+		assertFileContentIs(result, "foo"); // no overwrite - timestamp same
+		assertLastModifiedIs(result, 42_000_000);
+		this.handler.handleMessage(MessageBuilder.withPayload("bar")
+				.setHeader(FileHeaders.FILENAME, "replaceIfDifferent.txt")
+				.setHeader(FileHeaders.SET_MODIFIED, 43_000_000)
+				.build());
+		result = output.receive(0);
+		assertFileContentIs(result, "bar");
+		assertLastModifiedIs(result, 43_000_000);
+	}
+
+	@Test
+	public void replaceIfDifferentFile() throws IOException {
+		File file = new File(this.temp.newFolder(), "foo.txt");
+		FileCopyUtils.copy("foo".getBytes(), new FileOutputStream(file));
+		file.setLastModified(42_000_000);
+		QueueChannel output = new QueueChannel();
+		this.handler.setOutputChannel(output);
+		this.handler.setPreserveTimestamp(true);
+		this.handler.setFileExistsMode(FileExistsMode.REPLACE_IF_MODIFIED);
+		this.handler.handleMessage(MessageBuilder.withPayload(file).build());
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, "foo");
+		assertLastModifiedIs(result, 42_000_000);
+		FileCopyUtils.copy("bar".getBytes(), new FileOutputStream(file));
+		file.setLastModified(42_000_000);
+		this.handler.handleMessage(MessageBuilder.withPayload(file).build());
+		result = output.receive(0);
+		assertFileContentIs(result, "foo"); // no overwrite - timestamp same
+		assertLastModifiedIs(result, 42_000_000);
+		file.setLastModified(43_000_000);
+		this.handler.handleMessage(MessageBuilder.withPayload(file).build());
+		result = output.receive(0);
+		assertFileContentIs(result, "bar");
+		assertLastModifiedIs(result, 43_000_000);
+	}
+
 	void assertFileContentIsMatching(Message<?> result) throws IOException {
 		assertFileContentIs(result, SAMPLE_CONTENT);
 	}

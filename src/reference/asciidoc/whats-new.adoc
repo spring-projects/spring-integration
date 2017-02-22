@@ -69,12 +69,17 @@ See <<file-tailing>> for more information.
 The flush predicates for the `FileWritingMessageHandler` now have an additional parameter.
 See <<file-flushing>> for more information.
 
+The file outbound channel adapter (`FileWritingMessageHandler`) now supports the `REPLACE_IF_MODIFIED` `FileExistsMode`.
+
 ==== (S)FTP Changes
 
 The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
 
 The regex and pattern filters can now be configured to always pass directories.
 This can be useful when using recursion in the outbound gateways.
+See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
+
+The FTP and SFTP outbound gateways now support the `REPLACE_IF_MODIFIED` `FileExistsMode` when fetching remote files.
 See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
 
 ==== Integration Properties

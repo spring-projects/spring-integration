@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,6 +282,8 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		Assert.notNull(this.directoryExpressionProcessor, "'remoteDirectoryExpression' is required");
 		Assert.isTrue(!FileExistsMode.APPEND.equals(mode) || !this.useTemporaryFileName,
 				"Cannot append when using a temporary file name");
+		Assert.isTrue(!FileExistsMode.REPLACE_IF_MODIFIED.equals(mode),
+				"FilExistsMode.REPLACE_IF_MODIFIED can only be used for local files");
 		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
 			try {
