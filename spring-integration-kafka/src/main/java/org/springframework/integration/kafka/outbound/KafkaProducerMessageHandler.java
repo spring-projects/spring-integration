@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,8 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Marius Bogoevici
+ * @author Biju Kunjummen
+ *
  * @since 0.5
  */
 public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
@@ -58,6 +60,8 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 	private volatile Expression messageKeyExpression;
 
 	private volatile Expression partitionIdExpression;
+
+	private volatile Expression timestampExpression;
 
 	private boolean sync;
 
@@ -78,6 +82,18 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 
 	public void setPartitionIdExpression(Expression partitionIdExpression) {
 		this.partitionIdExpression = partitionIdExpression;
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate a timestamp that will be added in the Kafka record.
+	 * The resulting value should be a {@link Long} type representing epoch time in milliseconds.
+	 *
+	 * @param timestampExpression the {@link Expression} for timestamp to wait for result
+	 * fo send operation.
+	 * @since 3.0.0
+	 */
+	public void setTimestampExpression(Expression timestampExpression) {
+		this.timestampExpression = timestampExpression;
 	}
 
 	public KafkaTemplate<?, ?> getKafkaTemplate() {
@@ -142,28 +158,17 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 				? this.messageKeyExpression.getValue(this.evaluationContext, message)
 				: message.getHeaders().get(KafkaHeaders.MESSAGE_KEY);
 
-		ListenableFuture<?> future;
+		Long timestamp = this.timestampExpression != null
+				? this.timestampExpression.getValue(this.evaluationContext, message, Long.class)
+				: message.getHeaders().get(KafkaHeaders.TIMESTAMP, Long.class);
 
 		V payload = (V) message.getPayload();
 		if (payload instanceof KafkaNull) {
 			payload = null;
 		}
-		if (partitionId == null) {
-			if (messageKey == null) {
-				future = this.kafkaTemplate.send(topic, payload);
-			}
-			else {
-				future = this.kafkaTemplate.send(topic, (K) messageKey, payload);
-			}
-		}
-		else {
-			if (messageKey == null) {
-				future = this.kafkaTemplate.send(topic, partitionId, payload);
-			}
-			else {
-				future = this.kafkaTemplate.send(topic, partitionId, (K) messageKey, payload);
-			}
-		}
+
+		ListenableFuture<?> future = this.kafkaTemplate.send(topic, partitionId, timestamp, (K) messageKey, payload);
+
 		if (this.sync) {
 			Long sendTimeout = this.sendTimeoutExpression.getValue(this.evaluationContext, message, Long.class);
 			if (sendTimeout == null || sendTimeout < 0) {

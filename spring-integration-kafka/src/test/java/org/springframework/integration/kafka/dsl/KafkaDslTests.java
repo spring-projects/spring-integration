@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,36 +63,40 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * @author Artem Bilan
  * @author Nasko Vasilev
+ * @author Biju Kunjummen
  *
  * @since 3.0
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-public class KafkaTests {
+public class KafkaDslTests {
 
-	private static final String TEST_TOPIC = "test-topic";
+	private static final String TEST_TOPIC1 = "test-topic1";
 
 	private static final String TEST_TOPIC2 = "test-topic2";
 
 	private static final String TEST_TOPIC3 = "test-topic3";
 
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC, TEST_TOPIC2, TEST_TOPIC3);
+	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3);
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
 	private MessageChannel sendToKafkaFlowInput;
 
 	@Autowired
-	private PollableChannel listeningFromKafkaResults;
+	private PollableChannel listeningFromKafkaResults1;
 
 	@Autowired
-	@Qualifier("kafkaProducer.handler")
-	private KafkaProducerMessageHandler<?, ?> kafkaProducer;
+	private PollableChannel listeningFromKafkaResults2;
 
 	@Autowired
-	@Qualifier("kafkaProducer3.handler")
-	private KafkaProducerMessageHandler<?, ?> kafkaProducer3;
+	@Qualifier("kafkaProducer1.handler")
+	private KafkaProducerMessageHandler<?, ?> kafkaProducer1;
+
+	@Autowired
+	@Qualifier("kafkaProducer2.handler")
+	private KafkaProducerMessageHandler<?, ?> kafkaProducer2;
 
 	@Autowired
 	private PollableChannel errorChannel;
@@ -103,29 +107,47 @@ public class KafkaTests {
 		assertThatThrownBy(() -> this.sendToKafkaFlowInput.send(new GenericMessage<>("foo")))
 				.hasMessageContaining("10 is not in the range");
 
-		this.kafkaProducer.setPartitionIdExpression(new ValueExpression<>(0));
-		this.kafkaProducer3.setPartitionIdExpression(new ValueExpression<>(0));
+		this.kafkaProducer1.setPartitionIdExpression(new ValueExpression<>(0));
+		this.kafkaProducer2.setPartitionIdExpression(new ValueExpression<>(0));
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo"));
 
 		for (int i = 0; i < 100; i++) {
-			Message<?> receive = this.listeningFromKafkaResults.receive(20000);
+			Message<?> receive = this.listeningFromKafkaResults1.receive(20000);
 			assertThat(receive).isNotNull();
 			assertThat(receive.getPayload()).isEqualTo("FOO");
 			MessageHeaders headers = receive.getHeaders();
 			assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue();
 			Acknowledgment acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
 			acknowledgment.acknowledge();
-			assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(TEST_TOPIC);
+			assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(TEST_TOPIC1);
 			assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(i + 1);
 			assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
 			assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo((long) i);
+			assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
+			assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048633L);
+		}
+
+		for (int i = 0; i < 100; i++) {
+			Message<?> receive = this.listeningFromKafkaResults2.receive(20000);
+			assertThat(receive).isNotNull();
+			assertThat(receive.getPayload()).isEqualTo("FOO");
+			MessageHeaders headers = receive.getHeaders();
+			assertThat(headers.containsKey(KafkaHeaders.ACKNOWLEDGMENT)).isTrue();
+			Acknowledgment acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
+			acknowledgment.acknowledge();
+			assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(TEST_TOPIC2);
+			assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(i + 1);
+			assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+			assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo((long) i);
+			assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
+			assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048644L);
 		}
 
 		Message<String> message = MessageBuilder.withPayload("BAR").setHeader(KafkaHeaders.TOPIC, TEST_TOPIC2).build();
 
 		this.sendToKafkaFlowInput.send(message);
 
-		assertThat(this.listeningFromKafkaResults.receive(10)).isNull();
+		assertThat(this.listeningFromKafkaResults1.receive(10)).isNull();
 
 		Message<?> error = this.errorChannel.receive(10000);
 		assertThat(error).isNotNull();
@@ -151,10 +173,10 @@ public class KafkaTests {
 		}
 
 		@Bean
-		public IntegrationFlow listeningFromKafkaFlow() {
+		public IntegrationFlow topic1ListenerFromKafkaFlow() {
 			return IntegrationFlows
 					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
-							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC)
+							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
 							.configureListenerContainer(c ->
 									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL))
 							.errorChannel("errorChannel")
@@ -164,7 +186,25 @@ public class KafkaTests {
 									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
 							f -> f.throwExceptionOnRejection(true))
 					.<String, String>transform(String::toUpperCase)
-					.channel(c -> c.queue("listeningFromKafkaResults"))
+					.channel(c -> c.queue("listeningFromKafkaResults1"))
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow topic2ListenerFromKafkaFlow() {
+			return IntegrationFlows
+					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
+							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2)
+							.configureListenerContainer(c ->
+									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL))
+							.errorChannel("errorChannel")
+							.retryTemplate(new RetryTemplate())
+							.filterInRetry(true))
+					.filter(Message.class, m ->
+									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
+							f -> f.throwExceptionOnRejection(true))
+					.<String, String>transform(String::toUpperCase)
+					.channel(c -> c.queue("listeningFromKafkaResults2"))
 					.get();
 		}
 
@@ -178,15 +218,18 @@ public class KafkaTests {
 			return f -> f
 					.<String>split(p -> Stream.generate(() -> p).limit(101).iterator(), null)
 					.publishSubscribeChannel(c -> c
-							.subscribe(sf -> sf.handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC),
-									e -> e.id("kafkaProducer")))
-							.subscribe(sf -> sf.handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC3),
-									e -> e.id("kafkaProducer3")))
+							.subscribe(sf -> sf.handle(
+									kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
+											.timestampExpression("T(Long).valueOf('1487694048633')"),
+									e -> e.id("kafkaProducer1")))
+							.subscribe(sf -> sf.handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
+											.timestamp(m -> 1487694048644L),
+									e -> e.id("kafkaProducer2")))
 					);
 		}
 
-		private KafkaProducerMessageHandlerSpec<Integer, String>
-		kafkaMessageHandler(ProducerFactory<Integer, String> producerFactory, String topic) {
+		private KafkaProducerMessageHandlerSpec<Integer, String> kafkaMessageHandler(
+				ProducerFactory<Integer, String> producerFactory, String topic) {
 			return Kafka
 					.outboundChannelAdapter(producerFactory)
 					.messageKey(m -> m

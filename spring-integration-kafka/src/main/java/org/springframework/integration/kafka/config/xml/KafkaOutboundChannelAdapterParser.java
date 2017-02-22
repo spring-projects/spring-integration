@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
  * @author Soby Chacko
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Biju Kunjummen
  * @since 0.5
  *
  */
@@ -73,6 +74,13 @@ public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 						"send-timeout-expression", parserContext, element, false);
 		if (sendTimeoutExpressionDef != null) {
 			kafkaProducerMessageHandlerBuilder.addPropertyValue("sendTimeoutExpression", sendTimeoutExpressionDef);
+		}
+
+		BeanDefinition timestampExpressionDef =
+				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("timestamp-expression", element);
+
+		if (timestampExpressionDef != null) {
+			kafkaProducerMessageHandlerBuilder.addPropertyValue("timestampExpression", timestampExpressionDef);
 		}
 
 		return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
