@@ -1223,6 +1223,12 @@ IMPORTANT: Just as with other persistence-backed channels, AMQP-backed channels 
 persistence to avoid message loss.
 They are not intended to distribute work to other peer applications; for that purpose, use channel adapters instead.
 
+IMPORTANT: Starting with _version 5.0_, the pollable channel now blocks the poller thread for the specified `receiveTimeout` (default 1 second).
+Previously, unlike other `PollableChannel` s, the thread returned immediately to the scheduler if no message was available, regardless of the receive timeout.
+Blocking is a little more expensive than just using a `basicGet()` to retrieve a message (with no timeout) because a consumer has to be created to receive each message.
+To restore the previous behavior, set the poller `receiveTimeout` to 0.
+
+
 ==== Configuring with Java Configuration
 
 The following provides an example of configuring the channels using Java configuration:

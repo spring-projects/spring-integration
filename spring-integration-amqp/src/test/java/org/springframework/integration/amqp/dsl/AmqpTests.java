@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Rule;
+import org.junit.AfterClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,13 +35,13 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.junit.BrokerRunning;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
-import org.springframework.integration.amqp.rule.BrokerRunning;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.QueueChannel;
@@ -65,8 +66,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @DirtiesContext
 public class AmqpTests {
 
-	@Rule
-	public BrokerRunning brokerRunning = BrokerRunning.isRunning();
+	@ClassRule
+	public static BrokerRunning brokerRunning = BrokerRunning.isRunning();
 
 	@Autowired
 	private ConnectionFactory rabbitConnectionFactory;
@@ -80,6 +81,12 @@ public class AmqpTests {
 
 	@Autowired
 	private AmqpInboundGateway amqpInboundGateway;
+
+	@AfterClass
+	public static void tearDown() {
+		brokerRunning.removeTestQueues("amqpOutboundInput", "amqpReplyChannel", "asyncReplies", "defaultReplyTo",
+				"si.dsl.test", "testTemplateChannelTransacted");
+	}
 
 	@Test
 	public void testAmqpInboundGatewayFlow() throws Exception {
@@ -108,7 +115,7 @@ public class AmqpTests {
 	@Test
 	public void testAmqpOutboundFlow() throws Exception {
 		this.amqpOutboundInput.send(MessageBuilder.withPayload("hello through the amqp")
-				.setHeader("routingKey", "foo")
+				.setHeader("routingKey", "si.dsl.test")
 				.build());
 		Message<?> receive = null;
 		int i = 0;
@@ -219,7 +226,7 @@ public class AmqpTests {
 
 		@Bean
 		public Queue fooQueue() {
-			return new Queue("foo");
+			return new Queue("si.dsl.test");
 		}
 
 		@Bean
@@ -257,7 +264,7 @@ public class AmqpTests {
 		@Bean
 		public AbstractAmqpChannel unitChannel(ConnectionFactory rabbitConnectionFactory) {
 			return Amqp.pollableChannel(rabbitConnectionFactory)
-					.queueName("foo")
+					.queueName("si.dsl.test")
 					.channelTransacted(true)
 					.extractPayload(true)
 					.inboundHeaderMapper(mapperIn())
