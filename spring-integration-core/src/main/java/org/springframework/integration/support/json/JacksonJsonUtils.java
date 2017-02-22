@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,16 +38,8 @@ public final class JacksonJsonUtils {
 			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader) &&
 					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", classLoader);
 
-	private static final boolean jacksonPresent =
-			ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", classLoader) &&
-					ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", classLoader);
-
 	public static boolean isJackson2Present() {
 		return jackson2Present;
-	}
-
-	public static boolean isJacksonPresent() {
-		return jacksonPresent;
 	}
 
 }

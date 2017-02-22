@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ftp.inbound;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -27,6 +28,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,12 +37,14 @@ import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -61,16 +65,67 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 	@Autowired
 	public PollableChannel data;
 
+	@Autowired
+	public PollableChannel dataBoon;
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testAllContents() {
 		Message<byte[]> received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
 		assertThat(new String(received.getPayload()), equalTo("source1"));
+		String fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"ftpSource"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-------"));
+		assertThat(fileInfo, containsString("size\":7"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\" ftpSource1.txt"));
+		assertThat(fileInfo, containsString("modified\":"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo"));
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
 		assertThat(new String(received.getPayload()), equalTo("source2"));
+		fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"ftpSource"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-------"));
+		assertThat(fileInfo, containsString("size\":7"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\"ftpSource2.txt"));
+		assertThat(fileInfo, containsString("modified\":"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo"));
 		assertNull(this.data.receive(10));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testAllContentsBoon() {
+		Message<byte[]> received = (Message<byte[]>) this.dataBoon.receive(10000);
+		assertNotNull(received);
+		assertThat(new String(received.getPayload()), equalTo("source1"));
+		String fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"ftpSource"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-------"));
+		assertThat(fileInfo, containsString("size\":7"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\" ftpSource1.txt"));
+		assertThat(fileInfo, containsString("modified\":"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo"));
+		received = (Message<byte[]>) this.dataBoon.receive(10000);
+		assertNotNull(received);
+		assertThat(new String(received.getPayload()), equalTo("source2"));
+		fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"ftpSource"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-------"));
+		assertThat(fileInfo, containsString("size\":7"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\"ftpSource2.txt"));
+		assertThat(fileInfo, containsString("modified\":"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo"));
+		assertNull(this.dataBoon.receive(10));
 	}
 
 	@Configuration
@@ -79,6 +134,11 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 
 		@Bean
 		public QueueChannel data() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel dataBoon() {
 			return new QueueChannel();
 		}
 
@@ -100,8 +160,25 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		}
 
 		@Bean
+		@InboundChannelAdapter(channel = "streamBoon")
+		public MessageSource<InputStream> ftpMessageSourceBoon() {
+			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(), null);
+			new DirectFieldAccessor(messageSource).setPropertyValue("objectMapper",
+					JsonObjectMapperProvider.newInstanceBuilder(true).build());
+			messageSource.setRemoteDirectory("ftpSource/");
+			messageSource.setFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "streaming"));
+			return messageSource;
+		}
+
+		@Bean
 		@Transformer(inputChannel = "stream", outputChannel = "data")
 		public org.springframework.integration.transformer.Transformer transformer() {
+			return new StreamTransformer();
+		}
+
+		@Bean
+		@Transformer(inputChannel = "streamBoon", outputChannel = "dataBoon")
+		public org.springframework.integration.transformer.Transformer transformerBoon() {
 			return new StreamTransformer();
 		}
 

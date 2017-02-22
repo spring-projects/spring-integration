@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.inbound;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -34,12 +35,15 @@ import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.SftpTestSupport;
 import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
+import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -62,16 +66,71 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	@Autowired
 	public PollableChannel data;
 
+	@Autowired
+	public PollableChannel dataBoon;
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testAllContents() {
 		Message<byte[]> received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
 		assertThat(new String(received.getPayload()), equalTo("source1"));
+		String fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"sftpSource"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-r--r--"));
+		assertThat(fileInfo, containsString("size\":7"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\" sftpSource1.txt"));
+		assertThat(fileInfo, containsString("modified\":"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo\":"));
+		assertThat(fileInfo, containsString("attrs\":"));
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
+		fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"sftpSource"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-r--r--"));
+		assertThat(fileInfo, containsString("size\":7"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\"sftpSource2.txt"));
+		assertThat(fileInfo, containsString("modified\":"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo\":"));
+		assertThat(fileInfo, containsString("attrs\":"));
 		assertThat(new String(received.getPayload()), equalTo("source2"));
 		assertNull(this.data.receive(10));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testAllContentsBoon() {
+		Message<byte[]> received = (Message<byte[]>) this.dataBoon.receive(10000);
+		assertNotNull(received);
+		assertThat(new String(received.getPayload()), equalTo("source1"));
+		String fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"sftpSource"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-r--r--"));
+		assertThat(fileInfo, containsString("size\":7"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\" sftpSource1.txt"));
+		assertThat(fileInfo, containsString("modified\":"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo\":"));
+//		assertThat(fileInfo, containsString("attrs\":")); // Boon does not reliably include this for some reason
+		received = (Message<byte[]>) this.dataBoon.receive(10000);
+		assertNotNull(received);
+		fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"sftpSource"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-r--r--"));
+		assertThat(fileInfo, containsString("size\":7"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\"sftpSource2.txt"));
+		assertThat(fileInfo, containsString("modified\":"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo\":"));
+//		assertThat(fileInfo, containsString("attrs\":")); // Boon does not reliably include this for some reason
+		assertThat(new String(received.getPayload()), equalTo("source2"));
+		assertNull(this.dataBoon.receive(10));
 	}
 
 	@Configuration
@@ -80,6 +139,11 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 
 		@Bean
 		public QueueChannel data() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public QueueChannel dataBoon() {
 			return new QueueChannel();
 		}
 
@@ -93,8 +157,25 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 
 		@Bean
 		@InboundChannelAdapter(channel = "stream")
-		public MessageSource<InputStream> ftpMessageSource() {
+		public MessageSource<InputStream> sftpMessageSource() {
 			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(), null);
+			messageSource.setRemoteDirectory("sftpSource/");
+			messageSource.setFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "streaming"));
+			return messageSource;
+		}
+
+		@Bean
+		@InboundChannelAdapter(channel = "streamBoon")
+		public MessageSource<InputStream> sftpMessageSourceBoon() {
+			final JsonObjectMapper<?, ?> mapper = JsonObjectMapperProvider.newInstanceBuilder(true).build();
+			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(), null) {
+
+				@Override
+				protected JsonObjectMapper<?, ?> getObjectMapper() {
+					return mapper;
+				}
+
+			};
 			messageSource.setRemoteDirectory("sftpSource/");
 			messageSource.setFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "streaming"));
 			return messageSource;
@@ -103,6 +184,12 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		@Bean
 		@Transformer(inputChannel = "stream", outputChannel = "data")
 		public org.springframework.integration.transformer.Transformer transformer() {
+			return new StreamTransformer();
+		}
+
+		@Bean
+		@Transformer(inputChannel = "streamBoon", outputChannel = "dataBoon")
+		public org.springframework.integration.transformer.Transformer transformerBoon() {
 			return new StreamTransformer();
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +38,7 @@ import org.boon.json.JsonParserFactory;
 import org.boon.json.JsonSerializerFactory;
 import org.boon.json.JsonSlurper;
 import org.boon.json.ObjectMapper;
+import org.boon.json.implementation.ObjectMapperImpl;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.integration.mapping.support.JsonHeaders;
@@ -46,6 +48,7 @@ import org.springframework.util.ClassUtils;
  * The Boon (@link https://github.com/RichardHightower/boon) {@link JsonObjectMapper} implementation.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Object>, Object>
@@ -65,6 +68,18 @@ public class BoonJsonObjectMapper extends JsonObjectMapperAdapter<Map<String, Ob
 
 	public BoonJsonObjectMapper() {
 		this.objectMapper = JsonFactory.create();
+	}
+
+	public BoonJsonObjectMapper(Consumer<JsonParserFactory> jpfConfig, Consumer<JsonSerializerFactory> jsfConfig) {
+		JsonParserFactory jpf = new JsonParserFactory();
+		if (jpfConfig != null) {
+			jpfConfig.accept(jpf);
+		}
+		JsonSerializerFactory jsf = new JsonSerializerFactory();
+		if (jsfConfig != null) {
+			jsfConfig.accept(jsf);
+		}
+		this.objectMapper = new ObjectMapperImpl(jpf, jsf);
 	}
 
 	public BoonJsonObjectMapper(JsonParserFactory parserFactory, JsonSerializerFactory serializerFactory) {

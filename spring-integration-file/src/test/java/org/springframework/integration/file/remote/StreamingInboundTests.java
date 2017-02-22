@@ -16,8 +16,10 @@
 
 package org.springframework.integration.file.remote;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.BDDMockito.willThrow;
@@ -37,6 +39,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -45,6 +48,7 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.splitter.FileSplitter;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -73,14 +77,37 @@ public class StreamingInboundTests {
 		assertEquals("foo\nbar", new String(received.getPayload()));
 		assertEquals("/foo", received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("foo", received.getHeaders().get(FileHeaders.REMOTE_FILE));
+		String fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"/foo"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-rw-rw"));
+		assertThat(fileInfo, containsString("size\":42"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\"foo"));
+		assertThat(fileInfo, containsString("modified\":42000"));
+		assertThat(fileInfo, containsString("link\":false"));
+		assertThat(fileInfo, containsString("fileInfo"));
+		assertThat(fileInfo, containsString("name=/foo/foo"));
 
 		// close after list, transform
 		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(2)).close();
+
+		new DirectFieldAccessor(streamer).setPropertyValue("objectMapper",
+				JsonObjectMapperProvider.newInstanceBuilder(true).build());
 
 		received = (Message<byte[]>) this.transformer.transform(streamer.receive());
 		assertEquals("baz\nqux", new String(received.getPayload()));
 		assertEquals("/foo", received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("bar", received.getHeaders().get(FileHeaders.REMOTE_FILE));
+		fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"/foo"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-rw-rw"));
+		assertThat(fileInfo, containsString("size\":42"));
+		assertThat(fileInfo, containsString("directory\":false")); // Boon doesn't emit default values (false)
+		assertThat(fileInfo, containsString("filename\":\"bar"));
+		assertThat(fileInfo, containsString("modified\":42000"));
+		assertThat(fileInfo, containsString("link\":false")); // Boon doesn't emit default values (false)
+		assertThat(fileInfo, containsString("fileInfo"));
+		assertThat(fileInfo, containsString("name=/foo/bar"));
 
 		// close after transform
 		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(3)).close();
@@ -213,12 +240,12 @@ public class StreamingInboundTests {
 
 		@Override
 		public long getSize() {
-			return 0;
+			return 42;
 		}
 
 		@Override
 		public long getModified() {
-			return 0;
+			return 42_000;
 		}
 
 		@Override
@@ -228,12 +255,16 @@ public class StreamingInboundTests {
 
 		@Override
 		public String getPermissions() {
-			return null;
+			return "-rw-rw-rw";
 		}
 
 		@Override
 		public String getFileInfo() {
-			return null;
+			return asString();
+		}
+
+		private String asString() {
+			return "StringFileInfo [name=" + this.name + "]";
 		}
 
 	}

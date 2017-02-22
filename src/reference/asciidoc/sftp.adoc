@@ -573,7 +573,13 @@ If you don't actually want to persist the state, an in-memory `SimpleMetadataSto
 If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
 The java configuration below shows one technique to remove the remote file after processing.
 
-Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment;
+Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment.
+
+The adapter puts the remote directory and file name in headers `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` respectively.
+Starting with _version 5.0_, complete remote file information, in JSON, is provided in the `FileHeaders.REMOTE_FILE_INFO` header, if a supported JSON object mapper on the classpath - currently Jackson 2 and Boon (Jackson is recommended).
+
+Common properties are available as top level map entries, but the complete JSch `LsEntry` object is included, under key `fileInfo`, providing all properties supported by the underlying library.
+While there is some duplication with the top-level entries, the top level entries provide a consistent attribute set between FTP and SFTP.
 
 ==== Configuring with Java Configuration
 

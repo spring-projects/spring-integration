@@ -45,6 +45,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	/**
 	 * @see com.jcraft.jsch.SftpATTRS#isDir()
 	 */
+	@Override
 	public boolean isDirectory() {
 		return this.attrs.isDir();
 	}
@@ -52,6 +53,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	/**
 	 * @see com.jcraft.jsch.SftpATTRS#isLink()
 	 */
+	@Override
 	public boolean isLink() {
 		return this.attrs.isLink();
 	}
@@ -59,6 +61,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	/**
 	 * @see com.jcraft.jsch.SftpATTRS#getSize()
 	 */
+	@Override
 	public long getSize() {
 		return this.attrs.getSize();
 	}
@@ -66,6 +69,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	/**
 	 * @see com.jcraft.jsch.SftpATTRS#getMTime()
 	 */
+	@Override
 	public long getModified() {
 		return ((long) this.attrs.getMTime()) * 1000;
 	}
@@ -73,14 +77,17 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	/**
 	 * @see com.jcraft.jsch.ChannelSftp.LsEntry#getFilename()
 	 */
+	@Override
 	public String getFilename() {
 		return this.lsEntry.getFilename();
 	}
 
+	@Override
 	public String getPermissions() {
 		return this.attrs.getPermissionsString();
 	}
 
+	@Override
 	public LsEntry getFileInfo() {
 		return this.lsEntry;
 	}
