@@ -283,6 +283,7 @@ project('spring-integration-amqp') {
 			exclude group: 'org.springframework', module: 'spring-core'
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
+		testCompile("org.springframework.amqp:spring-rabbit-junit:$springAmqpVersion")
 		testCompile project(":spring-integration-stream")
 		testCompile project(":spring-integration-http") // need to test INT-2713
 	}

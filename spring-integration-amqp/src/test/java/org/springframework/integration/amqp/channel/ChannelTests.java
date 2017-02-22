@@ -46,6 +46,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.junit.BrokerRunning;
 import org.springframework.amqp.rabbit.listener.BlockingQueueConsumer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConversionException;
@@ -53,10 +54,8 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
-import org.springframework.integration.amqp.rule.BrokerRunning;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
@@ -69,13 +68,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
-public class ChannelTests extends LogAdjustingTestSupport {
+public class ChannelTests {
 
 	@ClassRule
 	public static final BrokerRunning brokerIsRunning =
@@ -108,16 +108,9 @@ public class ChannelTests extends LogAdjustingTestSupport {
 	@Autowired
 	private AmqpHeaderMapper mapperOut;
 
-	public ChannelTests() {
-		super("org.springframework.integration", "org.springframework.integration.amqp", "org.springframework.amqp");
-	}
-
 	@After
 	public void tearDown() {
-		RabbitAdmin rabbitAdmin = new RabbitAdmin(this.factory);
-		rabbitAdmin.deleteExchange("si.fanout.foo");
-		rabbitAdmin.deleteExchange("si.fanout.channel");
-		rabbitAdmin.deleteExchange("si.fanout.pubSubWithEP");
+		brokerIsRunning.deleteExchanges("si.fanout.foo", "si.fanout.channel", "si.fanout.pubSubWithEP");
 		brokerIsRunning.removeTestQueues();
 	}
 
@@ -220,27 +213,22 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		Foo foo = new Foo("bar");
 		Message<?> message = MessageBuilder.withPayload(foo).setHeader("baz", "qux").build();
 		this.pollableWithEP.send(message);
-		Message<?> received = this.pollableWithEP.receive();
-		int n = 0;
-		while (received == null && n++ < 100) {
-			Thread.sleep(100);
-			received = this.pollableWithEP.receive();
-		}
+		Message<?> received = this.pollableWithEP.receive(10000);
 		assertNotNull(received);
-		assertThat((Foo) received.getPayload(), equalTo(foo));
-		assertThat((String) received.getHeaders().get("baz"), equalTo("qux"));
+		assertThat(received.getPayload(), equalTo(foo));
+		assertThat(received.getHeaders().get("baz"), equalTo("qux"));
 
 		this.withEP.send(message);
 		received = this.out.receive(10000);
 		assertNotNull(received);
-		assertThat((Foo) received.getPayload(), equalTo(foo));
-		assertThat((String) received.getHeaders().get("baz"), equalTo("qux"));
+		assertThat(received.getPayload(), equalTo(foo));
+		assertThat(received.getHeaders().get("baz"), equalTo("qux"));
 
 		this.pubSubWithEP.send(message);
 		received = this.out.receive(10000);
 		assertNotNull(received);
-		assertThat((Foo) received.getPayload(), equalTo(foo));
-		assertThat((String) received.getHeaders().get("baz"), equalTo("qux"));
+		assertThat(received.getPayload(), equalTo(foo));
+		assertThat(received.getHeaders().get("baz"), equalTo("qux"));
 
 		assertSame(this.mapperIn, TestUtils.getPropertyValue(this.pollableWithEP, "inboundHeaderMapper"));
 		assertSame(this.mapperOut, TestUtils.getPropertyValue(this.pollableWithEP, "outboundHeaderMapper"));

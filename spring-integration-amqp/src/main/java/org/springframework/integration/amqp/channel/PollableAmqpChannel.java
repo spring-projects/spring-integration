@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.1
  */
 public class PollableAmqpChannel extends AbstractAmqpChannel
@@ -151,6 +152,16 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 
 	@Override
 	public Message<?> receive() {
+		return doReceive(null);
+	}
+
+	@Override
+	public Message<?> receive(long timeout) {
+		return doReceive(timeout);
+	}
+
+
+	protected Message<?> doReceive(Long timeout) {
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
@@ -160,13 +171,13 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				logger.trace("preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getInterceptors().size() > 0) {
-				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+				interceptorStack = new ArrayDeque<>();
 
 				if (!interceptorList.preReceive(this, interceptorStack)) {
 					return null;
 				}
 			}
-			Object object = doReceive();
+			Object object = performReceive(timeout);
 			if (object == null) {
 				if (isLoggingEnabled() && logger.isTraceEnabled()) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
@@ -177,12 +188,14 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				getMetrics().afterReceive();
 				counted = true;
 			}
-			Message<?> message = null;
+			Message<?> message;
 			if (object instanceof Message<?>) {
 				message = (Message<?>) object;
 			}
 			else {
-				message = getMessageBuilderFactory().withPayload(object).build();
+				message = getMessageBuilderFactory()
+						.withPayload(object)
+						.build();
 			}
 			if (isLoggingEnabled() && logger.isDebugEnabled()) {
 				logger.debug("postReceive on channel '" + this + "', message: " + message);
@@ -204,14 +217,25 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		}
 	}
 
-
-	protected Object doReceive() {
+	protected Object performReceive(Long timeout) {
 		if (!isExtractPayload()) {
-			return getAmqpTemplate().receiveAndConvert(this.queueName);
+			if (timeout == null) {
+				return getAmqpTemplate().receiveAndConvert(this.queueName);
+			}
+			else {
+				return getAmqpTemplate().receiveAndConvert(this.queueName, timeout);
+			}
 		}
 		else {
 			RabbitTemplate rabbitTemplate = getRabbitTemplate();
-			org.springframework.amqp.core.Message message = rabbitTemplate.receive(this.queueName);
+			org.springframework.amqp.core.Message message;
+			if (timeout == null) {
+				message = rabbitTemplate.receive(this.queueName);
+			}
+			else {
+				message = rabbitTemplate.receive(this.queueName, timeout);
+			}
+
 			if (message != null) {
 				Object payload = rabbitTemplate.getMessageConverter().fromMessage(message);
 				Map<String, Object> headers = getInboundHeaderMapper()
@@ -225,15 +249,6 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				return null;
 			}
 		}
-	}
-
-	@Override
-	public Message<?> receive(long timeout) {
-		if (isLoggingEnabled() && logger.isInfoEnabled()) {
-			logger.info("Calling receive with a timeout value on PollableAmqpChannel. " +
-					"The timeout will be ignored since no receive timeout is supported.");
-		}
-		return this.receive();
 	}
 
 	@Override
