@@ -617,7 +617,7 @@ This behavior, though, can be changed by setting the _mode_ attribute on the res
 The following options exist:
 
 * REPLACE (Default)
-* REPLACE_IF_DIFFERENT
+* REPLACE_IF_MODIFIED
 * APPEND
 * APPEND_NO_FLUSH
 * FAIL

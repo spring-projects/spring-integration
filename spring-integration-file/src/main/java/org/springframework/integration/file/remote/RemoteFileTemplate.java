@@ -283,7 +283,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		Assert.isTrue(!FileExistsMode.APPEND.equals(mode) || !this.useTemporaryFileName,
 				"Cannot append when using a temporary file name");
 		Assert.isTrue(!FileExistsMode.REPLACE_IF_MODIFIED.equals(mode),
-				"FilExistsMode.REPLACE_IF_DIFFERENT can only be used for local files");
+				"FilExistsMode.REPLACE_IF_MODIFIED can only be used for local files");
 		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
 		if (inputStreamHolder != null) {
 			try {

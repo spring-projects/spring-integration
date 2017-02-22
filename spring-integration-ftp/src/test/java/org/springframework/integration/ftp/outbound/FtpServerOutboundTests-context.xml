@@ -53,7 +53,7 @@
 							  command="mget"
 							  expression="payload"
 							  command-options="-R -P"
-							  mode="REPLACE_IF_DIFFERENT"
+							  mode="REPLACE_IF_MODIFIED"
 							  filter="starDotTxtFilter"
 							  local-directory-expression="@extraConfig.targetLocalDirectoryName + #remoteDirectory"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"

@@ -831,12 +831,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * Copy a remote file to the configured local directory.
 	 *
 	 *
-	 * @param message The message.
-	 * @param session The session.
-	 * @param remoteDir The remote directory.
-	 * @param remoteFilePath The remote file path.
-	 * @param remoteFilename The remote file name.
-	 * @param lsFirst true to execute an 'ls' command first.
+	 * @param message the message.
+	 * @param session the session.
+	 * @param remoteDir the remote directory.
+	 * @param remoteFilePath the remote file path.
+	 * @param remoteFilename the remote file name.
+	 * @param fileInfoParam the remote file info; if null we will execute an 'ls' command
+	 * first.
 	 * @return The file.
 	 * @throws IOException Any IOException.
 	 */

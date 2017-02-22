@@ -69,7 +69,7 @@ See <<file-tailing>> for more information.
 The flush predicates for the `FileWritingMessageHandler` now have an additional parameter.
 See <<file-flushing>> for more information.
 
-The file outbound channel adapter (`FileWritingMessageHandler`) now supports the `REPLACE_IF_DIFFERENT` `FileExistsMode`.
+The file outbound channel adapter (`FileWritingMessageHandler`) now supports the `REPLACE_IF_MODIFIED` `FileExistsMode`.
 
 ==== (S)FTP Changes
 
