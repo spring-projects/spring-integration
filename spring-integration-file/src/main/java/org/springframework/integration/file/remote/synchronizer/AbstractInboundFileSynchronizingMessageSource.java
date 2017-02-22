@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,9 @@ import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -55,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		extends AbstractMessageSource<File> implements Lifecycle {
@@ -82,7 +85,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	 */
 	private final FileReadingMessageSource fileSource;
 
-	private volatile FileListFilter<File> localFileListFilter = new AcceptOnceFileListFilter<File>();
+	private volatile FileListFilter<File> localFileListFilter;
 
 
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer) {
@@ -142,6 +145,10 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 				}
 			}
 			this.fileSource.setDirectory(this.localDirectory);
+			if (this.localFileListFilter == null) {
+				this.localFileListFilter = new FileSystemPersistentAcceptOnceFileListFilter(
+						new SimpleMetadataStore(), getComponentName());
+			}
 			this.fileSource.setFilter(this.buildFilter());
 			if (this.getBeanFactory() != null) {
 				this.fileSource.setBeanFactory(this.getBeanFactory());
