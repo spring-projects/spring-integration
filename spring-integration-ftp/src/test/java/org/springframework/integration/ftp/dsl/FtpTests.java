@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
@@ -94,6 +95,18 @@ public class FtpTests extends FtpTestSupport {
 		file = (File) message.getPayload();
 		assertThat(file.getName(), isOneOf(" FTPSOURCE1.TXT.a", "FTPSOURCE2.TXT.a"));
 		assertThat(file.getAbsolutePath(), containsString("localTarget"));
+
+		assertNull(out.receive(10));
+
+		File remoteFile = new File(this.sourceRemoteDirectory, " " + prefix() + "Source1.txt");
+		remoteFile.setLastModified(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
+
+		message = out.receive(10_000);
+		assertNotNull(message);
+		payload = message.getPayload();
+		assertThat(payload, instanceOf(File.class));
+		file = (File) payload;
+		assertEquals(" FTPSOURCE1.TXT.a", file.getName());
 
 		registration.destroy();
 	}

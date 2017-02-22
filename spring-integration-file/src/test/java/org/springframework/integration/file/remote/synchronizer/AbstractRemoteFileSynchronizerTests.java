@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.messaging.MessagingException;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0.4
  *
  */
@@ -128,6 +129,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.setAutoCreateLocalDirectory(true);
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.setMaxFetchSize(1);
+		source.setBeanName("maxFetchSizeSource");
 		source.afterPropertiesSet();
 
 		source.receive();

@@ -77,6 +77,8 @@ The file outbound channel adapter (`FileWritingMessageHandler`) now supports the
 ==== (S)FTP Changes
 
 The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
+They also are configured with a `FileSystemPersistentAcceptOnceFileListFilter` in the `local-filter` by default.
+See <<ftp-inbound>> and <<sftp-inbound>> for more information.
 
 The regex and pattern filters can now be configured to always pass directories.
 This can be useful when using recursion in the outbound gateways.

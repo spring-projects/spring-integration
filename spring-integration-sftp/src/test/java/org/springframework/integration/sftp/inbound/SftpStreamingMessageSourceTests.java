@@ -77,7 +77,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		assertThat(new String(received.getPayload()), equalTo("source1"));
 		String fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
 		assertThat(fileInfo, containsString("remoteDirectory\":\"sftpSource"));
-		assertThat(fileInfo, containsString("permissions\":\"-rw-r--r--"));
+		assertThat(fileInfo, containsString("permissions\":"));
 		assertThat(fileInfo, containsString("size\":7"));
 		assertThat(fileInfo, containsString("directory\":false"));
 		assertThat(fileInfo, containsString("filename\":\" sftpSource1.txt"));
@@ -87,7 +87,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		assertNotNull(received);
 		fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
 		assertThat(fileInfo, containsString("remoteDirectory\":\"sftpSource"));
-		assertThat(fileInfo, containsString("permissions\":\"-rw-r--r--"));
+		assertThat(fileInfo, containsString("permissions\":"));
 		assertThat(fileInfo, containsString("size\":7"));
 		assertThat(fileInfo, containsString("directory\":false"));
 		assertThat(fileInfo, containsString("filename\":\"sftpSource2.txt"));
