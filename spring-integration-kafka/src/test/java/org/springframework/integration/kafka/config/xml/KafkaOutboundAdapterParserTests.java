@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Soby Chacko
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Biju Kunjummen
+ *
  * @since 0.5
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -69,6 +71,8 @@ public class KafkaOutboundAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(messageHandler, "partitionIdExpression.expression")).isEqualTo("'2'");
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sync", Boolean.class)).isTrue();
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sendTimeoutExpression.expression")).isEqualTo("1000");
+		assertThat(TestUtils.getPropertyValue(messageHandler, "timestampExpression.expression"))
+				.isEqualTo("T(System).currentTimeMillis()");
 
 		messageHandler
 				= this.appContext.getBean("kafkaOutboundChannelAdapter2.handler", KafkaProducerMessageHandler.class);
@@ -77,6 +81,8 @@ public class KafkaOutboundAdapterParserTests {
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sync", Boolean.class)).isFalse();
 
 		assertThat(TestUtils.getPropertyValue(messageHandler, "sendTimeoutExpression.literalValue")).isEqualTo("500");
+
+
 	}
 
 

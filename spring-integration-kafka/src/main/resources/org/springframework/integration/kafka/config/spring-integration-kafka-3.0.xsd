@@ -96,6 +96,14 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="timestamp-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+								Specifies the expression to determine the timestamp for a Kafka record
+								against the Message at runtime.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="sync">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[

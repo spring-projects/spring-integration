@@ -18,7 +18,9 @@
 										topic="foo"
 										message-key-expression="'bar'"
 										partition-id-expression="'2'"
-										send-timeout-expression="1000">
+										send-timeout-expression="1000"
+										timestamp-expression="T(System).currentTimeMillis()"
+	>
 		<int-kafka:request-handler-advice-chain>
 			<bean class="org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice" />
 		</int-kafka:request-handler-advice-chain>

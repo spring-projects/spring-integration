@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.springframework.kafka.test.assertj.KafkaConditions.key;
 import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
+import static org.springframework.kafka.test.assertj.KafkaConditions.timestamp;
 import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
 import org.apache.kafka.clients.consumer.Consumer;
@@ -30,6 +31,8 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -44,8 +47,9 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
- * @since 2.0
+ * @author Biju Kunjummen
  *
+ * @since 2.0
  */
 public class KafkaProducerMessageHandlerTests {
 
@@ -118,6 +122,67 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(record).has(key(2));
 		assertThat(record).has(partition(1));
 		assertThat(record.value()).isNull();
+	}
+
+	@Test
+	public void testOutboundWithTimestamp() {
+		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+				KafkaTestUtils.producerProps(embeddedKafka));
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
+		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(KafkaHeaders.TOPIC, topic1)
+				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.setHeader(KafkaHeaders.TIMESTAMP, 1487694048607L)
+				.build();
+		handler.handleMessage(message);
+
+		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic1);
+		assertThat(record).has(key(2));
+		assertThat(record).has(partition(1));
+		assertThat(record).has(value("foo"));
+		assertThat(record).has(timestamp(1487694048607L));
+	}
+
+	@Test
+	public void testOutboundWithTimestampExpression() {
+		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+				KafkaTestUtils.producerProps(embeddedKafka));
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
+		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(KafkaHeaders.TOPIC, topic1)
+				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.build();
+
+		handler.setTimestampExpression(new ValueExpression<>(1487694048633L));
+
+		handler.handleMessage(message);
+
+		ConsumerRecord<Integer, String> record1 = KafkaTestUtils.getSingleRecord(consumer, topic1);
+		assertThat(record1).has(key(2));
+		assertThat(record1).has(partition(1));
+		assertThat(record1).has(value("foo"));
+		assertThat(record1).has(timestamp(1487694048633L));
+
+		Long currentTimeMarker = System.currentTimeMillis();
+		handler.setTimestampExpression(new FunctionExpression<Message<?>>(m -> System.currentTimeMillis()));
+
+		handler.handleMessage(message);
+
+		ConsumerRecord<Integer, String> record2 = KafkaTestUtils.getSingleRecord(consumer, topic1);
+		assertThat(record2).has(key(2));
+		assertThat(record2).has(partition(1));
+		assertThat(record2).has(value("foo"));
+		assertThat(record2.timestamp()).isGreaterThanOrEqualTo(currentTimeMarker);
 	}
 
 }
