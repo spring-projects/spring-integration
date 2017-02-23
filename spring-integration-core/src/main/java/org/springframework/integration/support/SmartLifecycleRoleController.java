@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,14 @@
 package org.springframework.integration.support;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,10 +34,12 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.leader.event.AbstractLeaderEvent;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -42,6 +48,8 @@ import org.springframework.util.MultiValueMap;
  * Bulk start/stop {@link SmartLifecycle} in a particular role in phase order.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
@@ -135,7 +143,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 			Collections.sort(lifecycles, (o1, o2) ->
 					o1.getPhase() < o2.getPhase() ? -1 : o1.getPhase() > o2.getPhase() ? 1 : 0);
 			if (logger.isDebugEnabled()) {
-				logger.debug("Zookeeper leadership granted: Starting: " + lifecycles);
+				logger.debug("Starting " + lifecycles + " in role " + role);
 			}
 			for (SmartLifecycle lifecycle : lifecycles) {
 				try {
@@ -148,7 +156,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		}
 		else {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Zookeeper leadership granted: Nothing to do");
+				logger.debug("No components in role " + role + ". Nothing to start");
 			}
 		}
 	}
@@ -167,7 +175,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 			Collections.sort(lifecycles, (o1, o2) ->
 					o1.getPhase() < o2.getPhase() ? 1 : o1.getPhase() > o2.getPhase() ? -1 : 0);
 			if (logger.isDebugEnabled()) {
-				logger.debug("Zookeeper leadership revoked: Stopping: " + lifecycles);
+				logger.debug("Stopping " + lifecycles + " in role " + role);
 			}
 			for (SmartLifecycle lifecycle : lifecycles) {
 				try {
@@ -180,12 +188,71 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		}
 		else {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Zookeeper leadership revoked: Nothing to do");
+				logger.debug("No components in role " + role + ". Nothing to stop");
 			}
 		}
 	}
 
-	private void addLazyLifecycles() {
+	/**
+	 * Return a collection of the roles currently managed by this controller.
+	 * @return the roles.
+	 * @since 4.3.8
+	 */
+	public Collection<String> getRoles() {
+		if (this.lazyLifecycles.size() > 0) {
+			addLazyLifecycles();
+		}
+		return new ArrayList<>(this.lifecycles.keySet());
+	}
+
+	/**
+	 * Return true if all endpoints in the role are running.
+	 * @param role the role.
+	 * @return true if at least one endpoint in the role, and all are running.
+	 * @since 4.3.8
+	 */
+	public boolean allEndpointsRunning(String role) {
+		Map<String, Boolean> status = getEndpointsRunningStatus(role);
+		return !status.isEmpty() && status.values().stream().allMatch(b -> b);
+	}
+
+	/**
+	 * Return true if none of the endpoints in the role are running or if
+	 * there are no endpoints in the role.
+	 * @param role the role.
+	 * @return true if there are no endpoints or none are running.
+	 * @since 4.3.8
+	 */
+	public boolean noEndpointsRunning(String role) {
+		Map<String, Boolean> status = getEndpointsRunningStatus(role);
+		return status.isEmpty() || status.values().stream().noneMatch(b -> b);
+	}
+
+	/**
+	 * Return the running status of each endpoint in the role.
+	 * @param role the role.
+	 * @return A map of component names : running status
+	 * @since 4.3.8
+	 */
+	public Map<String, Boolean> getEndpointsRunningStatus(String role) {
+		if (this.lazyLifecycles.size() > 0) {
+			addLazyLifecycles();
+		}
+		if (!this.lifecycles.containsKey(role)) {
+			return Collections.emptyMap();
+		}
+
+		AtomicInteger index = new AtomicInteger();
+		return this.lifecycles.get(role)
+				.stream()
+				.collect(Collectors.toMap(e ->
+								(e instanceof NamedComponent)
+										? ((NamedComponent) e).getComponentName()
+										: (e.getClass().getSimpleName() + "#" + index.getAndIncrement()),
+						Lifecycle::isRunning));
+	}
+
+	private synchronized void addLazyLifecycles() {
 		for (Entry<String, List<String>> entry : this.lazyLifecycles.entrySet()) {
 			doAddLifecyclesToRole(entry.getKey(), entry.getValue());
 		}
@@ -199,7 +266,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 				addLifecycleToRole(role, lifecycle);
 			}
 			catch (NoSuchBeanDefinitionException e) {
-				logger.warn("Skipped; no such bean :" + lifecycleBeanName);
+				logger.warn("Skipped; no such bean: " + lifecycleBeanName);
 			}
 		}
 	}
