@@ -630,6 +630,29 @@ The `SmartLifecycleRoleController` implements `ApplicationListener<AbstractLeade
 start/stop its configured `SmartLifecycle` objects when leadership is granted/revoked (when some bean publishes
 `OnGrantedEvent` or `OnRevokedEvent` respectively).
 
+IMPORTANT: When using leadership election to start/stop components, it is important to set the `auto-startup` XML attribute (`autoStartup` bean property) to `false` so the application context does not start the components during context intialization.
+
+Starting with _version 4.3.8, the `SmartLifecycleRoleController` provides several status methods:
+
+[source, java]
+----
+public Collection<String> getRoles() <1>
+
+public boolean allEndpointsRunning(String role) <2>
+
+public boolean noEndpointsRunning(String role) <3>
+
+public Map<String, Boolean> getEndpointsRunningStatus(String role) <4>
+----
+
+<1> Returns a list of the roles being managed.
+
+<2> Returns true if all endpoints in the role are running.
+
+<3> Returns true if none of the endpoints in the role are running.
+
+<4> Returns a map of `component name : running status` - the component name is usually the bean name.
+
 [[leadership-event-handling]]
 === Leadership Event Handling
 

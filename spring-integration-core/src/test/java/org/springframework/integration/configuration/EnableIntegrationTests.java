@@ -16,6 +16,8 @@
 
 package org.springframework.integration.configuration;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -37,6 +39,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -639,7 +642,21 @@ public class EnableIntegrationTests {
 	@Test
 	@DirtiesContext
 	public void testRoles() {
+		assertThat(this.roleController.getRoles(), containsInAnyOrder("foo", "bar"));
+		assertFalse(this.roleController.allEndpointsRunning("foo"));
+		assertFalse(this.roleController.noEndpointsRunning("foo"));
+		assertTrue(this.roleController.allEndpointsRunning("bar"));
+		assertFalse(this.roleController.noEndpointsRunning("bar"));
+		Map<String, Boolean> state = this.roleController.getEndpointsRunningStatus("foo");
+		assertThat(state.get("annotationTestService.handle.serviceActivator"), equalTo(Boolean.FALSE));
+		assertThat(state.get("enableIntegrationTests.ContextConfiguration2.sendAsyncHandler.serviceActivator"),
+				equalTo(Boolean.TRUE));
+		this.roleController.startLifecyclesInRole("foo");
+		assertTrue(this.roleController.allEndpointsRunning("foo"));
 		this.roleController.stopLifecyclesInRole("foo");
+		assertFalse(this.roleController.allEndpointsRunning("foo"));
+		assertTrue(this.roleController.noEndpointsRunning("foo"));
+
 		@SuppressWarnings("unchecked")
 		MultiValueMap<String, SmartLifecycle> lifecycles = TestUtils.getPropertyValue(this.roleController,
 				"lifecycles", MultiValueMap.class);
