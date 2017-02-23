@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,14 @@
 package org.springframework.integration.support;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,6 +38,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.leader.event.AbstractLeaderEvent;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -185,7 +190,76 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		}
 	}
 
-	private void addLazyLifecycles() {
+	/**
+	 * Return a collection of the roles currently managed by this controller.
+	 * @return the roles.
+	 * @since 4.3.8
+	 */
+	public Collection<String> getRoles() {
+		if (this.lazyLifecycles.size() > 0) {
+			addLazyLifecycles();
+		}
+		return new ArrayList<>(this.lifecycles.keySet());
+	}
+
+	/**
+	 * Return true if all endpoints in the role are running.
+	 * @param role the role.
+	 * @return true if at least one endpoint in the role, and all are running.
+	 * @since 4.3.8
+	 */
+	public boolean allEndpointsRunning(String role) {
+		Map<String, Boolean> status = getEndpointsRunningStatus(role);
+		if (status.isEmpty()) {
+			return false;
+		}
+		else {
+			return status.values().stream().allMatch(b -> b);
+		}
+	}
+
+	/**
+	 * Return true if none of the endpoints in the role are running or if
+	 * there are no endpoints in the role.
+	 * @param role the role.
+	 * @return true if there are no endpoints or none are running.
+	 * @since 4.3.8
+	 */
+	public boolean noEndpointsRunning(String role) {
+		Map<String, Boolean> status = getEndpointsRunningStatus(role);
+		if (status.isEmpty()) {
+			return true;
+		}
+		else {
+			return status.values().stream().allMatch(b -> !b);
+		}
+	}
+
+	/**
+	 * Return the running status of each endpoint in the role.
+	 * @param role the role.
+	 * @return A map of component names : running status
+	 * @since 4.3.8
+	 */
+	public Map<String, Boolean> getEndpointsRunningStatus(String role) {
+		if (this.lazyLifecycles.size() > 0) {
+			addLazyLifecycles();
+		}
+		if (!this.lifecycles.containsKey(role)) {
+			return Collections.emptyMap();
+		}
+		Map<String, Boolean> runningStatus = new HashMap<>();
+		AtomicInteger index = new AtomicInteger();
+		this.lifecycles.get(role)
+				.stream()
+				.forEach(e -> {
+					runningStatus.put((e instanceof NamedComponent) ? ((NamedComponent) e).getComponentName()
+							: (e.getClass().getSimpleName() + "#" + index.getAndIncrement()), e.isRunning());
+				});
+		return runningStatus;
+	}
+
+	private synchronized void addLazyLifecycles() {
 		for (Entry<String, List<String>> entry : this.lazyLifecycles.entrySet()) {
 			doAddLifecyclesToRole(entry.getKey(), entry.getValue());
 		}
