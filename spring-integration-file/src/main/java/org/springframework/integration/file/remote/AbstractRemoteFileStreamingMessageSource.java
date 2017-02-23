@@ -38,10 +38,6 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.json.JacksonJsonUtils;
-import org.springframework.integration.support.json.JsonObjectMapper;
-import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -62,7 +58,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	private final Comparator<AbstractFileInfo<F>> comparator;
 
-	private final JsonObjectMapper<?, ?> objectMapper;
 	/**
 	 * the path on the remote server.
 	 */
@@ -79,12 +74,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 			Comparator<AbstractFileInfo<F>> comparator) {
 		this.remoteFileTemplate = template;
 		this.comparator = comparator;
-		if (JacksonJsonUtils.isJackson2Present()) {
-			this.objectMapper = JsonObjectMapperProvider.newInstanceBuilder(false).build();
-		}
-		else {
-			this.objectMapper = null;
-		}
 	}
 
 	/**
@@ -127,16 +116,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		return this.remoteFileTemplate;
 	}
 
-	/**
-	 * Override this method if you wish to provide your own object mapper for
-	 * the {@link AbstractFileInfo} header.
-	 * @return the object mapper.
-	 * @since 5.0
-	 */
-	protected JsonObjectMapper<?, ?> getObjectMapper() {
-		return this.objectMapper;
-	}
-
 	@Override
 	public final void afterPropertiesSet() {
 		Assert.state(this.remoteDirectoryExpression != null, "'remoteDirectoryExpression' must not be null");
@@ -157,20 +136,13 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 			String remotePath = remotePath(file);
 			Session<?> session = this.remoteFileTemplate.getSession();
 			try {
-				AbstractIntegrationMessageBuilder<InputStream> builder = getMessageBuilderFactory()
+				return getMessageBuilderFactory()
 						.withPayload(session.readRaw(remotePath))
 						.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
 						.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
-						.setHeader(FileHeaders.REMOTE_FILE, file.getFilename());
-				if (getObjectMapper() != null) {
-					try {
-						builder.setHeader(FileHeaders.REMOTE_FILE_INFO, getObjectMapper().toJson(file));
-					}
-					catch (Exception e) {
-						logger.info("Failed to transform file info to json: " + file, e);
-					}
-				}
-				return builder.build();
+						.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
+						.setHeader(FileHeaders.REMOTE_FILE_INFO, (file.toJson()))
+						.build();
 			}
 			catch (IOException e) {
 				throw new MessagingException("IOException when retrieving " + remotePath, e);

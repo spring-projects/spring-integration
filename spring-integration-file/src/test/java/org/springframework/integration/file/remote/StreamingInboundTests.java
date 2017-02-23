@@ -39,7 +39,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -48,7 +47,6 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.splitter.FileSplitter;
-import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -85,14 +83,9 @@ public class StreamingInboundTests {
 		assertThat(fileInfo, containsString("filename\":\"foo"));
 		assertThat(fileInfo, containsString("modified\":42000"));
 		assertThat(fileInfo, containsString("link\":false"));
-		assertThat(fileInfo, containsString("fileInfo"));
-		assertThat(fileInfo, containsString("name=/foo/foo"));
 
 		// close after list, transform
 		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(2)).close();
-
-		new DirectFieldAccessor(streamer).setPropertyValue("objectMapper",
-				JsonObjectMapperProvider.newInstanceBuilder(true).build());
 
 		received = (Message<byte[]>) this.transformer.transform(streamer.receive());
 		assertEquals("baz\nqux", new String(received.getPayload()));
@@ -106,8 +99,6 @@ public class StreamingInboundTests {
 		assertThat(fileInfo, containsString("filename\":\"bar"));
 		assertThat(fileInfo, containsString("modified\":42000"));
 		assertThat(fileInfo, containsString("link\":false")); // Boon doesn't emit default values (false)
-		assertThat(fileInfo, containsString("fileInfo"));
-		assertThat(fileInfo, containsString("name=/foo/bar"));
 
 		// close after transform
 		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(3)).close();

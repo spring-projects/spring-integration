@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.file.remote;
 
 import java.util.Date;
+
+import org.springframework.integration.json.SimpleJsonSerializer;
 
 /**
  * Abstract implementation of {@link FileInfo}; provides a setter
@@ -36,10 +38,12 @@ public abstract class AbstractFileInfo<F> implements FileInfo<F>, Comparable<Fil
 		this.remoteDirectory = remoteDirectory;
 	}
 
+	@Override
 	public String getRemoteDirectory() {
 		return this.remoteDirectory;
 	}
 
+	@Override
 	public String toString() {
 		return "FileInfo [isDirectory=" + isDirectory() + ", isLink=" + isLink()
 				+ ", Size=" + getSize() + ", ModifiedTime="
@@ -47,8 +51,14 @@ public abstract class AbstractFileInfo<F> implements FileInfo<F>, Comparable<Fil
 				+ ", RemoteDirectory=" + getRemoteDirectory() + ", Permissions=" + getPermissions() + "]";
 	}
 
+	@Override
 	public int compareTo(FileInfo<F> o) {
 		return this.getFilename().compareTo(o.getFilename());
+	}
+
+	public String toJson() {
+		return SimpleJsonSerializer.toJson(this, "directory", "link", "size", "modified", "filename",
+				"remoteDirectory", "permissions");
 	}
 
 }
