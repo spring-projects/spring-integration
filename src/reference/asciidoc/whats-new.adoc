@@ -79,6 +79,11 @@ To restore the previous behaviour specify the `spring.integration.messagingAnnot
 `spring.integration.properties` as `true`.
 See <<global-properties>> and <<annotations>> for more information.
 
+===== Lifecycle Role Controller
+
+The `SmartLifecycleRoleController` now provides methods to obtain status of endpoints in roles.
+See <<endpoint-roles>> for more information.
+
 ==== Mail Changes
 
 ===== Customizable User Flag
