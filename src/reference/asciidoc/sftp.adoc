@@ -573,7 +573,13 @@ If you don't actually want to persist the state, an in-memory `SimpleMetadataSto
 If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
 The java configuration below shows one technique to remove the remote file after processing.
 
-Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment;
+Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment.
+
+The adapter puts the remote directory and file name in headers `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` respectively.
+Starting with _version 5.0_, additional remote file information, in JSON, is provided in the `FileHeaders.REMOTE_FILE_INFO` header.
+If you set the `fileInfoJson` property on the `SftpStreamingMessageSource` to `false`, the header will contain an `SftpFileInfo` object.
+The `LsEntry` object provided by the underlying Jsch library can be accessed using the `SftpFileInfo.getFileInfo()` method.
+The `fileInfoJson` property is not available when using XML configuration but you can set it by injecting the `SftpStreamingMessageSource` into one of your configuration classes.
 
 ==== Configuring with Java Configuration
 
@@ -1048,13 +1054,13 @@ public class SftpJavaApplication {
     }
 
     @Bean
-    public SessionFactory<FTPFile> ftpSessionFactory() {
+    public SessionFactory<LsEntry> sftpSessionFactory() {
         DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
         sf.setHost("localhost");
         sf.setPort(port);
         sf.setUsername("foo");
         sf.setPassword("foo");
-        return new CachingSessionFactory<FTPFile>(sf);
+        return new CachingSessionFactory<LsEntry>(sf);
     }
 
     @Bean
@@ -1066,7 +1072,7 @@ public class SftpJavaApplication {
     public IntegrationFlow sftpMGetFlow() {
         return IntegrationFlows.from("sftpMgetInputChannel")
             .handleWithAdapter(h ->
-                h.sftpGateway(this.sftpSessionFactory, AbstractRemoteFileOutboundGateway.Command.MGET,
+                h.sftpGateway(sftpSessionFactory(), AbstractRemoteFileOutboundGateway.Command.MGET,
                     "payload")
                     .options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
                     .regexFileNameFilter("(subSftpSource|.*1.txt)")
@@ -1129,7 +1135,7 @@ log4j.category.com.jcraft.jsch=DEBUG
 === MessageSessionCallback
 
 Starting with _Spring Integration version 4.2_, a `MessageSessionCallback<F, T>` implementation can be used with the
-`<int-ftp:outbound-gateway/>` (`FtpOutboundGateway`) to perform any operation(s) on the `Session<FTPFile>` with
+`<int-sftp:outbound-gateway/>` (`SftpOutboundGateway`) to perform any operation(s) on the `Session<LsEntry>` with
 the `requestMessage` context.
 It can be used for any non-standard or low-level FTP operation (or several); for example, allowing access
 from an integration flow definition, and _functional_ interface (Lambda) implementation injection:
