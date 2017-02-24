@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,8 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	private final Comparator<AbstractFileInfo<F>> comparator;
 
+	private boolean fileInfoJson = true;
+
 	/**
 	 * the path on the remote server.
 	 */
@@ -112,6 +114,18 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		this.filter = filter;
 	}
 
+	/**
+	 * Set to false to set the {@link FileHeaders#REMOTE_FILE_INFO} header to the raw
+	 * file info object provided by the underlying implementation.
+	 * Default is true meaning that common file information properties are provided
+	 * in that header as JSON.
+	 * @param fileInfoJson false to set the raw object.
+	 * @since 5.0
+	 */
+	public void setFileInfoJson(boolean fileInfoJson) {
+		this.fileInfoJson = fileInfoJson;
+	}
+
 	protected RemoteFileTemplate<F> getRemoteFileTemplate() {
 		return this.remoteFileTemplate;
 	}
@@ -136,10 +150,13 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 			String remotePath = remotePath(file);
 			Session<?> session = this.remoteFileTemplate.getSession();
 			try {
-				return getMessageBuilderFactory().withPayload(session.readRaw(remotePath))
+				return getMessageBuilderFactory()
+						.withPayload(session.readRaw(remotePath))
 						.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
 						.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
 						.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
+						.setHeader(FileHeaders.REMOTE_FILE_INFO,
+										this.fileInfoJson ? (file.toJson()) : file)
 						.build();
 			}
 			catch (IOException e) {

@@ -534,7 +534,13 @@ If you don't actually want to persist the state, an in-memory `SimpleMetadataSto
 If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
 The java configuration below shows one technique to remove the remote file after processing.
 
-Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment;
+Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment.
+
+The adapter puts the remote directory and file name in headers `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` respectively.
+Starting with _version 5.0_, additional remote file information, represented in JSON by default, is provided in the `FileHeaders.REMOTE_FILE_INFO` header.
+If you set the `fileInfoJson` property on the `FtpStreamingMessageSource` to `false`, the header will contain an `FtpFileInfo` object.
+The `FTPFile` object provided by the underlying Apache Net library can be accessed using the `FtpFileInfo.getFileInfo()` method.
+The `fileInfoJson` property is not available when using XML configuration but you can set it by injecting the `FtpStreamingMessageSource` into one of your configuration classes.
 
 ==== Configuring with Java Configuration
 

@@ -16,8 +16,10 @@
 
 package org.springframework.integration.file.remote;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.BDDMockito.willThrow;
@@ -73,6 +75,14 @@ public class StreamingInboundTests {
 		assertEquals("foo\nbar", new String(received.getPayload()));
 		assertEquals("/foo", received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("foo", received.getHeaders().get(FileHeaders.REMOTE_FILE));
+		String fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"/foo"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-rw-rw"));
+		assertThat(fileInfo, containsString("size\":42"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\"foo"));
+		assertThat(fileInfo, containsString("modified\":42000"));
+		assertThat(fileInfo, containsString("link\":false"));
 
 		// close after list, transform
 		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(2)).close();
@@ -81,6 +91,14 @@ public class StreamingInboundTests {
 		assertEquals("baz\nqux", new String(received.getPayload()));
 		assertEquals("/foo", received.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("bar", received.getHeaders().get(FileHeaders.REMOTE_FILE));
+		fileInfo = (String) received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO);
+		assertThat(fileInfo, containsString("remoteDirectory\":\"/foo"));
+		assertThat(fileInfo, containsString("permissions\":\"-rw-rw-rw"));
+		assertThat(fileInfo, containsString("size\":42"));
+		assertThat(fileInfo, containsString("directory\":false"));
+		assertThat(fileInfo, containsString("filename\":\"bar"));
+		assertThat(fileInfo, containsString("modified\":42000"));
+		assertThat(fileInfo, containsString("link\":false"));
 
 		// close after transform
 		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(3)).close();
@@ -213,12 +231,12 @@ public class StreamingInboundTests {
 
 		@Override
 		public long getSize() {
-			return 0;
+			return 42;
 		}
 
 		@Override
 		public long getModified() {
-			return 0;
+			return 42_000;
 		}
 
 		@Override
@@ -228,12 +246,16 @@ public class StreamingInboundTests {
 
 		@Override
 		public String getPermissions() {
-			return null;
+			return "-rw-rw-rw";
 		}
 
 		@Override
 		public String getFileInfo() {
-			return null;
+			return asString();
+		}
+
+		private String asString() {
+			return "StringFileInfo [name=" + this.name + "]";
 		}
 
 	}
