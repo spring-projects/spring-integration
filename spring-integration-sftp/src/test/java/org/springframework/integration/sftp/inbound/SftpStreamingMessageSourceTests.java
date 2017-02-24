@@ -17,9 +17,9 @@
 package org.springframework.integration.sftp.inbound;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
@@ -35,16 +35,14 @@ import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.SftpTestSupport;
-import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -62,7 +60,13 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 
 	@Autowired
-	public PollableChannel data;
+	private QueueChannel data;
+
+	@Autowired
+	private SftpStreamingMessageSource source;
+
+	@Autowired
+	private SourcePollingChannelAdapter adapter;
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -89,7 +93,15 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		assertThat(fileInfo, containsString("modified\":"));
 		assertThat(fileInfo, containsString("link\":false"));
 		assertThat(new String(received.getPayload()), equalTo("source2"));
-		assertNull(this.data.receive(10));
+
+		this.adapter.stop();
+		this.source.setFileInfoJson(false);
+		this.data.purge(null);
+		this.adapter.start();
+		received = (Message<byte[]>) this.data.receive(10000);
+		assertNotNull(received);
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(LsEntry.class));
+		this.adapter.stop();
 	}
 
 	@Configuration
@@ -114,7 +126,6 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		public MessageSource<InputStream> sftpMessageSource() {
 			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(), null);
 			messageSource.setRemoteDirectory("sftpSource/");
-			messageSource.setFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "streaming"));
 			return messageSource;
 		}
 

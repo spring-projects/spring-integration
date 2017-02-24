@@ -577,6 +577,8 @@ Use the `max-fetch-size` attribute to limit the number of files fetched on each 
 
 The adapter puts the remote directory and file name in headers `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` respectively.
 Starting with _version 5.0_, additional remote file information, in JSON, is provided in the `FileHeaders.REMOTE_FILE_INFO` header.
+If you set the `fileInfoJson` property on the `SftpStreamingMessageSource` to `false`, the `LsEntry` object provided by the underlying JSch library is used instead.
+This property is not available when using XML configuration but you can set it by injecting the source into one of your configuration classes.
 
 ==== Configuring with Java Configuration
 

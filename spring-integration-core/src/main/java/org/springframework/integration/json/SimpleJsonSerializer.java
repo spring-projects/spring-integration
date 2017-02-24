@@ -16,16 +16,17 @@
 
 package org.springframework.integration.json;
 
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.util.ReflectionUtils;
+import org.springframework.beans.BeanUtils;
 
 /**
  * Extremely simple JSON serializer. Only handles top level
@@ -46,41 +47,41 @@ public final class SimpleJsonSerializer {
 	/**
 	 * Convert the bean to JSON with the provided properties.
 	 * @param bean the object to serialize.
-	 * @param properties the property names (must have getters).
+	 * @param propertiesToExclude the property names to ignore.
 	 * @return the JSON.
 	 */
-	public static String toJson(Object bean, String... properties) {
-		Map<String, String> propertyMap = new HashMap<>();
-		List<String> list = Arrays.asList(properties);
-		list.forEach(p -> {
-			char[] chars = p.toCharArray();
-			chars[0] = Character.toUpperCase(chars[0]);
-			propertyMap.put(new String(chars), p);
-		});
+	public static String toJson(Object bean, String... propertiesToExclude) {
+		PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(bean.getClass());
+		Set<String> excluded = new HashSet<>(Arrays.asList(propertiesToExclude));
+		excluded.add("class");
 		final StringBuilder stringBuilder = new StringBuilder("{");
 		final Object[] emptyArgs = new Object[0];
-		ReflectionUtils.doWithMethods(bean.getClass(), method -> {
-			int beginIndex = method.getName().startsWith("get") ? 3 : 2;
-			stringBuilder.append(toElement(propertyMap.get(method.getName().substring(beginIndex)))).append(":");
-			Object result;
-			try {
-				result = method.invoke(bean, emptyArgs);
-			}
-			catch (InvocationTargetException e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Failed to serialize property " + method.getName(), e);
+		for (PropertyDescriptor descriptor : propertyDescriptors) {
+			String propertyName = descriptor.getName();
+			Method readMethod = descriptor.getReadMethod();
+			if (!excluded.contains(propertyName) && readMethod != null) {
+				stringBuilder.append(toElement(propertyName)).append(":");
+				Object result;
+				try {
+					result = readMethod.invoke(bean, emptyArgs);
 				}
-				result = e.getMessage();
+				catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Failed to serialize property " + propertyName, e);
+					}
+					result = e.getMessage();
+				}
+				stringBuilder.append(toElement(result)).append(",");
 			}
-			stringBuilder.append(toElement(result)).append(",");
-		}, method -> {
-			String name = method.getName();
-			return (name.length() > 3 && name.startsWith("get") && propertyMap.keySet().contains(name.substring(3)))
-				|| (name.length() > 2 && name.startsWith("is") && propertyMap.keySet().contains(name.substring(2)));
-		});
+		}
 		stringBuilder.setLength(stringBuilder.length() - 1);
 		stringBuilder.append("}");
-		return stringBuilder.toString();
+		if (stringBuilder.length() == 1) {
+			return null;
+		}
+		else {
+			return stringBuilder.toString();
+		}
 	}
 
 	private static String toElement(Object result) {

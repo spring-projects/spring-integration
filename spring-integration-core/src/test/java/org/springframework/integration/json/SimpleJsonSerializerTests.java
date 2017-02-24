@@ -16,13 +16,15 @@
 
 package org.springframework.integration.json;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import java.util.Map;
+
 import org.junit.Test;
+
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 
 /**
  * @author Gary Russell
@@ -32,17 +34,16 @@ import org.junit.Test;
 public class SimpleJsonSerializerTests {
 
 	@Test
-	public void test() {
+	public void test() throws Exception {
 		Foo foo = new Foo();
-		String json = SimpleJsonSerializer.toJson(foo, "foo", "bar", "dub", "bool");
-		assertThat(json, startsWith("{"));
-		assertThat(json, containsString("\"bool\":true"));
-		assertThat(json, containsString("\"bar\":42"));
-		assertThat(json, containsString("\"foo\":\"bar\""));
-		assertThat(json, containsString("\"dub\":1.6"));
-		assertThat(json, endsWith("}"));
-		String[] split = json.split(",");
-		assertThat(split, arrayWithSize(4));
+		String json = SimpleJsonSerializer.toJson(foo, "fileInfo");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> fromJson = JsonObjectMapperProvider.newInstance().fromJson(json, Map.class);
+		assertThat(fromJson.get("bool"), equalTo(Boolean.TRUE));
+		assertThat(fromJson.get("bar"), equalTo(42));
+		assertThat(fromJson.get("foo"), equalTo("bar"));
+		assertThat(fromJson.get("dub"), equalTo(1.6));
+		assertNull(fromJson.get("fileInfo"));
 	}
 
 	public static class Foo {
@@ -69,6 +70,10 @@ public class SimpleJsonSerializerTests {
 
 		public boolean isBool() {
 			return this.bool;
+		}
+
+		public String fileInfo() {
+			return "foo";
 		}
 
 	}

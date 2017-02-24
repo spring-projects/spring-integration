@@ -57,8 +57,7 @@ public abstract class AbstractFileInfo<F> implements FileInfo<F>, Comparable<Fil
 	}
 
 	public String toJson() {
-		return SimpleJsonSerializer.toJson(this, "directory", "link", "size", "modified", "filename",
-				"remoteDirectory", "permissions");
+		return SimpleJsonSerializer.toJson(this, "fileInfo");
 	}
 
 }

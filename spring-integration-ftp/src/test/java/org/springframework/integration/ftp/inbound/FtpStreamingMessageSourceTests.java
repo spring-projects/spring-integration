@@ -17,9 +17,9 @@
 package org.springframework.integration.ftp.inbound;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
@@ -36,16 +36,14 @@ import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
-import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
-import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -61,7 +59,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 
 	@Autowired
-	public PollableChannel data;
+	private QueueChannel data;
+
+	@Autowired
+	private FtpStreamingMessageSource source;
+
+	@Autowired
+	private SourcePollingChannelAdapter adapter;
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -88,7 +92,15 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		assertThat(fileInfo, containsString("filename\":\"ftpSource2.txt"));
 		assertThat(fileInfo, containsString("modified\":"));
 		assertThat(fileInfo, containsString("link\":false"));
-		assertNull(this.data.receive(10));
+
+		this.adapter.stop();
+		this.source.setFileInfoJson(false);
+		this.data.purge(null);
+		this.adapter.start();
+		received = (Message<byte[]>) this.data.receive(10000);
+		assertNotNull(received);
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(FTPFile.class));
+		this.adapter.stop();
 	}
 
 	@Configuration
@@ -113,7 +125,6 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		public MessageSource<InputStream> ftpMessageSource() {
 			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(), null);
 			messageSource.setRemoteDirectory("ftpSource/");
-			messageSource.setFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "streaming"));
 			return messageSource;
 		}
 
