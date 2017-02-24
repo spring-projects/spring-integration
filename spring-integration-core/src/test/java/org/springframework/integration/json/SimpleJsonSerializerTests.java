@@ -20,8 +20,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-import java.util.Map;
-
 import org.junit.Test;
 
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
@@ -35,15 +33,14 @@ public class SimpleJsonSerializerTests {
 
 	@Test
 	public void test() throws Exception {
-		Foo foo = new Foo();
+		Foo foo = new Foo("foo");
 		String json = SimpleJsonSerializer.toJson(foo, "fileInfo");
-		@SuppressWarnings("unchecked")
-		Map<String, Object> fromJson = JsonObjectMapperProvider.newInstance().fromJson(json, Map.class);
-		assertThat(fromJson.get("bool"), equalTo(Boolean.TRUE));
-		assertThat(fromJson.get("bar"), equalTo(42));
-		assertThat(fromJson.get("foo"), equalTo("bar"));
-		assertThat(fromJson.get("dub"), equalTo(1.6));
-		assertNull(fromJson.get("fileInfo"));
+		Foo fooOut = JsonObjectMapperProvider.newInstance().fromJson(json, Foo.class);
+		assertThat(fooOut.bool, equalTo(Boolean.TRUE));
+		assertThat(fooOut.bar, equalTo(42L));
+		assertThat(fooOut.foo, equalTo("bar"));
+		assertThat(fooOut.dub, equalTo(1.6));
+		assertNull(fooOut.fileInfo);
 	}
 
 	public static class Foo {
@@ -55,6 +52,16 @@ public class SimpleJsonSerializerTests {
 		private final double dub = 1.6;
 
 		private final boolean bool = true;
+
+		private String fileInfo;
+
+		public Foo() {
+			super();
+		}
+
+		public Foo(String info) {
+			this.fileInfo = "foo";
+		}
 
 		public String getFoo() {
 			return this.foo;
@@ -73,7 +80,7 @@ public class SimpleJsonSerializerTests {
 		}
 
 		public String fileInfo() {
-			return "foo";
+			return this.fileInfo;
 		}
 
 	}

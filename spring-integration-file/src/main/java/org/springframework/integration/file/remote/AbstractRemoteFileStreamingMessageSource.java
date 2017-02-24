@@ -156,7 +156,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 						.setHeader(FileHeaders.REMOTE_DIRECTORY, file.getRemoteDirectory())
 						.setHeader(FileHeaders.REMOTE_FILE, file.getFilename())
 						.setHeader(FileHeaders.REMOTE_FILE_INFO,
-										this.fileInfoJson ? (file.toJson()) : file.getFileInfo())
+										this.fileInfoJson ? (file.toJson()) : file)
 						.build();
 			}
 			catch (IOException e) {

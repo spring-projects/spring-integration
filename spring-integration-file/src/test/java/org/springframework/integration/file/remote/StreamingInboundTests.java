@@ -95,10 +95,10 @@ public class StreamingInboundTests {
 		assertThat(fileInfo, containsString("remoteDirectory\":\"/foo"));
 		assertThat(fileInfo, containsString("permissions\":\"-rw-rw-rw"));
 		assertThat(fileInfo, containsString("size\":42"));
-		assertThat(fileInfo, containsString("directory\":false")); // Boon doesn't emit default values (false)
+		assertThat(fileInfo, containsString("directory\":false"));
 		assertThat(fileInfo, containsString("filename\":\"bar"));
 		assertThat(fileInfo, containsString("modified\":42000"));
-		assertThat(fileInfo, containsString("link\":false")); // Boon doesn't emit default values (false)
+		assertThat(fileInfo, containsString("link\":false"));
 
 		// close after transform
 		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(3)).close();

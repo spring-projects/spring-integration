@@ -40,6 +40,7 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.SftpTestSupport;
+import org.springframework.integration.sftp.session.SftpFileInfo;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
@@ -100,7 +101,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		this.adapter.start();
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(LsEntry.class));
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(SftpFileInfo.class));
 		this.adapter.stop();
 	}
 

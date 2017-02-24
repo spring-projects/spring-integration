@@ -40,6 +40,7 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
+import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transformer.StreamTransformer;
@@ -99,7 +100,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		this.adapter.start();
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(FTPFile.class));
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(FtpFileInfo.class));
 		this.adapter.stop();
 	}
 

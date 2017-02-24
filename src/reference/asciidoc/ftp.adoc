@@ -538,8 +538,9 @@ Use the `max-fetch-size` attribute to limit the number of files fetched on each 
 
 The adapter puts the remote directory and file name in headers `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` respectively.
 Starting with _version 5.0_, additional remote file information, represented in JSON by default, is provided in the `FileHeaders.REMOTE_FILE_INFO` header.
-If you set the `fileInfoJson` property on the `FtpStreamingMessageSource` to `false`, the `FTPFile` object provided by the underlying Apache Net library is used instead.
-This property is not available when using XML configuration but you can set it by injecting the source into one of your configuration classes.
+If you set the `fileInfoJson` property on the `FtpStreamingMessageSource` to `false`, the header will contain an `FtpFileInfo` object.
+The `FTPFile` object provided by the underlying Apache Net library can be accessed using the `FtpFileInfo.getFileInfo()` method.
+The `fileInfoJson` property is not available when using XML configuration but you can set it by injecting the `FtpStreamingMessageSource` into one of your configuration classes.
 
 ==== Configuring with Java Configuration
 
