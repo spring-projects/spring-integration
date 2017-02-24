@@ -74,6 +74,8 @@ If you want rejected messages to be routed to a specific channel, provide that r
     output-channel="output" discard-channel="rejectedMessages"/>
 ----
 
+Also see <<advising-filters>>.
+
 NOTE: Message Filters are commonly used in conjunction with a Publish Subscribe Channel.
 Many filter endpoints may be subscribed to the same channel, and they decide whether or not to pass the Message to the next endpoint which could be any of the supported types (e.g.
 Service Activator).
@@ -89,6 +91,11 @@ However if the custom filter implementation is scoped to a single `<filter>` ele
 ----
 
 NOTE: Using both the `ref` attribute and an inner handler definition in the same `<filter>` configuration is not allowed, as it creates an ambiguous condition, and an Exception will be thrown.
+
+IMPORTANT: If the "ref" attribute references a bean that extends `MessageFilter` (such as filters provided by the framework itself), the configuration is optimized by injecting the output channel into the filter bean directly.
+In this case, each "ref" must be to a separate bean instance (or a `prototype`-scoped bean), or use the inner `<bean/>` configuration type.
+However, this optimization only applies if you don't provide any filter-specific attributes in the filter XML definition.
+If you inadvertently reference the same message handler from multiple beans, you will get a configuration exception.
 
 With the introduction of SpEL support, Spring Integration added the `expression` attribute to the filter element.
 It can be used to avoid Java entirely for simple filters.

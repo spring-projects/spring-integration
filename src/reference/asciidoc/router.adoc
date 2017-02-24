@@ -806,6 +806,12 @@ However if the custom router implementation should be scoped to a single definit
 
 NOTE: Using both the `ref` attribute and an inner handler definition in the same `<router>` configuration is not allowed, as it creates an ambiguous condition, and an Exception will be thrown.
 
+IMPORTANT: If the "ref" attribute references a bean that extends `AbstractMessageProducingHandler` (such as routers provided by the framework itself), the configuration is optimized referencing the router directly.
+In this case, each "ref" must be to a separate bean instance (or a `prototype`-scoped bean), or use the inner `<bean/>` configuration type.
+However, this optimization only applies if you don't provide any router-specific attributes in the router XML definition.
+If you inadvertently reference the same message handler from multiple beans, you will get a configuration exception.
+
+
 _Routers and the Spring Expression Language (SpEL)_
 
 Sometimes the routing logic may be simple and writing a separate class for it and configuring it as a bean may seem like overkill.
