@@ -141,7 +141,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 
 	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
 		Assert.isTrue(!referencedReplyProducers.contains(replyHandler),
-				"An AbstractReplyProducingMessageHandler may only be referenced once (" +
+				"An AbstractMessageProducingMessageHandler may only be referenced once (" +
 				replyHandler.getComponentName() + ") - use scope=\"prototype\"");
 		referencedReplyProducers.add(replyHandler);
 	}

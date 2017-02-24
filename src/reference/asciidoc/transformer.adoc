@@ -33,7 +33,7 @@ The "ref" may either point to an Object that contains the @Transformer annotatio
 <beans:bean id="testTransformerBean" class="org.foo.TestTransformer" />
 ----
 
-Using a "ref" attribute is generally recommended if the custom transformer handler implementation can be reused in other `<transformer>` definitions.
+Using a `ref` attribute is generally recommended if the custom transformer handler implementation can be reused in other `<transformer>` definitions.
 However if the custom transformer handler implementation should be scoped to a single definition of the `<transformer>`, you can define an inner bean definition:
 [source,xml]
 ----
@@ -45,7 +45,11 @@ However if the custom transformer handler implementation should be scoped to a s
 
 NOTE: Using both the "ref" attribute and an inner handler definition in the same `<transformer>` configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
 
-The method that is used for transformation may expect either the `Message` type or the payload type of inbound Messages.
+IMPORTANT: If the "ref" attribute references a bean that extends `AbstractMessageProducingHandler` (such as transformers provided by the framework itself), the configuration is optimized by injecting the output channel into the handler directly.
+In this case, each "ref" must be to a separate bean instance (or a `prototype`-scoped bean), or use the inner `<bean/>` configuration type.
+If you inadvertently reference the same message handler from multiple beans, you will get a configuration exception.
+
+When using a POJO, the method that is used for transformation may expect either the `Message` type or the payload type of inbound Messages.
 It may also accept Message header values either individually or as a full map by using the `@Header` and `@Headers` parameter annotations respectively.
 The return value of the method can be any type.
 If the return value is itself a `Message`, that will be passed along to the transformer's output channel.
