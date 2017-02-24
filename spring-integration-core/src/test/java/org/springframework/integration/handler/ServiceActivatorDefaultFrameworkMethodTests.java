@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,7 +171,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		this.handlerTestInputChannel.send(message);
 	}
 
-//	INT-2399
+	//	INT-2399
 	@Test
 	public void testMessageProcessor() {
 		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.processor");
@@ -197,7 +197,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 			assertThat(e.getCause(), Matchers.instanceOf(BeanCreationException.class));
 			assertThat(e.getCause().getCause(), Matchers.instanceOf(IllegalArgumentException.class));
 			assertThat(e.getCause().getCause().getMessage(),
-					Matchers.containsString("An AbstractReplyProducingMessageHandler may only be referenced once"));
+					Matchers.containsString("An AbstractMessageProducingMessageHandler may only be referenced once"));
 		}
 
 	}
@@ -219,13 +219,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 	public void testAsyncWithDirectReply() {
 		DirectChannel replyChannel = new DirectChannel();
 		final AtomicReference<Message<?>> reply = new AtomicReference<Message<?>>();
-		replyChannel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				reply.set(message);
-			}
-		});
+		replyChannel.subscribe(reply::set);
 
 		Message<?> message = MessageBuilder.withPayload("testing").setReplyChannel(replyChannel).build();
 		this.asyncIn.send(message);
