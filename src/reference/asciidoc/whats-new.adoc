@@ -90,20 +90,17 @@ The file outbound channel adapter (`FileWritingMessageHandler`) now supports the
 
 The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
 They also are configured with a `FileSystemPersistentAcceptOnceFileListFilter` in the `local-filter` by default.
-See <<ftp-inbound>> and <<sftp-inbound>> for more information.
 
 The regex and pattern filters can now be configured to always pass directories.
 This can be useful when using recursion in the outbound gateways.
 
 All the Inbound Channel Adapters (streaming and synchronization-based) now use an appropriate `AbstractPersistentAcceptOnceFileListFilter` implementation by default to prevent remote files duplicate downloads.
 
-See <<ftp>> and <<sftp>> for more information.
-
 The FTP and SFTP outbound gateways now support the `REPLACE_IF_MODIFIED` `FileExistsMode` when fetching remote files.
-See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
 
 The (S)FTP streaming inbound channel adapters now add remote file information in a message header.
-See <<ftp-streaming>> and <<sftp-streaming>> for more information.
+
+See <<ftp>> and <<sftp>> for more information.
 
 The FTP and SFTP outbound channel adapters, as well as `PUT` command of the outbound gateways, now support `InputStream` as `payload`, too.
 
