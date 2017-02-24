@@ -99,7 +99,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			if (Message.class.isAssignableFrom(parameterType)) {
 				args[i] = message;
 			}
-			if (Map.class.isAssignableFrom(parameterType)) {
+			else if (Map.class.isAssignableFrom(parameterType)) {
 				if (message.getPayload() instanceof Map) {
 					args[i] = message.getPayload();
 				}

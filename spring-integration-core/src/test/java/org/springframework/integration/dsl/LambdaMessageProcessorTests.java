@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -26,6 +27,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.handler.GenericHandler;
 import org.springframework.integration.handler.LambdaMessageProcessor;
+import org.springframework.integration.transformer.GenericTransformer;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 
@@ -48,10 +51,30 @@ public class LambdaMessageProcessorTests {
 		}
 	}
 
+	@Test
+	public void testMessageAsArgument() {
+		LambdaMessageProcessor lmp = new LambdaMessageProcessor(new GenericTransformer<Message<?>, Message<?>>() {
+
+			@Override
+			public Message<?> transform(Message<?> source) {
+				return messageTransformer(source);
+			}
+
+		}, null);
+		lmp.setBeanFactory(mock(BeanFactory.class));
+		GenericMessage<String> testMessage = new GenericMessage<>("foo");
+		Object result = lmp.processMessage(testMessage);
+		assertSame(testMessage, result);
+	}
+
 	private void handle(GenericHandler<?> h) {
 		LambdaMessageProcessor lmp = new LambdaMessageProcessor(h, String.class);
 		lmp.setBeanFactory(mock(BeanFactory.class));
 		lmp.processMessage(new GenericMessage<>("foo"));
+	}
+
+	private Message<?> messageTransformer(Message<?> message) {
+		return message;
 	}
 
 }
