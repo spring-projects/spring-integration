@@ -29,7 +29,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -876,12 +876,26 @@ public class ImapMailReceiverTests {
 		ImapMailReceiver receiver = spy(new ImapMailReceiver("imap:foo"));
 		receiver.setBeanFactory(mock(BeanFactory.class));
 		receiver.afterPropertiesSet();
+		IMAPFolder folder = mock(IMAPFolder.class);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(false).willReturn(true);
+		given(folder.exists()).willReturn(true);
+		given(folder.hasNewMessages()).willReturn(true);
+		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
+		storeField.setAccessible(true);
+		Store store = mock(Store.class);
+		given(store.isConnected()).willReturn(false);
+		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
+		storeField.set(receiver, store);
+
 		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
 		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
 		willDoNothing().given(logger).warn(anyString(), any(Throwable.class));
-		Folder folder = mock(Folder.class);
-		willThrow(new FolderClosedException(folder, "test")).given(receiver).waitForNewMessages();
+		willAnswer(i -> {
+			i.callRealMethod();
+			throw new FolderClosedException(folder, "test");
+		}).given(receiver).waitForNewMessages();
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
@@ -893,6 +907,7 @@ public class ImapMailReceiverTests {
 		});
 		adapter.start();
 		assertTrue(latch.await(60, TimeUnit.SECONDS));
+		verify(store, atLeast(3)).connect();
 		taskScheduler.shutdown();
 	}
 
