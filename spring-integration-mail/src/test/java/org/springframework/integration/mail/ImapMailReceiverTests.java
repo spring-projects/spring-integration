@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,17 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -44,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
+import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -255,12 +260,12 @@ public class ImapMailReceiverTests {
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
 		final Message[] messages = new Message[] { msg1, msg2 };
 
-		doAnswer(invocation -> {
+		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
 			if (folderOpenMode != Folder.READ_WRITE) {
@@ -268,11 +273,11 @@ public class ImapMailReceiverTests {
 			}
 
 			return null;
-		}).when(receiver).openFolder();
+		}).given(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.receive();
 		return receiver;
 	}
@@ -295,7 +300,7 @@ public class ImapMailReceiverTests {
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
-		when(msg2.getSubject()).thenReturn("foo"); // should not be marked seen
+		given(msg2.getSubject()).willReturn("foo"); // should not be marked seen
 		Expression selectorExpression = new SpelExpressionParser()
 				.parseExpression("subject == null OR !subject.equals('foo')");
 		receiver.setSelectorExpression(selectorExpression);
@@ -318,24 +323,24 @@ public class ImapMailReceiverTests {
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[] { msg1, msg2 };
-		doAnswer(invocation -> {
+		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
 			if (folderOpenMode != Folder.READ_WRITE) {
 				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
 			return null;
-		}).when(receiver).openFolder();
+		}).given(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.receive();
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
@@ -353,18 +358,18 @@ public class ImapMailReceiverTests {
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[] { msg1, msg2 };
-		doAnswer(invocation -> null).when(receiver).openFolder();
+		willAnswer(invocation -> null).given(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(0)).setFlag(Flag.SEEN, true);
@@ -383,24 +388,24 @@ public class ImapMailReceiverTests {
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[] { msg1, msg2 };
-		doAnswer(invocation -> {
+		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
 			if (folderOpenMode != Folder.READ_WRITE) {
 				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
 			return null;
-		}).when(receiver).openFolder();
+		}).given(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(0)).setFlag(Flag.SEEN, true);
@@ -419,24 +424,24 @@ public class ImapMailReceiverTests {
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(Folder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[] { msg1, msg2 };
-		doAnswer(invocation -> {
+		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
 			int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
 			if (folderOpenMode != Folder.READ_WRITE) {
 				throw new IllegalArgumentException("Folder had to be open in READ_WRITE mode");
 			}
 			return null;
-		}).when(receiver).openFolder();
+		}).given(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 		receiver.receive();
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
@@ -461,20 +466,20 @@ public class ImapMailReceiverTests {
 
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
-		when(mailMessage.getFlags()).thenReturn(flags);
+		given(mailMessage.getFlags()).willReturn(flags);
 		final Message[] messages = new Message[] { mailMessage };
 
-		doAnswer(invocation -> {
+		willAnswer(invocation -> {
 			DirectFieldAccessor accessor = new DirectFieldAccessor((invocation.getMock()));
 			IMAPFolder folder = mock(IMAPFolder.class);
 			accessor.setPropertyValue("folder", folder);
-			when(folder.hasNewMessages()).thenReturn(true);
+			given(folder.hasNewMessages()).willReturn(true);
 			return null;
-		}).when(receiver).openFolder();
+		}).given(receiver).openFolder();
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 
 		PollableChannel channel = context.getBean("channel", PollableChannel.class);
 
@@ -518,24 +523,24 @@ public class ImapMailReceiverTests {
 		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
 		folderField.setAccessible(true);
 		Folder folder = mock(IMAPFolder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 
-		doAnswer(invocation -> true).when(folder).isOpen();
+		willAnswer(invocation -> true).given(folder).isOpen();
 
-		doAnswer(invocation -> null).when(receiver).openFolder();
+		willAnswer(invocation -> null).given(receiver).openFolder();
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
 
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
-		when(mailMessage.getFlags()).thenReturn(flags);
+		given(mailMessage.getFlags()).willReturn(flags);
 		final Message[] messages = new Message[] { mailMessage };
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 
 		adapter.start();
 		org.springframework.messaging.Message<?> replMessage = errorChannel.receive(10000);
@@ -561,9 +566,9 @@ public class ImapMailReceiverTests {
 		receiver.afterPropertiesSet();
 
 		final IMAPFolder folder = mock(IMAPFolder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-		when(folder.isOpen()).thenReturn(false).thenReturn(true);
-		when(folder.exists()).thenReturn(true);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
+		given(folder.isOpen()).willReturn(false).willReturn(true);
+		given(folder.exists()).willReturn(true);
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
@@ -571,19 +576,19 @@ public class ImapMailReceiverTests {
 		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
 		storeField.setAccessible(true);
 		Store store = mock(Store.class);
-		when(store.isConnected()).thenReturn(true);
-		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
+		given(store.isConnected()).willReturn(true);
+		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		storeField.set(receiver, store);
 
-		doAnswer(invocation -> folder).when(receiver).getFolder();
+		willAnswer(invocation -> folder).given(receiver).getFolder();
 
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
-		when(mailMessage.getFlags()).thenReturn(flags);
+		given(mailMessage.getFlags()).willReturn(flags);
 		final Message[] messages = new Message[] { mailMessage };
 
 		final AtomicInteger shouldFindMessagesCounter = new AtomicInteger(2);
-		doAnswer(invocation -> {
+		willAnswer(invocation -> {
 			/*
 			 * Return the message from first invocation of waitForMessages()
 			 * and in receive(); then return false in the next call to
@@ -596,15 +601,15 @@ public class ImapMailReceiverTests {
 			else {
 				return new Message[0];
 			}
-		}).when(receiver).searchForNewMessages();
+		}).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 
-		doAnswer(invocation -> {
+		willAnswer(invocation -> {
 			Thread.sleep(5000);
 			shouldFindMessagesCounter.set(1);
 			return null;
-		}).when(folder).idle();
+		}).given(folder).idle();
 
 		adapter.start();
 
@@ -636,9 +641,9 @@ public class ImapMailReceiverTests {
 		receiver.afterPropertiesSet();
 
 		final IMAPFolder folder = mock(IMAPFolder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.RECENT));
-		when(folder.isOpen()).thenReturn(false).thenReturn(true);
-		when(folder.exists()).thenReturn(true);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.RECENT));
+		given(folder.isOpen()).willReturn(false).willReturn(true);
+		given(folder.exists()).willReturn(true);
 
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		adapterAccessor.setPropertyValue("mailReceiver", receiver);
@@ -646,27 +651,27 @@ public class ImapMailReceiverTests {
 		Field storeField = AbstractMailReceiver.class.getDeclaredField("store");
 		storeField.setAccessible(true);
 		Store store = mock(Store.class);
-		when(store.isConnected()).thenReturn(true);
-		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
+		given(store.isConnected()).willReturn(true);
+		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		storeField.set(receiver, store);
 
-		doAnswer(invocation -> folder).when(receiver).getFolder();
+		willAnswer(invocation -> folder).given(receiver).getFolder();
 
 		MimeMessage mailMessage = mock(MimeMessage.class);
 		Flags flags = mock(Flags.class);
-		when(mailMessage.getFlags()).thenReturn(flags);
+		given(mailMessage.getFlags()).willReturn(flags);
 		final Message[] messages = new Message[] { mailMessage };
 
-		doAnswer(invocation -> messages).when(receiver).searchForNewMessages();
+		willAnswer(invocation -> messages).given(receiver).searchForNewMessages();
 
-		doAnswer(invocation -> null).when(receiver).fetchMessages(messages);
+		willAnswer(invocation -> null).given(receiver).fetchMessages(messages);
 
 		final CountDownLatch idles = new CountDownLatch(2);
-		doAnswer(invocation -> {
+		willAnswer(invocation -> {
 			idles.countDown();
 			Thread.sleep(5000);
 			return null;
-		}).when(folder).idle();
+		}).given(folder).idle();
 
 		adapter.start();
 
@@ -707,11 +712,11 @@ public class ImapMailReceiverTests {
 			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
 			Store store = mock(Store.class);
 			Folder folder = mock(Folder.class);
-			when(folder.exists()).thenReturn(true);
-			when(folder.isOpen()).thenReturn(true);
-			when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[] { });
-			when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
-			when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+			given(folder.exists()).willReturn(true);
+			given(folder.isOpen()).willReturn(true);
+			given(folder.search((SearchTerm) Mockito.any())).willReturn(new Message[] { });
+			given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
+			given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 
 
 			DirectFieldAccessor df = new DirectFieldAccessor(receiver);
@@ -788,13 +793,13 @@ public class ImapMailReceiverTests {
 	private Folder testAttachmentsGuts(final ImapMailReceiver receiver) throws MessagingException, IOException {
 		Store store = mock(Store.class);
 		Folder folder = mock(Folder.class);
-		when(folder.exists()).thenReturn(true);
-		when(folder.isOpen()).thenReturn(true);
+		given(folder.exists()).willReturn(true);
+		given(folder.isOpen()).willReturn(true);
 
 		Message message = new MimeMessage(null, new ClassPathResource("test.mail").getInputStream());
-		when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[] { message });
-		when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		given(folder.search((SearchTerm) Mockito.any())).willReturn(new Message[] { message });
+		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
+		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		DirectFieldAccessor df = new DirectFieldAccessor(receiver);
 		df.setPropertyValue("store", store);
 		receiver.setBeanFactory(mock(BeanFactory.class));
@@ -837,10 +842,10 @@ public class ImapMailReceiverTests {
 			@Override
 			protected Folder getFolder() {
 				Folder folder = mock(Folder.class);
-				when(folder.isOpen()).thenReturn(true);
+				given(folder.isOpen()).willReturn(true);
 				try {
-					when(folder.getMessages())
-							.thenReturn(!this.firstDone ? messages1 : messages2);
+					given(folder.getMessages())
+							.willReturn(!this.firstDone ? messages1 : messages2);
 				}
 				catch (MessagingException e) {
 				}
@@ -866,12 +871,37 @@ public class ImapMailReceiverTests {
 		assertSame(message2, received[0]);
 	}
 
+	@Test
+	public void testIdleReconnects() throws Exception {
+		ImapMailReceiver receiver = spy(new ImapMailReceiver("imap:foo"));
+		receiver.setBeanFactory(mock(BeanFactory.class));
+		receiver.afterPropertiesSet();
+		ImapIdleChannelAdapter adapter = new ImapIdleChannelAdapter(receiver);
+		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
+		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
+		willDoNothing().given(logger).warn(anyString(), any(Throwable.class));
+		Folder folder = mock(Folder.class);
+		willThrow(new FolderClosedException(folder, "test")).given(receiver).waitForNewMessages();
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.setReconnectDelay(50);
+		adapter.afterPropertiesSet();
+		final CountDownLatch latch = new CountDownLatch(3);
+		adapter.setApplicationEventPublisher(e -> {
+			latch.countDown();
+		});
+		adapter.start();
+		assertTrue(latch.await(60, TimeUnit.SECONDS));
+		taskScheduler.shutdown();
+	}
+
 	private void setUpScheduler(ImapMailReceiver mailReceiver, ThreadPoolTaskScheduler taskScheduler) {
 		taskScheduler.setPoolSize(5);
 		taskScheduler.initialize();
 		BeanFactory bf = mock(BeanFactory.class);
-		when(bf.containsBean("taskScheduler")).thenReturn(true);
-		when(bf.getBean("taskScheduler", TaskScheduler.class)).thenReturn(taskScheduler);
+		given(bf.containsBean("taskScheduler")).willReturn(true);
+		given(bf.getBean("taskScheduler", TaskScheduler.class)).willReturn(taskScheduler);
 		mailReceiver.setBeanFactory(bf);
 	}
 
