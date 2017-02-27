@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.expression.TypeLocator;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
 
@@ -69,6 +70,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 public class IntegrationEvaluationContextFactoryBean implements FactoryBean<StandardEvaluationContext>,

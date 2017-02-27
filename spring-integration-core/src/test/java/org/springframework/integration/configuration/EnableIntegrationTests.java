@@ -17,6 +17,7 @@
 package org.springframework.integration.configuration;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
@@ -70,6 +71,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
@@ -94,14 +96,17 @@ import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
+import org.springframework.integration.config.SpelFunctionFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
+import org.springframework.integration.json.JsonPropertyAccessor;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
@@ -128,6 +133,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 
 import reactor.rx.Promise;
@@ -684,6 +690,16 @@ public class EnableIntegrationTests {
 		this.autoCreatedChannelMessageSourceAdapter.stop();
 	}
 
+	@Test
+	public void testIntegrationEvaluationContextCustomization() {
+		EvaluationContext evaluationContext = this.context.getBean(EvaluationContext.class);
+		List<?> propertyAccessors = TestUtils.getPropertyValue(evaluationContext, "propertyAccessors", List.class);
+		assertThat(propertyAccessors.get(0), instanceOf(JsonPropertyAccessor.class));
+		Map<?, ?> variables = TestUtils.getPropertyValue(evaluationContext, "variables", Map.class);
+		Object testSpelFunction = variables.get("testSpelFunction");
+		assertEquals(ClassUtils.getStaticMethod(TestSpelFunction.class, "bar", Object.class), testSpelFunction);
+	}
+
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
@@ -1084,6 +1100,16 @@ public class EnableIntegrationTests {
 		@Bean
 		public AnnotationTestService annotationTestService() {
 			return new AnnotationTestServiceImpl();
+		}
+
+		@Bean
+		public SpelFunctionFactoryBean testSpelFunction() {
+			return new SpelFunctionFactoryBean(TestSpelFunction.class, "bar");
+		}
+
+		@Bean
+		public SpelPropertyAccessorRegistrar spelPropertyAccessorRegistrar() {
+			return new SpelPropertyAccessorRegistrar(new JsonPropertyAccessor());
 		}
 
 	}
@@ -1588,5 +1614,14 @@ public class EnableIntegrationTests {
 	// Error because the annotation is on a class; it must be on an interface
 //	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
 //	public static class TestGateway2 { }
+
+
+	public static class TestSpelFunction {
+
+		public static Object bar(Object o) {
+			return o;
+		}
+
+	}
 
 }

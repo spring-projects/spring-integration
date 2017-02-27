@@ -104,6 +104,17 @@ With this sample:
 
 * That `EvaluationContext` instance is injected into the `ExpressionEvaluatingTransformer` bean.
 
+To provide a SpEL Function via Java Configuration you should declare a `SpelFunctionFactoryBean` bean for each function.
+The sample above can be configured as follows:
+
+[source,java]
+----
+@Bean
+public SpelFunctionFactoryBean xpath() {
+    return new SpelFunctionFactoryBean(XPathUtils.class, "evaluate");
+}
+----
+
 NOTE: SpEL functions declared in a parent context are also made available in any child context(s).
 Each context has its own instance of the _integrationEvaluationContext_ factory bean because each needs a different `BeanResolver`, but the function declarations are inherited and can be overridden if needed by declaring a SpEL function with the same name.
 
@@ -156,6 +167,18 @@ Instead of configuring the factory bean above, simply add one or more of these c
 ----
 
 With this sample, two custom `PropertyAccessor` s will be injected to the `EvaluationContext` in the order that they are declared.
+
+To provide `PropertyAccessor` s via Java Configuration you should declare `SpelPropertyAccessorRegistrar` bean with the `spelPropertyAccessorRegistrar` (the `IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME` constant) name.
+The sample above can be configured like:
+
+[source,java]
+----
+@Bean
+public SpelPropertyAccessorRegistrar spelPropertyAccessorRegistrar() {
+    return new SpelPropertyAccessorRegistrar(new JsonPropertyAccessor())
+                    .add(fooPropertyAccessor());
+}
+----
 
 NOTE: Custom `PropertyAccessor` s declared in a parent context are also made available in any child context(s).
 They are placed at the end of result list (but before the default `org.springframework.context.expression.MapAccessor` and `o.s.expression.spel.support.ReflectivePropertyAccessor`).

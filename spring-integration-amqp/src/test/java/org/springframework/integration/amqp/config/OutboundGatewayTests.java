@@ -39,12 +39,12 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.config.IntegrationEvaluationContextFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Mark Fisher
@@ -91,8 +91,7 @@ public class OutboundGatewayTests {
 			}
 		}).when(context).getBean(anyString());
 		when(context.containsBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME)).thenReturn(true);
-		when(context.getBean(ClassUtils.forName("org.springframework.integration.config.SpelPropertyAccessorRegistrar",
-				context.getClassLoader())))
+		when(context.getBean(SpelPropertyAccessorRegistrar.class))
 				.thenThrow(NoSuchBeanDefinitionException.class);
 		IntegrationEvaluationContextFactoryBean integrationEvaluationContextFactoryBean =
 				new IntegrationEvaluationContextFactoryBean();
