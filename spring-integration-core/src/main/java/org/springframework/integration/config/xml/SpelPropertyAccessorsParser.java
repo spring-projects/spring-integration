@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ import org.w3c.dom.NodeList;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.IntegrationConfigUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.util.StringUtils;
 
 /**
@@ -43,11 +43,9 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 
 	private final Map<String, Object> propertyAccessors = new ManagedMap<String, Object>();
 
-	private volatile boolean initialized;
-
 	@Override
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		this.initializeSpelPropertyAccessorRegistrarIfNecessary(parserContext);
+		initializeSpelPropertyAccessorRegistrarIfNecessary(parserContext);
 
 		BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 
@@ -55,9 +53,10 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 
 		for (int i = 0; i < children.getLength(); i++) {
 			Node node = children.item(i);
-			String propertyAccessorName = null;
-			Object propertyAccessor = null;
-			if (node instanceof Element && !delegate.nodeNameEquals(node, BeanDefinitionParserDelegate.DESCRIPTION_ELEMENT)) {
+			String propertyAccessorName;
+			Object propertyAccessor;
+			if (node instanceof Element &&
+					!delegate.nodeNameEquals(node, BeanDefinitionParserDelegate.DESCRIPTION_ELEMENT)) {
 				Element ele = (Element) node;
 
 				if (delegate.nodeNameEquals(ele, BeanDefinitionParserDelegate.BEAN_ELEMENT)) {
@@ -87,14 +86,16 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 	}
 
 	private synchronized void initializeSpelPropertyAccessorRegistrarIfNecessary(ParserContext parserContext) {
-		if (!this.initialized) {
+		if (!parserContext.getRegistry()
+				.containsBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME)) {
+
 			BeanDefinitionBuilder registrarBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationConfigUtils.BASE_PACKAGE + ".config.SpelPropertyAccessorRegistrar")
+					.genericBeanDefinition(SpelPropertyAccessorRegistrar.class)
 					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
 					.addConstructorArgValue(this.propertyAccessors);
-			BeanDefinitionReaderUtils.registerWithGeneratedName(registrarBuilder.getBeanDefinition(),
-					parserContext.getRegistry());
-			this.initialized = true;
+			parserContext.getRegistry()
+					.registerBeanDefinition(IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME,
+							registrarBuilder.getBeanDefinition());
 		}
 	}
 
