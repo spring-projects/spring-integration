@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.Lock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -813,10 +814,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 			if (state == null) {
 				if (isString) {
-					state = new FileState(createWriter(fileToWriteTo, true));
+					state = new FileState(createWriter(fileToWriteTo, true),
+							this.lockRegistry.obtain(fileToWriteTo.getAbsolutePath()));
 				}
 				else {
-					state = new FileState(createOutputStream(fileToWriteTo, true));
+					state = new FileState(createOutputStream(fileToWriteTo, true),
+							this.lockRegistry.obtain(fileToWriteTo.getAbsolutePath()));
 				}
 				this.fileStates.put(absolutePath, state);
 			}
@@ -828,12 +831,27 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return state;
 	}
 
-	private BufferedWriter createWriter(final File fileToWriteTo, final boolean append) throws FileNotFoundException {
+	/**
+	 * Create a buffered writer for the file, for String payloads.
+	 * @param fileToWriteTo the file.
+	 * @param append true if we are appending.
+	 * @return the writer.
+	 * @throws FileNotFoundException if the file does not exist.
+	 * @since 4.3.8
+	 */
+	protected BufferedWriter createWriter(final File fileToWriteTo, final boolean append) throws FileNotFoundException {
 		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset),
 				this.bufferSize);
 	}
 
-	private BufferedOutputStream createOutputStream(File fileToWriteTo, final boolean append)
+	/**
+	 * Create a buffered output stream for the file.
+	 * @param fileToWriteTo the file.
+	 * @param append true if we are appending.
+	 * @return the stream.
+	 * @since 4.3.8
+	 */
+	protected BufferedOutputStream createOutputStream(File fileToWriteTo, final boolean append)
 			throws FileNotFoundException {
 		return new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append), this.bufferSize);
 	}
@@ -908,31 +926,44 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		private final BufferedOutputStream stream;
 
+		private final Lock lock;
+
 		private final long firstWrite = System.currentTimeMillis();
 
 		private volatile long lastWrite;
 
-		FileState(BufferedWriter writer) {
+		FileState(BufferedWriter writer, Lock lock) {
 			this.writer = writer;
 			this.stream = null;
+			this.lock = lock;
 		}
 
-		FileState(BufferedOutputStream stream) {
+		FileState(BufferedOutputStream stream, Lock lock) {
 			this.writer = null;
 			this.stream = stream;
+			this.lock = lock;
 		}
 
 		private void close() {
 			try {
-				if (this.writer != null) {
-					this.writer.close();
+				this.lock.lockInterruptibly();
+				try {
+					if (this.writer != null) {
+						this.writer.close();
+					}
+					else {
+						this.stream.close();
+					}
 				}
-				else {
-					this.stream.close();
+				catch (IOException e) {
+					// ignore
 				}
 			}
-			catch (IOException e) {
-				// ignore
+			catch (InterruptedException e1) {
+				Thread.currentThread().interrupt();
+			}
+			finally {
+				this.lock.unlock();
 			}
 		}
 	}
