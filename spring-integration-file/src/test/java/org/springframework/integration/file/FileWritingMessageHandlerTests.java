@@ -29,12 +29,17 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.startsWith;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,6 +51,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -539,6 +545,49 @@ public class FileWritingMessageHandlerTests {
 			Thread.sleep(5);
 		}
 		assertThat(flushes.get(), greaterThanOrEqualTo(2));
+		handler.stop();
+	}
+
+	@Test
+	public void lockForFlush() throws Exception {
+		File tempFolder = this.temp.newFolder();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final BufferedOutputStream out = spy(new BufferedOutputStream(baos));
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(tempFolder) {
+
+			@Override
+			protected BufferedOutputStream createOutputStream(File fileToWriteTo, boolean append) {
+				return out;
+			}
+
+		};
+		handler.setFileExistsMode(FileExistsMode.APPEND_NO_FLUSH);
+		handler.setFileNameGenerator(message -> "foo.txt");
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler.setTaskScheduler(taskScheduler);
+		handler.setOutputChannel(new NullChannel());
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setFlushInterval(10);
+		handler.setFlushWhenIdle(false);
+		handler.afterPropertiesSet();
+		handler.start();
+
+		final AtomicBoolean writing = new AtomicBoolean();
+		final AtomicBoolean closeWhileWriting = new AtomicBoolean();
+		willAnswer(i -> {
+			writing.set(true);
+			Thread.sleep(500);
+			writing.set(false);
+			return null;
+		}).given(out).write(any(byte[].class), anyInt(), anyInt());
+		willAnswer(i -> {
+			closeWhileWriting.compareAndSet(false, writing.get());
+			return null;
+		}).given(out).close();
+		handler.handleMessage(new GenericMessage<>("foo".getBytes()));
+		verify(out).write(any(byte[].class), anyInt(), anyInt());
+		assertFalse(closeWhileWriting.get());
 		handler.stop();
 	}
 
