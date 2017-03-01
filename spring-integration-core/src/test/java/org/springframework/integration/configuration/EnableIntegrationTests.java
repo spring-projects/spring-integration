@@ -18,6 +18,7 @@ package org.springframework.integration.configuration;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
@@ -38,6 +39,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -81,6 +83,7 @@ import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.annotation.Role;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.annotation.UseSpelInvoker;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
@@ -435,8 +438,23 @@ public class EnableIntegrationTests {
 	@Test
 	public void testMessagingGateway() throws InterruptedException {
 		String payload = "bar";
-		assertEquals(payload.toUpperCase(), this.testGateway.echo(payload));
-		assertEquals(payload.toUpperCase() + "2", this.testGateway2.echo2(payload));
+		String result = this.testGateway.echo(payload);
+		assertEquals(payload.toUpperCase(), result.substring(0, payload.length()));
+		assertThat(result, containsString("InvocableHandlerMethod"));
+		assertThat(result, not(containsString("SpelExpression")));
+		result = this.testGateway2.echo2(payload);
+		assertNotNull(result);
+		assertEquals(payload.toUpperCase() + "2", result.substring(0, payload.length() + 1));
+		assertThat(result, not(containsString("InvocableHandlerMethod")));
+		assertThat(result, containsString("SpelExpression"));
+		assertThat(result, containsString("CompoundExpression.getValueInternal"));
+		assertNotNull(this.testGateway2.echo2("baz"));
+		result = this.testGateway2.echo2("baz"); // third one should be compiled
+		assertNotNull(result);
+		assertEquals("BAZ2", result.substring(0, 4));
+		assertThat(result, not(containsString("InvocableHandlerMethod")));
+		assertThat(result, containsString("SpelExpression"));
+		assertThat(result, containsString("Ex2.getValue("));
 		this.testGateway.sendAsync("foo");
 		assertTrue(this.asyncAnnotationProcessLatch.await(1, TimeUnit.SECONDS));
 		assertNotSame(Thread.currentThread(), this.asyncAnnotationProcessThread.get());
@@ -1230,17 +1248,18 @@ public class EnableIntegrationTests {
 			assertEquals("FOO", message.getHeaders().get("foo"));
 			assertTrue(message.getHeaders().containsKey("calledMethod"));
 			assertEquals("echo", message.getHeaders().get("calledMethod"));
-			return this.handle(message.getPayload());
+			return this.handle(message.getPayload()) + Arrays.asList(new Throwable().getStackTrace()).toString();
 		}
 
 		@Override
 		@Transformer(inputChannel = "gatewayChannel2")
+		@UseSpelInvoker(compilerMode = "${xxxxxxxx:IMMEDIATE}")
 		public String transform2(Message<String> message) {
 			assertTrue(message.getHeaders().containsKey("foo"));
 			assertEquals("FOO", message.getHeaders().get("foo"));
 			assertTrue(message.getHeaders().containsKey("calledMethod"));
 			assertEquals("echo2", message.getHeaders().get("calledMethod"));
-			return this.handle(message.getPayload()) + "2";
+			return this.handle(message.getPayload()) + "2" + Arrays.asList(new Throwable().getStackTrace()).toString();
 		}
 
 		@Override

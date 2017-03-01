@@ -42,7 +42,10 @@ See <<tx-handle-message-advice>> for more information.
 The `SmartLifecycleRoleController` now provides methods to obtain status of endpoints in roles.
 See <<endpoint-roles>> for more information.
 
-When targeting POJO objects as message handlers, one of the service methods can now be marked with the `@Default` annotation to provide a fallback mechanism for non-matched conditions.
+POJO methods are now invoked using an `InvocableHandlerMethod` by default, but can be configured to use SpEL as before.
+See <<pojo-invocation>> for more information.
+
+When targeting POJO methods as message handlers, one of the service methods can now be marked with the `@Default` annotation to provide a fallback mechanism for non-matched conditions.
 See <<service-activator-namespace>> for more information.
 
 ==== JMS Changes
