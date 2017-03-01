@@ -43,7 +43,6 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -58,6 +57,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.annotation.Default;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -161,7 +161,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private boolean useSpelInvoker;
 
-	private HandlerMethod primaryHandlerMethod;
+	private HandlerMethod defaultHandlerMethod;
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
@@ -275,7 +275,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			InvocableHandlerMethod invocableHandlerMethod =
 					this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, method);
 			this.handlerMethod = new HandlerMethod(invocableHandlerMethod, canProcessMessageList);
-			this.primaryHandlerMethod = null;
+			this.defaultHandlerMethod = null;
 		}
 		catch (IneligibleMethodException e) {
 			throw new IllegalArgumentException(e);
@@ -423,7 +423,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		HandlerMethod candidate = findHandlerMethodForParameters(parameters);
 		if (candidate == null) {
-			candidate = this.primaryHandlerMethod;
+			candidate = this.defaultHandlerMethod;
 		}
 		Assert.notNull(candidate, "No candidate methods found for messages.");
 		Expression expression = candidate.expression;
@@ -564,10 +564,10 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 				return;
 			}
-			if (AnnotationUtils.getAnnotation(method1, Primary.class) != null) {
-				Assert.state(this.primaryHandlerMethod == null,
-						() -> "Only one method can be @Primary, but there are more for: " + targetObject);
-				this.primaryHandlerMethod = handlerMethod1;
+			if (AnnotationUtils.getAnnotation(method1, Default.class) != null) {
+				Assert.state(this.defaultHandlerMethod == null,
+						() -> "Only one method can be @Default, but there are more for: " + targetObject);
+				this.defaultHandlerMethod = handlerMethod1;
 			}
 			Class<?> targetParameterType = handlerMethod1.getTargetParameterType();
 			if (matchesAnnotation || annotationType == null) {
