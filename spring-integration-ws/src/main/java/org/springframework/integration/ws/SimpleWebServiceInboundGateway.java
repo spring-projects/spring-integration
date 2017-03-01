@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import org.springframework.xml.transform.TransformerObjectSupport;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 1.0.2
  */
 public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGateway {
@@ -62,26 +64,31 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 		if (replyMessage != null) {
 			Object replyPayload = replyMessage.getPayload();
 			Source responseSource = null;
-			if (replyPayload instanceof Source) {
-				responseSource = (Source) replyPayload;
-			}
-			else if (replyPayload instanceof Document) {
-				responseSource = new DOMSource((Document) replyPayload);
-			}
-			else if (replyPayload instanceof String) {
-				responseSource = new StringSource((String) replyPayload);
+
+			if (replyPayload instanceof WebServiceMessage) {
+				messageContext.setResponse((WebServiceMessage) replyPayload);
 			}
 			else {
-				throw new IllegalArgumentException("The reply Message payload must be a ["
-						+ Source.class.getName() + "], [" + Document.class.getName()
-						+ "], or [java.lang.String]. The actual type was ["
-						+ replyPayload.getClass().getName() + "]");
+				if (replyPayload instanceof Source) {
+					responseSource = (Source) replyPayload;
+				}
+				else if (replyPayload instanceof Document) {
+					responseSource = new DOMSource((Document) replyPayload);
+				}
+				else if (replyPayload instanceof String) {
+					responseSource = new StringSource((String) replyPayload);
+				}
+				else {
+					throw new IllegalArgumentException("The reply Message payload must be a ["
+							+ Source.class.getName() + "], [" + Document.class.getName()
+							+ "], [java.lang.String] or [" + WebServiceMessage.class.getName() + "]. " +
+							"The actual type was [" + replyPayload.getClass().getName() + "]");
+				}
+				WebServiceMessage response = messageContext.getResponse();
+				this.transformerSupportDelegate.transformSourceToResult(responseSource, response.getPayloadResult());
+
+				toSoapHeaders(response, replyMessage);
 			}
-			WebServiceMessage response = messageContext.getResponse();
-			this.transformerSupportDelegate.transformSourceToResult(responseSource, response.getPayloadResult());
-
-			this.toSoapHeaders(response, replyMessage);
-
 		}
 	}
 
@@ -95,6 +102,7 @@ public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGat
 		void transformSourceToResult(Source source, Result result) throws TransformerException {
 			this.transform(source, result);
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,27 @@
 
 package org.springframework.integration.ws;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.SOAPException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -31,17 +44,29 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.concurrent.SettableListenableFuture;
+import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
+import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.client.support.destination.DestinationProvider;
+import org.springframework.ws.client.support.interceptor.ClientInterceptorAdapter;
+import org.springframework.ws.context.MessageContext;
+import org.springframework.ws.mime.Attachment;
+import org.springframework.ws.mime.MimeMessage;
 import org.springframework.ws.soap.SoapMessage;
+import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.WebServiceMessageSender;
+import org.springframework.xml.transform.StringResult;
+import org.springframework.xml.transform.StringSource;
 
 /**
  * @author Mark Fisher
@@ -110,6 +135,65 @@ public class SimpleWebServiceOutboundGatewayTests {
 		gateway.setMessageSender(messageSender);
 		gateway.handleMessage(new GenericMessage<String>("<test>foo</test>"));
 	}
+
+	@Test
+	public void testAttachments() throws TransformerException, SOAPException, InterruptedException, ExecutionException, TimeoutException, IOException {
+		String uri = "http://www.example.org";
+		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+
+		final SettableListenableFuture<WebServiceMessage> requestFuture = new SettableListenableFuture<>();
+
+		ClientInterceptorAdapter interceptorAdapter = new ClientInterceptorAdapter() {
+
+			@Override
+			public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
+				requestFuture.set(messageContext.getRequest());
+				return super.handleRequest(messageContext);
+			}
+
+		};
+		gateway.setInterceptors(interceptorAdapter);
+
+		gateway.afterPropertiesSet();
+
+		WebServiceMessageFactory messageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance());
+		MimeMessage webServiceMessage = (MimeMessage) messageFactory.createWebServiceMessage();
+
+		String request = "<test>foo</test>";
+
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+		transformer.transform(new StringSource(request), webServiceMessage.getPayloadResult());
+
+		webServiceMessage.addAttachment("myAttachment", new ByteArrayResource("my_data".getBytes()), "text/plain");
+
+		try {
+			gateway.handleMessage(new GenericMessage<>(webServiceMessage));
+		}
+		catch (Exception e) {
+			// expected
+		}
+
+		WebServiceMessage requestMessage = requestFuture.get(10, TimeUnit.SECONDS);
+
+		assertNotNull(requestMessage);
+		assertThat(requestMessage, instanceOf(MimeMessage.class));
+
+		transformer = transformerFactory.newTransformer();
+		transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+		StringResult stringResult = new StringResult();
+		transformer.transform(requestMessage.getPayloadSource(), stringResult);
+
+		assertEquals(request, stringResult.toString());
+
+		Attachment myAttachment = ((MimeMessage) requestMessage).getAttachment("myAttachment");
+
+		assertNotNull(myAttachment);
+		assertEquals("text/plain", myAttachment.getContentType());
+		assertEquals("my_data", StreamUtils.copyToString(myAttachment.getInputStream(), Charset.forName("UTF-8")));
+	}
+
 
 	public static WebServiceMessageSender createMockMessageSender(final String mockResponseMessage) throws Exception {
 		WebServiceMessageSender messageSender = Mockito.mock(WebServiceMessageSender.class);
