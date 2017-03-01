@@ -104,7 +104,7 @@ With this sample:
 
 * That `EvaluationContext` instance is injected into the `ExpressionEvaluatingTransformer` bean.
 
-To provide a SpEL Function via Java Configuration you should declare a `SpelFunctionFactoryBean` bean for each function.
+To provide a SpEL Function via Java Configuration, you should declare a `SpelFunctionFactoryBean` bean for each function.
 The sample above can be configured as follows:
 
 [source,java]
@@ -168,8 +168,8 @@ Instead of configuring the factory bean above, simply add one or more of these c
 
 With this sample, two custom `PropertyAccessor` s will be injected to the `EvaluationContext` in the order that they are declared.
 
-To provide `PropertyAccessor` s via Java Configuration you should declare `SpelPropertyAccessorRegistrar` bean with the `spelPropertyAccessorRegistrar` (the `IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME` constant) name.
-The sample above can be configured like:
+To provide `PropertyAccessor` s via Java Configuration, you should declare a `SpelPropertyAccessorRegistrar` bean with the name `spelPropertyAccessorRegistrar` (`IntegrationContextUtils.SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME` constant).
+The sample above can be configured as follows:
 
 [source,java]
 ----

@@ -514,10 +514,10 @@ In this case the _conversionService_'s Converters will be available for Spring I
 ==== Content Type Conversion
 
 Starting with _version 5.0_, by default, the method invocation mechanism is based on the `org.springframework.messaging.handler.invocation.InvocableHandlerMethod` infrastructure.
-Its `HandlerMethodArgumentResolver` implementations (e.g. `PayloadArgumentResolver` and `MessageMethodArgumentResolver`) can use `MessageConverter` abstraction to convert an incoming `payload` to the target method argument type.
+Its `HandlerMethodArgumentResolver` implementations (e.g. `PayloadArgumentResolver` and `MessageMethodArgumentResolver`) can use the `MessageConverter` abstraction to convert an incoming `payload` to the target method argument type.
 The conversion can be based on the `contentType` message header.
-For this purpose Spring Integration provides `ConfigurableCompositeMessageConverter` that delegates to a list of registered converters to be invoked until one of them returns a non-null result.
-By default this converter provides (in that strict order):
+For this purpose Spring Integration provides the `ConfigurableCompositeMessageConverter` that delegates to a list of registered converters to be invoked until one of them returns a non-null result.
+By default this converter provides (in strict order):
 
 *  `MappingJackson2MessageConverter` if Jackson processor is present in classpath;
 *  `ByteArrayMessageConverter`
@@ -525,8 +525,7 @@ By default this converter provides (in that strict order):
 *  `GenericMessageConverter`
 
 Please, consult their JavaDocs for more information about their purpose and appropriate `contentType` value for conversion.
-The `ConfigurableCompositeMessageConverter` is called like that because it can be be supplied with any other `MessageConverter` s including or excluding mentioned above default converters
-and registered as an appropriate bean in the application context overriding default one:
+The `ConfigurableCompositeMessageConverter` is used because it can be be supplied with any other `MessageConverter` s including or excluding above mentioned default converters and registered as an appropriate bean in the application context overriding the default one:
 
 [source,java]
 ----
@@ -538,11 +537,11 @@ public ConfigurableCompositeMessageConverter compositeMessageConverter() {
     return new ConfigurableCompositeMessageConverter(converters);
 }
 ----
-And those two new converters will be registered in the composite before defaults.
-You can even don't use this `ConfigurableCompositeMessageConverter`, but provide your own `MessageConverter` and register bean with the `IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME` name.
+And those two new converters will be registered in the composite before the defaults.
+You can also not use a `ConfigurableCompositeMessageConverter`, but provide your own `MessageConverter` by registering a bean with the name `integrationArgumentResolverMessageConverter` (`IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME` constant).
 
-NOTE: The `MessageConverter`-based (including `contentType` header) conversion isn't available in case of SpEL method invocation, because this mechanism is very close to the regular Java code flow, especially when we use compiled SpEL.
-In this case we get a gain only from the regular class to class conversion mentioned above in the <<payload-type-conversion>>.
+NOTE: The `MessageConverter`-based (including `contentType` header) conversion isn't available when using SpEL method invocation.
+In this case, only regular class to class conversion mentioned above in the <<payload-type-conversion>> is available.
 
 [[async-polling]]
 ==== Asynchronous polling
