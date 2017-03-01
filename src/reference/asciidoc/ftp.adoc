@@ -256,7 +256,7 @@ Unlike outbound gateways and adapters where the root object of the SpEL Evaluati
 So, the root object of the SpEL Evaluation Context is the original name of the remote file (String).
 
 The inbound channel adapter first retrieves the file to a local directory and then emits each file according to the poller configuration.
-Starting with _version 5.0_ you can now limit the number of files fetched from the FTP server when new file retrievals are needed.
+Starting with _version 5.0_, you can now limit the number of files fetched from the FTP server when new file retrievals are needed.
 This can be beneficial when the target files are very large and/or when running in a clustered system with a persistent file list filter discussed below.
 Use `max-fetch-size` for this purpose; a negative value (default) means no limit and all matching files will be retrieved.
 
@@ -284,6 +284,8 @@ Since _version 4.0_, this filter requires a `ConcurrentMetadataStore`.
 When used with a shared data store (such as `Redis` with the `RedisMetadataStore`) this allows filter keys to be shared across multiple application or server instances.
 
 Starting with _version 5.0_, the `FtpPersistentAcceptOnceFileListFilter` with in-memory `SimpleMetadataStore` is applied by default for the `FtpInboundFileSynchronizer`.
+This filter is also applied together with the `regex` or `pattern` option in the XML configuration as well as via `FtpInboundChannelAdapterSpec` in Java DSL.
+Any other use-cases can be reached via `CompositeFileListFilter` (or `ChainFileListFilter`).
 
 The above discussion refers to filtering the files before retrieving them.
 Once the files have been retrieved, an additional filter is applied to the files on the file system.
@@ -293,7 +295,7 @@ Unless your application removes files after processing, the adapter will re-proc
 Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter`, and the remote file timestamp changes (causing it to be re-fetched), the default local filter will not allow this new file to be processed.
 
 Use the `local-filter` attribute to configure the behavior of the local file system filter.
-Starting with _verion 4.3.8_, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
+Starting with _version 4.3.8_, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
 This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (<<metadata-store>>), and will detect changes to the local file modified time.
 The default `MetadataStore` is a `SimpleMetadataStore` which stores state in memory.
 
@@ -530,9 +532,10 @@ See <<file-splitter>> and <<stream-transformer>> for more information about thes
 
 Only one of `filename-pattern`, `filename-regex`, `filter` or `filter-expression` is allowed.
 
-IMPORTANT: Starting with _version 5.0_, by default, the `FtpStreamingMessageSource` adapter prevents duplicates for remote files via `FtpPersistentFileListFilter` based on the in-memory `SimpleMetadataStore`.
-If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
+IMPORTANT: Starting with _version 5.0_, by default, the `FtpStreamingMessageSource` adapter prevents duplicates for remote files via `FtpPersistentAcceptOnceFileListFilter` based on the in-memory `SimpleMetadataStore`.
+This filter is also applied by default together with the filename pattern (or regex) as well.
 If there is a requirement to allow duplicates, the `AcceptAllFileListFilter` can be used.
+Any other use-cases can be reached via `CompositeFileListFilter` (or `ChainFileListFilter`).
 The java configuration below shows one technique to remove the remote file after processing, avoiding duplicates.
 
 Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment.

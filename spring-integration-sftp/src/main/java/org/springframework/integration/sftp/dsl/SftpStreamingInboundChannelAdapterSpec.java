@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,12 @@ package org.springframework.integration.sftp.dsl;
 import java.util.Comparator;
 
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpStreamingMessageSource;
@@ -34,7 +38,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  */
 public class SftpStreamingInboundChannelAdapterSpec
 		extends RemoteFileStreamingInboundChannelAdapterSpec<LsEntry, SftpStreamingInboundChannelAdapterSpec,
-			SftpStreamingMessageSource> {
+		SftpStreamingMessageSource> {
 
 	SftpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<LsEntry> remoteFileTemplate,
 			Comparator<AbstractFileInfo<LsEntry>> comparator) {
@@ -49,7 +53,8 @@ public class SftpStreamingInboundChannelAdapterSpec
 	 */
 	@Override
 	public SftpStreamingInboundChannelAdapterSpec patternFilter(String pattern) {
-		return filter(new SftpSimplePatternFileListFilter(pattern));	}
+		return filter(composeFilters(new SftpSimplePatternFileListFilter(pattern)));
+	}
 
 	/**
 	 * Specify a regular expression to match remote files (e.g. '[0-9].*.txt').
@@ -59,7 +64,15 @@ public class SftpStreamingInboundChannelAdapterSpec
 	 */
 	@Override
 	public SftpStreamingInboundChannelAdapterSpec regexFilter(String regex) {
-		return filter(new SftpRegexPatternFileListFilter(regex));
+		return filter(composeFilters(new SftpRegexPatternFileListFilter(regex)));
+	}
+
+	@SuppressWarnings("unchecked")
+	private CompositeFileListFilter<LsEntry> composeFilters(FileListFilter<LsEntry> fileListFilter) {
+		CompositeFileListFilter<LsEntry> compositeFileListFilter = new CompositeFileListFilter<>();
+		compositeFileListFilter.addFilters(fileListFilter,
+				new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpStreamingMessageSource"));
+		return compositeFileListFilter;
 	}
 
 }
