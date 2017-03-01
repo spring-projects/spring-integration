@@ -81,7 +81,10 @@ public abstract class IntegrationContextUtils {
 
 	public static final String INTEGRATION_GRAPH_SERVER_BEAN_NAME = "integrationGraphServer";
 
+
 	public static final String SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME = "spelPropertyAccessorRegistrar";
+
+	public static final String ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME = "integrationArgumentResolverMessageConverter";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.

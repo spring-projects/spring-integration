@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,10 @@ import org.springframework.integration.config.annotation.MessagingAnnotationPost
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -86,19 +88,20 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	 */
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		this.registerImplicitChannelCreator(registry);
-		this.registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
-		this.registerIntegrationEvaluationContext(registry);
-		this.registerIntegrationProperties(registry);
-		this.registerHeaderChannelRegistry(registry);
-		this.registerGlobalChannelInterceptorProcessor(registry);
-		this.registerBuiltInBeans(registry);
-		this.registerDefaultConfiguringBeanFactoryPostProcessor(registry);
-		this.registerDefaultDatatypeChannelMessageConverter(registry);
+		registerImplicitChannelCreator(registry);
+		registerIntegrationConfigurationBeanFactoryPostProcessor(registry);
+		registerIntegrationEvaluationContext(registry);
+		registerIntegrationProperties(registry);
+		registerHeaderChannelRegistry(registry);
+		registerGlobalChannelInterceptorProcessor(registry);
+		registerBuiltInBeans(registry);
+		registerDefaultConfiguringBeanFactoryPostProcessor(registry);
+		registerDefaultDatatypeChannelMessageConverter(registry);
+		registerArgumentResolverMessageConverter(registry);
 		if (importingClassMetadata != null) {
-			this.registerMessagingAnnotationPostProcessors(importingClassMetadata, registry);
+			registerMessagingAnnotationPostProcessors(importingClassMetadata, registry);
 		}
-		this.registerMessageBuilderFactory(registry);
+		registerMessageBuilderFactory(registry);
 		IntegrationConfigUtils.registerRoleControllerDefinitionIfNecessary(registry);
 	}
 
@@ -404,6 +407,21 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 		}
 
 	}
+
+	/**
+	 * Register the default {@link CompositeMessageConverter} for argument resolvers
+	 * during handler method invocation.
+	 * @param registry the registry.
+	 */
+	private void registerArgumentResolverMessageConverter(BeanDefinitionRegistry registry) {
+		if (!registry.containsBeanDefinition(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
+			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(ConfigurableCompositeMessageConverter.class);
+			registry.registerBeanDefinition(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+					postProcessorBuilder.getBeanDefinition());
+		}
+	}
+
 
 	private void registerMessageBuilderFactory(BeanDefinitionRegistry registry) {
 		boolean alreadyRegistered = false;

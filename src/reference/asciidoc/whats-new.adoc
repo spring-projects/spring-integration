@@ -19,6 +19,12 @@ See <<mongodb-outbound-gateway>> for more information.
 The new `AsyncHttpRequestExecutingMessageHandler` adds support for `AsyncRestTemplate` for outbound channel adapter and gateway.
 See <<AsyncHttpRequestExecutingMessageHandler>> for more information.
 
+==== Content Type Conversion
+
+Now that we use the new `InvocableHandlerMethod` -based infrastructure for service method invocations, we can perform `contentType` conversion from payload to target method argument.
+See <<content-type-conversion>> for more information.
+
+
 [[x5.0-general]]
 === General Changes
 
@@ -35,6 +41,9 @@ See <<tx-handle-message-advice>> for more information.
 
 The `SmartLifecycleRoleController` now provides methods to obtain status of endpoints in roles.
 See <<endpoint-roles>> for more information.
+
+When targeting POJO objects as message handlers, one of the service methods can now be marked with the `@Default` annotation to provide a fallback mechanism for non-matched conditions.
+See <<service-activator-namespace>> for more information.
 
 ==== JMS Changes
 
