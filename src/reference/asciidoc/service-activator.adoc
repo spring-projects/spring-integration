@@ -18,7 +18,18 @@ To create a Service Activator, use the 'service-activator' element with the 'inp
 <int:service-activator input-channel="exampleChannel" ref="exampleHandler"/>
 ----
 
-The configuration above assumes that "exampleHandler" either contains a single method annotated with the @ServiceActivator annotation or that it contains only one public method at all.
+The configuration above selects all methods from the `exampleHandler` which meet one of the Messaging requirements:
+
+- annotated with `@ServiceActivator`;
+- is `public`;
+- not `void` return if `requiresReply == true`.
+
+The target method for invocation at runtime is selected for each request message by their `payload` type.
+Or as a fallback to `Message<?>` type if such a method is present on target class.
+
+Starting with _version 5.0_, the service method can be marked with the `@Primary` as a fallback for all non-matching cases.
+This can be use-full in case of <<content-type-conversion>>, when we would like to end-up with some fallback method for non-matched conditions.
+
 To delegate to an explicitly defined method of any object, simply add the "method" attribute.
 
 [source,xml]

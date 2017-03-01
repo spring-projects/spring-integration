@@ -43,6 +43,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -59,6 +60,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.support.CollectionArgumentResolver;
 import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
@@ -67,6 +69,7 @@ import org.springframework.integration.support.MutableMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -158,6 +161,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private boolean useSpelInvoker;
 
+	private HandlerMethod primaryHandlerMethod;
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
@@ -271,6 +275,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			InvocableHandlerMethod invocableHandlerMethod =
 					this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, method);
 			this.handlerMethod = new HandlerMethod(invocableHandlerMethod, canProcessMessageList);
+			this.primaryHandlerMethod = null;
 		}
 		catch (IneligibleMethodException e) {
 			throw new IllegalArgumentException(e);
@@ -399,15 +404,29 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					customArgumentResolvers.add(mapArgumentResolver);
 
 					this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
+
+					if (getBeanFactory() != null &&
+							getBeanFactory()
+									.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
+						this.messageHandlerMethodFactory
+								.setMessageConverter(getBeanFactory()
+										.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+												MessageConverter.class));
+					}
+
 					this.messageHandlerMethodFactory.afterPropertiesSet();
 					prepareEvaluationContext();
 					this.initialized = true;
 				}
 			}
 		}
-		HandlerMethod candidate = this.findHandlerMethodForParameters(parameters);
-		Expression expression = candidate.expression;
+
+		HandlerMethod candidate = findHandlerMethodForParameters(parameters);
+		if (candidate == null) {
+			candidate = this.primaryHandlerMethod;
+		}
 		Assert.notNull(candidate, "No candidate methods found for messages.");
+		Expression expression = candidate.expression;
 
 		T result;
 		if (this.useSpelInvoker || candidate.spelOnly) {
@@ -443,8 +462,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				if (!(e.getCause() instanceof IllegalArgumentException) ||
 						!e.getStackTrace()[0].getClassName().equals(InvocableHandlerMethod.class.getName()) ||
 						(!"argument type mismatch".equals(e.getCause().getMessage()) &&
-						// JVM generates GeneratedMethodAccessor### after several calls with less error checking
-						!e.getCause().getMessage().startsWith("java.lang.ClassCastException@"))) {
+								// JVM generates GeneratedMethodAccessor### after several calls with less error checking
+								!e.getCause().getMessage().startsWith("java.lang.ClassCastException@"))) {
 					throw e;
 				}
 			}
@@ -544,6 +563,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					logger.debug("Method [" + method1 + "] is not eligible for Message handling.", e);
 				}
 				return;
+			}
+			if (AnnotationUtils.getAnnotation(method1, Primary.class) != null) {
+				Assert.state(this.primaryHandlerMethod == null,
+						() -> "Only one method can be @Primary, but there are more for: " + targetObject);
+				this.primaryHandlerMethod = handlerMethod1;
 			}
 			Class<?> targetParameterType = handlerMethod1.getTargetParameterType();
 			if (matchesAnnotation || annotationType == null) {
