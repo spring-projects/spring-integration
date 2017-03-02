@@ -849,6 +849,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param fileToWriteTo the file.
 	 * @param append true if we are appending.
 	 * @return the stream.
+	 * @throws FileNotFoundException if not found.
 	 * @since 4.3.8
 	 */
 	protected BufferedOutputStream createOutputStream(File fileToWriteTo, final boolean append)
