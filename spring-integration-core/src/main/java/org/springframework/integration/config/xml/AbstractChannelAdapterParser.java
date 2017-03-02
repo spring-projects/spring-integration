@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,20 +65,22 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 		}
 		AbstractBeanDefinition beanDefinition = doParse(element, parserContext, channelName);
 		MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
-		String autoStartup = element.getAttribute(IntegrationNamespaceUtils.AUTO_STARTUP);
-		if (StringUtils.hasText(autoStartup)) {
-			propertyValues.add("autoStartup", new TypedStringValue(autoStartup));
-		}
-		String phase = element.getAttribute(IntegrationNamespaceUtils.PHASE);
-		if (StringUtils.hasText(phase)) {
-			propertyValues.add("phase", new TypedStringValue(phase));
-		}
-		String role = element.getAttribute(IntegrationNamespaceUtils.ROLE);
-		if (StringUtils.hasText(role)) {
-			if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
-				parserContext.getReaderContext().error("When using 'role', 'id' is required", element);
+		if (!parserContext.isNested()) {
+			String autoStartup = element.getAttribute(IntegrationNamespaceUtils.AUTO_STARTUP);
+			if (StringUtils.hasText(autoStartup)) {
+				propertyValues.add("autoStartup", new TypedStringValue(autoStartup));
 			}
-			IntegrationNamespaceUtils.putLifecycleInRole(role, element.getAttribute(ID_ATTRIBUTE), parserContext);
+			String phase = element.getAttribute(IntegrationNamespaceUtils.PHASE);
+			if (StringUtils.hasText(phase)) {
+				propertyValues.add("phase", new TypedStringValue(phase));
+			}
+			String role = element.getAttribute(IntegrationNamespaceUtils.ROLE);
+			if (StringUtils.hasText(role)) {
+				if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
+					parserContext.getReaderContext().error("When using 'role', 'id' is required", element);
+				}
+				IntegrationNamespaceUtils.putLifecycleInRole(role, element.getAttribute(ID_ATTRIBUTE), parserContext);
+			}
 		}
 		return beanDefinition;
 	}

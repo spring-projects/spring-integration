@@ -326,10 +326,10 @@ public class MixedDispatcherConfigurationScenarioTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		assertTrue(allDone.await(5, TimeUnit.SECONDS));
+		assertTrue(allDone.await(10, TimeUnit.SECONDS));
 
 		executor.shutdown();
-		executor.awaitTermination(5, TimeUnit.SECONDS);
+		executor.awaitTermination(10, TimeUnit.SECONDS);
 
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(14)).handleMessage(message);
