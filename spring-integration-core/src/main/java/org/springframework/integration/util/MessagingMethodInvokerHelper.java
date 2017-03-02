@@ -45,6 +45,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -184,7 +185,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private HandlerMethod defaultHandlerMethod;
 
-	private final BeanExpressionResolver resolver = new StandardBeanExpressionResolver();
+	private BeanExpressionResolver resolver = new StandardBeanExpressionResolver();
 
 	private BeanExpressionContext expressionContext;
 
@@ -231,10 +232,10 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		this.messageHandlerMethodFactory.setBeanFactory(beanFactory);
-//		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-//			this.resolver = ((ConfigurableListableBeanFactory) beanFactory).getBeanExpressionResolver();
-//			this.expressionContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
-//		}
+		if (beanFactory instanceof ConfigurableListableBeanFactory) {
+			this.resolver = ((ConfigurableListableBeanFactory) beanFactory).getBeanExpressionResolver();
+			this.expressionContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
+		}
 	}
 
 	@Override
