@@ -322,10 +322,52 @@ If a method has no argument and no return value, but does contain a payload expr
 ==== Error Handling
 
 Of course, the Gateway invocation might result in errors.
-By default any error that has occurred downstream will be re-thrown as a `MessagingException` (`RuntimeException`) upon the Gateway's method invocation.
+By default, any error that occurs downstream will be re-thrown as is upon the Gateway's method invocation.
+For example, consider the following simple flow:
+
+[source]
+----
+gateway -> service-activator
+----
+
+If the service invoked by the service activator throws a `FooException`, the framework wraps it in a `MessagingException`, attaching the message passed to the service activator in the `failedMessage` property.
+Any logging performed by the framework will therefore have full context of the failure.
+When the exception is caught by the gateway, by default, the `FooException` will be unwrapped and thrown to the caller.
+You can configure a `throws` clause on the gateway method declaration for matching the particular exception type in the cause chain.
+For example if you would like to catch a whole `MessagingException` with all the messaging information of the reason of downstream error, you should have a gateway method like this:
+
+[source, java]
+----
+public interface MyGateway {
+
+    void performProcess() throws MessagingException;
+
+}
+----
+
+Since we encourage POJO programming, you may not want to expose the caller to messaging infrastructure.
+
+If your gateway method does not have a `throws` clause, the gateway will traverse the cause tree looking for a `RuntimeException` (that is not a `MessagingException`).
+If none is found, the framework will simply throw the `MessagingException`.
+If the `FooException` in the discussion above has a cause `BarException` and your method `throws BarException` then the gateway will further unwrap that and throw it to the caller.
+
+When a gateway is declared with no `service-interface`, an internal framework interface `RequestReplyExchanger` is used.
+
+[source, java]
+----
+public interface RequestReplyExchanger {
+
+	Message<?> exchange(Message<?> request) throws MessagingException;
+
+}
+----
+
+Before _version 5.0_ this `exchange` method did not have a `throws` clause and therefore the exception was unwrapped.
+If you are using this interface, and wish to restore the previous unwrap behavior, use a custom `service-interface` instead, or simply access the `cause` of the  `MessagingException` yourself.
+
 However there are times when you may want to simply log the error rather than propagating it, or you may want to treat an Exception as a valid reply, by mapping it to a Message that will conform to some "error message" contract that the caller understands.
 To accomplish this, the Gateway provides support for a Message Channel dedicated to the errors via the _error-channel_ attribute.
-In the example below, you can see that a 'transformer' is used to create a reply Message from the Exception.
+In the example below, you can see that a 'transformer' is used to create a reply `Message` from the `Exception`.
 
 [source,xml]
 ----

@@ -67,6 +67,9 @@ If your application is relying on the previous behavior, rename your `connection
 The gateway now correctly sets the `errorChannel` header when the gateway method has a `void` return type and an error channel is provided.
 Previously, the header was not populated.
 This had the effect that synchronous downstream flows (running on the calling thread) would send the exception to the configured channel but an exception on an async downstream flow would be sent to the default `errorChannel` instead.
+
+The `RequestReplyExchanger` interface now has a `throws MessagingException` clause to meet all the proposed messages exchange contract.
+
 See <<gateway-error-handling>> for more information.
 
 ==== Mail Changes
@@ -107,9 +110,9 @@ The FTP and SFTP outbound gateways now support the `REPLACE_IF_MODIFIED` `FileEx
 
 The (S)FTP streaming inbound channel adapters now add remote file information in a message header.
 
-See <<ftp>> and <<sftp>> for more information.
-
 The FTP and SFTP outbound channel adapters, as well as `PUT` command of the outbound gateways, now support `InputStream` as `payload`, too.
+
+See <<ftp>> and <<sftp>> for more information.
 
 ==== Integration Properties
 
