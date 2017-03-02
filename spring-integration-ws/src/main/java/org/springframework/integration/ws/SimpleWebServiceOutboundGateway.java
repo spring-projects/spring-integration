@@ -85,8 +85,11 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	}
 
 	/**
-	 *
-	 * @param extractPayload
+	 * A flag to return the whole {@link WebServiceMessage} or build
+	 * {@code payload} based on {@link WebServiceMessage}
+	 * and populated headers according {@code headerMapper} configuration.
+	 * Defaults to extract payload.
+	 * @param extractPayload build payload or return a whole {@link WebServiceMessage}
 	 * @since 5.0
 	 */
 	public void setExtractPayload(boolean extractPayload) {

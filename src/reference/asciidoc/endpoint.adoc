@@ -437,7 +437,7 @@ Throughout the reference manual, you will also see specific configuration and im
 In the case of an Object, such a parameter will be mapped to a Message payload or part of the payload or header (when using the Spring Expression Language).
 However there are times when the type of input parameter of the endpoint method does not match the type of the payload or its part.
 In this scenario we need to perform type conversion.
-Spring Integration provides a convenient way for registering type converters (using the Spring 3.x ConversionService) within its own instance of a conversion service bean named _integrationConversionService_.
+Spring Integration provides a convenient way for registering type converters (using the Spring `ConversionService`) within its own instance of a conversion service bean named _integrationConversionService_.
 That bean is automatically created as soon as the first converter is defined using the Spring Integration infrastructure.
 To register a Converter all you need is to implement `org.springframework.core.convert.converter.Converter`, `org.springframework.core.convert.converter.GenericConverter` or `org.springframework.core.convert.converter.ConverterFactory`.
 
@@ -510,6 +510,38 @@ However, if you do want to use the Spring _conversionService_ as the Spring Inte
 In this case the _conversionService_'s Converters will be available for Spring Integration runtime conversion.
 =====
 
+[[content-type-conversion]]
+==== Content Type Conversion
+
+Starting with _version 5.0_, by default, the method invocation mechanism is based on the `org.springframework.messaging.handler.invocation.InvocableHandlerMethod` infrastructure.
+Its `HandlerMethodArgumentResolver` implementations (e.g. `PayloadArgumentResolver` and `MessageMethodArgumentResolver`) can use the `MessageConverter` abstraction to convert an incoming `payload` to the target method argument type.
+The conversion can be based on the `contentType` message header.
+For this purpose Spring Integration provides the `ConfigurableCompositeMessageConverter` that delegates to a list of registered converters to be invoked until one of them returns a non-null result.
+By default this converter provides (in strict order):
+
+*  `MappingJackson2MessageConverter` if Jackson processor is present in classpath;
+*  `ByteArrayMessageConverter`
+*  `ObjectStringMessageConverter`
+*  `GenericMessageConverter`
+
+Please, consult their JavaDocs for more information about their purpose and appropriate `contentType` value for conversion.
+The `ConfigurableCompositeMessageConverter` is used because it can be be supplied with any other `MessageConverter` s including or excluding above mentioned default converters and registered as an appropriate bean in the application context overriding the default one:
+
+[source,java]
+----
+@Bean(name = IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)
+public ConfigurableCompositeMessageConverter compositeMessageConverter() {
+    List<MessageConverter> converters =
+        Arrays.asList(new MarshallingMessageConverter(jaxb2Marshaller()),
+                 new JavaSerializationMessageConverter());
+    return new ConfigurableCompositeMessageConverter(converters);
+}
+----
+And those two new converters will be registered in the composite before the defaults.
+You can also not use a `ConfigurableCompositeMessageConverter`, but provide your own `MessageConverter` by registering a bean with the name `integrationArgumentResolverMessageConverter` (`IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME` constant).
+
+NOTE: The `MessageConverter`-based (including `contentType` header) conversion isn't available when using SpEL method invocation.
+In this case, only regular class to class conversion mentioned above in the <<payload-type-conversion>> is available.
 
 [[async-polling]]
 ==== Asynchronous polling
