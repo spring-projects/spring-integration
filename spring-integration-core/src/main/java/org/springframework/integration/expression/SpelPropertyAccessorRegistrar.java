@@ -75,6 +75,7 @@ public class SpelPropertyAccessorRegistrar {
 	 * Add the provided named property accessor.
 	 * @param name the name.
 	 * @param propertyAccessor the accessor.
+	 * @return this registrar.
 	 * @since 4.3.8
 	 */
 	public SpelPropertyAccessorRegistrar add(String name, PropertyAccessor propertyAccessor) {
@@ -88,6 +89,7 @@ public class SpelPropertyAccessorRegistrar {
 	 * Add the provided property accessors. Each accessor name
 	 * will be the class simple name.
 	 * @param propertyAccessors the accessors.
+	 * @return this registrar.
 	 * @since 4.3.8
 	 */
 	public SpelPropertyAccessorRegistrar add(PropertyAccessor... propertyAccessors) {
