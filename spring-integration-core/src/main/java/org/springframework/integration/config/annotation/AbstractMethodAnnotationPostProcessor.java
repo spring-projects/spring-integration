@@ -243,10 +243,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return INPUT_CHANNEL_ATTRIBUTE;
 	}
 
-	protected ConfigurableListableBeanFactory getBeanFactory() {
-		return this.beanFactory;
-	}
-
 	protected boolean beanAnnotationAware() {
 		return true;
 	}

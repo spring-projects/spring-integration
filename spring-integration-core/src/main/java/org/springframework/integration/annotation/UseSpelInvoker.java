@@ -64,6 +64,7 @@ public @interface UseSpelInvoker {
 	 * with the specified compilerMode. If left empty, the default runtime compiler
 	 * mode will be used.
 	 * @return The compilerMode.
+	 * @see org.springframework.expression.spel.SpelCompilerMode
 	 */
 	@AliasFor("value")
 	String compilerMode() default "";
