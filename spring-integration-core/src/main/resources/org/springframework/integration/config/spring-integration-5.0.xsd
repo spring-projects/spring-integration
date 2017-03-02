@@ -4993,7 +4993,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="smartLifeCycleAttributeGroup">
-		<xsd:attribute name="auto-startup" default="true">
+		<xsd:attribute name="auto-startup">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 					Boolean value indicating whether this endpoint should start automatically.
