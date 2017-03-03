@@ -59,6 +59,7 @@ import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -120,21 +121,21 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	// Number of times to try an InvocableHandlerMethod before giving up in favor of an expression.
 	private static final int FAILED_ATTEMPTS_THRESHOLD = 100;
 
-	private static final SpelExpressionParser EXPRESSION_PARSER_DEFAULT = new SpelExpressionParser();
+	private static final ExpressionParser EXPRESSION_PARSER_DEFAULT = EXPRESSION_PARSER;
 
-	private static final SpelExpressionParser EXPRESSION_PARSER_OFF = new SpelExpressionParser(
+	private static final ExpressionParser EXPRESSION_PARSER_OFF = new SpelExpressionParser(
 			new SpelParserConfiguration(SpelCompilerMode.OFF, null));
 
-	private static final SpelExpressionParser EXPRESSION_PARSER_IMMEDIATE = new SpelExpressionParser(
+	private static final ExpressionParser EXPRESSION_PARSER_IMMEDIATE = new SpelExpressionParser(
 			new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, null));
 
-	private static final SpelExpressionParser EXPRESSION_PARSER_MIXED = new SpelExpressionParser(
+	private static final ExpressionParser EXPRESSION_PARSER_MIXED = new SpelExpressionParser(
 			new SpelParserConfiguration(SpelCompilerMode.MIXED, null));
 
 	private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER =
 			new LocalVariableTableParameterNameDiscoverer();
 
-	private static final Map<SpelCompilerMode, SpelExpressionParser> SPEL_COMPILERS = new HashMap<>();
+	private static final Map<SpelCompilerMode, ExpressionParser> SPEL_COMPILERS = new HashMap<>();
 
 	private static final TypeDescriptor messageTypeDescriptor = TypeDescriptor.valueOf(Message.class);
 
@@ -443,7 +444,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private void initializeHandler(HandlerMethod candidate) {
-		SpelExpressionParser parser = candidate.useSpelInvoker == null
+		ExpressionParser parser = candidate.useSpelInvoker == null
 				? EXPRESSION_PARSER_DEFAULT
 				: SPEL_COMPILERS
 						.get(SpelCompilerMode.valueOf(resolveExpression(candidate.useSpelInvoker.compilerMode(),
