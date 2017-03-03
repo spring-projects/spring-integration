@@ -39,6 +39,7 @@ import org.springframework.core.annotation.AliasFor;
  * invocation. An optional compilerMode property (aliased to value) is also provided.
  *
  * @author Gary Russell
+ * @since 5.0
  */
 @Target({ ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -51,8 +52,9 @@ public @interface UseSpelInvoker {
 	 * invoked using SpEL instead of an
 	 * {@link org.springframework.messaging.handler.invocation.InvocableHandlerMethod}
 	 * with the specified compilerMode. If left empty, the default runtime compiler
-	 * mode will be used.
+	 * mode will be used. Must evaluate to a String containing a valide compiler mode.
 	 * @return The compilerMode.
+	 * @see org.springframework.expression.spel.SpelCompilerMode
 	 */
 	@AliasFor("compilerMode")
 	String value() default "";
@@ -62,7 +64,7 @@ public @interface UseSpelInvoker {
 	 * invoked using SpEL instead of an
 	 * {@link org.springframework.messaging.handler.invocation.InvocableHandlerMethod}
 	 * with the specified compilerMode. If left empty, the default runtime compiler
-	 * mode will be used.
+	 * mode will be used. Must evaluate to a String containing a valide compiler mode.
 	 * @return The compilerMode.
 	 * @see org.springframework.expression.spel.SpelCompilerMode
 	 */

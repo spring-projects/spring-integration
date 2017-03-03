@@ -69,6 +69,7 @@ import org.springframework.integration.annotation.Default;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.support.CollectionArgumentResolver;
 import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
@@ -77,6 +78,7 @@ import org.springframework.integration.support.MutableMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -234,7 +236,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		super.setBeanFactory(beanFactory);
 		this.messageHandlerMethodFactory.setBeanFactory(beanFactory);
 		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			this.resolver = ((ConfigurableListableBeanFactory) beanFactory).getBeanExpressionResolver();
+			BeanExpressionResolver beanExpressionResolver = ((ConfigurableListableBeanFactory) beanFactory)
+					.getBeanExpressionResolver();
+			if (beanExpressionResolver != null) {
+				this.resolver = beanExpressionResolver;
+			}
 			this.expressionContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
 		}
 	}
@@ -425,6 +431,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			initializeHandler(candidate);
 		}
 		Expression expression = candidate.expression;
+
 		T result;
 		if (this.useSpelInvoker || candidate.spelOnly) {
 			result = invokeExpression(expression, parameters);
@@ -444,11 +451,17 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private void initializeHandler(HandlerMethod candidate) {
-		ExpressionParser parser = candidate.useSpelInvoker == null
+		ExpressionParser parser;
+		if (candidate.useSpelInvoker == null) {
+			parser = EXPRESSION_PARSER_DEFAULT;
+		}
+		else {
+			String compilerMode = resolveExpression(candidate.useSpelInvoker.compilerMode(),
+					"UseSpelInvoker.compilerMode:").toUpperCase();
+			parser = !StringUtils.hasText(compilerMode)
 				? EXPRESSION_PARSER_DEFAULT
-				: SPEL_COMPILERS
-						.get(SpelCompilerMode.valueOf(resolveExpression(candidate.useSpelInvoker.compilerMode(),
-								"UseSpelInvoker.compilerMode:")));
+				: SPEL_COMPILERS.get(SpelCompilerMode.valueOf(compilerMode));
+		}
 		candidate.expression = parser.parseExpression(candidate.expressionString);
 		candidate.initialized = true;
 	}
@@ -476,6 +489,16 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			customArgumentResolvers.add(mapArgumentResolver);
 
 			this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
+
+			if (getBeanFactory() != null &&
+					getBeanFactory()
+							.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
+				this.messageHandlerMethodFactory
+						.setMessageConverter(getBeanFactory()
+								.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+										MessageConverter.class));
+			}
+
 			this.messageHandlerMethodFactory.afterPropertiesSet();
 			prepareEvaluationContext();
 			this.initialized = true;
@@ -776,9 +799,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 		if (useSpel != null) {
 			handlerMethod.spelOnly = true;
-			if (StringUtils.hasText(useSpel.compilerMode())) {
-				handlerMethod.useSpelInvoker = useSpel;
-			}
+			handlerMethod.useSpelInvoker = useSpel;
 		}
 	}
 
