@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -486,7 +487,9 @@ Certificate fingerprints:
 		}
 		catch (IOException e) {
 			if (!(e instanceof ClosedChannelException)) {
-				assertThat(e.getMessage(), containsString("Socket closed during SSL Handshake"));
+				assertThat(e.getMessage(), anyOf(
+						containsString("Socket closed during SSL Handshake"),
+						containsString("Broken pipe")));
 			}
 		}
 	}
