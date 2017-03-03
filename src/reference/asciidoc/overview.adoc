@@ -439,7 +439,7 @@ SpEL (even interpreted) is usually "fast enough" for these operations, when comp
 However, starting with _version 5.0_, the `org.springframework.messaging.handler.invocation.InvocableHandlerMethod` is used by default, when possible.
 This technique is usually faster to execute than interpreted SpEL and is consistent with other Spring messaging projects.
 The `InvocableHandlerMethod` is similar to the technique used to invoke controller methods in Spring MVC.
-There are certain methods that are still always invoked using SpEL; examples include annotated arguments with dereferenced properties discussed above.
+There are certain methods that are still always invoked using SpEL; examples include annotated parameters with dereferenced properties as discussed above.
 This is because SpEL has the capability to navigate a property path.
 
 There may be some other corner cases that we haven't considered that also won't work with `InvocableHandlerMethod` s.
