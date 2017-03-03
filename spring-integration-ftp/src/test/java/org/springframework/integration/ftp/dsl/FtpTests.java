@@ -24,8 +24,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -79,8 +81,8 @@ public class FtpTests extends FtpTestSupport {
 						.localFilename(f -> f.toUpperCase() + ".a")
 						.localDirectory(getTargetLocalDirectory()),
 				e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
-			.channel(out)
-			.get();
+				.channel(out)
+				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
 		assertNotNull(message);
@@ -119,8 +121,8 @@ public class FtpTests extends FtpTestSupport {
 						.remoteDirectory("ftpSource")
 						.regexFilter(".*\\.txt$"),
 				e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
-			.channel(out)
-			.get();
+				.channel(out)
+				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
 		assertNotNull(message);
@@ -140,15 +142,17 @@ public class FtpTests extends FtpTestSupport {
 	@Test
 	public void testFtpOutboundFlow() {
 		IntegrationFlow flow = f -> f
-			.handle(Ftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
-					.useTemporaryFileName(false)
-					.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
-					.remoteDirectory("ftpTarget"));
+				.handle(Ftp.outboundAdapter(sessionFactory(), FileExistsMode.FAIL)
+						.useTemporaryFileName(false)
+						.fileNameExpression("headers['" + FileHeaders.FILENAME + "']")
+						.remoteDirectory("ftpTarget"));
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		String fileName = "foo.file";
-		registration.getInputChannel().send(MessageBuilder.withPayload("foo")
-			.setHeader(FileHeaders.FILENAME, fileName)
-			.build());
+		Message<ByteArrayInputStream> message = MessageBuilder
+				.withPayload(new ByteArrayInputStream("foo".getBytes(StandardCharsets.UTF_8)))
+				.setHeader(FileHeaders.FILENAME, fileName)
+				.build();
+		registration.getInputChannel().send(message);
 		RemoteFileTemplate<FTPFile> template = new RemoteFileTemplate<>(sessionFactory());
 		FTPFile[] files = template.execute(session ->
 				session.list(getTargetRemoteDirectory().getName() + "/" + fileName));
@@ -165,10 +169,10 @@ public class FtpTests extends FtpTestSupport {
 		IntegrationFlow flow = f -> f
 				.handle(Ftp.outboundGateway(sessionFactory(),
 						AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
-							.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
-							.filterExpression("name matches 'subFtpSource|.*1.txt'")
-							.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
-							.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')"))
+						.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+						.filterExpression("name matches 'subFtpSource|.*1.txt'")
+						.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
+						.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')"))
 				.channel(out);
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		String dir = "ftpSource/";

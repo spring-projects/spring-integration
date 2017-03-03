@@ -99,6 +99,8 @@ See <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information.
 The (S)FTP streaming inbound channel adapters now add remote file information in a message header.
 See <<ftp-streaming>> and <<sftp-streaming>> for more information.
 
+The FTP and SFTP outbound channel adapters, as well as `PUT` command of the outbound gateways, now support `InputStream` as `payload`, too.
+
 ==== Integration Properties
 
 Since _version 4.3.2_ a new `spring.integration.readOnly.headers` global property has been added to customize the list of headers which should not be copied to a newly created `Message` by the `MessageBuilder`.

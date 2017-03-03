@@ -443,7 +443,10 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			Object payload = message.getPayload();
 			InputStream dataInputStream = null;
 			String name = null;
-			if (payload instanceof File) {
+			if (payload instanceof InputStream) {
+				dataInputStream = (InputStream) payload;
+			}
+			else if (payload instanceof File) {
 				File inputFile = (File) payload;
 				if (inputFile.exists()) {
 					dataInputStream = new BufferedInputStream(new FileInputStream(inputFile));
@@ -464,7 +467,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type. The only supported payloads are " +
-						"java.io.File, java.lang.String, and byte[]");
+						"java.io.File, java.lang.String, byte[] and InputStream");
 			}
 			if (dataInputStream == null) {
 				return null;
