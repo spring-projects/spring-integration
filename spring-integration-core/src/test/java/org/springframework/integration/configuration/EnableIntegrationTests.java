@@ -21,6 +21,7 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -49,6 +50,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -454,7 +457,7 @@ public class EnableIntegrationTests {
 		assertEquals("BAZ2", result.substring(0, 4));
 		assertThat(result, not(containsString("InvocableHandlerMethod")));
 		assertThat(result, containsString("SpelExpression"));
-		assertThat(result, containsString("Ex2.getValue("));
+		assertThat(result, is(new RegexMatcher<String>(".+Ex\\d.getValue\\(.+")));
 		this.testGateway.sendAsync("foo");
 		assertTrue(this.asyncAnnotationProcessLatch.await(1, TimeUnit.SECONDS));
 		assertNotSame(Thread.currentThread(), this.asyncAnnotationProcessThread.get());
@@ -1622,6 +1625,25 @@ public class EnableIntegrationTests {
 
 		public static Object bar(Object o) {
 			return o;
+		}
+
+	}
+
+	public class RegexMatcher<T> extends BaseMatcher<T> {
+
+		private final String regex;
+
+		public RegexMatcher(String regex) {
+			this.regex = regex;
+		}
+
+		public boolean matches(Object o) {
+			return ((String) o).matches(regex);
+
+		}
+
+		public void describeTo(Description description) {
+			description.appendText("matches regex=");
 		}
 
 	}
