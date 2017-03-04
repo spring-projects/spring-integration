@@ -262,6 +262,7 @@ Also see <<annotations>> for more information about Messaging Annotations.
 === Programming Considerations
 
 It is generally recommended that you use plain old java objects (POJOs) whenever possible and only expose the framework in your code when absolutely necessary.
+See <<pojo-invocation>> for more information.
 
 If you do expose the framework to your classes, there are some considerations that need to be taken into account, especially during application startup; some of these are listed here.
 
@@ -387,3 +388,69 @@ The sending thread returns immediately; the reply is sent asynchronously; uses '
        </xsd:documentation>
 	</xsd:annotation>
 ----
+
+[[pojo-invocation]]
+=== POJO Method invocation
+
+As discussed in <<programming-considerations>>, it is generally recommended to use a POJO programming style.
+For example,
+
+[source, java]
+----
+@ServiceActivator
+public String myService(String payload) { ... }
+----
+
+In this case, the framework will extract a String payload, invoke your method, and wrap the result in a message to send to the next component in the flow (the original headers will be copied to the new message).
+In fact, if you are using XML configuration, you don't even need the `@ServiceActivator` annotation:
+
+[source, xml]
+----
+<int:service-activator ... ref="myPojo" method="myService" />
+----
+
+[source, java]
+----
+public String myService(String payload) { ... }
+----
+
+You can omit the `method` attribute as long as there is no ambiguity in the public methods on the class.
+
+Some further observations:
+
+You can obtain header information in your POJO methods:
+
+[source, java]
+----
+@ServiceActivator
+public String myService(@Payload String payload, @Header("foo") String fooHeader) { ... }
+----
+
+You can dereference properties on the message:
+
+[source, java]
+----
+@ServiceActivator
+public String myService(@Payload("payload.foo") String foo, @Header("bar.baz") String barbaz) { ... }
+----
+
+Because many any varied POJO method invocations are available, versions prior to _5.0_ used SpEL to invoke the POJO methods.
+SpEL (even interpreted) is usually "fast enough" for these operations, when compared to the actual work usually done in the methods.
+However, starting with _version 5.0_, the `org.springframework.messaging.handler.invocation.InvocableHandlerMethod` is used by default, when possible.
+This technique is usually faster to execute than interpreted SpEL and is consistent with other Spring messaging projects.
+The `InvocableHandlerMethod` is similar to the technique used to invoke controller methods in Spring MVC.
+There are certain methods that are still always invoked using SpEL; examples include annotated parameters with dereferenced properties as discussed above.
+This is because SpEL has the capability to navigate a property path.
+
+There may be some other corner cases that we haven't considered that also won't work with `InvocableHandlerMethod` s.
+For this reason, we automatically fall-back to using SpEL in those cases.
+
+If you wish, you can also set up your POJO method such that it always uses SpEL, with the `UseSpelInvoker` annotation:
+
+[source, java]
+----
+@UseSpelInvoker(compilerMode = "IMMEDIATE")
+public void bar(String bar) { ... }
+----
+
+If the `compilerMode` property is omitted, the `spring.expression.compiler.mode` system property will determine the compiler mode - see http://docs.spring.io/spring-framework/docs/current/spring-framework-reference/html/expressions.html#expressions-spel-compilation[SpEL compilation] for more information about compiled SpEL.

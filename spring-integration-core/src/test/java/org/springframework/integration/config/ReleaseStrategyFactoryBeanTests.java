@@ -68,7 +68,7 @@ public class ReleaseStrategyFactoryBeanTests {
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
 		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Bar.class), is(bar));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expression.expression"),
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"),
 				equalTo("#target.doRelease2(messages)"));
 	}
 
@@ -121,7 +121,7 @@ public class ReleaseStrategyFactoryBeanTests {
 		ReleaseStrategy delegate = factory.getObject();
 		assertThat(delegate, instanceOf(MethodInvokingReleaseStrategy.class));
 		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.targetObject", Baz.class), is(baz));
-		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expression.expression"),
+		assertThat(TestUtils.getPropertyValue(delegate, "adapter.delegate.handlerMethod.expressionString"),
 				equalTo("#target.doRelease2(messages)"));
 	}
 

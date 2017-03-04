@@ -25,6 +25,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
@@ -49,10 +51,12 @@ import org.junit.rules.ExpectedException;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.annotation.UseSpelInvoker;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.support.MessageBuilder;
@@ -798,6 +802,69 @@ public class MethodInvokingMessageProcessorTests {
 		assertTrue(adviceCalled.get());
 	}
 
+	@Test
+	public void testUseSpelInvoker() throws Exception {
+		UseSpelInvokerBean bean = new UseSpelInvokerBean();
+		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+				UseSpelInvokerBean.class.getDeclaredMethod("foo", String.class), false);
+		Message<?> message = new GenericMessage<>("Test");
+		helper.process(message);
+		assertEquals(SpelCompilerMode.OFF,
+				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
+
+		helper = new MessagingMethodInvokerHelper<>(bean,
+				UseSpelInvokerBean.class.getDeclaredMethod("bar", String.class), false);
+		helper.process(message);
+		assertEquals(SpelCompilerMode.IMMEDIATE,
+				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
+
+		helper = new MessagingMethodInvokerHelper<>(bean,
+				UseSpelInvokerBean.class.getDeclaredMethod("baz", String.class), false);
+		helper.process(message);
+		assertEquals(SpelCompilerMode.MIXED,
+				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
+
+		helper = new MessagingMethodInvokerHelper<>(bean,
+				UseSpelInvokerBean.class.getDeclaredMethod("qux", String.class), false);
+		helper.process(message);
+		assertEquals(SpelCompilerMode.OFF,
+				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
+
+		helper = new MessagingMethodInvokerHelper<>(bean,
+				UseSpelInvokerBean.class.getDeclaredMethod("fiz", String.class), false);
+		try {
+			helper.process(message);
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(),
+					equalTo("No enum constant org.springframework.expression.spel.SpelCompilerMode.JUNK"));
+		}
+
+		helper = new MessagingMethodInvokerHelper<>(bean,
+				UseSpelInvokerBean.class.getDeclaredMethod("buz", String.class), false);
+		ConfigurableListableBeanFactory bf = mock(ConfigurableListableBeanFactory.class);
+		willAnswer(i -> i.getArgument(0)).given(bf).resolveEmbeddedValue(anyString());
+		helper.setBeanFactory(bf);
+		try {
+			helper.process(message);
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), equalTo(
+					"UseSpelInvoker.compilerMode: Object of class [java.lang.Object] "
+					+ "must be an instance of class java.lang.String"));
+		}
+
+		// Check other CTORs
+		helper = new MessagingMethodInvokerHelper<>(bean, "bar", false);
+		helper.process(message);
+		assertEquals(SpelCompilerMode.IMMEDIATE,
+				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
+
+		helper = new MessagingMethodInvokerHelper<>(bean, ServiceActivator.class, false);
+		helper.process(message);
+		assertEquals(SpelCompilerMode.MIXED,
+				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
+	}
 
 	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
 		// Update the parser configuration compiler mode
@@ -863,9 +930,9 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@SuppressWarnings("serial")
-	public static final class CheckedException extends Exception {
+	private static final class CheckedException extends Exception {
 
-		public CheckedException(String string) {
+		CheckedException(String string) {
 			super(string);
 		}
 
@@ -1040,6 +1107,48 @@ public class MethodInvokingMessageProcessorTests {
 
 	}
 
+	private static class UseSpelInvokerBean {
+
+		UseSpelInvokerBean() {
+			super();
+		}
+
+		@UseSpelInvoker
+		public void foo(String foo) {
+			// empty
+		}
+
+		@UseSpelInvoker("IMMEDIATE")
+		public void bar(String bar) {
+			// empty
+		}
+
+		@ServiceActivator
+		@UseSpelInvoker("mixed")
+		public void baz(String baz) {
+			// empty
+		}
+
+		@UseSpelInvoker("OfF")
+		public void qux(String qux) {
+			// empty
+		}
+
+		@UseSpelInvoker("JUNK")
+		public void fiz(String fiz) {
+			// empty
+		}
+
+		@UseSpelInvoker("#{new Object()}")
+		public void buz(String buz) {
+			// empty
+		}
+
+	}
+
+	/*
+	 * Public for SpEL access.
+	 */
 	public static class DotBean {
 
 		private final String foo = "bar";
