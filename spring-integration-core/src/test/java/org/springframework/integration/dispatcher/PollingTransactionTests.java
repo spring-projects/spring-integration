@@ -38,16 +38,21 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.transaction.IllegalTransactionStateException;
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.transaction.support.DefaultTransactionStatus;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Andreas Baer
  */
 public class PollingTransactionTests {
 
@@ -84,7 +89,8 @@ public class PollingTransactionTests {
 		Advisor[] advisors = ((Advised) pollingTask).getAdvisors();
 		assertEquals(3, advisors.length);
 
-		assertTrue("First advisor is not TX", ((DefaultPointcutAdvisor) advisors[0]).getAdvice() instanceof TransactionInterceptor);
+		assertTrue("First advisor is not TX", ((DefaultPointcutAdvisor) advisors[0]).getAdvice() instanceof
+				TransactionInterceptor);
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("goodInputWithAdvice");
 		PollableChannel output = (PollableChannel) context.getBean("output");
@@ -196,9 +202,46 @@ public class PollingTransactionTests {
 		Message<?> errorMessage = errorChannel.receive(3000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
-		assertEquals(IllegalTransactionStateException.class, payload.getClass());
+		assertEquals(MessagingException.class, payload.getClass());
+		MessagingException messagingException = (MessagingException) payload;
+		assertEquals(IllegalTransactionStateException.class, messagingException.getCause().getClass());
 		assertNull(output.receive(0));
 		assertEquals(0, txManager.getCommitCount());
+		context.close();
+	}
+
+	@Test
+	public void commitFalilureAndHandlerFailureTest() throws Throwable {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"transactionFailureTests.xml", this.getClass());
+		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManagerBad");
+		PollableChannel inputTxFail = (PollableChannel) context.getBean("inputTxFailure");
+		PollableChannel inputHandlerFail = (PollableChannel) context.getBean("inputHandlerFailure");
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
+		assertEquals(0, txManager.getCommitCount());
+		inputTxFail.send(new GenericMessage<String>("commitFalilureTest"));
+		Message<?> errorMessage = errorChannel.receive(10000);
+		assertNotNull(errorMessage);
+		Object payload = errorMessage.getPayload();
+		assertEquals(MessagingException.class, payload.getClass());
+		MessagingException messagingException = (MessagingException) payload;
+		assertEquals(IllegalTransactionStateException.class, messagingException.getCause().getClass());
+		assertNotNull(messagingException.getFailedMessage());
+		assertNotNull(output.receive(0));
+		assertEquals(0, txManager.getCommitCount());
+
+		inputHandlerFail.send(new GenericMessage<String>("handlerFalilureTest"));
+		errorMessage = errorChannel.receive(10000);
+		assertNotNull(errorMessage);
+		payload = errorMessage.getPayload();
+		assertEquals(MessageHandlingException.class, payload.getClass());
+		messagingException = (MessageHandlingException) payload;
+		assertEquals(RuntimeException.class, messagingException.getCause().getClass());
+		assertNotNull(messagingException.getFailedMessage());
+		assertNull(output.receive(0));
+		assertEquals(0, txManager.getCommitCount());
+
 		context.close();
 	}
 
@@ -206,6 +249,14 @@ public class PollingTransactionTests {
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
 			return invocation.proceed();
+		}
+	}
+
+	@SuppressWarnings("serial")
+	public static class FailingCommitTransactionManager extends TestTransactionManager {
+		@Override
+		protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
+			throw new IllegalTransactionStateException("intentional test commit failure");
 		}
 	}
 

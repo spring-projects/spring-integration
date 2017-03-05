@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="inputTxFailure">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="inputHandlerFailure">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="output">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="errorChannel">
+		<queue capacity="1"/>
+	</channel>
+
+
+	<service-activator input-channel="inputTxFailure" ref="testBean"
+					   method="good" output-channel="output">
+		<poller max-messages-per-poll="1" fixed-rate="10000">
+			<transactional transaction-manager="txManagerBad"/>
+		</poller>
+	</service-activator>
+
+	<service-activator input-channel="inputHandlerFailure" ref="testBean"
+					   method="bad" output-channel="output">
+		<poller max-messages-per-poll="1" fixed-rate="10000">
+			<transactional transaction-manager="txManagerGood"/>
+		</poller>
+	</service-activator>
+
+
+	<beans:bean id="testBean"
+				class="org.springframework.integration.dispatcher.TestBean"/>
+
+	<beans:bean id="txManagerBad"
+				class="org.springframework.integration.dispatcher.PollingTransactionTests$FailingCommitTransactionManager"/>
+
+	<beans:bean id="txManagerGood"
+				class="org.springframework.integration.util.TestTransactionManager"/>
+
+</beans:beans>

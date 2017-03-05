@@ -33,15 +33,15 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
+import org.springframework.integration.transaction.PassthroughTransactionSynchronizationFactory;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -54,6 +54,7 @@ import org.springframework.util.ErrorHandler;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Andreas Baer
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
 
@@ -110,7 +111,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.beanClassLoader = classLoader;
 	}
 
-	public void setTransactionSynchronizationFactory(TransactionSynchronizationFactory transactionSynchronizationFactory) {
+	public void setTransactionSynchronizationFactory(TransactionSynchronizationFactory
+			transactionSynchronizationFactory) {
 		this.transactionSynchronizationFactory = transactionSynchronizationFactory;
 	}
 
@@ -166,6 +168,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						this.errorHandlerIsDefault = true;
 					}
 					this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
+				}
+			}
+			if (this.transactionSynchronizationFactory == null && this.adviceChain != null) {
+				if (this.adviceChain.stream().anyMatch(TransactionInterceptor.class::isInstance)) {
+					this.transactionSynchronizationFactory = new PassthroughTransactionSynchronizationFactory();
 				}
 			}
 			this.initialized = true;
@@ -300,19 +307,19 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	private IntegrationResourceHolder bindResourceHolderIfNecessary(String key, Object resource) {
-
-		if (this.transactionSynchronizationFactory != null && resource != null) {
-			if (TransactionSynchronizationManager.isActualTransactionActive()) {
-				TransactionSynchronization synchronization = this.transactionSynchronizationFactory.create(resource);
-				TransactionSynchronizationManager.registerSynchronization(synchronization);
-				if (synchronization instanceof IntegrationResourceHolderSynchronization) {
-					IntegrationResourceHolder holder =
-							((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
-					if (key != null) {
-						holder.addAttribute(key, resource);
-					}
-					return holder;
+		if (this.transactionSynchronizationFactory != null && resource != null &&
+				TransactionSynchronizationManager.isActualTransactionActive()) {
+			TransactionSynchronization synchronization = this.transactionSynchronizationFactory.create(resource);
+			TransactionSynchronizationManager.registerSynchronization(synchronization);
+			if (synchronization instanceof IntegrationResourceHolderSynchronization) {
+				IntegrationResourceHolderSynchronization integrationSynchronization =
+						((IntegrationResourceHolderSynchronization) synchronization);
+				integrationSynchronization.setShouldUnbindAtCompletion(false);
+				IntegrationResourceHolder resourceHolder = integrationSynchronization.getResourceHolder();
+				if (key != null) {
+					resourceHolder.addAttribute(key, resource);
 				}
+				return resourceHolder;
 			}
 		}
 		return null;
@@ -343,11 +350,26 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						count++;
 					}
 					catch (Exception e) {
-						if (e instanceof RuntimeException) {
-							throw (RuntimeException) e;
+						if (e instanceof MessagingException) {
+							throw (MessagingException) e;
 						}
 						else {
-							throw new MessageHandlingException(new ErrorMessage(e), e);
+							Message<?> failedMessage = null;
+							if (AbstractPollingEndpoint.this.transactionSynchronizationFactory != null) {
+								Object resource = TransactionSynchronizationManager.getResource(getResourceToBind());
+								if (resource instanceof IntegrationResourceHolder) {
+									failedMessage = ((IntegrationResourceHolder) resource).getMessage();
+								}
+							}
+							throw new MessagingException(failedMessage, e);
+						}
+					}
+					finally {
+						if (AbstractPollingEndpoint.this.transactionSynchronizationFactory != null) {
+							Object resource = getResourceToBind();
+							if (TransactionSynchronizationManager.hasResource(resource)) {
+								TransactionSynchronizationManager.unbindResource(resource);
+							}
 						}
 					}
 				}

@@ -24,10 +24,12 @@ import org.springframework.transaction.support.ResourceHolderSynchronization;
  * @author Artem Bilan
  * @since 4.0
  */
-public abstract class IntegrationResourceHolderSynchronization
+public class IntegrationResourceHolderSynchronization
 		extends ResourceHolderSynchronization<IntegrationResourceHolder, Object> {
 
 	protected final IntegrationResourceHolder resourceHolder;
+
+	private boolean shouldUnbindAtCompletion = true;
 
 	public IntegrationResourceHolderSynchronization(IntegrationResourceHolder resourceHolder,
 			Object resourceKey) {
@@ -39,4 +41,12 @@ public abstract class IntegrationResourceHolderSynchronization
 		return this.resourceHolder;
 	}
 
+	public void setShouldUnbindAtCompletion(boolean shouldUnbindAtCompletion) {
+		this.shouldUnbindAtCompletion = shouldUnbindAtCompletion;
+	}
+
+	@Override
+	protected boolean shouldUnbindAtCompletion() {
+		return this.shouldUnbindAtCompletion;
+	}
 }
