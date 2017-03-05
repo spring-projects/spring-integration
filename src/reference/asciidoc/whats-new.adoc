@@ -48,6 +48,10 @@ See <<pojo-invocation>> for more information.
 When targeting POJO methods as message handlers, one of the service methods can now be marked with the `@Default` annotation to provide a fallback mechanism for non-matched conditions.
 See <<service-activator-namespace>> for more information.
 
+A simple `PassThroughTransactionSynchronizationFactory` is provided to always store a polled message in the current transaction context.
+That message is used as a `failedMessage` property of the `MessagingException` which wraps a raw exception thrown during transaction completion.
+See <<transaction-synchronization>> for more information.
+
 ==== JMS Changes
 
 Previously, Spring Integration JMS XML configuration used a default bean name `connectionFactory` for the JMS Connection Factory, allowing the property to be omitted from component definitions.

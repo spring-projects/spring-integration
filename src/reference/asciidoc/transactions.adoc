@@ -165,6 +165,12 @@ For example, the `MongoDbMessageSource` provides the _#mongoTemplate_ variable w
 
 To enable the feature for a particular poller, you provide a reference to the `TransactionSynchronizationFactory` on the poller's <transactional/> element using the _synchronization-factory_ attribute.
 
+Starting with _version 5.0_, a new `PassThroughTransactionSynchronizationFactory` is provided which is applied by default to polling endpoints when no `TransactionSynchronizationFactory` is configured but an advice of type TransactionInterceptor exists in the advice chain.
+When using any out-of-the-box `TransactionSynchronizationFactory` implementation, polling endpoints bind a polled message to the current transactional context and provide it as a `failedMessage` in a `MessagingException` if an exception is thrown after the TX advice.
+When using a custom TX advice that does not implement `TransactionInterceptor`, a `PassThroughTransactionSynchronizationFactory` can be configured explicitly to achieve this behavior.
+In either case, the `MessagingException` becomes the payload of the `ErrorMessage` that is sent to the `errorChannel` and the cause is the raw exception thrown by the advice.
+Previously, the `ErrorMessage` had a payload that was the raw exception thrown by the advice and did not provide a reference to the `failedMessage` information, making it difficult to determine the reasons for the transaction commit problem.
+
 To simplify configuration of these components, namespace support for the default factory has been provided.
 Configuration is best described using an example:
 
