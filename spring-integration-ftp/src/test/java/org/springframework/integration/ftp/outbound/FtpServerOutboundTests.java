@@ -16,7 +16,6 @@
 
 package org.springframework.integration.ftp.outbound;
 
-import static java.util.regex.Matcher.quoteReplacement;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
@@ -48,6 +47,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTPClient;
@@ -165,7 +165,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		File localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir.toUpperCase()));
 		assertPreserved(modified, localFile);
 
@@ -174,7 +174,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		result = this.output.receive(1000);
 		assertNotNull(result);
 		localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir.toUpperCase()));
 	}
 
@@ -207,7 +207,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 		boolean assertedModified = false;
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(quoteReplacement(File.separator), "/"), containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"), containsString(dir));
 			if (file.getPath().contains("localTarget1")) {
 				assertedModified = assertPreserved(modified, file);
 			}
@@ -223,7 +223,7 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		assertThat(localFiles.size(), Matchers.greaterThan(0));
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(quoteReplacement(File.separator), "/"), containsString(dir));
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"), containsString(dir));
 		}
 	}
 
@@ -262,14 +262,14 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 		boolean assertedModified = false;
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 					containsString(dir));
 			if (file.getPath().contains("localTarget1")) {
 				assertedModified = assertPreserved(modified, file);
 			}
 		}
 		assertTrue(assertedModified);
-		assertThat(localFiles.get(2).getPath().replaceAll(quoteReplacement(File.separator), "/"),
+		assertThat(localFiles.get(2).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir + "subFtpSource"));
 
 		File secondTarget = new File(getTargetLocalDirectory() + File.separator + "ftpSource", "localTarget2.txt");
@@ -325,10 +325,10 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		assertEquals(2, localFiles.size());
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 					containsString(dir));
 		}
-		assertThat(localFiles.get(1).getPath().replaceAll(quoteReplacement(File.separator), "/"),
+		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir + "subFtpSource"));
 
 	}

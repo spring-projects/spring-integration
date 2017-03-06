@@ -45,9 +45,9 @@ public class LockRegistryLeaderInitiatorTests {
 
 	private CountDownLatch revoked;
 
-	private LockRegistry registry = new DefaultLockRegistry();
+	private final LockRegistry registry = new DefaultLockRegistry();
 
-	private LockRegistryLeaderInitiator initiator =
+	private final LockRegistryLeaderInitiator initiator =
 			new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
 
 	@Before
@@ -90,10 +90,10 @@ public class LockRegistryLeaderInitiatorTests {
 		CountDownLatch other = new CountDownLatch(1);
 		another.setLeaderEventPublisher(new CountingPublisher(other));
 		this.initiator.start();
-		assertThat(this.granted.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(this.granted.await(20, TimeUnit.SECONDS), is(true));
 		another.start();
 		this.initiator.stop();
-		assertThat(other.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(other.await(20, TimeUnit.SECONDS), is(true));
 		assertThat(another.getContext().isLeader(), is(true));
 	}
 
