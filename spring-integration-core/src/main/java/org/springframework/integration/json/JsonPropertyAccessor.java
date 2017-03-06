@@ -16,26 +16,27 @@
 
 package org.springframework.integration.json;
 
-import java.io.IOException;
-
-import org.springframework.expression.AccessException;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.PropertyAccessor;
-import org.springframework.expression.TypedValue;
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.expression.AccessException;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.PropertyAccessor;
+import org.springframework.expression.TypedValue;
+import org.springframework.util.Assert;
+
+import java.io.IOException;
+import java.util.AbstractList;
 
 /**
  * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
  *
  * @author Eric Bottard
  * @author Artem Bilan
+ * @author Paul Martin
  * @since 3.0
  */
 public class JsonPropertyAccessor implements PropertyAccessor {
@@ -44,7 +45,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	 * The kind of types this can work with.
 	 */
 	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] { String.class, ToStringFriendlyJsonNode.class,
-			ObjectNode.class, ArrayNode.class };
+			ArrayNodeAsList.class, ObjectNode.class, ArrayNode.class };
 
 	// Note: ObjectMapper is thread-safe
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -58,7 +59,11 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
 		ContainerNode<?> container = asJson(target);
 		Integer index = maybeIndex(name);
-		return ((index != null && container.has(index)) || container.has(name));
+		if (container instanceof ArrayNode) {
+			return index != null;
+		} else {
+			return ((index != null && container.has(index)) || container.has(name));
+		}
 	}
 
 	private ContainerNode<?> assertContainerNode(JsonNode json) throws AccessException {
@@ -77,6 +82,10 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		}
 		else if (target instanceof ToStringFriendlyJsonNode) {
 			ToStringFriendlyJsonNode wrapper = (ToStringFriendlyJsonNode) target;
+			return assertContainerNode(wrapper.node);
+		}
+		else if (target instanceof ArrayNodeAsList) {
+			ArrayNodeAsList wrapper = (ArrayNodeAsList) target;
 			return assertContainerNode(wrapper.node);
 		}
 		else if (target instanceof String) {
@@ -113,16 +122,10 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		ContainerNode<?> container = asJson(target);
 		Integer index = maybeIndex(name);
 		if (index != null && container.has(index)) {
-			return new TypedValue(wrap(container.get(index)));
+			return typedValue(container.get(index));
 		}
 		else {
-			JsonNode json = container.get(name);
-			if (json != null) {
-				return new TypedValue(wrap(json));
-			}
-			else {
-				return TypedValue.NULL;
-			}
+			return typedValue(container.get(name));
 		}
 	}
 
@@ -141,11 +144,30 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		this.objectMapper = objectMapper;
 	}
 
-	private ToStringFriendlyJsonNode wrap(JsonNode json) {
-		return new ToStringFriendlyJsonNode(json);
+	private static TypedValue typedValue(JsonNode json) {
+		if (json == null) {
+			return TypedValue.NULL;
+		} else {
+			return new TypedValue(wrap(json));
+		}
 	}
 
-	public static class ToStringFriendlyJsonNode {
+	public static WrappedJsonNode wrap(JsonNode json) {
+		if (json == null) {
+			return null;
+		} else if (json instanceof ArrayNode) {
+			return new ArrayNodeAsList((ArrayNode) json);
+		} else {
+			return new ToStringFriendlyJsonNode(json);
+		}
+	}
+
+	/**
+	 * @since 5.0.0
+	 */
+	public interface WrappedJsonNode { }
+
+	public static class ToStringFriendlyJsonNode implements  WrappedJsonNode {
 
 		private final JsonNode node;
 
@@ -186,4 +208,24 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 	}
 
+	/**
+	 * @since 5.0.0
+	 */
+	public static class ArrayNodeAsList extends AbstractList<WrappedJsonNode> implements WrappedJsonNode {
+		private final ArrayNode node;
+
+		public ArrayNodeAsList(ArrayNode node) {
+			this.node = node;
+		}
+
+		@Override
+		public WrappedJsonNode get(int index) {
+			return wrap(node.get(index));
+		}
+
+		@Override
+		public int size() {
+			return node.size();
+		}
+	}
 }
