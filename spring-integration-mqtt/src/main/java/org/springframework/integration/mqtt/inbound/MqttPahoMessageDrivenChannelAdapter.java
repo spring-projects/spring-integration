@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mqtt.inbound;
 
 import java.util.Arrays;
@@ -20,6 +21,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -155,7 +157,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			try {
 				if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
 						|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
-								&& this.cleanSession)) {
+						&& this.cleanSession)) {
 					this.client.unsubscribe(getTopic())
 							.waitForCompletion(this.completionTimeout);
 				}
@@ -187,8 +189,12 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		try {
 			super.addTopic(topic, qos);
 			if (this.client != null && this.client.isConnected()) {
-				this.client.subscribe(topic, qos)
-						.waitForCompletion(this.completionTimeout);
+				IMqttToken mqttToken = this.client.subscribe(topic, qos);
+				mqttToken.waitForCompletion(this.completionTimeout);
+				int[] grantedQos = mqttToken.getGrantedQos();
+				if (grantedQos != null && grantedQos.length == 1 && grantedQos[0] == 0x80) {
+					throw new MqttException(MqttException.REASON_CODE_SUBSCRIBE_FAILED);
+				}
 			}
 		}
 		catch (MqttException e) {
@@ -211,7 +217,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			super.removeTopic(topic);
 		}
 		catch (MqttException e) {
-			throw new MessagingException("Failed to unsubscribe from topic " + Arrays.asList(topic), e);
+			throw new MessagingException("Failed to unsubscribe from topic " + Arrays.toString(topic), e);
 		}
 		finally {
 			this.topicLock.unlock();
@@ -230,17 +236,18 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.client.setCallback(this);
 
 		this.topicLock.lock();
+		String[] topics = getTopic();
 		try {
 			this.client.connect(connectionOptions)
 					.waitForCompletion(this.completionTimeout);
-			this.client.subscribe(getTopic(), getQos())
+			this.client.subscribe(topics, getQos())
 					.waitForCompletion(this.completionTimeout);
 		}
 		catch (MqttException e) {
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
 			}
-			logger.error("Error connecting or subscribing to " + Arrays.asList(getTopic()), e);
+			logger.error("Error connecting or subscribing to " + Arrays.toString(topics), e);
 			this.client.disconnect()
 					.waitForCompletion(this.completionTimeout);
 			throw e;
@@ -250,7 +257,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 		if (this.client.isConnected()) {
 			this.connected = true;
-			String message = "Connected and subscribed to " + Arrays.asList(getTopic());
+			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			if (logger.isDebugEnabled()) {
 				logger.debug(message);
 			}
