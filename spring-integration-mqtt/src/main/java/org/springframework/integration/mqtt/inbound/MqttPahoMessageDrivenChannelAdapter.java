@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -237,8 +238,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		try {
 			this.client.connect(connectionOptions)
 					.waitForCompletion(this.completionTimeout);
-			this.client.subscribe(getTopic(), getQos())
-					.waitForCompletion(this.completionTimeout);
+			doSubscribe(getTopic(), getQos());
 		}
 		catch (MqttException e) {
 			if (this.applicationEventPublisher != null) {
@@ -261,6 +261,16 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttSubscribedEvent(this, message));
 			}
+		}
+	}
+
+	private void doSubscribe(String[] topicFilters, int[] qos) throws MqttException {
+		IMqttToken tok = this.client.subscribe(topicFilters, qos);
+		tok.waitForCompletion(this.completionTimeout);
+
+		int[] grantedQos = tok.getGrantedQos();
+		if (grantedQos != null && grantedQos.length == 1 && grantedQos[0] == 0x80) {
+			throw new MqttException(MqttException.REASON_CODE_SUBSCRIBE_FAILED);
 		}
 	}
 
