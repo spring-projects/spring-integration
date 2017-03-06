@@ -16,20 +16,21 @@
 
 package org.springframework.integration.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ContainerNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.util.AbstractList;
+
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
 import org.springframework.util.Assert;
 
-import java.io.IOException;
-import java.util.AbstractList;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
@@ -61,7 +62,8 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		Integer index = maybeIndex(name);
 		if (container instanceof ArrayNode) {
 			return index != null;
-		} else {
+		}
+		else {
 			return ((index != null && container.has(index)) || container.has(name));
 		}
 	}
@@ -147,7 +149,8 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	private static TypedValue typedValue(JsonNode json) {
 		if (json == null) {
 			return TypedValue.NULL;
-		} else {
+		}
+		else {
 			return new TypedValue(wrap(json));
 		}
 	}
@@ -155,9 +158,11 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	public static WrappedJsonNode wrap(JsonNode json) {
 		if (json == null) {
 			return null;
-		} else if (json instanceof ArrayNode) {
+		}
+		else if (json instanceof ArrayNode) {
 			return new ArrayNodeAsList((ArrayNode) json);
-		} else {
+		}
+		else {
 			return new ToStringFriendlyJsonNode(json);
 		}
 	}
@@ -220,12 +225,12 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 
 		@Override
 		public WrappedJsonNode get(int index) {
-			return wrap(node.get(index));
+			return wrap(this.node.get(index));
 		}
 
 		@Override
 		public int size() {
-			return node.size();
+			return this.node.size();
 		}
 	}
 }

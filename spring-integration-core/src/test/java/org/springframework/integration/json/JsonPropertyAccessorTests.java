@@ -85,7 +85,7 @@ public class JsonPropertyAccessorTests {
 		ArrayNode json = (ArrayNode) mapper.readTree("[3, 4, 5]");
 		// JsonNode actual = evaluate("1", json, JsonNode.class); // Does not work
 		// Have to wrap the root array because ArrayNode itself is not a container
-		Object actual = evaluate(JsonPropertyAccessor.wrap(json),"[1]", Object.class);
+		Object actual = evaluate(JsonPropertyAccessor.wrap(json), "[1]", Object.class);
 		assertEquals("4", actual.toString());
 	}
 
