@@ -124,7 +124,7 @@ public final class FileParserUtils {
 			}
 			if (count != 1) {
 				parserContext.getReaderContext().error("at most one of 'filename-pattern', " +
-								"'filename-regex', 'filter' or 'filter-expression' is allowed on remote file inbound adapter",
+						"'filename-regex', 'filter' or 'filter-expression' is allowed on remote file inbound adapter",
 						element);
 			}
 			if (hasFilter) {
@@ -138,12 +138,12 @@ public final class FileParserUtils {
 				synchronizerBuilder.addPropertyValue("filter", expressionFilterBeanDefinition);
 			}
 			else if (hasFileNamePattern) {
-				BeanDefinition patterFilter =
+				BeanDefinition patternFilter =
 						BeanDefinitionBuilder.genericBeanDefinition(patternClass)
 								.addConstructorArgValue(fileNamePattern)
 								.getBeanDefinition();
 
-				composeFilters(synchronizerBuilder, persistentAcceptOnceFileListFilterClass, patterFilter);
+				composeFilters(synchronizerBuilder, persistentAcceptOnceFileListFilterClass, patternFilter);
 			}
 			else {
 				BeanDefinition regexFilter = BeanDefinitionBuilder.genericBeanDefinition(regexClass)
