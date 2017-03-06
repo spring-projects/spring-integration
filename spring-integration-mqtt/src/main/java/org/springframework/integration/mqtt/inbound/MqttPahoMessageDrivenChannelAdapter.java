@@ -249,7 +249,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
 			}
-			logger.error("Error connecting or subscribing to " + Arrays.asList(topics), e);
+			logger.error("Error connecting or subscribing to " + Arrays.toString(topics), e);
 			this.client.disconnectForcibly(this.completionTimeout);
 			throw e;
 		}
@@ -258,7 +258,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 		if (this.client.isConnected()) {
 			this.connected = true;
-			String message = "Connected and subscribed to " + Arrays.asList(topics);
+			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			if (logger.isDebugEnabled()) {
 				logger.debug(message);
 			}
