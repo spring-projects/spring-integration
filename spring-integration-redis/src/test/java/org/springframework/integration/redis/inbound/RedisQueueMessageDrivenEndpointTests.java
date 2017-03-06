@@ -21,7 +21,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.internal.verification.VerificationModeFactory.atLeastOnce;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -268,7 +270,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 		assertTrue(stopLatch.await(10, TimeUnit.SECONDS));
 
-		Mockito.verify(boundListOperations, atLeastOnce()).rightPush(Mockito.any(byte[].class));
+		verify(boundListOperations, atLeastOnce()).rightPush(any(byte[].class));
 	}
 
 

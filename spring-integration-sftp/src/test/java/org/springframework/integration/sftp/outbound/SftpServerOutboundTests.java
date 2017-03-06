@@ -16,7 +16,6 @@
 
 package org.springframework.integration.sftp.outbound;
 
-import static java.util.regex.Matcher.quoteReplacement;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -40,6 +39,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
@@ -141,7 +141,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		Message<?> result = this.output.receive(1000);
 		assertNotNull(result);
 		File localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir.toUpperCase()));
 		assertPreserved(modified, localFile);
 
@@ -150,7 +150,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		result = this.output.receive(1000);
 		assertNotNull(result);
 		localFile = (File) result.getPayload();
-		assertThat(localFile.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir.toUpperCase()));
 		Session<?> session2 = this.sessionFactory.getSession();
 		assertSame(TestUtils.getPropertyValue(session, "targetSession.jschSession"),
@@ -186,7 +186,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 		boolean assertedModified = false;
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 					containsString(dir));
 			if (file.getPath().contains("localTarget1")) {
 				assertedModified = assertPreserved(modified, file);
@@ -203,7 +203,7 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertThat(localFiles.size(), Matchers.greaterThan(0));
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 					containsString(dir));
 		}
 	}
@@ -223,14 +223,14 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 
 		boolean assertedModified = false;
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 					containsString(dir));
 			if (file.getPath().contains("localTarget1")) {
 				assertedModified = assertPreserved(modified, file);
 			}
 		}
 		assertTrue(assertedModified);
-		assertThat(localFiles.get(2).getPath().replaceAll(quoteReplacement(File.separator), "/"),
+		assertThat(localFiles.get(2).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir + "subSftpSource"));
 
 		File secondTarget = new File(getTargetLocalDirectory() + File.separator + "sftpSource", "localTarget2.txt");
@@ -285,10 +285,10 @@ public class SftpServerOutboundTests extends SftpTestSupport {
 		assertEquals(2, localFiles.size());
 
 		for (File file : localFiles) {
-			assertThat(file.getPath().replaceAll(quoteReplacement(File.separator), "/"),
+			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 					containsString(dir));
 		}
-		assertThat(localFiles.get(1).getPath().replaceAll(quoteReplacement(File.separator), "/"),
+		assertThat(localFiles.get(1).getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir + "subSftpSource"));
 
 	}

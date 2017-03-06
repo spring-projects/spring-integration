@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.springframework.integration.xml.xpath.XPathUtils.evaluate;
 
 import java.util.Date;
 import java.util.List;
@@ -46,6 +45,7 @@ import org.springframework.xml.xpath.NodeMapper;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 @ContextConfiguration
@@ -78,19 +78,19 @@ public class XPathTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testXPathUtils() {
-		Object result = evaluate(XML, "/parent/child/@name");
+		Object result = XPathUtils.evaluate(XML, "/parent/child/@name");
 		assertEquals("test", result);
 
-		result = evaluate(XML, "/parent/child/@name", "string");
+		result = XPathUtils.evaluate(XML, "/parent/child/@name", "string");
 		assertEquals("test", result);
 
-		result = evaluate(XML, "/parent/child/@age", "number");
+		result = XPathUtils.evaluate(XML, "/parent/child/@age", "number");
 		assertEquals((double) 42, result);
 
-		result = evaluate(XML, "/parent/child/@married = 'true'", "boolean");
+		result = XPathUtils.evaluate(XML, "/parent/child/@married = 'true'", "boolean");
 		assertEquals(Boolean.TRUE, result);
 
-		result = evaluate(XML, "/parent/child", "node");
+		result = XPathUtils.evaluate(XML, "/parent/child", "node");
 		assertThat(result, Matchers.instanceOf(Node.class));
 		Node node = (Node) result;
 		assertEquals("child", node.getLocalName());
@@ -98,7 +98,8 @@ public class XPathTests {
 		assertEquals("42", node.getAttributes().getNamedItem("age").getTextContent());
 		assertEquals("true", node.getAttributes().getNamedItem("married").getTextContent());
 
-		result = evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child", "node_list");
+		result = XPathUtils.evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child",
+				"node_list");
 		assertThat(result, Matchers.instanceOf(List.class));
 		List<Node> nodeList = (List<Node>) result;
 		assertEquals(2, nodeList.size());
@@ -109,7 +110,7 @@ public class XPathTests {
 		assertEquals("child", node2.getLocalName());
 		assertEquals("bar", node2.getAttributes().getNamedItem("name").getTextContent());
 
-		result = evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child", "document_list");
+		result = XPathUtils.evaluate("<parent><child name='foo'/><child name='bar'/></parent>", "/parent/child", "document_list");
 		assertThat(result, Matchers.instanceOf(List.class));
 		List<Document> documentList = (List<Document>) result;
 		assertEquals(2, documentList.size());
@@ -120,11 +121,11 @@ public class XPathTests {
 		assertEquals("child", document2.getFirstChild().getLocalName());
 		assertEquals("bar", document2.getFirstChild().getAttributes().getNamedItem("name").getTextContent());
 
-		result = evaluate(XML, "/parent/child/@name", new TestNodeMapper());
+		result = XPathUtils.evaluate(XML, "/parent/child/@name", new TestNodeMapper());
 		assertEquals("test-mapped", result);
 
 		try {
-			evaluate(new Date(), "/parent/child");
+			XPathUtils.evaluate(new Date(), "/parent/child");
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {
@@ -133,7 +134,7 @@ public class XPathTests {
 		}
 
 		try {
-			evaluate(XML, "/parent/child", "string", "number");
+			XPathUtils.evaluate(XML, "/parent/child", "string", "number");
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {
@@ -142,7 +143,7 @@ public class XPathTests {
 		}
 
 		try {
-			evaluate(XML, "/parent/child", "foo");
+			XPathUtils.evaluate(XML, "/parent/child", "foo");
 			fail("MessagingException expected.");
 		}
 		catch (Exception e) {

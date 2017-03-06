@@ -25,6 +25,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
@@ -843,7 +844,7 @@ public class MethodInvokingMessageProcessorTests {
 		helper = new MessagingMethodInvokerHelper<>(bean,
 				UseSpelInvokerBean.class.getDeclaredMethod("buz", String.class), false);
 		ConfigurableListableBeanFactory bf = mock(ConfigurableListableBeanFactory.class);
-		willAnswer(i -> i.getArgument(0)).given(bf).resolveEmbeddedValue(anyString());
+		willAnswer(returnsFirstArg()).given(bf).resolveEmbeddedValue(anyString());
 		helper.setBeanFactory(bf);
 		try {
 			helper.process(message);
