@@ -23,6 +23,7 @@ import java.util.concurrent.ScheduledFuture;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -110,7 +111,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
-	 * Set the completion timeout for async operations. Not settable using the namespace.
+	 * Set the completion timeout for operations. Not settable using the namespace.
 	 * Default 30000 milliseconds.
 	 * @param completionTimeout The timeout.
 	 * @since 4.1
@@ -228,6 +229,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
 		this.client = this.clientFactory.getClientInstance(getUrl(), getClientId());
 		this.client.setCallback(this);
+		if (this.client instanceof MqttClient) {
+			((MqttClient) this.client).setTimeToWait(this.completionTimeout);
+		}
 
 		this.topicLock.lock();
 		String[] topics = getTopic();
@@ -238,9 +242,11 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			this.client.subscribe(topics, grantedQos);
 			for (int i = 0; i < requestedQos.length; i++) {
 				if (grantedQos[i] != requestedQos[i]) {
-					logger.info("Granted QOS different to Requested QOS; topics: " + Arrays.toString(topics)
-						+ " requested: " + Arrays.toString(requestedQos)
-						+ " granted: " + Arrays.toString(grantedQos));
+					if (logger.isWarnEnabled()) {
+						logger.warn("Granted QOS different to Requested QOS; topics: " + Arrays.toString(topics)
+							+ " requested: " + Arrays.toString(requestedQos)
+							+ " granted: " + Arrays.toString(grantedQos));
+					}
 					break;
 				}
 			}

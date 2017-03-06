@@ -501,10 +501,11 @@ public class MqttAdapterTests {
 		assertNotNull(method.get());
 		Log logger = spy(TestUtils.getPropertyValue(adapter, "logger", Log.class));
 		new DirectFieldAccessor(adapter).setPropertyValue("logger", logger);
-		given(logger.isInfoEnabled()).willReturn(true);
+		given(logger.isWarnEnabled()).willReturn(true);
 		method.get().invoke(adapter);
 		verify(logger, atLeastOnce())
-				.info("Granted QOS different to Requested QOS; topics: [baz, fix] requested: [1, 1] granted: [2, 0]");
+				.warn("Granted QOS different to Requested QOS; topics: [baz, fix] requested: [1, 1] granted: [2, 0]");
+		verify(client).setTimeToWait(30_000L);
 	}
 
 	private MqttPahoMessageDrivenChannelAdapter buildAdapter(final IMqttClient client, Boolean cleanSession,
