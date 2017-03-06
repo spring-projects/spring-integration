@@ -20,9 +20,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
-import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
+import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -54,7 +55,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile IMqttAsyncClient client;
+	private volatile IMqttClient client;
 
 	private volatile ScheduledFuture<?> reconnectFuture;
 
@@ -110,7 +111,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	/**
-	 * Set the completion timeout for async operations. Not settable using the namespace.
+	 * Set the completion timeout for operations. Not settable using the namespace.
 	 * Default 30000 milliseconds.
 	 * @param completionTimeout The timeout.
 	 * @since 4.1
@@ -159,16 +160,14 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
 						|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
 								&& this.cleanSession)) {
-					this.client.unsubscribe(getTopic())
-							.waitForCompletion(this.completionTimeout);
+					this.client.unsubscribe(getTopic());
 				}
 			}
 			catch (MqttException e) {
 				logger.error("Exception while unsubscribing", e);
 			}
 			try {
-				this.client.disconnect()
-						.waitForCompletion(this.completionTimeout);
+				this.client.disconnectForcibly(this.completionTimeout);
 			}
 			catch (MqttException e) {
 				logger.error("Exception while disconnecting", e);
@@ -190,8 +189,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		try {
 			super.addTopic(topic, qos);
 			if (this.client != null && this.client.isConnected()) {
-				this.client.subscribe(topic, qos)
-						.waitForCompletion(this.completionTimeout);
+				this.client.subscribe(topic, qos);
 			}
 		}
 		catch (MqttException e) {
@@ -208,8 +206,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		this.topicLock.lock();
 		try {
 			if (this.client != null && this.client.isConnected()) {
-				this.client.unsubscribe(topic)
-						.waitForCompletion(this.completionTimeout);
+				this.client.unsubscribe(topic);
 			}
 			super.removeTopic(topic);
 		}
@@ -230,23 +227,36 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 		Assert.state(getUrl() != null || connectionOptions.getServerURIs() != null,
 				"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-		this.client = this.clientFactory.getAsyncClientInstance(getUrl(), getClientId());
+		this.client = this.clientFactory.getClientInstance(getUrl(), getClientId());
 		this.client.setCallback(this);
+		if (this.client instanceof MqttClient) {
+			((MqttClient) this.client).setTimeToWait(this.completionTimeout);
+		}
 
 		this.topicLock.lock();
+		String[] topics = getTopic();
 		try {
-			this.client.connect(connectionOptions)
-					.waitForCompletion(this.completionTimeout);
-			this.client.subscribe(getTopic(), getQos())
-					.waitForCompletion(this.completionTimeout);
+			this.client.connect(connectionOptions);
+			int[] requestedQos = getQos();
+			int[] grantedQos = Arrays.copyOf(requestedQos, requestedQos.length);
+			this.client.subscribe(topics, grantedQos);
+			for (int i = 0; i < requestedQos.length; i++) {
+				if (grantedQos[i] != requestedQos[i]) {
+					if (logger.isWarnEnabled()) {
+						logger.warn("Granted QOS different to Requested QOS; topics: " + Arrays.toString(topics)
+							+ " requested: " + Arrays.toString(requestedQos)
+							+ " granted: " + Arrays.toString(grantedQos));
+					}
+					break;
+				}
+			}
 		}
 		catch (MqttException e) {
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, e));
 			}
-			logger.error("Error connecting or subscribing to " + Arrays.asList(getTopic()), e);
-			this.client.disconnect()
-					.waitForCompletion(this.completionTimeout);
+			logger.error("Error connecting or subscribing to " + Arrays.toString(topics), e);
+			this.client.disconnectForcibly(this.completionTimeout);
 			throw e;
 		}
 		finally {
@@ -254,7 +264,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 		if (this.client.isConnected()) {
 			this.connected = true;
-			String message = "Connected and subscribed to " + Arrays.asList(getTopic());
+			String message = "Connected and subscribed to " + Arrays.toString(topics);
 			if (logger.isDebugEnabled()) {
 				logger.debug(message);
 			}
