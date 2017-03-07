@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.integration.store.SimpleMessageGroup;
  * @author Alex Peters
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class ExpressionEvaluatingReleaseStrategyTests {
@@ -56,14 +57,14 @@ public class ExpressionEvaluatingReleaseStrategyTests {
 
 	@Test
 	public void testCompletedWithFilterSpelEvaluated() throws Exception {
-		strategy = new ExpressionEvaluatingReleaseStrategy("!?[payload==5].empty");
+		strategy = new ExpressionEvaluatingReleaseStrategy("!messages.?[payload==5].empty");
 		strategy.setBeanFactory(mock(BeanFactory.class));
 		assertThat(strategy.canRelease(messages), is(true));
 	}
 
 	@Test
 	public void testCompletedWithFilterSpelReturnsNotCompleted() throws Exception {
-		strategy = new ExpressionEvaluatingReleaseStrategy("!?[payload==6].empty");
+		strategy = new ExpressionEvaluatingReleaseStrategy("!messages.?[payload==6].empty");
 		strategy.setBeanFactory(mock(BeanFactory.class));
 		assertThat(strategy.canRelease(messages), is(false));
 	}
