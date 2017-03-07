@@ -178,7 +178,6 @@ public class MethodInvokingReleaseStrategyTests {
 				return false;
 			}
 		}
-		// TODO: this is stupid, but maybe it should be illegal?
 		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "notEnoughParameters");
 	}
 
@@ -190,7 +189,6 @@ public class MethodInvokingReleaseStrategyTests {
 				return false;
 			}
 		}
-		// TODO: this is stupid, but maybe it should be illegal?
 		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), TestReleaseStrategy.class.getMethod(
 				"notEnoughParameters"));
 	}
@@ -208,7 +206,6 @@ public class MethodInvokingReleaseStrategyTests {
 		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
-	// TODO: should this be MessageHandlingException?
 	@Test(expected = ConversionFailedException.class)
 	public void testWrongReturnType() throws SecurityException, NoSuchMethodError {
 		class TestReleaseStrategy {
@@ -248,7 +245,6 @@ public class MethodInvokingReleaseStrategyTests {
 		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
-	// TODO: review exception type here
 	@Test(expected = IllegalStateException.class)
 	public void testWrongReturnTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		class TestReleaseStrategy {

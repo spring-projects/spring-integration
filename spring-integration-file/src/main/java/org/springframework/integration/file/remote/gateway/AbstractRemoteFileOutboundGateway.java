@@ -37,6 +37,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
@@ -60,6 +61,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReplyProducingMessageHandler {
@@ -209,7 +211,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> renameProcessor =
 			new ExpressionEvaluatingMessageProcessor<>(
-					new SpelExpressionParser().parseExpression("headers." + FileHeaders.RENAME_TO));
+					new FunctionExpression<Message<?>>(m ->
+							m.getHeaders().get(FileHeaders.RENAME_TO)));
 
 	private volatile Expression localDirectoryExpression;
 
@@ -592,7 +595,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return getMessageBuilderFactory().withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-				.setHeader("file_remoteSession", session) // TODO: remove in 5.0
 				.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
 				.build();
 	}
@@ -861,7 +863,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		boolean exists = localFile.exists();
 		boolean replacing = FileExistsMode.REPLACE.equals(fileExistsMode)
 				|| (exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)
-						&& localFile.lastModified() != getModified(fileInfo));
+				&& localFile.lastModified() != getModified(fileInfo));
 		if (!exists || appending || replacing) {
 			OutputStream outputStream;
 			String tempFileName = localFile.getAbsolutePath() + this.remoteFileTemplate.getTemporaryFileSuffix();

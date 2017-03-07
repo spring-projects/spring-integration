@@ -352,7 +352,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 					.enableSimpleBroker("/topic", "/queue");
 		}
 
-		//TODO SimpleBrokerMessageHandler doesn't support RECEIPT frame, hence we emulate it this way
+		//SimpleBrokerMessageHandler doesn't support RECEIPT frame, hence we emulate it this way
 		@Bean
 		public ApplicationListener<SessionSubscribeEvent> webSocketEventListener(
 				final AbstractSubscribableChannel clientOutboundChannel) {
