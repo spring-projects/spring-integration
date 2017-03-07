@@ -52,6 +52,9 @@ A simple `PassThroughTransactionSynchronizationFactory` is provided to always st
 That message is used as a `failedMessage` property of the `MessagingException` which wraps a raw exception thrown during transaction completion.
 See <<transaction-synchronization>> for more information.
 
+The aggregator expression-based `ReleaseStrategy` now evaluates the expression against the `MesageGroup` instead of just the collection of `Message<?>`.
+See <<aggregator-spel>> for more information.
+
 ==== JMS Changes
 
 Previously, Spring Integration JMS XML configuration used a default bean name `connectionFactory` for the JMS Connection Factory, allowing the property to be omitted from component definitions.

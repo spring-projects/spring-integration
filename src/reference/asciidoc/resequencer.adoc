@@ -128,13 +128,13 @@ _Optional, with restrictions (requires `release-strategy` to be present)._
 
 
 
-<14> A SpEL expression representing the release strategy; the root object for the expression is a `Collection` of `Message` s.
+<14> A SpEL expression representing the release strategy; the root object for the expression is a `MessageGroup`.
 Example: `"size() == 5"`.
 Only one of `release-strategy` or `release-strategy-expression` is allowed.
 
 
 
-<15> Only applies if a `MessageGroupStoreReaper` is configured for the `<resequcencer>` `MessageStore`.
+<15> Only applies if a `MessageGroupStoreReaper` is configured for the `<resequencer>` `MessageStore`.
 By default, when a `MessageGroupStoreReaper` is configured to expire partial groups, empty groups are also removed.
 Empty groups exist after a group is released normally.
 This is to enable the detection and discarding of late-arriving messages.

@@ -43,13 +43,13 @@
 	<aggregator input-channel="groupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"
 				send-partial-result-on-expiry="true"
 				group-timeout-expression="size() ge 2 ? 100 : -1"
-			    release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
+			    release-strategy-expression="messages[0].headers.sequenceNumber == messages[0].headers.sequenceSize"/>
 
 	<aggregator input-channel="zeroGroupTimeoutExpressionAggregatorInput" output-channel="output" discard-channel="discard"
 				send-partial-result-on-expiry="true"
 				send-timeout="10"
 				group-timeout-expression="@bool.getAndSet(true) ? 0 : 10"
-			    release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
+			    release-strategy-expression="messages[0].headers.sequenceNumber == messages[0].headers.sequenceSize"/>
 
 	<beans:bean id="bool" class="java.util.concurrent.atomic.AtomicBoolean" />
 

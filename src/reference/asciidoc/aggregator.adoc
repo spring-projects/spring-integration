@@ -95,7 +95,7 @@ It creates a single Message whose payload is a List of the payloads received for
 This works well for simple Scatter Gather implementations with either a Splitter, Publish Subscribe Channel, or Recipient List Router upstream.
 
 NOTE: When using a Publish Subscribe Channel or Recipient List Router in this type of scenario, be sure to enable the flag to `apply-sequence`.
-That will add the necessary headers (CORRELATION_ID, SEQUENCE_NUMBER and SEQUENCE_SIZE).
+That will add the necessary headers (`CORRELATION_ID`, `SEQUENCE_NUMBER` and `SEQUENCE_SIZE`).
 That behavior is enabled by default for Splitters in Spring Integration, but it is not enabled for the Publish Subscribe Channel or Recipient List Router because those components may be used in a variety of contexts in which these headers are not necessary.
 
 When implementing a specific aggregator strategy for an application, a developer can extend `AbstractAggregatingMessageGroupProcessor` and implement the `aggregatePayloads` method.
@@ -443,7 +443,7 @@ _Optional, with restrictions (requires `release-strategy` to be present)._
 
 
 
-<17> A SpEL expression representing the release strategy; the root object for the expression is a `Collection` of `Message` s.
+<17> A SpEL expression representing the release strategy; the root object for the expression is a `MessageGroup`.
 Example: `"size() == 5"`.
 Only one of `release-strategy` or `release-strategy-expression` is allowed.
 
@@ -601,7 +601,8 @@ For example, this aggregator would group numbers by some criterion (in our case 
 
 NOTE: Wherever it makes sense, the release strategy method, correlation strategy method and the aggregator method can be combined in a single bean (all of them or any two).
 
-_Aggregators and Spring Expression Language (SpEL)_
+[[aggregator-spel]]
+====== Aggregators and Spring Expression Language (SpEL)
 
 Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with http://docs.spring.io/spring/docs/current/spring-framework-reference/html/expressions.html[SpEL] which is recommended if the logic behind such _release strategy_ is relatively simple.
 Let's say you have a legacy component that was designed to receive an array of objects.
@@ -644,16 +645,18 @@ correlation-strategy-expression="payload.person.id"
 In the above example it is assumed that the payload has an attribute `person` with an `id` which is going to be used to correlate messages.
 
 Likewise, for the `ReleaseStrategy` you can implement your release logic as a SpEL expression and configure it via the `release-strategy-expression` attribute.
-The only difference is that since ReleaseStrategy is passed the List of Messages, the root object in the SpEL evaluation context is the List itself.
-That List can be referenced as `#this` within the expression.
+The root object for evaluation context is the `MessageGroup` itself.
+The List of messages can be referenced using the `message` property of the group within the expression.
+
+NOTE: In releases prior to _version 5.0_, the root object was the collection of `Message<?>`.
 
 For example:
 [source,xml]
 ----
-release-strategy-expression="#this.size() gt 5"
+release-strategy-expression="!messages.?[payload==5].empty"
 ----
 
-In this example the root object of the SpEL Evaluation Context is the `MessageGroup` itself, and you are simply stating that as soon as there are more than 5 messages in this group, it should be released.
+In this example the root object of the SpEL Evaluation Context is the `MessageGroup` itself, and you are simply stating that as soon as there are a message with payload as `5` in this group, it should be released.
 
 [[agg-and-group-to]]
 ====== Aggregator and Group Timeout
@@ -666,7 +669,7 @@ For this purpose the `groupTimeout` option allows scheduling the `MessageGroup` 
 <aggregator input-channel="input" output-channel="output"
         send-partial-result-on-expiry="true"
         group-timeout-expression="size() ge 2 ? 10000 : -1"
-        release-strategy-expression="[0].headers.sequenceNumber == [0].headers.sequenceSize"/>
+        release-strategy-expression="messages[0].headers.sequenceNumber == messages[0].headers.sequenceSize"/>
 ----
 
 With this example, the normal _release_ will be possible if the aggregator receives the last message in sequence as defined by the `release-strategy-expression`.
@@ -764,6 +767,7 @@ All state is carried by the `MessageGroup` and its management is delegated to th
 [source,java]
 ----
 public interface MessageGroupStore {
+
     int getMessageCountForAllMessageGroups();
 
     int getMarkedMessageCountForAllMessageGroups();
