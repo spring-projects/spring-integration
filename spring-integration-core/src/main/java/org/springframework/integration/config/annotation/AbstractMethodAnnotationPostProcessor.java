@@ -486,7 +486,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 							this.messageHandlerAttributes + " which are not allowed when an integration annotation " +
 							"is used with a @Bean definition for a MessageHandler." +
 							"\nThe attribute causing the ambiguity is: [" + attribute + "]." +
-							"\nUse the appropriate setter on the MessageHandler directly when configfuring an " +
+							"\nUse the appropriate setter on the MessageHandler directly when configuring an " +
 							"endpoint this way.");
 				}
 			}
