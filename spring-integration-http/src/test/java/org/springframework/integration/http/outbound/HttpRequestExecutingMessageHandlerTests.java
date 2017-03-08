@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -331,7 +331,6 @@ public class HttpRequestExecutingMessageHandlerTests {
 	 * This test and the one below might look identical, but they are not. This test
 	 * injected "5" into the list as String resulting in the Content-TYpe being
 	 * application/x-www-form-urlencoded
-	 * @throws Exception
 	 */
 	@Test
 	public void stringKeyNullCollectionValueMixedFormDataString() throws Exception {
@@ -379,7 +378,6 @@ public class HttpRequestExecutingMessageHandlerTests {
 	/**
 	 * This test and the one above might look identical, but they are not. This test
 	 * injected 5 into the list as int resulting in Content-type being multipart/form-data
-	 * @throws Exception
 	 */
 	@Test
 	public void stringKeyNullCollectionValueMixedFormDataObject() throws Exception {
@@ -604,7 +602,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals(MediaType.TEXT_XML, request.getHeaders().getContentType());
 	}
 
-	@Test // no asertions just a warn message in a log
+	@Test // no assertions just a warn message in a log
 	public void testWarnMessageForNonPostPutAndExtractPayload() throws Exception {
 		// should see a warn message
 
@@ -638,7 +636,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	}
 
 	@Test
-	public void contentTypeIsNotSetForGetRequest() throws Exception {
+	public void contentTypeIsNotSetForGetAndHeadRequest() throws Exception {
 		// GET
 		HttpRequestExecutingMessageHandler handler =
 				new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
@@ -668,7 +666,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		catch (Exception e) {
 			assertEquals("intentional", e.getCause().getMessage());
-			assertEquals(MediaType.TEXT_XML, template.lastRequestEntity.get().getHeaders().getContentType());
+			assertNull(template.lastRequestEntity.get().getHeaders().getContentType());
 		}
 
 
@@ -695,7 +693,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		}
 		catch (Exception e) {
 			assertEquals("intentional", e.getCause().getMessage());
-			assertEquals(MediaType.TEXT_XML, template.lastRequestEntity.get().getHeaders().getContentType());
+			assertNull(template.lastRequestEntity.get().getHeaders().getContentType());
 		}
 	}
 
