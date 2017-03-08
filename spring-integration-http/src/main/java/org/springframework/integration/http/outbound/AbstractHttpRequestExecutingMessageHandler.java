@@ -72,6 +72,9 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public abstract class AbstractHttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
+	private static final List<HttpMethod> noBodyHttpMethods =
+			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.TRACE);
+
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
 	private volatile StandardEvaluationContext evaluationContext;
@@ -426,7 +429,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	private boolean shouldIncludeRequestBody(HttpMethod httpMethod) {
-		return !HttpMethod.GET.equals(httpMethod);
+		return !(CollectionUtils.containsInstance(noBodyHttpMethods, httpMethod));
 	}
 
 	private MediaType resolveContentType(String content, Charset charset) {
