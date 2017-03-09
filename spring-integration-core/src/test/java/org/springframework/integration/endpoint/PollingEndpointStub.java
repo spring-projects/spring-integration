@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Jonas Partner
  * @author Gary Russell
+ * @author Andreas Baer
  */
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
@@ -31,11 +33,21 @@ public class PollingEndpointStub extends AbstractPollingEndpoint {
 
 	@Override
 	protected void handleMessage(Message<?> message) {
+		throw new RuntimeException("intentional test failure");
 	}
 
 	@Override
 	protected Message<?> receiveMessage() {
-		throw new RuntimeException("intentional test failure");
+		return new GenericMessage<String>("test message");
 	}
 
+	@Override
+	protected Object getResourceToBind() {
+		return this;
+	}
+
+	@Override
+	protected String getResourceKey() {
+		return "PollingEndpointStub";
+	}
 }

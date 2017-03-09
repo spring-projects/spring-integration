@@ -50,6 +50,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Andreas Baer
  */
 public class ApplicationContextMessageBusTests {
 
@@ -205,7 +206,7 @@ public class ApplicationContextMessageBusTests {
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);
 		Throwable exception = ((ErrorMessage) message).getPayload();
-		assertEquals("intentional test failure", exception.getMessage());
+		assertEquals("intentional test failure", exception.getCause().getMessage());
 	}
 
 	@Test

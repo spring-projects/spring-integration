@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,15 @@ import org.springframework.transaction.support.ResourceHolderSynchronization;
  * The base {@link ResourceHolderSynchronization} for {@link IntegrationResourceHolder}.
  *
  * @author Artem Bilan
+ * @author Andreas Baer
  * @since 4.0
  */
-public abstract class IntegrationResourceHolderSynchronization
+public class IntegrationResourceHolderSynchronization
 		extends ResourceHolderSynchronization<IntegrationResourceHolder, Object> {
 
 	protected final IntegrationResourceHolder resourceHolder;
+
+	private boolean shouldUnbindAtCompletion = true;
 
 	public IntegrationResourceHolderSynchronization(IntegrationResourceHolder resourceHolder,
 			Object resourceKey) {
@@ -39,4 +42,12 @@ public abstract class IntegrationResourceHolderSynchronization
 		return this.resourceHolder;
 	}
 
+	public void setShouldUnbindAtCompletion(boolean shouldUnbindAtCompletion) {
+		this.shouldUnbindAtCompletion = shouldUnbindAtCompletion;
+	}
+
+	@Override
+	protected boolean shouldUnbindAtCompletion() {
+		return this.shouldUnbindAtCompletion;
+	}
 }
