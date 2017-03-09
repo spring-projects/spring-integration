@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
  * {@link TransactionSynchronization} using {{@link #create(Object)} and registers the
  * resource in the {@link TransactionSynchronizationManager}
  *
- * @author Andreas Bär
+ * @author Andreas Baer
  * @since 5.0
  */
 public class PassthroughTransactionSynchronizationFactory implements TransactionSynchronizationFactory {
