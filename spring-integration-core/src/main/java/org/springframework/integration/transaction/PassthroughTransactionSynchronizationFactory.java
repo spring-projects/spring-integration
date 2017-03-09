@@ -22,8 +22,8 @@ import org.springframework.util.Assert;
 
 /**
  * A simple implementation of {@link TransactionSynchronizationFactory} which creates a
- * {@link TransactionSynchronization} using {{@link #create(Object)} and registers the
- * resource in the {@link TransactionSynchronizationManager}
+ * {@link IntegrationResourceHolder} under provided {@code key} and registers the
+ * resource in the {@link TransactionSynchronizationManager}.
  *
  * @author Andreas Baer
  * @since 5.0
