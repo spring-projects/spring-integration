@@ -164,6 +164,10 @@ In each case, the _#root_ variable is the original `Message`; in some cases, oth
 For example, the `MongoDbMessageSource` provides the _#mongoTemplate_ variable which references the message source's `MongoTemplate`; the `RedisStoreMessageSource` provides the _#store_ variable which references the `RedisStore` created by the poll.
 
 To enable the feature for a particular poller, you provide a reference to the `TransactionSynchronizationFactory` on the poller's <transactional/> element using the _synchronization-factory_ attribute.
+Spring Integration 5.0 introduces `PassthroughTransactionSynchronizationFactory` which is applied for pollers if there
+is no `TransactionSynchronizationFactory` available and the TX Advice is an instance of `TransactionInterceptor`.
+A `PassthroughTransactionSynchronizationFactory` can also be explicitly configured if you are using a a custom TX
+Advice.
 
 To simplify configuration of these components, namespace support for the default factory has been provided.
 Configuration is best described using an example:
