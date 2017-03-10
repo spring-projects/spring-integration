@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,12 @@
 
 package org.springframework.integration.handler.advice;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.support.ErrorMessagePublishingRecoveryCallback;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.util.Assert;
 
 /**
  * RecoveryCallback that sends the final throwable as an ErrorMessage after
@@ -40,46 +32,37 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object>, BeanFactoryAware {
+public class ErrorMessageSendingRecoverer extends ErrorMessagePublishingRecoveryCallback {
 
-	private final static Log logger = LogFactory.getLog(ErrorMessageSendingRecoverer.class);
-
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	public ErrorMessageSendingRecoverer() {
+		this(null);
+	}
 
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
-		Assert.notNull(channel, "channel cannot be null");
-		this.messagingTemplate.setDefaultDestination(channel);
+		setRecoveryChannel(channel);
+		setErrorMessageStrategy(new RecovererErrorMessageStrategy());
 	}
 
-	public void setSendTimeout(long sendTimeout) {
-		this.messagingTemplate.setSendTimeout(sendTimeout);
-	}
+	private static final class RecovererErrorMessageStrategy implements ErrorMessageStrategy {
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messagingTemplate.setBeanFactory(beanFactory);
-	}
+		@Override
+		public ErrorMessage buildErrorMessage(RetryContext context) {
+			Throwable lastThrowable = context.getLastThrowable();
+			if (lastThrowable == null) {
+				lastThrowable = new RetryExceptionNotAvailableException(
+						(Message<?>) context.getAttribute("message"),
+						"No retry exception available; " +
+								"this can occur, for example, if the RetryPolicy allowed zero attempts " +
+								"to execute the handler; " +
+								"RetryContext: " + context.toString());
+			}
+			else if (!(lastThrowable instanceof MessagingException)) {
+				lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"),
+						lastThrowable.getMessage(), lastThrowable);
+			}
+			return new ErrorMessage(lastThrowable);
+		}
 
-	@Override
-	public Object recover(RetryContext context) throws Exception {
-		Throwable lastThrowable = context.getLastThrowable();
-		if (lastThrowable == null) {
-			lastThrowable = new RetryExceptionNotAvailableException(
-					(Message<?>) context.getAttribute("message"),
-					"No retry exception available; " +
-					"this can occur, for example, if the RetryPolicy allowed zero attempts to execute the handler; " +
-					"RetryContext: " + context.toString());
-		}
-		else if (!(lastThrowable instanceof MessagingException)) {
-			lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"),
-					lastThrowable.getMessage(), lastThrowable);
-		}
-		if (logger.isDebugEnabled()) {
-			String supplement = ":failedMessage:" + ((MessagingException) lastThrowable).getFailedMessage();
-			logger.debug("Sending ErrorMessage " + supplement, lastThrowable);
-		}
-		this.messagingTemplate.send(new ErrorMessage(lastThrowable));
-		return null;
 	}
 
 	public static class RetryExceptionNotAvailableException extends MessagingException {
