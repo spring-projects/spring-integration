@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,16 @@
 
 package org.springframework.integration.sftp.session;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,14 +73,9 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setUseTemporaryFileName(false);
-		template.execute(new SessionCallback<LsEntry, Boolean>() {
-
-			@Override
-			public Boolean doInSession(Session<LsEntry> session) throws IOException {
-				session.mkdir("foo/");
-				return session.mkdir("foo/bar/");
-			}
-
+		template.execute(session -> {
+			session.mkdir("foo/");
+			return session.mkdir("foo/bar/");
 		});
 		template.append(new GenericMessage<String>("foo"));
 		template.append(new GenericMessage<String>("bar"));
@@ -100,7 +100,9 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 				assertTrue(session.remove("foo/foobar.txt"));
 				assertTrue(session.rmdir("foo/bar/"));
 				LsEntry[] files = session.list("foo/");
-				assertEquals(0, files.length);
+				List<LsEntry> list = Arrays.asList(files);
+				assertThat(list.stream().map(LsEntry::getFilename).collect(Collectors.toList()),
+						containsInAnyOrder(".", ".."));
 				assertTrue(session.rmdir("foo/"));
 			}
 		});

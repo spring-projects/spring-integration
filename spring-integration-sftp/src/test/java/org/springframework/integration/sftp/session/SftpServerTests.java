@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,26 +25,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 import java.util.Collections;
 
-import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
-import org.apache.sshd.common.util.Base64;
 import org.apache.sshd.server.Command;
-import org.apache.sshd.server.PasswordAuthenticator;
-import org.apache.sshd.server.PublickeyAuthenticator;
+import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.sftp.SftpSubsystem;
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.junit.Test;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.util.Base64Utils;
 import org.springframework.util.StreamUtils;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -63,19 +62,13 @@ public class SftpServerTests {
 	public void testUcPw() throws Exception {
 		SshServer server = SshServer.setUpDefaultServer();
 		try {
-			server.setPasswordAuthenticator(new PasswordAuthenticator() {
-
-				@Override
-				public boolean authenticate(String arg0, String arg1, ServerSession arg2) {
-					return true;
-				}
-			});
+			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
-			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
-			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
+			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystemFactory()));
 			final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest" + File.separator;
 			new File(pathname).mkdirs();
-			server.setFileSystemFactory(new VirtualFileSystemFactory(pathname));
+			server.setFileSystemFactory(new VirtualFileSystemFactory(Paths.get(pathname)));
 			server.start();
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
@@ -107,20 +100,13 @@ public class SftpServerTests {
 		SshServer server = SshServer.setUpDefaultServer();
 		final PublicKey allowedKey = decodePublicKey(pubKey);
 		try {
-			server.setPublickeyAuthenticator(new PublickeyAuthenticator() {
-
-				@Override
-				public boolean authenticate(String username, PublicKey key, ServerSession session) {
-					return key.equals(allowedKey);
-				}
-
-			});
+			server.setPublickeyAuthenticator((username, key, session) -> key.equals(allowedKey));
 			server.setPort(0);
-			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
-			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
+			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystemFactory()));
 			final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest" + File.separator;
 			new File(pathname).mkdirs();
-			server.setFileSystemFactory(new VirtualFileSystemFactory(pathname));
+			server.setFileSystemFactory(new VirtualFileSystemFactory(Paths.get(pathname)));
 			server.start();
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
@@ -141,7 +127,12 @@ public class SftpServerTests {
 
 	private PublicKey decodePublicKey(String key) throws Exception {
 		InputStream stream = new ClassPathResource(key).getInputStream();
-		byte[] decodeBuffer = Base64.decodeBase64(StreamUtils.copyToByteArray(stream));
+		byte[] keyBytes = StreamUtils.copyToByteArray(stream);
+		// strip any newline chars
+		while (keyBytes[keyBytes.length - 1] == 0x0a || keyBytes[keyBytes.length - 1] == 0x0d) {
+			keyBytes = Arrays.copyOf(keyBytes, keyBytes.length - 1);
+		}
+		byte[] decodeBuffer = Base64Utils.decode(keyBytes);
 		ByteBuffer bb = ByteBuffer.wrap(decodeBuffer);
 		int len = bb.getInt();
 		byte[] type = new byte[len];
@@ -173,7 +164,7 @@ public class SftpServerTests {
 		}
 		session.write(new ByteArrayInputStream("foo".getBytes()), "bar");
 		list = session.list(".");
-		assertEquals("bar", list[0].getFilename());
+		assertEquals("bar", list[1].getFilename());
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		session.read("bar", outputStream);
 		assertEquals("foo", new String(outputStream.toByteArray()));

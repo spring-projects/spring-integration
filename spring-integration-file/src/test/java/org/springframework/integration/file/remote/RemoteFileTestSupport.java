@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,15 @@ package org.springframework.integration.file.remote;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestName;
 
 /**
  * Abstract base class for tests requiring remote file servers, e.g. (S)FTP.
@@ -33,6 +38,8 @@ import org.junit.rules.TemporaryFolder;
  */
 public abstract class RemoteFileTestSupport {
 
+	protected final Log logger = LogFactory.getLog(getClass());
+
 	protected static int port;
 
 	@ClassRule
@@ -40,6 +47,9 @@ public abstract class RemoteFileTestSupport {
 
 	@ClassRule
 	public static final TemporaryFolder localTemporaryFolder = new TemporaryFolder();
+
+	@Rule
+	public final TestName testName = new TestName();
 
 	protected volatile File sourceRemoteDirectory;
 
@@ -57,12 +67,20 @@ public abstract class RemoteFileTestSupport {
 		return targetRemoteDirectory;
 	}
 
+	public String getTargetRemoteDirectoryName() {
+		return targetRemoteDirectory.getAbsolutePath() + File.separator;
+	}
+
 	public File getSourceLocalDirectory() {
 		return sourceLocalDirectory;
 	}
 
 	public File getTargetLocalDirectory() {
 		return targetLocalDirectory;
+	}
+
+	public String getTargetLocalDirectoryName() {
+		return targetLocalDirectory.getAbsolutePath() + File.separator;
 	}
 
 	/**
@@ -154,15 +172,24 @@ public abstract class RemoteFileTestSupport {
 			File[] files = file.listFiles();
 			if (files != null) {
 				for (File fyle : files) {
+					logger.info("Deleting: " + fyle + " in " + testName.getMethodName());
 					if (fyle.isDirectory()) {
 						recursiveDelete(fyle);
 					}
 					else {
-						fyle.delete();
+						if (!fyle.delete()) {
+							logger.error("Couldn't delete: " + fyle + " in " + testName.getMethodName());
+						}
 					}
 				}
 			}
-			file.delete();
+			logger.info("Deleting: " + file + " in " + testName.getMethodName());
+			if (!file.delete()) {
+				logger.error("Couldn't delete: " + file + " in " + testName.getMethodName());
+				if (file.isDirectory()) {
+					logger.error("Contents: " + Arrays.toString(file.listFiles()));
+				}
+			}
 		}
 	}
 

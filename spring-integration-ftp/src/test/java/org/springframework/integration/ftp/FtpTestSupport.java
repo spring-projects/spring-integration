@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.ftp;
 
-import java.io.File;
 import java.util.Arrays;
 
 import org.apache.commons.net.ftp.FTPFile;
@@ -52,10 +51,6 @@ import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 public class FtpTestSupport extends RemoteFileTestSupport {
 
 	private static volatile FtpServer server;
-
-	public String getTargetLocalDirectoryName() {
-		return targetLocalDirectory.getAbsolutePath() + File.separator;
-	}
 
 	@BeforeClass
 	public static void createServer() throws Exception {
