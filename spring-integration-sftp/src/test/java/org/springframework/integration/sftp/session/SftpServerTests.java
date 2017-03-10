@@ -129,7 +129,7 @@ public class SftpServerTests {
 		InputStream stream = new ClassPathResource(key).getInputStream();
 		byte[] keyBytes = StreamUtils.copyToByteArray(stream);
 		// strip any newline chars
-		while (keyBytes[keyBytes.length - 1] == 0x0a || keyBytes[keyBytes.length - 1] == 0x0c) {
+		while (keyBytes[keyBytes.length - 1] == 0x0a || keyBytes[keyBytes.length - 1] == 0x0d) {
 			keyBytes = Arrays.copyOf(keyBytes, keyBytes.length - 1);
 		}
 		byte[] decodeBuffer = Base64Utils.decode(keyBytes);
