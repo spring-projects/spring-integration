@@ -16,9 +16,11 @@
 
 package org.springframework.integration.endpoint;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -115,7 +117,7 @@ public class MessageProducerSupportTests {
 		mps.start();
 		Message<?> message = new GenericMessage<String>("hello");
 		mps.sendMessage(message);
-		assertEquals(ErrorMessage.class, errorService.lastMessage.getClass());
+		assertThat(errorService.lastMessage, instanceOf(ErrorMessage.class));
 		ErrorMessage errorMessage = (ErrorMessage) errorService.lastMessage;
 		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
 		MessageDeliveryException exception = (MessageDeliveryException) errorMessage.getPayload();

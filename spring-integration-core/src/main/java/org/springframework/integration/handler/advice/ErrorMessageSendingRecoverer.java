@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,70 +16,74 @@
 
 package org.springframework.integration.handler.advice;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.support.DefaultErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessagePublisher;
+import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.util.Assert;
 
 /**
- * RecoveryCallback that sends the final throwable as an ErrorMessage after
+ * A {@link RecoveryCallback} that sends the final throwable as an
+ * {@link org.springframework.messaging.support.ErrorMessage} after
  * retry exhaustion.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
-public class ErrorMessageSendingRecoverer implements RecoveryCallback<Object>, BeanFactoryAware {
+public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implements RecoveryCallback<Object> {
 
-	private final static Log logger = LogFactory.getLog(ErrorMessageSendingRecoverer.class);
+	/**
+	 * Construct instance with the default {@code errorChannel}
+	 * to publish recovery error message.
+	 * @since 4.3.10
+	 */
+	public ErrorMessageSendingRecoverer() {
+		this(null);
+	}
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
+	/**
+	 * Construct instance based on the provided message channel.
+	 * The {@link DefaultErrorMessageStrategy} is used for building error message to publish.
+	 * @param channel the message channel to publish error messages on recovery action.
+	 */
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
-		Assert.notNull(channel, "channel cannot be null");
-		this.messagingTemplate.setDefaultDestination(channel);
+		this(channel, new DefaultErrorMessageStrategy());
 	}
 
-	public void setSendTimeout(long sendTimeout) {
-		this.messagingTemplate.setSendTimeout(sendTimeout);
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.messagingTemplate.setBeanFactory(beanFactory);
+	/**
+	 * Construct instance based on the provided message channel and {@link ErrorMessageStrategy}.
+	 * @param channel the message channel to publish error messages on recovery action.
+	 * @param errorMessageStrategy the {@link ErrorMessageStrategy}
+	 * to build error message for publishing.
+	 * @since 4.3.10
+	 */
+	public ErrorMessageSendingRecoverer(MessageChannel channel, ErrorMessageStrategy errorMessageStrategy) {
+		setChannel(channel);
+		setErrorMessageStrategy(errorMessageStrategy);
 	}
 
 	@Override
 	public Object recover(RetryContext context) throws Exception {
-		Throwable lastThrowable = context.getLastThrowable();
-		if (lastThrowable == null) {
-			lastThrowable = new RetryExceptionNotAvailableException(
-					(Message<?>) context.getAttribute("message"),
-					"No retry exception available; " +
-					"this can occur, for example, if the RetryPolicy allowed zero attempts to execute the handler; " +
-					"RetryContext: " + context.toString());
-		}
-		else if (!(lastThrowable instanceof MessagingException)) {
-			lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"),
-					lastThrowable.getMessage(), lastThrowable);
-		}
-		if (logger.isDebugEnabled()) {
-			String supplement = ":failedMessage:" + ((MessagingException) lastThrowable).getFailedMessage();
-			logger.debug("Sending ErrorMessage " + supplement, lastThrowable);
-		}
-		this.messagingTemplate.send(new ErrorMessage(lastThrowable));
+		publish(context.getLastThrowable(), context);
 		return null;
+	}
+
+	@Override
+	protected Throwable payloadWhenNull(AttributeAccessor context) {
+		return new RetryExceptionNotAvailableException(
+				(Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY),
+				"No retry exception available; " +
+						"this can occur, for example, if the RetryPolicy allowed zero attempts " +
+						"to execute the handler; " +
+						"RetryContext: " + context.toString());
 	}
 
 	public static class RetryExceptionNotAvailableException extends MessagingException {
