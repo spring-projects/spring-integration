@@ -19,6 +19,7 @@ package org.springframework.integration.file.remote;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -171,6 +172,7 @@ public abstract class RemoteFileTestSupport {
 			File[] files = file.listFiles();
 			if (files != null) {
 				for (File fyle : files) {
+					logger.info("Deleting: " + fyle + " in " + testName.getMethodName());
 					if (fyle.isDirectory()) {
 						recursiveDelete(fyle);
 					}
@@ -181,7 +183,13 @@ public abstract class RemoteFileTestSupport {
 					}
 				}
 			}
-			file.delete();
+			logger.info("Deleting: " + file + " in " + testName.getMethodName());
+			if (!file.delete()) {
+				logger.error("Couldn't delete: " + file + " in " + testName.getMethodName());
+				if (file.isDirectory()) {
+					logger.error("Contents: " + Arrays.toString(file.listFiles()));
+				}
+			}
 		}
 	}
 
