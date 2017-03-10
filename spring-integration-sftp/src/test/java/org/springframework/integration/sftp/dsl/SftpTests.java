@@ -24,11 +24,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import org.apache.log4j.lf5.util.StreamUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -117,12 +119,14 @@ public class SftpTests extends SftpTestSupport {
 		assertNotNull(message);
 		assertThat(message.getPayload(), instanceOf(InputStream.class));
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" sftpSource1.txt", "sftpSource2.txt"));
+		StreamUtils.copy((InputStream) message.getPayload(), new ByteArrayOutputStream());
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		message = out.receive(10_000);
 		assertNotNull(message);
 		assertThat(message.getPayload(), instanceOf(InputStream.class));
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf("sftpSource1.txt", "sftpSource2.txt"));
+		StreamUtils.copy((InputStream) message.getPayload(), new ByteArrayOutputStream());
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		registration.destroy();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 
 package org.springframework.integration.sftp.session;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,10 +87,15 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 			}
 		});
 		template.execute((SessionCallbackWithoutResult<LsEntry>) session -> {
+			LsEntry[] files = session.list("foo/");
+			assertEquals(4, files.length);
 			assertTrue(session.remove("foo/foobar.txt"));
 			assertTrue(session.rmdir("foo/bar/"));
-			LsEntry[] files = session.list("foo/");
-			assertEquals(0, files.length);
+			files = session.list("foo/");
+			assertEquals(2, files.length);
+			List<LsEntry> list = Arrays.asList(files);
+			assertThat(list.stream().map(l -> l.getFilename()).collect(Collectors.toList()),
+					containsInAnyOrder(".", ".."));
 			assertTrue(session.rmdir("foo/"));
 		});
 		assertFalse(template.exists("foo"));
