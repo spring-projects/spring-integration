@@ -89,7 +89,7 @@ subprojects { subproject ->
 	ext {
 		activeMqVersion = '5.14.3'
 		aspectjVersion = '1.8.9'
-		apacheSshdVersion = '0.14.0'
+		apacheSshdVersion = '1.4.0'
 		boonVersion = '0.33'
 		chronicleVersion = '3.5.3'
 		commonsDbcpVersion = '1.4'

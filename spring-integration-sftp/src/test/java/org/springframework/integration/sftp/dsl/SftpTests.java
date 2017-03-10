@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,15 +75,15 @@ public class SftpTests extends SftpTestSupport {
 	public void testSftpInboundFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = IntegrationFlows
-			.from(Sftp.inboundAdapter(sessionFactory())
-							.preserveTimestamp(true)
-							.remoteDirectory("sftpSource")
-							.regexFilter(".*\\.txt$")
-							.localFilenameExpression("#this.toUpperCase() + '.a'")
-							.localDirectory(getTargetLocalDirectory()),
-					e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
-			.channel(out)
-			.get();
+				.from(Sftp.inboundAdapter(sessionFactory())
+								.preserveTimestamp(true)
+								.remoteDirectory("sftpSource")
+								.regexFilter(".*\\.txt$")
+								.localFilenameExpression("#this.toUpperCase() + '.a'")
+								.localDirectory(getTargetLocalDirectory()),
+						e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
+				.channel(out)
+				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
 		assertNotNull(message);
@@ -110,19 +110,21 @@ public class SftpTests extends SftpTestSupport {
 						.remoteDirectory("sftpSource")
 						.regexFilter(".*\\.txt$"),
 				e -> e.id("sftpInboundAdapter").poller(Pollers.fixedDelay(100)))
-			.channel(out)
-			.get();
+				.channel(out)
+				.get();
 		IntegrationFlowRegistration registration = this.flowContext.registration(flow).register();
 		Message<?> message = out.receive(10_000);
 		assertNotNull(message);
 		assertThat(message.getPayload(), instanceOf(InputStream.class));
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" sftpSource1.txt", "sftpSource2.txt"));
+		((InputStream) message.getPayload()).close();
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		message = out.receive(10_000);
 		assertNotNull(message);
 		assertThat(message.getPayload(), instanceOf(InputStream.class));
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf("sftpSource1.txt", "sftpSource2.txt"));
+		((InputStream) message.getPayload()).close();
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
 		registration.destroy();

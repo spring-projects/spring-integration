@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		for (int i = 0; i < 3; i++) {
-			Message<?> receive = receiveChannel.receive(2000);
+			Message<?> receive = receiveChannel.receive(10000);
 			assertNotNull(receive);
 			assertThat(receive.getPayload(), Matchers.<Object>isOneOf("Hello Redis from foo", "Hello Redis from bar"));
 		}

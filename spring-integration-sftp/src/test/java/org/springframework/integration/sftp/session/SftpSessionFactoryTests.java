@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,15 +28,16 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Collections;
 
-import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.server.Command;
+import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.sftp.SftpSubsystem;
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
@@ -63,7 +64,7 @@ public class SftpSessionFactoryTests {
 		try {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
-			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
 			server.start();
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
@@ -212,8 +213,8 @@ public class SftpSessionFactoryTests {
 	private DefaultSftpSessionFactory createServerAndClient(SshServer server) throws IOException {
 		server.setPublickeyAuthenticator((username, key, session) -> true);
 		server.setPort(0);
-		server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
-		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
+		server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystemFactory()));
+		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
 		server.start();
 
 		DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
