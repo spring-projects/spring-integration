@@ -123,7 +123,7 @@ public class SftpTests extends SftpTestSupport {
 		message = out.receive(10_000);
 		assertNotNull(message);
 		assertThat(message.getPayload(), instanceOf(InputStream.class));
-		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf("sftpSource1.txt", "sftpSource2.txt"));
+		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" sftpSource1.txt", "sftpSource2.txt"));
 		((InputStream) message.getPayload()).close();
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 

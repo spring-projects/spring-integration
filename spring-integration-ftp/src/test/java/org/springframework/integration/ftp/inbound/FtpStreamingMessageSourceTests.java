@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
+import java.util.Comparator;
 
 import org.apache.commons.net.ftp.FTPFile;
 import org.junit.Test;
@@ -38,6 +39,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.integration.ftp.session.FtpFileInfo;
@@ -124,7 +126,8 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		@Bean
 		@InboundChannelAdapter(channel = "stream")
 		public MessageSource<InputStream> ftpMessageSource() {
-			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(), null);
+			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(),
+					Comparator.comparing(FileInfo::getFilename));
 			messageSource.setRemoteDirectory("ftpSource/");
 			return messageSource;
 		}
