@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,19 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Iterator;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
 import org.springframework.integration.ftp.inbound.FtpStreamingMessageSource;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
@@ -45,6 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -71,7 +78,16 @@ public class FtpStreamingInboundChannelAdapterParserTests {
 
 		assertNotNull(TestUtils.getPropertyValue(source, "comparator"));
 		assertThat(TestUtils.getPropertyValue(source, "remoteFileSeparator", String.class), equalTo("X"));
-		assertThat(TestUtils.getPropertyValue(source, "filter"), instanceOf(FtpSimplePatternFileListFilter.class));
+
+		FileListFilter<?> filter = TestUtils.getPropertyValue(source, "filter", FileListFilter.class);
+		assertNotNull(filter);
+		assertThat(filter, instanceOf(CompositeFileListFilter.class));
+		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters", Set.class);
+
+		Iterator<?> filtersIterator = fileFilters.iterator();
+		assertThat(filtersIterator.next(), instanceOf(FtpSimplePatternFileListFilter.class));
+		assertThat(filtersIterator.next(), instanceOf(FtpPersistentAcceptOnceFileListFilter.class));
+
 		assertSame(this.csf, TestUtils.getPropertyValue(source, "remoteFileTemplate.sessionFactory"));
 		assertEquals(31, TestUtils.getPropertyValue(source, "maxFetchSize"));
 	}

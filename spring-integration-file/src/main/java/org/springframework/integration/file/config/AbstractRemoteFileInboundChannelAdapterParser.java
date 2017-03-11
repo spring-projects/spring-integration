@@ -25,6 +25,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.synchronizer.InboundFileSynchronizer;
 import org.springframework.util.StringUtils;
@@ -36,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public abstract class AbstractRemoteFileInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -59,8 +61,10 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		String remoteFileSeparator = element.getAttribute("remote-file-separator");
 		synchronizerBuilder.addPropertyValue("remoteFileSeparator", remoteFileSeparator);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "temporary-file-suffix");
+
 		FileParserUtils.configureFilter(synchronizerBuilder, element, parserContext,
-				getSimplePatternFileListFilterClass(), getRegexPatternFileListFilterClass());
+				getSimplePatternFileListFilterClass(), getRegexPatternFileListFilterClass(),
+				getPersistentAcceptOnceFileListFilterClass());
 
 		// build the MessageSource
 		BeanDefinitionBuilder messageSourceBuilder =
@@ -93,5 +97,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 	protected abstract Class<? extends FileListFilter<?>> getSimplePatternFileListFilterClass();
 
 	protected abstract Class<? extends FileListFilter<?>> getRegexPatternFileListFilterClass();
+
+	protected abstract Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>> getPersistentAcceptOnceFileListFilterClass();
 
 }

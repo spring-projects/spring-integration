@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package org.springframework.integration.ftp.config;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,6 +29,8 @@ import static org.mockito.Mockito.when;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,9 +43,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
+import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
@@ -59,6 +65,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -103,8 +110,16 @@ public class FtpInboundChannelAdapterParserTests {
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals("", remoteFileSeparator);
-		FtpSimplePatternFileListFilter filter = (FtpSimplePatternFileListFilter) TestUtils.getPropertyValue(fisync, "filter");
+
+		FileListFilter<?> filter = TestUtils.getPropertyValue(fisync, "filter", FileListFilter.class);
 		assertNotNull(filter);
+		assertThat(filter, instanceOf(CompositeFileListFilter.class));
+		Set<?> fileFilters = TestUtils.getPropertyValue(filter, "fileFilters", Set.class);
+
+		Iterator<?> filtersIterator = fileFilters.iterator();
+		assertThat(filtersIterator.next(), instanceOf(FtpSimplePatternFileListFilter.class));
+		assertThat(filtersIterator.next(), instanceOf(FtpPersistentAcceptOnceFileListFilter.class));
+
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "remoteFileTemplate.sessionFactory");
 		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);

@@ -20,12 +20,16 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.RemoteFileOperations;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author David Turanski
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -93,7 +98,8 @@ public final class FileParserUtils {
 	}
 
 	static void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, ParserContext parserContext,
-			Class<? extends FileListFilter<?>> patternClass, Class<? extends FileListFilter<?>> regexClass) {
+			Class<? extends FileListFilter<?>> patternClass, Class<? extends FileListFilter<?>> regexClass,
+			Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>> persistentAcceptOnceFileListFilterClass) {
 		String filter = element.getAttribute("filter");
 		String filterExpression = element.getAttribute("filter-expression");
 		String fileNamePattern = element.getAttribute("filename-pattern");
@@ -132,16 +138,44 @@ public final class FileParserUtils {
 				synchronizerBuilder.addPropertyValue("filter", expressionFilterBeanDefinition);
 			}
 			else if (hasFileNamePattern) {
-				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(patternClass);
-				filterBuilder.addConstructorArgValue(fileNamePattern);
-				synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+				BeanDefinition patternFilter =
+						BeanDefinitionBuilder.genericBeanDefinition(patternClass)
+								.addConstructorArgValue(fileNamePattern)
+								.getBeanDefinition();
+
+				composeFilters(synchronizerBuilder, persistentAcceptOnceFileListFilterClass, patternFilter);
 			}
-			else if (hasFileNameRegex) {
-				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(regexClass);
-				filterBuilder.addConstructorArgValue(fileNameRegex);
-				synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+			else {
+				BeanDefinition regexFilter = BeanDefinitionBuilder.genericBeanDefinition(regexClass)
+						.addConstructorArgValue(fileNameRegex)
+						.getBeanDefinition();
+
+				composeFilters(synchronizerBuilder, persistentAcceptOnceFileListFilterClass, regexFilter);
 			}
 		}
+	}
+
+	private static void composeFilters(BeanDefinitionBuilder synchronizerBuilder,
+			Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>> persistentAcceptOnceFileListFilterClass,
+			BeanDefinition filter) {
+		BeanDefinition persistentFilter =
+				BeanDefinitionBuilder.genericBeanDefinition(persistentAcceptOnceFileListFilterClass)
+						.addConstructorArgValue(
+								BeanDefinitionBuilder
+										.genericBeanDefinition(SimpleMetadataStore.class)
+										.getBeanDefinition())
+						.addConstructorArgValue("remoteFileMessageSource")
+						.getBeanDefinition();
+
+		ManagedList<BeanDefinition> filters = new ManagedList<>();
+		filters.add(filter);
+		filters.add(persistentFilter);
+
+		BeanDefinition compositeFilterDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition(CompositeFileListFilter.class)
+						.addConstructorArgValue(filters)
+						.getBeanDefinition();
+		synchronizerBuilder.addPropertyValue("filter", compositeFilterDefinition);
 	}
 
 }

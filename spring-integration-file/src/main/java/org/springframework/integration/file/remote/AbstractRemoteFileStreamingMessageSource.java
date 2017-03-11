@@ -46,6 +46,8 @@ import org.springframework.util.Assert;
  * referencing a remote file.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -111,6 +113,10 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	 * @param filter the file list filter.
 	 */
 	public void setFilter(FileListFilter<F> filter) {
+		doSetFilter(filter);
+	}
+
+	protected final void doSetFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
 

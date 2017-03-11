@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,11 @@ import java.io.File;
 import java.util.Comparator;
 
 import org.springframework.integration.file.dsl.RemoteFileInboundChannelAdapterSpec;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.metadata.SimpleMetadataStore;
+import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
@@ -50,7 +54,7 @@ public class SftpInboundChannelAdapterSpec
 	 */
 	@Override
 	public SftpInboundChannelAdapterSpec patternFilter(String pattern) {
-		return filter(new SftpSimplePatternFileListFilter(pattern));
+		return filter(composeFilters(new SftpSimplePatternFileListFilter(pattern)));
 	}
 
 	/**
@@ -60,7 +64,16 @@ public class SftpInboundChannelAdapterSpec
 	 */
 	@Override
 	public SftpInboundChannelAdapterSpec regexFilter(String regex) {
-		return filter(new SftpRegexPatternFileListFilter(regex));
+		return filter(composeFilters(new SftpRegexPatternFileListFilter(regex)));
+	}
+
+	@SuppressWarnings("unchecked")
+	private CompositeFileListFilter<ChannelSftp.LsEntry> composeFilters(FileListFilter<ChannelSftp.LsEntry>
+			fileListFilter) {
+		CompositeFileListFilter<ChannelSftp.LsEntry> compositeFileListFilter = new CompositeFileListFilter<>();
+		compositeFileListFilter.addFilters(fileListFilter,
+				new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpMessageSource"));
+		return compositeFileListFilter;
 	}
 
 }

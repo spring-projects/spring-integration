@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package org.springframework.integration.sftp.config;
 
 import org.springframework.integration.file.config.AbstractRemoteFileInboundChannelAdapterParser;
+import org.springframework.integration.file.filters.AbstractPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.synchronizer.InboundFileSynchronizer;
+import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
@@ -29,6 +31,8 @@ import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizing
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class SftpInboundChannelAdapterParser extends AbstractRemoteFileInboundChannelAdapterParser {
@@ -51,6 +55,11 @@ public class SftpInboundChannelAdapterParser extends AbstractRemoteFileInboundCh
 	@Override
 	protected Class<? extends FileListFilter<?>> getRegexPatternFileListFilterClass() {
 		return SftpRegexPatternFileListFilter.class;
+	}
+
+	@Override
+	protected Class<? extends AbstractPersistentAcceptOnceFileListFilter<?>> getPersistentAcceptOnceFileListFilterClass() {
+		return SftpPersistentAcceptOnceFileListFilter.class;
 	}
 
 }
