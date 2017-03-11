@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.apache.sshd.SshServer;
@@ -141,7 +142,12 @@ public class SftpServerTests {
 
 	private PublicKey decodePublicKey(String key) throws Exception {
 		InputStream stream = new ClassPathResource(key).getInputStream();
-		byte[] decodeBuffer = Base64.decodeBase64(StreamUtils.copyToByteArray(stream));
+		byte[] keyBytes = StreamUtils.copyToByteArray(stream);
+		// strip any newline chars
+		while (keyBytes[keyBytes.length - 1] == 0x0a || keyBytes[keyBytes.length - 1] == 0x0d) {
+					keyBytes = Arrays.copyOf(keyBytes, keyBytes.length - 1);
+		}
+		byte[] decodeBuffer = Base64.decodeBase64(keyBytes);
 		ByteBuffer bb = ByteBuffer.wrap(decodeBuffer);
 		int len = bb.getInt();
 		byte[] type = new byte[len];
