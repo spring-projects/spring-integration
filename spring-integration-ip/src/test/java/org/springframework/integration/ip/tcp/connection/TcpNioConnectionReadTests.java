@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.messaging.support.ErrorMessage;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class TcpNioConnectionReadTests {
@@ -228,7 +229,8 @@ public class TcpNioConnectionReadTests {
 		assertTrue(errorMessageLetch.await(10, TimeUnit.SECONDS));
 
 		assertThat(errorMessageRef.get().getMessage(),
-				containsString("Message length 2147483647 exceeds max message length: 2048"));
+				anyOf(containsString("Message length 2147483647 exceeds max message length: 2048"),
+						containsString("Connection is closed")));
 
 		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
