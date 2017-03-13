@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.apache.sshd.SshServer;
-import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.PasswordAuthenticator;
+import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.sftp.SftpSubsystem;
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.beans.factory.DisposableBean;
@@ -120,18 +116,11 @@ public class TestSftpServer implements InitializingBean, DisposableBean {
 	public void afterPropertiesSet() throws Exception {
 		this.sftpFolder.create();
 		this.localFolder.create();
-		server.setPasswordAuthenticator(new PasswordAuthenticator() {
-
-			@Override
-			public boolean authenticate(String arg0, String arg1, ServerSession arg2) {
-				return true;
-			}
-
-		});
+		server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 		server.setPort(0);
-		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("hostkey.ser"));
-		this.server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystem.Factory()));
-		this.server.setFileSystemFactory(new VirtualFileSystemFactory(sftpRootFolder.getAbsolutePath()));
+		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
+		this.server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
+		this.server.setFileSystemFactory(new VirtualFileSystemFactory(sftpRootFolder.toPath()));
 		server.start();
 	}
 

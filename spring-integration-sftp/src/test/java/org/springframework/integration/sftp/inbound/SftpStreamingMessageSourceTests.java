@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
+import java.util.Comparator;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,10 +36,12 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.SftpTestSupport;
+import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
@@ -73,7 +76,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
 		assertThat(new String(received.getPayload()), equalTo("source2"));
-		assertNull(this.data.receive(0));
+		assertNull(this.data.receive(10));
 	}
 
 	@Configuration
@@ -96,9 +99,10 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		@Bean
 		@InboundChannelAdapter("stream")
 		public MessageSource<InputStream> ftpMessageSource() {
-			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(), null);
+			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(),
+					Comparator.comparing(FileInfo::getFilename));
 			messageSource.setRemoteDirectory("sftpSource/");
-			messageSource.setFilter(new AcceptOnceFileListFilter<LsEntry>());
+			messageSource.setFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "streaming"));
 			return messageSource;
 		}
 

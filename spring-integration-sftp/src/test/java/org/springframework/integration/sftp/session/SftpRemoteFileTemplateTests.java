@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.session;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +36,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
-import org.springframework.integration.file.remote.SessionCallback;
 import org.springframework.integration.file.remote.SessionCallbackWithoutResult;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -51,7 +56,7 @@ import com.jcraft.jsch.SftpException;
  * @since 4.1
  *
  */
-@ContextConfiguration(classes=TestSftpServerConfig.class)
+@ContextConfiguration(classes = TestSftpServerConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class SftpRemoteFileTemplateTests extends SftpTestSupport {
@@ -67,14 +72,9 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 		template.setFileNameGenerator(fileNameGenerator);
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setUseTemporaryFileName(false);
-		template.execute(new SessionCallback<LsEntry, Boolean>() {
-
-			@Override
-			public Boolean doInSession(Session<LsEntry> session) throws IOException {
-				session.mkdir("foo/");
-				return session.mkdir("foo/bar/");
-			}
-
+		template.execute(session -> {
+			session.mkdir("foo/");
+			return session.mkdir("foo/bar/");
 		});
 		template.append(new GenericMessage<String>("foo"));
 		template.append(new GenericMessage<String>("bar"));
@@ -99,7 +99,9 @@ public class SftpRemoteFileTemplateTests extends SftpTestSupport {
 				assertTrue(session.remove("foo/foobar.txt"));
 				assertTrue(session.rmdir("foo/bar/"));
 				LsEntry[] files = session.list("foo/");
-				assertEquals(0, files.length);
+				List<LsEntry> list = Arrays.asList(files);
+				assertThat(list.stream().map(LsEntry::getFilename).collect(Collectors.toList()),
+						containsInAnyOrder(".", ".."));
 				assertTrue(session.rmdir("foo/"));
 			}
 		});
