@@ -7,13 +7,11 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
-
 	<int-ip:tcp-connection-factory
-		id="scf"
-		type="server"
-		so-timeout="60000"
-		port="#{tcpIpUtils.findAvailableServerSocket()}"/>
+			id="scf"
+			type="server"
+			so-timeout="60000"
+			port="0" />
 
 	<int-ip:tcp-inbound-channel-adapter
 		connection-factory="scf"
@@ -29,14 +27,14 @@
 
 	<int:channel id="replies" />
 
+	<!-- Since we use OS-assigning port in the server, this definition is for example.
+	The real port is assigned to client in test code via reflection. -->
 	<int-ip:tcp-connection-factory
-		id="ccf"
-		type="client"
-		host="localhost"
-		port="#{scf.port}"
-		so-timeout="60000"
-
-	/>
+			id="ccf"
+			type="client"
+			host="localhost"
+			port="#{scf.port}"
+			so-timeout="60000" />
 
 	<bean id="caching.ccf" class="org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory">
 		<constructor-arg ref="ccf" />
@@ -50,6 +48,8 @@
 
 	<int:channel id="outbound" />
 
+	<!-- Since we use OS-assigning port in the server, this definition is for example.
+	The real port is assigned to client in test code via reflection. -->
 	<int-ip:tcp-connection-factory
 		id="gateway.ccf"
 		type="client"
