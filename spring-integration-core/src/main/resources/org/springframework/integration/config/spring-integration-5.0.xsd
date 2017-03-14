@@ -182,7 +182,7 @@
 							</xsd:annotation>
 						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="fixed-subscriber" default="false" type="xsd:boolean">
+					<xsd:attribute name="fixed-subscriber" default="false">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 	When true, only one subscriber is allowed; the subscriber must be available at context initialization time,
@@ -192,6 +192,9 @@
 	'message-converter' is not allowed. Default: false.
 							]]></xsd:documentation>
 						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -1859,7 +1862,11 @@
 			<xsd:complexContent>
 				<xsd:extension base="basePollerType">
 					<xsd:attribute name="id" type="xsd:string" />
-					<xsd:attribute name="default" type="xsd:boolean" default="false" />
+					<xsd:attribute name="default" default="false">
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -2904,12 +2911,15 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="throw-exception-on-rejection" type="xsd:string">
+				<xsd:attribute name="throw-exception-on-rejection" default="false">
 					<xsd:annotation>
 						<xsd:documentation>
 						Throw an exception if the filter rejects the message (default false).
 						</xsd:documentation>
 					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:union memberTypes="xsd:boolean xsd:string" />
+					</xsd:simpleType>
 				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -3632,7 +3642,7 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="expire-groups-upon-completion" type="xsd:string">
+				<xsd:attribute name="expire-groups-upon-completion" default="false">
 					<xsd:annotation>
 						<xsd:documentation>
 							Boolean flag specifying if MessageGroup should be removed once completed. Useful for
@@ -3640,6 +3650,9 @@
 							is the same as the completed MessageGroup will be discarded. Default is 'false'
 						</xsd:documentation>
 					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:union memberTypes="xsd:boolean xsd:string" />
+					</xsd:simpleType>
 				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -3769,7 +3782,7 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="expire-groups-upon-timeout" type="xsd:string">
+				<xsd:attribute name="expire-groups-upon-timeout">
 					<xsd:annotation>
 						<xsd:documentation>
 							Boolean flag specifying, if a group is completed due to timeout (reaper or
@@ -3779,6 +3792,9 @@
 							resequencer.
 						</xsd:documentation>
 					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:union memberTypes="xsd:boolean xsd:string" />
+					</xsd:simpleType>
 				</xsd:attribute>
 				<xsd:attribute name="lock-registry" type="xsd:string">
 					<xsd:annotation>
@@ -4977,12 +4993,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="smartLifeCycleAttributeGroup">
-		<xsd:attribute name="auto-startup" type="xsd:string">
+		<xsd:attribute name="auto-startup">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-Boolean value indicating whether this endpoint should start automatically.
+					Boolean value indicating whether this endpoint should start automatically.
 				]]></xsd:documentation>
 			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="phase" type="xsd:string">
 			<xsd:annotation>

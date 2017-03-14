@@ -184,9 +184,9 @@ public class AmqpOutboundChannelAdapterParserTests {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void amqpOutboundChannelAdapterWithinChain() {
-		Object eventDrivernConsumer = context.getBean("chainWithRabbitOutbound");
+		Object eventDrivenConsumer = context.getBean("chainWithRabbitOutbound");
 
-		List chainHandlers = TestUtils.getPropertyValue(eventDrivernConsumer, "handler.handlers", List.class);
+		List chainHandlers = TestUtils.getPropertyValue(eventDrivenConsumer, "handler.handlers", List.class);
 
 		AmqpOutboundEndpoint endpoint = (AmqpOutboundEndpoint) chainHandlers.get(0);
 		assertNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));

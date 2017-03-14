@@ -322,10 +322,28 @@ If a method has no argument and no return value, but does contain a payload expr
 ==== Error Handling
 
 Of course, the Gateway invocation might result in errors.
-By default any error that has occurred downstream will be re-thrown as a `MessagingException` (`RuntimeException`) upon the Gateway's method invocation.
+By default any error that has occurred downstream will be re-thrown as is upon the Gateway's method invocation.
+If that is `MessagingException`, its cause is extracted to be re-thrown.
+You can configure `throws` clause on the gateway method declaration for matching to the particular exception type in the cause chain.
+For example if you would like to catch a whole `MessagingException` with all the messaging information of the reason of downstream error, you should have gateway method like this:
+
+[source,xml]
+----
+public interface MyGateway {
+
+    void performProcess() throws MessagingException;
+
+}
+
+The Framework doesn't re-throw `MessagingException` by default and just extract its closer `RuntimeException` cause because gateway invocation is fully similar (or even equals) to the typical POJO method invocation.
+Therefore it is already a target application logic to be aware about messaging system or not.
+
+Nevertheless, starting with _version 5.0_, a special, fully messaging-based, `RequestReplyExchanger` interface provides `throws MessagingException` clause to meet all the proposed messages exchange contract.
+If you are interested in the target exception, consider ot unalize cause of that `MessagingException` or use your own custom interface for the gateway instead of `RequestReplyExchanger`.
+
 However there are times when you may want to simply log the error rather than propagating it, or you may want to treat an Exception as a valid reply, by mapping it to a Message that will conform to some "error message" contract that the caller understands.
 To accomplish this, the Gateway provides support for a Message Channel dedicated to the errors via the _error-channel_ attribute.
-In the example below, you can see that a 'transformer' is used to create a reply Message from the Exception.
+In the example below, you can see that a 'transformer' is used to create a reply `Message` from the `Exception`.
 
 [source,xml]
 ----

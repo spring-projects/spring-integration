@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -41,10 +42,12 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.util.StackTraceUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -59,6 +62,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0.1
  */
 @ContextConfiguration
@@ -107,8 +111,22 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.gatewayTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,bridge,replyChannel",
+		assertEquals("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,replyChannel",
 				reply.getHeaders().get("history").toString());
+
+		message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
+		try {
+			this.gatewayTestInputChannel.send(message);
+			fail("Exception expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageHandlingException.class));
+			assertThat(e.getCause(), instanceOf(MessageTransformationException.class));
+			assertThat(e.getCause().getCause(), instanceOf(MessageHandlingException.class));
+			assertThat(e.getCause().getCause().getCause(), instanceOf(java.lang.IllegalStateException.class));
+			assertThat(e.getMessage(), containsString("Expression evaluation failed"));
+			assertThat(e.getMessage(), containsString("Wrong payload"));
+		}
 	}
 
 	@Test
@@ -256,6 +274,10 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertThat(((MessagingException) error.getPayload()).getCause(), instanceOf(RuntimeException.class));
 		assertThat(((MessagingException) error.getPayload()).getCause().getMessage(), equalTo("intended"));
 		assertEquals("test", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
+	}
+
+	public static void throwIllegalStateException(String message) {
+		throw new IllegalStateException(message);
 	}
 
 	@SuppressWarnings("unused")
