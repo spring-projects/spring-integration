@@ -111,7 +111,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		this.gatewayTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,bridge,replyChannel",
+		assertEquals("gatewayTestInputChannel,gatewayTestService,gateway,requestChannel,replyChannel",
 				reply.getHeaders().get("history").toString());
 
 		message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();

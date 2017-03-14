@@ -42,7 +42,7 @@
 
 	<gateway id="gateway" default-request-channel="requestChannel" default-reply-channel="replyChannel"/>
 
-	<chain id="bridge" input-channel="requestChannel" output-channel="replyChannel">
+	<chain input-channel="requestChannel" output-channel="replyChannel">
 		<transformer expression="payload == 'foo' ? T(org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests).throwIllegalStateException('Wrong payload') : payload"/>
 	</chain>
 
