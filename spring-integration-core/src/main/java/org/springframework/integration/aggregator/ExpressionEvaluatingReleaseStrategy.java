@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,37 @@
 
 package org.springframework.integration.aggregator;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
+import org.springframework.util.Assert;
 
 /**
  * A {@link ReleaseStrategy} that evaluates an expression.
  *
  * @author Dave Syer
+ * @author Artem Bilan
  */
-public class ExpressionEvaluatingReleaseStrategy extends ExpressionEvaluatingMessageListProcessor implements
-		ReleaseStrategy {
+public class ExpressionEvaluatingReleaseStrategy extends AbstractExpressionEvaluator implements ReleaseStrategy {
+
+	private final Expression expression;
 
 	public ExpressionEvaluatingReleaseStrategy(String expression) {
-		super(expression, Boolean.class);
+		Assert.hasText(expression, "'expression' must not be empty");
+		this.expression = EXPRESSION_PARSER.parseExpression(expression);
+	}
+
+	public ExpressionEvaluatingReleaseStrategy(Expression expression) {
+		Assert.notNull(expression, "'expression' must not be null");
+		this.expression = expression;
 	}
 
 	/**
-	 * Evaluate the expression provided on the messages (a collection) in the group and return the result (must
-	 * be boolean).
+	 * Evaluate the expression provided on the {@link MessageGroup}
+	 * and return the result (must be boolean).
 	 */
 	public boolean canRelease(MessageGroup messages) {
-		return (Boolean) process(messages.getMessages());
+		return evaluateExpression(this.expression, messages, Boolean.class);
 	}
 
 }

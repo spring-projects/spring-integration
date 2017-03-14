@@ -12,7 +12,7 @@
 
 	<!--Auction scenario-->
 	<scatter-gather input-channel="inputAuction" output-channel="output" scatter-channel="auctionChannel">
-		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
+		<gatherer release-strategy-expression="messages.^[payload gt 5] != null or size() == 3"/>
 	</scatter-gather>
 
 	<task:executor id="threadPoolTaskExecutor" pool-size="10"/>
@@ -34,7 +34,7 @@
 			<recipient channel="distribution2Channel"/>
 			<recipient channel="distribution3Channel"/>
 		</scatterer>
-		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
+		<gatherer release-strategy-expression="messages.^[payload gt 5] != null or size() == 3"/>
 	</scatter-gather>
 
 	<channel id="gatherChannel">
@@ -55,7 +55,7 @@
 	<gateway id="gateway" default-request-channel="gatewayAuction"/>
 
 	<scatter-gather input-channel="gatewayAuction" scatter-channel="auctionChannel">
-		<gatherer release-strategy-expression="^[payload gt 5] != null or size() == 3"/>
+		<gatherer release-strategy-expression="messages.^[payload gt 5] != null or size() == 3"/>
 	</scatter-gather>
 
 	<chain input-channel="scatterGatherWithinChain" output-channel="output">
