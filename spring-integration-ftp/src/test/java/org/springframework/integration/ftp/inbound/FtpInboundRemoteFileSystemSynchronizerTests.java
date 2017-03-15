@@ -74,13 +74,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 	@Before
 	@After
 	public void cleanup() {
-		File file = new File("test");
-		if (file.exists()) {
-			for (File f : file.listFiles()) {
-				f.delete();
-			}
-			file.delete();
-		}
+		recursiveDelete(new File("test"));
 	}
 
 	@Test
@@ -128,7 +122,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		ms.afterPropertiesSet();
 		ms.start();
 
-		Message<File> atestFile =  ms.receive();
+		Message<File> atestFile = ms.receive();
 		assertNotNull(atestFile);
 		assertEquals("A.TEST.a", atestFile.getPayload().getName());
 		// The test remote files are created with the current timestamp + 1 day.
@@ -193,6 +187,24 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 
 		assertEquals(0, localDirectory.list().length);
 	}
+
+	private static void recursiveDelete(File file) {
+		if (file != null && file.exists()) {
+			File[] files = file.listFiles();
+			if (files != null) {
+				for (File f : files) {
+					if (f.isDirectory()) {
+						recursiveDelete(f);
+					}
+					else {
+						f.delete();
+					}
+				}
+			}
+			file.delete();
+		}
+	}
+
 
 	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
 

@@ -120,7 +120,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		public PollerMetadata defaultPoller() {
 			PollerMetadata pollerMetadata = new PollerMetadata();
 			pollerMetadata.setTrigger(new PeriodicTrigger(500));
-			pollerMetadata.setMaxMessagesPerPoll(1);
+			pollerMetadata.setMaxMessagesPerPoll(2000);
 			return pollerMetadata;
 		}
 

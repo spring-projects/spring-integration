@@ -27,6 +27,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -128,6 +129,22 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		this.localFileListFilter = localFileListFilter;
 	}
 
+	/**
+	 * Switch the local {@link FileReadingMessageSource} to use its internal
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner}.
+	 * @param useWatchService the {@code boolean} flag to switch to
+	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
+	 * @since 5.0
+	 */
+	public void setUseWatchService(boolean useWatchService) {
+		this.fileSource.setUseWatchService(useWatchService);
+		if (useWatchService) {
+			this.fileSource.setWatchEvents(FileReadingMessageSource.WatchEventType.CREATE,
+					FileReadingMessageSource.WatchEventType.MODIFY,
+					FileReadingMessageSource.WatchEventType.DELETE);
+		}
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
@@ -144,16 +161,20 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 					throw new FileNotFoundException(this.localDirectory.getName());
 				}
 			}
-			this.fileSource.setUseWatchService(true);
-			this.fileSource.setWatchEvents(FileReadingMessageSource.WatchEventType.CREATE,
-					FileReadingMessageSource.WatchEventType.MODIFY,
-					FileReadingMessageSource.WatchEventType.DELETE);
 			this.fileSource.setDirectory(this.localDirectory);
 			if (this.localFileListFilter == null) {
 				this.localFileListFilter = new FileSystemPersistentAcceptOnceFileListFilter(
 						new SimpleMetadataStore(), getComponentName());
 			}
-			this.fileSource.setFilter(this.buildFilter());
+			FileListFilter<File> filter = buildFilter();
+			if (!this.fileSource.isUseWatchService()) {
+				RecursiveDirectoryScanner directoryScanner = new RecursiveDirectoryScanner();
+				directoryScanner.setFilter(filter);
+				this.fileSource.setScanner(directoryScanner);
+			}
+			else {
+				this.fileSource.setFilter(filter);
+			}
 			if (this.getBeanFactory() != null) {
 				this.fileSource.setBeanFactory(this.getBeanFactory());
 			}

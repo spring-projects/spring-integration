@@ -60,7 +60,7 @@ public class ExpressionFileListFilter<F> extends AbstractFileListFilter<F>
 	}
 
 	@Override
-	protected boolean accept(F file) {
+	public boolean accept(F file) {
 		return this.expression.getValue(getEvaluationContext(), file, Boolean.class);
 	}
 
