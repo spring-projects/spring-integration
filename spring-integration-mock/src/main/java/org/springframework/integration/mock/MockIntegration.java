@@ -104,7 +104,7 @@ public final class MockIntegration {
 		}
 
 		public void resetMocks() {
-			beans.forEach((key, value) -> {
+			this.beans.forEach((key, value) -> {
 				Object endpoint = this.beanFactory.getBean(key);
 				DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
 				if (endpoint instanceof SourcePollingChannelAdapter) {

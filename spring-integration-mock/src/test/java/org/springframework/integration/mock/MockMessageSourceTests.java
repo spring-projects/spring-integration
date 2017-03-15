@@ -18,21 +18,27 @@ package org.springframework.integration.mock;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.springframework.integration.mock.MockIntegration.mockMessageSource;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.integration.annotation.InboundChannelAdapter;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.PollerSpec;
+import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -48,20 +54,24 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class MockMessageSourceTests {
 
 	@Autowired
+	private ApplicationContext applicationContext;
+
+	@Autowired
 	private MockIntegration.Context mockIntegrationContext;
 
 	@Autowired
-	private PollableChannel results;
+	private QueueChannel results;
 
 	@After
 	public void tearDown() {
 		this.mockIntegrationContext.resetMocks();
+		results.purge(null);
 	}
 
 	@Test
 	public void testMockMessageSource() {
 		this.mockIntegrationContext.instead("mySourceEndpoint",
-				mockMessageSource("foo", "bar", "baz"));
+				MockIntegration.mockMessageSource("foo", "bar", "baz"));
 
 		Message<?> receive = this.results.receive(10_000);
 		assertNotNull(receive);
@@ -71,27 +81,89 @@ public class MockMessageSourceTests {
 		assertNotNull(receive);
 		assertEquals("BAR", receive.getPayload());
 
+		for (int i = 0; i < 10; i++) {
+			receive = this.results.receive(10_000);
+			assertNotNull(receive);
+			assertEquals("BAZ", receive.getPayload());
+		}
+
+		this.applicationContext.getBean("mySourceEndpoint", Lifecycle.class).stop();
+	}
+
+	@Test
+	public void testMockMessageSourceInConfig() {
+		this.applicationContext.getBean("mockMessageSourceTests.Config.testingMessageSource.inboundChannelAdapter",
+				Lifecycle.class).start();
+
+		Message<?> receive = this.results.receive(10_000);
+		assertNotNull(receive);
+		assertEquals(1, receive.getPayload());
+
 		receive = this.results.receive(10_000);
 		assertNotNull(receive);
-		assertEquals("BAZ", receive.getPayload());
+		assertEquals(2, receive.getPayload());
 
-		assertNull(this.results.receive(10));
+		for (int i = 0; i < 10; i++) {
+			receive = this.results.receive(10_000);
+			assertNotNull(receive);
+			assertEquals(3, receive.getPayload());
+		}
+
+		this.applicationContext.getBean("mockMessageSourceTests.Config.testingMessageSource.inboundChannelAdapter",
+				Lifecycle.class).stop();
+	}
+
+	@Test
+	public void testMockMessageSourceInXml() {
+		this.applicationContext.getBean("inboundChannelAdapter", Lifecycle.class).start();
+
+		Message<?> receive = this.results.receive(10_000);
+		assertNotNull(receive);
+		assertEquals("a", receive.getPayload());
+
+		receive = this.results.receive(10_000);
+		assertNotNull(receive);
+		assertEquals("b", receive.getPayload());
+
+		for (int i = 0; i < 10; i++) {
+			receive = this.results.receive(10_000);
+			assertNotNull(receive);
+			assertEquals("c", receive.getPayload());
+		}
+
+		this.applicationContext.getBean("inboundChannelAdapter", Lifecycle.class).stop();
 	}
 
 	@Configuration
 	@EnableIntegration
-	public static class RealConfig {
+	@ImportResource("org/springframework/integration/mock/MockMessaSourceTests-context.xml")
+	public static class Config {
+
+		@Bean(name = PollerMetadata.DEFAULT_POLLER)
+		public PollerSpec defaultPoller() {
+			return Pollers.fixedDelay(10);
+		}
 
 		@Bean
 		public IntegrationFlow myFlow() {
 			return IntegrationFlows
 					.from(() -> new GenericMessage<>("myData"),
 							e -> e.id("mySourceEndpoint")
-									.poller(p -> p.fixedDelay(100))
 									.autoStartup(false))
 					.<String, String>transform(String::toUpperCase)
-					.channel(c -> c.queue("results"))
+					.channel(results())
 					.get();
+		}
+
+		@Bean
+		public QueueChannel results() {
+			return new QueueChannel();
+		}
+
+		@InboundChannelAdapter(channel = "results", autoStartup = "false")
+		@Bean
+		public MessageSource<Integer> testingMessageSource() {
+			return MockIntegration.mockMessageSource(1, 2, 3);
 		}
 
 	}
