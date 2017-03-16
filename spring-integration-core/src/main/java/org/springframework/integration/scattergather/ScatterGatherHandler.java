@@ -145,7 +145,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);
 		if (gatherResult != null) {
-			return gatherResult.getPayload();
+			return gatherResult;
 		}
 
 		return null;

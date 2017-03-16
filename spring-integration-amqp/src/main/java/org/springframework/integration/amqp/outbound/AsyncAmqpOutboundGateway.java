@@ -24,6 +24,7 @@ import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.support.MappingUtils;
 import org.springframework.integration.handler.ReplyRequiredException;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -35,6 +36,8 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  * is sent on the async template's listener container thread.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -95,17 +98,18 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 
 		@Override
 		public void onSuccess(org.springframework.amqp.core.Message result) {
-			Message<?> replyMessage = null;
+			AbstractIntegrationMessageBuilder<?> replyMessageBuilder = null;
 			try {
-				replyMessage = buildReplyMessage(AsyncAmqpOutboundGateway.this.messageConverter, result);
-				sendOutputs(replyMessage, this.requestMessage);
+				replyMessageBuilder = buildReply(AsyncAmqpOutboundGateway.this.messageConverter, result);
+				sendOutputs(replyMessageBuilder, this.requestMessage);
 			}
 			catch (Exception e) {
 				Exception exceptionToLogAndSend = e;
 				if (!(e instanceof MessagingException)) {
 					exceptionToLogAndSend = new MessageHandlingException(this.requestMessage, e);
-					if (replyMessage != null) {
-						exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
+					if (replyMessageBuilder != null) {
+						exceptionToLogAndSend =
+								new MessagingException(replyMessageBuilder.build(), exceptionToLogAndSend);
 					}
 				}
 				logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);

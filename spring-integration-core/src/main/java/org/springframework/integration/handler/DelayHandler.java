@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 1.0.3
  */
 
@@ -220,6 +221,11 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		return releaseHandler;
 	}
 
+	@Override
+	protected boolean shouldCopyRequestHeaders() {
+		return false;
+	}
+
 	/**
 	 * Checks if 'requestMessage' wasn't delayed before
 	 * ({@link #releaseMessageAfterDelay} and {@link DelayHandler.DelayedMessageWrapper}).
@@ -229,10 +235,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * @param requestMessage - the Message which may be delayed.
 	 * @return - {@code null} if 'requestMessage' is delayed,
 	 *         otherwise - 'payload' from 'requestMessage'.
-	 *
 	 * @see #releaseMessage
 	 */
-
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		boolean delayed = requestMessage.getPayload() instanceof DelayedMessageWrapper;
@@ -246,8 +250,7 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 
 		// no delay
-		Object payload = requestMessage.getPayload();
-		return delayed ? ((DelayedMessageWrapper) payload).getOriginal().getPayload() : payload;
+		return delayed ? ((DelayedMessageWrapper) requestMessage.getPayload()).getOriginal() : requestMessage;
 	}
 
 	private long determineDelayForMessage(Message<?> message) {

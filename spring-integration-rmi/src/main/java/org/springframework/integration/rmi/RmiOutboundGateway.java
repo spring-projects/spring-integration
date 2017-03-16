@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.remoting.rmi.RmiProxyFactoryBean;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -72,29 +73,20 @@ public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	public final Object handleRequestMessage(Message<?> message) {
-		if (!(message.getPayload() instanceof Serializable)) {
-			throw new MessageHandlingException(message,
+	public final Object handleRequestMessage(Message<?> requestMessage) {
+		if (!(requestMessage.getPayload() instanceof Serializable)) {
+			throw new MessageHandlingException(requestMessage,
 					this.getComponentName() + " expects a Serializable payload type " +
-					"but encountered [" + message.getPayload().getClass().getName() + "]");
+					"but encountered [" + requestMessage.getPayload().getClass().getName() + "]");
 		}
-		Message<?> requestMessage = this.getMessageBuilderFactory().withPayload(message.getPayload())
-				.copyHeaders(message.getHeaders()).build();
 		try {
-			Message<?> reply = this.proxy.exchange(requestMessage);
-			if (reply != null) {
-				reply = getMessageBuilderFactory()
-						.fromMessage(reply)
-						.copyHeadersIfAbsent(message.getHeaders())
-						.build();
-			}
-			return reply;
+			return this.proxy.exchange(requestMessage);
 		}
 		catch (MessagingException e) {
-			throw new MessageHandlingException(message, e);
+			throw new MessageHandlingException(requestMessage, e);
 		}
 		catch (RemoteAccessException e) {
-			throw new MessageHandlingException(message, "Remote failure in RmiOutboundGateway: " +
+			throw new MessageHandlingException(requestMessage, "Remote failure in RmiOutboundGateway: " +
 					this.getComponentName(), e);
 		}
 	}
