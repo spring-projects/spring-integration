@@ -217,7 +217,7 @@ public abstract class BaseHttpInboundEndpointSpec<S extends BaseHttpInboundEndpo
 		Assert.isNull(this.explicitHeaderMapper,
 				"The 'mappedRequestHeaders' must be specified on the provided 'headerMapper': "
 						+ this.explicitHeaderMapper);
-		((DefaultHttpHeaderMapper) this.headerMapper).setOutboundHeaderNames(patterns);
+		((DefaultHttpHeaderMapper) this.headerMapper).setInboundHeaderNames(patterns);
 		return _this();
 	}
 
@@ -231,7 +231,7 @@ public abstract class BaseHttpInboundEndpointSpec<S extends BaseHttpInboundEndpo
 		Assert.isNull(this.explicitHeaderMapper,
 				"The 'mappedRequestHeaders' must be specified on the provided 'headerMapper': "
 						+ this.explicitHeaderMapper);
-		((DefaultHttpHeaderMapper) this.headerMapper).setInboundHeaderNames(patterns);
+		((DefaultHttpHeaderMapper) this.headerMapper).setOutboundHeaderNames(patterns);
 		return _this();
 	}
 
