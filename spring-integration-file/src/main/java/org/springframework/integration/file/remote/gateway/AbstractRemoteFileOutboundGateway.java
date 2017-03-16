@@ -566,9 +566,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		final String fullDir = dir;
 		List<?> payload = this.remoteFileTemplate.execute(session ->
 				AbstractRemoteFileOutboundGateway.this.ls(session, fullDir));
-		return this.getMessageBuilderFactory().withPayload(payload)
-				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
-				.build();
+		return getMessageBuilderFactory()
+				.withPayload(payload)
+				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir);
 	}
 
 	private Object doGet(final Message<?> requestMessage) {
@@ -592,11 +592,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			payload = this.remoteFileTemplate.execute(session1 ->
 					get(requestMessage, session1, remoteDir, remoteFilePath, remoteFilename, null));
 		}
-		return getMessageBuilderFactory().withPayload(payload)
+		return getMessageBuilderFactory()
+				.withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-				.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session)
-				.build();
+				.setHeader(IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE, session);
 	}
 
 	private Object doMget(final Message<?> requestMessage) {
@@ -605,10 +605,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		final String remoteDir = getRemoteDirectory(remoteFilePath, remoteFilename);
 		List<File> payload = this.remoteFileTemplate.execute(session ->
 				mGet(requestMessage, session, remoteDir, remoteFilename));
-		return this.getMessageBuilderFactory().withPayload(payload)
+		return getMessageBuilderFactory()
+				.withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-				.build();
+				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename);
 	}
 
 	private Object doRm(Message<?> requestMessage) {
@@ -618,10 +618,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 		boolean payload = this.remoteFileTemplate.remove(remoteFilePath);
 
-		return this.getMessageBuilderFactory().withPayload(payload)
+		return getMessageBuilderFactory()
+				.withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-				.build();
+				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename);
 	}
 
 	private Object doMv(Message<?> requestMessage) {
@@ -632,15 +632,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		Assert.hasLength(remoteFileNewPath, "New filename cannot be empty");
 
 		this.remoteFileTemplate.rename(remoteFilePath, remoteFileNewPath);
-		return this.getMessageBuilderFactory().withPayload(Boolean.TRUE)
+		return getMessageBuilderFactory()
+				.withPayload(Boolean.TRUE)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-				.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath)
-				.build();
+				.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath);
 	}
 
 	private String doPut(Message<?> requestMessage) {
-		return this.doPut(requestMessage, null);
+		return doPut(requestMessage, null);
 	}
 
 	private String doPut(Message<?> requestMessage, String subDirectory) {

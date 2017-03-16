@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.matcher.HeaderMatcher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
@@ -52,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Amol Nayak
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  *
  */
@@ -110,6 +112,7 @@ public class JpaOutboundGatewayIntegrationTests {
 		this.handler = message -> {
 			assertEquals(2, ((List<?>) message.getPayload()).size());
 			assertEquals(1, entityManager.createQuery("from Student").getResultList().size());
+			assertThat(message, HeaderMatcher.hasHeader("maxResults", "10"));
 		};
 		this.responseChannel.subscribe(this.handler);
 

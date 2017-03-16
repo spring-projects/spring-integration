@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,21 +39,22 @@ import org.springframework.util.Assert;
  *
  * @author Gunnar Hillert
  * @author Amol Nayak
+ * @author Artem Bilan
  *
  * @since 2.2
  *
  */
 public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private final JpaExecutor   jpaExecutor;
+	private final JpaExecutor jpaExecutor;
+
 	private OutboundGatewayType gatewayType = OutboundGatewayType.UPDATING;
-	private boolean producesReply = true;	//false for outbound-channel-adapter, true for outbound-gateway
+
+	private boolean producesReply = true;    //false for outbound-channel-adapter, true for outbound-gateway
 
 	/**
 	 * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
-	 *
 	 * @param jpaExecutor Must not be null
-	 *
 	 */
 	public JpaOutboundGateway(JpaExecutor jpaExecutor) {
 		Assert.notNull(jpaExecutor, "jpaExecutor must not be null.");
@@ -81,19 +82,18 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 			result = this.jpaExecutor.executeOutboundJpaOperation(requestMessage);
 		}
 		else {
-			throw new IllegalArgumentException(String.format("GatewayType  '%s' is not supported.", this.gatewayType));
+			throw new IllegalArgumentException(String.format("GatewayType '%s' is not supported.", this.gatewayType));
 		}
 
 		if (result == null || !this.producesReply) {
 			return null;
 		}
 
-		return this.getMessageBuilderFactory().withPayload(result).copyHeaders(requestMessage.getHeaders()).build();
-
+		return result;
 	}
 
 	/**
-	 *
+	 * Specify the {@link JpaOutboundGateway} mode.
 	 * @param gatewayType The gateway type.
 	 */
 	public void setGatewayType(OutboundGatewayType gatewayType) {
@@ -104,11 +104,10 @@ public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 	/**
 	 * If set to 'false', this component will act as an Outbound Channel Adapter.
 	 * If not explicitly set this property will default to 'true'.
-	 *
 	 * @param producesReply Defaults to 'true'.
-	 *
 	 */
 	public void setProducesReply(boolean producesReply) {
 		this.producesReply = producesReply;
 	}
+
 }
