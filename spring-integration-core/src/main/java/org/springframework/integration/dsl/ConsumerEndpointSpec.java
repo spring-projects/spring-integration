@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.messaging.MessageHandler;
@@ -39,6 +41,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * @param <H> the target {@link MessageHandler} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -170,15 +173,19 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	/**
 	 * @param sendTimeout the send timeout.
 	 * @return the endpoint spec.
-	 * @see AbstractReplyProducingMessageHandler#setSendTimeout(long)
+	 * @see AbstractMessageProducingHandler#setSendTimeout(long)
 	 */
 	public S sendTimeout(long sendTimeout) {
 		assertHandler();
-		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
-			((AbstractReplyProducingMessageHandler) this.handler).setSendTimeout(sendTimeout);
+		if (this.handler instanceof AbstractMessageProducingHandler) {
+			((AbstractMessageProducingHandler) this.handler).setSendTimeout(sendTimeout);
+		}
+		else if (this.handler instanceof AbstractMessageRouter) {
+			// This should probably go on the RouterSpec, but we put it here for consistency
+			((AbstractMessageRouter) this.handler).setSendTimeout(sendTimeout);
 		}
 		else {
-			logger.warn("'sendTimeout' can be applied only for AbstractReplyProducingMessageHandler");
+			logger.warn("'sendTimeout' can be applied only for AbstractMessageProducingHandler");
 		}
 		return _this();
 	}
@@ -200,20 +207,22 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	}
 
 	/**
-	 * Allow async replies. If the handler reply is a {@code ListenableFuture} send
-	 * the output when it is satisfied rather than sending the future as the result.
-	 * Only subclasses that support this feature should set it.
+	 * Allow async replies. If the handler reply is a
+	 * {@code org.springframework.util.concurrent.ListenableFuture}, send the output when
+	 * it is satisfied rather than sending the future as the result. Ignored for handler
+	 * return types other than
+	 * {@link org.springframework.util.concurrent.ListenableFuture}.
 	 * @param async true to allow.
 	 * @return the endpoint spec.
-	 * @see AbstractReplyProducingMessageHandler#setAsync(boolean)
+	 * @see AbstractMessageProducingHandler#setAsync(boolean)
 	 */
 	public S async(boolean async) {
 		assertHandler();
-		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
-			((AbstractReplyProducingMessageHandler) this.handler).setAsync(async);
+		if (this.handler instanceof AbstractMessageProducingHandler) {
+			((AbstractMessageProducingHandler) this.handler).setAsync(async);
 		}
 		else {
-			logger.warn("'async' can be applied only for AbstractReplyProducingMessageHandler");
+			logger.warn("'async' can be applied only for AbstractMessageProducingHandler");
 		}
 		return _this();
 	}

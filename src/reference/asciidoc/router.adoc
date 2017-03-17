@@ -589,6 +589,35 @@ The example below demonstrates a `PayloadTypeRouter` configuration which is equi
 </int:payload-type-router>
 ----
 
+The equivalent router, using Java configuration:
+
+[source, java]
+----
+@ServiceActivator(inputChannel = "routingChannel")
+@Bean
+public PayloadTypeRouter router() {
+    PayloadTypeRouter router = new PayloadTypeRouter();
+    router.setChannelMapping(String.class.getName(), "stringChannel");
+    router.setChannelMapping(Integer.class.getName(), "integerChannel");
+    return router;
+}
+----
+
+and using the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlows.from("routingChannel")
+            .route(new PayloadTypeRouter(), m -> m
+                    .channelMapping(String.class, "stringChannel")
+                    .channelMapping(Integer.class, "integerChannel"),
+                e -> e.id("payloadTypeRouter"))
+            .get();
+}
+----
+
 [[router-implementations-headervaluerouter]]
 ===== HeaderValueRouter
 
@@ -626,6 +655,35 @@ However, in cases where the header value is mapped to a channel name but the cha
 
 IMPORTANT: With Spring Integration 2.1 the attribute was changed from `ignore-channel-name-resolution-failures` to `resolution-required`.
 Attribute `resolution-required` will default to `true`.
+
+The equivalent router, using Java configuration:
+
+[source, java]
+----
+@ServiceActivator(inputChannel = "routingChannel")
+@Bean
+public HeaderValueRouter router() {
+    HeaderValueRouter router = new HeaderValueRouter("testHeader");
+    router.setChannelMapping("someHeaderValue", "channelA");
+    router.setChannelMapping("someOtherHeaderValue", "channelB");
+    return router;
+}
+----
+
+and using the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlows.from("routingChannel")
+            .route(new HeaderValueRouter("testHeader"), m -> m
+                    .channelMapping("someHeaderValue", "channelA")
+                    .channelMapping("someOtherHeaderValue", "channelB"),
+                e -> e.id("headerValueRouter"))
+            .get();
+}
+----
 
 _2.
 Configuration where mapping of header values to channel names
@@ -676,8 +734,45 @@ Spring Integration also provides namespace support for the `RecipientListRouter`
 </int:recipient-list-router>
 ----
 
+The equivalent router, using Java configuration:
+
+[source, java]
+----
+@ServiceActivator(inputChannel = "routingChannel")
+@Bean
+public RecipientListRouter router() {
+    RecipientListRouter router = new RecipientListRouter();
+    router.setSendTimeout(1_234L);
+    router.setIgnoreSendFailures(true);
+    router.setApplySequence(true);
+    router.addRecipient("channel1");
+    router.addRecipient("channel2");
+    router.addRecipient("channel3");
+    return router;
+}
+----
+
+and using the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlows.from("routingChannel")
+            .routeToRecipients(r -> r
+                    .applySequence(true)
+                    .ignoreSendFailures(true)
+                    .recipient("channel1")
+                    .recipient("channel2")
+                    .recipient("channel3"), c -> c.sendTimeout(1_234L))
+            .get();
+}
+----
+
+
+
 NOTE: The 'apply-sequence' flag here has the same effect as it does for a publish-subscribe-channel, and like a publish-subscribe-channel, it is disabled by default on the recipient-list-router.
-Refer to<<channel-configuration-pubsubchannel>> for more information.
+Refer to <<channel-configuration-pubsubchannel>> for more information.
 
 Another convenient option when configuring a `RecipientListRouter` is to use Spring Expression Language (SpEL) support as selectors for individual recipient channels.
 This is similar to using a Filter at the beginning of 'chain' to act as a "Selective Consumer".

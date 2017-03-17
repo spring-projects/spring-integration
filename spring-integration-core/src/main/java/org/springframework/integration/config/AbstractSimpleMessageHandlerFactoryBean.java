@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
@@ -224,8 +225,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 				}
 			}
 			if (this.async != null) {
-				if (actualHandler instanceof AbstractReplyProducingMessageHandler) {
-					((AbstractReplyProducingMessageHandler) actualHandler)
+				if (actualHandler instanceof AbstractMessageProducingHandler) {
+					((AbstractMessageProducingHandler) actualHandler)
 							.setAsync(this.async);
 				}
 			}

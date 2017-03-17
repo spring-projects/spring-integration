@@ -76,9 +76,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	/**
-	 * Allow async replies. If the handler reply is a {@link ListenableFuture} send
+	 * Allow async replies. If the handler reply is a {@link ListenableFuture}, send
 	 * the output when it is satisfied rather than sending the future as the result.
-	 * Only subclasses that support this feature should set it.
+	 * Ignored for return types other than {@link ListenableFuture}.
 	 * @param async true to allow.
 	 * @since 4.3
 	 */
