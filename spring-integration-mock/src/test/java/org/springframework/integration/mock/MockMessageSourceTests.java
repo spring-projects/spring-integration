@@ -37,10 +37,14 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.dsl.StandardIntegrationFlow;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -49,6 +53,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @since 5.0
  */
 @RunWith(SpringRunner.class)
+@ContextConfiguration(classes = MockMessageSourceTests.Config.class)
 @MockIntegrationTest
 @DirtiesContext
 public class MockMessageSourceTests {
@@ -61,6 +66,9 @@ public class MockMessageSourceTests {
 
 	@Autowired
 	private QueueChannel results;
+
+	@Autowired
+	private IntegrationFlowContext integrationFlowContext;
 
 	@After
 	public void tearDown() {
@@ -134,9 +142,36 @@ public class MockMessageSourceTests {
 		this.applicationContext.getBean("inboundChannelAdapter", Lifecycle.class).stop();
 	}
 
+	@Test
+	public void testMockMessageSourceDynamicFlow() {
+		QueueChannel out = new QueueChannel();
+		StandardIntegrationFlow flow = IntegrationFlows
+				.from(MockIntegration.mockMessageSource("foo", "bar", "baz"))
+				.<String, String>transform(String::toUpperCase)
+				.channel(out)
+				.get();
+		IntegrationFlowRegistration registration = this.integrationFlowContext.registration(flow).register();
+
+		Message<?> receive = out.receive(10_000);
+		assertNotNull(receive);
+		assertEquals("FOO", receive.getPayload());
+
+		receive = out.receive(10_000);
+		assertNotNull(receive);
+		assertEquals("BAR", receive.getPayload());
+
+		for (int i = 0; i < 10; i++) {
+			receive = out.receive(10_000);
+			assertNotNull(receive);
+			assertEquals("BAZ", receive.getPayload());
+		}
+
+		registration.destroy();
+	}
+
 	@Configuration
 	@EnableIntegration
-	@ImportResource("org/springframework/integration/mock/MockMessaSourceTests-context.xml")
+	@ImportResource("org/springframework/integration/mock/MockMessageSourceTests-context.xml")
 	public static class Config {
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
