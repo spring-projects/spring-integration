@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,14 +140,28 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Specify the {@link Expression} that should be checked for a delay period
-	 * (in milliseconds) or a Date to delay until. If this property is set, the
-	 * result of the expression evaluation will take precedence over this handler's default delay.
+	 * Specify the {@link Expression} that should be checked for a delay period (in
+	 * milliseconds) or a Date to delay until. If this property is set, the result of the
+	 * expression evaluation (if not null) will take precedence over this handler's
+	 * default delay.
 	 *
 	 * @param delayExpression The delay expression.
 	 */
 	public void setDelayExpression(Expression delayExpression) {
 		this.delayExpression = delayExpression;
+	}
+
+	/**
+	 * Specify the {@code Expression} that should be checked for a delay period (in
+	 * milliseconds) or a Date to delay until. If this property is set, the result of the
+	 * expression evaluation (if not null) will take precedence over this handler's
+	 * default delay.
+	 *
+	 * @param delayExpression The delay expression.
+	 * @since 5.0
+	 */
+	public void setDelayExpressionString(String delayExpression) {
+		this.delayExpression = EXPRESSION_PARSER.parseExpression(delayExpression);
 	}
 
 	/**

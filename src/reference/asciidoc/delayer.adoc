@@ -12,7 +12,7 @@ On the contrary, in the typical case a thread pool will be used for the actual e
 Below you will find several examples of configuring a Delayer.
 
 [[delayer-namespace]]
-==== Configuring Delayer
+==== Configuring a Delayer
 
 The `<delayer>` element is used to delay the Message flow between two Message Channels.
 As with the other endpoints, you can provide the 'input-channel' and 'output-channel' attributes, but the delayer also has 'default-delay' and 'expression' attributes (and 'expression' sub-element) that are used to determine the number of milliseconds that each Message should be delayed.
@@ -33,6 +33,38 @@ If you need per-Message determination of the delay, then you can also provide th
 In the example above, the 3 second delay would only apply when the expression evaluates to _null_ for a given inbound Message.
 If you only want to apply a delay to Messages that have a valid result of the expression evaluation, then you can use a 'default-delay' of 0 (the default).
 For any Message that has a delay of 0 (or less), the Message will be sent immediately, on the calling Thread.
+
+The java configuration equivalent of the second example is:
+
+[source, java]
+----
+@ServiceActivator(inputChannel = "input")
+@Bean
+public DelayHandler delayer() {
+    DelayHandler handler = new DelayHandler("delayer.messageGroupId");
+    handler.setDefaultDelay(3_000L);
+    handler.setDelayExpressionString("headers['delay']");
+    handler.setOutputChannelName("output");
+    return handler;
+}
+----
+
+and with the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow flow() {
+    return IntegrationFlows.from("input")
+            .delay("delayer.messageGroupId", d -> d
+                    .defaultDelay(3_000L)
+                    .delayExpression("headers['delay']"))
+            .channel("output")
+            .get();
+}
+----
+
+NOTE: The XML parser uses a message group id `<beanName>.messageGroupId`.
 
 TIP: The delay handler supports expression evaluation results that represent an interval in milliseconds (any Object whose `toString()` method produces a value that can be parsed into a Long) as well as `java.util.Date` instances representing an absolute time.
 In the first case, the milliseconds will be counted from the current time (e.g.
@@ -87,7 +119,7 @@ By default it uses an `org.springframework.scheduling.support.TaskUtils$LoggingE
 You might want to consider using an `org.springframework.integration.channel.MessagePublishingErrorHandler`, which sends an `ErrorMessage` into an `error-channel`, either from the failed Message's header or into the default `error-channel`.
 
 [[delayer-message-store]]
-==== Delayer and Message Store
+==== Delayer and a Message Store
 
 The `DelayHandler` persists delayed Messages into the Message Group in the provided `MessageStore`.
 (The 'groupId' is based on required 'id' attribute of `<delayer>` element.) A delayed message is removed from the `MessageStore` by the scheduled task just before the `DelayHandler` sends the Message to the `output-channel`.
