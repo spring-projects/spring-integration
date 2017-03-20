@@ -603,17 +603,37 @@ public PayloadTypeRouter router() {
 }
 ----
 
-and using the Java DSL:
+When using the Java DSL, there are two options; 1) define the router object as above...
 
 [source, java]
 ----
 @Bean
-public IntegrationFlow routerFlow() {
+public IntegrationFlow routerFlow1() {
     return IntegrationFlows.from("routingChannel")
-            .route(new PayloadTypeRouter(), m -> m
+            .route(router())
+            .get();
+}
+
+public PayloadTypeRouter router() {
+    PayloadTypeRouter router = new PayloadTypeRouter();
+    router.setChannelMapping(String.class.getName(), "stringChannel");
+    router.setChannelMapping(Integer.class.getName(), "integerChannel");
+    return router;
+}
+----
+
+Note that the router can be, but doesn't have to be, a `@Bean` - the flow will register it if it is not.
+
+2) define the routing function within the DSL flow itself...
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow2() {
+    return IntegrationFlows.from("routingChannel")
+            .<Object, Class<?>>route(Object::getClass, m -> m
                     .channelMapping(String.class, "stringChannel")
-                    .channelMapping(Integer.class, "integerChannel"),
-                e -> e.id("payloadTypeRouter"))
+                    .channelMapping(Integer.class, "integerChannel"))
             .get();
 }
 ----
@@ -670,14 +690,35 @@ public HeaderValueRouter router() {
 }
 ----
 
-and using the Java DSL:
+When using the Java DSL, there are two options; 1) define the router object as above...
 
 [source, java]
 ----
 @Bean
-public IntegrationFlow routerFlow() {
+public IntegrationFlow routerFlow1() {
     return IntegrationFlows.from("routingChannel")
-            .route(new HeaderValueRouter("testHeader"), m -> m
+            .route(router())
+            .get();
+}
+
+public HeaderValueRouter router() {
+    HeaderValueRouter router = new HeaderValueRouter("testHeader");
+    router.setChannelMapping("someHeaderValue", "channelA");
+    router.setChannelMapping("someOtherHeaderValue", "channelB");
+    return router;
+}
+----
+
+Note that the router can be, but doesn't have to be, a `@Bean` - the flow will register it if it is not.
+
+2) define the routing function within the DSL flow itself...
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow2() {
+    return IntegrationFlows.from("routingChannel")
+            .<Message<?>, String>route(m -> m.getHeaders().get("testHeader", String.class), m -> m
                     .channelMapping("someHeaderValue", "channelA")
                     .channelMapping("someOtherHeaderValue", "channelB"),
                 e -> e.id("headerValueRouter"))
@@ -752,7 +793,7 @@ public RecipientListRouter router() {
 }
 ----
 
-and using the Java DSL:
+The equivalent router, using the Java DSL:
 
 [source, java]
 ----
