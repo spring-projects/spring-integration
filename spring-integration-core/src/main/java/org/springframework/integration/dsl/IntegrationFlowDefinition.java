@@ -68,7 +68,6 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
@@ -1164,6 +1163,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .enrich(e -> e.requestChannel("enrichChannel")
 	 *                  .requestPayload(Message::getPayload)
 	 *                  .shouldClonePayload(false)
+	 *                  .autoStartup(false)
 	 *                  .<Map<String, String>>headerFunction("foo", m -> m.getPayload().get("name")))
 	 * }
 	 * </pre>
@@ -1172,35 +1172,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see EnricherSpec
 	 */
 	public B enrich(Consumer<EnricherSpec> enricherConfigurer) {
-		return this.enrich(enricherConfigurer, null);
-	}
-
-	/**
-	 * Populate a {@link ContentEnricher} to the current integration flow position
-	 * with provided options.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .enrich(e -> e.requestChannel("enrichChannel")
-	 *                  .requestPayload(Message::getPayload)
-	 *                  .shouldClonePayload(false)
-	 *                  .<Map<String, String>>headerFunction("foo", m -> m.getPayload().get("name")),
-	 *           e -> e.autoStartup(false))
-	 * }
-	 * </pre>
-	 * @param enricherConfigurer the {@link Consumer} to provide {@link ContentEnricher} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see EnricherSpec
-	 * @see GenericEndpointSpec
-	 */
-	public B enrich(Consumer<EnricherSpec> enricherConfigurer,
-			Consumer<GenericEndpointSpec<ContentEnricher>> endpointConfigurer) {
-		Assert.notNull(enricherConfigurer, "'enricherConfigurer' must not be null");
-		EnricherSpec enricherSpec = new EnricherSpec();
-		enricherConfigurer.accept(enricherSpec);
-		return handle(enricherSpec.get(), endpointConfigurer);
+		return register(new EnricherSpec(), enricherConfigurer);
 	}
 
 	/**
@@ -1272,14 +1244,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B enrichHeaders(final Map<String, Object> headers,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		return enrichHeaders(new Consumer<HeaderEnricherSpec>() {
-
-			@Override
-			public void accept(HeaderEnricherSpec spec) {
-				spec.headers(headers);
-			}
-
-		}, endpointConfigurer);
+		return enrichHeaders(spec -> spec.headers(headers), endpointConfigurer);
 	}
 
 	/**
@@ -1806,7 +1771,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B route(String beanName, String method) {
-		return this.route(beanName, method, null);
+		return route(beanName, method, null);
 	}
 
 	/**
@@ -1817,25 +1782,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public B route(String beanName, String method,
-			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
-		return route(beanName, method, routerConfigurer, null);
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingRouter} for provided bean and its method
-	 * with provided options from {@link RouterSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param beanName the bean to use.
-	 * @param method the method to invoke at runtime.
-	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 */
-	public B route(String beanName, String method, Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer,
-			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
-		return this.route(new MethodInvokingRouter(new BeanNameMessageProcessor<Object>(beanName, method)),
-				routerConfigurer, endpointConfigurer);
+	public B route(String beanName, String method, Consumer<RouterSpec<Object,
+			MethodInvokingRouter>> routerConfigurer) {
+		MethodInvokingRouter methodInvokingRouter =
+				new MethodInvokingRouter(new BeanNameMessageProcessor<>(beanName, method));
+		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
 	}
 
 	/**
@@ -1872,23 +1823,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B route(Object service, String methodName,
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
-		return route(service, methodName, routerConfigurer, null);
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingRouter} for the method
-	 * of the provided service and its method with provided options from {@link RouterSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param service the service to use.
-	 * @param methodName the method to invoke.
-	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see MethodInvokingRouter
-	 */
-	public B route(Object service, String methodName,
-			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer,
-			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
 		MethodInvokingRouter router;
 		if (StringUtils.hasText(methodName)) {
 			router = new MethodInvokingRouter(service, methodName);
@@ -1896,7 +1830,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		else {
 			router = new MethodInvokingRouter(service);
 		}
-		return route(router, routerConfigurer, endpointConfigurer);
+		return route(new RouterSpec<>(router), routerConfigurer);
 	}
 
 
@@ -1907,7 +1841,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B route(String expression) {
-		return this.route(expression, (Consumer<RouterSpec<Object, ExpressionEvaluatingRouter>>) null);
+		return route(expression, (Consumer<RouterSpec<Object, ExpressionEvaluatingRouter>>) null);
 	}
 
 	/**
@@ -1919,23 +1853,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public <T> B route(String expression, Consumer<RouterSpec<T, ExpressionEvaluatingRouter>> routerConfigurer) {
-		return route(expression, routerConfigurer, null);
-	}
-
-	/**
-	 * Populate the {@link ExpressionEvaluatingRouter} for provided bean and its method
-	 * with provided options from {@link RouterSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param expression the expression to use.
-	 * @param routerConfigurer the {@link Consumer} to provide {@link ExpressionEvaluatingRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <T> the target result type.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 */
-	public <T> B route(String expression, Consumer<RouterSpec<T, ExpressionEvaluatingRouter>> routerConfigurer,
-			Consumer<GenericEndpointSpec<ExpressionEvaluatingRouter>> endpointConfigurer) {
-		return this.route(new ExpressionEvaluatingRouter(PARSER.parseExpression(expression)), routerConfigurer,
-				endpointConfigurer);
+		return route(new RouterSpec<>(new ExpressionEvaluatingRouter(PARSER.parseExpression(expression))),
+				routerConfigurer);
 	}
 
 	/**
@@ -1953,29 +1872,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public <S, T> B route(Function<S, T> router) {
-		return this.route(null, router);
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingRouter} for provided {@link Function}
-	 * with provided options from {@link RouterSpec}.
-	 * Typically used with a Java 8 Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .<Integer, Boolean>route(p -> p % 2 == 0,
-	 *                 m -> m.channelMapping("true", "evenChannel")
-	 *                       .subFlowMapping("false", f ->
-	 *                                   f.<Integer>handle((p, h) -> p * 3)))
-	 * }
-	 * </pre>
-	 * @param router the {@link Function} to use.
-	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param <S> the source payload type.
-	 * @param <T> the target result type.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 */
-	public <S, T> B route(Function<S, T> router, Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
-		return this.route(null, router, routerConfigurer);
+		return route(null, router);
 	}
 
 	/**
@@ -1995,32 +1892,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see LambdaMessageProcessor
 	 */
 	public <S, T> B route(Class<S> payloadType, Function<S, T> router) {
-		return this.route(payloadType, router, null, null);
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingRouter} for provided {@link Function}
-	 * and payload type and options from {@link RouterSpec}.
-	 * Typically used with a Java 8 Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .route(Integer.class, p -> p % 2 == 0,
-	 *                 m -> m.channelMapping("true", "evenChannel")
-	 *                       .subFlowMapping("false", f ->
-	 *                                   f.<Integer>handle((p, h) -> p * 3)))
-	 * }
-	 * </pre>
-	 * @param payloadType the expected payload type.
-	 * @param router  the {@link Function} to use.
-	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param <S> the source payload type.
-	 * @param <T> the target result type.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see LambdaMessageProcessor
-	 */
-	public <S, T> B route(Class<S> payloadType, Function<S, T> router,
-			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
-		return this.route(payloadType, router, routerConfigurer, null);
+		return route(payloadType, router, null);
 	}
 
 	/**
@@ -2033,20 +1905,18 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .<Integer, Boolean>route(p -> p % 2 == 0,
 	 *                 m -> m.channelMapping("true", "evenChannel")
 	 *                       .subFlowMapping("false", f ->
-	 *                                   f.<Integer>handle((p, h) -> p * 3)),
-	 *            e -> e.applySequence(false))
+	 *                                   f.<Integer>handle((p, h) -> p * 3))
+	 *                       .applySequence(false))
 	 * }
 	 * </pre>
 	 * @param router the {@link Function} to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <S> the source payload type.
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
-	public <S, T> B route(Function<S, T> router, Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer,
-			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
-		return route(null, router, routerConfigurer, endpointConfigurer);
+	public <S, T> B route(Function<S, T> router, Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
+		return route(null, router, routerConfigurer);
 	}
 
 	/**
@@ -2059,26 +1929,24 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .route(Integer.class, p -> p % 2 == 0,
 	 *					m -> m.channelMapping("true", "evenChannel")
 	 *                       .subFlowMapping("false", f ->
-	 *                                   f.<Integer>handle((p, h) -> p * 3)),
-	 * 		           e -> e.applySequence(false))
+	 *                                   f.<Integer>handle((p, h) -> p * 3))
+	 *                       .applySequence(false))
 	 * }
 	 * </pre>
 	 * @param payloadType the expected payload type.
 	 * @param router the {@link Function} to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <P> the source payload type.
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
 	public <P, T> B route(Class<P> payloadType, Function<P, T> router,
-			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer,
-			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
+			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 		MethodInvokingRouter methodInvokingRouter = isLambda(router)
 				? new MethodInvokingRouter(new LambdaMessageProcessor(router, payloadType))
 				: new MethodInvokingRouter(router);
-		return route(methodInvokingRouter, routerConfigurer, endpointConfigurer);
+		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
 	}
 
 	/**
@@ -2113,64 +1981,21 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B route(MessageProcessorSpec<?> messageProcessorSpec,
 			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer) {
-		return route(messageProcessorSpec, routerConfigurer, null);
-	}
-
-	/**
-	 * Populate the {@link MethodInvokingRouter} for the {@link org.springframework.integration.handler.MessageProcessor}
-	 * from the provided {@link MessageProcessorSpec} with default options.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * <pre class="code">
-	 * {@code
-	 *  .route(Scripts.script(myScriptResource).lang("groovy").refreshCheckDelay(1000),
-	 *                 m -> m.channelMapping("true", "evenChannel")
-	 *                       .subFlowMapping("false", f ->
-	 *                                   f.<Integer>handle((p, h) -> p * 3)),
-	 *                 e -> e.applySequence(false))
-	 * }
-	 * </pre>
-	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
-	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 */
-	public B route(MessageProcessorSpec<?> messageProcessorSpec,
-			Consumer<RouterSpec<Object, MethodInvokingRouter>> routerConfigurer,
-			Consumer<GenericEndpointSpec<MethodInvokingRouter>> endpointConfigurer) {
 		Assert.notNull(messageProcessorSpec, "'messageProcessorSpec' must not be null");
 		MessageProcessor<?> processor = messageProcessorSpec.get();
-		return addComponent(processor)
-				.route(new MethodInvokingRouter(processor), routerConfigurer, endpointConfigurer);
+		addComponent(processor);
+
+		return route(new RouterSpec<>(new MethodInvokingRouter(processor)), routerConfigurer);
 	}
 
-	/**
-	 * Populate the provided {@link AbstractMappingMessageRouter} implementation
-	 * with options from {@link RouterSpec} and endpoint options from {@link GenericEndpointSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param router the {@link AbstractMappingMessageRouter} to populate.
-	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <K> the {@code channelKey mapping} type.
-	 * @param <R> the {@link AbstractMappingMessageRouter} type.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 */
-	public <K, R extends AbstractMappingMessageRouter> B route(R router, Consumer<RouterSpec<K, R>> routerConfigurer,
-			Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
+	private <R extends AbstractMessageRouter, S extends AbstractRouterSpec<S, R>> B route(S routerSpec,
+			Consumer<S> routerConfigurer) {
 
-		RouterSpec<K, R> routerSpec = new RouterSpec<>(router);
 		if (routerConfigurer != null) {
 			routerConfigurer.accept(routerSpec);
 		}
 
-		return route(router, routerSpec, endpointConfigurer);
-	}
-
-	private <R extends AbstractMessageRouter, S extends AbstractRouterSpec<S, R>> B route(R router,
-			S routerSpec, Consumer<GenericEndpointSpec<R>> endpointConfigurer) {
-
-		route(router, endpointConfigurer);
-
-		final BridgeHandler bridgeHandler = new BridgeHandler();
+		BridgeHandler bridgeHandler = new BridgeHandler();
 		boolean registerSubflowBridge = false;
 		Collection<Object> componentsToRegister = routerSpec.getComponentsToRegister();
 		if (!CollectionUtils.isEmpty(componentsToRegister)) {
@@ -2188,6 +2013,13 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				}
 			}
 		}
+
+		if (componentsToRegister != null) {
+			componentsToRegister.clear();
+		}
+
+		register(routerSpec, null);
+
 		if (routerSpec.isDefaultToParentFlow()) {
 			routerSpec.defaultOutputChannel(new FixedSubscriberChannel(bridgeHandler));
 			registerSubflowBridge = true;
@@ -2217,37 +2049,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B routeToRecipients(Consumer<RecipientListRouterSpec> routerConfigurer) {
-		return routeToRecipients(routerConfigurer, null);
-	}
-
-	/**
-	 * Populate the {@link RecipientListRouter} options from {@link RecipientListRouterSpec}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .routeToRecipients(r -> r
-	 *.recipient("bar-channel", m ->
-	 *            m.getHeaders().containsKey("recipient") && (boolean) m.getHeaders().get("recipient"))
-	 *      .recipientFlow("'foo' == payload or 'bar' == payload or 'baz' == payload",
-	 *                         f -> f.transform(String.class, p -> p.toUpperCase())
-	 *                               .channel(c -> c.queue("recipientListSubFlow1Result"))),
-	 *      e -> e.applySequence(false))
-	 * }
-	 * </pre>
-	 * @param routerConfigurer the {@link Consumer} to provide {@link RecipientListRouter} options.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 */
-	public B routeToRecipients(Consumer<RecipientListRouterSpec> routerConfigurer,
-			Consumer<GenericEndpointSpec<RecipientListRouter>> endpointConfigurer) {
-
-		RecipientListRouterSpec spec = new RecipientListRouterSpec();
-		if (routerConfigurer != null) {
-			routerConfigurer.accept(spec);
-		}
-
-		return route(spec.get(), spec, endpointConfigurer);
+		return route(new RecipientListRouterSpec(), routerConfigurer);
 	}
 
 	/**
@@ -2682,8 +2484,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			gatherer.accept(aggregatorSpec);
 		}
 
-		RecipientListRouter recipientListRouter = recipientListRouterSpec.get();
-		addComponent(recipientListRouterSpec);
+		RecipientListRouter recipientListRouter = recipientListRouterSpec.get().getT2();
+		addComponent(recipientListRouter)
+				.addComponents(recipientListRouterSpec.getComponentsToRegister());
 		AggregatingMessageHandler aggregatingMessageHandler = aggregatorSpec.get().getT2();
 		addComponent(aggregatingMessageHandler);
 		ScatterGatherHandler messageHandler = new ScatterGatherHandler(recipientListRouter, aggregatingMessageHandler);

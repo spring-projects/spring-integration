@@ -62,7 +62,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 			return recipient(channelName, PARSER.parseExpression(expression));
 		}
 		else {
-			this.target.addRecipient(channelName);
+			this.handler.addRecipient(channelName);
 			return _this();
 		}
 	}
@@ -75,7 +75,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 */
 	public RecipientListRouterSpec recipient(String channelName, Expression expression) {
 		ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
-		this.target.addRecipient(channelName, selector);
+		this.handler.addRecipient(channelName, selector);
 		this.componentsToRegister.add(selector);
 		return _this();
 	}
@@ -108,7 +108,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 							? new MethodInvokingSelector(new LambdaMessageProcessor(selector, null))
 							: new MethodInvokingSelector(selector);
 		}
-		this.target.addRecipient(channelName, messageSelector);
+		this.handler.addRecipient(channelName, messageSelector);
 		return _this();
 	}
 
@@ -145,11 +145,11 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	public RecipientListRouterSpec recipient(MessageChannel channel, Expression expression) {
 		if (expression != null) {
 			ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
-			this.target.addRecipient(channel, selector);
+			this.handler.addRecipient(channel, selector);
 			this.componentsToRegister.add(selector);
 		}
 		else {
-			this.target.addRecipient(channel);
+			this.handler.addRecipient(channel);
 		}
 		return _this();
 	}
@@ -182,7 +182,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 							? new MethodInvokingSelector(new LambdaMessageProcessor(selector, null))
 							: new MethodInvokingSelector(selector);
 		}
-		this.target.addRecipient(channel, messageSelector);
+		this.handler.addRecipient(channel, messageSelector);
 		return _this();
 	}
 

@@ -150,7 +150,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 */
 	public S transactional(boolean handleMessageAdvice) {
 		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder(handleMessageAdvice).build();
-		this.componentToRegister.add(transactionInterceptor);
+		this.componentsToRegister.add(transactionInterceptor);
 		return transactional(transactionInterceptor);
 	}
 

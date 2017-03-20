@@ -16,10 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.messaging.MessageChannel;
@@ -36,14 +32,12 @@ import org.springframework.util.Assert;
  * @since 5.0
  */
 public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends AbstractMessageRouter>
-		extends MessageHandlerSpec<S, R> implements ComponentsRegistration {
-
-	protected final List<Object> componentsToRegister = new ArrayList<>();
+		extends ConsumerEndpointSpec<S, R> {
 
 	private boolean defaultToParentFlow;
 
 	AbstractRouterSpec(R router) {
-		this.target = router;
+		super(router);
 	}
 
 	/**
@@ -52,7 +46,7 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 	 * @see AbstractMessageRouter#setIgnoreSendFailures(boolean)
 	 */
 	public S ignoreSendFailures(boolean ignoreSendFailures) {
-		this.target.setIgnoreSendFailures(ignoreSendFailures);
+		this.handler.setIgnoreSendFailures(ignoreSendFailures);
 		return _this();
 	}
 
@@ -62,7 +56,7 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 	 * @see AbstractMessageRouter#setApplySequence(boolean)
 	 */
 	public S applySequence(boolean applySequence) {
-		this.target.setApplySequence(applySequence);
+		this.handler.setApplySequence(applySequence);
 		return _this();
 	}
 
@@ -74,7 +68,7 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 	 * @see AbstractMessageRouter#setDefaultOutputChannelName(String)
 	 */
 	public S defaultOutputChannel(String channelName) {
-		this.target.setDefaultOutputChannelName(channelName);
+		this.handler.setDefaultOutputChannelName(channelName);
 		return _this();
 	}
 
@@ -86,7 +80,7 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 	 * @see AbstractMessageRouter#setDefaultOutputChannel(MessageChannel)
 	 */
 	public S defaultOutputChannel(MessageChannel channel) {
-		this.target.setDefaultOutputChannel(channel);
+		this.handler.setDefaultOutputChannel(channel);
 		return _this();
 	}
 
@@ -121,11 +115,6 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 
 	boolean isDefaultToParentFlow() {
 		return this.defaultToParentFlow;
-	}
-
-	@Override
-	public Collection<Object> getComponentsToRegister() {
-		return this.componentsToRegister;
 	}
 
 }
