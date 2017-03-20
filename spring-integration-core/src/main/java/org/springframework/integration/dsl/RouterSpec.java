@@ -51,9 +51,11 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 
 	private String suffix;
 
+	private boolean mappingProviderRegistered;
+
 	RouterSpec(R router) {
 		super(router);
-		this.mappingProvider = new RouterMappingProvider(this.target);
+		this.mappingProvider = new RouterMappingProvider(this.handler);
 	}
 
 	/**
@@ -62,7 +64,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * @see AbstractMappingMessageRouter#setResolutionRequired(boolean)
 	 */
 	public RouterSpec<K, R> resolutionRequired(boolean resolutionRequired) {
-		this.target.setResolutionRequired(resolutionRequired);
+		this.handler.setResolutionRequired(resolutionRequired);
 		return _this();
 	}
 
@@ -73,9 +75,10 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * @see AbstractMappingMessageRouter#setPrefix(String)
 	 */
 	public RouterSpec<K, R> prefix(String prefix) {
-		Assert.state(this.componentsToRegister.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
+		Assert.state(this.componentsToRegister.isEmpty(),
+				"The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 		this.prefix = prefix;
-		this.target.setPrefix(prefix);
+		this.handler.setPrefix(prefix);
 		return _this();
 	}
 
@@ -86,9 +89,10 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 * @see AbstractMappingMessageRouter#setSuffix(String)
 	 */
 	public RouterSpec<K, R> suffix(String suffix) {
-		Assert.state(this.componentsToRegister.isEmpty(), "The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
+		Assert.state(this.componentsToRegister.isEmpty(),
+				"The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 		this.suffix = suffix;
-		this.target.setSuffix(suffix);
+		this.handler.setSuffix(suffix);
 		return _this();
 	}
 
@@ -102,7 +106,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 		Assert.notNull(key, "'key' must not be null");
 		Assert.hasText(channelName, "'channelName' must not be null");
 		if (key instanceof String) {
-			this.target.setChannelMapping((String) key, channelName);
+			this.handler.setChannelMapping((String) key, channelName);
 		}
 		else {
 			this.mappingProvider.addMapping(key, new NamedComponent() {
@@ -148,9 +152,14 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 
 	@Override
 	public Collection<Object> getComponentsToRegister() {
-		// The 'mappingProvider' must be added to the 'componentToRegister' in the end to
+		// The 'mappingProvider' must be added to the 'componentsToRegister' in the end to
 		// let all other components to be registered before the 'RouterMappingProvider.onInit()' logic.
-		this.componentsToRegister.add(this.mappingProvider);
+		if (!this.mappingProviderRegistered) {
+			if (!this.mappingProvider.mapping.isEmpty()) {
+				this.componentsToRegister.add(this.mappingProvider);
+			}
+			this.mappingProviderRegistered = true;
+		}
 		return super.getComponentsToRegister();
 	}
 
