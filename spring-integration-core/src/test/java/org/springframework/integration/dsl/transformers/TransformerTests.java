@@ -268,8 +268,9 @@ public class TransformerTests {
 		@Bean
 		public IntegrationFlow pojoTransformFlow() {
 			return f -> f
-					.enrichHeaders(h -> h.header("Foo", "Bar"),
-							e -> e.advice(idempotentReceiverInterceptor()))
+					.enrichHeaders(h -> h
+							.header("Foo", "Bar")
+							.advice(idempotentReceiverInterceptor()))
 					.transform(new PojoTransformer());
 		}
 

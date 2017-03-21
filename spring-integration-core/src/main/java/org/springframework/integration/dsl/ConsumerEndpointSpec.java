@@ -34,6 +34,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
+import reactor.util.function.Tuple2;
+
 /**
  * A {@link EndpointSpec} for consumer endpoints.
  *
@@ -52,9 +54,6 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	protected ConsumerEndpointSpec(H messageHandler) {
 		super(messageHandler);
-		if (messageHandler != null) {
-			this.endpointFactoryBean.setHandler(messageHandler);
-		}
 		this.endpointFactoryBean.setAdviceChain(this.adviceChain);
 		if (messageHandler instanceof AbstractReplyProducingMessageHandler) {
 			((AbstractReplyProducingMessageHandler) messageHandler).setAdviceChain(this.adviceChain);
@@ -225,6 +224,12 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 			logger.warn("'async' can be applied only for AbstractMessageProducingHandler");
 		}
 		return _this();
+	}
+
+	@Override
+	protected Tuple2<ConsumerEndpointFactoryBean, H> doGet() {
+		this.endpointFactoryBean.setHandler(this.handler);
+		return super.doGet();
 	}
 
 }

@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.BeanNameMessageProcessor;
@@ -31,6 +32,7 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.MapBuilder;
 import org.springframework.integration.support.StringStringMapBuilder;
 import org.springframework.integration.transformer.HeaderEnricher;
+import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.support.AbstractHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.ExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
@@ -38,6 +40,8 @@ import org.springframework.integration.transformer.support.StaticHeaderValueMess
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import reactor.util.function.Tuple2;
 
 /**
  * An {@link IntegrationComponentSpec} for a {@link HeaderEnricher}.
@@ -47,7 +51,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 5.0
  */
-public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherSpec, HeaderEnricher> {
+public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec, MessageTransformingHandler> {
 
 	private final Map<String, HeaderValueMessageProcessor<?>> headerToAdd = new HashMap<>();
 
@@ -58,6 +62,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	private MessageProcessor<?> messageProcessor;
 
 	HeaderEnricherSpec() {
+		super(null);
 	}
 
 	/**
@@ -105,7 +110,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @see #messageProcessor(MessageProcessor)
 	 */
 	public HeaderEnricherSpec messageProcessor(String expression) {
-		return messageProcessor(new ExpressionEvaluatingMessageProcessor<Object>(PARSER.parseExpression(expression)));
+		return messageProcessor(new ExpressionEvaluatingMessageProcessor<>(PARSER.parseExpression(expression)));
 	}
 
 	/**
@@ -120,7 +125,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 * @see #messageProcessor(MessageProcessor)
 	 */
 	public HeaderEnricherSpec messageProcessor(String beanName, String methodName) {
-		return messageProcessor(new BeanNameMessageProcessor<Object>(beanName, methodName));
+		return messageProcessor(new BeanNameMessageProcessor<>(beanName, methodName));
 	}
 
 	/**
@@ -177,7 +182,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 			Object value = entry.getValue();
 			if (value instanceof Expression) {
 				AbstractHeaderValueMessageProcessor<Object> processor =
-						new ExpressionEvaluatingHeaderValueMessageProcessor<Object>((Expression) value, null);
+						new ExpressionEvaluatingHeaderValueMessageProcessor<>((Expression) value, null);
 				processor.setOverwrite(overwrite);
 				header(name, processor);
 			}
@@ -281,7 +286,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 		Assert.notNull(headers, "'headers' must not be null");
 		for (Entry<String, String> entry : headers.entrySet()) {
 			AbstractHeaderValueMessageProcessor<Object> processor =
-					new ExpressionEvaluatingHeaderValueMessageProcessor<Object>(entry.getValue(), null);
+					new ExpressionEvaluatingHeaderValueMessageProcessor<>(entry.getValue(), null);
 			processor.setOverwrite(overwrite);
 			header(entry.getKey(), processor);
 		}
@@ -310,7 +315,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	 */
 	public <V> HeaderEnricherSpec header(String name, V value, Boolean overwrite) {
 		AbstractHeaderValueMessageProcessor<V> headerValueMessageProcessor =
-				new StaticHeaderValueMessageProcessor<V>(value);
+				new StaticHeaderValueMessageProcessor<>(value);
 		headerValueMessageProcessor.setOverwrite(overwrite);
 		return header(name, headerValueMessageProcessor);
 	}
@@ -371,7 +376,7 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 
 	private HeaderEnricherSpec headerExpression(String name, Expression expression, Boolean overwrite) {
 		AbstractHeaderValueMessageProcessor<?> headerValueMessageProcessor =
-				new ExpressionEvaluatingHeaderValueMessageProcessor<Object>(expression, null);
+				new ExpressionEvaluatingHeaderValueMessageProcessor<>(expression, null);
 		headerValueMessageProcessor.setOverwrite(overwrite);
 		return header(name, headerValueMessageProcessor);
 	}
@@ -426,12 +431,16 @@ public class HeaderEnricherSpec extends IntegrationComponentSpec<HeaderEnricherS
 	}
 
 	@Override
-	protected HeaderEnricher doGet() {
+	protected Tuple2<ConsumerEndpointFactoryBean, MessageTransformingHandler> doGet() {
 		HeaderEnricher headerEnricher = new HeaderEnricher(new HashMap<>(this.headerToAdd));
 		headerEnricher.setDefaultOverwrite(this.defaultOverwrite);
 		headerEnricher.setShouldSkipNulls(this.shouldSkipNulls);
 		headerEnricher.setMessageProcessor(this.messageProcessor);
-		return headerEnricher;
+
+		this.componentsToRegister.add(headerEnricher);
+
+		this.handler = new MessageTransformingHandler(headerEnricher);
+		return super.doGet();
 	}
 
 }

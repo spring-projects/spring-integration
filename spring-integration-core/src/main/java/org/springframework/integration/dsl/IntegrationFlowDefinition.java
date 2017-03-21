@@ -1244,7 +1244,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B enrichHeaders(final Map<String, Object> headers,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		return enrichHeaders(spec -> spec.headers(headers), endpointConfigurer);
+		HeaderEnricherSpec headerEnricherSpec = new HeaderEnricherSpec();
+		headerEnricherSpec.headers(headers);
+		Tuple2<ConsumerEndpointFactoryBean, MessageTransformingHandler> tuple2 = headerEnricherSpec.get();
+		return addComponents(headerEnricherSpec.getComponentsToRegister())
+				.handle(tuple2.getT2(), endpointConfigurer);
 	}
 
 	/**
@@ -1263,36 +1267,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see HeaderEnricherSpec
 	 */
 	public B enrichHeaders(Consumer<HeaderEnricherSpec> headerEnricherConfigurer) {
-		return this.enrichHeaders(headerEnricherConfigurer, null);
-	}
-
-	/**
-	 * Populate a {@link MessageTransformingHandler} for
-	 * a {@link org.springframework.integration.transformer.HeaderEnricher}
-	 * as the result of provided {@link Consumer}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * Typically used with a Java 8 Lambda expression:
-	 * <pre class="code">
-	 * {@code
-	 *  .enrichHeaders(
-	 *s -> s.header("one", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne"))
-	 *            .header("two", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"))
-	 *            .headerChannelsToString(),
-	 *            c -> c.autoStartup(false).id("xpathHeaderEnricher"))
-	 * }
-	 * </pre>
-	 * @param headerEnricherConfigurer the {@link Consumer} to use.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see HeaderEnricherSpec
-	 * @see GenericEndpointSpec
-	 */
-	public B enrichHeaders(Consumer<HeaderEnricherSpec> headerEnricherConfigurer,
-			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		Assert.notNull(headerEnricherConfigurer, "'headerEnricherConfigurer' must not be null");
-		HeaderEnricherSpec headerEnricherSpec = new HeaderEnricherSpec();
-		headerEnricherConfigurer.accept(headerEnricherSpec);
-		return transform(headerEnricherSpec.get(), endpointConfigurer);
+		return register(new HeaderEnricherSpec(), headerEnricherConfigurer);
 	}
 
 	/**
@@ -2591,8 +2567,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			endpointConfigurer.accept(endpointSpec);
 		}
 
-		addComponents(endpointSpec.getComponentsToRegister());
-
 		MessageChannel inputChannel = this.currentMessageChannel;
 		this.currentMessageChannel = null;
 		if (inputChannel == null) {
@@ -2601,6 +2575,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		}
 
 		Tuple2<ConsumerEndpointFactoryBean, ? extends MessageHandler> factoryBeanTuple2 = endpointSpec.get();
+
+		addComponents(endpointSpec.getComponentsToRegister());
+
 		if (inputChannel instanceof MessageChannelReference) {
 			factoryBeanTuple2.getT1().setInputChannelName(((MessageChannelReference) inputChannel).getName());
 		}

@@ -177,7 +177,7 @@ public class CorrelationHandlerTests {
 			return f -> f.enrichHeaders(s -> s.header("FOO", "BAR"))
 					.split("testSplitterData", "buildList", c -> c.applySequence(false))
 					.channel(MessageChannels.executor(taskExecutor()))
-					.split(Message.class, m -> m.getPayload(), c -> c.applySequence(false))
+					.split(Message.class, Message::getPayload, c -> c.applySequence(false))
 					.channel(MessageChannels.executor(taskExecutor()))
 					.split(s -> s
 							.applySequence(false)

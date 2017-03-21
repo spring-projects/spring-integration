@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
 
 import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 /**
  * A {@link MessageHandlerSpec} for the {@link BarrierMessageHandler}.
@@ -96,15 +95,13 @@ public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessag
 
 	@Override
 	public Tuple2<ConsumerEndpointFactoryBean, BarrierMessageHandler> doGet() {
-		BarrierMessageHandler barrierMessageHandler =
-				new BarrierMessageHandler(this.timeout, this.outputProcessor, this.correlationStrategy);
-		barrierMessageHandler.setAdviceChain(this.adviceChain);
-		barrierMessageHandler.setRequiresReply(this.requiresReply);
-		barrierMessageHandler.setSendTimeout(this.sendTimeout);
-		barrierMessageHandler.setAsync(this.async);
-		barrierMessageHandler.setOrder(this.order);
-		this.endpointFactoryBean.setHandler(barrierMessageHandler);
-		return Tuples.of(this.endpointFactoryBean, barrierMessageHandler);
+		this.handler = new BarrierMessageHandler(this.timeout, this.outputProcessor, this.correlationStrategy);
+		this.handler.setAdviceChain(this.adviceChain);
+		this.handler.setRequiresReply(this.requiresReply);
+		this.handler.setSendTimeout(this.sendTimeout);
+		this.handler.setAsync(this.async);
+		this.handler.setOrder(this.order);
+		return super.doGet();
 	}
 
 }
