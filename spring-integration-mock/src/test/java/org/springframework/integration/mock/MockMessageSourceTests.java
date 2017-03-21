@@ -16,13 +16,18 @@
 
 package org.springframework.integration.mock;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.Lifecycle;
@@ -167,6 +172,23 @@ public class MockMessageSourceTests {
 		}
 
 		registration.destroy();
+	}
+
+	@Test
+	public void testWrongBeanForInstead() {
+		try {
+			this.mockIntegrationContext.instead("errorChannel", () -> null);
+			fail("BeanNotOfRequiredTypeException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanNotOfRequiredTypeException.class));
+			assertThat(e.getMessage(),
+					containsString("Bean named 'errorChannel' is expected to be of type " +
+							"'org.springframework.integration.endpoint.SourcePollingChannelAdapter' " +
+							"but was actually of type " +
+							"'org.springframework.integration.channel.PublishSubscribeChannel"));
+
+		}
 	}
 
 	@Configuration

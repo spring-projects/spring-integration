@@ -118,11 +118,12 @@ public final class MockIntegration {
 		}
 
 		public void instead(String pollingAdapterId, MessageSource<?> mockMessageSource, boolean autoStartup) {
-			instead(pollingAdapterId, mockMessageSource, "source", autoStartup);
+			instead(pollingAdapterId, mockMessageSource, SourcePollingChannelAdapter.class, "source", autoStartup);
 		}
 
-		private void instead(String endpointId, Object mock, String property, boolean autoStartup) {
-			Object endpoint = this.beanFactory.getBean(endpointId);
+		private void instead(String endpointId, Object mock, Class<?> endpointClass, String property,
+				boolean autoStartup) {
+			Object endpoint = this.beanFactory.getBean(endpointId, endpointClass);
 			DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
 			this.beans.put(endpointId, directFieldAccessor.getPropertyValue(property));
 			directFieldAccessor.setPropertyValue("source", mock);
