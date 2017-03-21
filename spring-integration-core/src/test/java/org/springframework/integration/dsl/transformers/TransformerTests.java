@@ -18,6 +18,7 @@ package org.springframework.integration.dsl.transformers;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -49,6 +50,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
@@ -63,6 +65,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
+ * @author Ian Bondoc
  *
  * @since 5.0
  */
@@ -134,6 +137,39 @@ public class TransformerTests {
 		TestPojo result = (TestPojo) payload;
 		assertEquals("Bar", result.getName());
 		assertNull(result.getDate());
+	}
+
+	@Autowired
+	@Qualifier("replyProducingSubFlowEnricher.input")
+	private MessageChannel replyProducingSubFlowEnricherInput;
+
+	@Autowired
+	@Qualifier("terminatingSubFlowEnricher.input")
+	private MessageChannel terminatingSubFlowEnricherInput;
+
+	@Autowired
+	@Qualifier("subFlowTestReplyChannel")
+	private PollableChannel subFlowTestReplyChannel;
+
+	@Test
+	public void testSubFlowContentEnricher() {
+		this.replyProducingSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
+		Message<?> receive = this.subFlowTestReplyChannel.receive(5000);
+		assertNotNull(receive);
+		assertEquals("Foo Bar (Reply Producing)", receive.getHeaders().get("foo"));
+		Object payload = receive.getPayload();
+		assertThat(payload, instanceOf(TestPojo.class));
+		TestPojo result = (TestPojo) payload;
+		assertThat(result.getName(), is("Foo Bar (Reply Producing)"));
+
+		this.terminatingSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
+		receive = this.subFlowTestReplyChannel.receive(5000);
+		assertNotNull(receive);
+		assertEquals("Foo Bar (Terminating)", receive.getHeaders().get("foo"));
+		payload = receive.getPayload();
+		assertThat(payload, instanceOf(TestPojo.class));
+		result = (TestPojo) payload;
+		assertThat(result.getName(), is("Foo Bar (Terminating)"));
 	}
 
 	@Autowired
@@ -287,6 +323,43 @@ public class TransformerTests {
 			return idempotentReceiverInterceptor;
 		}
 
+		@Bean
+		public PollableChannel subFlowTestReplyChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public IntegrationFlow replyProducingSubFlowEnricher(SomeService someService) {
+			return f -> f
+					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
+							.requestSubFlow(sf -> sf
+									.<String>handle((p, h) -> someService.someServiceMethod(p)))
+							.<String>headerFunction("foo", Message::getPayload)
+							.propertyFunction("name", Message::getPayload))
+					.channel("subFlowTestReplyChannel");
+		}
+
+		@Bean
+		public MessageChannel enricherReplyChannel() {
+			return MessageChannels.direct().get();
+		}
+
+		@Bean
+		public IntegrationFlow terminatingSubFlowEnricher(SomeService someService) {
+			return f -> f
+					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
+							.requestSubFlow(sf -> sf
+									.<String>handle(someService::aTerminatingServiceMethod))
+							.replyChannel("enricherReplyChannel")
+							.<String>headerFunction("foo", Message::getPayload)
+							.propertyFunction("name", Message::getPayload))
+					.channel("subFlowTestReplyChannel");
+		}
+
+		@Bean
+		public SomeService someService() {
+			return new SomeService();
+		}
 
 	}
 
@@ -350,6 +423,23 @@ public class TransformerTests {
 		@Transformer
 		public String transform(String payload, @Header("Foo") String header) {
 			return payload + header;
+		}
+
+	}
+
+	public static class SomeService {
+
+		@Autowired
+		@Qualifier("enricherReplyChannel")
+		public MessageChannel enricherReplyChannel;
+
+		public String someServiceMethod(String value) {
+			return "Foo ".concat(value).concat(" (Reply Producing)");
+		}
+
+		public void aTerminatingServiceMethod(Message<?> message) {
+			String payload = "Foo ".concat(message.getPayload().toString()).concat(" (Terminating)");
+			enricherReplyChannel.send(MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders()).build());
 		}
 
 	}
