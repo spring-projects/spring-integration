@@ -18,6 +18,7 @@ package org.springframework.integration.dsl.transformers;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -40,7 +41,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -49,6 +54,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
@@ -60,6 +66,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Artem Bilan
@@ -134,6 +141,39 @@ public class TransformerTests {
 		TestPojo result = (TestPojo) payload;
 		assertEquals("Bar", result.getName());
 		assertNull(result.getDate());
+	}
+
+	@Autowired
+	@Qualifier("syncSubFlowEnricher.input")
+	private MessageChannel syncSubFlowEnricherInput;
+
+	@Autowired
+	@Qualifier("asyncSubFlowEnricher.input")
+	private MessageChannel asyncSubFlowEnricherInput;
+
+	@Autowired
+	@Qualifier("subFlowTestReplyChannel")
+	private PollableChannel subFlowTestReplyChannel;
+
+	@Test
+	public void testSubFlowContentEnricher() {
+		syncSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
+		Message<?> receive = subFlowTestReplyChannel.receive(5000);
+		assertNotNull(receive);
+		assertEquals("Foo Bar (Sync)", receive.getHeaders().get("foo"));
+		Object payload = receive.getPayload();
+		assertThat(payload, instanceOf(TestPojo.class));
+		TestPojo result = (TestPojo) payload;
+		assertThat(result.getName(), is("Foo Bar (Sync)"));
+
+		asyncSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
+		receive = subFlowTestReplyChannel.receive(5000);
+		assertNotNull(receive);
+		assertEquals("Foo Bar (Async)", receive.getHeaders().get("foo"));
+		payload = receive.getPayload();
+		assertThat(payload, instanceOf(TestPojo.class));
+		result = (TestPojo) payload;
+		assertThat(result.getName(), is("Foo Bar (Async)"));
 	}
 
 	@Autowired
@@ -287,6 +327,53 @@ public class TransformerTests {
 			return idempotentReceiverInterceptor;
 		}
 
+		@Bean
+		public PollableChannel subFlowTestReplyChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@Autowired
+		public IntegrationFlow syncSubFlowEnricher(SomeServiceGateway someServiceGateway) {
+			return f -> f
+					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
+							.subFlow(sf -> sf
+									.<String>handle((p, h) -> someServiceGateway.deriveValueSync(p)))
+							.<String>headerFunction("foo", m -> m.getPayload())
+							.propertyFunction("name", m -> m.getPayload()))
+					.channel("subFlowTestReplyChannel");
+		}
+
+		@Bean
+		@Autowired
+		public IntegrationFlow asyncSubFlowEnricher(SomeServiceGateway someServiceGateway) {
+			return f -> f
+					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
+							.subFlow(sf -> sf
+									.<String>handle((p, h) -> someServiceGateway.deriveValueAsync(p), ec -> ec.async(true)))
+							.<String>headerFunction("foo", m -> m.getPayload())
+							.propertyFunction("name", m -> m.getPayload()))
+					.channel("subFlowTestReplyChannel");
+		}
+
+		@Bean
+		public GatewayProxyFactoryBean someServiceGateway() {
+			GatewayProxyFactoryBean gateway = new GatewayProxyFactoryBean(SomeServiceGateway.class);
+			gateway.setAsyncExecutor(exec());
+			return gateway;
+		}
+
+		@Bean
+		public SomeService someService() {
+			return new SomeService();
+		}
+
+		@Bean
+		public AsyncTaskExecutor exec() {
+			SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
+			simpleAsyncTaskExecutor.setThreadNamePrefix("exec-");
+			return simpleAsyncTaskExecutor;
+		}
 
 	}
 
@@ -350,6 +437,30 @@ public class TransformerTests {
 		@Transformer
 		public String transform(String payload, @Header("Foo") String header) {
 			return payload + header;
+		}
+
+	}
+
+	public interface SomeServiceGateway {
+
+		@Gateway(requestChannel = "syncServiceChannel")
+		String deriveValueSync(String value);
+
+		@Gateway(requestChannel = "asyncServiceChannel")
+		ListenableFuture<String> deriveValueAsync(String value);
+
+	}
+
+	public static class SomeService {
+
+		@ServiceActivator(inputChannel = "syncServiceChannel")
+		public String deriveValueSync(String value) {
+			return "Foo ".concat(value).concat(" (Sync)");
+		}
+
+		@ServiceActivator(inputChannel = "asyncServiceChannel")
+		public String deriveValueAsync(String value) {
+			return "Foo ".concat(value).concat(" (Async)");
 		}
 
 	}

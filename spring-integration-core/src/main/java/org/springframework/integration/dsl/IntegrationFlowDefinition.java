@@ -1172,7 +1172,28 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see EnricherSpec
 	 */
 	public B enrich(Consumer<EnricherSpec> enricherConfigurer) {
-		return register(new EnricherSpec(), enricherConfigurer);
+		EnricherSpec enricherSpec = new EnricherSpec();
+		enricherConfigurer.accept(enricherSpec);
+		Collection<Object> componentsToRegister = enricherSpec.getComponentsToRegister();
+		if (!CollectionUtils.isEmpty(componentsToRegister)) {
+			for (Object component : componentsToRegister) {
+				// Currently EnricherSpec only has IntegrationFlowBuilder as a sub component
+				if (component instanceof IntegrationFlowDefinition) {
+					IntegrationFlowDefinition<?> flowBuilder = (IntegrationFlowDefinition<?>) component;
+					if (flowBuilder.isOutputChannelRequired()) {
+						addComponent(flowBuilder.get());
+					}
+					else {
+						throw new BeanCreationException("Enricher subFlow must require an output channel");
+					}
+				}
+			}
+		}
+
+		if (componentsToRegister != null) {
+			componentsToRegister.clear();
+		}
+		return register(enricherSpec, null);
 	}
 
 	/**
