@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  *
  * @author Dave Syer
  * @author Artem Bilan
- * @author Vedran Pavić
+ * @author Vedran Pavic
  *
  * @since 4.3
  */
