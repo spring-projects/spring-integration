@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 3.0.3
  *
  */
@@ -66,6 +67,7 @@ public class CallerBlocksPolicyTests {
 		assertTrue(latch.await(10,  TimeUnit.SECONDS));
 		assertThat(e.get(), instanceOf(RejectedExecutionException.class));
 		assertEquals("Max wait time expired to queue task", e.get().getMessage());
+		te.destroy();
 	}
 
 	@Test
@@ -104,6 +106,7 @@ public class CallerBlocksPolicyTests {
 		});
 		assertTrue(latch.await(10,  TimeUnit.SECONDS));
 		assertNull(e.get());
+		te.destroy();
 	}
 
 }

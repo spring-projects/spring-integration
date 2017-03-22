@@ -55,7 +55,7 @@ import org.springframework.util.Assert;
  *
  * @author Dave Syer
  * @author Artem Bilan
- *
+ * @author Vedran Pavic
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
@@ -313,16 +313,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							if (acquired) {
 								// Success: we are now leader
 								this.locked = true;
-								LockRegistryLeaderInitiator.this.candidate.onGranted(this.context);
-								if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
-									try {
-										LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnGranted(
-												LockRegistryLeaderInitiator.this, this.context, this.lockKey);
-									}
-									catch (Exception e) {
-										logger.warn("Error publishing OnGranted event.", e);
-									}
-								}
+								handleGranted();
 							}
 						}
 						else if (acquired) {
@@ -333,6 +324,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							Thread.sleep(LockRegistryLeaderInitiator.this.heartBeatMillis);
 						}
 						else {
+							this.locked = false;
+							// We were not able to acquire it, therefore not leading any more
+							handleRevoked();
 							// Try again quickly in case the lock holder dropped it
 							Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
 						}
@@ -342,17 +336,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							this.lock.unlock();
 							this.locked = false;
 							// The lock was broken and we are no longer leader
-							LockRegistryLeaderInitiator.this.candidate.onRevoked(this.context);
-							if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
-								try {
-									LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnRevoked(
-											LockRegistryLeaderInitiator.this, this.context,
-											LockRegistryLeaderInitiator.this.candidate.getRole());
-								}
-								catch (Exception e1) {
-									logger.warn("Error publishing OnRevoked event.", e);
-								}
-							}
+							handleRevoked();
 							// Give it a chance to elect some other leader.
 							Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
 							Thread.currentThread().interrupt();
@@ -365,17 +349,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 				this.lock.unlock();
 				if (this.locked) {
 					// We are stopping, therefore not leading any more
-					LockRegistryLeaderInitiator.this.candidate.onRevoked(this.context);
-					if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
-						try {
-							LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnRevoked(
-									LockRegistryLeaderInitiator.this, this.context,
-									LockRegistryLeaderInitiator.this.candidate.getRole());
-						}
-						catch (Exception e) {
-							logger.warn("Error publishing OnRevoked event.", e);
-						}
-					}
+					handleRevoked();
 				}
 				this.locked = false;
 			}
@@ -384,6 +358,23 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 		public boolean isLeader() {
 			return this.locked;
+		}
+
+		private void handleGranted() throws InterruptedException {
+			LockRegistryLeaderInitiator.this.candidate.onGranted(this.context);
+			if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
+				LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnGranted(
+						LockRegistryLeaderInitiator.this, this.context, this.lockKey);
+			}
+		}
+
+		private void handleRevoked() {
+			LockRegistryLeaderInitiator.this.candidate.onRevoked(this.context);
+			if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
+				LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnRevoked(
+						LockRegistryLeaderInitiator.this, this.context,
+						LockRegistryLeaderInitiator.this.candidate.getRole());
+			}
 		}
 
 	}
