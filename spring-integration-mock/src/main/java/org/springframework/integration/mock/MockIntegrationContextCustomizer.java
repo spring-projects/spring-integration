@@ -16,7 +16,10 @@
 
 package org.springframework.integration.mock;
 
+import java.beans.Introspector;
+
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -25,20 +28,38 @@ import org.springframework.test.context.MergedContextConfiguration;
 import org.springframework.util.Assert;
 
 /**
+ * The {@link ContextCustomizer} implementation for Spring Integration specific environment.
+ * <p>
+ * Registers {@link MockIntegrationContext}, {@link IntegrationEndpointsInitializer} beans.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
  */
 class MockIntegrationContextCustomizer implements ContextCustomizer {
 
+	private final SpringIntegrationTest springIntegrationTest;
+
+	MockIntegrationContextCustomizer(SpringIntegrationTest springIntegrationTest) {
+		this.springIntegrationTest = springIntegrationTest;
+	}
+
 	@Override
 	public void customizeContext(ConfigurableApplicationContext context, MergedContextConfiguration mergedConfig) {
 		ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
-		Assert.isAssignable(BeanDefinitionRegistry.class, beanFactory.getClass(),
-				"a BeanDefinitionRegistry is required");
-		((BeanDefinitionRegistry) beanFactory)
-				.registerBeanDefinition(MockIntegration.MOCK_INTEGRATION_CONTEXT_BEAN_NAME,
-						new RootBeanDefinition(MockIntegration.Context.class));
+		Assert.isInstanceOf(BeanDefinitionRegistry.class, beanFactory);
+		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+
+		registry.registerBeanDefinition(MockIntegrationContext.MOCK_INTEGRATION_CONTEXT_BEAN_NAME,
+				new RootBeanDefinition(MockIntegrationContext.class));
+
+		String endpointsInitializer = Introspector.decapitalize(IntegrationEndpointsInitializer.class.getSimpleName());
+		registry.registerBeanDefinition(endpointsInitializer,
+				BeanDefinitionBuilder.genericBeanDefinition(IntegrationEndpointsInitializer.class)
+						.addConstructorArgValue(this.springIntegrationTest)
+						.getBeanDefinition());
+
 	}
+
 }
 

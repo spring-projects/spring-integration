@@ -24,6 +24,10 @@ import org.springframework.test.context.ContextCustomizer;
 import org.springframework.test.context.ContextCustomizerFactory;
 
 /**
+ * The {@link ContextCustomizerFactory} implementation to produce
+ * {@link MockIntegrationContextCustomizer} if {@link SpringIntegrationTest} annotation
+ * is present on the test class.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
@@ -33,9 +37,11 @@ class MockIntegrationContextCustomizerFactory implements ContextCustomizerFactor
 	@Override
 	public ContextCustomizer createContextCustomizer(Class<?> testClass,
 			List<ContextConfigurationAttributes> configAttributes) {
-		return AnnotatedElementUtils.findMergedAnnotation(testClass, MockIntegrationTest.class) != null
+		SpringIntegrationTest springIntegrationTest =
+				AnnotatedElementUtils.findMergedAnnotation(testClass, SpringIntegrationTest.class);
+		return springIntegrationTest != null
 				?
-				new MockIntegrationContextCustomizer()
+				new MockIntegrationContextCustomizer(springIntegrationTest)
 				: null;
 	}
 

@@ -59,7 +59,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MockMessageSourceTests.Config.class)
-@MockIntegrationTest
+@SpringIntegrationTest(stopEndpoints = {"inboundChannelAdapter", "*Source*"})
 @DirtiesContext
 public class MockMessageSourceTests {
 
@@ -67,7 +67,7 @@ public class MockMessageSourceTests {
 	private ApplicationContext applicationContext;
 
 	@Autowired
-	private MockIntegration.Context mockIntegrationContext;
+	private MockIntegrationContext mockIntegrationContext;
 
 	@Autowired
 	private QueueChannel results;
@@ -205,8 +205,7 @@ public class MockMessageSourceTests {
 		public IntegrationFlow myFlow() {
 			return IntegrationFlows
 					.from(() -> new GenericMessage<>("myData"),
-							e -> e.id("mySourceEndpoint")
-									.autoStartup(false))
+							e -> e.id("mySourceEndpoint"))
 					.<String, String>transform(String::toUpperCase)
 					.channel(results())
 					.get();
@@ -217,7 +216,7 @@ public class MockMessageSourceTests {
 			return new QueueChannel();
 		}
 
-		@InboundChannelAdapter(channel = "results", autoStartup = "false")
+		@InboundChannelAdapter(channel = "results")
 		@Bean
 		public MessageSource<Integer> testingMessageSource() {
 			return MockIntegration.mockMessageSource(1, 2, 3);

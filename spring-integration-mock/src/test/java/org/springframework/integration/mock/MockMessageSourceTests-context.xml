@@ -5,7 +5,7 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<int:inbound-channel-adapter id="inboundChannelAdapter" channel="results" auto-startup="false">
+	<int:inbound-channel-adapter id="inboundChannelAdapter" channel="results">
 		<bean class="org.springframework.integration.mock.MockIntegration" factory-method="mockMessageSource">
 			<constructor-arg value="a"/>
 			<constructor-arg>

@@ -19,48 +19,41 @@ package org.springframework.integration.mock;
 import static org.mockito.BDDMockito.given;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.mockito.Mockito;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.Assert;
 
 /**
+ * The factory for integration specific mock components.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
  */
 public final class MockIntegration {
 
-	public static final String MOCK_INTEGRATION_CONTEXT_BEAN_NAME = "mockIntegrationContext";
-
+	/**
+	 * Build a mock for the {@link MessageSource} based on the provided payload.
+	 * @param payload the payload to return by mocked {@link MessageSource}
+	 * @param <T>  the payload type
+	 * @return the mocked {@link MessageSource}
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> MessageSource<T> mockMessageSource(T payload) {
 		return (MessageSource<T>) mockMessageSource(new GenericMessage<>(payload));
 	}
 
-	public static MessageSource<?> mockMessageSource(Message<?> message) {
-		MessageSource messageSource = Mockito.mock(MessageSource.class);
-
-		given(messageSource.receive())
-				.willReturn(message);
-
-		return messageSource;
-	}
-
-
+	/**
+	 * Build a mock for the {@link MessageSource} based on the provided payloads.
+	 * @param payload the first payload to return by mocked {@link MessageSource}
+	 * @param payloads the next payloads to return by mocked {@link MessageSource}
+	 * @param <T>  the payload type
+	 * @return the mocked {@link MessageSource}
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> MessageSource<T> mockMessageSource(T payload, T... payloads) {
 		List<Message<T>> messages = null;
@@ -74,10 +67,32 @@ public final class MockIntegration {
 
 		return (MessageSource<T>) mockMessageSource(new GenericMessage<>(payload),
 				(messages != null
-						? messages.toArray(new Message[messages.size()])
+						? messages.toArray(new Message<?>[messages.size()])
 						: null));
 	}
 
+	/**
+	 * Build a mock for the {@link MessageSource} based on the provided message.
+	 * @param message the message to return by mocked {@link MessageSource}
+	 * @return the mocked {@link MessageSource}
+	 */
+	@SuppressWarnings("rawtypes")
+	public static MessageSource<?> mockMessageSource(Message<?> message) {
+		MessageSource messageSource = Mockito.mock(MessageSource.class);
+
+		given(messageSource.receive())
+				.<Message<?>>willReturn(message);
+
+		return messageSource;
+	}
+
+	/**
+	 * Build a mock for the {@link MessageSource} based on the provided messages.
+	 * @param message the first message to return by mocked {@link MessageSource}
+	 * @param messages the next messages to return by mocked {@link MessageSource}
+	 * @return the mocked {@link MessageSource}
+	 */
+	@SuppressWarnings("rawtypes")
 	public static MessageSource<?> mockMessageSource(Message<?> message, Message<?>... messages) {
 		MessageSource messageSource = Mockito.mock(MessageSource.class);
 
@@ -88,50 +103,6 @@ public final class MockIntegration {
 	}
 
 	private MockIntegration() {
-	}
-
-	public static class Context implements BeanFactoryAware {
-
-		private final Map<String, Object> beans = new HashMap<>();
-
-		private ConfigurableListableBeanFactory beanFactory;
-
-		@Override
-		public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-			Assert.isAssignable(ConfigurableListableBeanFactory.class, beanFactory.getClass(),
-					"a ConfigurableListableBeanFactory is required");
-			this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
-		}
-
-		public void resetMocks() {
-			this.beans.forEach((key, value) -> {
-				Object endpoint = this.beanFactory.getBean(key);
-				DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
-				if (endpoint instanceof SourcePollingChannelAdapter) {
-					directFieldAccessor.setPropertyValue("source", value);
-				}
-			});
-		}
-
-		public void instead(String pollingAdapterId, MessageSource<?> mockMessageSource) {
-			instead(pollingAdapterId, mockMessageSource, true);
-		}
-
-		public void instead(String pollingAdapterId, MessageSource<?> mockMessageSource, boolean autoStartup) {
-			instead(pollingAdapterId, mockMessageSource, SourcePollingChannelAdapter.class, "source", autoStartup);
-		}
-
-		private void instead(String endpointId, Object mock, Class<?> endpointClass, String property,
-				boolean autoStartup) {
-			Object endpoint = this.beanFactory.getBean(endpointId, endpointClass);
-			DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
-			this.beans.put(endpointId, directFieldAccessor.getPropertyValue(property));
-			directFieldAccessor.setPropertyValue("source", mock);
-			if (autoStartup && endpoint instanceof Lifecycle) {
-				((Lifecycle) endpoint).start();
-			}
-		}
-
 	}
 
 }
