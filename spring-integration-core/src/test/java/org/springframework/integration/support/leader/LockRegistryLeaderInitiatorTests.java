@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,16 @@ package org.springframework.integration.support.leader;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.log4j.Level;
 import org.junit.Before;
@@ -37,6 +44,7 @@ import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 /**
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Vedran Pavic
  *
  * @since 4.3.1
  */
@@ -98,6 +106,64 @@ public class LockRegistryLeaderInitiatorTests {
 		this.initiator.stop();
 		assertThat(other.await(10, TimeUnit.SECONDS), is(true));
 		assertThat(another.getContext().isLeader(), is(true));
+	}
+
+	@Test
+	public void competingWithLock() throws Exception {
+		// switch used to toggle which registry obtains lock
+		AtomicBoolean firstLocked = new AtomicBoolean(true);
+
+		// set up first registry instance - this one will be able to obtain lock initially
+		LockRegistry firstRegistry = mock(LockRegistry.class);
+		Lock firstLock = mock(Lock.class);
+		given(firstRegistry.obtain(anyString())).willReturn(firstLock);
+		given(firstLock.tryLock(anyLong(), any(TimeUnit.class))).willAnswer(i -> firstLocked.get());
+
+		// set up first initiator instance using first LockRegistry
+		LockRegistryLeaderInitiator first =
+				new LockRegistryLeaderInitiator(firstRegistry, new DefaultCandidate());
+		CountDownLatch firstGranted = new CountDownLatch(1);
+		CountDownLatch firstRevoked = new CountDownLatch(1);
+		first.setHeartBeatMillis(10);
+		first.setBusyWaitMillis(1);
+		first.setLeaderEventPublisher(new CountingPublisher(firstGranted, firstRevoked));
+
+		// set up second registry instance - this one will NOT be able to obtain lock initially
+		LockRegistry secondRegistry = mock(LockRegistry.class);
+		Lock secondLock = mock(Lock.class);
+		given(secondRegistry.obtain(anyString())).willReturn(secondLock);
+		given(secondLock.tryLock(anyLong(), any(TimeUnit.class))).willAnswer(i -> !firstLocked.get());
+
+		// set up second initiator instance using second LockRegistry
+		LockRegistryLeaderInitiator second =
+				new LockRegistryLeaderInitiator(secondRegistry, new DefaultCandidate());
+		CountDownLatch secondGranted = new CountDownLatch(1);
+		CountDownLatch secondRevoked = new CountDownLatch(1);
+		second.setHeartBeatMillis(10);
+		second.setBusyWaitMillis(1);
+		second.setLeaderEventPublisher(new CountingPublisher(secondGranted, secondRevoked));
+
+		// start initiators
+		first.start();
+		second.start();
+
+		Thread.sleep(100);
+
+		// first initiator should lead and publish granted event
+		assertThat(first.getContext().isLeader(), is(true));
+		assertThat(second.getContext().isLeader(), is(false));
+		assertThat(firstGranted.await(10, TimeUnit.SECONDS), is(true));
+
+		// simulate first registry instance unable to obtain lock, for example due to lock timeout
+		firstLocked.set(false);
+
+		Thread.sleep(100);
+
+		// second initiator should take lead and publish granted event, first initiator should publish revoked event
+		assertThat(second.getContext().isLeader(), is(true));
+		assertThat(first.getContext().isLeader(), is(false));
+		assertThat(secondGranted.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(firstRevoked.await(10, TimeUnit.SECONDS), is(true));
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {
