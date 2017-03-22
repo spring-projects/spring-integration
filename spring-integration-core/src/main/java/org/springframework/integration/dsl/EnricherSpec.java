@@ -41,6 +41,7 @@ import reactor.util.function.Tuple2;
  *
  * @author Artem Bilan
  * @author Tim Ysewyn
+ * @author Ian Bondoc
  *
  * @since 5.0
  */
@@ -150,7 +151,7 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 
 		this.componentsToRegister.add(flowBuilder);
 
-		return _this().requestChannel(requestChannel);
+		return requestChannel(requestChannel);
 	}
 
 	/**

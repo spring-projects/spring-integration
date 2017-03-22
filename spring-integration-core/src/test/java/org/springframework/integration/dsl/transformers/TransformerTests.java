@@ -54,6 +54,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
@@ -70,6 +71,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Artem Bilan
+ * @author Ian Bondoc
  *
  * @since 5.0
  */
@@ -152,6 +154,10 @@ public class TransformerTests {
 	private MessageChannel asyncSubFlowEnricherInput;
 
 	@Autowired
+	@Qualifier("terminatingSubFlowEnricher.input")
+	private MessageChannel terminatingSubFlowEnricherInput;
+
+	@Autowired
 	@Qualifier("subFlowTestReplyChannel")
 	private PollableChannel subFlowTestReplyChannel;
 
@@ -174,6 +180,15 @@ public class TransformerTests {
 		assertThat(payload, instanceOf(TestPojo.class));
 		result = (TestPojo) payload;
 		assertThat(result.getName(), is("Foo Bar (Async)"));
+
+		terminatingSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
+		receive = subFlowTestReplyChannel.receive(5000);
+		assertNotNull(receive);
+		assertEquals("Foo Bar (Terminating)", receive.getHeaders().get("foo"));
+		payload = receive.getPayload();
+		assertThat(payload, instanceOf(TestPojo.class));
+		result = (TestPojo) payload;
+		assertThat(result.getName(), is("Foo Bar (Terminating)"));
 	}
 
 	@Autowired
@@ -357,6 +372,24 @@ public class TransformerTests {
 		}
 
 		@Bean
+		public MessageChannel enricherReplyChannel() {
+			return MessageChannels.direct().get();
+		}
+
+		@Bean
+		@Autowired
+		public IntegrationFlow terminatingSubFlowEnricher(SomeService someService) {
+			return f -> f
+					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
+							.subFlow(sf -> sf
+									.<String>handle(m -> someService.aTerminatingServiceMethod(m)))
+							.replyChannel("enricherReplyChannel")
+							.<String>headerFunction("foo", m -> m.getPayload())
+							.propertyFunction("name", m -> m.getPayload()))
+					.channel("subFlowTestReplyChannel");
+		}
+
+		@Bean
 		public GatewayProxyFactoryBean someServiceGateway() {
 			GatewayProxyFactoryBean gateway = new GatewayProxyFactoryBean(SomeServiceGateway.class);
 			gateway.setAsyncExecutor(exec());
@@ -461,6 +494,15 @@ public class TransformerTests {
 		@ServiceActivator(inputChannel = "asyncServiceChannel")
 		public String deriveValueAsync(String value) {
 			return "Foo ".concat(value).concat(" (Async)");
+		}
+
+		@Autowired
+		@Qualifier("enricherReplyChannel")
+		public MessageChannel enricherReplyChannel;
+
+		public void aTerminatingServiceMethod(Message<?> message) {
+			String payload = "Foo ".concat(message.getPayload().toString()).concat(" (Terminating)");
+			enricherReplyChannel.send(MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders()).build());
 		}
 
 	}

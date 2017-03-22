@@ -108,6 +108,7 @@ import reactor.util.function.Tuple2;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Gabriele Del Prete
+ * @author Ian Bondoc
  *
  * @since 5.0
  *
@@ -1180,12 +1181,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				// Currently EnricherSpec only has IntegrationFlowBuilder as a sub component
 				if (component instanceof IntegrationFlowDefinition) {
 					IntegrationFlowDefinition<?> flowBuilder = (IntegrationFlowDefinition<?>) component;
-					if (flowBuilder.isOutputChannelRequired()) {
-						addComponent(flowBuilder.get());
-					}
-					else {
-						throw new BeanCreationException("Enricher subFlow must require an output channel");
-					}
+					addComponent(flowBuilder.get());
 				}
 			}
 		}
