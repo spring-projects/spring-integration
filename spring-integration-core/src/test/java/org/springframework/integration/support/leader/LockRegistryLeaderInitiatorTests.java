@@ -164,6 +164,9 @@ public class LockRegistryLeaderInitiatorTests {
 		assertThat(first.getContext().isLeader(), is(false));
 		assertThat(secondGranted.await(10, TimeUnit.SECONDS), is(true));
 		assertThat(firstRevoked.await(10, TimeUnit.SECONDS), is(true));
+
+		first.stop();
+		second.stop();
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {
