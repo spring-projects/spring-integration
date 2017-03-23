@@ -147,18 +147,25 @@ Some things become more complicated in a very loosely coupled environment, and o
 
 When sending a Message to a channel, the component that ultimately handles that Message may or may not be operating within the same thread as the sender.
 If using a simple default `DirectChannel` (with the `<channel>` element that has no `<queue>` sub-element and no 'task-executor' attribute),
-the Message-handling will occur in the same thread as the Message-sending.
+the Message-handling will occur in the same thread that sends the initial message.
 In that case, if an `Exception` is thrown, it can be caught by the sender (or it may propagate past the sender if it is an uncaught `RuntimeException`).
 So far, everything is fine.
 This is the same behavior as an Exception-throwing operation in a normal call stack.
-However, when adding the asynchronous aspect, things become much more complicated.
+
+A message flow that runs on a caller thread might be invoked via a `Messaging Gateway` (see <<gateway>>) or a `MessagingTemplate` (see <<channel-template>>).
+In either case, the default behavior is to throw any exceptions to the caller.
+For the `Messaging Gateway`, see <<gateway-error-handling>> for details about how the exception is thrown and how to configure the gateway to route the errors to an error channel instead.
+When using a `MessagingTemplate`, or sending to a `MessageChannel` directly, exceptions are always thrown to the caller.
+
+When adding asynchronous processing, things become rather more complicated.
 For instance, if the 'channel' element _does_ provide a 'queue' sub-element, then the component that handles the Message _will_ be operating in a different thread than the sender.
+The same is true when an `ExecutorChannel` is used.
 The sender may have dropped the `Message` into the channel and moved on to other things.
 There is no way for the `Exception` to be thrown directly back to that sender using standard `Exception` throwing techniques.
-Instead, to handle errors for asynchronous processes requires an asynchronous error-handling mechanism as well.
+Instead, handling errors for asynchronous processes requires an asynchronous error-handling mechanism as well.
 
 Spring Integration supports error handling for its components by publishing errors to a Message Channel.
-Specifically, the `Exception` will become the payload of a Spring Integration Message.
+Specifically, the `Exception` will become the payload of a Spring Integration `ErrorMessage`.
 That `Message` will then be sent to a Message Channel that is resolved in a way that is similar to the 'replyChannel' resolution.
 First, if the request `Message` being handled at the time the `Exception` occurred contains an 'errorChannel' header (the
 header name is defined in the constant: `MessageHeaders.ERROR_CHANNEL`), the `ErrorMessage` will be sent to that channel.
