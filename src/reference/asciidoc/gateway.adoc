@@ -392,6 +392,8 @@ If you provide a one-way flow, then nothing would be sent back to the caller.
 In the case that you want to completely suppress Exceptions, you can provide a reference to the global "nullChannel" (essentially a /dev/null approach).
 Finally, as mentioned above, if no "error-channel" is defined at all, then the Exceptions will propagate as usual.
 
+When using the `@MessagingGateway` annotation (see <<messaging-gateway-annotation>>), use the `errroChannel` attribute.
+
 Starting with _version 5.0_, when using a gateway method with a `void` return type (one-way flow), the `error-channel` reference (if provided) is populated in the standard `errorChannel` header of each message sent.
 This allows a downstream async flow, based on the standard `ExecutorChannel` configuration (or a `QueueChannel`), to override a default global `errorChannel` exceptions sending behavior.
 Previously you had to specify an `errorChannel` header manually via `@GatewayHeader` annotation or `<header>` sub-element.
