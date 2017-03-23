@@ -6,7 +6,7 @@
 http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:inbound-channel-adapter id="inboundChannelAdapter" channel="results">
-		<bean class="org.springframework.integration.mock.MockIntegration" factory-method="mockMessageSource">
+		<bean class="org.springframework.integration.test.mock.MockIntegration" factory-method="mockMessageSource">
 			<constructor-arg value="a"/>
 			<constructor-arg>
 				<array>

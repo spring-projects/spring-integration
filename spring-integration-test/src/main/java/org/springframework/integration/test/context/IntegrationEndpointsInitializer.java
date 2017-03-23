@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mock;
+package org.springframework.integration.test.context;
 
 import java.util.Map;
 
@@ -29,8 +29,8 @@ import org.springframework.util.PatternMatchUtils;
 
 /**
  * A component to customize {@link AbstractEndpoint} beans according
- * provided options in the {@link SpringIntegrationTest} annotation after all beans
- * are registered in the applicaiton context but before its refresh.
+ * to the provided options in the {@link SpringIntegrationTest} annotation
+ * after all beans are registered in the application context but before its refresh.
  *
  * @author Artem Bilan
  *
@@ -63,7 +63,7 @@ class IntegrationEndpointsInitializer implements SmartInitializingSingleton, Bea
 	}
 
 	private boolean match(String name) {
-		for (String pattern : this.springIntegrationTest.stopEndpoints()) {
+		for (String pattern : this.springIntegrationTest.noAutoStartup()) {
 			if (PatternMatchUtils.simpleMatch(pattern, name)) {
 				return true;
 			}

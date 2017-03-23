@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mock;
+package org.springframework.integration.test.mock;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -46,6 +46,8 @@ import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.test.context.MockIntegrationContext;
+import org.springframework.integration.test.context.SpringIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -59,7 +61,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MockMessageSourceTests.Config.class)
-@SpringIntegrationTest(stopEndpoints = {"inboundChannelAdapter", "*Source*"})
+@SpringIntegrationTest(noAutoStartup = {"inboundChannelAdapter", "*Source*"})
 @DirtiesContext
 public class MockMessageSourceTests {
 
@@ -77,7 +79,7 @@ public class MockMessageSourceTests {
 
 	@After
 	public void tearDown() {
-		this.mockIntegrationContext.resetMocks();
+		this.mockIntegrationContext.resetBeans("mySourceEndpoint", "inboundChannelAdapter");
 		results.purge(null);
 	}
 
@@ -193,7 +195,7 @@ public class MockMessageSourceTests {
 
 	@Configuration
 	@EnableIntegration
-	@ImportResource("org/springframework/integration/mock/MockMessageSourceTests-context.xml")
+	@ImportResource("org/springframework/integration/test/mock/MockMessageSourceTests-context.xml")
 	public static class Config {
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)

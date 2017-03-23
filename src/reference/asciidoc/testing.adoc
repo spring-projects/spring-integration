@@ -1,0 +1,13 @@
+[[testing]]
+=== Tests support
+
+Spring Integration provides a number of utilities and annotations to help when testing your application.
+Test support is provided by two modules: `spring-integration-test-support` contains core items and shared utilities; and `spring-integration-test` which provides mocking and context configuration components for integration tests.
+
+Meanwhile `spring-integration-test-support` provides basic, independent utilities, rules and matchers for unit testing (also doesn't depend on Spring Integration code base and is used internally in the Framework), the `spring-integration-test` is aimed to break the integration testing challenge wall and provides comprehensive high level API to mock integration components and verify behaviour individual components, as well as whole integration flows or their parts.
+(A thorough treatment of testing in the enterprise is beyond the scope of this reference manual.)
+
+[[testing-intro]]
+=== Introduction
+
+

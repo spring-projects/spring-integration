@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mock;
+package org.springframework.integration.test.context;
 
 import java.util.List;
 
@@ -24,8 +24,8 @@ import org.springframework.test.context.ContextCustomizer;
 import org.springframework.test.context.ContextCustomizerFactory;
 
 /**
- * The {@link ContextCustomizerFactory} implementation to produce
- * {@link MockIntegrationContextCustomizer} if {@link SpringIntegrationTest} annotation
+ * The {@link ContextCustomizerFactory} implementation to produce a
+ * {@link MockIntegrationContextCustomizer} if a {@link SpringIntegrationTest} annotation
  * is present on the test class.
  *
  * @author Artem Bilan

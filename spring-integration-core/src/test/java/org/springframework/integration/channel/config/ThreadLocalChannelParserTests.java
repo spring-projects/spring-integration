@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.channel.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,15 +35,18 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Dave Syer
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class ThreadLocalChannelParserTests {
 
 	@Autowired @Qualifier("simpleChannel")
@@ -63,7 +67,7 @@ public class ThreadLocalChannelParserTests {
 			simpleChannel.send(new GenericMessage<String>("crap"));
 			latch.countDown();
 		});
-		latch.await(1, TimeUnit.SECONDS);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals("test", simpleChannel.receive(10).getPayload());
 		// Message sent on another thread is not collected here
 		assertEquals(null, simpleChannel.receive(10));
@@ -87,7 +91,7 @@ public class ThreadLocalChannelParserTests {
 			otherThreadResults.add(channelWithInterceptor.receive(0));
 			latch.countDown();
 		});
-		latch.await(1, TimeUnit.SECONDS);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertEquals(2, otherThreadResults.size());
 		assertNull(otherThreadResults.get(0));
 		assertNull(otherThreadResults.get(1));

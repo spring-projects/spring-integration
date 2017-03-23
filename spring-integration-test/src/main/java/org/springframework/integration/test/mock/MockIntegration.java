@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mock;
+package org.springframework.integration.test.mock;
 
 import static org.mockito.BDDMockito.given;
 

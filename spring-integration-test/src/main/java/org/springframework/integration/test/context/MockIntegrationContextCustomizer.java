@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mock;
+package org.springframework.integration.test.context;
 
 import java.beans.Introspector;
 

@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mock;
+package org.springframework.integration.test.context;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,12 +30,13 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * A {@link BeanFactoryAware} component with an API to customize real beans
- * in the application context from tests code.
+ * in the application context from test code.
  * <p>
- * The bean for this class is registered automatically via {@link SpringIntegrationTest}
+ * The bean for this class is registered automatically via the {@link SpringIntegrationTest}
  * annotation and can be autowired into test class.
  *
  * @author Artem Bilan
@@ -57,17 +60,30 @@ public class MockIntegrationContext implements BeanFactoryAware {
 	}
 
 	/**
-	 * Reinstate all the mocked beans after execution test to their real state.
+	 * Reinstate the mocked beans after execution test to their real state.
 	 * Typically is used from the {@link org.junit.After} method.
+	 * @param beanNames the bean names to reset.
+	 * If {@code null}, all the mocked beans are reset
 	 */
-	public void resetMocks() {
-		this.beans.forEach((key, value) -> {
-			Object endpoint = this.beanFactory.getBean(key);
-			DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
-			if (endpoint instanceof SourcePollingChannelAdapter) {
-				directFieldAccessor.setPropertyValue("source", value);
-			}
-		});
+	public void resetBeans(String... beanNames) {
+		final Collection<String> names;
+		if (!ObjectUtils.isEmpty(beanNames)) {
+			names = Arrays.asList(beanNames);
+		}
+		else {
+			names = null;
+		}
+
+		this.beans.entrySet()
+				.stream()
+				.filter(e -> names == null || names.contains(e.getKey()))
+				.forEach(e -> {
+					Object endpoint = this.beanFactory.getBean(e.getKey());
+					DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
+					if (endpoint instanceof SourcePollingChannelAdapter) {
+						directFieldAccessor.setPropertyValue("source", e.getValue());
+					}
+				});
 	}
 
 	/**
@@ -76,7 +92,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 	 * Can be a mock object.
 	 * @param pollingAdapterId the endpoint bean name
 	 * @param mockMessageSource the {@link MessageSource} to replace in the endpoint bean
-	 * @see MockIntegration#mockMessageSource
+	 * @see org.springframework.integration.test.mock.MockIntegration#mockMessageSource
 	 */
 	public void instead(String pollingAdapterId, MessageSource<?> mockMessageSource) {
 		instead(pollingAdapterId, mockMessageSource, true);
@@ -90,7 +106,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 	 * @param pollingAdapterId the endpoint bean name
 	 * @param mockMessageSource the {@link MessageSource} to replace in the endpoint bean
 	 * @param autoStartup start or not the endpoint after replacing its {@link MessageSource}
-	 * @see MockIntegration#mockMessageSource
+	 * @see org.springframework.integration.test.mock.MockIntegration#mockMessageSource
 	 */
 	public void instead(String pollingAdapterId, MessageSource<?> mockMessageSource, boolean autoStartup) {
 		instead(pollingAdapterId, mockMessageSource, SourcePollingChannelAdapter.class, "source", autoStartup);

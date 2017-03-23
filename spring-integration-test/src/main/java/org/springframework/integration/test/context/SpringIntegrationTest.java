@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mock;
+package org.springframework.integration.test.context;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -69,6 +69,6 @@ public @interface SpringIntegrationTest {
 	 * during context initialization.
 	 * @return the endpoints name patterns to stop during context initialization
 	 */
-	String[] stopEndpoints() default {};
+	String[] noAutoStartup() default {};
 
 }
