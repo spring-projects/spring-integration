@@ -29,9 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
-import org.apache.log4j.Level;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.leader.Context;
@@ -39,7 +37,6 @@ import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 
 /**
  * @author Dave Syer
@@ -49,9 +46,6 @@ import org.springframework.integration.test.rule.Log4jLevelAdjuster;
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiatorTests {
-
-	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration");
 
 	private CountDownLatch granted;
 
@@ -92,6 +86,7 @@ public class LockRegistryLeaderInitiatorTests {
 		assertThat(this.initiator.getContext().isLeader(), is(true));
 		this.initiator.getContext().yield();
 		assertThat(this.revoked.await(10, TimeUnit.SECONDS), is(true));
+		this.initiator.stop();
 	}
 
 	@Test
@@ -106,6 +101,7 @@ public class LockRegistryLeaderInitiatorTests {
 		this.initiator.stop();
 		assertThat(other.await(10, TimeUnit.SECONDS), is(true));
 		assertThat(another.getContext().isLeader(), is(true));
+		another.stop();
 	}
 
 	@Test
