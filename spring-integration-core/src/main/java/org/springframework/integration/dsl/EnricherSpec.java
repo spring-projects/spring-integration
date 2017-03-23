@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
@@ -40,6 +41,7 @@ import reactor.util.function.Tuple2;
  *
  * @author Artem Bilan
  * @author Tim Ysewyn
+ * @author Ian Bondoc
  *
  * @since 5.0
  */
@@ -134,6 +136,22 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	public <P> EnricherSpec requestPayload(Function<Message<P>, ?> requestPayloadFunction) {
 		this.handler.setRequestPayloadExpression(new FunctionExpression<>(requestPayloadFunction));
 		return _this();
+	}
+
+	/**
+	 * @param subFlow the subFlowDefinition
+	 * @return the enricher spec
+	 */
+	public EnricherSpec requestSubFlow(IntegrationFlow subFlow) {
+		Assert.notNull(subFlow, "'subFlow' must not be null");
+
+		DirectChannel requestChannel = new DirectChannel();
+		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(requestChannel);
+		subFlow.configure(flowBuilder);
+
+		this.componentsToRegister.add(flowBuilder.get());
+
+		return requestChannel(requestChannel);
 	}
 
 	/**
