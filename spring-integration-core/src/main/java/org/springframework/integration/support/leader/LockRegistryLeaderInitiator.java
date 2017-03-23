@@ -363,17 +363,27 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		private void handleGranted() throws InterruptedException {
 			LockRegistryLeaderInitiator.this.candidate.onGranted(this.context);
 			if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
-				LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnGranted(
-						LockRegistryLeaderInitiator.this, this.context, this.lockKey);
+				try {
+					LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnGranted(
+							LockRegistryLeaderInitiator.this, this.context, this.lockKey);
+				}
+				catch (Exception e) {
+					logger.warn("Error publishing OnGranted event.", e);
+				}
 			}
 		}
 
 		private void handleRevoked() {
 			LockRegistryLeaderInitiator.this.candidate.onRevoked(this.context);
 			if (LockRegistryLeaderInitiator.this.leaderEventPublisher != null) {
-				LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnRevoked(
-						LockRegistryLeaderInitiator.this, this.context,
-						LockRegistryLeaderInitiator.this.candidate.getRole());
+				try {
+					LockRegistryLeaderInitiator.this.leaderEventPublisher.publishOnRevoked(
+							LockRegistryLeaderInitiator.this, this.context,
+							LockRegistryLeaderInitiator.this.candidate.getRole());
+				}
+				catch (Exception e) {
+					logger.warn("Error publishing OnRevoked event.", e);
+				}
 			}
 		}
 
