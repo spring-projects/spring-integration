@@ -108,7 +108,6 @@ import reactor.util.function.Tuple2;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Gabriele Del Prete
- * @author Ian Bondoc
  *
  * @since 5.0
  *
@@ -1173,23 +1172,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see EnricherSpec
 	 */
 	public B enrich(Consumer<EnricherSpec> enricherConfigurer) {
-		EnricherSpec enricherSpec = new EnricherSpec();
-		enricherConfigurer.accept(enricherSpec);
-		Collection<Object> componentsToRegister = enricherSpec.getComponentsToRegister();
-		if (!CollectionUtils.isEmpty(componentsToRegister)) {
-			for (Object component : componentsToRegister) {
-				// Currently EnricherSpec only has IntegrationFlowBuilder as a sub component
-				if (component instanceof IntegrationFlowDefinition) {
-					IntegrationFlowDefinition<?> flowBuilder = (IntegrationFlowDefinition<?>) component;
-					addComponent(flowBuilder.get());
-				}
-			}
-		}
-
-		if (componentsToRegister != null) {
-			componentsToRegister.clear();
-		}
-		return register(enricherSpec, null);
+		return register(new EnricherSpec(), enricherConfigurer);
 	}
 
 	/**

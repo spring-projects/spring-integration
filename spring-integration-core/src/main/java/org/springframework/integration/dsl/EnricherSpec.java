@@ -142,14 +142,14 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * @param subFlow the subFlowDefinition
 	 * @return the enricher spec
 	 */
-	public EnricherSpec subFlow(IntegrationFlow subFlow) {
+	public EnricherSpec requestSubFlow(IntegrationFlow subFlow) {
 		Assert.notNull(subFlow, "'subFlow' must not be null");
 
 		DirectChannel requestChannel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(requestChannel);
 		subFlow.configure(flowBuilder);
 
-		this.componentsToRegister.add(flowBuilder);
+		this.componentsToRegister.add(flowBuilder.get());
 
 		return requestChannel(requestChannel);
 	}

@@ -41,11 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.annotation.Gateway;
-import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -55,7 +51,6 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.channel.MessageChannels;
-import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
@@ -67,7 +62,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Artem Bilan
@@ -146,12 +140,8 @@ public class TransformerTests {
 	}
 
 	@Autowired
-	@Qualifier("syncSubFlowEnricher.input")
-	private MessageChannel syncSubFlowEnricherInput;
-
-	@Autowired
-	@Qualifier("asyncSubFlowEnricher.input")
-	private MessageChannel asyncSubFlowEnricherInput;
+	@Qualifier("replyProducingSubFlowEnricher.input")
+	private MessageChannel replyProducingSubFlowEnricherInput;
 
 	@Autowired
 	@Qualifier("terminatingSubFlowEnricher.input")
@@ -163,23 +153,14 @@ public class TransformerTests {
 
 	@Test
 	public void testSubFlowContentEnricher() {
-		syncSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
+		replyProducingSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
 		Message<?> receive = subFlowTestReplyChannel.receive(5000);
 		assertNotNull(receive);
-		assertEquals("Foo Bar (Sync)", receive.getHeaders().get("foo"));
+		assertEquals("Foo Bar (Reply Producing)", receive.getHeaders().get("foo"));
 		Object payload = receive.getPayload();
 		assertThat(payload, instanceOf(TestPojo.class));
 		TestPojo result = (TestPojo) payload;
-		assertThat(result.getName(), is("Foo Bar (Sync)"));
-
-		asyncSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
-		receive = subFlowTestReplyChannel.receive(5000);
-		assertNotNull(receive);
-		assertEquals("Foo Bar (Async)", receive.getHeaders().get("foo"));
-		payload = receive.getPayload();
-		assertThat(payload, instanceOf(TestPojo.class));
-		result = (TestPojo) payload;
-		assertThat(result.getName(), is("Foo Bar (Async)"));
+		assertThat(result.getName(), is("Foo Bar (Reply Producing)"));
 
 		terminatingSubFlowEnricherInput.send(MessageBuilder.withPayload(new TestPojo("Bar")).build());
 		receive = subFlowTestReplyChannel.receive(5000);
@@ -348,24 +329,11 @@ public class TransformerTests {
 		}
 
 		@Bean
-		@Autowired
-		public IntegrationFlow syncSubFlowEnricher(SomeServiceGateway someServiceGateway) {
+		public IntegrationFlow replyProducingSubFlowEnricher(SomeService someService) {
 			return f -> f
 					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
-							.subFlow(sf -> sf
-									.<String>handle((p, h) -> someServiceGateway.deriveValueSync(p)))
-							.<String>headerFunction("foo", m -> m.getPayload())
-							.propertyFunction("name", m -> m.getPayload()))
-					.channel("subFlowTestReplyChannel");
-		}
-
-		@Bean
-		@Autowired
-		public IntegrationFlow asyncSubFlowEnricher(SomeServiceGateway someServiceGateway) {
-			return f -> f
-					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
-							.subFlow(sf -> sf
-									.<String>handle((p, h) -> someServiceGateway.deriveValueAsync(p), ec -> ec.async(true)))
+							.requestSubFlow(sf -> sf
+									.<String>handle((p, h) -> someService.someServiceMethod(p)))
 							.<String>headerFunction("foo", m -> m.getPayload())
 							.propertyFunction("name", m -> m.getPayload()))
 					.channel("subFlowTestReplyChannel");
@@ -377,11 +345,10 @@ public class TransformerTests {
 		}
 
 		@Bean
-		@Autowired
 		public IntegrationFlow terminatingSubFlowEnricher(SomeService someService) {
 			return f -> f
 					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
-							.subFlow(sf -> sf
+							.requestSubFlow(sf -> sf
 									.<String>handle(m -> someService.aTerminatingServiceMethod(m)))
 							.replyChannel("enricherReplyChannel")
 							.<String>headerFunction("foo", m -> m.getPayload())
@@ -390,22 +357,8 @@ public class TransformerTests {
 		}
 
 		@Bean
-		public GatewayProxyFactoryBean someServiceGateway() {
-			GatewayProxyFactoryBean gateway = new GatewayProxyFactoryBean(SomeServiceGateway.class);
-			gateway.setAsyncExecutor(exec());
-			return gateway;
-		}
-
-		@Bean
 		public SomeService someService() {
 			return new SomeService();
-		}
-
-		@Bean
-		public AsyncTaskExecutor exec() {
-			SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
-			simpleAsyncTaskExecutor.setThreadNamePrefix("exec-");
-			return simpleAsyncTaskExecutor;
 		}
 
 	}
@@ -474,26 +427,10 @@ public class TransformerTests {
 
 	}
 
-	public interface SomeServiceGateway {
-
-		@Gateway(requestChannel = "syncServiceChannel")
-		String deriveValueSync(String value);
-
-		@Gateway(requestChannel = "asyncServiceChannel")
-		ListenableFuture<String> deriveValueAsync(String value);
-
-	}
-
 	public static class SomeService {
 
-		@ServiceActivator(inputChannel = "syncServiceChannel")
-		public String deriveValueSync(String value) {
-			return "Foo ".concat(value).concat(" (Sync)");
-		}
-
-		@ServiceActivator(inputChannel = "asyncServiceChannel")
-		public String deriveValueAsync(String value) {
-			return "Foo ".concat(value).concat(" (Async)");
+		public String someServiceMethod(String value) {
+			return "Foo ".concat(value).concat(" (Reply Producing)");
 		}
 
 		@Autowired
