@@ -131,9 +131,9 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 
 	/**
 	 * Switch the local {@link FileReadingMessageSource} to use its internal
-	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner}.
+	 * {@code FileReadingMessageSource.WatchServiceDirectoryScanner}.
 	 * @param useWatchService the {@code boolean} flag to switch to
-	 * {@link FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
+	 * {@code FileReadingMessageSource.WatchServiceDirectoryScanner} on {@code true}.
 	 * @since 5.0
 	 */
 	public void setUseWatchService(boolean useWatchService) {

@@ -29,6 +29,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+
 /**
  * @author Iwein Fuld
  * @author Gunnar Hillert
@@ -60,20 +62,26 @@ public class RecursiveDirectoryScannerTests {
 		this.topLevelFile = this.recursivePath.newFile("file1");
 		this.subLevelFile = new File(this.subFolder, "file2");
 		this.subLevelFile.createNewFile();
-		this.subSubLevelFile = new File(this.subSubFolder, "file2");
+		this.subSubLevelFile = new File(this.subSubFolder, "file3");
 		this.subSubLevelFile.createNewFile();
 	}
 
 	@Test
-	public void shouldReturnAllFilesIncludingDirs() {
-		List<File> files = new RecursiveDirectoryScanner()
-				.listFiles(this.recursivePath.getRoot());
+	public void shouldReturnAllFilesIncludingDirs() throws IOException {
+		RecursiveDirectoryScanner scanner = new RecursiveDirectoryScanner();
+		scanner.setFilter(new AcceptOnceFileListFilter<>());
+		List<File> files = scanner.listFiles(this.recursivePath.getRoot());
 		assertEquals(5, files.size());
 		assertThat(files, hasItem(this.topLevelFile));
 		assertThat(files, hasItem(this.subLevelFile));
 		assertThat(files, hasItem(this.subSubLevelFile));
 		assertThat(files, hasItem(this.subFolder));
 		assertThat(files, hasItem(this.subSubFolder));
+		File file = new File(this.subSubFolder, "file4");
+		file.createNewFile();
+		files = scanner.listFiles(this.recursivePath.getRoot());
+		assertEquals(1, files.size());
+		assertThat(files, hasItem(file));
 	}
 
 }

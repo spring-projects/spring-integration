@@ -18,6 +18,7 @@ package org.springframework.integration.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -26,10 +27,13 @@ import java.util.stream.Stream;
 
 import org.springframework.integration.file.filters.AbstractFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.util.Assert;
 
 /**
  * The {@link DefaultDirectoryScanner} extension which walks through the directory tree
- * using {@link Files#walk}.
+ * using {@link Files#walk(Path, int, FileVisitOption...)}.
+ * <p>
+ * By default this class visits all levels of the file tree without any {@link FileVisitOption}s.
  *
  * @author Artem Bilan
  *
@@ -39,12 +43,33 @@ import org.springframework.integration.file.filters.FileListFilter;
  */
 public class RecursiveDirectoryScanner extends DefaultDirectoryScanner {
 
+	private int maxDepth = Integer.MAX_VALUE;
+
+	private FileVisitOption[] fileVisitOptions = new FileVisitOption[0];
+
+	/**
+	 * The maximum number of directory levels to visit.
+	 * @param maxDepth the maximum number of directory levels to visit
+	 */
+	public void setMaxDepth(int maxDepth) {
+		this.maxDepth = maxDepth;
+	}
+
+	/**
+	 * The options to configure the traversal.
+	 * @param fileVisitOptions options to configure the traversal
+	 */
+	public void setFileVisitOptions(FileVisitOption... fileVisitOptions) {
+		Assert.notNull(fileVisitOptions, "'fileVisitOptions' must not be null");
+		this.fileVisitOptions = fileVisitOptions;
+	}
+
 	@Override
 	public List<File> listFiles(File directory) throws IllegalArgumentException {
 		FileListFilter<File> filter = getFilter();
 		boolean supportAcceptFilter = filter instanceof AbstractFileListFilter;
 		try {
-			Stream<File> fileStream = Files.walk(directory.toPath())
+			Stream<File> fileStream = Files.walk(directory.toPath(), this.maxDepth, this.fileVisitOptions)
 					.skip(1)
 					.map(Path::toFile)
 					.filter(file -> !supportAcceptFilter

@@ -163,7 +163,7 @@ Therefore, to process files in a specific order, you should provide a comparator
 rather than ordering the list produced by a custom `DirectoryScanner`.
 
 Starting with _version 5.0_, a new `RecursiveDirectoryScanner` is presented to perform file tree visiting.
-The implementation is based on the `Files.walk(Path start, FileVisitOption... options)` functionality.
+The implementation is based on the `Files.walk(Path start, int maxDepth, FileVisitOption... options)` functionality.
 The root directory (`DirectoryScanner.listFiles(File)` argument) is excluded from the result.
 All other sub-directories includes/excludes are based on the target `FileListFilter` implementation.
 For example the `SimplePatternFileListFilter` filters directories by default.
