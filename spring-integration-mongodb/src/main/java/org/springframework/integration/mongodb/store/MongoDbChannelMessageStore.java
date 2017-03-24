@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,9 +126,9 @@ public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessa
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		Sort sort = new Sort(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
+		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
 		if (this.priorityEnabled) {
-			sort = new Sort(Sort.Direction.DESC, MessageDocumentFields.PRIORITY).and(sort);
+			sort = Sort.by(Sort.Direction.DESC, MessageDocumentFields.PRIORITY).and(sort);
 		}
 		Query query = groupIdQuery(groupId).with(sort);
 		MessageDocument document = this.mongoTemplate.findAndRemove(query, MessageDocument.class, this.collectionName);

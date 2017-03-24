@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -233,7 +233,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public Message<?> pollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
-		Sort sort = new Sort(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
+		Sort sort = Sort.by(MessageDocumentFields.LAST_MODIFIED_TIME, MessageDocumentFields.SEQUENCE);
 		Query query = groupIdQuery(groupId).with(sort);
 		MessageDocument document = mongoTemplate.findAndRemove(query, MessageDocument.class, collectionName);
 		Message<?> message = null;
@@ -376,7 +376,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	private static Query groupOrderQuery(Object groupId) {
-		Sort sort = new Sort(Sort.Direction.DESC, MessageDocumentFields.LAST_MODIFIED_TIME,
+		Sort sort = Sort.by(Sort.Direction.DESC, MessageDocumentFields.LAST_MODIFIED_TIME,
 				MessageDocumentFields.SEQUENCE);
 		return groupIdQuery(groupId).with(sort);
 	}

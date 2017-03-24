@@ -353,7 +353,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public Message<?> pollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Query query = whereGroupIdIs(groupId).with(new Sort(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
+		Query query = whereGroupIdIs(groupId).with(Sort.by(GROUP_UPDATE_TIMESTAMP_KEY, SEQUENCE));
 		MessageWrapper messageWrapper = this.template.findAndRemove(query, MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
 		if (messageWrapper != null) {
