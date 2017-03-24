@@ -59,11 +59,6 @@ public class LoggingJavaApplication {
     }
 
     @Bean
-    public MessageChannel logInputChannel() {
-        return new DirectChannel();
-    }
-
-    @Bean
     @ServiceActivator(inputChannel = "logChannel")
     public LoggingHandler logging() {
         LoggingHandler adapter = new LoggingHandler(LoggingHandler.Level.DEBUG);
@@ -73,6 +68,41 @@ public class LoggingJavaApplication {
     }
 
     @MessagingGateway(defaultRequestChannel = "logChannel")
+    public interface MyGateway {
+
+        void sendToLogger(String data);
+
+    }
+
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the logging channel adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class LoggingJavaApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context =
+             new SpringApplicationBuilder(LoggingJavaApplication.class)
+                    .web(false)
+                    .run(args);
+         MyGateway gateway = context.getBean(MyGateway.class);
+         gateway.sendToLogger("foo");
+    }
+
+    @Bean
+    public IntegrationFlow loggingFlow() {
+        return IntegrationFlows.from(MyGateway.class)
+                     .log(LoggingHandler.Level.DEBUG, "TEST_LOGGER",
+                           m -> m.getHeaders().getId() + ": " + m.getPayload());
+    }
+
+    @MessagingGateway
     public interface MyGateway {
 
         void sendToLogger(String data);
