@@ -54,6 +54,7 @@ import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.transformer.DecodingTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -66,6 +67,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * @author Artem Bilan
  * @author Ian Bondoc
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -296,8 +298,10 @@ public class TransformerTests {
 
 		@Bean
 		public IntegrationFlow decodingFlow() {
+			// TODO: Stored in an unnecessary variable to work around an eclipse type inference issue.
+			DecodingTransformer<Integer> transformer = Transformers.decoding(new MyCodec(), m -> Integer.class);
 			return f -> f
-					.transform(Transformers.decoding(new MyCodec(), m -> Integer.class))
+					.transform(transformer)
 					.channel("codecReplyChannel");
 		}
 
@@ -350,7 +354,7 @@ public class TransformerTests {
 			return f -> f
 					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
 							.requestSubFlow(sf -> sf
-									.<String>handle(someService::aTerminatingServiceMethod))
+									.handle(someService::aTerminatingServiceMethod))
 							.replyChannel("enricherReplyChannel")
 							.<String>headerFunction("foo", Message::getPayload)
 							.propertyFunction("name", Message::getPayload))
