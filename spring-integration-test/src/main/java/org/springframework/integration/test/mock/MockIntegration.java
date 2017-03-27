@@ -38,9 +38,12 @@ public final class MockIntegration {
 
 	/**
 	 * Build a mock for the {@link MessageSource} based on the provided payload.
+	 * The returned instance is ordinary Mockito mock that is capable of
+	 * recording interactions with it and further verification.
 	 * @param payload the payload to return by mocked {@link MessageSource}
 	 * @param <T>  the payload type
 	 * @return the mocked {@link MessageSource}
+	 * @see Mockito#mock(Class)
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> MessageSource<T> mockMessageSource(T payload) {
@@ -49,10 +52,13 @@ public final class MockIntegration {
 
 	/**
 	 * Build a mock for the {@link MessageSource} based on the provided payloads.
+	 * The returned instance is ordinary Mockito mock that is capable of
+	 * recording interactions with it and further verification.
 	 * @param payload the first payload to return by mocked {@link MessageSource}
 	 * @param payloads the next payloads to return by mocked {@link MessageSource}
 	 * @param <T>  the payload type
 	 * @return the mocked {@link MessageSource}
+	 * @see Mockito#mock(Class)
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> MessageSource<T> mockMessageSource(T payload, T... payloads) {
@@ -73,8 +79,11 @@ public final class MockIntegration {
 
 	/**
 	 * Build a mock for the {@link MessageSource} based on the provided message.
+	 * The returned instance is ordinary Mockito mock that is capable of
+	 * recording interactions with it and further verification.
 	 * @param message the message to return by mocked {@link MessageSource}
 	 * @return the mocked {@link MessageSource}
+	 * @see Mockito#mock(Class)
 	 */
 	@SuppressWarnings("rawtypes")
 	public static MessageSource<?> mockMessageSource(Message<?> message) {
@@ -88,9 +97,12 @@ public final class MockIntegration {
 
 	/**
 	 * Build a mock for the {@link MessageSource} based on the provided messages.
+	 * The returned instance is ordinary Mockito mock that is capable of
+	 * recording interactions with it and further verification.
 	 * @param message the first message to return by mocked {@link MessageSource}
 	 * @param messages the next messages to return by mocked {@link MessageSource}
 	 * @return the mocked {@link MessageSource}
+	 * @see Mockito#mock(Class)
 	 */
 	@SuppressWarnings("rawtypes")
 	public static MessageSource<?> mockMessageSource(Message<?> message, Message<?>... messages) {

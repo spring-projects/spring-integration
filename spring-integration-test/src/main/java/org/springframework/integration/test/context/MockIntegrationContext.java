@@ -115,6 +115,9 @@ public class MockIntegrationContext implements BeanFactoryAware {
 	private void instead(String endpointId, Object mock, Class<?> endpointClass, String property,
 			boolean autoStartup) {
 		Object endpoint = this.beanFactory.getBean(endpointId, endpointClass);
+		if (autoStartup && endpoint instanceof Lifecycle) {
+			((Lifecycle) endpoint).stop();
+		}
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
 		this.beans.put(endpointId, directFieldAccessor.getPropertyValue(property));
 		directFieldAccessor.setPropertyValue("source", mock);

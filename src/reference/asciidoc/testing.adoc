@@ -4,8 +4,9 @@
 Spring Integration provides a number of utilities and annotations to help when testing your application.
 Test support is presented by two modules: `spring-integration-test-support` contains core items and shared utilities; and `spring-integration-test` which provides mocking and context configuration components for integration tests.
 
-Meanwhile `spring-integration-test-support` provides basic, independent utilities, rules and matchers for unit testing (also doesn't depend on Spring Integration code base and is used internally in the Framework), the `spring-integration-test` is aimed to break the integration testing challenge wall and provides comprehensive high level API to mock integration components and verify behaviour individual components, as well as of whole integration flows or their parts.
-(__A thorough treatment of testing in the enterprise is beyond the scope of this reference manual.__)
+Meanwhile `spring-integration-test-support` provides basic, standalone utilities, rules and matchers for unit testing (also doesn't depend on Spring Integration code base and is used internally in the Framework), the `spring-integration-test` is aimed to break the integration testing challenge wall and provides comprehensive high level API to mock integration components and verify behaviour of individual components, as well as of whole integration flows or their parts.
+A thorough treatment of testing in the enterprise is beyond the scope of this reference manual.
+For example, a http://www.enterpriseintegrationpatterns.com/docs/TestDrivenEAI.pdf[Test-Driven Development in Enterprise Integration Projects] paper by Gregor Hohpe and Wendy Istvanick can be used a source for ideas and principles for testing your target integration solution.
 
 [[testing-intro]]
 === Introduction
@@ -229,7 +230,8 @@ See their JavaDocs for more information.
 === Integration Mocks
 
 The `org.springframework.integration.test.mock` package offers tools and utilities for mocking, stubbing and verifications of Spring Integration components.
-The mocking functionality is fully based and compatible with well know Mockito Framework.
+The mocking functionality is fully based and compatible with well known Mockito Framework.
+(The current Mockito transitive dependency is of _version 2.5.x_.)
 
 ==== MockIntegration
 

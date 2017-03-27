@@ -56,6 +56,15 @@ import org.springframework.util.StringUtils;
  */
 public abstract class TestUtils {
 
+	/**
+	 * Obtain a value for the propty from the provide object.
+	 * Supports nested properties via period delimiter.
+	 * @param root the object to obtain the property value
+	 * @param propertyPath the property name to obtain a value.
+	 * Can be nested path defined by the period.
+	 * @return the value of the property or null
+	 * @see DirectFieldAccessor
+	 */
 	public static Object getPropertyValue(Object root, String propertyPath) {
 		Object value = null;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(root);
@@ -76,6 +85,17 @@ public abstract class TestUtils {
 		return value;
 	}
 
+	/**
+	 * Obtain a value for the propty from the provide object and try to cast it to the provided type.
+	 * Supports nested properties via period delimiter.
+	 * @param root the object to obtain the property value
+	 * @param propertyPath the property name to obtain a value.
+	 * @param type the expected value type.
+	 * @param <T> the expected value type.
+	 * Can be nested path defined by the period.
+	 * @return the value of the property or null
+	 * @see DirectFieldAccessor
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T getPropertyValue(Object root, String propertyPath, Class<T> type) {
 		Object value = getPropertyValue(root, propertyPath);
@@ -85,6 +105,11 @@ public abstract class TestUtils {
 		return (T) value;
 	}
 
+	/**
+	 * Create a {@link TestApplicationContext} instance
+	 * supplied with the besic Spring Integration infrastructure.
+	 * @return the {@link TestApplicationContext} instance
+	 */
 	public static TestApplicationContext createTestApplicationContext() {
 		TestApplicationContext context = new TestApplicationContext();
 		ErrorHandler errorHandler = new MessagePublishingErrorHandler(context);
@@ -95,6 +120,11 @@ public abstract class TestUtils {
 		return context;
 	}
 
+	/**
+	 * A factory for the {@link ThreadPoolTaskScheduler} instances based on the provided {@code poolSize}.
+	 * @param poolSize the size for the {@link ThreadPoolTaskScheduler}
+	 * @return the {@link ThreadPoolTaskScheduler} instance.
+	 */
 	public static ThreadPoolTaskScheduler createTaskScheduler(int poolSize) {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.setPoolSize(poolSize);
@@ -130,6 +160,10 @@ public abstract class TestUtils {
 	}
 
 
+	/**
+	 * A {@link GenericApplicationContext} extension with some support methods
+	 * to register Spring Integration beans in the application context at runtime.
+	 */
 	public static class TestApplicationContext extends GenericApplicationContext {
 
 		TestApplicationContext() {
@@ -150,6 +184,14 @@ public abstract class TestUtils {
 			TestUtils.registerBean(channelName, channel, this);
 		}
 
+		public void registerEndpoint(String endpointName, Object endpoint) {
+			TestUtils.registerBean(endpointName, endpoint, this);
+		}
+
+		public void registerBean(String beanName, Object bean) {
+			TestUtils.registerBean(beanName, bean, this);
+		}
+
 		private String getComponentNameIfNamed(final MessageChannel channel) {
 			Set<Class<?>> interfaces = ClassUtils.getAllInterfacesAsSet(channel);
 			final AtomicReference<String> componentName = new AtomicReference<String>();
@@ -167,14 +209,6 @@ public abstract class TestUtils {
 				}
 			}
 			return componentName.get();
-		}
-
-		public void registerEndpoint(String endpointName, Object endpoint) {
-			TestUtils.registerBean(endpointName, endpoint, this);
-		}
-
-		public void registerBean(String beanName, Object bean) {
-			TestUtils.registerBean(beanName, bean, this);
 		}
 
 	}
