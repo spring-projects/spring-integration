@@ -16,27 +16,30 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link JsonPropertyAccessor}.
  *
  * @author Eric Bottard
  * @author Artem Bilan
+ * @author Paul Martin
  * @since 3.0
  */
 public class JsonPropertyAccessorTests {
@@ -79,8 +82,28 @@ public class JsonPropertyAccessorTests {
 
 	@Test
 	public void testArrayLookup() throws Exception {
-		Object json = mapper.readTree("[3, 4, 5]");
+		ArrayNode json = (ArrayNode) mapper.readTree("[3, 4, 5]");
 		// JsonNode actual = evaluate("1", json, JsonNode.class); // Does not work
+		// Have to wrap the root array because ArrayNode itself is not a container
+		Object actual = evaluate(JsonPropertyAccessor.wrap(json), "[1]", Object.class);
+		assertEquals("4", actual.toString());
+	}
+
+	@Test
+	public void testArrayNegativeIndex() throws Exception {
+		JsonNode json = mapper.readTree("{\"foo\":[3, 4, 5]}");
+		assertNull(evaluate(json, "foo[-1]", Object.class));
+	}
+
+	@Test(expected = SpelEvaluationException.class)
+	public void testArrayIndexOutOfBounds() throws Exception {
+		JsonNode json = mapper.readTree("{\"foo\":[3, 4, 5]}");
+		evaluate(json, "foo[3]", Object.class);
+	}
+
+	@Test
+	public void testArrayLookupWithStringIndex() throws Exception {
+		Object json = mapper.readTree("[3, 4, 5]");
 		// JsonNode actual = evaluate("'1'", json, JsonNode.class); // Does not work
 		Object actual = evaluate(json, "['1']", Object.class);
 		assertEquals("4", actual.toString());
@@ -88,11 +111,40 @@ public class JsonPropertyAccessorTests {
 
 	@Test
 	public void testNestedArrayConstruct() throws Exception {
+		ArrayNode json = (ArrayNode) mapper.readTree("[[3], [4, 5], []]");
+		// JsonNode actual = evaluate("1.1", json, JsonNode.class); // Does not work
+		Object actual = evaluate(JsonPropertyAccessor.wrap(json), "[1][1]", Object.class);
+		assertEquals("5", actual.toString());
+	}
+
+	@Test
+	public void testNestedArrayConstructWithStringIndex() throws Exception {
 		Object json = mapper.readTree("[[3], [4, 5], []]");
 		// JsonNode actual = evaluate("1.1", json, JsonNode.class); // Does not work
-		// JsonNode actual = evaluate("[1][1]", json, JsonNode.class); // Does not work
 		Object actual = evaluate(json, "['1']['1']", Object.class);
 		assertEquals("5", actual.toString());
+	}
+
+	@Test
+	public void testArrayResult() throws Exception {
+		Object json = mapper.readTree(
+				"{\"foo\": {\"bar\": [ { \"fizz\": 5, \"buzz\": 6 }, {\"fizz\": 7}, {\"fizz\": 8} ] } }");
+		// Filter the bar array to return only the fizz value of each element (to prove that SPeL considers bar
+		// an array/list)
+		List<?> actualArray = evaluate(json, "foo.bar.![fizz]", List.class);
+		assertEquals("Array size", 3, actualArray.size());
+		assertEquals("[0]", "5", evaluate(actualArray, "[0]", Object.class).toString());
+		assertEquals("[1]", "7", evaluate(actualArray, "[1]", Object.class).toString());
+		assertEquals("[2]", "8", evaluate(actualArray, "[2]", Object.class).toString());
+	}
+
+	@Test
+	public void testEmptyArrayResult() throws Exception {
+		Object json = mapper.readTree(
+				"{\"foo\": {\"bar\": [ { \"fizz\": 5, \"buzz\": 6 }, {\"fizz\": 7}, {\"fizz\": 8} ] } }");
+		// Filter bar objects so that none match
+		List<?> actualArray = evaluate(json, "foo.bar.?[fizz=='0']", List.class);
+		assertEquals(0, actualArray.size());
 	}
 
 	@Test
