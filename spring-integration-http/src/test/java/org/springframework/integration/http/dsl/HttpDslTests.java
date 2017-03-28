@@ -183,11 +183,8 @@ public class HttpDslTests {
 			return IntegrationFlows
 					.from(Http.inboundGateway("/service")
 							.requestMapping(r -> r.params("name")))
-					.handle(Http.<MultiValueMap<String, String>>outboundGateway(m ->
-									UriComponentsBuilder.fromPath("/service/internal")
-											.queryParams(m.getPayload())
-											.build()
-											.toUri())
+					.handle(Http.<MultiValueMap<String, String>>outboundGateway("/service/internal?{params}")
+									.uriVariable("params", "payload")
 									.expectedResponseType(String.class),
 							e -> e.id("serviceInternalGateway"))
 					.get();
