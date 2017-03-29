@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ public class ExponentialMovingAverageRate {
 		this.count++; //NOSONAR - false positive, we're synchronized
 	}
 
-	private Statistics calc() {
+	private Statistics calcStatic() {
 		List<Long> copy;
 		long count;
 		synchronized (this) {
@@ -197,6 +197,15 @@ public class ExponentialMovingAverageRate {
 	 * @return the mean value
 	 */
 	public double getMean() {
+		return recalcMean(calcStatic());
+	}
+
+	/**
+	 * Decay the mean using the current time.
+	 * @param staticStats the static statistics.
+	 * @return the new mean.
+	 */
+	private double recalcMean(Statistics staticStats) {
 		long count = this.count;
 		count = count > this.retention ? this.retention : count;
 		if (count == 0) {
@@ -205,7 +214,7 @@ public class ExponentialMovingAverageRate {
 		double t0 = lastTime();
 		double t = System.nanoTime() / this.factor;
 		double value = t > t0 ? (t - t0) / this.period : 0;
-		return count / (count / calc().getMean() + value);
+		return count / (count / staticStats.getMean() + value);
 	}
 
 	private synchronized double lastTime() {
@@ -221,14 +230,14 @@ public class ExponentialMovingAverageRate {
 	 * @return the approximate standard deviation
 	 */
 	public double getStandardDeviation() {
-		return calc().getStandardDeviation();
+		return calcStatic().getStandardDeviation();
 	}
 
 	/**
 	 * @return the maximum value recorded (not weighted)
 	 */
 	public double getMax() {
-		double min = calc().getMin();
+		double min = calcStatic().getMin();
 		return min > 0 ? 1 / min : 0;
 	}
 
@@ -236,7 +245,7 @@ public class ExponentialMovingAverageRate {
 	 * @return the minimum value recorded (not weighted)
 	 */
 	public double getMin() {
-		double max = calc().getMax();
+		double max = calcStatic().getMax();
 		return max > 0 ? 1 / max : 0;
 	}
 
@@ -244,7 +253,9 @@ public class ExponentialMovingAverageRate {
 	 * @return summary statistics (count, mean, standard deviation etc.)
 	 */
 	public Statistics getStatistics() {
-		return calc();
+		Statistics staticStats = calcStatic();
+		staticStats.setMean(recalcMean(staticStats));
+		return staticStats;
 	}
 
 	@Override
