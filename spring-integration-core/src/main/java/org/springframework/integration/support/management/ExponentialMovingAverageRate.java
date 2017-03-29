@@ -1,14 +1,17 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2017 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.springframework.integration.support.management;
@@ -17,7 +20,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-
 
 
 /**
@@ -63,7 +65,6 @@ public class ExponentialMovingAverageRate {
 	private final double factor;
 
 
-
 	/**
 	 * @param period the period to base the rate measurement (in seconds)
 	 * @param lapsePeriod the exponential lapse rate for the rate average (in seconds)
@@ -95,7 +96,7 @@ public class ExponentialMovingAverageRate {
 		this.max = 0;
 		this.count = 0;
 		this.times.clear();
-		t0 = System.nanoTime() / this.factor;
+		this.t0 = System.nanoTime() / this.factor;
 	}
 
 	/**
@@ -114,17 +115,17 @@ public class ExponentialMovingAverageRate {
 			this.times.poll();
 		}
 		this.times.add(t);
-		this.count++;//NOSONAR - false positive, we're synchronized
+		this.count++; //NOSONAR - false positive, we're synchronized
 	}
 
-	private Statistics calc() {
+	private Statistics calcStatic() {
 		List<Long> copy;
 		long count;
 		synchronized (this) {
 			copy = new ArrayList<Long>(this.times);
 			count = this.count;
 		}
-		ExponentialMovingAverage rates = new ExponentialMovingAverage(window);
+		ExponentialMovingAverage rates = new ExponentialMovingAverage(this.window);
 		double t0 = 0;
 		double sum = 0;
 		double weight = 0;
@@ -141,14 +142,14 @@ public class ExponentialMovingAverageRate {
 				continue;
 			}
 			double delta = t - t0;
-			double value = delta > 0 ? delta / period : 0;
+			double value = delta > 0 ? delta / this.period : 0;
 			if (value > max) {
 				max = value;
 			}
 			if (value < min) {
 				min = value;
 			}
-			double alpha = Math.exp(-delta * lapse);
+			double alpha = Math.exp(-delta * this.lapse);
 			t0 = t;
 			sum = alpha * sum + value;
 			weight = alpha * weight + 1;
@@ -185,6 +186,9 @@ public class ExponentialMovingAverageRate {
 	 * @return the time in milliseconds since the last measurement
 	 */
 	public double getTimeSinceLastMeasurement() {
+		if (this.count == 0) {
+			return 0;
+		}
 		double t0 = lastTime();
 		return (System.nanoTime() / this.factor - t0);
 	}
@@ -193,6 +197,15 @@ public class ExponentialMovingAverageRate {
 	 * @return the mean value
 	 */
 	public double getMean() {
+		return recalcMean(calcStatic());
+	}
+
+	/**
+	 * Decay the mean using the current time.
+	 * @param staticStats the static statistics.
+	 * @return the new mean.
+	 */
+	private double recalcMean(Statistics staticStats) {
 		long count = this.count;
 		count = count > this.retention ? this.retention : count;
 		if (count == 0) {
@@ -200,8 +213,8 @@ public class ExponentialMovingAverageRate {
 		}
 		double t0 = lastTime();
 		double t = System.nanoTime() / this.factor;
-		double value = t > t0 ? (t - t0) / period : 0;
-		return count / (count / calc().getMean() + value);
+		double value = t > t0 ? (t - t0) / this.period : 0;
+		return count / (count / staticStats.getMean() + value);
 	}
 
 	private synchronized double lastTime() {
@@ -209,7 +222,7 @@ public class ExponentialMovingAverageRate {
 			return this.times.peekLast() / this.factor;
 		}
 		else {
-			 return this.t0;
+			return this.t0;
 		}
 	}
 
@@ -217,14 +230,14 @@ public class ExponentialMovingAverageRate {
 	 * @return the approximate standard deviation
 	 */
 	public double getStandardDeviation() {
-		return calc().getStandardDeviation();
+		return calcStatic().getStandardDeviation();
 	}
 
 	/**
 	 * @return the maximum value recorded (not weighted)
 	 */
 	public double getMax() {
-		double min = calc().getMin();
+		double min = calcStatic().getMin();
 		return min > 0 ? 1 / min : 0;
 	}
 
@@ -232,7 +245,7 @@ public class ExponentialMovingAverageRate {
 	 * @return the minimum value recorded (not weighted)
 	 */
 	public double getMin() {
-		double max = calc().getMax();
+		double max = calcStatic().getMax();
 		return max > 0 ? 1 / max : 0;
 	}
 
@@ -240,7 +253,9 @@ public class ExponentialMovingAverageRate {
 	 * @return summary statistics (count, mean, standard deviation etc.)
 	 */
 	public Statistics getStatistics() {
-		return calc();
+		Statistics staticStats = calcStatic();
+		staticStats.setMean(recalcMean(staticStats));
+		return staticStats;
 	}
 
 	@Override

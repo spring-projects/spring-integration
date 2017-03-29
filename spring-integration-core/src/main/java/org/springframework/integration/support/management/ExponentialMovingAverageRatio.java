@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -134,7 +134,7 @@ public class ExponentialMovingAverageRatio {
 		this.count++;//NOSONAR - false positive, we're synchronized
 	}
 
-	private Statistics calc() {
+	private Statistics calcStatic() {
 		List<Long> copyTimes;
 		List<Integer> copyValues;
 		long count;
@@ -216,7 +216,15 @@ public class ExponentialMovingAverageRatio {
 			// Optimistic to start: success rate is 100%
 			return 1;
 		}
-		Statistics statistics = calc();
+		return decayMean(calcStatic());
+	}
+
+	/**
+	 * Decay the mean using the current time.
+	 * @param staticStats the static statistics.
+	 * @return the new mean.
+	 */
+	private double decayMean(Statistics statistics) {
 		double t = System.nanoTime() / this.factor;
 		double mean = statistics.getMean();
 		double alpha = Math.exp((lastTime() / this.factor - t) * this.lapse);
@@ -236,28 +244,30 @@ public class ExponentialMovingAverageRatio {
 	 * @return the approximate standard deviation of the success rate measurements
 	 */
 	public double getStandardDeviation() {
-		return calc().getStandardDeviation();
+		return calcStatic().getStandardDeviation();
 	}
 
 	/**
 	 * @return the maximum value recorded of the exponential weighted average (per measurement) success rate
 	 */
 	public double getMax() {
-		return calc().getMax();
+		return calcStatic().getMax();
 	}
 
 	/**
 	 * @return the minimum value recorded of the exponential weighted average (per measurement) success rate
 	 */
 	public double getMin() {
-		return calc().getMin();
+		return calcStatic().getMin();
 	}
 
 	/**
 	 * @return summary statistics (count, mean, standard deviation etc.)
 	 */
 	public Statistics getStatistics() {
-		return calc();
+		Statistics staticStats = calcStatic();
+		staticStats.setMean(decayMean(staticStats));
+		return staticStats;
 	}
 
 	@Override

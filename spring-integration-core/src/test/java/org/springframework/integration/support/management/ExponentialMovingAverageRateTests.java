@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -102,6 +102,7 @@ public class ExponentialMovingAverageRateTests {
 		Thread.sleep(20L);
 		history.increment();
 		double before = history.getMean();
+		Statistics statisticsBefore = history.getStatistics();
 		long elapsed = System.currentTimeMillis() - t0;
 		if (elapsed < 50L) {
 			assertTrue(before > 10);
@@ -109,6 +110,7 @@ public class ExponentialMovingAverageRateTests {
 			elapsed = System.currentTimeMillis() - t0;
 			if (elapsed < 80L) {
 				assertThat(history.getMean(), lessThan(before));
+				assertThat(history.getStatistics().getMean(), lessThan(statisticsBefore.getMean()));
 			}
 			else {
 				logger.warn("Test took too long to verify mean");
