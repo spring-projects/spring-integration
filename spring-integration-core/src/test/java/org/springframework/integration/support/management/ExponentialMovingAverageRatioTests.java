@@ -17,6 +17,7 @@
 package org.springframework.integration.support.management;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -96,6 +97,13 @@ public class ExponentialMovingAverageRatioTests {
 	public void testDecayedMean() throws Exception {
 		history.failure(System.nanoTime() - 200000000);
 		assertEquals(average(0, Math.exp(-0.4)), history.getMean(), 0.01);
+		history.success();
+		history.failure();
+		double mean = history.getMean();
+		Statistics statistics = history.getStatistics();
+		Thread.sleep(50);
+		assertThat(history.getMean(), greaterThan(mean));
+		assertThat(history.getStatistics().getMean(), greaterThan(statistics.getMean()));
 	}
 
 	@Test
