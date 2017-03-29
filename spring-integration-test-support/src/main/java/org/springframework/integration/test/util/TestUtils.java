@@ -57,7 +57,7 @@ import org.springframework.util.StringUtils;
 public abstract class TestUtils {
 
 	/**
-	 * Obtain a value for the propty from the provide object.
+	 * Obtain a value for the property from the provide object.
 	 * Supports nested properties via period delimiter.
 	 * @param root the object to obtain the property value
 	 * @param propertyPath the property name to obtain a value.
@@ -86,7 +86,8 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Obtain a value for the propty from the provide object and try to cast it to the provided type.
+	 * Obtain a value for the property from the provide object
+	 * and try to cast it to the provided type.
 	 * Supports nested properties via period delimiter.
 	 * @param root the object to obtain the property value
 	 * @param propertyPath the property name to obtain a value.
@@ -107,7 +108,7 @@ public abstract class TestUtils {
 
 	/**
 	 * Create a {@link TestApplicationContext} instance
-	 * supplied with the besic Spring Integration infrastructure.
+	 * supplied with the basic Spring Integration infrastructure.
 	 * @return the {@link TestApplicationContext} instance
 	 */
 	public static TestApplicationContext createTestApplicationContext() {
