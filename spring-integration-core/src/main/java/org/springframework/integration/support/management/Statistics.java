@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.support.management;
 
 /**
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public class Statistics {
@@ -28,7 +29,7 @@ public class Statistics {
 
 	private final double max;
 
-	private final double mean;
+	private double mean;
 
 	private final double standardDeviation;
 
@@ -60,6 +61,10 @@ public class Statistics {
 
 	public double getMean() {
 		return this.mean;
+	}
+
+	public void setMean(double mean) {
+		this.mean = mean;
 	}
 
 	public double getStandardDeviation() {
