@@ -10,8 +10,7 @@ the HTTP support consists of the following gateway implementations: `HttpInbound
 [[http-inbound]]
 === Http Inbound Components
 
-To receive messages over HTTP, you need to use an _HTTP Inbound
-		Channel Adapter_ or _Gateway_.
+To receive messages over HTTP, you need to use an _HTTP Inbound Channel Adapter_ or _Gateway_.
 To support the _HTTP Inbound Adapters_, they need to be deployed within a servlet container such as http://tomcat.apache.org/[Apache Tomcat] or http://www.eclipse.org/jetty/[Jetty].
 The easiest way to do this is to use Spring's
 http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/context/support/HttpRequestHandlerServlet.html[HttpRequestHandlerServlet],
@@ -468,8 +467,8 @@ Note, all these values (and others) can be accessed within expressions in the do
 [source,xml]
 ----
 <int-:transformer
-	expression="T(org.springframework.web.context.request.RequestContextHolder).
-	              requestAttributes.request.queryString"/>
+    expression="T(org.springframework.web.context.request.RequestContextHolder).
+                  requestAttributes.request.queryString"/>
 
 ----
 
@@ -559,7 +558,7 @@ If you want to execute the http request in an asynchronous way, you can use the 
     async-request-factory="requestFactory"
     reply-timeout="1234"
     reply-channel="replies"/>
-    
+
 <int-http:outbound-async-channel-adapter id="asyncExample2"
     url="http://localhost/example"
     http-method="GET"
@@ -570,7 +569,7 @@ If you want to execute the http request in an asynchronous way, you can use the 
     async-request-factory="someRequestFactory"
     order="3"
     auto-startup="false"/>
-    
+
 ----
 
 [NOTE]
@@ -622,18 +621,18 @@ where `uriVariablesBean` might be:
 [source,java]
 ----
 public class UriVariablesBean {
-	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+    private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
-	public Map<String, ?> populate(Object payload) {
-		Map<String, Object> variables = new HashMap<String, Object>();
-		if (payload instanceOf String.class)) {
-			variables.put("foo", "foo"));
-		}
-		else {
-			variables.put("foo", EXPRESSION_PARSER.parseExpression("headers.bar"));
-		}
-		return variables;
-	}
+    public Map<String, ?> populate(Object payload) {
+        Map<String, Object> variables = new HashMap<String, Object>();
+        if (payload instanceOf String.class)) {
+            variables.put("foo", "foo"));
+        }
+        else {
+            variables.put("foo", EXPRESSION_PARSER.parseExpression("headers.bar"));
+        }
+        return variables;
+    }
 
 }
 ----
@@ -658,6 +657,71 @@ If you wish to partially encode some of the URL, this can be achieved using an `
             expression="T(org.apache.commons.httpclient.util.URIUtil)
                                              .encodeWithinQuery('Hello World!')"/>
 </http:outbound-gateway>
+----
+
+[[http-java-config]]
+=== Configuring HTTP Endpoints with Java
+
+.Inbound Gateway Using Java Configuration
+[source, java]
+----
+@Bean
+public HttpRequestHandlingMessagingGateway inbound() {
+    HttpRequestHandlingMessagingGateway gateway =
+        new HttpRequestHandlingMessagingGateway(true);
+    gateway.setRequestMapping(mapping());
+    gateway.setRequestPayloadType(String.class);
+    gateway.setRequestChannelName("httpRequest");
+    return gateway;
+}
+
+@Bean
+public RequestMapping mapping() {
+    RequestMapping requestMapping = new RequestMapping();
+    requestMapping.setPathPatterns("/foo");
+    requestMapping.setMethods(HttpMethod.POST);
+    return requestMapping;
+}
+----
+
+.Inbound Gateway Using the Java DSL
+[source, java]
+----
+@Bean
+public IntegrationFlow inbound() {
+    return IntegrationFlows.from(Http.inboundGateway("/foo")
+            .requestMapping(m -> m.methods(HttpMethod.POST))
+            .requestPayloadType(String.class))
+        .channel("httpRequest")
+        .get();
+}
+----
+
+.Outbound Gateway Using Java Configuration
+[source, java]
+----
+@ServiceActivator(inputChannel = "httpOutRequest")
+@Bean
+public HttpRequestExecutingMessageHandler outbound() {
+    HttpRequestExecutingMessageHandler handler =
+        new HttpRequestExecutingMessageHandler("http://localhost:8080/foo");
+    handler.setHttpMethod(HttpMethod.POST);
+    handler.setExpectedResponseType(String.class);
+    return handler;
+}
+----
+
+.Outbound Gateway Using the Java DSL
+[source, java]
+----
+@Bean
+public IntegrationFlow outbound() {
+    return IntegrationFlows.from("httpOutRequest")
+        .handle(Http.outboundGateway("http://localhost:8080/foo")
+            .httpMethod(HttpMethod.POST)
+            .expectedResponseType(String.class))
+        .get();
+}
 ----
 
 [[http-timeout]]
