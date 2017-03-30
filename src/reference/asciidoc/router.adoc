@@ -1045,8 +1045,8 @@ public IntegrationFlow routerFlow() {
     return IntegrationFlows.from("routingChannel")
         .route("payload.paymentType", r -> r
             .channelMapping("CASH", "cashPaymentChannel")
-            .channelMapping("CASH", "authorizePaymentChannel")
-            .channelMapping("CASH", "authorizePaymentChannel"))
+            .channelMapping("CREDIT", "authorizePaymentChannel")
+            .channelMapping("DEBIT", "authorizePaymentChannel"))
         .get();
 }
 ----

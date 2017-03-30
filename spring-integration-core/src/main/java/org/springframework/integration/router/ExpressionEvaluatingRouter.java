@@ -30,14 +30,21 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  */
 public class ExpressionEvaluatingRouter extends AbstractMessageProcessingRouter {
 
+	/**
+	 * Construct an instance by parsing the supplied expression string.
+	 * @param expressionString the expression string.
+	 */
+	public ExpressionEvaluatingRouter(String expressionString) {
+		this(EXPRESSION_PARSER.parseExpression(expressionString));
+	}
+
+	/**
+	 * Construct an instance with the supplied {@link Expression}.
+	 * @param expression the expression.
+	 */
 	public ExpressionEvaluatingRouter(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<Object>(expression));
 		setPrimaryExpression(expression);
-	}
-
-	public ExpressionEvaluatingRouter(String expressionString) {
-		super(new ExpressionEvaluatingMessageProcessor<Object>(EXPRESSION_PARSER.parseExpression(expressionString)));
-		setPrimaryExpression(getExpression());
 	}
 
 }
