@@ -805,7 +805,8 @@ public IntegrationFlow routerFlow() {
                     .ignoreSendFailures(true)
                     .recipient("channel1")
                     .recipient("channel2")
-                    .recipient("channel3"), c -> c.sendTimeout(1_234L))
+                    .recipient("channel3")
+                    .sendTimeout(1_234L))
             .get();
 }
 ----
@@ -867,7 +868,7 @@ In this case the behaviour of `RecipientListRouter` is the same, when there is n
 ===== XPath Router
 
 The XPath Router is part of the XML Module.
-As such, please read chapter _<<xml-xpath-routing>>_
+See _<<xml-xpath-routing>>_.
 
 [[router-implementations-exception-router]]
 ===== Routing and Error handling
@@ -900,7 +901,7 @@ Below is a sample configuration for `ErrorMessageExceptionTypeRouter`.
 ----
 
 [[router-namespace]]
-==== Configuring (Generic) Router
+==== Configuring a Generic Router
 
 ===== Configuring a Content Based Router with XML
 
@@ -947,6 +948,58 @@ In this case, each "ref" must be to a separate bean instance (or a `prototype`-s
 However, this optimization only applies if you don't provide any router-specific attributes in the router XML definition.
 If you inadvertently reference the same message handler from multiple beans, you will get a configuration exception.
 
+The equivalent router, using Java Configuration:
+
+[source, java]
+----
+@Bean
+@Router(inputChannel = "routingChannel")
+public AbstractMessageRouter myCustomRouter() {
+    return new AbstractMessageRouter() {
+
+        @Override
+        protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+            return // determine channel(s) for message
+        }
+
+    };
+}
+----
+
+The equivalent router, using the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlows.from("routingChannel")
+            .route(myCustomRouter())
+            .get();
+}
+
+public AbstractMessageRouter myCustomRouter() {
+    return new AbstractMessageRouter() {
+
+        @Override
+        protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+            return // determine channel(s) for message
+        }
+
+    };
+}
+----
+
+or, if you can route on just some message payload data:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlows.from("routingChannel")
+            .route(String.class, p -> p.contains("foo") ? "fooChannel" : "barChannel")
+            .get();
+}
+----
 
 _Routers and the Spring Expression Language (SpEL)_
 
@@ -966,6 +1019,36 @@ Generally a SpEL expression is evaluated and the result is mapped to a channel:
     <int:mapping value="CREDIT" channel="authorizePaymentChannel"/>
     <int:mapping value="DEBIT" channel="authorizePaymentChannel"/>
 </int:router>
+----
+
+The equivalent router, using Java Configuration:
+
+[source, java]
+----
+@Router(inputChannel = "routingChannel")
+@Bean
+public ExpressionEvaluatingRouter router() {
+    ExpressionEvaluatingRouter router = new ExpressionEvaluatingRouter("payload.paymentType");
+    router.setChannelMapping("CASH", "cashPaymentChannel");
+    router.setChannelMapping("CREDIT", "authorizePaymentChannel");
+    router.setChannelMapping("DEBIT", "authorizePaymentChannel");
+    return router;
+}
+----
+
+The equivalent router, using the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow routerFlow() {
+    return IntegrationFlows.from("routingChannel")
+        .route("payload.paymentType", r -> r
+            .channelMapping("CASH", "cashPaymentChannel")
+            .channelMapping("CREDIT", "authorizePaymentChannel")
+            .channelMapping("DEBIT", "authorizePaymentChannel"))
+        .get();
+}
 ----
 
 To simplify things even more, the SpEL expression may evaluate to a channel name:

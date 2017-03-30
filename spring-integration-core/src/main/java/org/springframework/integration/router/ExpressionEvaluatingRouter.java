@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,18 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  */
 public class ExpressionEvaluatingRouter extends AbstractMessageProcessingRouter {
 
+	/**
+	 * Construct an instance by parsing the supplied expression string.
+	 * @param expressionString the expression string.
+	 */
+	public ExpressionEvaluatingRouter(String expressionString) {
+		this(EXPRESSION_PARSER.parseExpression(expressionString));
+	}
+
+	/**
+	 * Construct an instance with the supplied {@link Expression}.
+	 * @param expression the expression.
+	 */
 	public ExpressionEvaluatingRouter(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<Object>(expression));
 		setPrimaryExpression(expression);
