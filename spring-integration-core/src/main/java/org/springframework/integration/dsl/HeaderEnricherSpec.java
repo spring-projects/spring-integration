@@ -688,7 +688,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	/**
 	 * Add a {@link IntegrationMessageHeaderAccessor#ROUTING_SLIP} header.
 	 * The possible values are:
-	 * <p><ul>
+	 * <ul>
 	 * <li>A {@link org.springframework.messaging.MessageChannel} instance.
 	 * <li>A {@link org.springframework.messaging.MessageChannel} bean name.
 	 * <li>A {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy} instance.
@@ -696,7 +696,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * <li>A {@code String} for SpEL expression which has to be evaluated to the
 	 * {@link org.springframework.messaging.MessageChannel} or
 	 * {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy}.
-	 * </ul><p>
+	 * </ul>
 	 * If the header exists, it will <b>not</b> be overwritten unless {@link #defaultOverwrite(boolean)} is true.
 	 * @param routingSlipPath the header value for {@link IntegrationMessageHeaderAccessor#ROUTING_SLIP}.
 	 * @return the header enricher spec.
@@ -709,7 +709,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	/**
 	 * Add a {@link IntegrationMessageHeaderAccessor#ROUTING_SLIP} header.
 	 * The possible values are:
-	 * <p><ul>
+	 * <ul>
 	 * <li>A {@link org.springframework.messaging.MessageChannel} instance.
 	 * <li>A {@link org.springframework.messaging.MessageChannel} bean name.
 	 * <li>A {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy} instance.
@@ -717,7 +717,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * <li>A {@code String} for SpEL expression which has to be evaluated to the
 	 * {@link org.springframework.messaging.MessageChannel} or
 	 * {@link org.springframework.integration.routingslip.RoutingSlipRouteStrategy}.
-	 * </ul><p>
+	 * </ul>
 	 * @param overwrite true to overwrite an existing header.
 	 * @param routingSlipPath the header value for {@link IntegrationMessageHeaderAccessor#ROUTING_SLIP}.
 	 * @return the header enricher spec.

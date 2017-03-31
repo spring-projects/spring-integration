@@ -55,6 +55,7 @@ In addition to providing the general mechanism to apply AOP advice classes, Spri
 * `RequestHandlerCircuitBreakerAdvice` (described in <<circuit-breaker-advice>>)
 * `ExpressionEvaluatingRequestHandlerAdvice` (described in <<expression-advice>>)
 * `RateLimiterRequestHandlerAdvice` (described in <<rate-limiter-advice>>)
+* `CacheRequestHandlerAdvice` (described in <<cache-advice>>)
 
 [[retry-advice]]
 ===== Retry Advice
@@ -498,6 +499,56 @@ public String handleRequest(String payload) {
 ----
 ====
 
+[[cache-advice]]
+===== Caching Advice
+
+Starting with version 5.2, the `CacheRequestHandlerAdvice` has been introduced.
+It is based on the caching abstraction in https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#cache[Spring Framework] and aligned with the concepts and functionality provided by the `@Caching` annotation family.
+The logic internally is based on the `CacheAspectSupport` extension, where proxying for caching operations is done around the `AbstractReplyProducingMessageHandler.RequestHandler.handleRequestMessage` method with the request `Message<?>` as the argument.
+This advice can be configured with a SpEL expression or a `Function` to evaluate a cache key.
+The request `Message<?>` is available as the root object for the SpEL evaluation context, or as the `Function` input argument.
+By default, the `payload` of the request message is used for the cache key.
+The `CacheRequestHandlerAdvice` must be configured with `cacheNames`, when a default cache operation is a `CacheableOperation`, or with a set of any arbitrary `CacheOperation` s.
+Every `CacheOperation` can be configured separately or have shared options, like a `CacheManager`, `CacheResolver` and `CacheErrorHandler`, can be reused from the `CacheRequestHandlerAdvice` configuration.
+This configuration functionality is similar to Spring Framework's `@CacheConfig` and `@Caching` annotation combination.
+If a `CacheManager` is not provided, a single bean is resolved by default from the `BeanFactory` in the `CacheAspectSupport`.
+
+The following example configures two advices with different set of caching operations:
+====
+[source, java]
+----
+@Bean
+public CacheRequestHandlerAdvice cacheAdvice() {
+    CacheRequestHandlerAdvice cacheRequestHandlerAdvice = new CacheRequestHandlerAdvice(TEST_CACHE);
+    cacheRequestHandlerAdvice.setKeyExpressionString("payload");
+    return cacheRequestHandlerAdvice;
+}
+
+@Transformer(inputChannel = "transformerChannel", outputChannel = "nullChannel", adviceChain = "cacheAdvice")
+public Object transform(Message<?> message) {
+    ...
+}
+
+@Bean
+public CacheRequestHandlerAdvice cachePutAndEvictAdvice() {
+    CacheRequestHandlerAdvice cacheRequestHandlerAdvice = new CacheRequestHandlerAdvice();
+    cacheRequestHandlerAdvice.setKeyExpressionString("payload");
+    CachePutOperation.Builder cachePutBuilder = new CachePutOperation.Builder();
+    cachePutBuilder.setCacheName(TEST_PUT_CACHE);
+    CacheEvictOperation.Builder cacheEvictBuilder = new CacheEvictOperation.Builder();
+    cacheEvictBuilder.setCacheName(TEST_CACHE);
+    cacheRequestHandlerAdvice.setCacheOperations(cachePutBuilder.build(), cacheEvictBuilder.build());
+    return cacheRequestHandlerAdvice;
+}
+
+@ServiceActivator(inputChannel = "serviceChannel", outputChannel = "nullChannel",
+    adviceChain = "cachePutAndEvictAdvice")
+public Message<?> service(Message<?> message) {
+    ...
+}
+----
+====
+
 [[custom-advice]]
 ==== Custom Advice Classes
 
@@ -505,7 +556,7 @@ In addition to the provided advice classes <<advice-classes,described earlier>>,
 While you can provide any implementation of `org.aopalliance.aop.Advice` (usually `org.aopalliance.intercept.MethodInterceptor`), we generally recommend that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
 This has the benefit of avoiding the writing of low-level aspect-oriented programming code as well as providing a starting point that is specifically tailored for use in this environment.
 
-Subclasses need to implement the `doInvoke()`` method, the definition of which follows:
+Subclasses need to implement the `doInvoke()` method, the definition of which follows:
 
 ====
 [source,java]
@@ -737,8 +788,7 @@ On the other hand, if you want all the attempts and any recovery operations (in 
 Sometimes, it is useful to access handler properties from within the advice.
 For example, most handlers implement `NamedComponent` to let you access the component name.
 
-The target object can be accessed through the `target` argument (when subclassing `AbstractRequestHandlerAdvice`) or
-`invocation.getThis()` (when implementing `org.aopalliance.intercept.MethodInterceptor`).
+The target object can be accessed through the `target` argument (when subclassing `AbstractRequestHandlerAdvice`) or `invocation.getThis()` (when implementing `org.aopalliance.intercept.MethodInterceptor`).
 
 When the entire handler is advised (such as when the handler does not produce replies or the advice implements `HandleMessageAdvice`), you can cast the target object to an interface, such as `NamedComponent`, as shown in the following example:
 
@@ -758,8 +808,7 @@ String componentName = ((NamedComponent) invocation.getThis()).getComponentName(
 ----
 ====
 
-When only the `handleRequestMessage()` method is advised (in a reply-producing handler), you need to access the
-full handler, which is an `AbstractReplyProducingMessageHandler`.
+When only the `handleRequestMessage()` method is advised (in a reply-producing handler), you need to access the full handler, which is an `AbstractReplyProducingMessageHandler`.
 The following example shows how to do so:
 
 ====
@@ -892,9 +941,8 @@ public IntegrationFlow flow() {
     ...
 }
 ----
+====
 
 NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method.
 Starting with version 4.3.1, it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
 See <<handle-message-advice>> for more information.
-
-====
