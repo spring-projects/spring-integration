@@ -764,3 +764,5 @@ Locks are normally held for a much smaller time.
 IMPORTANT: Because the keys can expire, an attempt to unlock an expired lock will result in an exception being thrown.
 However, be aware that the resources protected by such a lock may have been compromised so such exceptions should be considered severe.
 The expiry should be set at a large enough value to prevent this condition, while small enough that the lock can be recovered after a server failure in a reasonable amount of time.
+
+Starting with _version 5.0_, the `RedisLockRegistry` implements `ExpirableLockRegistry` providing functionality to remove locks last acquired more than `age` ago that are not currently locked.
