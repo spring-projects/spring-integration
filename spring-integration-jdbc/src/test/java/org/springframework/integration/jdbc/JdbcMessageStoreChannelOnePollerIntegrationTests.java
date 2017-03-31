@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 				boolean result1 = relay.send(new GenericMessage<String>("foo"), 500L);
 				// This will time out because the transaction has not committed yet
 				try {
-					Service.await(1000);
+					Service.await(10000);
 					fail("Expected timeout");
 				}
 				catch (Exception e) {
@@ -112,7 +112,7 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
 		assertTrue("Timed out waiting for receive", stopWatch.getTotalTimeMillis() < 10000);
 
-		Service.await(1000);
+		Service.await(10000);
 		// Eventual activation
 		assertEquals(1, Service.messages.size());
 

@@ -75,7 +75,7 @@ Here is an overview of all available configuration parameters of the `xpath-expr
 </int-xml:xpath-expression>
 ----
 
-<1> Defines an XPath xpression.
+<1> Defines an XPath expression.
 _Required_.
 
 
@@ -89,12 +89,12 @@ It is not valid to specify both this attribute and the `map` sub element, or set
 _Optional_.
 
 
-<4> Allows you to set the namspace prefix directly as and attribute on the XPath expression element.
+<4> Allows you to set the namespace prefix directly as and attribute on the XPath expression element.
 If you set `ns-prefix`, you must also set the `ns-uri` attribute.
 _Optional_.
 
 
-<5> Allows you to set the namspace URI directly as an attribute on the XPath expression element.
+<5> Allows you to set the namespace URI directly as an attribute on the XPath expression element.
 If you set `ns-uri`, you must also set the `ns-prefix` attribute.
 _Optional_.
 
