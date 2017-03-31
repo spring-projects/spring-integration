@@ -22,6 +22,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -118,10 +119,18 @@ public abstract class AbstractMessageProcessingTransformer
 			return (Message<?>) result;
 		}
 
+		AbstractIntegrationMessageBuilder<?> messageBuilder;
+
+		if (result instanceof AbstractIntegrationMessageBuilder<?>) {
+			messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
+		}
+		else {
+			messageBuilder = getMessageBuilderFactory().withPayload(result);
+		}
+
 		MessageHeaders requestHeaders = message.getHeaders();
 
-		return getMessageBuilderFactory()
-				.withPayload(result)
+		return messageBuilder
 				.filterAndCopyHeadersIfAbsent(requestHeaders,
 						this.selectiveHeaderPropagation ? this.notPropagatedHeaders : null)
 				.build();
