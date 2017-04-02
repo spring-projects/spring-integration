@@ -76,7 +76,7 @@ public class AsyncAmqpOutboundGateway extends AbstractAmqpOutboundEndpoint {
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage,
-				this.messageConverter, getHeaderMapper(), getDefaultDeliveryMode());
+				this.messageConverter, getHeaderMapper(), getDefaultDeliveryMode(), isHeadersMappedLast());
 		addDelayProperty(requestMessage, amqpMessage);
 		RabbitMessageFuture future = this.template.sendAndReceive(generateExchangeName(requestMessage),
 				generateRoutingKey(requestMessage), amqpMessage);

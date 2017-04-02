@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,6 +138,8 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	private volatile AmqpHeaderMapper outboundHeaderMapper = DefaultAmqpHeaderMapper.outboundMapper();
 
 	private volatile AmqpHeaderMapper inboundHeaderMapper = DefaultAmqpHeaderMapper.inboundMapper();
+
+	private boolean headersLast;
 
 	public AmqpChannelFactoryBean() {
 		this(true);
@@ -341,6 +343,10 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		this.inboundHeaderMapper = inboundMapper;
 	}
 
+	public void setHeadersLast(boolean headersLast) {
+		this.headersLast = headersLast;
+	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return (this.channel != null) ? this.channel.getClass() : AbstractAmqpChannel.class;
@@ -401,6 +407,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		if (this.extractPayload != null) {
 			this.channel.setExtractPayload(this.extractPayload);
 		}
+		this.channel.setHeadersMappedLast(this.headersLast);
 		this.channel.afterPropertiesSet();
 		return this.channel;
 	}

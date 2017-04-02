@@ -193,6 +193,16 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 		return _this();
 	}
 
+	/**
+	 * @param headersLast true to map headers last.
+	 * @return the spec.
+	 * @see AbstractAmqpChannel#setHeadersMappedLast(boolean)
+	 */
+	public S headersMappedLast(boolean headersLast) {
+		this.target.setHeadersMappedLast(headersLast);
+		return _this();
+	}
+
 	@Override
 	protected AbstractAmqpChannel doGet() {
 		Assert.notNull(getId(), "The 'id' or 'queueName' must be specified");

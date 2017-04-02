@@ -101,14 +101,15 @@ public class AmqpOutboundGatewayParserTests {
 	public void withHeaderMapperCustomRequestResponse() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
-		Object eventDrivernConsumer = context.getBean("withHeaderMapperCustomRequestResponse");
+		Object eventDrivenConsumer = context.getBean("withHeaderMapperCustomRequestResponse");
 
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivernConsumer, "handler",
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
 				AmqpOutboundEndpoint.class);
 		assertNotNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
 		assertFalse(TestUtils.getPropertyValue(endpoint, "lazyConnect", Boolean.class));
 
 		assertFalse(TestUtils.getPropertyValue(endpoint, "requiresReply", Boolean.class));
+		assertTrue(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class));
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -170,11 +171,12 @@ public class AmqpOutboundGatewayParserTests {
 	public void withHeaderMapperCustomAndStandardResponse() {
 		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(
 				"AmqpOutboundGatewayParserTests-context.xml", this.getClass());
-		Object eventDrivernConsumer = context.getBean("withHeaderMapperCustomAndStandardResponse");
+		Object eventDrivenConsumer = context.getBean("withHeaderMapperCustomAndStandardResponse");
 
-		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivernConsumer, "handler",
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivenConsumer, "handler",
 				AmqpOutboundEndpoint.class);
 		assertNull(TestUtils.getPropertyValue(endpoint, "defaultDeliveryMode"));
+		assertFalse(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class));
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);

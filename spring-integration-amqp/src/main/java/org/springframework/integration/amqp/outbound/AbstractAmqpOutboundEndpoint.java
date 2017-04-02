@@ -84,11 +84,31 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private volatile ExpressionEvaluatingMessageProcessor<Integer> delayGenerator;
 
+	private boolean headersMappedLast;
+
 	private volatile boolean running;
 
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
+	}
+
+	/**
+	 * When mapping headers for the outbound message, determine whether the headers are
+	 * mapped before the message is converted, or afterwards. This only affects headers
+	 * that might be added by the message converter. When false, the converter's headers
+	 * win; when true, any headers added by the converter will be overridden (if the
+	 * source message has a header that maps to those headers). You might wish to set this
+	 * to true, for example, when using a
+	 * {@link org.springframework.amqp.support.converter.SimpleMessageConverter} with a
+	 * String payload that contains json; the converter will set the content type to
+	 * {@code text/plain} which can be overridden to {@code application/json} by setting
+	 * the {@link AmqpHeaders#CONTENT_TYPE} message header. Default: false.
+	 * @param headersMappedLast
+	 * @since 5.0
+	 */
+	public void setHeadersMappedLast(boolean headersMappedLast) {
+		this.headersMappedLast = headersMappedLast;
 	}
 
 	public void setExchangeName(String exchangeName) {
@@ -291,6 +311,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	protected boolean isLazyConnect() {
 		return this.lazyConnect;
+	}
+
+	protected boolean isHeadersMappedLast() {
+		return this.headersMappedLast;
 	}
 
 	@Override

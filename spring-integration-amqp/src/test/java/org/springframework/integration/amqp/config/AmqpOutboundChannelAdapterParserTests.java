@@ -128,6 +128,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertEquals("42",
 				TestUtils.getPropertyValue(endpoint, "delayExpression", org.springframework.expression.Expression.class)
 						.getExpressionString());
+		assertFalse(TestUtils.getPropertyValue(endpoint, "headersMappedLast", Boolean.class));
 
 		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
 		amqpTemplateField.setAccessible(true);
@@ -297,6 +298,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		AmqpHeaderMapper headerMapper = TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper,
 				"headerMapper", AmqpHeaderMapper.class);
 		assertSame(this.context.getBean("customHeaderMapper"), headerMapper);
+		assertTrue(TestUtils.getPropertyValue(this.amqpMessageHandlerWithCustomHeaderMapper,
+				"headersMappedLast", Boolean.class));
 	}
 
 	@Test

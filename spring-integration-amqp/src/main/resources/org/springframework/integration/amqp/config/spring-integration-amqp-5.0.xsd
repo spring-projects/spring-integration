@@ -364,6 +364,7 @@
 	Set to 'true' to extract the message payload and map the o.s.messaging.Message to an o.s.amqp.core.Message in
 	a similar manner to a pair of channel adapters. When 'false' the entire message is converted requiring either
 	Java serializable contents or a custom message converter. Also see inbound and outbound mapped headers.
+	Also see 'headers-last', which only applies if this is 'true'.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -384,7 +385,8 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="containerAndTemplateAttributes"/>
-		<xsd:attributeGroup ref="integration:subscribersAttributeGroup" />
+		<xsd:attributeGroup ref="integration:subscribersAttributeGroup"/>
+		<xsd:attributeGroup ref="headersLast"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="outboundType">
@@ -557,6 +559,7 @@ property set to TRUE.
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+		<xsd:attributeGroup ref="headersLast"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="outboundGatewayType">
@@ -1012,6 +1015,21 @@ standard headers to also be mapped. To map all non-standard headers the 'NON_STA
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="headersLast">
+		<xsd:attribute name="headers-last">
+			<xsd:annotation>
+				<xsd:documentation>
+					Whether headers are mapped before or after conversion from a messaging Message to
+					a spring amqp Message. Set to true, for example, if you wish to override the
+					contentType header set by the converter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:simpleType name="ackModeEnumeration">

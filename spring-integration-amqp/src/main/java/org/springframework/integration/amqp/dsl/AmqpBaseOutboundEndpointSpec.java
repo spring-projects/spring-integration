@@ -128,4 +128,14 @@ public abstract class
 		return _this();
 	}
 
+	/**
+	 * @param headersLast true to map headers last.
+	 * @return the spec.
+	 * @see AbstractAmqpOutboundEndpoint#setHeadersMappedLast(boolean)
+	 */
+	public S headersMappedLast(boolean headersLast) {
+		this.target.setHeadersMappedLast(headersLast);
+		return _this();
+	}
+
 }
