@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.amqp.channel;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
@@ -45,6 +46,8 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 	private volatile boolean loggingEnabled = true;
 
 	private MessageDeliveryMode defaultDeliveryMode;
+
+	private boolean headersMappedLast;
 
 	/**
 	 * Construct an instance with the supplied template and default header mappers
@@ -124,6 +127,26 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 	}
 
 	/**
+	 * When mapping headers for the outbound message, determine whether the headers are
+	 * mapped before the message is converted, or afterwards. This only affects headers
+	 * that might be added by the message converter. When false, the converter's headers
+	 * win; when true, any headers added by the converter will be overridden (if the
+	 * source message has a header that maps to those headers). You might wish to set this
+	 * to true, for example, when using a
+	 * {@link org.springframework.amqp.support.converter.SimpleMessageConverter} with a
+	 * String payload that contains json; the converter will set the content type to
+	 * {@code text/plain} which can be overridden to {@code application/json} by setting
+	 * the {@link AmqpHeaders#CONTENT_TYPE} message header.
+	 * Only applies when {@link #setExtractPayload(boolean) extractPayload} is true.
+	 * Default: false.
+	 * @param headersMappedLast true if headers are mapped after conversion.
+	 * @since 5.0
+	 */
+	public void setHeadersMappedLast(boolean headersMappedLast) {
+		this.headersMappedLast = headersMappedLast;
+	}
+
+	/**
 	 * Subclasses may override this method to return an Exchange name.
 	 * By default, Messages will be sent to the no-name Direct Exchange.
 	 *
@@ -159,7 +182,8 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (this.extractPayload) {
 			this.amqpTemplate.send(getExchangeName(), getRoutingKey(), MappingUtils.mapMessage(message,
-					this.rabbitTemplate.getMessageConverter(), this.outboundHeaderMapper, this.defaultDeliveryMode));
+					this.rabbitTemplate.getMessageConverter(), this.outboundHeaderMapper, this.defaultDeliveryMode,
+					this.headersMappedLast));
 		}
 		else {
 			this.amqpTemplate.convertAndSend(getExchangeName(), getRoutingKey(), message);

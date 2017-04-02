@@ -1140,6 +1140,22 @@ JSON converter to be selected.
 
 This applies to both the outbound channel adapter and gateway.
 
+NOTE
+====
+Starting with _version 5.0_, headers that are added to the `MessageProperties` of the outbound message are never overwritten by mapped headers (by default).
+Previously, this was only the case if the message converter was a `ContentTypeDelegatingMessageConverter` (in that case, the header was mapped first, so that the proper converter could be selected).
+For other converters, such as the `SimpleMessageConverter`, mapped headers overwrote any headers added by the converter.
+This caused problems when an outbound message had some left over `contentType` header (perhaps from an inbound channel adapter) and the correct outbound `contentType` was incorrectly overwritten.
+The work-around was to use a header filter to remove the header before sending the message to the outbound endpoint.
+
+There are, however, cases where the previous behavior is desired.
+For example, with a `String` payload containing JSON, the `SimpleMessageConverter` is not aware of the content and sets the `contentType` message property to `text/plain`, but your application would like to override that to `application/json` by setting the the `contentType` header of the message sent to the outbound endpoint.
+The `ObjectToJsonTransformer` does exactly that (by default).
+
+There is now a property on the outbound channel adapter and gateway (as well as AMQP-backed channels) `headersMappedLast`.
+Setting this to `true` will restore the behavior of overwriting the property added by the converter.
+====
+
 [[amqp-user-id]]
 === Outbound User Id
 

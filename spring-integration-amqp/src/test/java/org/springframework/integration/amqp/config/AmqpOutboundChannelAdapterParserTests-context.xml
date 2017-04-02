@@ -34,6 +34,7 @@
 
 	<amqp:outbound-channel-adapter id="withCustomHeaderMapper"
 								   exchange-name="test.exchange"
+								   headers-last="true"
 								   header-mapper="customHeaderMapper"/>
 
 	<int:channel id="requestChannel"/>

@@ -49,6 +49,7 @@
 		order="5"
 		default-delivery-mode="NON_PERSISTENT"
 		requires-reply="false"
+		headers-last="true"
 		mapped-request-headers="foo*"
 		mapped-reply-headers="bar*"/>
 

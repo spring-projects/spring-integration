@@ -26,6 +26,7 @@
 		inbound-header-mapper="inMapper" outbound-header-mapper="outMapper" />
 
 	<amqp:channel id="pollableWithEP" extract-payload="true" message-driven="false"
+		headers-last="true"
 		inbound-header-mapper="inMapper" outbound-header-mapper="outMapper" />
 
 	<amqp:publish-subscribe-channel id="pubSubWithEP" extract-payload="true"

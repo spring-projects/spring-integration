@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.ContentTypeDelegatingMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.MimeType;
 
 /**
  * Utility methods used during message mapping.
@@ -37,27 +39,52 @@ public final class MappingUtils {
 	}
 
 	/**
-	 * Map an o.s.Message to an o.s.a.core.Message.
+	 * Map an o.s.Message to an o.s.a.core.Message. When using a
+	 * {@link ContentTypeDelegatingMessageConverter}, {@link AmqpHeaders#CONTENT_TYPE} and
+	 * {@link MessageHeaders#CONTENT_TYPE} will be used for the selection, with the AMQP
+	 * header taking precedence.
 	 * @param requestMessage the request message.
 	 * @param converter the message converter to use.
 	 * @param headerMapper the header mapper to use.
 	 * @param defaultDeliveryMode the default delivery mode.
+	 * @param headersMappedLast true if headers are mapped after conversion.
 	 * @return the mapped Message.
 	 */
 	public static org.springframework.amqp.core.Message mapMessage(Message<?> requestMessage,
-			MessageConverter converter, AmqpHeaderMapper headerMapper, MessageDeliveryMode defaultDeliveryMode) {
+			MessageConverter converter, AmqpHeaderMapper headerMapper, MessageDeliveryMode defaultDeliveryMode,
+			boolean headersMappedLast) {
 		MessageProperties amqpMessageProperties = new MessageProperties();
 		org.springframework.amqp.core.Message amqpMessage;
-		if (converter instanceof ContentTypeDelegatingMessageConverter) {
+		if (!headersMappedLast) {
 			headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
-			amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
 		}
-		else { // See INT-3002 - map headers last if we're not using a CTDMC
-			amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
+		if (converter instanceof ContentTypeDelegatingMessageConverter && headersMappedLast) {
+			String contentType = contentTypeAsString(requestMessage.getHeaders());
+			if (contentType != null) {
+				amqpMessageProperties.setContentType(contentType);
+			}
+		}
+		amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
+		if (headersMappedLast) {
 			headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
 		}
 		checkDeliveryMode(requestMessage, amqpMessageProperties, defaultDeliveryMode);
 		return amqpMessage;
+	}
+
+	private static String contentTypeAsString(MessageHeaders headers) {
+		Object contentType = headers.get(AmqpHeaders.CONTENT_TYPE);
+		if (contentType instanceof MimeType) {
+			contentType = contentType.toString();
+		}
+		if (contentType instanceof String) {
+			return (String) contentType;
+		}
+		else if (contentType != null) {
+			throw new IllegalArgumentException(AmqpHeaders.CONTENT_TYPE
+					+ " header must be a MimeType or String, found: " + contentType.getClass().getName());
+		}
+		return null;
 	}
 
 	/**
