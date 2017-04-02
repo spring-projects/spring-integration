@@ -102,7 +102,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 		if (this.amqpTemplate instanceof RabbitTemplate) {
 			MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 			org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
-					getHeaderMapper(), getDefaultDeliveryMode());
+					getHeaderMapper(), getDefaultDeliveryMode(), isHeadersMappedLast());
 			addDelayProperty(requestMessage, amqpMessage);
 			((RabbitTemplate) this.amqpTemplate).send(exchangeName, routingKey, amqpMessage, correlationData);
 		}
@@ -122,7 +122,7 @@ public class AmqpOutboundEndpoint extends AbstractAmqpOutboundEndpoint
 				"RabbitTemplate implementation is required for publisher confirms");
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		org.springframework.amqp.core.Message amqpMessage = MappingUtils.mapMessage(requestMessage, converter,
-				getHeaderMapper(), getDefaultDeliveryMode());
+				getHeaderMapper(), getDefaultDeliveryMode(), isHeadersMappedLast());
 		addDelayProperty(requestMessage, amqpMessage);
 		org.springframework.amqp.core.Message amqpReplyMessage =
 				((RabbitTemplate) this.amqpTemplate).sendAndReceive(exchangeName, routingKey, amqpMessage,

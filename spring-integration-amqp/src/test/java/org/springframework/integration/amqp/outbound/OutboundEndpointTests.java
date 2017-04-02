@@ -119,6 +119,7 @@ public class OutboundEndpointTests {
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		RabbitTemplate amqpTemplate = spy(new RabbitTemplate(connectionFactory));
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
+		endpoint.setHeadersMappedLast(true);
 		final AtomicReference<Message> amqpMessage =
 				new AtomicReference<Message>();
 		willAnswer(invocation -> {
@@ -138,6 +139,7 @@ public class OutboundEndpointTests {
 		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
 		TestRabbitTemplate amqpTemplate = spy(new TestRabbitTemplate(connectionFactory));
 		AmqpOutboundEndpoint endpoint = new AmqpOutboundEndpoint(amqpTemplate);
+		endpoint.setHeadersMappedLast(true);
 		endpoint.setExpectReply(true);
 		DefaultAmqpHeaderMapper mapper = DefaultAmqpHeaderMapper.inboundMapper();
 		mapper.setRequestHeaderNames("*");

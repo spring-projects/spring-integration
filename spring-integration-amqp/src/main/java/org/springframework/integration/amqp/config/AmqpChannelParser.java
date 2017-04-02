@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,6 +94,7 @@ public class AmqpChannelParser extends AbstractChannelParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "outbound-header-mapper");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "inbound-header-mapper");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "headers-last");
 		return builder;
 	}
 
