@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,6 +37,7 @@ import org.springframework.util.Assert;
  * By default this class visits all levels of the file tree without any {@link FileVisitOption}s.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  *
@@ -61,7 +63,7 @@ public class RecursiveDirectoryScanner extends DefaultDirectoryScanner {
 	 */
 	public void setFileVisitOptions(FileVisitOption... fileVisitOptions) {
 		Assert.notNull(fileVisitOptions, "'fileVisitOptions' must not be null");
-		this.fileVisitOptions = fileVisitOptions;
+		this.fileVisitOptions = Arrays.copyOf(fileVisitOptions, fileVisitOptions.length);
 	}
 
 	@Override
