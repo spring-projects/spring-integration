@@ -27,11 +27,13 @@ import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -282,6 +284,11 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 			if (parentName != null) {
 				this.beanFactory.registerDependentBean(parentName, beanName);
 			}
+		}
+
+		if (component instanceof DisposableBean) {
+			((DefaultSingletonBeanRegistry) this.beanFactory)
+					.registerDisposableBean(beanName, (DisposableBean) component);
 		}
 	}
 

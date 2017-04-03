@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
@@ -122,6 +123,10 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 		if (parentName != null) {
 			this.beanFactory.registerDependentBean(parentName, beanName);
 		}
+		if (bean instanceof DisposableBean) {
+			((DefaultSingletonBeanRegistry) this.beanFactory)
+					.registerDisposableBean(beanName, (DisposableBean) bean);
+		}
 		return bean;
 	}
 
@@ -186,7 +191,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 */
 	public final class IntegrationFlowRegistrationBuilder {
 
-		private Map<Object, String> additionalBeans = new HashMap<Object, String>();
+		private Map<Object, String> additionalBeans = new HashMap<>();
 
 		private final IntegrationFlowRegistration integrationFlowRegistration;
 
