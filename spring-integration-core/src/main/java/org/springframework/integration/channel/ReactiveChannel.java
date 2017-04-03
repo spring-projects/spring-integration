@@ -23,14 +23,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.BlockingSink;
 import reactor.core.publisher.DirectProcessor;
-import reactor.core.publisher.Operators;
+import reactor.core.publisher.Flux;
 
 /**
  * @author Artem Bilan
@@ -46,6 +45,8 @@ public class ReactiveChannel extends AbstractMessageChannel
 
 	private final Processor<Message<?>, Message<?>> processor;
 
+	private final Flux<Message<?>> flux;
+
 	private final BlockingSink<Message<?>> sink;
 
 	private volatile boolean upstreamSubscribed;
@@ -57,6 +58,7 @@ public class ReactiveChannel extends AbstractMessageChannel
 	public ReactiveChannel(Processor<Message<?>, Message<?>> processor) {
 		Assert.notNull(processor, "'processor' must not be null");
 		this.processor = processor;
+		this.flux = Flux.from(processor);
 		this.sink = BlockingSink.create(this.processor);
 	}
 
@@ -68,15 +70,9 @@ public class ReactiveChannel extends AbstractMessageChannel
 	@Override
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.subscribers.add(subscriber);
-		this.processor.subscribe(new Operators.SubscriberAdapter<Message<?>, Message<?>>(subscriber) {
 
-			@Override
-			protected void doCancel() {
-				super.doCancel();
-				ReactiveChannel.this.subscribers.remove(subscriber);
-			}
-
-		});
+		this.flux.doOnCancel(() -> ReactiveChannel.this.subscribers.remove(subscriber))
+				.subscribe(subscriber);
 
 		if (!this.upstreamSubscribed) {
 			this.publishers.forEach(this::doSubscribeTo);
@@ -92,24 +88,15 @@ public class ReactiveChannel extends AbstractMessageChannel
 	}
 
 	private void doSubscribeTo(Publisher<Message<?>> publisher) {
-		publisher.subscribe(new Operators.SubscriberAdapter<Message<?>, Message<?>>(this.processor) {
-
-			@Override
-			protected void doOnSubscribe(Subscription subscription) {
-				super.doOnSubscribe(subscription);
-				ReactiveChannel.this.upstreamSubscribed = true;
-			}
-
-			@Override
-			protected void doComplete() {
-				super.doComplete();
-				ReactiveChannel.this.publishers.remove(publisher);
-				if (ReactiveChannel.this.publishers.isEmpty()) {
-					ReactiveChannel.this.upstreamSubscribed = false;
-				}
-			}
-
-		});
+		Flux.from(publisher)
+				.doOnSubscribe(s -> ReactiveChannel.this.upstreamSubscribed = true)
+				.doOnComplete(() -> {
+					ReactiveChannel.this.publishers.remove(publisher);
+					if (ReactiveChannel.this.publishers.isEmpty()) {
+						ReactiveChannel.this.upstreamSubscribed = false;
+					}
+				})
+				.subscribe(this.processor);
 	}
 
 }

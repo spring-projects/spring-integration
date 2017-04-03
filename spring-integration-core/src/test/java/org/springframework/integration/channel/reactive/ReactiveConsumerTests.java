@@ -26,6 +26,7 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.LinkedList;
@@ -59,6 +60,7 @@ import reactor.core.publisher.EmitterProcessor;
 
 /**
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class ReactiveConsumerTests {
@@ -198,6 +200,9 @@ public class ReactiveConsumerTests {
 		testChannel.send(testMessage);
 
 		reactiveConsumer.start();
+
+		verify(testSubscriber, times(2)).onSubscribe(subscriptionArgumentCaptor.capture());
+		subscription = subscriptionArgumentCaptor.getValue();
 
 		subscription.request(2);
 

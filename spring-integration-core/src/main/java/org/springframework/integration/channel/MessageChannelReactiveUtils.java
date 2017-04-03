@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel;
 
+import java.time.Duration;
 import java.util.Iterator;
 
 import org.reactivestreams.Publisher;
@@ -85,7 +86,7 @@ public final class MessageChannelReactiveUtils {
 					<Message<?>>create(emitter -> {
 								MessageHandler messageHandler = emitter::next;
 								this.channel.subscribe(messageHandler);
-								emitter.setCancellation(() -> this.channel.unsubscribe(messageHandler));
+								emitter.onCancel(() -> this.channel.unsubscribe(messageHandler));
 							},
 							FluxSink.OverflowStrategy.IGNORE)
 					.subscribe((Subscriber<? super Message<?>>) subscriber);
@@ -125,7 +126,7 @@ public final class MessageChannelReactiveUtils {
 
 			};
 
-			Mono.<Message<?>>delayMillis(100)
+			Mono.<Message<?>>delay(Duration.ofMillis(100))
 					.repeat()
 					.concatMap(value -> Flux.fromIterable(() -> messageIterator))
 					.subscribe((Subscriber<? super Message<?>>) subscriber);
