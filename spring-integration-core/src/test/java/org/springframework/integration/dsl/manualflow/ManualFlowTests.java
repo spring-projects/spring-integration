@@ -23,6 +23,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Date;
@@ -34,6 +35,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -127,6 +129,8 @@ public class ManualFlowTests {
 		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
 		Thread.sleep(100);
 		assertEquals(0, taskScheduler.getActiveCount());
+
+		assertTrue(additionalBean.destroyed);
 	}
 
 	@Test
@@ -288,10 +292,13 @@ public class ManualFlowTests {
 
 	}
 
-	private final class BeanFactoryHandler extends AbstractReplyProducingMessageHandler {
+	private final class BeanFactoryHandler extends AbstractReplyProducingMessageHandler
+			implements DisposableBean {
 
 		@Autowired
 		private BeanFactory beanFactory;
+
+		private boolean destroyed;
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
@@ -302,6 +309,11 @@ public class ManualFlowTests {
 		@Override
 		protected void doInit() {
 			this.beanFactory.getClass(); // ensure wiring before afterPropertiesSet()
+		}
+
+		@Override
+		public void destroy() throws Exception {
+			this.destroyed = true;
 		}
 
 	}
