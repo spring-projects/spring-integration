@@ -34,8 +34,7 @@ import org.springframework.util.ErrorHandler;
 
 import reactor.core.Disposable;
 import reactor.core.Exceptions;
-import reactor.core.Receiver;
-import reactor.core.Trackable;
+import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Operators;
 
 
@@ -45,13 +44,15 @@ import reactor.core.publisher.Operators;
  */
 public class ReactiveConsumer extends AbstractEndpoint {
 
-	private final Operators.SubscriberAdapter<Message<?>, Message<?>> subscriber;
+	private final Publisher<Message<Object>> publisher;
+
+	private final Subscriber<Message<?>> subscriber;
 
 	private final Lifecycle lifecycleDelegate;
 
-	private volatile Publisher<Message<?>> publisher;
-
 	private ErrorHandler errorHandler;
+
+	private volatile Subscription subscription;
 
 	@SuppressWarnings("unchecked")
 	public ReactiveConsumer(MessageChannel inputChannel, MessageHandler messageHandler) {
@@ -61,28 +62,14 @@ public class ReactiveConsumer extends AbstractEndpoint {
 						: new MessageHandlerSubscriber(messageHandler));
 	}
 
-	@SuppressWarnings("unchecked")
-	public ReactiveConsumer(MessageChannel inputChannel, Subscriber<Message<?>> subscriber) {
+	public ReactiveConsumer(MessageChannel inputChannel, final Subscriber<Message<?>> subscriber) {
 		Assert.notNull(inputChannel, "'inputChannel' must not be null");
 		Assert.notNull(subscriber, "'subscriber' must not be null");
 
-		Publisher<?> messagePublisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
-		this.publisher = (Publisher<Message<?>>) messagePublisher;
+		this.publisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
 
-		this.subscriber = new Operators.SubscriberAdapter<Message<?>, Message<?>>(subscriber) {
+		this.subscriber = subscriber;
 
-			@Override
-			protected void doNext(Message<?> message) {
-				try {
-					super.doNext(message);
-				}
-				catch (Exception e) {
-					ReactiveConsumer.this.errorHandler.handleError(e);
-					doOnSubscriberError(e);
-				}
-			}
-
-		};
 		this.lifecycleDelegate = subscriber instanceof Lifecycle ? (Lifecycle) subscriber : null;
 	}
 
@@ -104,12 +91,41 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		if (this.lifecycleDelegate != null) {
 			this.lifecycleDelegate.start();
 		}
-		this.publisher.subscribe(this.subscriber);
+		this.publisher.subscribe(new BaseSubscriber<Message<?>>() {
+
+			private final Subscriber<Message<?>> delegate = ReactiveConsumer.this.subscriber;
+
+			public void hookOnSubscribe(Subscription s) {
+				this.delegate.onSubscribe(s);
+				ReactiveConsumer.this.subscription = s;
+			}
+
+			public void hookOnNext(Message<?> message) {
+				try {
+					this.delegate.onNext(message);
+				}
+				catch (Exception e) {
+					ReactiveConsumer.this.errorHandler.handleError(e);
+					hookOnError(e);
+				}
+			}
+
+			public void hookOnError(Throwable t) {
+				this.delegate.onError(t);
+			}
+
+			public void hookOnComplete() {
+				this.delegate.onComplete();
+			}
+
+		});
 	}
 
 	@Override
 	protected void doStop() {
-		this.subscriber.cancel();
+		if (this.subscription != null) {
+			this.subscription.cancel();
+		}
 		if (this.lifecycleDelegate != null) {
 			this.lifecycleDelegate.stop();
 		}
@@ -117,7 +133,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 
 	private static final class MessageHandlerSubscriber
-			implements Subscriber<Message<?>>, Receiver, Disposable, Trackable, Lifecycle {
+			implements Subscriber<Message<?>>, Disposable, Lifecycle {
 
 		private final Consumer<Message<?>> consumer;
 
@@ -159,11 +175,6 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		}
 
 		@Override
-		public Object upstream() {
-			return this.subscription;
-		}
-
-		@Override
 		public void dispose() {
 			Subscription s = this.subscription;
 			if (s != null) {
@@ -173,17 +184,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		}
 
 		@Override
-		public long getCapacity() {
-			return Long.MAX_VALUE;
-		}
-
-		@Override
-		public boolean isStarted() {
-			return this.subscription != null;
-		}
-
-		@Override
-		public boolean isTerminated() {
+		public boolean isDisposed() {
 			return false;
 		}
 
