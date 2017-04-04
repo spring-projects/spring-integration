@@ -130,12 +130,12 @@ subprojects { subproject ->
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.21"
 		smackVersion = '4.1.7'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.BUILD-SNAPSHOT'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.M3'
 		springDataJpaVersion = '2.0.0.M2'
 		springDataMongoVersion = '2.0.0.M2'
 		springDataRedisVersion = '2.0.0.M2'
 		springGemfireVersion = '2.0.0.M2'
-		springSecurityVersion = '5.0.0.BUILD-SNAPSHOT'
+		springSecurityVersion = '4.2.2.RELEASE'
 		springSocialTwitterVersion = '2.0.0.M1'
 		springRetryVersion = '1.2.0.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.M5'
@@ -389,8 +389,10 @@ project('spring-integration-http') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-webmvc:$springVersion"
+		compile "org.springframework:spring-webflux:$springVersion"
 		compile ("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
 		compile ("com.rometools:rome:$romeToolsVersion", optional)
+		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile project(":spring-integration-security")
 		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"

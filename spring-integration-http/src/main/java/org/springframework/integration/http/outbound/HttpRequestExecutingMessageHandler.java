@@ -53,6 +53,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Artem Bilan
  * @author Wallace Wadge
  * @author Shiliang Li
+ *
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
@@ -118,12 +119,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 
 	/**
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
-	 *
 	 * @param errorHandler The error handler.
-	 *
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
-	@Override
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
 		this.restTemplate.setErrorHandler(errorHandler);
 	}
@@ -131,12 +129,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestTemplate}.
 	 * Converters configured via this method will override the default converters.
-	 *
 	 * @param messageConverters The message converters.
-	 *
 	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
-	@Override
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		this.restTemplate.setMessageConverters(messageConverters);
 	}

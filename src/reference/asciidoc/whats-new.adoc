@@ -27,10 +27,10 @@ See <<testing>> for more information.
 The new `MongoDbOutboundGateway` allows you to make queries to the database on demand by sending a message to its request channel.
 See <<mongodb-outbound-gateway>> for more information.
 
-==== HTTP Async Outbound Gateway and Channel Adapter
+==== HTTP Reactive Outbound Gateway and Channel Adapter
 
-The new `AsyncHttpRequestExecutingMessageHandler` adds support for `AsyncRestTemplate` for outbound channel adapter and gateway.
-See <<AsyncHttpRequestExecutingMessageHandler>> for more information.
+The new `ReactiveHttpRequestExecutingMessageHandler` adds support for WebFlux `WebClient` for outbound channel adapter and gateway.
+See <<ReactiveHttpRequestExecutingMessageHandler>> for more information.
 
 ==== Content Type Conversion
 

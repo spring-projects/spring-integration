@@ -22,8 +22,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.http.outbound.ReactiveHttpRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -45,9 +45,9 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
-		boolean async = element.getLocalName().contains("async");
-		if (async) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(AsyncHttpRequestExecutingMessageHandler.class);
+		boolean reactive = element.getLocalName().contains("reactive");
+		if (reactive) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(ReactiveHttpRequestExecutingMessageHandler.class);
 		}
 		else {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
@@ -57,16 +57,10 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
 		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 
-		if (async) {
-			String asyncTemplateRef = element.getAttribute("async-rest-template");
-			if (StringUtils.hasText(asyncTemplateRef)) {
-				HttpAdapterParsingUtils.verifyNoAsyncRestTemplateAttributes(element, parserContext);
-				builder.addConstructorArgReference(asyncTemplateRef);
-			}
-			else {
-				for (String referenceAttributeName : HttpAdapterParsingUtils.ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
-					IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
-				}
+		if (reactive) {
+			String webClientRef = element.getAttribute("web-client");
+			if (StringUtils.hasText(webClientRef)) {
+				builder.addConstructorArgReference(webClientRef);
 			}
 		}
 		else {
@@ -88,8 +82,10 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		String mappedResponseHeaders = element.getAttribute("mapped-response-headers");
 		if (StringUtils.hasText(headerMapper)) {
 			if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
-				parserContext.getReaderContext().error("Neither 'mapped-request-headers' or 'mapped-response-headers' " +
-						"attributes are allowed when a 'header-mapper' has been specified.", parserContext.extractSource(element));
+				parserContext.getReaderContext()
+						.error("Neither 'mapped-request-headers' or 'mapped-response-headers' " +
+										"attributes are allowed when a 'header-mapper' has been specified.",
+								parserContext.extractSource(element));
 				return null;
 			}
 			builder.addPropertyReference("headerMapper", headerMapper);
@@ -98,12 +94,15 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
 			headerMapperBuilder.setFactoryMethod("outboundMapper");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-response-headers", "inboundHeaderNames");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element,
+					"mapped-request-headers", "outboundHeaderNames");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element,
+					"mapped-response-headers", "inboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload", "extractPayload");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload",
+				"extractPayload");
 
 		HttpAdapterParsingUtils.setExpectedResponseOrExpression(element, parserContext, builder);
 

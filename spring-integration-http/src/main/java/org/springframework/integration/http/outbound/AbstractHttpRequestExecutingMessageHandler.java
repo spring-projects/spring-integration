@@ -36,7 +36,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
@@ -44,6 +43,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -53,7 +53,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -205,21 +204,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	/**
-	 * Set the {@link ResponseErrorHandler} for the underlying implementation.
-	 *
-	 * @param errorHandler The error handler.
-	 */
-	public abstract void setErrorHandler(ResponseErrorHandler errorHandler);
-
-	/**
-	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying implementation.
-	 * Converters configured via this method will override the default converters.
-	 *
-	 * @param messageConverters The message converters.
-	 */
-	public abstract void setMessageConverters(List<HttpMessageConverter<?>> messageConverters);
-
-	/**
 	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and MessageHeaders.
 	 * @param headerMapper The header mapper.
 	 */
@@ -227,8 +211,6 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
 	}
-
-
 
 	/**
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
@@ -280,16 +262,17 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		try {
 			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
 
-			if (!this.shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet) {
+			if (!shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet) {
 				if (logger.isWarnEnabled()) {
-					logger.warn("The 'extractPayload' attribute has no relevance for the current request since the HTTP Method is '" +
-							httpMethod + "', and no request body will be sent for that method.");
+					logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
+							"since the HTTP Method is '" + httpMethod +
+							"', and no request body will be sent for that method.");
 				}
 			}
 
-			Object expectedResponseType = this.determineExpectedResponseType(requestMessage);
+			Object expectedResponseType = determineExpectedResponseType(requestMessage);
 
-			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage, httpMethod);
+			HttpEntity<?> httpRequest = generateHttpRequest(requestMessage, httpMethod);
 			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
 			UriComponentsBuilder uriComponentsBuilder = uri instanceof String
 					? UriComponentsBuilder.fromUriString((String) uri)
@@ -297,7 +280,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 			realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 
-			return this.exchange(realUri, httpMethod, httpRequest, expectedResponseType);
+			return exchange(realUri, httpMethod, httpRequest, expectedResponseType);
 		}
 		catch (MessagingException e) {
 			throw e;
@@ -308,7 +291,8 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		}
 	}
 
-	abstract protected Object exchange(URI realUri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType);
+	protected abstract Object exchange(URI realUri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
+			Object expectedResponseType);
 
 	protected Object getReply(ResponseEntity<?> httpResponse) {
 		if (this.expectReply) {
@@ -317,17 +301,21 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			if (this.transferCookies) {
 				this.doConvertSetCookie(headers);
 			}
+
 			AbstractIntegrationMessageBuilder<?> replyBuilder = null;
+			MessageBuilderFactory messageBuilderFactory = getMessageBuilderFactory();
 			if (httpResponse.hasBody()) {
 				Object responseBody = httpResponse.getBody();
-				replyBuilder = (responseBody instanceof Message<?>) ?
-						this.getMessageBuilderFactory().fromMessage((Message<?>) responseBody) : this.getMessageBuilderFactory().withPayload(responseBody);
+				replyBuilder = (responseBody instanceof Message<?>)
+						? messageBuilderFactory.fromMessage((Message<?>) responseBody)
+						: messageBuilderFactory.withPayload(responseBody);
 
 			}
 			else {
-				replyBuilder = this.getMessageBuilderFactory().withPayload(httpResponse);
+				replyBuilder = messageBuilderFactory.withPayload(httpResponse);
 			}
-			replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode());
+			replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
+					httpResponse.getStatusCode());
 			return replyBuilder.copyHeaders(headers);
 		}
 		return null;

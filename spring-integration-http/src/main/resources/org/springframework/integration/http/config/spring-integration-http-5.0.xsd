@@ -401,11 +401,11 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="outbound-async-channel-adapter">
+	<xsd:element name="outbound-reactive-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler'
+				'org.springframework.integration.http.outbound.ReactiveHttpRequestExecutingMessageHandler'
 				with 'expectReply = false' that sends HTTP requests based on incoming messages.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -424,7 +424,19 @@
 			</xsd:choice>
 			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
 			<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
-			<xsd:attributeGroup ref="asyncHttpOutboundCommonAttributes"/>
+			<xsd:attribute name="web-client" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.web.reactive.function.client.WebClient" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						The reference to org.springframework.web.reactive.function.client.WebClient
+						bean to send the HTTP Request.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -532,11 +544,11 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="outbound-async-gateway">
+	<xsd:element name="outbound-reactive-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures a Consumer Endpoint for the
-				'org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler'
+				'org.springframework.integration.http.outbound.ReactiveHttpRequestExecutingMessageHandler'
 				that sends HTTP requests based on incoming messages and expects HTTP responses.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -551,8 +563,10 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
-						<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0" maxOccurs="1" />
-						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0"
+									 maxOccurs="1" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" maxOccurs="1" />
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:choice>
 					<xsd:attribute name="request-channel" type="xsd:string">
@@ -620,7 +634,19 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
-					<xsd:attributeGroup ref="asyncHttpOutboundCommonAttributes"/>
+					<xsd:attribute name="web-client" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.web.reactive.function.client.WebClient" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								The reference to org.springframework.web.reactive.function.client.WebClient
+								bean to send the HTTP Request.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -859,33 +885,6 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:attributeGroup name="asyncHttpOutboundCommonAttributes">
-		<xsd:attribute name="async-rest-template" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.web.client.AsyncRestTemplate" />
-					</tool:annotation>
-				</xsd:appinfo>
-				<xsd:documentation>
-					The reference to org.springframework.web.client.AsyncRestTemplate bean to send the HTTP Request.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="async-request-factory" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	Reference to a AsyncClientHttpRequestFactory to be used by the underlying RestTemplate.
-					]]></xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.http.client.AsyncClientHttpRequestFactory" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:attributeGroup>
-
 	<xsd:attributeGroup name="syncHttpOutboundCommonAttributes">
 		<xsd:attribute name="rest-template" type="xsd:string">
 			<xsd:annotation>
@@ -909,6 +908,27 @@
 						<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
 					</tool:annotation>
 				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="error-handler" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a ResponseErrorHandler to be used by the underlying RestTemplate.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.web.client.ResponseErrorHandler" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-converters" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Provide a reference to a list of HttpMessageConverter instances. If specified,
+					these converters will replace all of the default converters that would normally
+					be present on the underlying RestTemplate.
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
@@ -992,14 +1012,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="message-converters" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-					Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
-					all of the default converters that would normally be present on the underlying RestTemplate.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="header-mapper" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -1022,18 +1034,6 @@
 	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
 	The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
 					]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="error-handler" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	Reference to a ResponseErrorHandler to be used by the underlying RestTemplate.
-					]]></xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.web.client.ResponseErrorHandler" />
-					</tool:annotation>
-				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="order" type="xsd:string">
