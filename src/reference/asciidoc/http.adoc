@@ -5,7 +5,7 @@
 === Introduction
 
 The HTTP support allows for the execution of HTTP requests and the processing of inbound HTTP requests.
-the HTTP support consists of the following gateway implementations: `HttpInboundEndpoint`, `HttpRequestExecutingMessageHandler` and `AsyncHttpRequestExecutingMessageHandler`
+the HTTP support consists of the following gateway implementations: `HttpInboundEndpoint`, `HttpRequestExecutingMessageHandler` and `ReactiveHttpRequestExecutingMessageHandler`
 
 [[http-inbound]]
 === Http Inbound Components
@@ -191,36 +191,42 @@ The `expected-response-type` must be compatible with the (configured or default)
 Of course, this can be an abstract class, or even an interface (such as `java.io.Serializable` when using java serialization and `Content-Type: application/x-java-serialized-object`).
 =====
 
-==== AsyncHttpRequestExecutingMessageHandler
+==== ReactiveHttpRequestExecutingMessageHandler
 
-The `AsyncHttpRequestExecutingMessageHandler` implementation is very similar to `HttpRequestExecutingMessageHandler` instead of delegating to a `AsyncRestTemplate`.
+The `ReactiveHttpRequestExecutingMessageHandler` implementation is very similar to `HttpRequestExecutingMessageHandler` instead of delegating to a `WebClient` from Spring Framework WebFlux module.
 To configure it, write a bean like this:
 
 [source,xml]
 ----
-<bean id="httpAsyncOutbound"
-    class="org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler">
+<bean id="httpReactiveOutbound"
+    class="org.springframework.integration.http.outbound.ReactiveHttpRequestExecutingMessageHandler">
      <constructor-arg value="http://localhost:8080/example" />
      <property name="outputChannel" ref="responseChannel" />
 </bean>
 ----
 
-You can configure the `AsyncClientHttpRequestFactory` instance to use:
+You can configure a `WebClient` instance to use:
 
 [source,xml]
 ----
-<bean id="httpOutbound"
-    class="org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler">
+<beans:bean id="webClient" class="org.springframework.web.reactive.function.client.WebClient"
+				factory-method="create"/>
+
+<bean id="httpReactiveOutbound"
+    class="org.springframework.integration.http.outbound.ReactiveHttpRequestExecutingMessageHandler">
      <constructor-arg value="http://localhost:8080/example" />
+     <constructor-arg re="webClient" />
      <property name="outputChannel" ref="responseChannel" />
-     <property name="asyncRequestFactory" ref="customRequestFactory" />
 </bean>
 ----
 
-By default the HTTP request will be generated using an instance of `SimpleClientHttpRequestFactory`.
-Use of the Apache Commons HTTP Async Client is also supported through the provided `HttpComponentsAsyncClientHttpRequestFactory` which can be injected as shown above.
+The `WebClient` `exchange()` operation returns a `Mono<ClientResponse>` which is mapped to the `AbstractIntegrationMessageBuilder` reactive support (using `Mono.map()`) as the output from the `ReactiveHttpRequestExecutingMessageHandler`.
+Together with the `ReactiveChannel` as an `outputChannel`, the `Mono<ClientResponse>` evaluation is deferred until a downstream subscription is made.
+Otherwise, it is treated as an `async` mode and the `Mono` response is adapted to an `SettableListenableFuture` for an asynchronous reply from the `ReactiveHttpRequestExecutingMessageHandler`.
 
-For other settings like cookie, converters, etc, please see <<HttpRequestExecutingMessageHandler>> above.
+See http://docs.spring.io/spring/docs/5.0.0.M5/spring-framework-reference/html/web-reactive.html#web-reactive-client[WebFlux documentation] and https://projectreactor.io/[Project Reactor] for more information.
+
+For other settings like cookie, uri variables, etc, please see <<HttpRequestExecutingMessageHandler>> above.
 
 [[http-namespace]]
 === HTTP Namespace Support
@@ -544,29 +550,27 @@ The configuration looks very similar to the gateway:
     auto-startup="false"/>
 ----
 
-If you want to execute the http request in an asynchronous way, you can use the `outbound-async-gateway` or `outbound-async-channel-adapter`.
+If you want to execute the http request in a reactive, non-blocking way, you can use the `outbound-reactive-gateway` or `outbound-reactive-channel-adapter`.
 
 [source,xml]
 ----
-<int-http:outbound-async-gateway id="asyncExample1"
+<int-http:outbound-reactive-gateway id="reactiveExample1"
     request-channel="requests"
     url="http://localhost/test"
     http-method-expression="headers.httpMethod"
     extract-request-payload="false"
     expected-response-type-expression="payload"
     charset="UTF-8"
-    async-request-factory="requestFactory"
     reply-timeout="1234"
     reply-channel="replies"/>
 
-<int-http:outbound-async-channel-adapter id="asyncExample2"
+<int-http:outbound-reactive-channel-adapter id="reactiveExample2"
     url="http://localhost/example"
     http-method="GET"
     channel="requests"
     charset="UTF-8"
     extract-payload="false"
     expected-response-type="java.lang.String"
-    async-request-factory="someRequestFactory"
     order="3"
     auto-startup="false"/>
 

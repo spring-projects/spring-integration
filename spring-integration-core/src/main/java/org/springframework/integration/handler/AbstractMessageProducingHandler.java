@@ -21,7 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.reactivestreams.Publisher;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.channel.ReactiveSubscribableChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
@@ -37,6 +40,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.util.concurrent.SettableListenableFuture;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * The base {@link AbstractMessageHandler} implementation for the {@link MessageProducer}.
@@ -44,6 +51,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
  * @author David Liu
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * since 4.1
  */
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
@@ -181,36 +189,56 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 
-		if (this.async && reply instanceof ListenableFuture<?>) {
-			ListenableFuture<?> future = (ListenableFuture<?>) reply;
-			final Object theReplyChannel = replyChannel;
-			future.addCallback(new ListenableFutureCallback<Object>() {
+		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
+			if (reply instanceof ListenableFuture<?> || !(getOutputChannel() instanceof ReactiveSubscribableChannel)) {
+				ListenableFuture<?> future;
+				if (reply instanceof ListenableFuture<?>) {
+					future = (ListenableFuture<?>) reply;
+				}
+				else {
+					SettableListenableFuture<Object> settableListenableFuture = new SettableListenableFuture<>();
 
-				@Override
-				public void onSuccess(Object result) {
-					Message<?> replyMessage = null;
-					try {
-						replyMessage = createOutputMessage(result, requestHeaders);
-						sendOutput(replyMessage, theReplyChannel, false);
-					}
-					catch (Exception e) {
-						Exception exceptionToLogAndSend = e;
-						if (!(e instanceof MessagingException)) {
-							exceptionToLogAndSend = new MessageHandlingException(requestMessage, e);
-							if (replyMessage != null) {
-								exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
-							}
+					Mono.from((Publisher<?>) reply)
+							.subscribe(settableListenableFuture::set, settableListenableFuture::setException);
+
+					future = settableListenableFuture;
+				}
+
+				Object theReplyChannel = replyChannel;
+				future.addCallback(new ListenableFutureCallback<Object>() {
+
+					@Override
+					public void onSuccess(Object result) {
+						Message<?> replyMessage = null;
+						try {
+							replyMessage = createOutputMessage(result, requestHeaders);
+							sendOutput(replyMessage, theReplyChannel, false);
 						}
-						logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
-						onFailure(exceptionToLogAndSend);
+						catch (Exception e) {
+							Exception exceptionToLogAndSend = e;
+							if (!(e instanceof MessagingException)) {
+								exceptionToLogAndSend = new MessageHandlingException(requestMessage, e);
+								if (replyMessage != null) {
+									exceptionToLogAndSend = new MessagingException(replyMessage, exceptionToLogAndSend);
+								}
+							}
+							logger.error("Failed to send async reply: " + result.toString(), exceptionToLogAndSend);
+							onFailure(exceptionToLogAndSend);
+						}
 					}
-				}
 
-				@Override
-				public void onFailure(Throwable ex) {
-					sendErrorMessage(requestMessage, ex);
-				}
-			});
+					@Override
+					public void onFailure(Throwable ex) {
+						sendErrorMessage(requestMessage, ex);
+					}
+
+				});
+			}
+			else {
+				((ReactiveSubscribableChannel) getOutputChannel())
+						.subscribeTo(Flux.from((Publisher<?>) reply)
+								.map(result -> createOutputMessage(result, requestHeaders)));
+			}
 		}
 		else {
 			sendOutput(createOutputMessage(reply, requestHeaders), replyChannel, false);

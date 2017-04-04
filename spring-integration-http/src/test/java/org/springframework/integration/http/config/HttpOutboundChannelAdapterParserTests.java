@@ -41,14 +41,12 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -58,9 +56,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author Mark Fisher
@@ -75,40 +73,51 @@ import org.springframework.web.client.RestTemplate;
 @DirtiesContext
 public class HttpOutboundChannelAdapterParserTests {
 
-	@Autowired @Qualifier("minimalConfig")
+	@Autowired
+	@Qualifier("minimalConfig")
 	private AbstractEndpoint minimalConfig;
 
-	@Autowired @Qualifier("fullConfig")
+	@Autowired
+	@Qualifier("fullConfig")
 	private AbstractEndpoint fullConfig;
 
-	@Autowired @Qualifier("restTemplateConfig")
+	@Autowired
+	@Qualifier("restTemplateConfig")
 	private AbstractEndpoint restTemplateConfig;
 
-	@Autowired @Qualifier("asyncMinimalConfig")
-	private AbstractEndpoint asyncMinimalConfig;
+	@Autowired
+	@Qualifier("reactiveMinimalConfig")
+	private AbstractEndpoint reactiveMinimalConfig;
 
-	@Autowired @Qualifier("asyncRestTemplateConfig")
-	private AbstractEndpoint asyncRestTemplateConfig;
+	@Autowired
+	@Qualifier("reactiveWebClientConfig")
+	private AbstractEndpoint reactiveWebClientConfig;
 
-	@Autowired @Qualifier("customRestTemplate")
+	@Autowired
+	@Qualifier("customRestTemplate")
 	private RestTemplate customRestTemplate;
 
-	@Autowired @Qualifier("asyncRestTemplate")
-	private AsyncRestTemplate asyncRestTemplate;
+	@Autowired
+	private WebClient webClient;
 
-	@Autowired @Qualifier("withUrlAndTemplate")
+	@Autowired
+	@Qualifier("withUrlAndTemplate")
 	private AbstractEndpoint withUrlAndTemplate;
 
-	@Autowired @Qualifier("withUrlExpression")
+	@Autowired
+	@Qualifier("withUrlExpression")
 	private AbstractEndpoint withUrlExpression;
 
-	@Autowired @Qualifier("withAdvice")
+	@Autowired
+	@Qualifier("withAdvice")
 	private AbstractEndpoint withAdvice;
 
-	@Autowired @Qualifier("withUrlExpressionAndTemplate")
+	@Autowired
+	@Qualifier("withUrlExpressionAndTemplate")
 	private AbstractEndpoint withUrlExpressionAndTemplate;
 
-	@Autowired @Qualifier("withPoller1")
+	@Autowired
+	@Qualifier("withPoller1")
 	private AbstractEndpoint withPoller1;
 
 	@Autowired
@@ -120,7 +129,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	public void minimalConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.minimalConfig);
 		RestTemplate restTemplate =
-			TestUtils.getPropertyValue(this.minimalConfig, "handler.restTemplate", RestTemplate.class);
+				TestUtils.getPropertyValue(this.minimalConfig, "handler.restTemplate", RestTemplate.class);
 		assertNotSame(customRestTemplate, restTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
@@ -179,23 +188,20 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void asyncMinimalConfig() {
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.asyncMinimalConfig);
-		AsyncRestTemplate asyncRestTemplate =
-				TestUtils.getPropertyValue(this.asyncMinimalConfig, "handler.asyncRestTemplate", AsyncRestTemplate.class);
-		assertNotSame(this.asyncRestTemplate, asyncRestTemplate);
-		AsyncHttpRequestExecutingMessageHandler handler = (AsyncHttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+	public void reactiveMinimalConfig() {
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveMinimalConfig);
+		WebClient webClient =
+				TestUtils.getPropertyValue(this.reactiveMinimalConfig, "handler.webClient", WebClient.class);
+		assertNotSame(this.webClient, webClient);
+		Object handler = endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
 		assertEquals(this.applicationContext.getBean("requests"), endpointAccessor.getPropertyValue("inputChannel"));
 		assertNull(handlerAccessor.getPropertyValue("outputChannel"));
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("asyncRestTemplate"));
-		AsyncClientHttpRequestFactory asyncRequestFactory = (AsyncClientHttpRequestFactory)
-				templateAccessor.getPropertyValue("asyncRequestFactory");
-		assertTrue(asyncRequestFactory instanceof SimpleClientHttpRequestFactory);
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
+		assertEquals(HttpMethod.POST.name(),
+				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 	}
@@ -203,16 +209,13 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Test
 	public void restTemplateConfig() {
 		RestTemplate restTemplate =
-			TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate", RestTemplate.class);
+				TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate", RestTemplate.class);
 		assertEquals(customRestTemplate, restTemplate);
 	}
 
 	@Test
-	public void asyncRestTemplateConfig() {
-		AsyncRestTemplate asyncRestTemplate = TestUtils.getPropertyValue(
-				this.asyncRestTemplateConfig,
-				"handler.asyncRestTemplate", AsyncRestTemplate.class);
-		assertSame(this.asyncRestTemplate, asyncRestTemplate);
+	public void reactiveWebClientConfig() {
+		assertSame(this.webClient, TestUtils.getPropertyValue(this.reactiveWebClientConfig, "handler.webClient"));
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
@@ -225,7 +228,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	public void withUrlAndTemplate() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlAndTemplate);
 		RestTemplate restTemplate =
-			TestUtils.getPropertyValue(this.withUrlAndTemplate, "handler.restTemplate", RestTemplate.class);
+				TestUtils.getPropertyValue(this.withUrlAndTemplate, "handler.restTemplate", RestTemplate.class);
 		assertSame(customRestTemplate, restTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
@@ -255,7 +258,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	public void withUrlExpression() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpression);
 		RestTemplate restTemplate =
-			TestUtils.getPropertyValue(this.withUrlExpression, "handler.restTemplate", RestTemplate.class);
+				TestUtils.getPropertyValue(this.withUrlExpression, "handler.restTemplate", RestTemplate.class);
 		assertNotSame(customRestTemplate, restTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
@@ -285,7 +288,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	public void withUrlExpressionAndTemplate() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.withUrlExpressionAndTemplate);
 		RestTemplate restTemplate =
-			TestUtils.getPropertyValue(this.withUrlExpressionAndTemplate, "handler.restTemplate", RestTemplate.class);
+				TestUtils.getPropertyValue(this.withUrlExpressionAndTemplate, "handler.restTemplate", RestTemplate.class);
 		assertSame(customRestTemplate, restTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
@@ -325,6 +328,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		@Override
 		public void handleError(ClientHttpResponse response) throws IOException {
 		}
+
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
@@ -336,4 +340,5 @@ public class HttpOutboundChannelAdapterParserTests {
 		}
 
 	}
+
 }

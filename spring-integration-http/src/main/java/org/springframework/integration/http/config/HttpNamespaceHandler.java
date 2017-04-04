@@ -34,8 +34,8 @@ public class HttpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		registerBeanDefinitionParser("inbound-gateway", new HttpInboundEndpointParser(true));
 		registerBeanDefinitionParser("outbound-channel-adapter", new HttpOutboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-gateway", new HttpOutboundGatewayParser());
-		registerBeanDefinitionParser("outbound-async-channel-adapter", new HttpOutboundChannelAdapterParser());
-		registerBeanDefinitionParser("outbound-async-gateway", new HttpOutboundGatewayParser());
+		registerBeanDefinitionParser("outbound-reactive-channel-adapter", new HttpOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-reactive-gateway", new HttpOutboundGatewayParser());
 		registerBeanDefinitionParser("graph-controller", new IntegrationGraphControllerParser());
 	}
 

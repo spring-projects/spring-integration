@@ -23,8 +23,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.http.outbound.ReactiveHttpRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Shiliang Li
+ *
  * @since 2.0
  */
 public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -42,9 +43,9 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
-		boolean async = element.getLocalName().contains("async");
-		if (async) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(AsyncHttpRequestExecutingMessageHandler.class);
+		boolean reactive = element.getLocalName().contains("reactive");
+		if (reactive) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(ReactiveHttpRequestExecutingMessageHandler.class);
 		}
 		else {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
@@ -55,17 +56,11 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
 		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
 
-		if (async) {
-			String asyncTemplateRef = element.getAttribute("async-rest-template");
+		if (reactive) {
+			String webClientRef = element.getAttribute("web-client");
 
-			if (StringUtils.hasText(asyncTemplateRef)) {
-				HttpAdapterParsingUtils.verifyNoAsyncRestTemplateAttributes(element, parserContext);
-				builder.addConstructorArgReference(asyncTemplateRef);
-			}
-			else {
-				for (String referenceAttributeName : HttpAdapterParsingUtils.ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
-					IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
-				}
+			if (StringUtils.hasText(webClientRef)) {
+				builder.addConstructorArgReference(webClientRef);
 			}
 		}
 		else {
@@ -95,7 +90,8 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		else if (StringUtils.hasText(mappedRequestHeaders)) {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element,
+					"mapped-request-headers", "outboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
