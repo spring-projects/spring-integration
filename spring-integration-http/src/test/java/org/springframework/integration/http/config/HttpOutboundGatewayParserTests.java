@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.http.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -41,14 +42,12 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.AsyncClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
-import org.springframework.integration.http.outbound.AsyncHttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -58,8 +57,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author Mark Fisher
@@ -72,29 +71,36 @@ import org.springframework.web.client.ResponseErrorHandler;
 @DirtiesContext
 public class HttpOutboundGatewayParserTests {
 
-	@Autowired @Qualifier("minimalConfig")
+	@Autowired
+	@Qualifier("minimalConfig")
 	private AbstractEndpoint minimalConfigEndpoint;
 
-	@Autowired @Qualifier("fullConfig")
+	@Autowired
+	@Qualifier("fullConfig")
 	private AbstractEndpoint fullConfigEndpoint;
 
-	@Autowired @Qualifier("asyncMinimalConfig")
-	private AbstractEndpoint asyncMinimalConfigEndpoint;
+	@Autowired
+	@Qualifier("reactiveMinimalConfig")
+	private AbstractEndpoint reactiveMinimalConfigEndpoint;
 
-	@Autowired @Qualifier("asyncFullConfig")
-	private AbstractEndpoint asyncFullConfigEndpoint;
+	@Autowired
+	@Qualifier("reactiveFullConfig")
+	private AbstractEndpoint reactiveFullConfigEndpoint;
 
-	@Autowired @Qualifier("withUrlExpression")
+	@Autowired
+	@Qualifier("withUrlExpression")
 	private AbstractEndpoint withUrlExpressionEndpoint;
 
-	@Autowired @Qualifier("withAdvice")
+	@Autowired
+	@Qualifier("withAdvice")
 	private AbstractEndpoint withAdvice;
 
-	@Autowired @Qualifier("withPoller1")
+	@Autowired
+	@Qualifier("withPoller1")
 	private AbstractEndpoint withPoller1;
 
-	@Autowired @Qualifier("asyncRestTemplate")
-	private AsyncRestTemplate asyncRestTemplate;
+	@Autowired
+	private WebClient webClient;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -173,22 +179,19 @@ public class HttpOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void asyncMinimalConfig() {
-		AsyncHttpRequestExecutingMessageHandler handler = (AsyncHttpRequestExecutingMessageHandler) new DirectFieldAccessor(
-				this.asyncMinimalConfigEndpoint).getPropertyValue("handler");
-		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
-				this.minimalConfigEndpoint).getPropertyValue("inputChannel");
+	public void reactiveMinimalConfig() {
+		Object handler = new DirectFieldAccessor(this.reactiveMinimalConfigEndpoint).getPropertyValue("handler");
+		Object requestChannel = new DirectFieldAccessor(this.reactiveMinimalConfigEndpoint)
+				.getPropertyValue("inputChannel");
 		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertNull(replyChannel);
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("asyncRestTemplate"));
-		AsyncClientHttpRequestFactory requestFactory = (AsyncClientHttpRequestFactory)
-				templateAccessor.getPropertyValue("asyncRequestFactory");
-		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		assertSame(this.webClient, handlerAccessor.getPropertyValue("webClient"));
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
+		assertEquals(HttpMethod.POST.name(),
+				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
@@ -196,11 +199,11 @@ public class HttpOutboundGatewayParserTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void asyncFullConfig() {
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.asyncFullConfigEndpoint);
-		AsyncHttpRequestExecutingMessageHandler handler = (AsyncHttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
+	public void reactiveFullConfig() {
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveFullConfigEndpoint);
+		Object handler = endpointAccessor.getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
-				this.asyncFullConfigEndpoint).getPropertyValue("inputChannel");
+				this.reactiveFullConfigEndpoint).getPropertyValue("inputChannel");
 		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(77, handlerAccessor.getPropertyValue("order"));
@@ -208,24 +211,15 @@ public class HttpOutboundGatewayParserTests {
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertNotNull(replyChannel);
 		assertEquals(this.applicationContext.getBean("replies"), replyChannel);
-		DirectFieldAccessor asyncTemplateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("asyncRestTemplate"));
-		DirectFieldAccessor syncTemplateAccessor = new DirectFieldAccessor(asyncTemplateAccessor.getPropertyValue("syncTemplate"));
-		AsyncClientHttpRequestFactory requestFactory = (AsyncClientHttpRequestFactory)
-				asyncTemplateAccessor.getPropertyValue("asyncRequestFactory");
-		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
-		Object converterListBean = this.applicationContext.getBean("converterList");
-		assertEquals(converterListBean, syncTemplateAccessor.getPropertyValue("messageConverters"));
 
-		assertEquals(String.class.getName(), TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue());
+		assertEquals(String.class.getName(),
+				TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue());
 		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
 		assertEquals("http://localhost/test2", uriExpression.getValue());
-		assertEquals(HttpMethod.PUT.name(), TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
+		assertEquals(HttpMethod.PUT.name(),
+				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
 		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
 		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
-		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
-		assertEquals(requestFactoryBean, requestFactory);
-		Object errorHandlerBean = this.applicationContext.getBean("testErrorHandler");
-		assertEquals(errorHandlerBean, syncTemplateAccessor.getPropertyValue("errorHandler"));
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
 		assertEquals(new Long("1234"), sendTimeout);
@@ -302,7 +296,6 @@ public class HttpOutboundGatewayParserTests {
 	}
 
 
-
 	public static class StubErrorHandler implements ResponseErrorHandler {
 
 		@Override
@@ -324,4 +317,5 @@ public class HttpOutboundGatewayParserTests {
 		}
 
 	}
+
 }

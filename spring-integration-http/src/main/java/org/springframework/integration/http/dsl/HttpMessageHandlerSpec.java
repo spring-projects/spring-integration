@@ -17,13 +17,16 @@
 package org.springframework.integration.http.dsl;
 
 import java.net.URI;
+import java.util.Arrays;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -66,8 +69,33 @@ public class HttpMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
+	 * @param errorHandler The error handler.
+	 * @return the spec
+	 */
+	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
+		Assert.isTrue(this.isClientSet(),
+				"the 'errorHandler' must be specified on the provided 'restTemplate'");
+		this.target.setErrorHandler(errorHandler);
+		return _this();
+	}
+
+	/**
+	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestTemplate}.
+	 * Converters configured via this method will override the default converters.
+	 * @param messageConverters The message converters.
+	 * @return the spec
+	 */
+	public HttpMessageHandlerSpec messageConverters(HttpMessageConverter<?>... messageConverters) {
+		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided restTemplate");
+		this.target.setMessageConverters(Arrays.asList(messageConverters));
+		return _this();
+	}
+
 	@Override
-	protected boolean isRestTemplateSet() {
+	protected boolean isClientSet() {
 		return this.restTemplate != null;
 	}
+
 }

@@ -31,6 +31,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -53,6 +54,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Artem Bilan
  * @author Wallace Wadge
  * @author Shiliang Li
+ *
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
@@ -113,17 +115,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 
 	@Override
 	public String getComponentType() {
-		return (this.getExpectReply() ? "http:outbound-gateway" : "http:outbound-channel-adapter");
+		return (this.isExpectReply() ? "http:outbound-gateway" : "http:outbound-channel-adapter");
 	}
 
 	/**
 	 * Set the {@link ResponseErrorHandler} for the underlying {@link RestTemplate}.
-	 *
 	 * @param errorHandler The error handler.
-	 *
 	 * @see RestTemplate#setErrorHandler(ResponseErrorHandler)
 	 */
-	@Override
 	public void setErrorHandler(ResponseErrorHandler errorHandler) {
 		this.restTemplate.setErrorHandler(errorHandler);
 	}
@@ -131,12 +130,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Set a list of {@link HttpMessageConverter}s to be used by the underlying {@link RestTemplate}.
 	 * Converters configured via this method will override the default converters.
-	 *
 	 * @param messageConverters The message converters.
-	 *
 	 * @see RestTemplate#setMessageConverters(java.util.List)
 	 */
-	@Override
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		this.restTemplate.setMessageConverters(messageConverters);
 	}
@@ -153,7 +149,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	@Override
-	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType) {
+	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType, Message<?> requestMessage) {
 		ResponseEntity<?> httpResponse;
 		if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
 			httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, (ParameterizedTypeReference<?>) expectedResponseType);

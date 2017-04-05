@@ -41,34 +41,21 @@ import org.springframework.util.xml.DomUtils;
 abstract class HttpAdapterParsingUtils {
 
 	static final String[] SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
-		"request-factory", "error-handler", "message-converters"
-	};
-
-	static final String[] ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
-			"async-request-factory", "error-handler", "message-converters"
+			"request-factory", "error-handler", "message-converters"
 	};
 
 	static void verifyNoRestTemplateAttributes(Element element, ParserContext parserContext) {
 		for (String attributeName : SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
 			if (element.hasAttribute(attributeName)) {
 				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
-						+ attributeName + "' attribute is not allowed.",
-						parserContext.extractSource(element));
-			}
-		}
-	}
-
-	static void verifyNoAsyncRestTemplateAttributes(Element element, ParserContext parserContext) {
-		for (String attributeName : ASYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
-			if (element.hasAttribute(attributeName)) {
-				parserContext.getReaderContext().error("When providing an 'async-rest-template' reference, the '"
 								+ attributeName + "' attribute is not allowed.",
 						parserContext.extractSource(element));
 			}
 		}
 	}
 
-	static void configureUriVariableExpressions(BeanDefinitionBuilder builder, ParserContext parserContext, Element element) {
+	static void configureUriVariableExpressions(BeanDefinitionBuilder builder, ParserContext parserContext,
+			Element element) {
 		String uriVariablesExpression = element.getAttribute("uri-variables-expression");
 
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
@@ -79,8 +66,9 @@ abstract class HttpAdapterParsingUtils {
 				parserContext.getReaderContext().error("'uri-variables-expression' attribute " +
 						"and 'uri-variable' sub-elements are mutually exclusive.", element);
 			}
-			BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
-					.addConstructorArgValue(uriVariablesExpression);
+			BeanDefinitionBuilder beanDefinitionBuilder =
+					BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+							.addConstructorArgValue(uriVariablesExpression);
 			builder.addPropertyValue("uriVariablesExpression", beanDefinitionBuilder.getBeanDefinition());
 		}
 
@@ -89,21 +77,24 @@ abstract class HttpAdapterParsingUtils {
 			for (Element uriVariableElement : uriVariableElements) {
 				String name = uriVariableElement.getAttribute("name");
 				String expression = uriVariableElement.getAttribute("expression");
-				BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+				BeanDefinitionBuilder factoryBeanBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
 				factoryBeanBuilder.addConstructorArgValue(expression);
-				uriVariableExpressions.put(name,  factoryBeanBuilder.getBeanDefinition());
+				uriVariableExpressions.put(name, factoryBeanBuilder.getBeanDefinition());
 			}
 			builder.addPropertyValue("uriVariableExpressions", uriVariableExpressions);
 		}
 	}
 
-	static void configureUrlConstructorArg(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	static void configureUrlConstructorArg(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
 		String urlAttribute = element.getAttribute("url");
 		String urlExpressionAttribute = element.getAttribute("url-expression");
 		boolean hasUrlAttribute = StringUtils.hasText(urlAttribute);
 		boolean hasUrlExpressionAttribute = StringUtils.hasText(urlExpressionAttribute);
-		if (!(hasUrlAttribute ^ hasUrlExpressionAttribute)) {
-			parserContext.getReaderContext().error("Adapter must have exactly one of 'url' or 'url-expression'", element);
+		if (hasUrlAttribute == hasUrlExpressionAttribute) {
+			parserContext.getReaderContext()
+					.error("Adapter must have exactly one of 'url' or 'url-expression'", element);
 		}
 		RootBeanDefinition expressionDef;
 		if (hasUrlAttribute) {
@@ -126,8 +117,9 @@ abstract class HttpAdapterParsingUtils {
 		boolean hasHttpMethodExpression = StringUtils.hasText(httpMethodExpression);
 
 		if (hasHttpMethod && hasHttpMethodExpression) {
-			parserContext.getReaderContext().error("The 'http-method' and 'http-method-expression' are mutually exclusive. " +
-					"You can only have one or the other", element);
+			parserContext.getReaderContext()
+					.error("The 'http-method' and 'http-method-expression' are mutually exclusive. " +
+							"You can only have one or the other", element);
 		}
 
 		RootBeanDefinition expressionDef = null;
@@ -144,7 +136,8 @@ abstract class HttpAdapterParsingUtils {
 		}
 	}
 
-	static void setExpectedResponseOrExpression(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	static void setExpectedResponseOrExpression(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder) {
 		String expectedResponseType = element.getAttribute("expected-response-type");
 		String expectedResponseTypeExpression = element.getAttribute("expected-response-type-expression");
 
@@ -152,8 +145,9 @@ abstract class HttpAdapterParsingUtils {
 		boolean hasExpectedResponseTypeExpression = StringUtils.hasText(expectedResponseTypeExpression);
 
 		if (hasExpectedResponseType && hasExpectedResponseTypeExpression) {
-			parserContext.getReaderContext().error("The 'expected-response-type' and 'expected-response-type-expression' are mutually exclusive. " +
-					"You can only have one or the other", element);
+			parserContext.getReaderContext()
+					.error("The 'expected-response-type' and 'expected-response-type-expression' are mutually exclusive. " +
+							"You can only have one or the other", element);
 		}
 
 		RootBeanDefinition expressionDef = null;
