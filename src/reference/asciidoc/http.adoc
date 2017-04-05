@@ -226,7 +226,7 @@ Otherwise, it is treated as an `async` mode and the `Mono` response is adapted t
 
 See http://docs.spring.io/spring/docs/5.0.0.M5/spring-framework-reference/html/web-reactive.html#web-reactive-client[WebFlux documentation] and https://projectreactor.io/[Project Reactor] for more information.
 
-For other settings like cookie, uri variables, etc, please see <<HttpRequestExecutingMessageHandler>> above.
+For other settings like cookie, uri variables, etc, please see `HttpRequestExecutingMessageHandler` above.
 
 [[http-namespace]]
 === HTTP Namespace Support

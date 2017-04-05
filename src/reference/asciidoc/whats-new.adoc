@@ -30,7 +30,7 @@ See <<mongodb-outbound-gateway>> for more information.
 ==== HTTP Reactive Outbound Gateway and Channel Adapter
 
 The new `ReactiveHttpRequestExecutingMessageHandler` adds support for WebFlux `WebClient` for outbound channel adapter and gateway.
-See <<ReactiveHttpRequestExecutingMessageHandler>> for more information.
+See <<http-outbound>> for more information.
 
 ==== Content Type Conversion
 

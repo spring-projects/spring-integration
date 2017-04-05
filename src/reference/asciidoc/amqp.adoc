@@ -1095,7 +1095,34 @@ The following Spring Boot application provides an example of configuring the out
 
 [source, java]
 ----
-// To be supplied when the DSL Amqp factory class adds support for the async gateway.
+@SpringBootApplication
+public class AmqpAsyncApplication {
+
+    public static void main(String[] args) {
+         ConfigurableApplicationContext context =
+                 new SpringApplicationBuilder(AmqpAsyncApplication.class)
+                      .web(false)
+                      .run(args);
+         MyGateway gateway = context.getBean(MyGateway.class);
+         String reply = gateway.sendToRabbit("foo");
+         System.out.println(reply);
+    }
+
+    @Bean
+    public IntegrationFlow asyncAmqpOutbound(AsyncRabbitTemplate asyncRabbitTemplate) {
+        return f -> f
+                .handle(Amqp.asyncOutboundGateway(asyncRabbitTemplate)
+                        .routingKey("foo")); // default exchange - route to queue 'foo'
+    }
+
+    @MessagingGateway(defaultRequestChannel = "asyncAmqpOutbound.input")
+    public interface MyGateway {
+
+        String sendToRabbit(String data);
+
+    }
+
+}
 ----
 
 [[content-type-conversion-outbound]]
@@ -1140,7 +1167,7 @@ JSON converter to be selected.
 
 This applies to both the outbound channel adapter and gateway.
 
-NOTE
+[NOTE]
 ====
 Starting with _version 5.0_, headers that are added to the `MessageProperties` of the outbound message are never overwritten by mapped headers (by default).
 Previously, this was only the case if the message converter was a `ContentTypeDelegatingMessageConverter` (in that case, the header was mapped first, so that the proper converter could be selected).
