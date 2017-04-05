@@ -31,6 +31,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -114,7 +115,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 
 	@Override
 	public String getComponentType() {
-		return (this.getExpectReply() ? "http:outbound-gateway" : "http:outbound-channel-adapter");
+		return (this.isExpectReply() ? "http:outbound-gateway" : "http:outbound-channel-adapter");
 	}
 
 	/**
@@ -148,7 +149,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	@Override
-	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType) {
+	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType, Message<?> requestMessage) {
 		ResponseEntity<?> httpResponse;
 		if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
 			httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, (ParameterizedTypeReference<?>) expectedResponseType);

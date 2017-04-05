@@ -162,14 +162,13 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * @return whether a reply Message is expected.
 	 * @see AbstractHttpRequestExecutingMessageHandler#setExpectReply(boolean)
 	 */
-	public boolean getExpectReply() {
+	public boolean isExpectReply() {
 		return this.expectReply;
 	}
 
 	/**
 	 * Specify whether a reply Message is expected. If not, this handler will simply return null for a
 	 * successful response or throw an Exception for a non-successful response. The default is true.
-	 *
 	 * @param expectReply true if a reply is expected.
 	 */
 	public void setExpectReply(boolean expectReply) {
@@ -280,7 +279,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 			realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 
-			return exchange(realUri, httpMethod, httpRequest, expectedResponseType);
+			return exchange(realUri, httpMethod, httpRequest, expectedResponseType, requestMessage);
 		}
 		catch (MessagingException e) {
 			throw e;
@@ -292,7 +291,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	}
 
 	protected abstract Object exchange(URI realUri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
-			Object expectedResponseType);
+			Object expectedResponseType, Message<?> requestMessage);
 
 	protected Object getReply(ResponseEntity<?> httpResponse) {
 		if (this.expectReply) {

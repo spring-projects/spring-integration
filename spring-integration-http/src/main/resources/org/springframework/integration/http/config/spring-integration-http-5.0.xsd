@@ -432,8 +432,8 @@
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-						The reference to org.springframework.web.reactive.function.client.WebClient
-						bean to send the HTTP Request.
+						A reference to a org.springframework.web.reactive.function.client.WebClient bean
+						which is used to send to send the HTTP Requests reactive manner.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

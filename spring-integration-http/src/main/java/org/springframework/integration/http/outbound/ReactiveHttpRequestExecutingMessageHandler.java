@@ -25,14 +25,17 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientException;
 
 import reactor.core.publisher.Mono;
 
@@ -104,11 +107,12 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 
 	@Override
 	public String getComponentType() {
-		return (this.getExpectReply() ? "http:outbound-reactive-gateway" : "http:outbound-reactive-channel-adapter");
+		return (isExpectReply() ? "http:outbound-reactive-gateway" : "http:outbound-reactive-channel-adapter");
 	}
 
 	@Override
-	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType) {
+	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType,
+			Message<?> requestMessage) {
 		WebClient.UriSpec uriSpec;
 
 		// TODO use WebClient.method(HttpMethod) in the future version
@@ -136,7 +140,7 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 				uriSpec = this.webClient.options();
 				break;
 			case TRACE:
-				throw new UnsupportedOperationException("WebClient doesn't support TRACE HTTP method");
+				throw new UnsupportedOperationException("WebClient doesn't support the TRACE HTTP method");
 			default:
 				throw new UnsupportedOperationException("Unsupported HTTP method");
 		}
@@ -152,7 +156,7 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 			responseMono = spec.exchange();
 		}
 
-		if (getExpectReply()) {
+		if (isExpectReply()) {
 
 			ResolvableType responseType;
 
@@ -166,16 +170,27 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 				responseType = null;
 			}
 
-			return responseMono.map(response ->
-					new ResponseEntity<>(responseType != null
-							? response.body(BodyExtractors.toMono(responseType)).block()
-							: null,
-							response.headers().asHttpHeaders(),
-							response.statusCode()))
+			return responseMono
+					.map(response ->
+							new ResponseEntity<>(responseType != null
+									? response.body(BodyExtractors.toMono(responseType)).block()
+									: null,
+									response.headers().asHttpHeaders(),
+									response.statusCode()))
 					.map(this::getReply);
 		}
 		else {
-			responseMono.block();
+			responseMono
+					.doOnNext(response -> {
+						HttpStatus httpStatus = response.statusCode();
+						if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {
+							throw new WebClientException(
+									"ClientResponse has erroneous status code: " + httpStatus.value() +
+											" " + httpStatus.getReasonPhrase());
+						}
+					})
+					.subscribe(v -> {}, ex -> sendErrorMessage(requestMessage, ex));
+
 			return null;
 		}
 	}

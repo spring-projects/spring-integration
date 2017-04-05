@@ -220,7 +220,7 @@ You can configure a `WebClient` instance to use:
 </bean>
 ----
 
-The `WebClient` `exchange()` operation returns a `Mono<ClientResponse>` which is mapped to the `AbstractIntegrationMessageBuilder` reactive as an output from the `ReactiveHttpRequestExecutingMessageHandler`.
+The `WebClient` `exchange()` operation returns a `Mono<ClientResponse>` which is mapped to the `AbstractIntegrationMessageBuilder` reactive manner (using `Mono.map()`) as an output from the `ReactiveHttpRequestExecutingMessageHandler`.
 Together with the `ReactiveChannel` as an `outputChannel` the `Mono<ClientResponse>` evaluation is deferred until downstream subscription.
 Otherwise it is treated as an `async` mode and that `Mono` response is adapted to an `SettableListenableFuture` for an asynchronous reply from the `ReactiveHttpRequestExecutingMessageHandler`.
 
