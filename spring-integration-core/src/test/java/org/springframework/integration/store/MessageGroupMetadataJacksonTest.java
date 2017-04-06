@@ -22,10 +22,10 @@ public class MessageGroupMetadataJacksonTest {
 
 		SimpleMessageGroup messageGroup = mock(SimpleMessageGroup.class);
 		when(messageGroup.isComplete()).thenReturn(true);
-		when(messageGroup.getLastModified()).thenReturn(11111l);
+		when(messageGroup.getLastModified()).thenReturn(11111L);
 		when(messageGroup.getLastReleasedMessageSequenceNumber()).thenReturn(11);
 		when(messageGroup.getGroupId()).thenReturn(true);
-		when(messageGroup.getTimestamp()).thenReturn(111111l);
+		when(messageGroup.getTimestamp()).thenReturn(111111L);
 		when(messageGroup.getSequenceSize()).thenReturn(11);
 		when(messageGroup.getMessages())
 				.thenReturn(Arrays.asList(new GenericMessage<>(String.class), new GenericMessage<>(String.class)));
