@@ -135,7 +135,8 @@ public class FileOutboundChannelAdapterIntegrationTests {
 			this.inputChannelSaveToSubDirEmptyStringExpression.send(message);
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals("Unable to resolve destination directory name for the provided Expression ''   ''.", e.getCause().getMessage());
+			Assert.assertEquals("Unable to resolve Destination Directory for the provided Expression ''   ''.",
+					e.getCause().getMessage());
 			return;
 		}
 
@@ -192,8 +193,8 @@ public class FileOutboundChannelAdapterIntegrationTests {
 			this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals("The provided destinationDirectoryExpression " +
-					"(headers['subDirectory']) must not resolve to null.",
+			Assert.assertEquals("The provided Destination Directory expression " +
+					"(headers['subDirectory']) must not evaluate to null.",
 					e.getCause().getMessage());
 
 			return;
@@ -214,9 +215,9 @@ public class FileOutboundChannelAdapterIntegrationTests {
 			this.inputChannelSaveToSubDirWithFile.send(messageWithFileHeader);
 		}
 		catch (MessageHandlingException e) {
-			Assert.assertEquals("The provided destinationDirectoryExpression" +
-					" (headers['subDirectory']) must be of type " +
-					"java.io.File or be a String.",
+			Assert.assertEquals("The provided Destination Directory expression" +
+					" (headers['subDirectory']) must evaluate to type " +
+					"java.io.File or String, not java.lang.Integer.",
 					e.getCause().getMessage());
 
 			return;

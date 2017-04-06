@@ -16,6 +16,8 @@
 
 package org.springframework.integration.expression;
 
+import java.io.File;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -23,23 +25,30 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
- * Utility class with static methods for helping with establishing environments for
- * SpEL expressions.
+ * Utility class with static methods for helping with evaluation of SpEL expressions.
  *
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @since 2.2
  */
-public abstract class ExpressionUtils {
+public final class ExpressionUtils {
 
 	private static final Log logger = LogFactory.getLog(ExpressionUtils.class);
+
+	private ExpressionUtils() {
+		super();
+	}
 
 	/**
 	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
@@ -95,6 +104,41 @@ public abstract class ExpressionUtils {
 			evaluationContext = createStandardEvaluationContext(conversionService, beanFactory);
 		}
 		return evaluationContext;
+	}
+
+	/**
+	 * Evaluate an expression and return a {@link File} object; the expression can evaluate
+	 * to a {@link String} or {@link File}.
+	 * @param expression the expression.
+	 * @param evaluationContext the evaluation context.
+	 * @param message the message (if available).
+	 * @param name the name of the result of the evaluation.
+	 * @return the File.
+	 * @since 5.0
+	 */
+	public static File expressionToFile(Expression expression, EvaluationContext evaluationContext, Message<?> message,
+			String name) {
+		File file;
+		Object value = expression.getValue(evaluationContext, message);
+		if (value == null) {
+			throw new IllegalStateException(String.format("The provided %s expression (%s) must not evaluate to null.",
+					name, expression.getExpressionString()));
+		}
+		else if (value instanceof File) {
+			file = (File) value;
+		}
+		else if (value instanceof String) {
+			String path = (String) value;
+			Assert.hasText(path, String.format("Unable to resolve %s for the provided Expression '%s'.", name,
+					expression.getExpressionString()));
+			file = new File(path);
+		}
+		else {
+			throw new IllegalStateException(String.format(
+					"The provided %s expression (%s) must evaluate to type java.io.File or String, not %s.", name,
+					expression.getExpressionString(), value.getClass().getName()));
+		}
+		return file;
 	}
 
 }
