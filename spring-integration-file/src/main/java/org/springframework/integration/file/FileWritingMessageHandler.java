@@ -767,35 +767,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File evaluateDestinationDirectoryExpression(Message<?> message) {
-
-		final File destinationDirectory;
-
-		final Object destinationDirectoryToUse = this.destinationDirectoryExpression.getValue(
-				this.evaluationContext, message);
-
-		if (destinationDirectoryToUse == null) {
-			throw new IllegalStateException(String.format("The provided " +
-							"destinationDirectoryExpression (%s) must not resolve to null.",
-					this.destinationDirectoryExpression.getExpressionString()));
-		}
-		else if (destinationDirectoryToUse instanceof String) {
-
-			final String destinationDirectoryPath = (String) destinationDirectoryToUse;
-
-			Assert.hasText(destinationDirectoryPath, String.format(
-					"Unable to resolve destination directory name for the provided Expression '%s'.",
-					this.destinationDirectoryExpression.getExpressionString()));
-			destinationDirectory = new File(destinationDirectoryPath);
-		}
-		else if (destinationDirectoryToUse instanceof File) {
-			destinationDirectory = (File) destinationDirectoryToUse;
-		}
-		else {
-			throw new IllegalStateException(String.format("The provided " +
-					"destinationDirectoryExpression (%s) must be of type " +
-					"java.io.File or be a String.", this.destinationDirectoryExpression.getExpressionString()));
-		}
-
+		final File destinationDirectory = ExpressionUtils.expressionToFile(this.destinationDirectoryExpression,
+				this.evaluationContext, message, "Destination Directory");
 		validateDestinationDirectory(destinationDirectory, this.autoCreateDirectory);
 		return destinationDirectory;
 	}

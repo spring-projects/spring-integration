@@ -33,11 +33,11 @@ import java.util.Set;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
@@ -358,16 +358,27 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	public void setLocalDirectory(File localDirectory) {
 		if (localDirectory != null) {
-			this.localDirectoryExpression = new LiteralExpression(localDirectory.getAbsolutePath());
+			this.localDirectoryExpression = new ValueExpression<>(localDirectory);
 		}
 	}
 
 	/**
-	 * Specify a SpEL expression to evaluate directory path where remote files will be transferred to.
+	 * Specify a SpEL expression to evaluate the directory path to which remote files will
+	 * be transferred.
 	 * @param localDirectoryExpression the SpEL to determine the local directory.
 	 */
 	public void setLocalDirectoryExpression(Expression localDirectoryExpression) {
 		this.localDirectoryExpression = localDirectoryExpression;
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate the directory path to which remote files will
+	 * be transferred.
+	 * @param localDirectoryExpression the SpEL to determine the local directory.
+	 * @since 5.0
+	 */
+	public void setLocalDirectoryExpressionString(String localDirectoryExpression) {
+		this.localDirectoryExpression = EXPRESSION_PARSER.parseExpression(localDirectoryExpression);
 	}
 
 	/**
@@ -496,8 +507,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if ((Command.GET.equals(this.command) && !this.options.contains(Option.STREAM))
 				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
-			if (this.localDirectoryExpression instanceof LiteralExpression) {
-				File localDirectory = new File(this.localDirectoryExpression.getExpressionString());
+			if (this.localDirectoryExpression instanceof ValueExpression) {
+				File localDirectory = this.localDirectoryExpression.getValue(File.class);
 				try {
 					if (!localDirectory.exists()) {
 						if (this.autoCreateLocalDirectory) {
@@ -1059,10 +1070,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (remoteDirectory != null) {
 			evaluationContext.setVariable("remoteDirectory", remoteDirectory);
 		}
-		//TODO see org.springframework.integration.context.CustomConversionServiceFactoryBean
-//		File localDir = this.localDirectoryExpression.getValue(evaluationContext, message, File.class);
-		String localDirPath = this.localDirectoryExpression.getValue(evaluationContext, message, String.class);
-		File localDir = new File(localDirPath);
+		File localDir = ExpressionUtils.expressionToFile(this.localDirectoryExpression, evaluationContext, message,
+				"Local Directory");
 		if (!localDir.exists()) {
 			Assert.isTrue(localDir.mkdirs(), "Failed to make local directory: " + localDir);
 		}
