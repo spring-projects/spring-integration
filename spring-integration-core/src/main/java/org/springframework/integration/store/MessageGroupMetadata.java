@@ -90,7 +90,7 @@ public class MessageGroupMetadata implements Serializable {
 	}
 
 	public List<UUID> getMessageIds() {
-		return messageIds;
+		return this.messageIds;
 	}
 
 	void complete() {
