@@ -18,6 +18,7 @@ package org.springframework.integration.support.leader;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -68,12 +69,12 @@ public class LockRegistryLeaderInitiatorTests {
 		assertThat(this.initiator.getContext().isLeader(), is(false));
 		this.initiator.start();
 		assertThat(this.initiator.isRunning(), is(true));
-		this.granted.await(10, TimeUnit.SECONDS);
+		assertTrue(this.granted.await(10, TimeUnit.SECONDS));
 		assertThat(this.initiator.getContext().isLeader(), is(true));
 		Thread.sleep(200L);
 		assertThat(this.initiator.getContext().isLeader(), is(true));
 		this.initiator.stop();
-		this.revoked.await(10, TimeUnit.SECONDS);
+		assertTrue(this.revoked.await(10, TimeUnit.SECONDS));
 		assertThat(this.initiator.getContext().isLeader(), is(false));
 	}
 
@@ -82,7 +83,7 @@ public class LockRegistryLeaderInitiatorTests {
 		assertThat(this.initiator.getContext().isLeader(), is(false));
 		this.initiator.start();
 		assertThat(this.initiator.isRunning(), is(true));
-		this.granted.await(10, TimeUnit.SECONDS);
+		assertTrue(this.granted.await(10, TimeUnit.SECONDS));
 		assertThat(this.initiator.getContext().isLeader(), is(true));
 		this.initiator.getContext().yield();
 		assertThat(this.revoked.await(10, TimeUnit.SECONDS), is(true));
@@ -143,23 +144,19 @@ public class LockRegistryLeaderInitiatorTests {
 		first.start();
 		second.start();
 
-		Thread.sleep(100);
-
 		// first initiator should lead and publish granted event
+		assertThat(firstGranted.await(10, TimeUnit.SECONDS), is(true));
 		assertThat(first.getContext().isLeader(), is(true));
 		assertThat(second.getContext().isLeader(), is(false));
-		assertThat(firstGranted.await(10, TimeUnit.SECONDS), is(true));
 
 		// simulate first registry instance unable to obtain lock, for example due to lock timeout
 		firstLocked.set(false);
 
-		Thread.sleep(100);
-
 		// second initiator should take lead and publish granted event, first initiator should publish revoked event
-		assertThat(second.getContext().isLeader(), is(true));
-		assertThat(first.getContext().isLeader(), is(false));
 		assertThat(secondGranted.await(10, TimeUnit.SECONDS), is(true));
 		assertThat(firstRevoked.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(second.getContext().isLeader(), is(true));
+		assertThat(first.getContext().isLeader(), is(false));
 
 		first.stop();
 		second.stop();
