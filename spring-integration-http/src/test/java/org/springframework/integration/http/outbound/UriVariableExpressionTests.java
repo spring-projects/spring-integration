@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.http.outbound;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -52,6 +50,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Wallace Wadge
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class UriVariableExpressionTests {
@@ -78,7 +77,6 @@ public class UriVariableExpressionTests {
 		}
 		catch (Exception e) {
 			assertEquals("intentional", e.getCause().getMessage());
-			assertThat(e.getMessage(), containsString("http://test/bar"));
 		}
 		assertEquals("http://test/bar", uriHolder.get().toString());
 	}

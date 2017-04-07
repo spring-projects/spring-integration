@@ -17,6 +17,7 @@
 package org.springframework.integration.http.outbound;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
 import javax.xml.transform.Source;
 
@@ -46,7 +48,6 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -253,45 +254,43 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
+		HttpMethod httpMethod = determineHttpMethod(requestMessage);
+
+		if (!shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
+						"since the HTTP Method is '" + httpMethod +
+						"', and no request body will be sent for that method.");
+			}
+		}
+
+		Object expectedResponseType = determineExpectedResponseType(requestMessage);
+
+		HttpEntity<?> httpRequest = generateHttpRequest(requestMessage, httpMethod);
+		return exchange(() -> generateUri(requestMessage), httpMethod, httpRequest, expectedResponseType,
+				requestMessage);
+	}
+
+	protected abstract Object exchange(Supplier<URI> uriSupplier, HttpMethod httpMethod, HttpEntity<?> httpRequest,
+			Object expectedResponseType, Message<?> requestMessage);
+
+	private URI generateUri(Message<?> requestMessage) {
 		Object uri = this.uriExpression.getValue(this.evaluationContext, requestMessage);
 		Assert.state(uri instanceof String || uri instanceof URI,
 				"'uriExpression' evaluation must result in a 'String' or 'URI' instance, not: "
 						+ (uri == null ? "null" : uri.getClass()));
-		URI realUri = null;
+		Map<String, ?> uriVariables = determineUriVariables(requestMessage);
+		UriComponentsBuilder uriComponentsBuilder = uri instanceof String
+				? UriComponentsBuilder.fromUriString((String) uri)
+				: UriComponentsBuilder.fromUri((URI) uri);
+		UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
 		try {
-			HttpMethod httpMethod = this.determineHttpMethod(requestMessage);
-
-			if (!shouldIncludeRequestBody(httpMethod) && this.extractPayloadExplicitlySet) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("The 'extractPayload' attribute has no relevance for the current request " +
-							"since the HTTP Method is '" + httpMethod +
-							"', and no request body will be sent for that method.");
-				}
-			}
-
-			Object expectedResponseType = determineExpectedResponseType(requestMessage);
-
-			HttpEntity<?> httpRequest = generateHttpRequest(requestMessage, httpMethod);
-			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
-			UriComponentsBuilder uriComponentsBuilder = uri instanceof String
-					? UriComponentsBuilder.fromUriString((String) uri)
-					: UriComponentsBuilder.fromUri((URI) uri);
-			UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(uriVariables);
-			realUri = this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
-
-			return exchange(realUri, httpMethod, httpRequest, expectedResponseType, requestMessage);
+			return this.encodeUri ? uriComponents.toUri() : new URI(uriComponents.toUriString());
 		}
-		catch (MessagingException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI ["
-					+ (realUri == null ? uri : realUri) + "]", e);
+		catch (URISyntaxException e) {
+			throw new MessageHandlingException(requestMessage, "Invalid URI [" + uri + "]", e);
 		}
 	}
-
-	protected abstract Object exchange(URI realUri, HttpMethod httpMethod, HttpEntity<?> httpRequest,
-			Object expectedResponseType, Message<?> requestMessage);
 
 	protected Object getReply(ResponseEntity<?> httpResponse) {
 		if (this.expectReply) {
@@ -341,7 +340,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		}
 	}
 
-	private HttpEntity<?> generateHttpRequest(Message<?> message, HttpMethod httpMethod) throws Exception {
+	private HttpEntity<?> generateHttpRequest(Message<?> message, HttpMethod httpMethod) {
 		Assert.notNull(message, "message must not be null");
 		return (this.extractPayload) ? this.createHttpEntityFromPayload(message, httpMethod)
 				: this.createHttpEntityFromMessage(message, httpMethod);
@@ -355,7 +354,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		}
 		HttpHeaders httpHeaders = this.mapHeaders(message);
 		if (!shouldIncludeRequestBody(httpMethod)) {
-			return new HttpEntity<Object>(httpHeaders);
+			return new HttpEntity<>(httpHeaders);
 		}
 		// otherwise, we are creating a request with a body and need to deal with the content-type header as well
 		if (httpHeaders.getContentType() == null) {
@@ -370,7 +369,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				payload = this.convertToMultiValueMap((Map<?, ?>) payload);
 			}
 		}
-		return new HttpEntity<Object>(payload, httpHeaders);
+		return new HttpEntity<>(payload, httpHeaders);
 	}
 
 	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message, HttpMethod httpMethod) {
@@ -379,7 +378,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
 			return new HttpEntity<Object>(message, httpHeaders);
 		}
-		return new HttpEntity<Object>(httpHeaders);
+		return new HttpEntity<>(httpHeaders);
 	}
 
 	protected HttpHeaders mapHeaders(Message<?> message) {
@@ -471,7 +470,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	 * If all keys and values are Strings, we'll consider the Map to be form data.
 	 */
 	private boolean isFormData(Map<Object, ?> map) {
-		for (Object	 key : map.keySet()) {
+		for (Object key : map.keySet()) {
 			if (!(key instanceof String)) {
 				return false;
 			}
@@ -498,7 +497,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		}
 	}
 
-	private Object determineExpectedResponseType(Message<?> requestMessage) throws Exception {
+	private Object determineExpectedResponseType(Message<?> requestMessage) {
 		Object expectedResponseType = null;
 		if (this.expectedResponseTypeExpression != null) {
 			expectedResponseType = this.expectedResponseTypeExpression.getValue(this.evaluationContext, requestMessage);
@@ -507,11 +506,17 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 			Assert.state(expectedResponseType instanceof Class<?>
 							|| expectedResponseType instanceof String
 							|| expectedResponseType instanceof ParameterizedTypeReference,
-					"'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'; "
-					+ "evaluation resulted in a" + expectedResponseType.getClass() + ".");
+					"'expectedResponseType' can be an instance of 'Class<?>', 'String' " +
+							"or 'ParameterizedTypeReference<?>'; " +
+							"evaluation resulted in a" + expectedResponseType.getClass() + ".");
 			if (expectedResponseType instanceof String && StringUtils.hasText((String) expectedResponseType)) {
-				expectedResponseType = ClassUtils.forName((String) expectedResponseType,
-						getApplicationContext().getClassLoader());
+				try {
+					expectedResponseType = ClassUtils.forName((String) expectedResponseType,
+							getApplicationContext().getClassLoader());
+				}
+				catch (ClassNotFoundException e) {
+					throw new IllegalStateException("Cannot load class for name: " + expectedResponseType, e);
+				}
 			}
 		}
 		return expectedResponseType;
@@ -532,9 +537,9 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		}
 
 		return ExpressionEvalMap.from(expressions)
-					.usingEvaluationContext(this.evaluationContext)
-					.withRoot(requestMessage)
-					.build();
+				.usingEvaluationContext(this.evaluationContext)
+				.withRoot(requestMessage)
+				.build();
 
 	}
 
