@@ -17,6 +17,7 @@
 package org.springframework.integration.http.outbound;
 
 import java.net.URI;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -32,7 +33,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.BodyExtractors;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -111,53 +111,29 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 	}
 
 	@Override
-	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType,
-			Message<?> requestMessage) {
-		WebClient.UriSpec uriSpec;
+	protected Object exchange(Supplier<URI> uriSupplier, HttpMethod httpMethod, HttpEntity<?> httpRequest,
+			Object expectedResponseType, Message<?> requestMessage) {
 
-		// TODO use WebClient.method(HttpMethod) in the future version
+		WebClient.RequestBodySpec requestSpec =
+				this.webClient.method(httpMethod)
+						.uri(b -> uriSupplier.get())
+						.headers(httpRequest.getHeaders());
 
-		switch (httpMethod) {
-			case GET:
-				uriSpec = this.webClient.get();
-				break;
-			case HEAD:
-				uriSpec = this.webClient.head();
-				break;
-			case POST:
-				uriSpec = this.webClient.post();
-				break;
-			case PUT:
-				uriSpec = this.webClient.put();
-				break;
-			case PATCH:
-				uriSpec = this.webClient.patch();
-				break;
-			case DELETE:
-				uriSpec = this.webClient.delete();
-				break;
-			case OPTIONS:
-				uriSpec = this.webClient.options();
-				break;
-			case TRACE:
-				throw new UnsupportedOperationException("WebClient doesn't support the TRACE HTTP method");
-			default:
-				throw new UnsupportedOperationException("Unsupported HTTP method");
-		}
-
-		WebClient.HeaderSpec spec = uriSpec.uri(uri)
-				.headers(httpRequest.getHeaders());
-
-		Mono<ClientResponse> responseMono;
 		if (httpRequest.hasBody()) {
-			responseMono = spec.exchange(BodyInserters.fromObject(httpRequest.getBody()));
+			requestSpec.body(httpRequest.getBody());
 		}
-		else {
-			responseMono = spec.exchange();
-		}
+
+		Mono<ClientResponse> responseMono = requestSpec.exchange()
+				.doOnNext(response -> {
+					HttpStatus httpStatus = response.statusCode();
+					if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {
+						throw new WebClientException(
+								"ClientResponse has erroneous status code: " + httpStatus.value() +
+										" " + httpStatus.getReasonPhrase());
+					}
+				});
 
 		if (isExpectReply()) {
-
 			ResolvableType responseType;
 
 			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
@@ -180,16 +156,7 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 					.map(this::getReply);
 		}
 		else {
-			responseMono
-					.doOnNext(response -> {
-						HttpStatus httpStatus = response.statusCode();
-						if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {
-							throw new WebClientException(
-									"ClientResponse has erroneous status code: " + httpStatus.value() +
-											" " + httpStatus.getReasonPhrase());
-						}
-					})
-					.subscribe(v -> { }, ex -> sendErrorMessage(requestMessage, ex));
+			responseMono.subscribe(v -> { }, ex -> sendErrorMessage(requestMessage, ex));
 
 			return null;
 		}

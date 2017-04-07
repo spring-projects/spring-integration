@@ -18,6 +18,7 @@ package org.springframework.integration.http.outbound;
 
 import java.net.URI;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -33,8 +34,10 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -149,16 +152,24 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	}
 
 	@Override
-	protected Object exchange(URI uri, HttpMethod httpMethod, HttpEntity<?> httpRequest, Object expectedResponseType,
-			Message<?> requestMessage) {
+	protected Object exchange(Supplier<URI> uriSupplier, HttpMethod httpMethod, HttpEntity<?> httpRequest,
+			Object expectedResponseType, Message<?> requestMessage) {
+		URI uri = uriSupplier.get();
 		ResponseEntity<?> httpResponse;
-		if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-			httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest,
-					(ParameterizedTypeReference<?>) expectedResponseType);
+		try {
+			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+				httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest,
+						(ParameterizedTypeReference<?>) expectedResponseType);
+			}
+			else {
+				httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest,
+						(Class<?>) expectedResponseType);
+			}
+			return getReply(httpResponse);
 		}
-		else {
-			httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, (Class<?>) expectedResponseType);
+		catch (RestClientException e) {
+			throw new MessageHandlingException(requestMessage,
+					"HTTP request execution failed for URI [" + uri + "]", e);
 		}
-		return getReply(httpResponse);
 	}
 }
