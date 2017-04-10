@@ -323,55 +323,6 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 		}
 
 		/**
-		 * Set the executor for threads that invoke the listener.
-		 * @param listenerTaskExecutor the executor
-		 * @return the spec.
-		 * @see ContainerProperties#setListenerTaskExecutor(AsyncListenableTaskExecutor)
-		 */
-		public KafkaMessageListenerContainerSpec<K, V> listenerTaskExecutor(
-				AsyncListenableTaskExecutor listenerTaskExecutor) {
-			this.container.getContainerProperties().setListenerTaskExecutor(listenerTaskExecutor);
-			return this;
-		}
-
-		/**
-		 * When using Kafka group management and {@link #pauseEnabled(boolean)} is
-		 * true, set the delay after which the consumer should be paused. Default 10000.
-		 * @param pauseAfter the delay.
-		 * @return the spec.
-		 * @see ContainerProperties#setPauseAfter(long)
-		 */
-		public KafkaMessageListenerContainerSpec<K, V> pauseAfter(long pauseAfter) {
-			this.container.getContainerProperties().setPauseAfter(pauseAfter);
-			return this;
-		}
-
-		/**
-		 * Set to true to avoid rebalancing when this consumer is slow or throws a
-		 * qualifying exception - pause the consumer. Default: true.
-		 * @param pauseEnabled true to pause.
-		 * @return the spec.
-		 * @see #pauseAfter(long)
-		 * @see ContainerProperties#setPauseEnabled(boolean)
-		 */
-		public KafkaMessageListenerContainerSpec<K, V> pauseEnabled(boolean pauseEnabled) {
-			this.container.getContainerProperties().setPauseEnabled(pauseEnabled);
-			return this;
-		}
-
-		/**
-		 * Set the queue depth for handoffs from the consumer thread to the listener
-		 * thread. Default 1 (up to 2 in process).
-		 * @param queueDepth the queue depth.
-		 * @return the spec.
-		 * @see ContainerProperties#setQueueDepth(int)
-		 */
-		public KafkaMessageListenerContainerSpec<K, V> queueDepth(int queueDepth) {
-			this.container.getContainerProperties().setQueueDepth(queueDepth);
-			return this;
-		}
-
-		/**
 		 * Set the timeout for shutting down the container. This is the maximum amount of
 		 * time that the invocation to {@code #stop(Runnable)} will block for, before
 		 * returning.
