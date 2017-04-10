@@ -189,7 +189,7 @@ that are thrown by a Spring Integration task that is executing within a `TaskExe
 This does _not_ apply to Exceptions thrown by a handler that is operating within the same thread as the sender (e.g.
 through a `DirectChannel` as described above).
 
-NOTE: When Exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in `ErrorMessages` and sent to the 'errorChannel' as well.
+NOTE: When Exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in `ErrorMessage` s and sent to the 'errorChannel' as well.
 
 To enable global error handling, simply register a handler on that channel.
 For example, you can configure Spring Integration's `ErrorMessageExceptionTypeRouter` as the handler of an endpoint that is subscribed to the 'errorChannel'.
