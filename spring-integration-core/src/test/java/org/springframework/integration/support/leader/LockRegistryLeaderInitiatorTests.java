@@ -17,22 +17,31 @@
 package org.springframework.integration.support.leader;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.core.task.support.ExecutorServiceAdapter;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
@@ -52,9 +61,9 @@ public class LockRegistryLeaderInitiatorTests {
 
 	private CountDownLatch revoked;
 
-	private LockRegistry registry = new DefaultLockRegistry();
+	private final LockRegistry registry = new DefaultLockRegistry();
 
-	private LockRegistryLeaderInitiator initiator =
+	private final LockRegistryLeaderInitiator initiator =
 			new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
 
 	@Before
@@ -160,6 +169,49 @@ public class LockRegistryLeaderInitiatorTests {
 
 		first.stop();
 		second.stop();
+	}
+
+	@Test
+	public void testGracefulLeaderSelectorExit() throws Exception {
+		AtomicReference<Throwable> throwableAtomicReference = new AtomicReference<>();
+
+		LockRegistry registry = mock(LockRegistry.class);
+
+		Lock lock = spy(new ReentrantLock());
+
+		willAnswer(invocation -> {
+			try {
+				return invocation.callRealMethod();
+			}
+			catch (Throwable e) {
+				throwableAtomicReference.set(e);
+				throw e;
+			}
+		})
+				.given(lock)
+				.unlock();
+
+
+		given(registry.obtain(anyString()))
+				.willReturn(lock);
+
+		LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(registry);
+
+		willAnswer(invocation -> {
+			initiator.stop();
+			return false;
+		})
+				.given(lock)
+				.tryLock(anyLong(), eq(TimeUnit.MILLISECONDS));
+
+		new DirectFieldAccessor(initiator).setPropertyValue("executorService",
+				new ExecutorServiceAdapter(
+						new SyncTaskExecutor()));
+
+		initiator.start();
+
+		Throwable throwable = throwableAtomicReference.get();
+		assertNull(throwable);
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {
