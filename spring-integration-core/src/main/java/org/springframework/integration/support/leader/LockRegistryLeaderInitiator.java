@@ -242,8 +242,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		synchronized (this.lifecycleMonitor) {
 			if (!this.running) {
 				this.leaderSelector = new LeaderSelector(buildLeaderPath());
-				this.future = this.executorService.submit(this.leaderSelector);
 				this.running = true;
+				this.future = this.executorService.submit(this.leaderSelector);
 				logger.debug("Started LeaderInitiator");
 			}
 		}
@@ -346,8 +346,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 				}
 			}
 			finally {
-				this.lock.unlock();
 				if (this.locked) {
+					this.lock.unlock();
 					// We are stopping, therefore not leading any more
 					handleRevoked();
 				}
