@@ -334,7 +334,7 @@ Below you can see an example of an aggregator.
 
 <int:channel id="throwAwayChannel"/>
 
-<bean id="persistentMessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore">
+<bean id="persistentMessageStore" class="org.springframework.integration.jdbc.store.JdbcMessageStore">
     <constructor-arg ref="dataSource"/>
 </bean>
 

@@ -17,8 +17,8 @@
 	</bean>
 
 	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
-		<jdbc:script location="classpath:org/springframework/integration/jdbc/store/channel/schema-drop-h2.sql" />
-		<jdbc:script location="classpath:org/springframework/integration/jdbc/store/channel/schema-h2.sql" />
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-drop-h2.sql" />
+		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-h2.sql" />
 	</jdbc:initialize-database>
 
 	<bean id="queryProvider"

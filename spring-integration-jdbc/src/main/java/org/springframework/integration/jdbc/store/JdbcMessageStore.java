@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.store;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,13 +35,11 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageMetadata;
@@ -66,9 +64,6 @@ import org.springframework.util.StringUtils;
  * tables are packaged as <code>org/springframework/integration/jdbc/schema-*.sql</code>, where <code>*</code> is the
  * target database type.
  * <p>
- * Notice: Starting with Spring Integration 5.0, this class will move to package:
- * {@code org.springframework.integration.jdbc.store}.
- * <p>
  * If you intend backing a {@link MessageChannel} using a JDBC-based Message Store,
  * please consider using the channel-specific {@link JdbcChannelMessageStore} instead.
  * This implementation is intended for correlation components (e.g. {@code <aggregator>}),
@@ -84,7 +79,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore, InitializingBean {
+public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
 	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);
 
@@ -192,7 +187,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private volatile JdbcOperations jdbcTemplate;
+	private final JdbcOperations jdbcTemplate;
 
 	private volatile DeserializingConverter deserializer;
 
@@ -203,21 +198,23 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private volatile Map<Query, String> queryCache = new HashMap<Query, String>();
 
 	/**
-	 * Convenient constructor for configuration use.
+	 * Create a {@link MessageStore} with all mandatory properties.
+	 * @param dataSource a {@link DataSource}
 	 */
-	public JdbcMessageStore() {
-		this.deserializer = new DeserializingConverter();
-		this.serializer = new SerializingConverter();
+	public JdbcMessageStore(DataSource dataSource) {
+		this(new JdbcTemplate(dataSource));
 	}
 
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
-	 *
-	 * @param dataSource a {@link DataSource}
+	 * @param jdbcOperations a {@link JdbcOperations}
+	 * @since 4.3.9
 	 */
-	public JdbcMessageStore(DataSource dataSource) {
-		this();
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	public JdbcMessageStore(JdbcOperations jdbcOperations) {
+		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
+		this.jdbcTemplate = jdbcOperations;
+		this.deserializer = new DeserializingConverter();
+		this.serializer = new SerializingConverter();
 	}
 
 	/**
@@ -239,26 +236,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public void setRegion(String region) {
 		Assert.hasText(region, "Region must not be null or empty.");
 		this.region = region;
-	}
-
-	/**
-	 * The JDBC {@link DataSource} to use when interacting with the database. Either this property can be set or the
-	 * {@link #setJdbcTemplate(JdbcOperations) jdbcTemplate}.
-	 *
-	 * @param dataSource a {@link DataSource}
-	 */
-	public void setDataSource(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
-	}
-
-	/**
-	 * The {@link JdbcOperations} to use when interacting with the database. Either this property can be set or the
-	 * {@link #setDataSource(DataSource) dataSource}.
-	 *
-	 * @param jdbcTemplate a {@link JdbcOperations}
-	 */
-	public void setJdbcTemplate(JdbcOperations jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
 	}
 
 	/**
@@ -289,11 +266,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		Assert.state(this.jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
 	}
 
 	@Override
