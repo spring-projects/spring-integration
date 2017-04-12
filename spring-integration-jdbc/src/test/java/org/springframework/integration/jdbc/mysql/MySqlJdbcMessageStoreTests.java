@@ -44,7 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.jdbc.JdbcMessageStore;
+import org.springframework.integration.jdbc.store.JdbcMessageStore;
+import org.springframework.integration.jdbc.store.JdbcMessageStoreTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.UUIDConverter;
@@ -64,7 +65,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Based on the test for Derby:
  *
- * {@link org.springframework.integration.jdbc.JdbcMessageStoreTests}
+ * {@link JdbcMessageStoreTests}
  *
  * This tests requires at least MySql 5.6.4 as it uses the fractional second support
  * in that version. For more information, please see:

@@ -390,7 +390,6 @@ To achieve better JDBC queue throughput, and avoid issues when different threads
 
 [source,xml]
 ----
-…
 <bean id="queryProvider"
     class="o.s.i.jdbc.store.channel.PostgresChannelMessageStoreQueryProvider"/>
 
@@ -422,7 +421,6 @@ To achieve better JDBC queue throughput, and avoid issues when different threads
 </int:bridge>
 
 <int:channel id="outputChannel" />
-…
 ----
 
 *Priority Channel*
@@ -460,11 +458,10 @@ To configure that scenario, simply extend one message store bean from the other:
 ==== Initializing the Database
 
 Spring Integration ships with some sample scripts that can be used to initialize a database.
-In the spring-integration-jdbc JAR file you will find scripts in the `org.springframework.integration.jdbc` and in the `org.springframework.integration.jdbc.store.channel` package: there is a create and a drop script example for a range of common database platforms.
+In the `spring-integration-jdbc` JAR file you can find scripts in the `org.springframework.integration.jdbc` package: there is a create and a drop script example for a range of common database platforms.
 A common way to use these scripts is to reference them in a https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
-Note that the scripts are provided as samples or specifications of the the required table and column names.
-You may find that you need to enhance them for production use (e.g.
-with index declarations).
+`Note that the scripts are provided as samples or specifications of the the required table and column names.
+You may find that you need to enhance them for production use (e.g. with index declarations).
 
 ==== Partitioning a Message Store
 

@@ -27,7 +27,7 @@ task generateSql {
 
     doLast {
         ['hsqldb', 'h2', 'db2', 'derby', 'mysql', 'mysql-5_6_4',
-         'oracle10g', 'postgresql', 'sqlserver', 'sybase'].each { dbType ->
+         'oracle', 'postgresql', 'sqlserver', 'sybase'].each { dbType ->
             ant.vppcopy(todir: generatedResourcesDir) {
                 config {
                     context {

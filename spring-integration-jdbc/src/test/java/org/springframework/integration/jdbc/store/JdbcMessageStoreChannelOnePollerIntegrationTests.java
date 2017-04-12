@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.store;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.store;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,7 +41,6 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageMetadata;
@@ -65,9 +64,6 @@ import org.springframework.util.StringUtils;
  * Implementation of {@link MessageStore} using a relational database via JDBC. SQL scripts to create the necessary
  * tables are packaged as <code>org/springframework/integration/jdbc/schema-*.sql</code>, where <code>*</code> is the
  * target database type.
- * <p>
- * Notice: Starting with Spring Integration 5.0, this class will move to package:
- * {@code org.springframework.integration.jdbc.store}.
  * <p>
  * If you intend backing a {@link MessageChannel} using a JDBC-based Message Store,
  * please consider using the channel-specific {@link JdbcChannelMessageStore} instead.
@@ -192,7 +188,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private volatile JdbcOperations jdbcTemplate;
+	private final JdbcOperations jdbcTemplate;
 
 	private volatile DeserializingConverter deserializer;
 
@@ -204,20 +200,31 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	/**
 	 * Convenient constructor for configuration use.
+	 * @deprecated since 5.0 in favor of {@link #JdbcMessageStore(DataSource)}
 	 */
+	@Deprecated
 	public JdbcMessageStore() {
-		this.deserializer = new DeserializingConverter();
-		this.serializer = new SerializingConverter();
+		throw new UnsupportedOperationException("Please, use DataSource-based constructor");
 	}
 
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
-	 *
 	 * @param dataSource a {@link DataSource}
 	 */
 	public JdbcMessageStore(DataSource dataSource) {
-		this();
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
+		this(new JdbcTemplate(dataSource));
+	}
+
+	/**
+	 * Create a {@link MessageStore} with all mandatory properties.
+	 * @param jdbcOperations a {@link JdbcOperations}
+	 * @since 5.0
+	 */
+	public JdbcMessageStore(JdbcOperations jdbcOperations) {
+		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
+		this.jdbcTemplate = jdbcOperations;
+		this.deserializer = new DeserializingConverter();
+		this.serializer = new SerializingConverter();
 	}
 
 	/**
@@ -242,23 +249,23 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	/**
-	 * The JDBC {@link DataSource} to use when interacting with the database. Either this property can be set or the
-	 * {@link #setJdbcTemplate(JdbcOperations) jdbcTemplate}.
-	 *
+	 * The JDBC {@link DataSource} to use when interacting with the database.
 	 * @param dataSource a {@link DataSource}
+	 * @deprecated in favor of {@link #JdbcMessageStore(DataSource)}
 	 */
+	@Deprecated
 	public void setDataSource(DataSource dataSource) {
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
+
 	}
 
 	/**
-	 * The {@link JdbcOperations} to use when interacting with the database. Either this property can be set or the
-	 * {@link #setDataSource(DataSource) dataSource}.
-	 *
+	 * The {@link JdbcOperations} to use when interacting with the database.
 	 * @param jdbcTemplate a {@link JdbcOperations}
+	 * @deprecated in favor of {@link #JdbcMessageStore(JdbcOperations)}
 	 */
+	@Deprecated
 	public void setJdbcTemplate(JdbcOperations jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
+
 	}
 
 	/**

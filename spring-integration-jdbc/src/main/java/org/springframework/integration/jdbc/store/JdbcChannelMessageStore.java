@@ -42,7 +42,6 @@ import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
@@ -81,7 +80,7 @@ import org.springframework.util.StringUtils;
  * Contrary to the {@link JdbcMessageStore}, this implementation uses a single database table,
  * optimized to operate like a queue.
  * The SQL scripts for creating the table are packaged
- * under {@code org/springframework/integration/jdbc/messagestore/channel/schema-*.sql},
+ * under {@code org/springframework/integration/jdbc/schema-*.sql},
  * where {@code *} denotes the target database type.
  * </p>
  *

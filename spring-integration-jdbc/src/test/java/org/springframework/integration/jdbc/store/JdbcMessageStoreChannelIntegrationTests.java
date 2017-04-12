@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jdbc;
+package org.springframework.integration.jdbc.store;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
