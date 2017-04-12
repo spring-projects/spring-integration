@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  *
  * @since 4.3.9
  */
-public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<Void>, BeanFactoryAware {
+public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<Object>, BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -94,7 +94,7 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 	}
 
 	@Override
-	public Void recover(RetryContext context) throws Exception {
+	public Object recover(RetryContext context) throws Exception {
 		populateRecoveryChannel();
 		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(context);
 		if (this.logger.isDebugEnabled() && errorMessage.getPayload() instanceof MessagingException) {
