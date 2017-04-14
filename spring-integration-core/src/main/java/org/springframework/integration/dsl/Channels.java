@@ -19,8 +19,6 @@ package org.springframework.integration.dsl;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 
-import org.reactivestreams.Processor;
-
 import org.springframework.integration.dsl.channel.DirectChannelSpec;
 import org.springframework.integration.dsl.channel.ExecutorChannelSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
@@ -32,6 +30,8 @@ import org.springframework.integration.dsl.channel.RendezvousChannelSpec;
 import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.messaging.Message;
+
+import reactor.core.publisher.FluxProcessor;
 
 /**
  * @author Artem Bilan
@@ -140,11 +140,11 @@ public class Channels {
 		return MessageChannels.reactive(id);
 	}
 
-	public ReactiveChannelSpec reactive(Processor<Message<?>, Message<?>> processor) {
+	public ReactiveChannelSpec reactive(FluxProcessor<Message<?>, Message<?>> processor) {
 		return MessageChannels.reactive(processor);
 	}
 
-	public ReactiveChannelSpec reactive(String id, Processor<Message<?>, Message<?>> processor) {
+	public ReactiveChannelSpec reactive(String id, FluxProcessor<Message<?>, Message<?>> processor) {
 		return MessageChannels.reactive(id, processor);
 	}
 

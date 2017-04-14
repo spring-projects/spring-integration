@@ -20,19 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
-import reactor.core.publisher.BlockingSink;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxProcessor;
+import reactor.core.publisher.FluxSink;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -43,11 +44,11 @@ public class ReactiveChannel extends AbstractMessageChannel
 
 	private final List<Publisher<Message<?>>> publishers = new CopyOnWriteArrayList<>();
 
-	private final Processor<Message<?>, Message<?>> processor;
+	private final FluxProcessor<Message<?>, Message<?>> processor;
 
 	private final Flux<Message<?>> flux;
 
-	private final BlockingSink<Message<?>> sink;
+	private final FluxSink<Message<?>> sink;
 
 	private volatile boolean upstreamSubscribed;
 
@@ -55,16 +56,17 @@ public class ReactiveChannel extends AbstractMessageChannel
 		this(DirectProcessor.create());
 	}
 
-	public ReactiveChannel(Processor<Message<?>, Message<?>> processor) {
+	public ReactiveChannel(FluxProcessor<Message<?>, Message<?>> processor) {
 		Assert.notNull(processor, "'processor' must not be null");
 		this.processor = processor;
 		this.flux = Flux.from(processor);
-		this.sink = BlockingSink.create(this.processor);
+		this.sink = processor.sink();
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		return this.sink.submit(message, timeout) > -1;
+		this.sink.next(message);
+		return true;
 	}
 
 	@Override

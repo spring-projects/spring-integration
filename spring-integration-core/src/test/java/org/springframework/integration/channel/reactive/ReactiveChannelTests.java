@@ -66,7 +66,6 @@ public class ReactiveChannelTests {
 	private MessageChannel queueChannel;
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testReactiveMessageChannel() throws InterruptedException {
 		QueueChannel replyChannel = new QueueChannel();
 

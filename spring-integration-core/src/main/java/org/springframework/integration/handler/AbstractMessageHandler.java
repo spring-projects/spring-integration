@@ -154,7 +154,12 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	@Override
 	public void onNext(Message<?> message) {
-		handleMessage(message);
+		try {
+			handleMessage(message);
+		}
+		catch (MessagingException e) {
+			// send to error channel header? new ErrorMessagePublisher ?
+		}
 	}
 
 	@Override
