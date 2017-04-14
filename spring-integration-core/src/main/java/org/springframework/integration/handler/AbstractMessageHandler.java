@@ -20,6 +20,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import org.springframework.core.Ordered;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.history.MessageHistory;
@@ -36,6 +37,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 import reactor.core.publisher.Operators;
 
@@ -70,6 +72,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	private volatile boolean loggingEnabled = true;
 
+	private ErrorHandler reactiveErrorHandler;
+
 	@Override
 	public boolean isLoggingEnabled() {
 		return this.loggingEnabled;
@@ -100,6 +104,16 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		this.shouldTrack = shouldTrack;
 	}
 
+	/**
+	 * Set the error handler to use when an exception occurs when this handler
+	 * is invoked as a reactive {@link Subscriber}.
+	 * @param reactiveErrorHandler the error handler.
+	 * @since 5.0
+	 */
+	public void setReactiveErrorHandler(ErrorHandler reactiveErrorHandler) {
+		this.reactiveErrorHandler = reactiveErrorHandler;
+	}
+
 	@Override
 	public void configureMetrics(AbstractMessageHandlerMetrics metrics) {
 		Assert.notNull(metrics, "'metrics' must not be null");
@@ -110,6 +124,14 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	protected void onInit() throws Exception {
 		if (this.statsEnabled) {
 			this.handlerMetrics.setFullStatsEnabled(true);
+		}
+		if (this.reactiveErrorHandler == null) {
+			if (getBeanFactory() != null) {
+				this.reactiveErrorHandler = new MessagePublishingErrorHandler(getChannelResolver());
+			}
+			else {
+				this.reactiveErrorHandler = new MessagePublishingErrorHandler();
+			}
 		}
 	}
 
@@ -154,7 +176,12 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	@Override
 	public void onNext(Message<?> message) {
-		handleMessage(message);
+		try {
+			handleMessage(message);
+		}
+		catch (MessagingException e) {
+			this.reactiveErrorHandler.handleError(e);
+		}
 	}
 
 	@Override

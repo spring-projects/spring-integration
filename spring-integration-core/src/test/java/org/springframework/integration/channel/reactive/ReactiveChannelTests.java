@@ -17,10 +17,10 @@
 package org.springframework.integration.channel.reactive;
 
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isOneOf;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -42,8 +42,8 @@ import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
@@ -65,21 +65,15 @@ public class ReactiveChannelTests {
 	@Autowired
 	private MessageChannel queueChannel;
 
+	@Autowired
+	private PollableChannel errorChannel;
+
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testReactiveMessageChannel() throws InterruptedException {
 		QueueChannel replyChannel = new QueueChannel();
 
 		for (int i = 0; i < 10; i++) {
-			try {
-				this.reactiveChannel.send(MessageBuilder.withPayload(i).setReplyChannel(replyChannel).build());
-			}
-			catch (Exception e) {
-				assertThat(e, instanceOf(MessageDeliveryException.class));
-				assertThat(e.getCause().getCause(), instanceOf(MessageHandlingException.class));
-				assertThat(e.getCause().getCause().getCause(), instanceOf(IllegalStateException.class));
-				assertThat(e.getMessage(), containsString("intentional"));
-			}
+			this.reactiveChannel.send(MessageBuilder.withPayload(i).setReplyChannel(replyChannel).build());
 		}
 
 		for (int i = 0; i < 9; i++) {
@@ -87,6 +81,11 @@ public class ReactiveChannelTests {
 			assertNotNull(receive);
 			assertThat(receive.getPayload(), isOneOf("0", "1", "2", "3", "4", "6", "7", "8", "9"));
 		}
+		assertNull(replyChannel.receive(0));
+
+		Message<?> error = this.errorChannel.receive(0);
+		assertNotNull(error);
+		assertEquals(5, ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
 	}
 
 	@Test
@@ -110,6 +109,11 @@ public class ReactiveChannelTests {
 	@Configuration
 	@EnableIntegration
 	public static class TestConfiguration {
+
+		@Bean
+		public QueueChannel errorChannel() {
+			return new QueueChannel();
+		}
 
 		@Bean
 		public MessageChannel reactiveChannel() {
