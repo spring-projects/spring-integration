@@ -335,12 +335,14 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	/**
-	 * Provide the header names that should be mapped from an HTTP request (for inbound adapters)
-	 * or HTTP response (for outbound adapters) to a Spring Integration Message's headers.
-	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
-	 * <p> This will match the header name directly or, for non-standard HTTP headers, it will match
-	 * the header name prefixed with the value specified by
-	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
+	 * Provide the header names that should be mapped from an HTTP request (for inbound
+	 * adapters) or HTTP response (for outbound adapters) to a Spring Integration
+	 * Message's headers. The values can also contain simple wildcard patterns (e.g.
+	 * "foo*" or "*foo") to be matched.
+	 * <p>This will match the header name directly or, for non-standard HTTP headers, it
+	 * will match the header name prefixed with the value specified by
+	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default for
+	 * that is an empty String.
 	 * @param inboundHeaderNames The inbound header names.
 	 */
 	public void setInboundHeaderNames(String[] inboundHeaderNames) { //NOSONAR - false positive
@@ -383,7 +385,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 
 	/**
-	 * Sets the prefix to use with user-defined (non-standard) headers. Default is an
+	 * Sets the prefix to use with user-defined (non-standard) headers. The default is an
 	 * empty string.
 	 * @param userDefinedHeaderPrefix The user defined header prefix.
 	 */
