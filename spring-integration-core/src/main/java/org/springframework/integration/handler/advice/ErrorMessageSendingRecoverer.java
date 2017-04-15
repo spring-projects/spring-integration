@@ -50,14 +50,14 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublishingRecovery
 			Throwable lastThrowable = context.getLastThrowable();
 			if (lastThrowable == null) {
 				lastThrowable = new RetryExceptionNotAvailableException(
-						(Message<?>) context.getAttribute("message"),
+						(Message<?>) context.getAttribute(MESSAGE_CONTEXT_KEY),
 						"No retry exception available; " +
 								"this can occur, for example, if the RetryPolicy allowed zero attempts " +
 								"to execute the handler; " +
 								"RetryContext: " + context.toString());
 			}
 			else if (!(lastThrowable instanceof MessagingException)) {
-				lastThrowable = new MessagingException((Message<?>) context.getAttribute("message"),
+				lastThrowable = new MessagingException((Message<?>) context.getAttribute(MESSAGE_CONTEXT_KEY),
 						lastThrowable.getMessage(), lastThrowable);
 			}
 			return new ErrorMessage(lastThrowable);

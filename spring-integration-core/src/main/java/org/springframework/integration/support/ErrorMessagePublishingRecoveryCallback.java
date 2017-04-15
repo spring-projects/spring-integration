@@ -24,26 +24,36 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
+import org.springframework.retry.context.RetryContextSupport;
 import org.springframework.util.Assert;
 
 /**
- * A {@link RecoveryCallback} that sends the {@link ErrorMessage}
- * after retry exhaustion.
+ * A {@link RecoveryCallback} that sends the {@link ErrorMessage} after retry exhaustion.
+ * It can also be used as a general error message publisher. See
+ * {@link #recover(MessagingException)} and {@link #recover(Message, Throwable)}.
  * <p>
- * A {@link ErrorMessageStrategy} can be used to provide customization for the
- * target {@link ErrorMessage} based on the {@link RetryContext}.
+ * A {@link ErrorMessageStrategy} can be used to provide customization for the target
+ * {@link ErrorMessage} based on the {@link RetryContext} (or the message and/or
+ * throwable when using the other recover() methods).
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 4.3.9
  */
 public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<Object>, BeanFactoryAware {
+
+	/**
+	 * The retry context key for the message object.
+	 */
+	public static final String MESSAGE_CONTEXT_KEY = "message";
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -103,6 +113,30 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 		}
 		this.messagingTemplate.send(errorMessage);
 		return null;
+	}
+
+	/**
+	 * Publish an error message for the supplied exception.
+	 * @param exception the exception.
+	 * @throws Exception if the recovery fails.
+	 */
+	public void recover(MessagingException exception) throws Exception {
+		recover(exception.getFailedMessage(), exception);
+	}
+
+	/**
+	 * Publish an error message for the supplied message and throwable. If the throwable
+	 * is already a {@link MessagingException} containing the message in its
+	 * {@code failedMessage} property, use {@link #recover(MessagingException)} instead.
+	 * @param message the message.
+	 * @param throwable the throwable.
+	 * @throws Exception if the recovery fails.
+	 */
+	public void recover(Message<?> message, Throwable throwable) throws Exception {
+		RetryContextSupport context = new RetryContextSupport(null);
+		context.registerThrowable(throwable);
+		context.setAttribute(MESSAGE_CONTEXT_KEY, message);
+		recover(context);
 	}
 
 	private void populateRecoveryChannel() {
