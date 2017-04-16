@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
@@ -44,7 +45,7 @@ public class ReactiveChannel extends AbstractMessageChannel
 
 	private final List<Publisher<Message<?>>> publishers = new CopyOnWriteArrayList<>();
 
-	private final FluxProcessor<Message<?>, Message<?>> processor;
+	private final Processor<Message<?>, Message<?>> processor;
 
 	private final Flux<Message<?>> flux;
 
@@ -56,11 +57,11 @@ public class ReactiveChannel extends AbstractMessageChannel
 		this(DirectProcessor.create());
 	}
 
-	public ReactiveChannel(FluxProcessor<Message<?>, Message<?>> processor) {
+	public ReactiveChannel(Processor<Message<?>, Message<?>> processor) {
 		Assert.notNull(processor, "'processor' must not be null");
 		this.processor = processor;
 		this.flux = Flux.from(processor);
-		this.sink = processor.sink();
+		this.sink = FluxProcessor.wrap(processor, processor).sink();
 	}
 
 	@Override
