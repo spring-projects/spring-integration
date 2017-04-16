@@ -597,7 +597,7 @@ public class EnableIntegrationTests {
 				.flush();
 
 
-		assertTrue(consumeLatch.await(2, TimeUnit.SECONDS));
+		assertTrue(consumeLatch.await(10, TimeUnit.SECONDS));
 
 		List<Integer> integers = ref.get();
 		assertEquals(5, integers.size());
