@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -634,7 +634,7 @@ public class EnableIntegrationTests {
 	}
 
 	@Test
-	public void testPromiseGateway() throws Exception {
+	public void testMonoGateway() throws Exception {
 
 		final AtomicReference<List<Integer>> ref = new AtomicReference<List<Integer>>();
 		final CountDownLatch consumeLatch = new CountDownLatch(1);
@@ -649,7 +649,7 @@ public class EnableIntegrationTests {
 				});
 
 
-		assertTrue(consumeLatch.await(2, TimeUnit.SECONDS));
+		assertTrue(consumeLatch.await(0, TimeUnit.SECONDS)); // runs on same thread
 
 		List<Integer> integers = ref.get();
 		assertEquals(5, integers.size());
@@ -1097,7 +1097,7 @@ public class EnableIntegrationTests {
 		}
 
 		@Bean
-		public DirectChannel promiseChannel() {
+		public DirectChannel monoChannel() {
 			return new DirectChannel();
 		}
 
@@ -1350,7 +1350,7 @@ public class EnableIntegrationTests {
 		public void invalidBridgeAnnotationMethod(Object payload) {}*/
 
 		@Override
-		@ServiceActivator(inputChannel = "promiseChannel")
+		@ServiceActivator(inputChannel = "monoChannel")
 		public Integer multiply(Integer value) {
 			return value * 2;
 		}
@@ -1382,7 +1382,7 @@ public class EnableIntegrationTests {
 		@Async
 		void sendAsync(String payload);
 
-		@Gateway(requestChannel = "promiseChannel")
+		@Gateway(requestChannel = "monoChannel")
 		Mono<Integer> multiply(Integer value);
 
 	}
@@ -1637,11 +1637,13 @@ public class EnableIntegrationTests {
 			this.regex = regex;
 		}
 
+		@Override
 		public boolean matches(Object o) {
 			return ((String) o).matches(regex);
 
 		}
 
+		@Override
 		public void describeTo(Description description) {
 			description.appendText("matches regex=");
 		}
