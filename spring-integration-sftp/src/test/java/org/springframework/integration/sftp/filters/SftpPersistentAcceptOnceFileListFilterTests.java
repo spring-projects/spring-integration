@@ -86,4 +86,22 @@ public class SftpPersistentAcceptOnceFileListFilterTests {
 		filter.close();
 	}
 
+	@Test
+	public void testKeyUsingFileName() throws Exception {
+		SftpPersistentAcceptOnceFileListFilter filter = new SftpPersistentAcceptOnceFileListFilter(
+				new SimpleMetadataStore(), "rollback:");
+		ChannelSftp channel = new ChannelSftp();
+		SftpATTRS attrs = mock(SftpATTRS.class);
+		@SuppressWarnings("unchecked")
+		Constructor<LsEntry> ctor = (Constructor<LsEntry>) LsEntry.class.getDeclaredConstructors()[0];
+		ctor.setAccessible(true);
+		LsEntry sftpFile1 = ctor.newInstance(channel, "foo", "same", attrs);
+		LsEntry sftpFile2 = ctor.newInstance(channel, "bar", "same", attrs);
+		LsEntry[] files = new LsEntry[] {sftpFile1, sftpFile2};
+		List<LsEntry> now = filter.filterFiles(files);
+		assertEquals(2, now.size());
+		assertEquals("foo", now.get(0).getFilename());
+		assertEquals("bar", now.get(1).getFilename());
+	}
+
 }
