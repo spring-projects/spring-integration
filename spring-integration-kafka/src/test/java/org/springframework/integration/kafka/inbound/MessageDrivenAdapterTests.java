@@ -30,8 +30,11 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
+import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -52,8 +55,12 @@ import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  *
@@ -72,8 +79,12 @@ public class MessageDrivenAdapterTests {
 
 	private static String topic3 = "testTopic3";
 
+	private static String topic4 = "testTopic4";
+
+	private static String topic5 = "testTopic5";
+
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topic1, topic2, topic3);
+	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topic1, topic2, topic3, topic4, topic5);
 
 	@Test
 	public void testInboundRecord() throws Exception {
@@ -156,6 +167,104 @@ public class MessageDrivenAdapterTests {
 		assertThat(error.getPayload()).isInstanceOf(ConversionException.class);
 		assertThat(((ConversionException) error.getPayload()).getMessage())
 				.contains("Failed to convert to message for: ConsumerRecord(topic = testTopic1");
+
+		adapter.stop();
+	}
+
+	@Test
+	public void testInboundRecordRetryRecover() throws Exception {
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test4", "true", embeddedKafka);
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<Integer, String>(props);
+		ContainerProperties containerProps = new ContainerProperties(topic4);
+		KafkaMessageListenerContainer<Integer, String> container =
+				new KafkaMessageListenerContainer<>(cf, containerProps);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		MessageChannel out = new DirectChannel() {
+
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				throw new RuntimeException("intended");
+			}
+
+		};
+		adapter.setOutputChannel(out);
+		RetryTemplate retryTemplate = new RetryTemplate();
+		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+		retryPolicy.setMaxAttempts(1);
+		retryTemplate.setRetryPolicy(retryPolicy);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setRecoveryCallback(
+				new ErrorMessageSendingRecoverer(errorChannel, new RawRecordHeaderErrorMessageStrategy()));
+		adapter.setRetryTemplate(retryTemplate);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		ContainerTestUtils.waitForAssignment(container, 2);
+
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<Integer, String>(senderProps);
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
+		template.setDefaultTopic(topic4);
+		template.sendDefault(1, "foo");
+
+		Message<?> received = errorChannel.receive(10000);
+		assertThat(received).isInstanceOf(ErrorMessage.class);
+		MessageHeaders headers = received.getHeaders();
+		assertThat(headers.get(KafkaHeaders.RAW_DATA)).isNotNull();
+		received = ((ErrorMessage) received).getOriginalMessage();
+		assertThat(received).isNotNull();
+		headers = received.getHeaders();
+		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic4);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
+
+		adapter.stop();
+	}
+
+	@Test
+	public void testInboundRecordNoRetryRecover() throws Exception {
+		Map<String, Object> props = KafkaTestUtils.consumerProps("test5", "true", embeddedKafka);
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<Integer, String>(props);
+		ContainerProperties containerProps = new ContainerProperties(topic5);
+		KafkaMessageListenerContainer<Integer, String> container =
+				new KafkaMessageListenerContainer<>(cf, containerProps);
+		KafkaMessageDrivenChannelAdapter<Integer, String> adapter = new KafkaMessageDrivenChannelAdapter<>(container);
+		MessageChannel out = new DirectChannel() {
+
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				throw new RuntimeException("intended");
+			}
+
+		};
+		adapter.setOutputChannel(out);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		adapter.setRecoveryCallback(
+				new ErrorMessageSendingRecoverer(errorChannel, new RawRecordHeaderErrorMessageStrategy()));
+		adapter.afterPropertiesSet();
+		adapter.start();
+		ContainerTestUtils.waitForAssignment(container, 2);
+
+		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
+		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<Integer, String>(senderProps);
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
+		template.setDefaultTopic(topic5);
+		template.sendDefault(1, "foo");
+
+		Message<?> received = errorChannel.receive(10000);
+		assertThat(received).isInstanceOf(ErrorMessage.class);
+		MessageHeaders headers = received.getHeaders();
+		assertThat(headers.get(KafkaHeaders.RAW_DATA)).isNotNull();
+		received = ((ErrorMessage) received).getOriginalMessage();
+		assertThat(received).isNotNull();
+		headers = received.getHeaders();
+		assertThat(headers.get(KafkaHeaders.RECEIVED_MESSAGE_KEY)).isEqualTo(1);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_TOPIC)).isEqualTo(topic5);
+		assertThat(headers.get(KafkaHeaders.RECEIVED_PARTITION_ID)).isEqualTo(0);
+		assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 
 		adapter.stop();
 	}
