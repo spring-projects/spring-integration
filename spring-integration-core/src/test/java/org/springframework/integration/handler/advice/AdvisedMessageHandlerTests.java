@@ -16,6 +16,8 @@
 
 package org.springframework.integration.handler.advice;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -62,6 +64,7 @@ import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
 import org.springframework.integration.message.AdviceMessage;
+import org.springframework.integration.message.EnhancedErrorMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
@@ -1033,6 +1036,21 @@ public class AdvisedMessageHandlerTests {
 
 		assertEquals(expected, counter.get());
 
+	}
+
+	@Test
+	public void enhancedRecoverer() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(channel);
+		recoverer.recover(new GenericMessage<>("foo"), new GenericMessage<>("bar"), new RuntimeException("baz"));
+		Message<?> error = channel.receive(0);
+		assertThat(error, instanceOf(EnhancedErrorMessage.class));
+		assertThat(error.getPayload(), instanceOf(MessagingException.class));
+		MessagingException payload = (MessagingException) error.getPayload();
+		assertThat(payload.getCause(), instanceOf(RuntimeException.class));
+		assertThat(payload.getCause().getMessage(), equalTo("baz"));
+		assertThat(payload.getFailedMessage().getPayload(), equalTo("bar"));
+		assertThat(((EnhancedErrorMessage) error).getInputMessage().getPayload(), equalTo("foo"));
 	}
 
 	private interface Bar {

@@ -53,7 +53,12 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 	/**
 	 * The retry context key for the message object.
 	 */
-	public static final String MESSAGE_CONTEXT_KEY = "message";
+	public static final String FAILED_MESSAGE_CONTEXT_KEY = "message";
+
+	/**
+	 * The retry context key for the message object.
+	 */
+	public static final String INPUT_MESSAGE_CONTEXT_KEY = "inputMessage";
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -121,21 +126,45 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 	 * @throws Exception if the recovery fails.
 	 */
 	public void recover(MessagingException exception) throws Exception {
-		recover(exception.getFailedMessage(), exception);
+		recover(null, exception.getFailedMessage(), exception);
 	}
 
 	/**
 	 * Publish an error message for the supplied message and throwable. If the throwable
 	 * is already a {@link MessagingException} containing the message in its
 	 * {@code failedMessage} property, use {@link #recover(MessagingException)} instead.
-	 * @param message the message.
+	 * @param failedMessage the message.
 	 * @param throwable the throwable.
 	 * @throws Exception if the recovery fails.
 	 */
-	public void recover(Message<?> message, Throwable throwable) throws Exception {
+	public void recover(Message<?> failedMessage, Throwable throwable) throws Exception {
+		recover(null, failedMessage, throwable);
+	}
+
+	/**
+	 * Publish an error message for the supplied exception.
+	 * @param inputMessage the message that started the subflow.
+	 * @param exception the exception.
+	 * @throws Exception if the recovery fails.
+	 */
+	public void recover(Message<?> inputMessage, MessagingException exception) throws Exception {
+		recover(inputMessage, exception.getFailedMessage(), exception);
+	}
+
+	/**
+	 * Publish an error message for the supplied message and throwable. If the throwable
+	 * is already a {@link MessagingException} containing the message in its
+	 * {@code failedMessage} property, use {@link #recover(MessagingException)} instead.
+	 * @param inputMessage the message that started the subflow.
+	 * @param failedMessage the message.
+	 * @param throwable the throwable.
+	 * @throws Exception if the recovery fails.
+	 */
+	public void recover(Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) throws Exception {
 		RetryContextSupport context = new RetryContextSupport(null);
 		context.registerThrowable(throwable);
-		context.setAttribute(MESSAGE_CONTEXT_KEY, message);
+		context.setAttribute(INPUT_MESSAGE_CONTEXT_KEY, inputMessage);
+		context.setAttribute(FAILED_MESSAGE_CONTEXT_KEY, failedMessage);
 		recover(context);
 	}
 

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler.advice;
 
+import org.springframework.integration.message.EnhancedErrorMessage;
 import org.springframework.integration.support.ErrorMessagePublishingRecoveryCallback;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -40,27 +41,35 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublishingRecovery
 
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
 		setRecoveryChannel(channel);
-		setErrorMessageStrategy(new RecovererErrorMessageStrategy());
+		setErrorMessageStrategy(new DefaultRecovererErrorMessageStrategy());
 	}
 
-	private static final class RecovererErrorMessageStrategy implements ErrorMessageStrategy {
+	public static class DefaultRecovererErrorMessageStrategy implements ErrorMessageStrategy {
 
 		@Override
 		public ErrorMessage buildErrorMessage(RetryContext context) {
+			Throwable lastThrowable = determinePayload(context);
+			Object inputMessage = context.getAttribute(INPUT_MESSAGE_CONTEXT_KEY);
+			return inputMessage instanceof Message
+					? new EnhancedErrorMessage((Message<?>) inputMessage, lastThrowable)
+					: new ErrorMessage(lastThrowable);
+		}
+
+		protected Throwable determinePayload(RetryContext context) {
 			Throwable lastThrowable = context.getLastThrowable();
 			if (lastThrowable == null) {
 				lastThrowable = new RetryExceptionNotAvailableException(
-						(Message<?>) context.getAttribute(MESSAGE_CONTEXT_KEY),
+						(Message<?>) context.getAttribute(FAILED_MESSAGE_CONTEXT_KEY),
 						"No retry exception available; " +
 								"this can occur, for example, if the RetryPolicy allowed zero attempts " +
 								"to execute the handler; " +
 								"RetryContext: " + context.toString());
 			}
 			else if (!(lastThrowable instanceof MessagingException)) {
-				lastThrowable = new MessagingException((Message<?>) context.getAttribute(MESSAGE_CONTEXT_KEY),
+				lastThrowable = new MessagingException((Message<?>) context.getAttribute(FAILED_MESSAGE_CONTEXT_KEY),
 						lastThrowable.getMessage(), lastThrowable);
 			}
-			return new ErrorMessage(lastThrowable);
+			return lastThrowable;
 		}
 
 	}

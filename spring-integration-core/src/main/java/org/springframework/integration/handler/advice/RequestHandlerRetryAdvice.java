@@ -97,7 +97,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 
 	@Override
 	public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-		context.setAttribute(ErrorMessagePublishingRecoveryCallback.MESSAGE_CONTEXT_KEY, messageHolder.get());
+		context.setAttribute(ErrorMessagePublishingRecoveryCallback.FAILED_MESSAGE_CONTEXT_KEY, messageHolder.get());
 		return true;
 	}
 
