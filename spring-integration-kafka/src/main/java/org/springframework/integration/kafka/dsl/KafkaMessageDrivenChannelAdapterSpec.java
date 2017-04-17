@@ -139,7 +139,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 * @param recoveryCallback the recovery callback.
 	 * @return the spec
 	 */
-	public S recoveryCallback(RecoveryCallback<Void> recoveryCallback) {
+	public S recoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
 		this.target.setRecoveryCallback(recoveryCallback);
 		return _this();
 	}

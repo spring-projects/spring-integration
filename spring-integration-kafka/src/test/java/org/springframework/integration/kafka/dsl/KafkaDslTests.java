@@ -38,8 +38,10 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
+import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -196,7 +198,8 @@ public class KafkaDslTests {
 							.configureListenerContainer(c ->
 									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL)
 											.id("topic1ListenerContainer"))
-							.errorChannel("errorChannel")
+							.recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
+									new RawRecordHeaderErrorMessageStrategy()))
 							.retryTemplate(new RetryTemplate())
 							.filterInRetry(true))
 					.filter(Message.class, m ->
@@ -214,7 +217,8 @@ public class KafkaDslTests {
 							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2)
 							.configureListenerContainer(c ->
 									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL))
-							.errorChannel("errorChannel")
+							.recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
+									new RawRecordHeaderErrorMessageStrategy()))
 							.retryTemplate(new RetryTemplate())
 							.filterInRetry(true))
 					.filter(Message.class, m ->
