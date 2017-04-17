@@ -29,3 +29,4 @@ vf.gf.dmn-*
 /atlassian-ide-plugin.xml
 hostkey.ser
 .springBeans
+.checkstyle

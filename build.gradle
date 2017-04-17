@@ -8,15 +8,15 @@ buildscript {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
 	dependencies {
-		classpath 'org.springframework.build.gradle:spring-io-plugin:0.0.3.RELEASE'
-		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.8'
+		classpath 'io.spring.gradle:spring-io-plugin:0.0.4.RELEASE'
+		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
 	}
 }
 
 ext {
 	linkHomepage = 'https://projects.spring.io/spring-integration'
-	linkCi = 'https://build.springsource.org/browse/INT'
-	linkIssue = 'https://jira.springsource.org/browse/INT'
+	linkCi = 'https://build.spring.io/browse/INT'
+	linkIssue = 'https://jira.spring.io/browse/INT'
 	linkScmUrl = 'https://github.com/spring-projects/spring-integration'
 	linkScmConnection = 'scm:git:git://github.com/spring-projects/spring-integration.git'
 	linkScmDevConnection = 'scm:git:ssh://git@github.com:spring-projects/spring-integration.git'
@@ -38,7 +38,7 @@ allprojects {
 		'http://docs.oracle.com/javase/7/docs/api/',
 		'http://docs.oracle.com/javaee/6/api/',
 		'http://docs.spring.io/spring/docs/current/javadoc-api/',
-		'http://docs.spring.io/spring-amqp/docs/latest-ga/api/',
+		'http://docs.spring.io/spring-amqp/docs/current/api/',
 		'http://docs.spring.io/spring-data-gemfire/docs/current/api/',
 		'http://docs.spring.io/spring-data/data-mongo/docs/current/api/',
 		'http://docs.spring.io/spring-data/data-redis/docs/current/api/',
@@ -54,6 +54,7 @@ subprojects { subproject ->
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
+	apply plugin: 'jacoco'
 
 	if (project.hasProperty('platformVersion')) {
 		apply plugin: 'spring-io'
@@ -62,7 +63,6 @@ subprojects { subproject ->
 			springIoVersions "io.spring.platform:platform-versions:${platformVersion}@properties"
 		}
 	}
-
 
 	compileJava {
 		sourceCompatibility = 1.6
@@ -101,7 +101,7 @@ subprojects { subproject ->
 		jettyVersion = '9.2.2.v20140723'
 		jmsApiVersion = '1.1-rev-1'
 		jpaApiVersion = '2.0.0'
-		jrubyVersion = '1.7.15'
+		jrubyVersion = '1.7.19'
 		jschVersion = '0.1.52'
 		jsonpathVersion = '0.9.1'
 		junitVersion = '4.11'
@@ -109,20 +109,20 @@ subprojects { subproject ->
 		kryoVersion = '2.22'
 		log4jVersion = '1.2.17'
 		mockitoVersion = '1.9.5'
-		mysqlVersion = '5.1.29'
+		mysqlVersion = '5.1.34'
 		openJpaVersion = '2.3.0'
 		pahoMqttClientVersion = '1.0.2'
 		postgresVersion = '9.1-901-1.jdbc4'
 		reactorVersion = '1.1.4.RELEASE'
 		reactorSpringVersion = '1.1.3.RELEASE'
-		romeToolsVersion = '1.5.0'
+		romeToolsVersion = '1.5.1'
 		saajApiVersion = '1.3.5'
 		saajImplVersion = '1.3.23'
 		servletApiVersion = '3.1.0'
-		slf4jVersion = "1.7.6"
+		slf4jVersion = "1.7.8"
 		tomcatVersion = "7.0.55"
 		smack3Version = '3.2.1'
-		smackVersion = '4.0.0'
+		smackVersion = '4.0.6'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.4.6.RELEASE'
 		springDataMongoVersion = '1.6.4.RELEASE'
 		springDataRedisVersion = '1.4.4.RELEASE'
@@ -150,10 +150,8 @@ subprojects { subproject ->
 		}
 	}
 
-	// See http://www.gradle.org/docs/current/userguide/dependency_management.html#sub:configurations
-	// and http://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.ConfigurationContainer.html
-	configurations {
-		jacoco //Configuration Group used by Sonar to provide Code Coverage using JaCoCo
+	jacoco {
+		toolVersion = "0.7.2.201409121644"
 	}
 
 	// dependencies that are common across all java projects
@@ -170,7 +168,7 @@ subprojects { subproject ->
 		if (!(subproject.name ==~ /.*-(core|test)/)) {
 			testCompile project(":spring-integration-test")
 		}
-		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.7.2.201409121644", classifier: "runtime"
+		testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 
 	// enable all compiler warnings; individual projects may customize further
@@ -198,8 +196,20 @@ subprojects { subproject ->
 		}
 	}
 
+	jacocoTestReport {
+		reports {
+			xml.enabled false
+			csv.enabled false
+			html.destination "${buildDir}/reports/jacoco/html"
+		}
+	}
+
 	test {
-		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.integration.*"
+		maxHeapSize = "1024m"
+		jacoco {
+			append = false
+			destinationFile = file("$buildDir/jacoco.exec")
+		}
 	}
 
 	task testAll(type: Test)
@@ -231,6 +241,23 @@ subprojects { subproject ->
 		archives javadocJar
 	}
 
+	build.dependsOn jacocoTestReport
+}
+
+project('spring-integration-test') {
+	description = 'Spring Integration Test Support'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile ("junit:junit:$junitVersion") {
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
+		}
+		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
+		compile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest', module: 'hamcrest-core'
+		}
+		compile "org.springframework:spring-test:$springVersion"
+		compile "log4j:log4j:$log4jVersion" // TEMPORARY - DO NOT RELEASE
+	}
 }
 
 project('spring-integration-amqp') {
@@ -543,21 +570,6 @@ project('spring-integration-syslog') {
 	description = 'Spring Integration Syslog Support'
 	dependencies {
 		compile project(":spring-integration-ip")
-	}
-}
-
-project('spring-integration-test') {
-	description = 'Spring Integration Test Support'
-	dependencies {
-		compile project(":spring-integration-core")
-		compile ("junit:junit:$junitVersion") {
-			exclude group: 'org.hamcrest', module: 'hamcrest-core'
-		}
-		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-		compile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group: 'org.hamcrest', module: 'hamcrest-core'
-		}
-		compile "org.springframework:spring-test:$springVersion"
 	}
 }
 
