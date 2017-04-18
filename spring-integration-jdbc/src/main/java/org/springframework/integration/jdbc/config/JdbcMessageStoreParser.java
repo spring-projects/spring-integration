@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jdbc.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
@@ -23,10 +25,9 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
- * Parser for {@link org.springframework.integration.jdbc.JdbcMessageStore}.
+ * Parser for {@link JdbcMessageStore}.
  *
  * @author Dave Syer
  * @since 2.0
@@ -44,19 +45,19 @@ public class JdbcMessageStoreParser extends AbstractBeanDefinitionParser {
 		String dataSourceRef = element.getAttribute("data-source");
 		String simpleJdbcOperationsRef = element.getAttribute("jdbc-operations");
 		boolean refToDataSourceSet = StringUtils.hasText(dataSourceRef);
-		boolean refToSimpleJdbcOperaitonsSet = StringUtils.hasText(simpleJdbcOperationsRef);
-		if ((refToDataSourceSet && refToSimpleJdbcOperaitonsSet)
-				|| (!refToDataSourceSet && !refToSimpleJdbcOperaitonsSet)) {
+		boolean refToSimpleJdbcOperationsSet = StringUtils.hasText(simpleJdbcOperationsRef);
+		if ((refToDataSourceSet && refToSimpleJdbcOperationsSet)
+				|| (!refToDataSourceSet && !refToSimpleJdbcOperationsSet)) {
 			parserContext.getReaderContext().error(
 					"Exactly one of the attributes data-source or "
 							+ "simple-jdbc-operations should be set for the JDBC message-store", source);
 		}
 
 		if (refToDataSourceSet) {
-			builder.addPropertyReference("dataSource", dataSourceRef);
+			builder.addConstructorArgReference(dataSourceRef);
 		}
 		else {
-			builder.addPropertyReference("jdbcTemplate", simpleJdbcOperationsRef);
+			builder.addConstructorArgReference(simpleJdbcOperationsRef);
 		}
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "lob-handler");
