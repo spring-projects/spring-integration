@@ -39,9 +39,9 @@ import org.springframework.util.Assert;
  * It can also be used as a general error message publisher. See
  * {@link #recover(MessagingException)} and {@link #recover(Message, Throwable)}.
  * <p>
- * A {@link ErrorMessageStrategy} can be used to provide customization for the target
+ * An {@link ErrorMessageStrategy} can be used to provide customization for the target
  * {@link ErrorMessage} based on the {@link RetryContext} (or the message and/or
- * throwable when using the other recover() methods).
+ * throwable when using the other {@code recover()} methods).
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -88,6 +88,15 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 		this.recoveryChannel = recoveryChannel;
 	}
 
+	public ErrorMessageStrategy getErrorMessageStrategy() {
+		return this.errorMessageStrategy;
+	}
+
+	public MessageChannel getRecoveryChannel() {
+		populateRecoveryChannel();
+		return this.recoveryChannel;
+	}
+
 	public void setRecoveryChannelName(String recoveryChannelName) {
 		this.recoveryChannelName = recoveryChannelName;
 	}
@@ -106,18 +115,6 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 		if (this.channelResolver == null) {
 			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		}
-	}
-
-	@Override
-	public Object recover(RetryContext context) throws Exception {
-		populateRecoveryChannel();
-		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(context);
-		if (this.logger.isDebugEnabled() && errorMessage.getPayload() instanceof MessagingException) {
-			MessagingException exception = (MessagingException) errorMessage.getPayload();
-			this.logger.debug("Sending ErrorMessage: failedMessage: " + exception.getFailedMessage(), exception);
-		}
-		this.messagingTemplate.send(errorMessage);
-		return null;
 	}
 
 	/**
@@ -161,11 +158,41 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 	 * @throws Exception if the recovery fails.
 	 */
 	public void recover(Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) throws Exception {
+		recover(getRetryContextFor(inputMessage, failedMessage, throwable));
+	}
+
+	@Override
+	public Void recover(RetryContext context) throws Exception {
+		populateRecoveryChannel();
+		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(context);
+		if (this.logger.isDebugEnabled() && errorMessage.getPayload() instanceof MessagingException) {
+			MessagingException exception = (MessagingException) errorMessage.getPayload();
+			this.logger.debug("Sending ErrorMessage: failedMessage: " + exception.getFailedMessage(), exception);
+		}
+		this.messagingTemplate.send(errorMessage);
+		return null;
+	}
+
+	/**
+	 * Return a {@link RetryContext} for the provided arguments.
+	 * @param inputMessage the input message.
+	 * @param failedMessage the failed message.
+	 * @param throwable the throwable.
+	 * @return the context.
+	 */
+	public static RetryContext getRetryContextFor(Message<?> inputMessage, Message<?> failedMessage,
+			Throwable throwable) {
 		RetryContextSupport context = new RetryContextSupport(null);
-		context.registerThrowable(throwable);
-		context.setAttribute(INPUT_MESSAGE_CONTEXT_KEY, inputMessage);
-		context.setAttribute(FAILED_MESSAGE_CONTEXT_KEY, failedMessage);
-		recover(context);
+		if (throwable != null) {
+			context.registerThrowable(throwable);
+		}
+		if (inputMessage != null) {
+			context.setAttribute(INPUT_MESSAGE_CONTEXT_KEY, inputMessage);
+		}
+		if (failedMessage != null) {
+			context.setAttribute(FAILED_MESSAGE_CONTEXT_KEY, failedMessage);
+		}
+		return context;
 	}
 
 	private void populateRecoveryChannel() {

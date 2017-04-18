@@ -44,6 +44,12 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublishingRecovery
 		setErrorMessageStrategy(new DefaultRecovererErrorMessageStrategy());
 	}
 
+	public ErrorMessageSendingRecoverer(MessageChannel channel, ErrorMessageStrategy errorMessageStrategy) {
+		setRecoveryChannel(channel);
+		setErrorMessageStrategy(errorMessageStrategy);
+	}
+
+
 	public static class DefaultRecovererErrorMessageStrategy implements ErrorMessageStrategy {
 
 		@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ public class RetryAdviceParserTests {
 
 		assertNull(TestUtils.getPropertyValue(a1, "recoveryCallback"));
 		assertNotNull(TestUtils.getPropertyValue(a7, "recoveryCallback"));
-		assertSame(this.foo, TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.defaultDestination"));
+		assertSame(this.foo, TestUtils.getPropertyValue(a7, "recoveryCallback.recoveryChannel"));
 		assertEquals(4567L, TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.sendTimeout"));
 
 		assertSame(this.a1, TestUtils.getPropertyValue(this.handler1, "adviceChain", List.class).get(0));
