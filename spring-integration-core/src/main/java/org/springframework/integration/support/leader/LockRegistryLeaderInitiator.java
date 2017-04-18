@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Vedran Pavic
+ *
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
@@ -299,8 +299,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 	protected class LeaderSelector implements Callable<Void> {
 
-		private final Lock lock;
-
 		private final String lockKey;
 
 		private final LockContext context = new LockContext();
@@ -308,7 +306,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		private volatile boolean locked = false;
 
 		LeaderSelector(String lockKey) {
-			this.lock = LockRegistryLeaderInitiator.this.locks.obtain(lockKey);
 			this.lockKey = lockKey;
 		}
 
@@ -318,8 +315,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 				while (LockRegistryLeaderInitiator.this.running) {
 					try {
 						// We always try to acquire the lock, in case it expired
-						boolean acquired = this.lock.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis,
-								TimeUnit.MILLISECONDS);
+						// TODO obtain(this.lockKey) because of INT-4248. Should be fixed in 5.0
+						boolean acquired = LockRegistryLeaderInitiator.this.locks.obtain(this.lockKey)
+								.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis, TimeUnit.MILLISECONDS);
 						if (!this.locked) {
 							if (acquired) {
 								// Success: we are now leader
@@ -330,7 +328,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						else if (acquired) {
 							// If we were able to acquire it but we were already locked we
 							// should release it
-							this.lock.unlock();
+							LockRegistryLeaderInitiator.this.locks.obtain(this.lockKey)
+									.unlock();
 							// Give it a chance to expire.
 							Thread.sleep(LockRegistryLeaderInitiator.this.heartBeatMillis);
 						}
@@ -344,7 +343,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 					}
 					catch (InterruptedException e) {
 						if (this.locked) {
-							this.lock.unlock();
+							LockRegistryLeaderInitiator.this.locks.obtain(this.lockKey)
+									.unlock();
 							this.locked = false;
 							// The lock was broken and we are no longer leader
 							handleRevoked();
@@ -358,7 +358,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			}
 			finally {
 				if (this.locked) {
-					this.lock.unlock();
+					LockRegistryLeaderInitiator.this.locks.obtain(this.lockKey)
+							.unlock();
 					// We are stopping, therefore not leading any more
 					handleRevoked();
 				}

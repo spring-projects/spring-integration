@@ -514,6 +514,18 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 		lock.unlock();
 	}
 
+	@Test
+	@RedisAvailable
+	public void testExpireTwoRegistries() throws Exception {
+		RedisLockRegistry registry1 = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey, 100);
+		RedisLockRegistry registry2 = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey, 100);
+		assertTrue(registry1.obtain("foo").tryLock());
+		assertFalse(registry2.obtain("foo").tryLock());
+		waitForExpire("foo");
+		assertTrue(registry1.obtain("foo").tryLock());
+		assertFalse(registry2.obtain("foo").tryLock());
+	}
+
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
 		RedisTemplate<String, ?> template = this.createTemplate();
 		String registryKey = TestUtils.getPropertyValue(registry, "registryKey", String.class);
