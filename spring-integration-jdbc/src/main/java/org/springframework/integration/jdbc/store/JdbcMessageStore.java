@@ -35,7 +35,6 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
@@ -80,7 +79,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore, InitializingBean {
+public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
 	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);
 
@@ -199,15 +198,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private volatile Map<Query, String> queryCache = new HashMap<Query, String>();
 
 	/**
-	 * Convenient constructor for configuration use.
-	 * @deprecated since 5.0 in favor of {@link #JdbcMessageStore(DataSource)}
-	 */
-	@Deprecated
-	public JdbcMessageStore() {
-		throw new UnsupportedOperationException("Please, use DataSource-based constructor");
-	}
-
-	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
 	 * @param dataSource a {@link DataSource}
 	 */
@@ -218,7 +208,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties.
 	 * @param jdbcOperations a {@link JdbcOperations}
-	 * @since 5.0
+	 * @since 4.3.9
 	 */
 	public JdbcMessageStore(JdbcOperations jdbcOperations) {
 		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
@@ -249,26 +239,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	/**
-	 * The JDBC {@link DataSource} to use when interacting with the database.
-	 * @param dataSource a {@link DataSource}
-	 * @deprecated in favor of {@link #JdbcMessageStore(DataSource)}
-	 */
-	@Deprecated
-	public void setDataSource(DataSource dataSource) {
-
-	}
-
-	/**
-	 * The {@link JdbcOperations} to use when interacting with the database.
-	 * @param jdbcTemplate a {@link JdbcOperations}
-	 * @deprecated in favor of {@link #JdbcMessageStore(JdbcOperations)}
-	 */
-	@Deprecated
-	public void setJdbcTemplate(JdbcOperations jdbcTemplate) {
-
-	}
-
-	/**
 	 * Override the {@link LobHandler} that is used to create and unpack large objects in SQL queries. The default is
 	 * fine for almost all platforms, but some Oracle drivers require a native implementation.
 	 *
@@ -296,11 +266,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		Assert.state(this.jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
 	}
 
 	@Override
