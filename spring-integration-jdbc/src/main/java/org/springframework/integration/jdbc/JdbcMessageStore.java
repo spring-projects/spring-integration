@@ -204,7 +204,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	/**
 	 * Convenient constructor for configuration use.
+	 * @deprecated since 4.3.9 in favor of {@link #JdbcMessageStore(DataSource)}
 	 */
+	@Deprecated
 	public JdbcMessageStore() {
 		this.deserializer = new DeserializingConverter();
 		this.serializer = new SerializingConverter();
@@ -216,8 +218,19 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @param dataSource a {@link DataSource}
 	 */
 	public JdbcMessageStore(DataSource dataSource) {
-		this();
-		this.jdbcTemplate = new JdbcTemplate(dataSource);
+		this(new JdbcTemplate(dataSource));
+	}
+
+	/**
+	 * Create a {@link MessageStore} with all mandatory properties.
+	 * @param jdbcOperations a {@link JdbcOperations}
+	 * @since 4.3.9
+	 */
+	public JdbcMessageStore(JdbcOperations jdbcOperations) {
+		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
+		this.jdbcTemplate = jdbcOperations;
+		this.deserializer = new DeserializingConverter();
+		this.serializer = new SerializingConverter();
 	}
 
 	/**
@@ -242,21 +255,21 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	/**
-	 * The JDBC {@link DataSource} to use when interacting with the database. Either this property can be set or the
-	 * {@link #setJdbcTemplate(JdbcOperations) jdbcTemplate}.
-	 *
+	 * The JDBC {@link DataSource} to use when interacting with the database.
 	 * @param dataSource a {@link DataSource}
+	 * @deprecated since 4.3.9 in favor of {@link #JdbcMessageStore(DataSource)}
 	 */
+	@Deprecated
 	public void setDataSource(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
 	/**
-	 * The {@link JdbcOperations} to use when interacting with the database. Either this property can be set or the
-	 * {@link #setDataSource(DataSource) dataSource}.
-	 *
+	 * The {@link JdbcOperations} to use when interacting with the database.
 	 * @param jdbcTemplate a {@link JdbcOperations}
+	 * @deprecated since 4.3.9 in favor of {@link #JdbcMessageStore(DataSource)}
 	 */
+	@Deprecated
 	public void setJdbcTemplate(JdbcOperations jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
@@ -291,7 +304,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
 	}
 
+	/**
+	 * The bean instance initializer.
+	 * @throws Exception the initialization exception
+	 * @deprecated since 4.3.9 in favor of initialization and assertions in constructors.
+	 */
 	@Override
+	@Deprecated
 	public void afterPropertiesSet() throws Exception {
 		Assert.state(this.jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
 	}

@@ -6,8 +6,8 @@
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<beans:bean id="messageStore"
-				class="org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests$TestJdbcMessageStore">
+	<beans:bean id="messageStore" class="org.springframework.integration.jdbc.JdbcMessageStore">
+		<beans:constructor-arg value="#{T (org.springframework.integration.jdbc.DelayerHandlerRescheduleIntegrationTests).dataSource}"/>
 		<beans:property name="lazyLoadMessageGroups" value="false"/>
 	</beans:bean>
 
