@@ -354,24 +354,6 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testList() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
-		Lock foo = registry.obtain("foo");
-		foo.lockInterruptibly();
-		Lock bar = registry.obtain("bar");
-		bar.lockInterruptibly();
-		Lock baz = registry.obtain("baz");
-		baz.lockInterruptibly();
-		Collection<Lock> locks = registry.listLocks();
-		assertEquals(3, locks.size());
-		foo.unlock();
-		bar.unlock();
-		baz.unlock();
-		assertNull(TestUtils.getPropertyValue(registry, "hardThreadLocks", ThreadLocal.class).get());
-	}
-
-	@Test
-	@RedisAvailable
 	public void testExpireNoLockInStore() throws Exception {
 		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey, 100);
 		Lock foo = registry.obtain("foo");
@@ -391,7 +373,6 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testExpireDuringSecondObtain() throws Exception {
 		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey, 100);
-		registry.setUseWeakReferences(true);
 		Lock foo = registry.obtain("foo");
 		foo.lockInterruptibly();
 		waitForExpire("foo");
@@ -433,13 +414,12 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	public void testEquals() throws Exception {
 		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
 		RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, this.registryKey);
-		registry1.setUseWeakReferences(true);
 		RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, this.registryKey);
 		RedisLockRegistry registry3 = new RedisLockRegistry(connectionFactory, this.registryKey2);
 		Lock lock1 = registry1.obtain("foo");
+		lock1.lock();
 		Lock lock2 = registry1.obtain("foo");
 		assertEquals(lock1, lock2);
-		lock1.lock();
 		lock2.lock();
 		assertEquals(lock1, lock2);
 		lock1.unlock();
@@ -466,7 +446,6 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@RedisAvailable
 	public void testThreadLocalListLeaks() {
 		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey, 100);
-		registry.setUseWeakReferences(true);
 
 		for (int i = 0; i < 10; i++) {
 			registry.obtain("foo" + i);

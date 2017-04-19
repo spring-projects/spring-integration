@@ -136,6 +136,7 @@ public final class RedisLockRegistry implements LockRegistry {
 	 * @param registryKey The key prefix for locks.
 	 * @param expireAfter The expiration in milliseconds.
 	 */
+	@SuppressWarnings("deprecation")
 	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey, long expireAfter) {
 		this(connectionFactory, registryKey, expireAfter, new DefaultLockRegistry());
 	}
@@ -147,7 +148,9 @@ public final class RedisLockRegistry implements LockRegistry {
 	 * @param expireAfter The expiration in milliseconds.
 	 * @param localRegistry The local registry used to reduce wait time,
 	 * {@link DefaultLockRegistry} is used by default.
+	 * @deprecated since 4.3.10, will be removed in 5.0, - the {@code localRegistry} isn't used any more
 	 */
+	@Deprecated
 	public RedisLockRegistry(RedisConnectionFactory connectionFactory, String registryKey,
 							 long expireAfter, LockRegistry localRegistry) {
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
@@ -172,7 +175,9 @@ public final class RedisLockRegistry implements LockRegistry {
 	 * different {@link RedisLock} objects for same unlocked key.
 	 * @param useWeakReferences set to true for switch thread local weak references storage on, false by default
 	 * @since 4.0.7
+	 * @deprecated since 4.3.10, will be removed in 5.0, - the thread local cache isn't used any more
 	 */
+	@Deprecated
 	public void setUseWeakReferences(boolean useWeakReferences) {
 		this.useWeakReferences = useWeakReferences;
 	}
@@ -292,6 +297,12 @@ public final class RedisLockRegistry implements LockRegistry {
 		return lock;
 	}
 
+	/**
+	 * A list of locks in store for this {@link #registryKey}.
+	 * @return the list of locks in store for this {@link #registryKey}
+	 * @deprecated since 4.3.10, will be removed in 5.0 to avoid deserialized locks created in different process
+	 */
+	@Deprecated
 	public Collection<Lock> listLocks() {
 		return this.redisTemplate.execute(new RedisCallback<Collection<Lock>>() {
 
