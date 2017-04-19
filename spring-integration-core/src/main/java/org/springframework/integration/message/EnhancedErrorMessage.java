@@ -26,7 +26,7 @@ import org.springframework.messaging.support.ErrorMessage;
  * An error message that is enhanced with a message that is available at the
  * stack frame where the error message is generated. Typically this will be a
  * message that begins a subflow, whereas if the {@link Throwable} payload is
- * a {@link org.springframework.messaging.MessagingException}, it's failedMessage
+ * a {@link org.springframework.messaging.MessagingException}, its failedMessage
  * property will contain the message at the point where the exception occurred.
  *
  * @author Gary Russell
@@ -37,25 +37,25 @@ public class EnhancedErrorMessage extends ErrorMessage {
 
 	private static final long serialVersionUID = 5857673472822628678L;
 
-	private final Message<?> inputMessage;
+	private final Message<?> originalMessage;
 
-	public EnhancedErrorMessage(Message<?> inputMessage, Throwable payload) {
+	public EnhancedErrorMessage(Message<?> originalMessage, Throwable payload) {
 		super(payload);
-		this.inputMessage = inputMessage;
+		this.originalMessage = originalMessage;
 	}
 
-	public EnhancedErrorMessage(Message<?> inputMessage, Throwable payload, MessageHeaders headers) {
+	public EnhancedErrorMessage(Message<?> originalMessage, Throwable payload, MessageHeaders headers) {
 		super(payload, headers);
-		this.inputMessage = inputMessage;
+		this.originalMessage = originalMessage;
 	}
 
-	public EnhancedErrorMessage(Message<?> inputMessage, Throwable payload, Map<String, Object> headers) {
+	public EnhancedErrorMessage(Message<?> originalMessage, Throwable payload, Map<String, Object> headers) {
 		super(payload, headers);
-		this.inputMessage = inputMessage;
+		this.originalMessage = originalMessage;
 	}
 
-	public Message<?> getInputMessage() {
-		return this.inputMessage;
+	public Message<?> getOriginalMessage() {
+		return this.originalMessage;
 	}
 
 }

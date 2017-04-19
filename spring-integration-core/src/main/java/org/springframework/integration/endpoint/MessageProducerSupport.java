@@ -20,11 +20,13 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.DefaultErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -40,6 +42,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		SmartInitializingSingleton {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
+	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
 	private volatile MessageChannel outputChannel;
 
@@ -127,6 +131,17 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.shouldTrack = shouldTrack;
 	}
 
+	/**
+	 * Set an {@link ErrorMessageStrategy} to use to build an error message when a exception occurs.
+	 * Default is the {@link DefaultErrorMessageStrategy}.
+	 * @param errorMessageStrategy the {@link ErrorMessageStrategy}.
+	 * @since 4.3.10
+	 */
+	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' cannot be null");
+		this.errorMessageStrategy = errorMessageStrategy;
+	}
+
 	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
 	}
@@ -173,22 +188,13 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		catch (RuntimeException e) {
 			MessageChannel errorChannel = getErrorChannel();
 			if (errorChannel != null) {
-				this.messagingTemplate.send(errorChannel, buildErrorMessage(e));
+				this.messagingTemplate.send(errorChannel, this.errorMessageStrategy.buildErrorMessage(e,
+						ErrorMessageUtils.getAttributeAccessor(message, null)));
 			}
 			else {
 				throw e;
 			}
 		}
-	}
-
-	/**
-	 * Build an {@link ErrorMessage} for the exception.
-	 * @param exception the exception.
-	 * @return the error message.
-	 * @since 4.3.9
-	 */
-	protected ErrorMessage buildErrorMessage(RuntimeException exception) {
-		return new ErrorMessage(exception);
 	}
 
 }

@@ -24,7 +24,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.message.EnhancedErrorMessage;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -202,24 +201,6 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 
 			this.messagingTemplate.setDefaultChannel(this.channel);
 		}
-	}
-
-	/**
-	 * A simple {@link ErrorMessageStrategy} implementations which produces
-	 * {@link EnhancedErrorMessage} if the {@link AttributeAccessor} has
-	 * {@link ErrorMessageUtils#INPUT_MESSAGE_CONTEXT_KEY} attribute.
-	 * Otherwise plain {@link ErrorMessage} with the {@code throwable} as {@code payload}.
-	 */
-	public static class DefaultErrorMessageStrategy implements ErrorMessageStrategy {
-
-		@Override
-		public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor context) {
-			Object inputMessage = context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
-			return inputMessage instanceof Message
-					? new EnhancedErrorMessage((Message<?>) inputMessage, throwable)
-					: new ErrorMessage(throwable);
-		}
-
 	}
 
 }

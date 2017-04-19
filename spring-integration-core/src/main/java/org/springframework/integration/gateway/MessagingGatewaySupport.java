@@ -27,7 +27,10 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -69,6 +72,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private final boolean errorOnTimeout;
 
 	private final AtomicLong messageCount = new AtomicLong();
+
+	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
 	private volatile MessageChannel requestChannel;
 
@@ -289,6 +294,17 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.countsEnabled;
 	}
 
+	/**
+	 * Set an {@link ErrorMessageStrategy} to use to build an error message when a exception occurs.
+	 * Default is the {@link DefaultErrorMessageStrategy}.
+	 * @param errorMessageStrategy the {@link ErrorMessageStrategy}.
+	 * @since 4.3.10
+	 */
+	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' cannot be null");
+		this.errorMessageStrategy = errorMessageStrategy;
+	}
+
 	@Override
 	protected void onInit() throws Exception {
 		Assert.state(!(this.requestChannelName != null && this.requestChannel != null),
@@ -423,6 +439,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 		Object reply = null;
 		Throwable error = null;
+		Message<?> requestMessage = null;
 		try {
 			if (this.countsEnabled) {
 				this.messageCount.incrementAndGet();
@@ -435,7 +452,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				}
 			}
 			else {
-				Message<?> requestMessage = (object instanceof Message<?>)
+				requestMessage = (object instanceof Message<?>)
 						? (Message<?>) object : this.requestMapper.toMessage(object);
 				requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
 				reply = this.messagingTemplate.sendAndReceive(requestChannel, requestMessage);
@@ -462,7 +479,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		if (error != null) {
 			MessageChannel errorChannel = getErrorChannel();
 			if (errorChannel != null) {
-				Message<?> errorMessage = new ErrorMessage(error);
+				Message<?> errorMessage = this.errorMessageStrategy.buildErrorMessage(error,
+						ErrorMessageUtils.getAttributeAccessor(requestMessage, null));
 				Message<?> errorFlowReply = null;
 				try {
 					errorFlowReply = this.messagingTemplate.sendAndReceive(errorChannel, errorMessage);
