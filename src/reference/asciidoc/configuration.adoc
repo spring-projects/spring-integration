@@ -195,6 +195,15 @@ To enable global error handling, simply register a handler on that channel.
 For example, you can configure Spring Integration's `ErrorMessageExceptionTypeRouter` as the handler of an endpoint that is subscribed to the 'errorChannel'.
 That router can then spread the error messages across multiple channels based on `Exception` type.
 
+Starting with _version 4.3.10_, the `ErrorMessagePublisher` and the `ErrorMessageStrategy` are provided.
+They can be used as general mechanism for publishing `ErrorMessage` s and can be called or extended in any error handling scenarios.
+The `ErrorMessageSendingRecoverer` extends this class as a `RecoveryCallback` implementation that can be used with retry, such as the
+<<retry-advice, RequestHandlerRetryAdvice>>.
+The `ErrorMessageStrategy` is used to build an `ErrorMessage` based on the provided exception and an `AttributeAccessor` context.
+It can be injected to any `MessageProducerSupport` and `MessagingGatewaySupport` - and the `requestMessage` is stored under `ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY` in the `AttributeAccessor` context.
+The `ErrorMessageStrategy` can use that `requestMessage` as the `originalMessage` property of the `ErrorMessage` it creates.
+The `DefaultErrorMessageStrategy` does exactly that.
+
 [[global-properties]]
 === Global Properties
 
