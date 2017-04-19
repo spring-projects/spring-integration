@@ -17,13 +17,12 @@
 package org.springframework.integration.support;
 
 import org.springframework.core.AttributeAccessor;
-import org.springframework.integration.message.EnhancedErrorMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * A simple {@link ErrorMessageStrategy} implementations which produces
- * {@link EnhancedErrorMessage} if the {@link AttributeAccessor} has
+ * a error message with original message if the {@link AttributeAccessor} has
  * {@link ErrorMessageUtils#INPUT_MESSAGE_CONTEXT_KEY} attribute.
  * Otherwise plain {@link ErrorMessage} with the {@code throwable} as {@code payload}.
  *
@@ -37,10 +36,11 @@ import org.springframework.messaging.support.ErrorMessage;
 public class DefaultErrorMessageStrategy implements ErrorMessageStrategy {
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor context) {
 		Object inputMessage = context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
 		return inputMessage instanceof Message
-				? new EnhancedErrorMessage((Message<?>) inputMessage, throwable)
+				? new org.springframework.integration.message.EnhancedErrorMessage((Message<?>) inputMessage, throwable)
 				: new ErrorMessage(throwable);
 	}
 

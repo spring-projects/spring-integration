@@ -30,9 +30,12 @@ import org.springframework.messaging.support.ErrorMessage;
  * property will contain the message at the point where the exception occurred.
  *
  * @author Gary Russell
- * @since 4.3.9
  *
+ * @since 4.3.10
+ *
+ * @deprecated since 4.3.10 in favor of direct {@link ErrorMessage} usage since 5.0.
  */
+@Deprecated
 public class EnhancedErrorMessage extends ErrorMessage {
 
 	private static final long serialVersionUID = 5857673472822628678L;

@@ -64,7 +64,6 @@ import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice.MessageHandlingExpressionEvaluatingAdviceException;
 import org.springframework.integration.message.AdviceMessage;
-import org.springframework.integration.message.EnhancedErrorMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.Message;
@@ -1039,18 +1038,20 @@ public class AdvisedMessageHandlerTests {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void enhancedRecoverer() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(channel);
 		recoverer.publish(new GenericMessage<>("foo"), new GenericMessage<>("bar"), new RuntimeException("baz"));
 		Message<?> error = channel.receive(0);
-		assertThat(error, instanceOf(EnhancedErrorMessage.class));
+		assertThat(error, instanceOf(org.springframework.integration.message.EnhancedErrorMessage.class));
 		assertThat(error.getPayload(), instanceOf(MessagingException.class));
 		MessagingException payload = (MessagingException) error.getPayload();
 		assertThat(payload.getCause(), instanceOf(RuntimeException.class));
 		assertThat(payload.getCause().getMessage(), equalTo("baz"));
 		assertThat(payload.getFailedMessage().getPayload(), equalTo("bar"));
-		assertThat(((EnhancedErrorMessage) error).getInputMessage().getPayload(), equalTo("foo"));
+		assertThat(((org.springframework.integration.message.EnhancedErrorMessage) error).getOriginalMessage()
+				.getPayload(), equalTo("foo"));
 	}
 
 	private interface Bar {
