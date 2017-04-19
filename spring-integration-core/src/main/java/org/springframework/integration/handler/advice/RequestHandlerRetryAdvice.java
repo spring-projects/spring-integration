@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler.advice;
 
-import org.springframework.integration.support.ErrorMessagePublishingRecoveryCallback;
+import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.retry.RecoveryCallback;
@@ -97,7 +97,7 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 
 	@Override
 	public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-		context.setAttribute(ErrorMessagePublishingRecoveryCallback.FAILED_MESSAGE_CONTEXT_KEY, messageHolder.get());
+		context.setAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY, messageHolder.get());
 		return true;
 	}
 

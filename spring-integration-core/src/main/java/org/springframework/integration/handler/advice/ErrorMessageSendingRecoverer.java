@@ -16,12 +16,14 @@
 
 package org.springframework.integration.handler.advice;
 
-import org.springframework.integration.message.EnhancedErrorMessage;
-import org.springframework.integration.support.ErrorMessagePublishingRecoveryCallback;
+import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.support.ErrorMessagePublisher;
+import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
 
 /**
@@ -33,7 +35,7 @@ import org.springframework.retry.RetryContext;
  * @since 2.2
  *
  */
-public class ErrorMessageSendingRecoverer extends ErrorMessagePublishingRecoveryCallback {
+public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implements RecoveryCallback<Object> {
 
 	public ErrorMessageSendingRecoverer() {
 		this(null);
@@ -41,7 +43,6 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublishingRecovery
 
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
 		setRecoveryChannel(channel);
-		setErrorMessageStrategy(new DefaultRecovererErrorMessageStrategy());
 	}
 
 	public ErrorMessageSendingRecoverer(MessageChannel channel, ErrorMessageStrategy errorMessageStrategy) {
@@ -49,35 +50,19 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublishingRecovery
 		setErrorMessageStrategy(errorMessageStrategy);
 	}
 
+	@Override
+	public Object recover(RetryContext context) throws Exception {
+		return recover(context.getLastThrowable(), context);
+	}
 
-	public static class DefaultRecovererErrorMessageStrategy implements ErrorMessageStrategy {
-
-		@Override
-		public ErrorMessage buildErrorMessage(RetryContext context) {
-			Throwable lastThrowable = determinePayload(context);
-			Object inputMessage = context.getAttribute(INPUT_MESSAGE_CONTEXT_KEY);
-			return inputMessage instanceof Message
-					? new EnhancedErrorMessage((Message<?>) inputMessage, lastThrowable)
-					: new ErrorMessage(lastThrowable);
-		}
-
-		protected Throwable determinePayload(RetryContext context) {
-			Throwable lastThrowable = context.getLastThrowable();
-			if (lastThrowable == null) {
-				lastThrowable = new RetryExceptionNotAvailableException(
-						(Message<?>) context.getAttribute(FAILED_MESSAGE_CONTEXT_KEY),
-						"No retry exception available; " +
-								"this can occur, for example, if the RetryPolicy allowed zero attempts " +
-								"to execute the handler; " +
-								"RetryContext: " + context.toString());
-			}
-			else if (!(lastThrowable instanceof MessagingException)) {
-				lastThrowable = new MessagingException((Message<?>) context.getAttribute(FAILED_MESSAGE_CONTEXT_KEY),
-						lastThrowable.getMessage(), lastThrowable);
-			}
-			return lastThrowable;
-		}
-
+	@Override
+	protected Throwable payloadWhenNull(AttributeAccessor context) {
+		return new RetryExceptionNotAvailableException(
+				(Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY),
+				"No retry exception available; " +
+						"this can occur, for example, if the RetryPolicy allowed zero attempts " +
+						"to execute the handler; " +
+						"RetryContext: " + context.toString());
 	}
 
 	public static class RetryExceptionNotAvailableException extends MessagingException {

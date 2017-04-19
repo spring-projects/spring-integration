@@ -21,8 +21,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.message.EnhancedErrorMessage;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -31,7 +33,6 @@ import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.context.RetryContextSupport;
 import org.springframework.util.Assert;
 
 /**
@@ -48,17 +49,7 @@ import org.springframework.util.Assert;
  *
  * @since 4.3.9
  */
-public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<Object>, BeanFactoryAware {
-
-	/**
-	 * The retry context key for the message object.
-	 */
-	public static final String FAILED_MESSAGE_CONTEXT_KEY = "message";
-
-	/**
-	 * The retry context key for the message object.
-	 */
-	public static final String INPUT_MESSAGE_CONTEXT_KEY = "inputMessage";
+public abstract class ErrorMessagePublisher implements BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -70,14 +61,7 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 
 	private String recoveryChannelName;
 
-	private ErrorMessageStrategy errorMessageStrategy = new ErrorMessageStrategy() {
-
-		@Override
-		public ErrorMessage buildErrorMessage(RetryContext context) {
-			return new ErrorMessage(context.getLastThrowable());
-		}
-
-	};
+	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
 	public final void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
 		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' must not be null");
@@ -158,14 +142,14 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 	 * @throws Exception if the recovery fails.
 	 */
 	public void recover(Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) throws Exception {
-		recover(getRetryContextFor(inputMessage, failedMessage, throwable));
+		recover(throwable, ErrorMessageUtils.getAttributeAccessor(inputMessage, failedMessage));
 	}
 
-	@Override
-	public Void recover(RetryContext context) throws Exception {
+	public Object recover(Throwable throwable, AttributeAccessor context) throws Exception {
 		populateRecoveryChannel();
-		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(context);
-		if (this.logger.isDebugEnabled() && errorMessage.getPayload() instanceof MessagingException) {
+		Throwable payload = determinePayload(throwable, context);
+		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(payload, context);
+		if (this.logger.isDebugEnabled() && payload instanceof MessagingException) {
 			MessagingException exception = (MessagingException) errorMessage.getPayload();
 			this.logger.debug("Sending ErrorMessage: failedMessage: " + exception.getFailedMessage(), exception);
 		}
@@ -173,26 +157,22 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 		return null;
 	}
 
-	/**
-	 * Return a {@link RetryContext} for the provided arguments.
-	 * @param inputMessage the input message.
-	 * @param failedMessage the failed message.
-	 * @param throwable the throwable.
-	 * @return the context.
-	 */
-	public static RetryContext getRetryContextFor(Message<?> inputMessage, Message<?> failedMessage,
-			Throwable throwable) {
-		RetryContextSupport context = new RetryContextSupport(null);
-		if (throwable != null) {
-			context.registerThrowable(throwable);
+	protected Throwable determinePayload(Throwable throwable, AttributeAccessor context) {
+		Throwable lastThrowable = throwable;
+		if (lastThrowable == null) {
+			lastThrowable = payloadWhenNull(context);
 		}
-		if (inputMessage != null) {
-			context.setAttribute(INPUT_MESSAGE_CONTEXT_KEY, inputMessage);
+		else if (!(lastThrowable instanceof MessagingException)) {
+			lastThrowable = new MessagingException(
+					(Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY),
+					lastThrowable.getMessage(), lastThrowable);
 		}
-		if (failedMessage != null) {
-			context.setAttribute(FAILED_MESSAGE_CONTEXT_KEY, failedMessage);
-		}
-		return context;
+		return lastThrowable;
+	}
+
+	protected Throwable payloadWhenNull(AttributeAccessor context) {
+		return new MessagingException((Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY),
+				"No root cause exception available");
 	}
 
 	private void populateRecoveryChannel() {
@@ -211,13 +191,15 @@ public class ErrorMessagePublishingRecoveryCallback implements RecoveryCallback<
 		}
 	}
 
-	/**
-	 * A strategy to be used on the recovery function to produce
-	 * a {@link ErrorMessage} based on the {@link RetryContext}.
-	 */
-	public interface ErrorMessageStrategy {
+	public static class DefaultErrorMessageStrategy implements ErrorMessageStrategy {
 
-		ErrorMessage buildErrorMessage(RetryContext context);
+		@Override
+		public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor context) {
+			Object inputMessage = context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
+			return inputMessage instanceof Message
+					? new EnhancedErrorMessage((Message<?>) inputMessage, throwable)
+					: new ErrorMessage(throwable);
+		}
 
 	}
 
