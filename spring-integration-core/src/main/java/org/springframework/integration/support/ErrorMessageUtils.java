@@ -21,18 +21,21 @@ import org.springframework.core.AttributeAccessorSupport;
 import org.springframework.messaging.Message;
 
 /**
+ * Utilities for building error messages.
+ *
  * @author Gary Russell
+ *
  * @since 4.3.10
  *
  */
 public final class ErrorMessageUtils {
 
 	/**
-	 * The retry context key for the message object.
+	 * The context key for the message object.
 	 */
 	public static final String FAILED_MESSAGE_CONTEXT_KEY = "message";
 	/**
-	 * The retry context key for the message object.
+	 * The context key for the message object.
 	 */
 	public static final String INPUT_MESSAGE_CONTEXT_KEY = "inputMessage";
 

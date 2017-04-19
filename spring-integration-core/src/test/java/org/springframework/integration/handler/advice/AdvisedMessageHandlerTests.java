@@ -1042,7 +1042,7 @@ public class AdvisedMessageHandlerTests {
 	public void enhancedRecoverer() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(channel);
-		recoverer.recover(new GenericMessage<>("foo"), new GenericMessage<>("bar"), new RuntimeException("baz"));
+		recoverer.publish(new GenericMessage<>("foo"), new GenericMessage<>("bar"), new RuntimeException("baz"));
 		Message<?> error = channel.receive(0);
 		assertThat(error, instanceOf(EnhancedErrorMessage.class));
 		assertThat(error.getPayload(), instanceOf(MessagingException.class));

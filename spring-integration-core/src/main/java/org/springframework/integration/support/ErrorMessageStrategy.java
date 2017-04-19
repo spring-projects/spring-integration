@@ -18,11 +18,17 @@ package org.springframework.integration.support;
 
 import org.springframework.core.AttributeAccessor;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.retry.RetryContext;
 
 /**
- * A strategy to be used on the recovery function to produce
- * a {@link ErrorMessage} based on the {@link RetryContext}.
+ * A strategy to build an {@link ErrorMessage} based on the provided
+ * {@link Throwable} and {@link AttributeAccessor} as a context.
+ * <p>
+ * The {@code Throwable payload} is typically {@link org.springframework.messaging.MessagingException}
+ * which {@code failedMessage} property can be used to determine a cause of the error.
+ * <p>
+ * This strategy can be used for the
+ * {@link org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer}
+ * for {@link org.springframework.retry.RetryContext} access.
  *
  * @author Artem Bilan
  * @author Gary Russell

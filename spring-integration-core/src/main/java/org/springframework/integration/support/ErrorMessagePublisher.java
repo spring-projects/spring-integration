@@ -31,25 +31,22 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.RetryContext;
 import org.springframework.util.Assert;
 
 /**
- * A {@link RecoveryCallback} that sends the {@link ErrorMessage} after retry exhaustion.
- * It can also be used as a general error message publisher. See
- * {@link #recover(MessagingException)} and {@link #recover(Message, Throwable)}.
+ * The component which can be used as general purpose of errors publishing.
+ * Can be called or extended in any error handling or retry scenarios.
  * <p>
  * An {@link ErrorMessageStrategy} can be used to provide customization for the target
- * {@link ErrorMessage} based on the {@link RetryContext} (or the message and/or
- * throwable when using the other {@code recover()} methods).
+ * {@link ErrorMessage} based on the {@link AttributeAccessor} (or the message and/or
+ * throwable when using the other {@code publish()} methods).
  *
  * @author Artem Bilan
  * @author Gary Russell
  *
- * @since 4.3.9
+ * @since 4.3.10
  */
-public abstract class ErrorMessagePublisher implements BeanFactoryAware {
+public class ErrorMessagePublisher implements BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -57,9 +54,9 @@ public abstract class ErrorMessagePublisher implements BeanFactoryAware {
 
 	private DestinationResolver<MessageChannel> channelResolver;
 
-	private MessageChannel recoveryChannel;
+	private MessageChannel channel;
 
-	private String recoveryChannelName;
+	private String channelName;
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
@@ -68,21 +65,21 @@ public abstract class ErrorMessagePublisher implements BeanFactoryAware {
 		this.errorMessageStrategy = errorMessageStrategy;
 	}
 
-	public final void setRecoveryChannel(MessageChannel recoveryChannel) {
-		this.recoveryChannel = recoveryChannel;
+	public final void setChannel(MessageChannel channel) {
+		this.channel = channel;
+	}
+
+	public void setChannelName(String channelName) {
+		this.channelName = channelName;
 	}
 
 	public ErrorMessageStrategy getErrorMessageStrategy() {
 		return this.errorMessageStrategy;
 	}
 
-	public MessageChannel getRecoveryChannel() {
-		populateRecoveryChannel();
-		return this.recoveryChannel;
-	}
-
-	public void setRecoveryChannelName(String recoveryChannelName) {
-		this.recoveryChannelName = recoveryChannelName;
+	public MessageChannel getChannel() {
+		populateChannel();
+		return this.channel;
 	}
 
 	public void setSendTimeout(long sendTimeout) {
@@ -104,49 +101,52 @@ public abstract class ErrorMessagePublisher implements BeanFactoryAware {
 	/**
 	 * Publish an error message for the supplied exception.
 	 * @param exception the exception.
-	 * @throws Exception if the recovery fails.
 	 */
-	public void recover(MessagingException exception) throws Exception {
-		recover(null, exception.getFailedMessage(), exception);
+	public void publish(MessagingException exception) {
+		publish(null, exception.getFailedMessage(), exception);
 	}
 
 	/**
 	 * Publish an error message for the supplied message and throwable. If the throwable
 	 * is already a {@link MessagingException} containing the message in its
-	 * {@code failedMessage} property, use {@link #recover(MessagingException)} instead.
+	 * {@code failedMessage} property, use {@link #publish(MessagingException)} instead.
 	 * @param failedMessage the message.
 	 * @param throwable the throwable.
-	 * @throws Exception if the recovery fails.
 	 */
-	public void recover(Message<?> failedMessage, Throwable throwable) throws Exception {
-		recover(null, failedMessage, throwable);
+	public void publish(Message<?> failedMessage, Throwable throwable) {
+		publish(null, failedMessage, throwable);
 	}
 
 	/**
 	 * Publish an error message for the supplied exception.
 	 * @param inputMessage the message that started the subflow.
 	 * @param exception the exception.
-	 * @throws Exception if the recovery fails.
 	 */
-	public void recover(Message<?> inputMessage, MessagingException exception) throws Exception {
-		recover(inputMessage, exception.getFailedMessage(), exception);
+	public void publish(Message<?> inputMessage, MessagingException exception) {
+		publish(inputMessage, exception.getFailedMessage(), exception);
 	}
 
 	/**
 	 * Publish an error message for the supplied message and throwable. If the throwable
 	 * is already a {@link MessagingException} containing the message in its
-	 * {@code failedMessage} property, use {@link #recover(MessagingException)} instead.
+	 * {@code failedMessage} property, use {@link #publish(MessagingException)} instead.
 	 * @param inputMessage the message that started the subflow.
 	 * @param failedMessage the message.
 	 * @param throwable the throwable.
-	 * @throws Exception if the recovery fails.
 	 */
-	public void recover(Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) throws Exception {
-		recover(throwable, ErrorMessageUtils.getAttributeAccessor(inputMessage, failedMessage));
+	public void publish(Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) {
+		publish(throwable, ErrorMessageUtils.getAttributeAccessor(inputMessage, failedMessage));
 	}
 
-	public Object recover(Throwable throwable, AttributeAccessor context) throws Exception {
-		populateRecoveryChannel();
+	/**
+	 * Publish an error message for the supplied throwable and context.
+	 * The {@link #errorMessageStrategy} is used to build a {@link ErrorMessage}
+	 * to publish.
+	 * @param throwable the throwable. May be null.
+	 * @param context the context for {@link ErrorMessage} properties.
+	 */
+	public void publish(Throwable throwable, AttributeAccessor context) {
+		populateChannel();
 		Throwable payload = determinePayload(throwable, context);
 		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(payload, context);
 		if (this.logger.isDebugEnabled() && payload instanceof MessagingException) {
@@ -154,9 +154,15 @@ public abstract class ErrorMessagePublisher implements BeanFactoryAware {
 			this.logger.debug("Sending ErrorMessage: failedMessage: " + exception.getFailedMessage(), exception);
 		}
 		this.messagingTemplate.send(errorMessage);
-		return null;
 	}
 
+	/**
+	 * Build a {@code Throwable payload} for future {@link ErrorMessage}.
+	 * @param throwable the error to determine an {@link ErrorMessage} payload. Can be null.
+	 * @param context the context for error.
+	 * @return the throwable for the {@link ErrorMessage} payload
+	 * @see ErrorMessageUtils
+	 */
 	protected Throwable determinePayload(Throwable throwable, AttributeAccessor context) {
 		Throwable lastThrowable = throwable;
 		if (lastThrowable == null) {
@@ -170,27 +176,40 @@ public abstract class ErrorMessagePublisher implements BeanFactoryAware {
 		return lastThrowable;
 	}
 
+	/**
+	 * Build a {@code Throwable payload} based on the provided context
+	 * for future {@link ErrorMessage} when there is original {@code Throwable}.
+	 * @param context the {@link AttributeAccessor} to use for exception properties.
+	 * @return the {@code Throwable} for an {@link ErrorMessage} payload.
+	 * @see ErrorMessageUtils
+	 */
 	protected Throwable payloadWhenNull(AttributeAccessor context) {
 		return new MessagingException((Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY),
 				"No root cause exception available");
 	}
 
-	private void populateRecoveryChannel() {
+	private void populateChannel() {
 		if (this.messagingTemplate.getDefaultDestination() == null) {
-			if (this.recoveryChannel == null) {
-				String recoveryChannelName = this.recoveryChannelName;
+			if (this.channel == null) {
+				String recoveryChannelName = this.channelName;
 				if (recoveryChannelName == null) {
 					recoveryChannelName = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
 				}
 				if (this.channelResolver != null) {
-					this.recoveryChannel = this.channelResolver.resolveDestination(recoveryChannelName);
+					this.channel = this.channelResolver.resolveDestination(recoveryChannelName);
 				}
 			}
 
-			this.messagingTemplate.setDefaultChannel(this.recoveryChannel);
+			this.messagingTemplate.setDefaultChannel(this.channel);
 		}
 	}
 
+	/**
+	 * A simple {@link ErrorMessageStrategy} implementations which produces
+	 * {@link EnhancedErrorMessage} if the {@link AttributeAccessor} has
+	 * {@link ErrorMessageUtils#INPUT_MESSAGE_CONTEXT_KEY} attribute.
+	 * Otherwise plain {@link ErrorMessage} with the {@code throwable} as {@code payload}.
+	 */
 	public static class DefaultErrorMessageStrategy implements ErrorMessageStrategy {
 
 		@Override

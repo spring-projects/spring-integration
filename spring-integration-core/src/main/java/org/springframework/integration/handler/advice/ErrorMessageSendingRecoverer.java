@@ -27,32 +27,52 @@ import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryContext;
 
 /**
- * RecoveryCallback that sends the final throwable as an ErrorMessage after
+ * A {@link RecoveryCallback} that sends the final throwable as an
+ * {@link org.springframework.messaging.support.ErrorMessage} after
  * retry exhaustion.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
 public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implements RecoveryCallback<Object> {
 
+	/**
+	 * Construct instance with the default {@code errorChannel}
+	 * to publish recovery error message.
+	 * @since 4.3.10
+	 */
 	public ErrorMessageSendingRecoverer() {
 		this(null);
 	}
 
+	/**
+	 * Construct instance based on the provided message channel.
+	 * The {@link DefaultErrorMessageStrategy} is used for building error message to publish.
+	 * @param channel the message channel to publish error messages on recovery action.
+	 */
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
-		setRecoveryChannel(channel);
+		this(channel, new DefaultErrorMessageStrategy());
 	}
 
+	/**
+	 * Construct instance based on the provided message channel and {@link ErrorMessageStrategy}.
+	 * @param channel the message channel to publish error messages on recovery action.
+	 * @param errorMessageStrategy the {@link ErrorMessageStrategy}
+	 * to build error message for publishing.
+	 * @since 4.3.10
+	 */
 	public ErrorMessageSendingRecoverer(MessageChannel channel, ErrorMessageStrategy errorMessageStrategy) {
-		setRecoveryChannel(channel);
+		setChannel(channel);
 		setErrorMessageStrategy(errorMessageStrategy);
 	}
 
 	@Override
 	public Object recover(RetryContext context) throws Exception {
-		return recover(context.getLastThrowable(), context);
+		publish(context.getLastThrowable(), context);
+		return null;
 	}
 
 	@Override

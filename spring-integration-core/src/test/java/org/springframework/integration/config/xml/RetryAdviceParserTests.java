@@ -37,6 +37,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -99,7 +101,7 @@ public class RetryAdviceParserTests {
 
 		assertNull(TestUtils.getPropertyValue(a1, "recoveryCallback"));
 		assertNotNull(TestUtils.getPropertyValue(a7, "recoveryCallback"));
-		assertSame(this.foo, TestUtils.getPropertyValue(a7, "recoveryCallback.recoveryChannel"));
+		assertSame(this.foo, TestUtils.getPropertyValue(a7, "recoveryCallback.channel"));
 		assertEquals(4567L, TestUtils.getPropertyValue(a7, "recoveryCallback.messagingTemplate.sendTimeout"));
 
 		assertSame(this.a1, TestUtils.getPropertyValue(this.handler1, "adviceChain", List.class).get(0));
