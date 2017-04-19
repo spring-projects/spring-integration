@@ -35,6 +35,7 @@ import org.springframework.messaging.support.ErrorMessage;
  *
  * @since 4.3.10
  */
+@FunctionalInterface
 public interface ErrorMessageStrategy {
 
 	/**
