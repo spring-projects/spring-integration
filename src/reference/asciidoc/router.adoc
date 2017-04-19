@@ -1380,18 +1380,12 @@ public PollableChannel resultsChannel() {
 public RoutingSlipRouteStrategy routeStrategy() {
     return (requestMessage, reply) -> requestMessage.getPayload() instanceof String
             ? new FixedSubscriberChannel(m ->
-            Streams.defer((String) m.getPayload())
-                    .env(this.reactorEnv)
-                    .get()
+            Mono.just((String) m.getPayload())
                     .map(String::toUpperCase)
-                    .consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
-                    .flush())
+                    .subscribe(v -> messagingTemplate().convertAndSend(resultsChannel(), v)))
             : new FixedSubscriberChannel(m ->
-            Streams.defer((Integer) m.getPayload())
-                    .env(this.reactorEnv)
-                    .get()
+            Mono.just((Integer) m.getPayload())
                     .map(v -> v * 2)
-                    .consume(v -> messagingTemplate().convertAndSend(resultsChannel(), v))
-                    .flush());
+                    .subscribe(v -> messagingTemplate().convertAndSend(resultsChannel(), v)));
 }
 ----
