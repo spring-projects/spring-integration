@@ -380,9 +380,8 @@ Through the implicitly set `reply-channel` a `User` object is returned and using
 </int:enricher>
 ----
 
-NOTE: The code samples shown here, are part of the _Spring
-              Integration Samples_ project.
-Please feel free to check it out at:null
+NOTE: The code samples shown here, are part of the _Spring Integration Samples_ project.
+Please feel free to check it out in the <<samples>>.
 
 _How do I pass only a subset of data to the request channel?_
 

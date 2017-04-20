@@ -1008,8 +1008,6 @@ As of Spring Integration 2.0 we offer an alternative where you can now use SpEL 
 
 NOTE: For more information about the Spring Expression Language, please refer to the respective chapter in the Spring Framework Reference Documentation at:
 
-null
-
 Generally a SpEL expression is evaluated and the result is mapped to a channel:
 
 [source,xml]
