@@ -43,6 +43,7 @@
 				<ref bean="txAdvise"/>
 				<ref bean="adviceA" />
 				<beans:bean class="org.springframework.integration.dispatcher.PollingTransactionTests.SampleAdvice"/>
+				<beans:bean class="org.springframework.integration.dispatcher.PollingTransactionTests.SimpleRepeatAdvice"/>
 			</advice-chain>
 		</poller>
 	</service-activator>

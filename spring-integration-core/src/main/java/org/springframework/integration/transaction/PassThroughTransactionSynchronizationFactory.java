@@ -25,8 +25,11 @@ import org.springframework.util.Assert;
  * an {@link IntegrationResourceHolderSynchronization} and registers
  * an {@link IntegrationResourceHolder} under the provided {@code key} with
  * the current transaction scope.
+ * <p>
+ * If resource under the provided {@code key} is already registered, the factory returns {@code null}.
  *
  * @author Andreas Baer
+ * @author Artem Bilan
  *
  * @since 5.0
  *
@@ -38,10 +41,14 @@ public class PassThroughTransactionSynchronizationFactory implements Transaction
 	@Override
 	public TransactionSynchronization create(Object key) {
 		Assert.notNull(key, "'key' must not be null");
-		IntegrationResourceHolderSynchronization synchronization =
-				new IntegrationResourceHolderSynchronization(new IntegrationResourceHolder(), key);
-		TransactionSynchronizationManager.bindResource(key, synchronization.getResourceHolder());
-		return synchronization;
+		if (!TransactionSynchronizationManager.hasResource(key)) {
+			IntegrationResourceHolderSynchronization synchronization =
+					new IntegrationResourceHolderSynchronization(new IntegrationResourceHolder(), key);
+			TransactionSynchronizationManager.bindResource(key, synchronization.getResourceHolder());
+			return synchronization;
+		}
+
+		return null;
 	}
 
 }

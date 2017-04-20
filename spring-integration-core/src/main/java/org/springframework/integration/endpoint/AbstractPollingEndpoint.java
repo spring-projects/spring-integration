@@ -310,18 +310,21 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		if (this.transactionSynchronizationFactory != null && resource != null &&
 				TransactionSynchronizationManager.isActualTransactionActive()) {
 			TransactionSynchronization synchronization = this.transactionSynchronizationFactory.create(resource);
-			TransactionSynchronizationManager.registerSynchronization(synchronization);
-			if (synchronization instanceof IntegrationResourceHolderSynchronization) {
-				IntegrationResourceHolderSynchronization integrationSynchronization =
-						((IntegrationResourceHolderSynchronization) synchronization);
-				integrationSynchronization.setShouldUnbindAtCompletion(false);
-				IntegrationResourceHolder resourceHolder = integrationSynchronization.getResourceHolder();
-				if (key != null) {
-					resourceHolder.addAttribute(key, resource);
+			if (synchronization != null) {
+				TransactionSynchronizationManager.registerSynchronization(synchronization);
+				if (synchronization instanceof IntegrationResourceHolderSynchronization) {
+					IntegrationResourceHolderSynchronization integrationSynchronization =
+							((IntegrationResourceHolderSynchronization) synchronization);
+					integrationSynchronization.setShouldUnbindAtCompletion(false);
+					IntegrationResourceHolder resourceHolder = integrationSynchronization.getResourceHolder();
+					if (key != null) {
+						resourceHolder.addAttribute(key, resource);
+					}
+					return resourceHolder;
 				}
-				return resourceHolder;
 			}
 		}
+
 		return null;
 	}
 

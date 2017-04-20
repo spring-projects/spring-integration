@@ -195,11 +195,13 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 					TransactionSynchronization synchronization =
 							ImapIdleChannelAdapter.this.transactionSynchronizationFactory
 									.create(ImapIdleChannelAdapter.this);
-					TransactionSynchronizationManager.registerSynchronization(synchronization);
-					if (synchronization instanceof IntegrationResourceHolderSynchronization) {
-						IntegrationResourceHolder holder =
-								((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
-						holder.setMessage(message);
+					if (synchronization != null) {
+						TransactionSynchronizationManager.registerSynchronization(synchronization);
+						if (synchronization instanceof IntegrationResourceHolderSynchronization) {
+							IntegrationResourceHolder holder =
+									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
+							holder.setMessage(message);
+						}
 					}
 				}
 			}
