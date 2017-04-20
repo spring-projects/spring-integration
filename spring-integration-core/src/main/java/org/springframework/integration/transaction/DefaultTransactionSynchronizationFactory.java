@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+
 /**
  * Default implementation of {@link TransactionSynchronizationFactory} which takes an instance of
  * {@link TransactionSynchronizationProcessor} allowing you to create a {@link TransactionSynchronization}
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.2
  */
 public class DefaultTransactionSynchronizationFactory implements TransactionSynchronizationFactory {
@@ -46,13 +47,9 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 	@Override
 	public TransactionSynchronization create(Object key) {
 		Assert.notNull(key, "'key' must not be null");
-		DefaultTransactionalResourceSynchronization synchronization = new DefaultTransactionalResourceSynchronization(key);
-		TransactionSynchronizationManager.bindResource(key, synchronization.getResourceHolder());
-		return synchronization;
+		return new DefaultTransactionalResourceSynchronization(key);
 	}
 
-	/**
-	 */
 	private final class DefaultTransactionalResourceSynchronization extends IntegrationResourceHolderSynchronization {
 
 		DefaultTransactionalResourceSynchronization(Object resourceKey) {

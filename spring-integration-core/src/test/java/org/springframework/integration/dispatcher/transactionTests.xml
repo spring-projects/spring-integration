@@ -24,25 +24,26 @@
 
 	<service-activator input-channel="badInput" ref="testBean"
 		method="bad" output-channel="output">
-		<poller max-messages-per-poll="1" fixed-rate="10000">
+		<poller max-messages-per-poll="1" fixed-delay="1" receive-timeout="-1">
 			<transactional transaction-manager="txManager" />
 		</poller>
 	</service-activator>
 
 	<service-activator input-channel="goodInput" ref="testBean"
 		method="good" output-channel="output">
-		<poller max-messages-per-poll="1" fixed-rate="10000">
+		<poller max-messages-per-poll="1" fixed-delay="1" receive-timeout="-1">
 			<transactional transaction-manager="txManager" />
 		</poller>
 	</service-activator>
 	
 	<service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
 		method="good" output-channel="output">
-		<poller max-messages-per-poll="1" fixed-rate="10000">
+		<poller max-messages-per-poll="1" fixed-delay="1" receive-timeout="-1">
 			<advice-chain>
 				<ref bean="txAdvise"/>
 				<ref bean="adviceA" />
 				<beans:bean class="org.springframework.integration.dispatcher.PollingTransactionTests.SampleAdvice"/>
+				<beans:bean class="org.springframework.integration.dispatcher.PollingTransactionTests.SimpleRepeatAdvice"/>
 			</advice-chain>
 		</poller>
 	</service-activator>

@@ -309,19 +309,33 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private IntegrationResourceHolder bindResourceHolderIfNecessary(String key, Object resource) {
 		if (this.transactionSynchronizationFactory != null && resource != null &&
 				TransactionSynchronizationManager.isActualTransactionActive()) {
+
 			TransactionSynchronization synchronization = this.transactionSynchronizationFactory.create(resource);
-			TransactionSynchronizationManager.registerSynchronization(synchronization);
-			if (synchronization instanceof IntegrationResourceHolderSynchronization) {
-				IntegrationResourceHolderSynchronization integrationSynchronization =
-						((IntegrationResourceHolderSynchronization) synchronization);
-				integrationSynchronization.setShouldUnbindAtCompletion(false);
-				IntegrationResourceHolder resourceHolder = integrationSynchronization.getResourceHolder();
-				if (key != null) {
-					resourceHolder.addAttribute(key, resource);
+			if (synchronization != null) {
+				TransactionSynchronizationManager.registerSynchronization(synchronization);
+
+				if (synchronization instanceof IntegrationResourceHolderSynchronization) {
+					IntegrationResourceHolderSynchronization integrationSynchronization =
+							((IntegrationResourceHolderSynchronization) synchronization);
+					integrationSynchronization.setShouldUnbindAtCompletion(false);
+
+					if (!TransactionSynchronizationManager.hasResource(resource)) {
+						TransactionSynchronizationManager.bindResource(resource,
+								integrationSynchronization.getResourceHolder());
+					}
 				}
-				return resourceHolder;
+			}
+
+			Object resourceHolder = TransactionSynchronizationManager.getResource(resource);
+			if (resourceHolder instanceof IntegrationResourceHolder) {
+				IntegrationResourceHolder integrationResourceHolder = (IntegrationResourceHolder) resourceHolder;
+				if (key != null) {
+					integrationResourceHolder.addAttribute(key, resource);
+				}
+				return integrationResourceHolder;
 			}
 		}
+
 		return null;
 	}
 

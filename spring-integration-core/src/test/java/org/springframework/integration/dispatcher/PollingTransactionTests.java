@@ -16,9 +16,11 @@
 
 package org.springframework.integration.dispatcher;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -30,8 +32,8 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 
 import org.springframework.aop.Advisor;
+import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.test.util.TestUtils;
@@ -53,6 +55,7 @@ import org.springframework.transaction.support.DefaultTransactionStatus;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Andreas Baer
+ * @author Artem Bilan
  */
 public class PollingTransactionTests {
 
@@ -82,25 +85,23 @@ public class PollingTransactionTests {
 		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
 
 		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain", List.class);
-		assertEquals(3, adviceChain.size());
+		assertEquals(4, adviceChain.size());
 		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);
 		Callable<?> pollingTask = TestUtils.getPropertyValue(poller, "pollingTask", Callable.class);
 		assertTrue("Poller is not Advised", pollingTask instanceof Advised);
 		Advisor[] advisors = ((Advised) pollingTask).getAdvisors();
-		assertEquals(3, advisors.length);
+		assertEquals(4, advisors.length);
 
-		assertTrue("First advisor is not TX", ((DefaultPointcutAdvisor) advisors[0]).getAdvice() instanceof
-				TransactionInterceptor);
+		assertThat("First advisor is not TX", advisors[0].getAdvice(), instanceOf(TransactionInterceptor.class));
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("goodInputWithAdvice");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
-		input.send(new GenericMessage<String>("test"));
+		input.send(new GenericMessage<>("test"));
 		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
 		assertNotNull(message);
-		assertEquals(1, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
 		context.close();
 	}
@@ -220,7 +221,7 @@ public class PollingTransactionTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		assertEquals(0, txManager.getCommitCount());
-		inputTxFail.send(new GenericMessage<>("commitFalilureTest"));
+		inputTxFail.send(new GenericMessage<>("commitFailureTest"));
 		Message<?> errorMessage = errorChannel.receive(10000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
@@ -249,6 +250,17 @@ public class PollingTransactionTests {
 
 		@Override
 		public Object invoke(MethodInvocation invocation) throws Throwable {
+			return invocation.proceed();
+		}
+
+	}
+
+	public static class SimpleRepeatAdvice implements MethodInterceptor {
+
+		@Override
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			((ProxyMethodInvocation) invocation).invocableClone().proceed();
+
 			return invocation.proceed();
 		}
 
