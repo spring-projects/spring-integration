@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel.registry;
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
@@ -48,6 +49,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.OriginalMessageContainingMessagingException;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.integration.test.util.TestUtils;
@@ -177,6 +179,8 @@ public class HeaderChannelRegistryTests {
 		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("bar"));
 		assertNotNull(reply);
 		assertTrue(reply instanceof ErrorMessage);
+		assertNotNull(((ErrorMessage) reply).getOriginalMessage());
+		assertThat(reply.getPayload(), not(instanceOf(OriginalMessageContainingMessagingException.class)));
 	}
 
 	@Test
