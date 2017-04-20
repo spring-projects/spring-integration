@@ -28,6 +28,7 @@ import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -187,15 +188,39 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 			this.messagingTemplate.send(getOutputChannel(), message);
 		}
 		catch (RuntimeException e) {
-			MessageChannel errorChannel = getErrorChannel();
-			if (errorChannel != null) {
-				this.messagingTemplate.send(errorChannel, this.errorMessageStrategy.buildErrorMessage(e,
-						getErrorMessageAttributes(message)));
-			}
-			else {
+			if (!sendErrorMessageIfNecessary(message, e)) {
 				throw e;
 			}
 		}
+	}
+
+	/**
+	 * Send an error message based on the exception and message.
+	 * @param message the message.
+	 * @param exception the exception.
+	 * @return true if the error channel is available and message sent.
+	 * @since 4.3.10
+	 */
+	protected boolean sendErrorMessageIfNecessary(Message<?> message, RuntimeException exception) {
+		MessageChannel errorChannel = getErrorChannel();
+		if (errorChannel != null) {
+			this.messagingTemplate.send(errorChannel, buildErrorMessage(message, exception));
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Build an error message for the exception and message using the configured
+	 * {@link ErrorMessageStrategy}.
+	 * @param message the message.
+	 * @param exception the exception.
+	 * @return the error message.
+	 * @since 4.3.10
+	 */
+	protected ErrorMessage buildErrorMessage(Message<?> message, RuntimeException exception) {
+		return this.errorMessageStrategy.buildErrorMessage(exception,
+				getErrorMessageAttributes(message));
 	}
 
 	/**

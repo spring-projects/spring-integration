@@ -29,6 +29,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.support.OriginalMessageContainingMessagingException;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
@@ -269,7 +270,17 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (holder != null) {
 				holder.setMessage(message);
 			}
-			this.handleMessage(message);
+			try {
+				this.handleMessage(message);
+			}
+			catch (Exception e) {
+				if (e instanceof MessagingException) {
+					throw new OriginalMessageContainingMessagingException(message, (MessagingException) e);
+				}
+				else {
+					throw new MessagingException(message, e);
+				}
+			}
 			result = true;
 		}
 		return result;

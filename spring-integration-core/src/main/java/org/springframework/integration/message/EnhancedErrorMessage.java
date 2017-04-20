@@ -42,17 +42,17 @@ public class EnhancedErrorMessage extends ErrorMessage {
 
 	private final Message<?> originalMessage;
 
-	public EnhancedErrorMessage(Message<?> originalMessage, Throwable payload) {
+	public EnhancedErrorMessage(Throwable payload, Message<?> originalMessage) {
 		super(payload);
 		this.originalMessage = originalMessage;
 	}
 
-	public EnhancedErrorMessage(Message<?> originalMessage, Throwable payload, MessageHeaders headers) {
+	public EnhancedErrorMessage(Throwable payload, MessageHeaders headers, Message<?> originalMessage) {
 		super(payload, headers);
 		this.originalMessage = originalMessage;
 	}
 
-	public EnhancedErrorMessage(Message<?> originalMessage, Throwable payload, Map<String, Object> headers) {
+	public EnhancedErrorMessage(Throwable payload, Map<String, Object> headers, Message<?> originalMessage) {
 		super(payload, headers);
 		this.originalMessage = originalMessage;
 	}
