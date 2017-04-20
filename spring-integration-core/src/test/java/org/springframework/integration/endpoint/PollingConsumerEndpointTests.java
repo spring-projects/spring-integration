@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
@@ -243,6 +244,9 @@ public class PollingConsumerEndpointTests {
 		}
 
 		public void throwLastErrorIfAvailable() throws Throwable {
+			if (this.lastError instanceof MessagingExceptionWrapper) {
+				this.lastError = this.lastError.getCause();
+			}
 			Throwable t = this.lastError;
 			this.lastError = null;
 			throw t;

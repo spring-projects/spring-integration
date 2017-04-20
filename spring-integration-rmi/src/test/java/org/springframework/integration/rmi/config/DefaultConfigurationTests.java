@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.util.ErrorHandler;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 1.0.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -69,10 +70,12 @@ public class DefaultConfigurationTests {
 		assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
 		ErrorHandler errorHandler = TestUtils.getPropertyValue(taskScheduler, "errorHandler", ErrorHandler.class);
 		assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
-		MessageChannel defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "defaultErrorChannel", MessageChannel.class);
+		MessageChannel defaultErrorChannel = TestUtils.getPropertyValue(errorHandler,
+				"messagingTemplate.defaultDestination", MessageChannel.class);
 		assertNull(defaultErrorChannel);
 		errorHandler.handleError(new Throwable());
-		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "defaultErrorChannel", MessageChannel.class);
+		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "messagingTemplate.defaultDestination",
+				MessageChannel.class);
 		assertNotNull(defaultErrorChannel);
 		assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
 	}
