@@ -61,4 +61,15 @@ public class EnhancedErrorMessage extends ErrorMessage {
 		return this.originalMessage;
 	}
 
+	@Override
+	public String toString() {
+		if (this.originalMessage == null) {
+			return super.toString();
+		}
+
+		StringBuilder sb = new StringBuilder(super.toString());
+		sb.append(" for original ").append(this.originalMessage);
+		return sb.toString();
+	}
+
 }
