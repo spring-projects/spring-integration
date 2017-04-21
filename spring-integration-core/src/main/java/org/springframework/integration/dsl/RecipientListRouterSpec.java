@@ -20,6 +20,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.handler.LambdaMessageProcessor;
@@ -123,7 +124,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel) {
-		return recipient(channel, (String) null);
+		return recipient(channel, new ValueExpression<Boolean>(Boolean.TRUE));
 	}
 
 	/**
@@ -133,7 +134,8 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public RecipientListRouterSpec recipient(MessageChannel channel, String expression) {
-		return recipient(channel, StringUtils.hasText(expression) ? PARSER.parseExpression(expression) : null);
+		Assert.hasText(expression, "'expression' cannot be null or empty");
+		return recipient(channel, PARSER.parseExpression(expression));
 	}
 
 	/**
