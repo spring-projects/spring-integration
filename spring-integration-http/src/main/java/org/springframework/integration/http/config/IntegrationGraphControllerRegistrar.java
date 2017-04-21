@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,13 +40,14 @@ import org.springframework.integration.http.management.IntegrationGraphControlle
 import org.springframework.integration.http.support.HttpContextUtils;
 import org.springframework.integration.support.management.graph.IntegrationGraphServer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Registers the necessary beans for {@link EnableIntegrationGraphController}.
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.3
  */
 class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistrar {
@@ -113,7 +114,7 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 
 	}
 
-	private static final class IntegrationGraphCorsConfigurer extends WebMvcConfigurerAdapter {
+	private static final class IntegrationGraphCorsConfigurer implements WebMvcConfigurer {
 
 		private final String path;
 

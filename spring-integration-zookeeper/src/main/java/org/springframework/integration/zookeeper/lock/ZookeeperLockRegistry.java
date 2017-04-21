@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.integration.zookeeper.lock;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -45,6 +45,8 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Vedran Pavic
+ *
  * @since 4.2
  *
  */
@@ -56,7 +58,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 	private final KeyToPathStrategy keyToPath;
 
-	private final Map<String, ZkLock> locks = new HashMap<String, ZkLock>();
+	private final Map<String, ZkLock> locks = new ConcurrentHashMap<>();
 
 	private final boolean trackingTime;
 
@@ -124,18 +126,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = this.keyToPath.pathFor((String) lockKey);
-		ZkLock lock = this.locks.get(path);
-		if (lock == null) {
-			synchronized (this.locks) {
-				lock = this.locks.get(path);
-				if (lock == null) {
-					lock = new ZkLock(this.client, this.mutexTaskExecutor, path);
-					this.locks.put(path, lock);
-				}
-				if (this.trackingTime) {
-					lock.setLastUsed(System.currentTimeMillis());
-				}
-			}
+		ZkLock lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
+		if (this.trackingTime) {
+			lock.setLastUsed(System.currentTimeMillis());
 		}
 		return lock;
 	}
@@ -152,16 +145,14 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 		if (!this.trackingTime) {
 			throw new IllegalStateException("Ths KeyToPathStrategy is bounded; expiry is not supported");
 		}
-		synchronized (this.locks) {
-			Iterator<Entry<String, ZkLock>> iterator = this.locks.entrySet().iterator();
-			long now = System.currentTimeMillis();
-			while (iterator.hasNext()) {
-				Entry<String, ZkLock> entry = iterator.next();
-				ZkLock lock = entry.getValue();
-				if (now - lock.getLastUsed() > age
-						&& !lock.isAcquiredInThisProcess()) {
-					iterator.remove();
-				}
+		Iterator<Entry<String, ZkLock>> iterator = this.locks.entrySet().iterator();
+		long now = System.currentTimeMillis();
+		while (iterator.hasNext()) {
+			Entry<String, ZkLock> entry = iterator.next();
+			ZkLock lock = entry.getValue();
+			if (now - lock.getLastUsed() > age
+					&& !lock.isAcquiredInThisProcess()) {
+				iterator.remove();
 			}
 		}
 	}

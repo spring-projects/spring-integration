@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class JmsInboundGatewayParserTests {
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("jmsGateway");
 		assertEquals(JmsMessageDrivenEndpoint.class, gateway.getClass());
 		context.start();
-		Message<?> message = channel.receive(3000);
+		Message<?> message = channel.receive(10000);
 		MessageHistory history = MessageHistory.read(message);
 		assertNotNull(history);
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "jmsGateway", 0);
@@ -82,7 +82,7 @@ public class JmsInboundGatewayParserTests {
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("jmsGateway");
 		assertEquals(JmsMessageDrivenEndpoint.class, gateway.getClass());
 		context.start();
-		Message<?> message = channel.receive(3000);
+		Message<?> message = channel.receive(10000);
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
 		context.close();
@@ -96,7 +96,7 @@ public class JmsInboundGatewayParserTests {
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("jmsGateway");
 		assertEquals(JmsMessageDrivenEndpoint.class, gateway.getClass());
 		context.start();
-		Message<?> message = channel.receive(3000);
+		Message<?> message = channel.receive(10000);
 		assertNotNull("message should not be null", message);
 		assertEquals("converted-test-message", message.getPayload());
 		context.close();
@@ -188,7 +188,7 @@ public class JmsInboundGatewayParserTests {
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("jmsGateway");
 		assertEquals(JmsMessageDrivenEndpoint.class, gateway.getClass());
 		context.start();
-		Message<?> message = channel.receive(3000);
+		Message<?> message = channel.receive(10000);
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
 		context.close();
@@ -387,7 +387,8 @@ public class JmsInboundGatewayParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithPubSubDomain.xml", this.getClass());
 		JmsMessageDrivenEndpoint endpoint = context.getBean("gateway", JmsMessageDrivenEndpoint.class);
-		JmsDestinationAccessor container = (JmsDestinationAccessor) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
+		JmsDestinationAccessor container =
+				(JmsDestinationAccessor) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
 		assertEquals(Boolean.TRUE, container.isPubSubDomain());
 		context.close();
 	}
@@ -397,7 +398,9 @@ public class JmsInboundGatewayParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"inboundGatewayWithDurableSubscription.xml", this.getClass());
 		JmsMessageDrivenEndpoint endpoint = context.getBean("gateway", JmsMessageDrivenEndpoint.class);
-		DefaultMessageListenerContainer container = (DefaultMessageListenerContainer) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
+		DefaultMessageListenerContainer container =
+				(DefaultMessageListenerContainer) new DirectFieldAccessor(endpoint)
+						.getPropertyValue("listenerContainer");
 		assertEquals(Boolean.TRUE, container.isPubSubDomain());
 		assertEquals(Boolean.TRUE, container.isSubscriptionDurable());
 		assertEquals("testDurableSubscriptionName", container.getDurableSubscriptionName());

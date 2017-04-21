@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -77,16 +76,16 @@ public final class RedisLockRegistry implements ExpirableLockRegistry {
 
 	private static final String OBTAIN_LOCK_SCRIPT =
 			"local lockClientId = redis.call('GET', KEYS[1])\n" +
-			"if lockClientId == ARGV[1] then\n" +
-			"  redis.call('PEXPIRE', KEYS[1], ARGV[2])\n" +
-			"  return true\n" +
-			"elseif not lockClientId then\n" +
-			"  redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])\n" +
-			"  return true\n" +
-			"end\n" +
-			"return false";
+					"if lockClientId == ARGV[1] then\n" +
+					"  redis.call('PEXPIRE', KEYS[1], ARGV[2])\n" +
+					"  return true\n" +
+					"elseif not lockClientId then\n" +
+					"  redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])\n" +
+					"  return true\n" +
+					"end\n" +
+					"return false";
 
-	private final ConcurrentMap<String, RedisLock> locks = new ConcurrentHashMap<>();
+	private final Map<String, RedisLock> locks = new ConcurrentHashMap<>();
 
 	private final String clientId = UUID.randomUUID().toString();
 
@@ -131,15 +130,13 @@ public final class RedisLockRegistry implements ExpirableLockRegistry {
 
 	@Override
 	public void expireUnusedOlderThan(long age) {
-		synchronized (this.locks) {
-			Iterator<Map.Entry<String, RedisLock>> iterator = this.locks.entrySet().iterator();
-			long now = System.currentTimeMillis();
-			while (iterator.hasNext()) {
-				Map.Entry<String, RedisLock> entry = iterator.next();
-				RedisLock lock = entry.getValue();
-				if (now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess()) {
-					iterator.remove();
-				}
+		Iterator<Map.Entry<String, RedisLock>> iterator = this.locks.entrySet().iterator();
+		long now = System.currentTimeMillis();
+		while (iterator.hasNext()) {
+			Map.Entry<String, RedisLock> entry = iterator.next();
+			RedisLock lock = entry.getValue();
+			if (now - lock.getLockedAt() > age && !lock.isAcquiredInThisProcess()) {
+				iterator.remove();
 			}
 		}
 	}
