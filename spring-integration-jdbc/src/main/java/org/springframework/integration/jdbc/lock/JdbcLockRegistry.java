@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.integration.jdbc.lock;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
  */
 public class JdbcLockRegistry implements ExpirableLockRegistry {
 
-	private final Map<String, JdbcLock> locks = new HashMap<String, JdbcLock>();
+	private final ConcurrentMap<String, JdbcLock> locks = new ConcurrentHashMap<>();
 
 	private final LockRepository client;
 
@@ -62,17 +62,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = pathFor((String) lockKey);
-		JdbcLock lock = this.locks.get(path);
-		if (lock == null) {
-			synchronized (this.locks) {
-				lock = this.locks.get(path);
-				if (lock == null) {
-					lock = new JdbcLock(this.client, path);
-					this.locks.put(path, lock);
-				}
-			}
-		}
-		return lock;
+		return this.locks.computeIfAbsent(path, p -> new JdbcLock(this.client, p));
 	}
 
 	private String pathFor(String input) {
