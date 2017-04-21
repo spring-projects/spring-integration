@@ -20,14 +20,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+
 /**
  * Default implementation of {@link TransactionSynchronizationFactory} which takes an instance of
  * {@link TransactionSynchronizationProcessor} allowing you to create a {@link TransactionSynchronization}
  * using {{@link #create(Object)} method.
- * <p>
- * If resource under the provided {@code key} is already registered, the factory returns {@code null}.
  *
  * @author Gary Russell
  * @author Oleg Zhurakousky
@@ -49,14 +47,7 @@ public class DefaultTransactionSynchronizationFactory implements TransactionSync
 	@Override
 	public TransactionSynchronization create(Object key) {
 		Assert.notNull(key, "'key' must not be null");
-		if (!TransactionSynchronizationManager.hasResource(key)) {
-			DefaultTransactionalResourceSynchronization synchronization =
-					new DefaultTransactionalResourceSynchronization(key);
-			TransactionSynchronizationManager.bindResource(key, synchronization.getResourceHolder());
-			return synchronization;
-		}
-
-		return null;
+		return new DefaultTransactionalResourceSynchronization(key);
 	}
 
 	private final class DefaultTransactionalResourceSynchronization extends IntegrationResourceHolderSynchronization {

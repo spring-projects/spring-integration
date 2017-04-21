@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,7 +154,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		final TaskScheduler scheduler =  this.getTaskScheduler();
+		final TaskScheduler scheduler = this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null");
 		if (this.sendingTaskExecutor == null) {
 			this.sendingTaskExecutor = Executors.newFixedThreadPool(1);
@@ -187,8 +187,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			@SuppressWarnings("unchecked")
 			org.springframework.messaging.Message<?> message =
 					mailMessage instanceof Message
-						? ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build()
-						:  (org.springframework.messaging.Message<Object>) mailMessage;
+							? ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build()
+							: (org.springframework.messaging.Message<Object>) mailMessage;
 
 			if (TransactionSynchronizationManager.isActualTransactionActive()) {
 				if (ImapIdleChannelAdapter.this.transactionSynchronizationFactory != null) {
@@ -197,10 +197,18 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 									.create(ImapIdleChannelAdapter.this);
 					if (synchronization != null) {
 						TransactionSynchronizationManager.registerSynchronization(synchronization);
-						if (synchronization instanceof IntegrationResourceHolderSynchronization) {
-							IntegrationResourceHolder holder =
-									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder();
-							holder.setMessage(message);
+
+						if (synchronization instanceof IntegrationResourceHolderSynchronization
+								&& !TransactionSynchronizationManager.hasResource(ImapIdleChannelAdapter.this)) {
+
+							TransactionSynchronizationManager.bindResource(ImapIdleChannelAdapter.this,
+									((IntegrationResourceHolderSynchronization) synchronization).getResourceHolder());
+						}
+
+						Object resourceHolder =
+								TransactionSynchronizationManager.getResource(ImapIdleChannelAdapter.this);
+						if (resourceHolder instanceof IntegrationResourceHolder) {
+							((IntegrationResourceHolder) resourceHolder).setMessage(message);
 						}
 					}
 				}
@@ -264,7 +272,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 		@Override
 		public void run() {
-			final TaskScheduler scheduler =  getTaskScheduler();
+			final TaskScheduler scheduler = getTaskScheduler();
 			Assert.notNull(scheduler, "'taskScheduler' must not be null");
 			/*
 			 * The following shouldn't be necessary because doStart() will have ensured we have
