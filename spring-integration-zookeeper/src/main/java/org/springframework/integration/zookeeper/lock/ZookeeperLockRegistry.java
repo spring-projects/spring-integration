@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.integration.zookeeper.lock;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -56,7 +56,7 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 	private final KeyToPathStrategy keyToPath;
 
-	private final Map<String, ZkLock> locks = new HashMap<String, ZkLock>();
+	private final ConcurrentMap<String, ZkLock> locks = new ConcurrentHashMap<>();
 
 	private final boolean trackingTime;
 
@@ -124,18 +124,9 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
 		String path = this.keyToPath.pathFor((String) lockKey);
-		ZkLock lock = this.locks.get(path);
-		if (lock == null) {
-			synchronized (this.locks) {
-				lock = this.locks.get(path);
-				if (lock == null) {
-					lock = new ZkLock(this.client, this.mutexTaskExecutor, path);
-					this.locks.put(path, lock);
-				}
-				if (this.trackingTime) {
-					lock.setLastUsed(System.currentTimeMillis());
-				}
-			}
+		ZkLock lock = this.locks.computeIfAbsent(path, p -> new ZkLock(this.client, this.mutexTaskExecutor, p));
+		if (this.trackingTime) {
+			lock.setLastUsed(System.currentTimeMillis());
 		}
 		return lock;
 	}
