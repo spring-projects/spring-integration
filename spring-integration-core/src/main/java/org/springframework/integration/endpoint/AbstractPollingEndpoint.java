@@ -320,7 +320,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					integrationSynchronization.setShouldUnbindAtCompletion(false);
 
 					if (!TransactionSynchronizationManager.hasResource(resource)) {
-						TransactionSynchronizationManager.bindResource(key,
+						TransactionSynchronizationManager.bindResource(resource,
 								integrationSynchronization.getResourceHolder());
 					}
 				}

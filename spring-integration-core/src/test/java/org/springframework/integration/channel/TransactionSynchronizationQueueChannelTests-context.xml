@@ -10,7 +10,7 @@
 	</int:channel>
 
 	<int:service-activator input-channel="queueChannel" ref="service" method="handle">
-		<int:poller fixed-delay="5000">
+		<int:poller max-messages-per-poll="1" fixed-delay="1" receive-timeout="-1">
 			<int:transactional synchronization-factory="txSyncFactory"/>
 		</int:poller>
 	</int:service-activator>
@@ -33,7 +33,7 @@
 	</int:channel>
 
 	<int:service-activator input-channel="queueChannel2" ref="service" method="handle">
-		<int:poller fixed-delay="5000">
+		<int:poller max-messages-per-poll="1" fixed-delay="1" receive-timeout="-1">
 			<int:transactional synchronization-factory="txSyncFactory2"/>
 		</int:poller>
 	</int:service-activator>
