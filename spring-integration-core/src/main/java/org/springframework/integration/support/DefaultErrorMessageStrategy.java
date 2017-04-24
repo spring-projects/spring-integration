@@ -40,7 +40,7 @@ public class DefaultErrorMessageStrategy implements ErrorMessageStrategy {
 	public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor attributes) {
 		Object inputMessage = attributes.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
 		return inputMessage instanceof Message
-				? new org.springframework.integration.message.EnhancedErrorMessage((Message<?>) inputMessage, throwable)
+				? new org.springframework.integration.message.EnhancedErrorMessage(throwable, (Message<?>) inputMessage)
 				: new ErrorMessage(throwable);
 	}
 

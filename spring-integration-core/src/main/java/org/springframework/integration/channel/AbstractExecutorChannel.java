@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.dispatcher.AbstractDispatcher;
+import org.springframework.integration.support.OriginalMessageContainingMessagingException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -43,6 +44,7 @@ import org.springframework.util.CollectionUtils;
  * is handed to the {@link Executor#execute(Runnable)}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @see ExecutorChannel
  * @see PublishSubscribeChannel
  * @since 4.2
@@ -154,7 +156,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 					triggerAfterMessageHandled(message, ex, interceptorStack);
 				}
 				if (ex instanceof MessagingException) {
-					throw (MessagingException) ex;
+					throw new OriginalMessageContainingMessagingException(message, (MessagingException) ex);
 				}
 				String description = "Failed to handle " + message + " to " + this + " in " + messageHandler;
 				throw new MessageDeliveryException(message, description, ex);

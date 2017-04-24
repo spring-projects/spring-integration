@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.OriginalMessageContainingMessagingException;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -44,6 +47,23 @@ import org.springframework.util.ErrorHandler;
 public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private ErrorMessageStrategy errorMessageStrategy = new ErrorMessageStrategy() {
+
+		@SuppressWarnings("deprecation")
+		@Override
+		public ErrorMessage buildErrorMessage(Throwable t, AttributeAccessor a) {
+			if (t instanceof OriginalMessageContainingMessagingException) {
+				OriginalMessageContainingMessagingException omcme = (OriginalMessageContainingMessagingException) t;
+				return new org.springframework.integration.message.EnhancedErrorMessage(t.getCause(),
+						omcme.getOriginalMessage());
+			}
+			else {
+				return new ErrorMessage(t);
+			}
+		}
+
+	};
 
 	private volatile DestinationResolver<MessageChannel> channelResolver;
 
@@ -96,6 +116,16 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		this.sendTimeout = sendTimeout;
 	}
 
+	/**
+	 * Set an {@link ErrorMessageStrategy} to use.
+	 * @param errorMessageStrategy the strategy.
+	 * @since 5.0
+	 */
+	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' cannot be null");
+		this.errorMessageStrategy = errorMessageStrategy;
+	}
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "beanFactory must not be null");
@@ -111,10 +141,10 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		if (errorChannel != null) {
 			try {
 				if (this.sendTimeout >= 0) {
-					sent = errorChannel.send(new ErrorMessage(t), this.sendTimeout);
+					sent = errorChannel.send(this.errorMessageStrategy.buildErrorMessage(t, null), this.sendTimeout);
 				}
 				else {
-					sent = errorChannel.send(new ErrorMessage(t));
+					sent = errorChannel.send(this.errorMessageStrategy.buildErrorMessage(t, null));
 				}
 			}
 			catch (Throwable errorDeliveryError) { //NOSONAR
@@ -140,8 +170,12 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	}
 
 	private MessageChannel resolveErrorChannel(Throwable t) {
-		Message<?> failedMessage = (t instanceof MessagingException) ?
-				((MessagingException) t).getFailedMessage() : null;
+		Throwable actualThrowable = t;
+		if (t instanceof OriginalMessageContainingMessagingException) {
+			actualThrowable = t.getCause();
+		}
+		Message<?> failedMessage = (actualThrowable instanceof MessagingException) ?
+				((MessagingException) actualThrowable).getFailedMessage() : null;
 		if (getDefaultErrorChannel() == null && this.channelResolver != null) {
 			this.defaultErrorChannel = this.channelResolver.resolveDestination(
 					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
