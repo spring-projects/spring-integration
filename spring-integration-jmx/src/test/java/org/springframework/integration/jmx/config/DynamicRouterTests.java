@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,15 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -38,10 +37,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class DynamicRouterTests {
 
 	@Autowired
@@ -65,7 +66,7 @@ public class DynamicRouterTests {
 	private QueueChannel processCChannel;
 
 
-	@Test @DirtiesContext
+	@Test
 	public void testRouteChange() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertEquals("123", processAChannel.receive(0).getPayload());
@@ -78,7 +79,7 @@ public class DynamicRouterTests {
 		assertEquals("123", processCChannel.receive(0).getPayload());
 	}
 
-	@Test @DirtiesContext
+	@Test
 	public void testRouteChangeMap() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertEquals("123", processAChannel.receive(0).getPayload());
@@ -94,8 +95,7 @@ public class DynamicRouterTests {
 		assertEquals("123", processCChannel.receive(0).getPayload());
 	}
 
-	@Test @DirtiesContext
-	@Ignore // Requires Spring 3.2.3 TODO: Remove when minimum SF is >= 3.2.3
+	@Test
 	public void testRouteChangeMapNamedArgs() throws Exception {
 		routingChannel.send(new GenericMessage<String>("123"));
 		assertEquals("123", processAChannel.receive(0).getPayload());

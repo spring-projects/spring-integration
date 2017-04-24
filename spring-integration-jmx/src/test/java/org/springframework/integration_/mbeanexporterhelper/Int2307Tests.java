@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration_.mbeanexporterhelper;
 
 import static org.junit.Assert.assertEquals;
@@ -85,7 +86,9 @@ public class Int2307Tests {
 		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("zz"));
 
 		// make sure there are no duplicate MBean ObjectNames if 2 contexts loaded from same config
-		new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
+		new ClassPathXmlApplicationContext("single-config.xml", this.getClass()).close();
+
+		context.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -110,7 +113,9 @@ public class Int2307Tests {
 		}
 		assertNotNull(mBeanExporterHelper);
 		assertTrue(TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames", Set.class).contains("z"));
+		context.close();
 	}
 
 	public static class Foo{}
+
 }

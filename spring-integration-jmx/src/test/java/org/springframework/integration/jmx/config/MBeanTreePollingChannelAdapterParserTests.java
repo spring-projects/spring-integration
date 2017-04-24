@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 201302017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
@@ -24,12 +25,12 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.QueryExp;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -37,6 +38,7 @@ import org.springframework.integration.jmx.MBeanObjectConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -47,6 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 public class MBeanTreePollingChannelAdapterParserTests {
 
 	@Autowired
@@ -100,10 +103,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 	@Autowired
 	private MBeanObjectConverter converter;
 
-	@Autowired
-	private MBeanServer mbeanServer;
-
-	private final long testTimeout = 2000L;
+	private final long testTimeout = 20000L;
 
 	@Test
 	public void pollDefaultAdapter() throws Exception {
@@ -140,7 +140,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterInner.stop();
 	}
 
 	@Test
@@ -165,7 +165,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertFalse(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterQueryName.stop();
 	}
 
 	@Test
@@ -184,7 +184,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertFalse(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterQueryNameBean.stop();
 	}
 
 	@Test
@@ -203,7 +203,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertFalse(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterQueryExprBean.stop();
 	}
 
 	@Test
@@ -222,7 +222,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterConverter.stop();
 		assertSame(converter, TestUtils.getPropertyValue(adapterConverter, "source.converter"));
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,7 @@ public class NotificationListeningMessageProducerTests {
 		assertEquals("foo", notification.getMessage());
 		assertEquals(objectName, notification.getSource());
 		assertNull(message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK));
+		adapter.stop();
 	}
 
 	@Test
@@ -119,6 +120,7 @@ public class NotificationListeningMessageProducerTests {
 		assertEquals("foo", notification.getMessage());
 		assertEquals(objectName, notification.getSource());
 		assertEquals(handback, message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK));
+		adapter.stop();
 	}
 
 	@Test
@@ -148,6 +150,7 @@ public class NotificationListeningMessageProducerTests {
 		assertTrue(message.getPayload() instanceof Notification);
 		Notification notification = (Notification) message.getPayload();
 		assertEquals("okay", notification.getMessage());
+		adapter.stop();
 	}
 
 
@@ -176,6 +179,7 @@ public class NotificationListeningMessageProducerTests {
 			Notification notification = new Notification("testType", this, sequence.getAndIncrement(), message);
 			this.notificationPublisher.sendNotification(notification);
 		}
+
 	}
 
 }
