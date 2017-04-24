@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,7 +330,8 @@ public class ChannelPublishingJmsMessageListener
 			if (errorChannel == null) {
 				throw e;
 			}
-			errorChannel.send(new ErrorMessage(new MessagingException("Inbound conversion failed for: " + jmsMessage, e)));
+			errorChannel.send(this.gatewayDelegate.buildErrorMessage(
+					new MessagingException("Inbound conversion failed for: " + jmsMessage, e)));
 			errors = true;
 		}
 		if (!errors) {
@@ -507,6 +508,10 @@ public class ChannelPublishingJmsMessageListener
 		@Override
 		protected Message<?> sendAndReceiveMessage(Object request) {
 			return super.sendAndReceiveMessage(request);
+		}
+
+		public ErrorMessage buildErrorMessage(Throwable throwable) {
+			return super.buildErrorMessage(null, throwable);
 		}
 
 		@Override
