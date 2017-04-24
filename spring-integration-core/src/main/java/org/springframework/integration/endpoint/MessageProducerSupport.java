@@ -201,7 +201,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 * @return true if the error channel is available and message sent.
 	 * @since 4.3.10
 	 */
-	protected boolean sendErrorMessageIfNecessary(Message<?> message, RuntimeException exception) {
+	protected final boolean sendErrorMessageIfNecessary(Message<?> message, RuntimeException exception) {
 		MessageChannel errorChannel = getErrorChannel();
 		if (errorChannel != null) {
 			this.messagingTemplate.send(errorChannel, buildErrorMessage(message, exception));
@@ -218,7 +218,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 * @return the error message.
 	 * @since 4.3.10
 	 */
-	protected ErrorMessage buildErrorMessage(Message<?> message, RuntimeException exception) {
+	protected final ErrorMessage buildErrorMessage(Message<?> message, RuntimeException exception) {
 		return this.errorMessageStrategy.buildErrorMessage(exception,
 				getErrorMessageAttributes(message));
 	}
