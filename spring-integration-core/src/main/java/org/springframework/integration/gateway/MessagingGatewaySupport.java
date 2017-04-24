@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -480,8 +480,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		if (error != null) {
 			MessageChannel errorChannel = getErrorChannel();
 			if (errorChannel != null) {
-				Message<?> errorMessage = this.errorMessageStrategy.buildErrorMessage(error,
-						getErrorMessageAttributes(requestMessage));
+				ErrorMessage errorMessage = buildErrorMessage(requestMessage, error);
 				Message<?> errorFlowReply = null;
 				try {
 					errorFlowReply = this.messagingTemplate.sendAndReceive(errorChannel, errorMessage);
@@ -516,6 +515,20 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			}
 		}
 		return reply;
+	}
+
+	/**
+	 * Build an error message for the message and throwable using the configured
+	 * {@link ErrorMessageStrategy}.
+	 * @param requestMessage the requestMessage.
+	 * @param throwable the throwable.
+	 * @return the error message.
+	 * @since 4.3.10
+	 */
+	protected final ErrorMessage buildErrorMessage(Message<?> requestMessage, Throwable throwable) {
+		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(throwable,
+				getErrorMessageAttributes(requestMessage));
+		return errorMessage;
 	}
 
 	/**
