@@ -330,7 +330,7 @@ public class ChannelPublishingJmsMessageListener
 			if (errorChannel == null) {
 				throw e;
 			}
-			errorChannel.send(this.gatewayDelegate.buildErrorMessage(null,
+			errorChannel.send(this.gatewayDelegate.buildErrorMessage(
 					new MessagingException("Inbound conversion failed for: " + jmsMessage, e)));
 			errors = true;
 		}
@@ -514,12 +514,8 @@ public class ChannelPublishingJmsMessageListener
 			return super.sendAndReceiveMessage(request);
 		}
 
-		/*
-		 * Make visible.
-		 */
-		@Override
-		public ErrorMessage buildErrorMessage(Message<?> requestMessage, Throwable throwable) {
-			return super.buildErrorMessage(requestMessage, throwable);
+		public ErrorMessage buildErrorMessage(Throwable throwable) {
+			return super.buildErrorMessage(null, throwable);
 		}
 
 		@Override
