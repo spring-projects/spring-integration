@@ -72,6 +72,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	public static void init() {
 		dataSource = new EmbeddedDatabaseBuilder()
 				.setType(EmbeddedDatabaseType.H2)
+				.addScript("classpath:/org/springframework/integration/jdbc/schema-drop-h2.sql")
 				.addScript("classpath:/org/springframework/integration/jdbc/schema-h2.sql")
 				.build();
 	}
