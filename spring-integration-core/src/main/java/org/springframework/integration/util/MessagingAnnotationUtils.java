@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package org.springframework.integration.util;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.aop.support.AopUtils;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Payloads;
@@ -41,6 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Soby Chacko
  * @author Artem Bilan
+ * @author Oleg Zhurakousky
  * @since 4.0
  */
 public final class MessagingAnnotationUtils {
@@ -61,13 +64,42 @@ public final class MessagingAnnotationUtils {
 	public static <T> T resolveAttribute(List<Annotation> annotations, String name, Class<T> requiredType) {
 		for (Annotation annotation : annotations) {
 			if (annotation != null) {
-				Object value = AnnotationUtils.getValue(annotation, name);
+				Object value = getValue(annotation, name);
 				if (value != null && value.getClass() == requiredType && hasValue(value)) {
 					return (T) value;
 				}
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * NOTE: This operation is modeled after {@link AnnotationUtils#getValue(Annotation)} with
+	 * one minor tweak; When attempt to retrieve value results in {@link InvocationTargetException}
+	 * this operation will re-throw it as {@link IllegalArgumentException} instead of returning null.
+	 * This is due to retrieving values from miss-configured {@link AliasFor}-type annotations where
+	 * 'value' and its alias can have different values. If such exception is swallowed and null is
+	 * returned the subsequent error may be misleading (see MessagingAnnotationUtilsTests).
+	 *
+	 * @param attributeName the name of the annotation attribute
+	 * @param annotation the annotation instance from which to retrieve the value
+	 * @return the attribute value, or {@code null} if not found
+	 */
+	public static Object getValue(Annotation annotation, String attributeName) {
+		if (annotation == null || !StringUtils.hasText(attributeName)) {
+			return null;
+		}
+		try {
+			Method method = annotation.annotationType().getDeclaredMethod(attributeName);
+			ReflectionUtils.makeAccessible(method);
+			return method.invoke(annotation);
+		}
+		catch (InvocationTargetException e) {
+			throw new IllegalArgumentException(e.getCause().getMessage(), e.getCause());
+		}
+		catch (Exception ex) {
+			return null;
+		}
 	}
 
 	public static boolean hasValue(Object value) {
