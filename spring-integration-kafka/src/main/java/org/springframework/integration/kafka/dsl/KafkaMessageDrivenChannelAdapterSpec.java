@@ -33,9 +33,7 @@ import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ErrorHandler;
-import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
-import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
 import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.TopicPartitionInitialOffset;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
@@ -99,7 +97,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	/**
 	 * Specify a {@link RecordFilterStrategy} to wrap
 	 * {@code KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
-	 * {@link FilteringAcknowledgingMessageListenerAdapter}.
+	 * {@link org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter}.
 	 * @param recordFilterStrategy the {@link RecordFilterStrategy} to use.
 	 * @return the spec
 	 */
@@ -109,9 +107,10 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	}
 
 	/**
-	 * A {@code boolean} flag to indicate if {@link FilteringAcknowledgingMessageListenerAdapter}
-	 * should acknowledge discarded records or not.
-	 * Does not make sense if {@link #recordFilterStrategy(RecordFilterStrategy)} isn't specified.
+	 * A {@code boolean} flag to indicate if
+	 * {@link org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter}
+	 * should acknowledge discarded records or not. Does not make sense if
+	 * {@link #recordFilterStrategy(RecordFilterStrategy)} isn't specified.
 	 * @param ackDiscarded true to ack (commit offset for) discarded messages.
 	 * @return the spec
 	 */
@@ -123,7 +122,7 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	/**
 	 * Specify a {@link RetryTemplate} instance to wrap
 	 * {@code KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
-	 * {@link RetryingAcknowledgingMessageListenerAdapter}.
+	 * {@link org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter}.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 * @return the spec
 	 */
@@ -145,15 +144,17 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	}
 
 	/**
-	 /**
 	 * The {@code boolean} flag to specify the order how
-	 * {@link RetryingAcknowledgingMessageListenerAdapter} and
-	 * {@link FilteringAcknowledgingMessageListenerAdapter} are wrapped to each other,
-	 * if both of them are present.
-	 * Does not make sense if only one of {@link RetryTemplate} or
-	 * {@link RecordFilterStrategy} is present, or any.
-	 * @param filterInRetry the order for {@link RetryingAcknowledgingMessageListenerAdapter} and
-	 * {@link FilteringAcknowledgingMessageListenerAdapter} wrapping. Defaults to {@code false}.
+	 * {@link org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter}
+	 * and
+	 * {@link org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter}
+	 * are wrapped to each other, if both of them are present. Does not make sense if only
+	 * one of {@link RetryTemplate} or {@link RecordFilterStrategy} is present, or any.
+	 * @param filterInRetry the order for
+	 * {@link org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter}
+	 * and
+	 * {@link org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter}
+	 * wrapping. Defaults to {@code false}.
 	 * @return the spec
 	 */
 	public S filterInRetry(boolean filterInRetry) {
