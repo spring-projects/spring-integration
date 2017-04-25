@@ -52,7 +52,7 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
 			response.setStatusCode(HttpStatus.OK);
 			return Mono.empty()
-					.then(response::setComplete);
+					.then(Mono.defer(response::setComplete));
 		});
 
 		WebClient webClient = WebClient.builder()
@@ -79,7 +79,7 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
 			response.setStatusCode(HttpStatus.UNAUTHORIZED);
 			return Mono.empty()
-					.then(response::setComplete);
+					.then(Mono.defer(response::setComplete));
 		});
 
 		WebClient webClient = WebClient.builder()

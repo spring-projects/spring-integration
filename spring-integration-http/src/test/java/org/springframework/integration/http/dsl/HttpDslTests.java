@@ -121,7 +121,7 @@ public class HttpDslTests {
 			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
 
 			return response.writeWith(Mono.just(response.bufferFactory().wrap("FOO".getBytes())))
-					.then(response::setComplete);
+					.then(Mono.defer(response::setComplete));
 		});
 
 		WebClient webClient = WebClient.builder()

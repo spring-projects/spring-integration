@@ -33,6 +33,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.BodyExtractors;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -120,7 +121,7 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 						.headers(httpRequest.getHeaders());
 
 		if (httpRequest.hasBody()) {
-			requestSpec.body(httpRequest.getBody());
+			requestSpec.body(BodyInserters.fromObject(httpRequest.getBody()));
 		}
 
 		Mono<ClientResponse> responseMono = requestSpec.exchange()
