@@ -33,9 +33,9 @@ import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAd
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
-import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.context.ContextConfiguration;
@@ -112,7 +112,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 		containerProps = TestUtils.getPropertyValue(container, "containerProperties", ContainerProperties.class);
 
 		Object messageListener = containerProps.getMessageListener();
-		assertThat(messageListener).isInstanceOf(FilteringAcknowledgingMessageListenerAdapter.class);
+		assertThat(messageListener).isInstanceOf(FilteringMessageListenerAdapter.class);
 
 		Object delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
@@ -123,7 +123,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
-		assertThat(messageListener).isInstanceOf(RetryingAcknowledgingMessageListenerAdapter.class);
+		assertThat(messageListener).isInstanceOf(RetryingMessageListenerAdapter.class);
 
 		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
@@ -133,21 +133,21 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
-		assertThat(messageListener).isInstanceOf(FilteringAcknowledgingMessageListenerAdapter.class);
+		assertThat(messageListener).isInstanceOf(FilteringMessageListenerAdapter.class);
 
 		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
-		assertThat(delegate).isInstanceOf(RetryingAcknowledgingMessageListenerAdapter.class);
+		assertThat(delegate).isInstanceOf(RetryingMessageListenerAdapter.class);
 
 		adapter.setFilterInRetry(true);
 		adapter.afterPropertiesSet();
 
 		messageListener = containerProps.getMessageListener();
-		assertThat(messageListener).isInstanceOf(RetryingAcknowledgingMessageListenerAdapter.class);
+		assertThat(messageListener).isInstanceOf(RetryingMessageListenerAdapter.class);
 
 		delegate = TestUtils.getPropertyValue(messageListener, "delegate");
 
-		assertThat(delegate).isInstanceOf(FilteringAcknowledgingMessageListenerAdapter.class);
+		assertThat(delegate).isInstanceOf(FilteringMessageListenerAdapter.class);
 	}
 
 }

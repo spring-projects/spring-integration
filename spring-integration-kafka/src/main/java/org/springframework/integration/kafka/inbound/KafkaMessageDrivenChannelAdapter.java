@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,20 @@ package org.springframework.integration.kafka.inbound;
 
 import java.util.List;
 
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
-import org.springframework.kafka.listener.AcknowledgingMessageListener;
-import org.springframework.kafka.listener.BatchAcknowledgingMessageListener;
+import org.springframework.kafka.listener.BatchMessageListener;
+import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.adapter.BatchMessagingMessageListenerAdapter;
-import org.springframework.kafka.listener.adapter.FilteringAcknowledgingMessageListenerAdapter;
-import org.springframework.kafka.listener.adapter.FilteringBatchAcknowledgingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.FilteringBatchMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
-import org.springframework.kafka.listener.adapter.RetryingAcknowledgingMessageListenerAdapter;
+import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
 import org.springframework.kafka.support.converter.ConversionException;
@@ -69,7 +70,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 
 	private RetryTemplate retryTemplate;
 
-	private RecoveryCallback<Void> recoveryCallback;
+	private RecoveryCallback<? extends Object> recoveryCallback;
 
 	private boolean filterInRetry;
 
@@ -137,7 +138,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	/**
 	 * Specify a {@link RecordFilterStrategy} to wrap
 	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
-	 * {@link FilteringAcknowledgingMessageListenerAdapter}.
+	 * {@link FilteringMessageListenerAdapter}.
 	 * @param recordFilterStrategy the {@link RecordFilterStrategy} to use.
 	 * @since 2.0.1
 	 */
@@ -146,7 +147,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	/**
-	 * A {@code boolean} flag to indicate if {@link FilteringAcknowledgingMessageListenerAdapter}
+	 * A {@code boolean} flag to indicate if {@link FilteringMessageListenerAdapter}
 	 * should acknowledge discarded records or not.
 	 * Does not make sense if {@link #setRecordFilterStrategy(RecordFilterStrategy)} isn't specified.
 	 * @param ackDiscarded true to ack (commit offset for) discarded messages.
@@ -159,7 +160,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	/**
 	 * Specify a {@link RetryTemplate} instance to wrap
 	 * {@link KafkaMessageDrivenChannelAdapter.IntegrationRecordMessageListener} into
-	 * {@link RetryingAcknowledgingMessageListenerAdapter}.
+	 * {@link RetryingMessageListenerAdapter}.
 	 * @param retryTemplate the {@link RetryTemplate} to use.
 	 * @since 2.0.1
 	 */
@@ -176,19 +177,19 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	 * @param recoveryCallback the recovery callback.
 	 * @since 2.0.1
 	 */
-	public void setRecoveryCallback(RecoveryCallback<Void> recoveryCallback) {
+	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
 	}
 
 	/**
 	 * The {@code boolean} flag to specify the order how
-	 * {@link RetryingAcknowledgingMessageListenerAdapter} and
-	 * {@link FilteringAcknowledgingMessageListenerAdapter} are wrapped to each other,
+	 * {@link RetryingMessageListenerAdapter} and
+	 * {@link FilteringMessageListenerAdapter} are wrapped to each other,
 	 * if both of them are present.
 	 * Does not make sense if only one of {@link RetryTemplate} or
 	 * {@link RecordFilterStrategy} is present, or any.
-	 * @param filterInRetry the order for {@link RetryingAcknowledgingMessageListenerAdapter} and
-	 * {@link FilteringAcknowledgingMessageListenerAdapter} wrapping. Defaults to {@code false}.
+	 * @param filterInRetry the order for {@link RetryingMessageListenerAdapter} and
+	 * {@link FilteringMessageListenerAdapter} wrapping. Defaults to {@code false}.
 	 * @since 2.0.1
 	 */
 	public void setFilterInRetry(boolean filterInRetry) {
@@ -211,34 +212,34 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		super.onInit();
 
 		if (this.mode.equals(ListenerMode.record)) {
-			AcknowledgingMessageListener<K, V> listener = this.recordListener;
+			MessageListener<K, V> listener = this.recordListener;
 
 			boolean filterInRetry = this.filterInRetry && this.retryTemplate != null
 					&& this.recordFilterStrategy != null;
 
 			if (filterInRetry) {
-				listener = new FilteringAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
+				listener = new FilteringMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 						this.ackDiscarded);
-				listener = new RetryingAcknowledgingMessageListenerAdapter<>(listener, this.retryTemplate,
-							this.recoveryCallback);
+				listener = new RetryingMessageListenerAdapter<>(listener, this.retryTemplate,
+						this.recoveryCallback);
 			}
 			else {
 				if (this.retryTemplate != null) {
-					listener = new RetryingAcknowledgingMessageListenerAdapter<>(listener, this.retryTemplate,
+					listener = new RetryingMessageListenerAdapter<>(listener, this.retryTemplate,
 							this.recoveryCallback);
 				}
 				if (this.recordFilterStrategy != null) {
-					listener = new FilteringAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
+					listener = new FilteringMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 							this.ackDiscarded);
 				}
 			}
 			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
 		}
 		else {
-			BatchAcknowledgingMessageListener<K, V> listener = this.batchListener;
+			BatchMessageListener<K, V> listener = this.batchListener;
 
 			if (this.recordFilterStrategy != null) {
-				listener = new FilteringBatchAcknowledgingMessageListenerAdapter<>(listener, this.recordFilterStrategy,
+				listener = new FilteringBatchMessageListenerAdapter<>(listener, this.recordFilterStrategy,
 						this.ackDiscarded);
 			}
 			this.messageListenerContainer.getContainerProperties().setMessageListener(listener);
@@ -297,10 +298,10 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 
 		@Override
-		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment) {
+		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
 			Message<?> message = null;
 			try {
-				message = toMessagingMessage(record, acknowledgment);
+				message = toMessagingMessage(record, acknowledgment, consumer);
 			}
 			catch (RuntimeException e) {
 				Exception exception = new ConversionException("Failed to convert to message for: " + record, e);
@@ -326,10 +327,11 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		}
 
 		@Override
-		public void onMessage(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment) {
-			Message<?> message = null;
+			public void onMessage(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment,
+					Consumer<?, ?> consumer) {
+				Message<?> message = null;
 			try {
-				message = toMessagingMessage(records, acknowledgment);
+				message = toMessagingMessage(records, acknowledgment, consumer);
 			}
 			catch (RuntimeException e) {
 				Exception exception = new ConversionException("Failed to convert to message for: " + records, e);

@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -89,8 +90,9 @@ public class MessageDrivenAdapterTests {
 		adapter.setRecordMessageConverter(new MessagingMessageConverter() {
 
 			@Override
-			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment, Type type) {
-				Message<?> message = super.toMessage(record, acknowledgment, type);
+			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
+					Consumer<?, ?> consumer, Type type) {
+				Message<?> message = super.toMessage(record, acknowledgment, consumer, type);
 				return MessageBuilder.fromMessage(message).setHeader("testHeader", "testValue").build();
 			}
 
@@ -136,7 +138,8 @@ public class MessageDrivenAdapterTests {
 		adapter.setMessageConverter(new RecordMessageConverter() {
 
 			@Override
-			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment, Type payloadType) {
+			public Message<?> toMessage(ConsumerRecord<?, ?> record, Acknowledgment acknowledgment,
+					Consumer<?, ?> consumer, Type type) {
 				throw new RuntimeException("testError");
 			}
 
@@ -173,8 +176,9 @@ public class MessageDrivenAdapterTests {
 		adapter.setBatchMessageConverter(new BatchMessagingMessageConverter() {
 
 			@Override
-			public Message<?> toMessage(List<ConsumerRecord<?, ?>> records, Acknowledgment acknowledgment, Type type) {
-				Message<?> message = super.toMessage(records, acknowledgment, type);
+			public Message<?> toMessage(List<ConsumerRecord<?, ?>> records, Acknowledgment acknowledgment,
+					Consumer<?, ?> consumer, Type type) {
+				Message<?> message = super.toMessage(records, acknowledgment, consumer, type);
 				return MessageBuilder.fromMessage(message).setHeader("testHeader", "testValue").build();
 			}
 
@@ -211,7 +215,7 @@ public class MessageDrivenAdapterTests {
 
 			@Override
 			public Message<?> toMessage(List<ConsumerRecord<?, ?>> records, Acknowledgment acknowledgment,
-					Type payloadType) {
+					Consumer<?, ?> consumer, Type payloadType) {
 				throw new RuntimeException("testError");
 			}
 
