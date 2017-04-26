@@ -69,6 +69,7 @@ import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.ErrorMessageExceptionTypeRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.router.RecipientListRouter;
@@ -2009,12 +2010,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link RecipientListRouter} options from {@link RecipientListRouterSpec}.
+	 * Populate the {@link RecipientListRouter} with options from the {@link RecipientListRouterSpec}.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
 	 *  .routeToRecipients(r -> r
-	 *.recipient("bar-channel", m ->
+	 *      .recipient("bar-channel", m ->
 	 *            m.getHeaders().containsKey("recipient") && (boolean) m.getHeaders().get("recipient"))
 	 *      .recipientFlow("'foo' == payload or 'bar' == payload or 'baz' == payload",
 	 *                         f -> f.transform(String.class, p -> p.toUpperCase())
@@ -2026,6 +2027,26 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B routeToRecipients(Consumer<RecipientListRouterSpec> routerConfigurer) {
 		return route(new RecipientListRouterSpec(), routerConfigurer);
+	}
+
+	/**
+	 * Populate the {@link ErrorMessageExceptionTypeRouter} with options from the {@link RouterSpec}.
+	 * Typically used with a Java 8 Lambda expression:
+	 * <pre class="code">
+	 * {@code
+	 *  .routeByError(r -> r
+	 *      .channelMapping(IllegalArgumentException.class, "illegalArgumentChannel")
+	 *      .subFlowMapping(MessageHandlingException.class, sf ->
+	 *                                sf.handle(...))
+	 *    )
+	 * }
+	 * </pre>
+	 * @param routerConfigurer the {@link Consumer} to provide {@link ErrorMessageExceptionTypeRouter} options.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	public B routeByError(
+			Consumer<RouterSpec<Class<? extends Throwable>, ErrorMessageExceptionTypeRouter>> routerConfigurer) {
+		return route(new RouterSpec<>(new ErrorMessageExceptionTypeRouter()), routerConfigurer);
 	}
 
 	/**
@@ -2561,6 +2582,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return new PublisherIntegrationFlow<>(this.integrationComponents, publisher);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,
 			Consumer<S> endpointConfigurer) {
 		if (endpointConfigurer != null) {
