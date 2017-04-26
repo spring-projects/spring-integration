@@ -47,7 +47,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.ReactiveChannel;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.endpoint.ReactiveConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
@@ -67,7 +67,7 @@ public class ReactiveConsumerTests {
 
 	@Test
 	public void testReactiveConsumerReactiveChannel() throws InterruptedException {
-		ReactiveChannel testChannel = new ReactiveChannel(EmitterProcessor.create(false));
+		FluxMessageChannel testChannel = new FluxMessageChannel(EmitterProcessor.create(false));
 
 		List<Message<?>> result = new LinkedList<>();
 		CountDownLatch stopLatch = new CountDownLatch(2);
@@ -224,7 +224,7 @@ public class ReactiveConsumerTests {
 
 	@Test
 	public void testReactiveConsumerViaConsumerEndpointFactoryBean() throws Exception {
-		ReactiveChannel testChannel = new ReactiveChannel();
+		FluxMessageChannel testChannel = new FluxMessageChannel();
 
 		List<Message<?>> result = new LinkedList<>();
 		CountDownLatch stopLatch = new CountDownLatch(3);

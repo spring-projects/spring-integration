@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
+package org.springframework.integration.dsl.channel;
 
-import org.reactivestreams.Publisher;
-
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.messaging.Message;
+
+import reactor.core.publisher.FluxProcessor;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
-public interface ReactiveSubscribableChannel {
+public class FluxMessageChannelSpec extends MessageChannelSpec<FluxMessageChannelSpec, FluxMessageChannel> {
 
-	void subscribeTo(Publisher<Message<?>> publisher);
+	FluxMessageChannelSpec() {
+		this.channel = new FluxMessageChannel();
+	}
+
+	FluxMessageChannelSpec(FluxProcessor<Message<?>, Message<?>> processor) {
+		this.channel = new FluxMessageChannel(processor);
+	}
 
 }

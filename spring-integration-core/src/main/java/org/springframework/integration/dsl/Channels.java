@@ -21,11 +21,11 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.dsl.channel.DirectChannelSpec;
 import org.springframework.integration.dsl.channel.ExecutorChannelSpec;
+import org.springframework.integration.dsl.channel.FluxMessageChannelSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.channel.PriorityChannelSpec;
 import org.springframework.integration.dsl.channel.PublishSubscribeChannelSpec;
 import org.springframework.integration.dsl.channel.QueueChannelSpec;
-import org.springframework.integration.dsl.channel.ReactiveChannelSpec;
 import org.springframework.integration.dsl.channel.RendezvousChannelSpec;
 import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
@@ -132,19 +132,19 @@ public class Channels {
 	}
 
 
-	public ReactiveChannelSpec reactive() {
+	public FluxMessageChannelSpec reactive() {
 		return MessageChannels.reactive();
 	}
 
-	public ReactiveChannelSpec reactive(String id) {
+	public FluxMessageChannelSpec reactive(String id) {
 		return MessageChannels.reactive(id);
 	}
 
-	public ReactiveChannelSpec reactive(FluxProcessor<Message<?>, Message<?>> processor) {
+	public FluxMessageChannelSpec reactive(FluxProcessor<Message<?>, Message<?>> processor) {
 		return MessageChannels.reactive(processor);
 	}
 
-	public ReactiveChannelSpec reactive(String id, FluxProcessor<Message<?>, Message<?>> processor) {
+	public FluxMessageChannelSpec reactive(String id, FluxProcessor<Message<?>, Message<?>> processor) {
 		return MessageChannels.reactive(id, processor);
 	}
 
