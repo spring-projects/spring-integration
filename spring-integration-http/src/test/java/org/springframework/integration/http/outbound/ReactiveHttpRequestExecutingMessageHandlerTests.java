@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.ReactiveChannel;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -63,7 +63,7 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 		ReactiveHttpRequestExecutingMessageHandler reactiveHandler =
 				new ReactiveHttpRequestExecutingMessageHandler(destinationUri, webClient);
 
-		ReactiveChannel ackChannel = new ReactiveChannel();
+		FluxMessageChannel ackChannel = new FluxMessageChannel();
 		reactiveHandler.setOutputChannel(ackChannel);
 		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
 

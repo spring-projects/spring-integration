@@ -36,9 +36,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -57,10 +57,10 @@ import reactor.core.publisher.Flux;
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-public class ReactiveChannelTests {
+public class FluxMessageChannelTests {
 
 	@Autowired
-	private MessageChannel reactiveChannel;
+	private MessageChannel fluxMessageChannel;
 
 	@Autowired
 	private MessageChannel queueChannel;
@@ -69,11 +69,11 @@ public class ReactiveChannelTests {
 	private PollableChannel errorChannel;
 
 	@Test
-	public void testReactiveMessageChannel() throws InterruptedException {
+	public void testFluxMessageChannel() throws InterruptedException {
 		QueueChannel replyChannel = new QueueChannel();
 
 		for (int i = 0; i < 10; i++) {
-			this.reactiveChannel.send(MessageBuilder.withPayload(i).setReplyChannel(replyChannel).build());
+			this.fluxMessageChannel.send(MessageBuilder.withPayload(i).setReplyChannel(replyChannel).build());
 		}
 
 		for (int i = 0; i < 9; i++) {
@@ -116,11 +116,11 @@ public class ReactiveChannelTests {
 		}
 
 		@Bean
-		public MessageChannel reactiveChannel() {
-			return new ReactiveChannel();
+		public MessageChannel fluxMessageChannel() {
+			return new FluxMessageChannel();
 		}
 
-		@ServiceActivator(inputChannel = "reactiveChannel")
+		@ServiceActivator(inputChannel = "fluxMessageChannel")
 		public String handle(int payload) {
 			if (payload == 5) {
 				throw new IllegalStateException("intentional");

@@ -126,20 +126,22 @@ public final class MessageChannels {
 		return MessageChannels.<S>publishSubscribe(executor).id(id);
 	}
 
-	public static ReactiveChannelSpec reactive() {
-		return new ReactiveChannelSpec();
+	public static FluxMessageChannelSpec flux() {
+		return new FluxMessageChannelSpec();
 	}
 
-	public static ReactiveChannelSpec reactive(String id) {
-		return reactive().id(id);
+	public static FluxMessageChannelSpec flux(String id) {
+		return flux()
+				.id(id);
 	}
 
-	public static ReactiveChannelSpec reactive(FluxProcessor<Message<?>, Message<?>> processor) {
-		return new ReactiveChannelSpec(processor);
+	public static FluxMessageChannelSpec flux(String id, FluxProcessor<Message<?>, Message<?>> processor) {
+		return flux(processor)
+				.id(id);
 	}
 
-	public static ReactiveChannelSpec reactive(String id, FluxProcessor<Message<?>, Message<?>> processor) {
-		return reactive(processor).id(id);
+	public static FluxMessageChannelSpec flux(FluxProcessor<Message<?>, Message<?>> processor) {
+		return new FluxMessageChannelSpec(processor);
 	}
 
 	private MessageChannels() {
