@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,16 @@ package org.springframework.integration.monitor;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.PollableChannel;
 
+/**
+ * @author Dave Syer
+ * @author Gary Russell
+ * @author Artem Bilan
+ */
 public class MessageSourceMonitoringIntegrationTests {
 
 	private PollableChannel channel;
@@ -74,17 +80,21 @@ public class MessageSourceMonitoringIntegrationTests {
 
 	private ClassPathXmlApplicationContext createContext(String config, String channelName) {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(config, getClass());
-		context.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
+		context.getAutowireCapableBeanFactory()
+				.autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
 		channel = context.getBean(channelName, PollableChannel.class);
 		return context;
 	}
 
 	public interface Service {
+
 		String execute() throws Exception;
+
 		int getCounter();
 	}
 
 	public static class SimpleService implements Service {
+
 		private int counter;
 
 		public String execute() throws Exception {
@@ -96,6 +106,7 @@ public class MessageSourceMonitoringIntegrationTests {
 		public int getCounter() {
 			return counter;
 		}
+
 	}
 
 }

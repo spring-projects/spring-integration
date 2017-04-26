@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mail;
 
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -34,7 +34,6 @@ import javax.mail.Store;
 import javax.mail.URLName;
 
 import org.junit.Test;
-import org.mockito.internal.stubbing.answers.DoesNothing;
 
 import org.springframework.beans.DirectFieldAccessor;
 
@@ -66,7 +65,7 @@ public class MailReceiverTests {
 		when(folder.exists()).thenReturn(true);
 		when(folder.isOpen()).thenReturn(false);
 		doReturn(folder).when(store).getFolder((URLName) null);
-		doAnswer(new DoesNothing()).when(store).connect();
+		doNothing().when(store).connect();
 		receiver.openFolder();
 		receiver.openFolder();
 		verify(store, times(2)).connect();

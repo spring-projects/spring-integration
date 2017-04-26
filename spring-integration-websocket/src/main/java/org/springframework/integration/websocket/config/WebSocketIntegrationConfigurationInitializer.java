@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.servlet.HandlerMapping;
@@ -44,6 +45,7 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1
  */
 public class WebSocketIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
@@ -111,12 +113,15 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 	private static class WebSocketHandlerMappingFactoryBean extends AbstractFactoryBean<HandlerMapping>
 			implements ApplicationContextAware {
 
-		private ServletWebSocketHandlerRegistry registry;
+		private final IntegrationServletWebSocketHandlerRegistry registry =
+				new IntegrationServletWebSocketHandlerRegistry();
+
+		private ThreadPoolTaskScheduler sockJsTaskScheduler;
 
 		private ApplicationContext applicationContext;
 
 		public void setSockJsTaskScheduler(ThreadPoolTaskScheduler sockJsTaskScheduler) {
-			this.registry = new ServletWebSocketHandlerRegistry(sockJsTaskScheduler);
+			this.sockJsTaskScheduler = sockJsTaskScheduler;
 		}
 
 		@Override
@@ -131,6 +136,9 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 			for (WebSocketConfigurer configurer : webSocketConfigurers) {
 				configurer.registerWebSocketHandlers(this.registry);
 			}
+			if (this.registry.requiresTaskScheduler()) {
+				this.registry.setTaskScheduler(this.sockJsTaskScheduler);
+			}
 			AbstractHandlerMapping handlerMapping = this.registry.getHandlerMapping();
 			handlerMapping.setApplicationContext(this.applicationContext);
 			return handlerMapping;
@@ -139,6 +147,20 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 		@Override
 		public Class<?> getObjectType() {
 			return HandlerMapping.class;
+		}
+
+	}
+
+	private static class IntegrationServletWebSocketHandlerRegistry extends ServletWebSocketHandlerRegistry {
+
+		@Override
+		public boolean requiresTaskScheduler() {
+			return super.requiresTaskScheduler();
+		}
+
+		@Override
+		public void setTaskScheduler(TaskScheduler scheduler) {
+			super.setTaskScheduler(scheduler);
 		}
 
 	}

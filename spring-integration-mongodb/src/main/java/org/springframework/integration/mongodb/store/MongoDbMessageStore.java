@@ -51,9 +51,9 @@ import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.IndexOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
@@ -94,6 +94,7 @@ import com.mongodb.DBObject;
  * @author Jodie StJohn
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class MongoDbMessageStore extends AbstractMessageGroupStore
@@ -506,7 +507,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			customConverters.add(new DocumentToErrorMessageConverter());
 			customConverters.add(new DocumentToAdviceMessageConverter());
 			customConverters.add(new ThrowableToBytesConverter());
-			this.setCustomConversions(new CustomConversions(customConverters));
+			this.setCustomConversions(new MongoCustomConversions(customConverters));
 			super.afterPropertiesSet();
 		}
 

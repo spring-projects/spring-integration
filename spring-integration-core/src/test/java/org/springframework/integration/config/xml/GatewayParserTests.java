@@ -85,7 +85,7 @@ public class GatewayParserTests {
 		TestService service = (TestService) context.getBean("oneWay");
 		service.oneWay("foo");
 		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
-		Message<?> result = channel.receive(1000);
+		Message<?> result = channel.receive(10000);
 		assertEquals("foo", result.getPayload());
 	}
 
@@ -94,7 +94,7 @@ public class GatewayParserTests {
 		TestService service = (TestService) context.getBean("methodOverride");
 		service.oneWay("foo");
 		PollableChannel channel = (PollableChannel) context.getBean("otherRequestChannel");
-		Message<?> result = channel.receive(1000);
+		Message<?> result = channel.receive(10000);
 		assertEquals("fiz", result.getPayload());
 		assertEquals("bar", result.getHeaders().get("foo"));
 		assertEquals("qux", result.getHeaders().get("baz"));
@@ -133,7 +133,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("async", TestService.class);
 		Future<Message<?>> result = service.async("foo");
-		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("foo", reply.getPayload());
 		assertEquals("testExecutor", reply.getHeaders().get("executor"));
 		assertNotNull(TestUtils.getPropertyValue(context.getBean("&async"), "asyncExecutor"));
@@ -146,7 +146,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("asyncOff", TestService.class);
 		Future<Message<?>> result = service.async("futureSync");
-		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("futureSync", reply.getPayload());
 		Object serviceBean = context.getBean("&asyncOff");
 		assertNull(TestUtils.getPropertyValue(serviceBean, "asyncExecutor"));
@@ -220,7 +220,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("completableNoAsync", TestService.class);
 		CompletableFuture<String> result = service.completable("flowCompletable");
-		String reply = result.get(1, TimeUnit.SECONDS);
+		String reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("SYNC_COMPLETABLE", reply);
 		assertEquals(Thread.currentThread(), thread.get());
 		assertNull(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor"));
@@ -243,7 +243,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("completableNoAsync", TestService.class);
 		MyCompletableFuture result = service.customCompletable("flowCustomCompletable");
-		String reply = result.get(1, TimeUnit.SECONDS);
+		String reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("SYNC_CUSTOM_COMPLETABLE", reply);
 		assertEquals(Thread.currentThread(), thread.get());
 		assertNull(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor"));
@@ -270,7 +270,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("customCompletableAttemptAsync", TestService.class);
 		MyCompletableFuture result = service.customCompletable("flowCustomCompletable");
-		String reply = result.get(1, TimeUnit.SECONDS);
+		String reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("SYNC_CUSTOM_COMPLETABLE", reply);
 		assertEquals(Thread.currentThread(), thread.get());
 		assertNotNull(TestUtils.getPropertyValue(gateway, "asyncExecutor"));
@@ -296,7 +296,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("asyncCompletable", TestService.class);
 		CompletableFuture<Message<?>> result = service.completableReturnsMessage("foo");
-		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("foo", reply.getPayload());
 		assertThat(thread.get().getName(), startsWith("testExec-"));
 		assertNotNull(TestUtils.getPropertyValue(context.getBean("&asyncCompletable"), "asyncExecutor"));
@@ -319,7 +319,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("completableNoAsync", TestService.class);
 		CompletableFuture<Message<?>> result = service.completableReturnsMessage("flowCompletableM");
-		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("flowCompletableM", reply.getPayload());
 		assertEquals(Thread.currentThread(), thread.get());
 		assertNull(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor"));
@@ -342,7 +342,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = context.getBean("completableNoAsync", TestService.class);
 		MyCompletableMessageFuture result = service.customCompletableReturnsMessage("flowCustomCompletableM");
-		Message<?> reply = result.get(1, TimeUnit.SECONDS);
+		Message<?> reply = result.get(10, TimeUnit.SECONDS);
 		assertEquals("flowCustomCompletableM", reply.getPayload());
 		assertEquals(Thread.currentThread(), thread.get());
 		assertNull(TestUtils.getPropertyValue(context.getBean("&completableNoAsync"), "asyncExecutor"));

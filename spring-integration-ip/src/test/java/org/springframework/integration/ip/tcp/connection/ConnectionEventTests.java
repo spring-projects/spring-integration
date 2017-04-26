@@ -29,7 +29,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -53,7 +53,6 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.mockito.internal.stubbing.answers.DoesNothing;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationEvent;
@@ -67,7 +66,6 @@ import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
@@ -76,6 +74,8 @@ import org.springframework.util.SocketUtils;
 
 /**
  * @author Gary Russell
+ * @author Artyem Bilan
+ *
  * @since 3.0
  *
  */
@@ -112,7 +112,8 @@ public class ConnectionEventTests {
 			conn.send(new GenericMessage<String>("bar"));
 			fail("Expected exception");
 		}
-		catch (Exception e) { }
+		catch (Exception e) {
+		}
 		assertTrue(theEvent.size() > 0);
 		assertNotNull(theEvent.get(0));
 		assertTrue(theEvent.get(0) instanceof TcpConnectionExceptionEvent);
@@ -150,6 +151,7 @@ public class ConnectionEventTests {
 			@Override
 			public void run() {
 			}
+
 		};
 		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
 		scf.setApplicationEventPublisher(new ApplicationEventPublisher() {
@@ -206,13 +208,7 @@ public class ConnectionEventTests {
 		});
 		gw.setConnectionFactory(scf);
 		DirectChannel requestChannel = new DirectChannel();
-		requestChannel.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-				((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
-			}
-		});
+		requestChannel.subscribe(message -> ((MessageChannel) message.getHeaders().getReplyChannel()).send(message));
 		gw.setRequestChannel(requestChannel);
 		gw.start();
 		Message<String> message = MessageBuilder.withPayload("foo")
@@ -229,6 +225,7 @@ public class ConnectionEventTests {
 	public void testOutboundGatewayNoConnectionEvents() {
 		TcpOutboundGateway gw = new TcpOutboundGateway();
 		AbstractClientConnectionFactory ccf = new AbstractClientConnectionFactory("localhost", 0) {
+
 		};
 		final AtomicReference<ApplicationEvent> theEvent = new AtomicReference<ApplicationEvent>();
 		ccf.setApplicationEventPublisher(new ApplicationEventPublisher() {
@@ -296,7 +293,7 @@ public class ConnectionEventTests {
 		factory.setBeanName("sf");
 		factory.registerListener(message -> false);
 		Log logger = spy(TestUtils.getPropertyValue(factory, "logger", Log.class));
-		doAnswer(new DoesNothing()).when(logger).error(anyString(), any(Throwable.class));
+		doNothing().when(logger).error(anyString(), any(Throwable.class));
 		new DirectFieldAccessor(factory).setPropertyValue("logger", logger);
 
 		factory.start();

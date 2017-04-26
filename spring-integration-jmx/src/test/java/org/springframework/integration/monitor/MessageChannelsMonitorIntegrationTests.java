@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,6 +218,7 @@ public class MessageChannelsMonitorIntegrationTests {
 	}
 
 	public static class Service {
+
 		private int counter;
 
 		private volatile CountDownLatch latch;
@@ -241,10 +242,12 @@ public class MessageChannelsMonitorIntegrationTests {
 
 	@Aspect
 	public static class TestChannelInterceptor {
+
 		@Before("execution(* *..MessageChannel+.send(*)) && args(input)")
 		public void around(Message<?> input) {
 			logger.debug("Handling: " + input);
 		}
+
 	}
 
 }

@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -31,7 +31,6 @@ import javax.jms.Session;
 
 import org.apache.commons.logging.Log;
 import org.junit.Test;
-import org.mockito.internal.stubbing.answers.DoesNothing;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
@@ -74,7 +73,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 		final QueueChannel requestChannel = new QueueChannel();
 		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
 		Log logger = spy(TestUtils.getPropertyValue(listener, "logger", Log.class));
-		doAnswer(new DoesNothing()).when(logger).error(anyString(), any(Throwable.class));
+		doNothing().when(logger).error(anyString(), any(Throwable.class));
 		new DirectFieldAccessor(listener).setPropertyValue("logger", logger);
 		listener.setRequestChannel(requestChannel);
 		QueueChannel errorChannel = new QueueChannel();

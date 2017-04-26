@@ -36,9 +36,9 @@ import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.IndexOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -134,7 +134,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 				List<Object> customConverters = new ArrayList<Object>();
 				customConverters.add(new MessageToBinaryConverter());
 				customConverters.add(new BinaryToMessageConverter());
-				this.mappingMongoConverter.setCustomConversions(new CustomConversions(customConverters));
+				this.mappingMongoConverter.setCustomConversions(new MongoCustomConversions(customConverters));
 				this.mappingMongoConverter.afterPropertiesSet();
 			}
 			this.mongoTemplate = new MongoTemplate(this.mongoDbFactory, this.mappingMongoConverter);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.monitor;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,9 +40,12 @@ import org.springframework.util.ClassUtils;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0.4
  */
 public class MessageMetricsAdviceTests {
+
+	private GenericApplicationContext applicationContext;
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -53,16 +57,23 @@ public class MessageMetricsAdviceTests {
 
 	@Before
 	public void setUp() throws Exception {
-		GenericApplicationContext applicationContext = TestUtils.createTestApplicationContext();
-		this.beanFactory = applicationContext.getBeanFactory();
+		this.applicationContext = TestUtils.createTestApplicationContext();
+		this.beanFactory = this.applicationContext.getBeanFactory();
 		this.channel = new NullChannel();
 		this.mBeanExporter = new IntegrationMBeanExporter();
-		this.mBeanExporter.setApplicationContext(applicationContext);
+		this.mBeanExporter.setApplicationContext(this.applicationContext);
 		this.mBeanExporter.setBeanFactory(this.beanFactory);
 		this.mBeanExporter.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
 		this.mBeanExporter.afterPropertiesSet();
 		this.handler = new DummyHandler();
 		applicationContext.refresh();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		if (this.applicationContext != null) {
+			this.applicationContext.close();
+		}
 	}
 
 	@Test

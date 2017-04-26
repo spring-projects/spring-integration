@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Stuart Williams
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 @ContextConfiguration
@@ -140,7 +141,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterInner.stop();
 	}
 
 	@Test
@@ -165,7 +166,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertFalse(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterQueryName.stop();
 	}
 
 	@Test
@@ -184,7 +185,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertFalse(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterQueryNameBean.stop();
 	}
 
 	@Test
@@ -203,7 +204,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertFalse(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterQueryExprBean.stop();
 	}
 
 	@Test
@@ -222,7 +223,7 @@ public class MBeanTreePollingChannelAdapterParserTests {
 		assertTrue(beans.containsKey("java.lang:type=OperatingSystem"));
 		assertTrue(beans.containsKey("java.lang:type=Runtime"));
 
-		adapterDefault.stop();
+		adapterConverter.stop();
 		assertSame(converter, TestUtils.getPropertyValue(adapterConverter, "source.converter"));
 	}
 
