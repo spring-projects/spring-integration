@@ -19,7 +19,10 @@ package org.springframework.integration.dsl;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.channel.DirectChannel;
@@ -65,6 +68,20 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 */
 	public RouterSpec<K, R> resolutionRequired(boolean resolutionRequired) {
 		this.handler.setResolutionRequired(resolutionRequired);
+		return _this();
+	}
+
+	/**
+	 * Set a limit for how many dynamic channels are retained (for reporting purposes).
+	 * When the limit is exceeded, the oldest channel is discarded.
+	 * <p><b>NOTE: this does not affect routing, just the reporting which dynamically
+	 * resolved channels have been routed to.</b> Default {@code 100}.
+	 * @param dynamicChannelLimit the limit.
+	 * @return the router spec.
+	 * @see AbstractMappingMessageRouter#setDynamicChannelLimit(int)
+	 */
+	public RouterSpec<K, R> dynamicChannelLimit(int dynamicChannelLimit) {
+		this.handler.setDynamicChannelLimit(dynamicChannelLimit);
 		return _this();
 	}
 
@@ -163,7 +180,10 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 		return super.getComponentsToRegister();
 	}
 
-	private static class RouterMappingProvider extends IntegrationObjectSupport {
+	private static class RouterMappingProvider extends IntegrationObjectSupport
+			implements ApplicationListener<ContextRefreshedEvent> {
+
+		private final AtomicBoolean initialized = new AtomicBoolean();
 
 		private final MappingMessageRouterManagement router;
 
@@ -178,28 +198,31 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 		}
 
 		@Override
-		protected void onInit() throws Exception {
-			ConversionService conversionService = getConversionService();
-			if (conversionService == null) {
-				conversionService = DefaultConversionService.getSharedInstance();
-			}
-			for (Map.Entry<Object, NamedComponent> entry : this.mapping.entrySet()) {
-				Object key = entry.getKey();
-				String channelKey;
-				if (key instanceof String) {
-					channelKey = (String) key;
+		public void onApplicationEvent(ContextRefreshedEvent event) {
+			if (event.getApplicationContext() == getApplicationContext() && !this.initialized.getAndSet(true)) {
+				ConversionService conversionService = getConversionService();
+				if (conversionService == null) {
+					conversionService = DefaultConversionService.getSharedInstance();
 				}
-				else if (key instanceof Class) {
-					channelKey = ((Class<?>) key).getName();
-				}
-				else if (conversionService.canConvert(key.getClass(), String.class)) {
-					channelKey = conversionService.convert(key, String.class);
-				}
-				else {
-					throw new MessagingException("unsupported channel mapping type for router [" + key.getClass() + "]");
-				}
+				for (Map.Entry<Object, NamedComponent> entry : this.mapping.entrySet()) {
+					Object key = entry.getKey();
+					String channelKey;
+					if (key instanceof String) {
+						channelKey = (String) key;
+					}
+					else if (key instanceof Class) {
+						channelKey = ((Class<?>) key).getName();
+					}
+					else if (conversionService.canConvert(key.getClass(), String.class)) {
+						channelKey = conversionService.convert(key, String.class);
+					}
+					else {
+						throw new MessagingException("Unsupported channel mapping type for router ["
+								+ key.getClass() + "]");
+					}
 
-				this.router.setChannelMapping(channelKey, entry.getValue().getComponentName());
+					this.router.setChannelMapping(channelKey, entry.getValue().getComponentName());
+				}
 			}
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,14 +50,15 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
@@ -65,8 +66,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @since 5.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class RouterTests {
 
@@ -90,7 +90,7 @@ public class RouterTests {
 	public void testRouter() {
 		this.beanFactory.containsBean("routeFlow.subFlow#0.channel#0");
 
-		int[] payloads = new int[] {1, 2, 3, 4, 5, 6};
+		int[] payloads = new int[] { 1, 2, 3, 4, 5, 6 };
 
 		for (int payload : payloads) {
 			this.routerInput.send(new GenericMessage<>(payload));
@@ -125,7 +125,7 @@ public class RouterTests {
 		@SuppressWarnings("unchecked")
 		List<Integer> results = (List<Integer>) payload;
 
-		assertArrayEquals(new Integer[] {3, 4, 9, 8, 15, 12}, results.toArray(new Integer[results.size()]));
+		assertArrayEquals(new Integer[] { 3, 4, 9, 8, 15, 12 }, results.toArray(new Integer[results.size()]));
 	}
 
 	@Autowired
@@ -498,6 +498,39 @@ public class RouterTests {
 		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
 	}
 
+
+	@Autowired
+	@Qualifier("exceptionTypeRouteFlow.input")
+	private MessageChannel exceptionTypeRouteFlowInput;
+
+	@Autowired
+	private PollableChannel illegalArgumentChannel;
+
+	@Autowired
+	private PollableChannel runtimeExceptionChannel;
+
+	@Autowired
+	private PollableChannel messageHandlingExceptionChannel;
+
+	@Autowired
+	private PollableChannel exceptionRouterDefaultChannel;
+
+	@Test
+	public void testExceptionTypeRouteFlow() {
+		Message<?> failedMessage = new GenericMessage<>("foo");
+		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
+		RuntimeException middleCause = new RuntimeException(rootCause);
+		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
+		ErrorMessage message = new ErrorMessage(error);
+
+		this.exceptionTypeRouteFlowInput.send(message);
+
+		assertNotNull(this.illegalArgumentChannel.receive(1000));
+		assertNull(this.exceptionRouterDefaultChannel.receive(0));
+		assertNull(this.runtimeExceptionChannel.receive(0));
+		assertNull(this.messageHandlingExceptionChannel.receive(0));
+	}
+
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
@@ -525,8 +558,8 @@ public class RouterTests {
 			return f -> f
 					.<Boolean>route("true", m -> m
 							.subFlowMapping(true, sf -> sf
-													.<String>handle((p, h) -> p.toUpperCase())
-									)
+									.<String>handle((p, h) -> p.toUpperCase())
+							)
 					);
 		}
 
@@ -616,7 +649,7 @@ public class RouterTests {
 		@Bean
 		public IntegrationFlow routeMultiMethodInvocationFlow() {
 			return IntegrationFlows.from("routerMultiInput")
-					.route(String.class, p -> p.equals("foo") || p.equals("bar") ? new String[] {"foo", "bar"} : null,
+					.route(String.class, p -> p.equals("foo") || p.equals("bar") ? new String[] { "foo", "bar" } : null,
 							s -> s.suffix("-channel"))
 					.get();
 		}
@@ -637,6 +670,37 @@ public class RouterTests {
 					.<Object, Class<?>>route(Object::getClass, m -> m
 							.channelMapping(String.class, "stringsChannel")
 							.channelMapping(Integer.class, "integersChannel"));
+		}
+
+		@Bean
+		public IntegrationFlow exceptionTypeRouteFlow() {
+			return f -> f
+					.routeByException(r -> r
+							.channelMapping(IllegalArgumentException.class, "illegalArgumentChannel")
+							.channelMapping(RuntimeException.class, "runtimeExceptionChannel")
+							.subFlowMapping(MessageHandlingException.class, sf ->
+									sf.channel("messageHandlingExceptionChannel"))
+							.defaultOutputChannel("exceptionRouterDefaultChannel"));
+		}
+
+		@Bean
+		public PollableChannel exceptionRouterDefaultChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel illegalArgumentChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel runtimeExceptionChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		public PollableChannel messageHandlingExceptionChannel() {
+			return new QueueChannel();
 		}
 
 		@Bean
