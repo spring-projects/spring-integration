@@ -9,7 +9,7 @@
 	<import resource="classpath:org/springframework/integration/jdbc/store/channel/DataSource-common-context.xml" />
 
 	<bean id="dataSource" destroy-method="close"
-		class="org.apache.commons.dbcp.BasicDataSource">
+		class="org.apache.commons.dbcp2.BasicDataSource">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
 		<property name="url" value="jdbc:mysql://localhost/test" />
 		<property name="username" value="root" />
