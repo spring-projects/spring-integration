@@ -81,11 +81,12 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		return this.channel;
 	}
 
-	public void setSendTimeout(long sendTimeout) {
+	public final void setSendTimeout(long sendTimeout) {
 		this.messagingTemplate.setSendTimeout(sendTimeout);
 	}
 
-	public void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+	public final void setChannelResolver(DestinationResolver<MessageChannel> channelResolver) {
+		Assert.notNull(channelResolver, "channelResolver must not be null");
 		this.channelResolver = channelResolver;
 	}
 
@@ -95,6 +96,14 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		if (this.channelResolver == null) {
 			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		}
+	}
+
+	protected MessagingTemplate getMessagingTemplate() {
+		return this.messagingTemplate;
+	}
+
+	protected DestinationResolver<MessageChannel> getChannelResolver() {
+		return this.channelResolver;
 	}
 
 	/**

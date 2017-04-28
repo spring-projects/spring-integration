@@ -32,7 +32,7 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.support.OriginalMessageContainingMessagingException;
+import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
@@ -244,7 +244,7 @@ public class PollingConsumerEndpointTests {
 		}
 
 		public void throwLastErrorIfAvailable() throws Throwable {
-			if (this.lastError instanceof OriginalMessageContainingMessagingException) {
+			if (this.lastError instanceof MessagingExceptionWrapper) {
 				this.lastError = this.lastError.getCause();
 			}
 			Throwable t = this.lastError;

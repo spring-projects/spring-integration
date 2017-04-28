@@ -49,7 +49,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.OriginalMessageContainingMessagingException;
+import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.integration.test.util.TestUtils;
@@ -180,7 +180,7 @@ public class HeaderChannelRegistryTests {
 		assertNotNull(reply);
 		assertTrue(reply instanceof ErrorMessage);
 		assertNotNull(((ErrorMessage) reply).getOriginalMessage());
-		assertThat(reply.getPayload(), not(instanceOf(OriginalMessageContainingMessagingException.class)));
+		assertThat(reply.getPayload(), not(instanceOf(MessagingExceptionWrapper.class)));
 	}
 
 	@Test

@@ -20,26 +20,22 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 
 /**
- * A {@link MessagingException} used to convey the cause and original message to
- * a {@link org.springframework.integration.channel.MessagePublishingErrorHandler}.
+ * A wrapper exception for a {@link MessagingException} used to convey the cause and
+ * original message to a
+ * {@link org.springframework.integration.channel.MessagePublishingErrorHandler}.
+ * The original message is in this exception's {@link #getFailedMessage() failedMessage}
+ * property.
  *
  * @author Gary Russell
  * @since 5.0
  *
  */
-public class OriginalMessageContainingMessagingException extends MessagingException {
+public class MessagingExceptionWrapper extends MessagingException {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Message<?> originalMessage;
-
-	public OriginalMessageContainingMessagingException(Message<?> originalMessage, MessagingException cause) {
-		super((String) null, cause);
-		this.originalMessage = originalMessage;
-	}
-
-	public Message<?> getOriginalMessage() {
-		return this.originalMessage;
+	public MessagingExceptionWrapper(Message<?> originalMessage, MessagingException cause) {
+		super(originalMessage, cause);
 	}
 
 }

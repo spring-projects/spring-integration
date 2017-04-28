@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,10 +71,12 @@ public class DefaultConfiguringBeanFactoryPostProcessorTests {
 		assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
 		ErrorHandler errorHandler = TestUtils.getPropertyValue(taskScheduler, "errorHandler", ErrorHandler.class);
 		assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
-		MessageChannel defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "defaultErrorChannel", MessageChannel.class);
+		MessageChannel defaultErrorChannel = TestUtils.getPropertyValue(errorHandler,
+				"messagingTemplate.defaultDestination", MessageChannel.class);
 		assertNull(defaultErrorChannel);
 		errorHandler.handleError(new Throwable());
-		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "defaultErrorChannel", MessageChannel.class);
+		defaultErrorChannel = TestUtils.getPropertyValue(errorHandler, "messagingTemplate.defaultDestination",
+				MessageChannel.class);
 		assertNotNull(defaultErrorChannel);
 		assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
 	}

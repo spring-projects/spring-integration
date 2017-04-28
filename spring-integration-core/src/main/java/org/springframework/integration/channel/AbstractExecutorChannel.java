@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.dispatcher.AbstractDispatcher;
-import org.springframework.integration.support.OriginalMessageContainingMessagingException;
+import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -156,7 +156,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 					triggerAfterMessageHandled(message, ex, interceptorStack);
 				}
 				if (ex instanceof MessagingException) {
-					throw new OriginalMessageContainingMessagingException(message, (MessagingException) ex);
+					throw new MessagingExceptionWrapper(message, (MessagingException) ex);
 				}
 				String description = "Failed to handle " + message + " to " + this + " in " + messageHandler;
 				throw new MessageDeliveryException(message, description, ex);
