@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Publisher;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.channel.ReactiveSubscribableChannel;
+import org.springframework.integration.channel.FluxSubscribableChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.routingslip.RoutingSlipRouteStrategy;
@@ -190,7 +190,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 
 		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
-			if (reply instanceof ListenableFuture<?> || !(getOutputChannel() instanceof ReactiveSubscribableChannel)) {
+			if (reply instanceof ListenableFuture<?> || !(getOutputChannel() instanceof FluxSubscribableChannel)) {
 				ListenableFuture<?> future;
 				if (reply instanceof ListenableFuture<?>) {
 					future = (ListenableFuture<?>) reply;
@@ -235,7 +235,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 				});
 			}
 			else {
-				((ReactiveSubscribableChannel) getOutputChannel())
+				((FluxSubscribableChannel) getOutputChannel())
 						.subscribeTo(Flux.from((Publisher<?>) reply)
 								.map(result -> createOutputMessage(result, requestHeaders)));
 			}

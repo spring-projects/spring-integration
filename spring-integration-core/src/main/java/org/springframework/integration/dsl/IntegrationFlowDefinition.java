@@ -38,8 +38,8 @@ import org.springframework.integration.aggregator.BarrierMessageHandler;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
-import org.springframework.integration.channel.ReactiveChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
@@ -2550,7 +2550,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				publisher = MessageChannelReactiveUtils.toPublisher(channelForPublisher);
 			}
 			else {
-				MessageChannel reactiveChannel = new ReactiveChannel();
+				MessageChannel reactiveChannel = new FluxMessageChannel();
 				publisher = (Publisher<Message<T>>) reactiveChannel;
 				channel(reactiveChannel);
 			}

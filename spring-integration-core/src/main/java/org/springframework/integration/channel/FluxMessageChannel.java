@@ -37,8 +37,8 @@ import reactor.core.publisher.FluxSink;
  *
  * @since 5.0
  */
-public class ReactiveChannel extends AbstractMessageChannel
-		implements Publisher<Message<?>>, ReactiveSubscribableChannel {
+public class FluxMessageChannel extends AbstractMessageChannel
+		implements Publisher<Message<?>>, FluxSubscribableChannel {
 
 	private final List<Subscriber<? super Message<?>>> subscribers = new ArrayList<>();
 
@@ -52,11 +52,11 @@ public class ReactiveChannel extends AbstractMessageChannel
 
 	private volatile boolean upstreamSubscribed;
 
-	public ReactiveChannel() {
+	public FluxMessageChannel() {
 		this(DirectProcessor.create());
 	}
 
-	public ReactiveChannel(FluxProcessor<Message<?>, Message<?>> processor) {
+	public FluxMessageChannel(FluxProcessor<Message<?>, Message<?>> processor) {
 		Assert.notNull(processor, "'processor' must not be null");
 		this.processor = processor;
 		this.flux = Flux.from(processor);
@@ -73,7 +73,7 @@ public class ReactiveChannel extends AbstractMessageChannel
 	public void subscribe(Subscriber<? super Message<?>> subscriber) {
 		this.subscribers.add(subscriber);
 
-		this.flux.doOnCancel(() -> ReactiveChannel.this.subscribers.remove(subscriber))
+		this.flux.doOnCancel(() -> FluxMessageChannel.this.subscribers.remove(subscriber))
 				.subscribe(subscriber);
 
 		if (!this.upstreamSubscribed) {
@@ -82,7 +82,7 @@ public class ReactiveChannel extends AbstractMessageChannel
 	}
 
 	@Override
-	public void subscribeTo(Publisher<Message<?>> publisher) {
+	public void subscribeTo(Flux<Message<?>> publisher) {
 		this.publishers.add(publisher);
 		if (!this.subscribers.isEmpty()) {
 			doSubscribeTo(publisher);
@@ -91,11 +91,11 @@ public class ReactiveChannel extends AbstractMessageChannel
 
 	private void doSubscribeTo(Publisher<Message<?>> publisher) {
 		Flux.from(publisher)
-				.doOnSubscribe(s -> ReactiveChannel.this.upstreamSubscribed = true)
+				.doOnSubscribe(s -> FluxMessageChannel.this.upstreamSubscribed = true)
 				.doOnComplete(() -> {
-					ReactiveChannel.this.publishers.remove(publisher);
-					if (ReactiveChannel.this.publishers.isEmpty()) {
-						ReactiveChannel.this.upstreamSubscribed = false;
+					FluxMessageChannel.this.publishers.remove(publisher);
+					if (FluxMessageChannel.this.publishers.isEmpty()) {
+						FluxMessageChannel.this.upstreamSubscribed = false;
 					}
 				})
 				.subscribe(this.processor);
