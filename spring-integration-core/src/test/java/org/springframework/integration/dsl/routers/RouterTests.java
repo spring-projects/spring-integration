@@ -675,7 +675,7 @@ public class RouterTests {
 		@Bean
 		public IntegrationFlow exceptionTypeRouteFlow() {
 			return f -> f
-					.routeByError(r -> r
+					.routeByException(r -> r
 							.channelMapping(IllegalArgumentException.class, "illegalArgumentChannel")
 							.channelMapping(RuntimeException.class, "runtimeExceptionChannel")
 							.subFlowMapping(MessageHandlingException.class, sf ->

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,9 @@ import org.springframework.util.ClassUtils;
 
 /**
  * A Message Router that resolves the target {@link MessageChannel} for
- * messages whose payload is an Exception. The channel resolution is based upon
- * the most specific cause of the error for which a channel-mapping exists.
+ * messages whose payload is a {@link Throwable}.
+ * The channel resolution is based upon the most specific cause
+ * of the error for which a channel-mapping exists.
  * <p>
  * The channel-mapping can be specified for the super classes to avoid mapping duplication
  * for the particular exception implementation.
@@ -43,7 +44,7 @@ import org.springframework.util.ClassUtils;
  */
 public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
-	private volatile Map<String, Class<?>> classNameMappings = new ConcurrentHashMap<String, Class<?>>();
+	private volatile Map<String, Class<?>> classNameMappings = new ConcurrentHashMap<>();
 
 	private volatile boolean initialized;
 
@@ -57,7 +58,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	}
 
 	private void populateClassNameMapping(Set<String> classNames) {
-		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<String, Class<?>>();
+		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>();
 		for (String className : classNames) {
 			newClassNameMappings.put(className, resolveClassFromName(className));
 		}
@@ -77,7 +78,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	@ManagedOperation
 	public void setChannelMapping(String key, String channelName) {
 		super.setChannelMapping(key, channelName);
-		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<String, Class<?>>(this.classNameMappings);
+		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>(this.classNameMappings);
 		newClassNameMappings.put(key, resolveClassFromName(key));
 		this.classNameMappings = newClassNameMappings;
 	}
@@ -86,7 +87,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	@ManagedOperation
 	public void removeChannelMapping(String key) {
 		super.removeChannelMapping(key);
-		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<String, Class<?>>(this.classNameMappings);
+		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>(this.classNameMappings);
 		newClassNameMappings.remove(key);
 		this.classNameMappings = newClassNameMappings;
 	}
@@ -122,7 +123,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 				cause = cause.getCause();
 			}
 		}
-		return Collections.<Object>singletonList(mostSpecificCause);
+		return Collections.singletonList(mostSpecificCause);
 	}
 
 }

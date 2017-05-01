@@ -2034,7 +2034,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
-	 *  .routeByError(r -> r
+	 *  .routeByException(r -> r
 	 *      .channelMapping(IllegalArgumentException.class, "illegalArgumentChannel")
 	 *      .subFlowMapping(MessageHandlingException.class, sf ->
 	 *                                sf.handle(...))
@@ -2043,8 +2043,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * </pre>
 	 * @param routerConfigurer the {@link Consumer} to provide {@link ErrorMessageExceptionTypeRouter} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @see ErrorMessageExceptionTypeRouter
 	 */
-	public B routeByError(
+	public B routeByException(
 			Consumer<RouterSpec<Class<? extends Throwable>, ErrorMessageExceptionTypeRouter>> routerConfigurer) {
 		return route(new RouterSpec<>(new ErrorMessageExceptionTypeRouter()), routerConfigurer);
 	}

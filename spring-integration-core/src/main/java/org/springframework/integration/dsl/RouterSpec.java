@@ -199,7 +199,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 
 		@Override
 		public void onApplicationEvent(ContextRefreshedEvent event) {
-			if (!this.initialized.getAndSet(true)) {
+			if (event.getApplicationContext() == getApplicationContext() && !this.initialized.getAndSet(true)) {
 				ConversionService conversionService = getConversionService();
 				if (conversionService == null) {
 					conversionService = DefaultConversionService.getSharedInstance();
