@@ -25,6 +25,8 @@ import org.springframework.messaging.MessagingException;
  * {@link org.springframework.integration.channel.MessagePublishingErrorHandler}.
  * The original message is in this exception's {@link #getFailedMessage() failedMessage}
  * property.
+ * <p>Intended for internal framework use only. Error handlers will typically unwrap
+ * the cause while creating an error message.
  *
  * @author Gary Russell
  * @since 5.0

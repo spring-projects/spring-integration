@@ -16,10 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.ErrorMessagePublisher;
 import org.springframework.integration.support.ErrorMessageStrategy;
@@ -42,7 +38,7 @@ import org.springframework.util.ErrorHandler;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class MessagePublishingErrorHandler extends ErrorMessagePublisher implements ErrorHandler, BeanFactoryAware {
+public class MessagePublishingErrorHandler extends ErrorMessagePublisher implements ErrorHandler {
 
 	private static final int DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -54,8 +50,6 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 			return new ErrorMessage(t);
 		}
 	};
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	public MessagePublishingErrorHandler() {
 		setErrorMessageStrategy(DEFAULT_ERROR_MESSAGE_STRATEGY);
