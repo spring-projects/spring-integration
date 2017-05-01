@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -379,6 +379,9 @@ public class GemfireGroupStoreTests {
 	@BeforeClass
 	public static void init() throws Exception {
 		cacheFactoryBean = new CacheFactoryBean();
+		Properties gemfireProperties = new Properties();
+		gemfireProperties.setProperty("mcast-port", "0");
+		cacheFactoryBean.setProperties(gemfireProperties);
 		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = cacheFactoryBean.getObject();
 		region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
