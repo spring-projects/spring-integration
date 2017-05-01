@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:gfe="http://www.springframework.org/schema/gemfire"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
 		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<gfe:cache use-bean-factory-locator="false"/>
+	<util:properties id="gemfireProperties">
+		<prop key="mcast-port">0</prop>
+	</util:properties>
+
+	<gfe:cache use-bean-factory-locator="false" properties-ref="gemfireProperties"/>
 
 	<gfe:replicated-region id="region1"/>
 
