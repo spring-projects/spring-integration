@@ -519,9 +519,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 								processForceRelease(groupId);
 							}
 							catch (MessageDeliveryException e) {
-								if (AbstractCorrelatingMessageHandler.this.logger.isDebugEnabled()) {
-									AbstractCorrelatingMessageHandler.this.logger.debug("The MessageGroup [ "
-											+ groupId + "] is rescheduled by the reason: " + e.getMessage());
+								if (AbstractCorrelatingMessageHandler.this.logger.isWarnEnabled()) {
+									AbstractCorrelatingMessageHandler.this.logger.warn("The MessageGroup ["
+											+ groupId + "] is rescheduled by the reason of:", e);
 								}
 								scheduleGroupToForceComplete(groupId);
 							}
@@ -825,7 +825,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 				return messageSequenceSize.equals(getSequenceSize())
 						&& !(this.sourceGroup != null ? this.sourceGroup.containsSequence(messageSequenceNumber)
-								: containsSequenceNumber(this.getMessages(), messageSequenceNumber));
+						: containsSequenceNumber(this.getMessages(), messageSequenceNumber));
 			}
 			return true;
 		}
