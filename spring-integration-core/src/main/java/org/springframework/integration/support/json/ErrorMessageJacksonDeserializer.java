@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  *
  * @author Artem Bilan
  *
- * @since 5.0
+ * @since 4.3.10
  */
 public class ErrorMessageJacksonDeserializer extends MessageJacksonDeserializer<ErrorMessage> {
 

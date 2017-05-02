@@ -53,7 +53,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessage;
-import org.springframework.integration.support.json.JsonObjectMapperProvider;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -429,7 +429,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 
-		ObjectMapper mapper = JsonObjectMapperProvider.jacksonMessageAwareMapper();
+		ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
 
 		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
 		store.setValueSerializer(serializer);

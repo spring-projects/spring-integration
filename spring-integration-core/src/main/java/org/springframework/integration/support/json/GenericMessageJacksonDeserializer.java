@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,7 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @author Artem Bilan
  *
- * @since 5.0
+ * @since 4.3.10
  */
 public class GenericMessageJacksonDeserializer extends MessageJacksonDeserializer<GenericMessage<?>> {
 
@@ -38,7 +37,7 @@ public class GenericMessageJacksonDeserializer extends MessageJacksonDeserialize
 
 	@SuppressWarnings("unchecked")
 	public GenericMessageJacksonDeserializer() {
-		super((Class<GenericMessage<?>>) ClassUtils.getUserClass(GenericMessage.class));
+		super((Class<GenericMessage<?>>) (Class<?>) GenericMessage.class);
 	}
 
 	@Override

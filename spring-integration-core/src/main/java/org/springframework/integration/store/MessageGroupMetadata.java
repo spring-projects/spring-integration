@@ -17,6 +17,7 @@
 package org.springframework.integration.store;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,7 +51,7 @@ public class MessageGroupMetadata implements Serializable {
 	private volatile int lastReleasedMessageSequenceNumber;
 
 	private MessageGroupMetadata() {
-		//For Jackson
+		//For Jackson deserialization
 	}
 
 	public MessageGroupMetadata(MessageGroup messageGroup) {
@@ -92,7 +93,7 @@ public class MessageGroupMetadata implements Serializable {
 	}
 
 	public List<UUID> getMessageIds() {
-		return this.messageIds;
+		return Collections.unmodifiableList(this.messageIds);
 	}
 
 	void complete() {

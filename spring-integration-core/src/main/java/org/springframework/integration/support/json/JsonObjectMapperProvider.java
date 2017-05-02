@@ -17,17 +17,7 @@
 package org.springframework.integration.support.json;
 
 
-import org.springframework.integration.message.AdviceMessage;
-import org.springframework.integration.support.MutableMessage;
-import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ClassUtils;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
  * Simple factory to provide {@linkplain JsonObjectMapper}
@@ -77,46 +67,6 @@ public final class JsonObjectMapperProvider {
 	 */
 	public static boolean jsonAvailable() {
 		return JacksonJsonUtils.isJackson2Present() || boonPresent;
-	}
-
-	/**
-	 * Return an {@link ObjectMapper} if available,
-	 * supplied with Message specific serializers and deserializers.
-	 * Also configured to store typo info in the {@code @class} property.
-	 * @return the mapper.
-	 * @throws IllegalStateException if an implementation is not available.
-	 */
-	public static ObjectMapper jacksonMessageAwareMapper() {
-		if (JacksonJsonUtils.isJackson2Present()) {
-			ObjectMapper mapper = new ObjectMapper();
-			mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
-			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-			mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
-
-			GenericMessageJacksonDeserializer genericMessageDeserializer = new GenericMessageJacksonDeserializer();
-			genericMessageDeserializer.setMapper(mapper);
-
-			ErrorMessageJacksonDeserializer errorMessageDeserializer = new ErrorMessageJacksonDeserializer();
-			errorMessageDeserializer.setMapper(mapper);
-
-			AdviceMessageJacksonDeserializer adviceMessageDeserializer = new AdviceMessageJacksonDeserializer();
-			adviceMessageDeserializer.setMapper(mapper);
-
-			MutableMessageJacksonDeserializer mutableMessageDeserializer = new MutableMessageJacksonDeserializer();
-			mutableMessageDeserializer.setMapper(mapper);
-
-			mapper.registerModule(new SimpleModule()
-					.addSerializer(new MessageHeadersJacksonSerializer())
-					.addDeserializer(GenericMessage.class, genericMessageDeserializer)
-					.addDeserializer(ErrorMessage.class, errorMessageDeserializer)
-					.addDeserializer(AdviceMessage.class, adviceMessageDeserializer)
-					.addDeserializer(MutableMessage.class, mutableMessageDeserializer)
-			);
-			return mapper;
-		}
-		else {
-			throw new IllegalStateException("No jackson-databind.jar is present in the classpath.");
-		}
 	}
 
 }

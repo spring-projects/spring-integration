@@ -22,7 +22,6 @@ import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,7 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @author Artem Bilan
  *
- * @since 5.0
+ * @since 4.3.10
  */
 public class AdviceMessageJacksonDeserializer extends MessageJacksonDeserializer<AdviceMessage<?>> {
 
@@ -40,7 +39,7 @@ public class AdviceMessageJacksonDeserializer extends MessageJacksonDeserializer
 
 	@SuppressWarnings("unchecked")
 	public AdviceMessageJacksonDeserializer() {
-		super((Class<AdviceMessage<?>>) ClassUtils.getUserClass(AdviceMessage.class));
+		super((Class<AdviceMessage<?>>) (Class<?>) AdviceMessage.class);
 	}
 
 	@Override
