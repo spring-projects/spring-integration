@@ -33,7 +33,7 @@
 	<service-activator input-channel="inlineScriptInput">
 		<groovy:script customizer="groovyCustomizer" variables="date-ref=date">
 			<![CDATA[
-				return "inline-$payload : ${date.format('dd.mm.yyyy')}"
+				return "inline-$payload : ${date.format('dd.MM.yyyy')}"
 			]]>
 		</groovy:script>
 	</service-activator>
@@ -41,7 +41,7 @@
 	<service-activator input-channel="scriptWithoutVariablesInput">
 		<groovy:script>
 			<![CDATA[
-				return "withoutVariables-$payload : ${date.format('dd.mm.yyyy')}"
+				return "withoutVariables-$payload : ${date.format('dd.MM.yyyy')}"
 			]]>
 		</groovy:script>
 	</service-activator>
