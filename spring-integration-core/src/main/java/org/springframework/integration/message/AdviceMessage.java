@@ -19,6 +19,7 @@ package org.springframework.integration.message;
 import java.util.Map;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -45,6 +46,20 @@ public class AdviceMessage<T> extends GenericMessage<T> {
 	}
 
 	public AdviceMessage(T payload, Map<String, Object> headers, Message<?> inputMessage) {
+		super(payload, headers);
+		this.inputMessage = inputMessage;
+	}
+
+	/**
+	 * A constructor with the {@link MessageHeaders} instance to use.
+	 * <p><strong>Note:</strong> the given {@code MessageHeaders} instance is used
+	 * directly in the new message, i.e. it is not copied.
+	 * @param payload the message payload (never {@code null})
+	 * @param headers message headers
+	 * @param inputMessage the input message for advice.
+	 * @since 4.3.10
+	 */
+	public AdviceMessage(T payload, MessageHeaders headers, Message<?> inputMessage) {
 		super(payload, headers);
 		this.inputMessage = inputMessage;
 	}
