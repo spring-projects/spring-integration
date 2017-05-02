@@ -31,9 +31,13 @@ public class MessageHolder implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Message<?> message;
+	private Message<?> message;
 
-	private final MessageMetadata messageMetadata;
+	private MessageMetadata messageMetadata;
+
+	private MessageHolder() {
+		//For Jackson
+	}
 
 	public MessageHolder(Message<?> message) {
 		Assert.notNull(message, "'message' must not be null.");

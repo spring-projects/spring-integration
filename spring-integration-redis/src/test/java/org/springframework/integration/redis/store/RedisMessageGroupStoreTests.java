@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,20 @@
 
 package org.springframework.integration.redis.store;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -38,18 +42,24 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.MutableMessage;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.AssertionFailedError;
 
 /**
@@ -411,6 +421,38 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 		messageStore.removeMessageGroup("X");
+	}
+
+	@Test
+	@RedisAvailable
+	public void testJsonSerialization() throws Exception {
+		RedisConnectionFactory jcf = getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+
+		ObjectMapper mapper = JsonObjectMapperProvider.jacksonMessageAwareMapper();
+
+		GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
+		store.setValueSerializer(serializer);
+
+		Message<?> genericMessage = new GenericMessage<>(new Date());
+		Message<?> mutableMessage = new MutableMessage<>(UUID.randomUUID());
+		Message<?> adviceMessage = new AdviceMessage<>("foo", genericMessage);
+		ErrorMessage errorMessage = new ErrorMessage(new RuntimeException("test exception"), mutableMessage);
+
+		store.addMessagesToGroup(1, genericMessage, mutableMessage, adviceMessage, errorMessage);
+
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		assertEquals(4, messageGroup.size());
+		List<Message<?>> messages = new ArrayList<>(messageGroup.getMessages());
+		assertEquals(genericMessage, messages.get(0));
+		assertEquals(mutableMessage, messages.get(1));
+		assertEquals(adviceMessage, messages.get(2));
+		Message<?> errorMessageResult = messages.get(3);
+		assertEquals(errorMessage.getHeaders(), errorMessageResult.getHeaders());
+		assertThat(errorMessageResult, instanceOf(ErrorMessage.class));
+		assertEquals(errorMessage.getOriginalMessage(), ((ErrorMessage) errorMessageResult).getOriginalMessage());
+		assertEquals(errorMessage.getPayload().getMessage(),
+				((ErrorMessage) errorMessageResult).getPayload().getMessage());
 	}
 
 }

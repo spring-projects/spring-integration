@@ -29,9 +29,13 @@ public class MessageMetadata implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final UUID messageId;
+	private UUID messageId;
 
 	private long timestamp;
+
+	private MessageMetadata() {
+		//For Jackson
+	}
 
 	public MessageMetadata(UUID messageId) {
 		this.messageId = messageId;
