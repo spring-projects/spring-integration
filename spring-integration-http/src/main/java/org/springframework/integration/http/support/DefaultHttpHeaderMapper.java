@@ -1090,10 +1090,19 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	public static DefaultHttpHeaderMapper outboundMapper() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		setupDefaultOutboundMapper(mapper);
+		return mapper;
+	}
+
+	/**
+	 * Subclasses can call this from a static outboundMapper() method to set up
+	 * standard header mappings for an outbound mapper.
+	 * @param mapper the mapper.
+	 */
+	protected static void setupDefaultOutboundMapper(DefaultHttpHeaderMapper mapper) {
 		mapper.setOutboundHeaderNames(HTTP_REQUEST_HEADER_NAMES);
 		mapper.setInboundHeaderNames(HTTP_RESPONSE_HEADER_NAMES);
 		mapper.setExcludedOutboundStandardRequestHeaderNames(HTTP_REQUEST_HEADER_NAMES_OUTBOUND_EXCLUSIONS);
-		return mapper;
 	}
 
 	/**
@@ -1104,10 +1113,19 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	public static DefaultHttpHeaderMapper inboundMapper() {
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		setupDefaultInboundMapper(mapper);
+		return mapper;
+	}
+
+	/**
+	 * Subclasses can call this from a static inboundMapper() method to set up
+	 * standard header mappings for an inbound mapper.
+	 * @param mapper the mapper.
+	 */
+	protected static void setupDefaultInboundMapper(DefaultHttpHeaderMapper mapper) {
 		mapper.setInboundHeaderNames(HTTP_REQUEST_HEADER_NAMES);
 		mapper.setOutboundHeaderNames(HTTP_RESPONSE_HEADER_NAMES);
 		mapper.setExcludedInboundStandardResponseHeaderNames(HTTP_RESPONSE_HEADER_NAMES_INBOUND_EXCLUSIONS);
-		return mapper;
 	}
 
 }
