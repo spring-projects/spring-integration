@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gunnar Hillert
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 
@@ -201,7 +202,9 @@ public class RedisStoreWritingMessageHandlerTests extends RedisAvailableTests {
 		list.add("Manny");
 		list.add("Moe");
 		list.add("Jack");
-		Message<List<String>> message = new GenericMessage<List<String>>(list);
+		Message<List<String>> message = MessageBuilder.withPayload(list)
+				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, true)
+				.build();
 		handler.handleMessage(message);
 
 		assertEquals(3, redisZset.size());

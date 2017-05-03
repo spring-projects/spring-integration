@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.redis.outbound.RedisStoreWritingMessageHandler;
@@ -41,6 +42,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 /**
  *
  * @author Oleg Zhurakousky
@@ -61,7 +63,7 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 	@Test
 	public void validateWithStringTemplate() throws Exception {
 		RedisStoreWritingMessageHandler withStringTemplate = context.getBean("withStringTemplate.handler",
-						RedisStoreWritingMessageHandler.class);
+				RedisStoreWritingMessageHandler.class);
 		assertEquals("pepboys", ((LiteralExpression) TestUtils.getPropertyValue(withStringTemplate,
 				"keyExpression")).getExpressionString());
 		assertEquals("PROPERTIES", (TestUtils.getPropertyValue(withStringTemplate, "collectionType")).toString());
@@ -75,6 +77,9 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 
 		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
+
+		assertEquals("true", TestUtils.getPropertyValue(withStringTemplate, "zsetIncrementScoreExpression",
+				Expression.class).getExpressionString());
 	}
 
 	@Test

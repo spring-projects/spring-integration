@@ -22,6 +22,7 @@
 	<int-redis:store-outbound-channel-adapter id="withStringTemplate"
 											  collection-type="${collection.type}"
 											  key="pepboys"
+											  zset-increment-expression="true"
 											  auto-startup="false">
 		<int-redis:request-handler-advice-chain>
 			<int:retry-advice/>
