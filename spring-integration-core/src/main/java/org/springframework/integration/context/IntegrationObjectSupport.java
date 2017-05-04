@@ -105,7 +105,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
 	 */
 	@Override
-	public final String getComponentName() {
+	public String getComponentName() {
 		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
 	}
 
@@ -190,7 +190,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	protected void onInit() throws Exception {
 	}
 
-	protected final BeanFactory getBeanFactory() {
+	protected BeanFactory getBeanFactory() {
 		return this.beanFactory;
 	}
 
@@ -213,7 +213,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		this.taskScheduler = taskScheduler;
 	}
 
-	public final ConversionService getConversionService() {
+	public ConversionService getConversionService() {
 		if (this.conversionService == null && this.beanFactory != null) {
 			synchronized (this) {
 				if (this.conversionService == null) {
