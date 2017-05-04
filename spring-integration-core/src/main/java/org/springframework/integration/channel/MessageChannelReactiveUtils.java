@@ -16,9 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import java.time.Duration;
-import java.util.Iterator;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
@@ -30,7 +27,7 @@ import org.springframework.messaging.SubscribableChannel;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
-import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Utilities for adaptation {@link MessageChannel}s to the {@link Publisher}s.
@@ -105,31 +102,17 @@ public final class MessageChannelReactiveUtils {
 		@Override
 		@SuppressWarnings("unchecked")
 		public void subscribe(Subscriber<? super Message<T>> subscriber) {
-			Iterator<Message<?>> messageIterator = new Iterator<Message<?>>() {
-
-				private Message<?> next = null;
-
-				@Override
-				public Message<?> next() {
-					Message<?> message = this.next;
-					this.next = null;
-					return message;
-				}
-
-				@Override
-				public boolean hasNext() {
-					if (this.next == null) {
-						this.next = PollableChannelPublisherAdapter.this.channel.receive(0);
-					}
-					return this.next != null;
-				}
-
-			};
-
-			Mono.<Message<?>>delay(Duration.ofMillis(100))
-					.repeat()
-					.concatMap(value -> Flux.fromIterable(() -> messageIterator))
-					.subscribe((Subscriber<? super Message<?>>) subscriber);
+			Flux
+					.<Message<T>>create(sink ->
+									sink.onRequest(n -> {
+										Message<?> m;
+										while (n-- > 0 && (m = this.channel.receive()) != null) {
+											sink.next((Message<T>) m);
+										}
+									}),
+							FluxSink.OverflowStrategy.IGNORE)
+					.subscribeOn(Schedulers.elastic())
+					.subscribe(subscriber);
 		}
 
 	}

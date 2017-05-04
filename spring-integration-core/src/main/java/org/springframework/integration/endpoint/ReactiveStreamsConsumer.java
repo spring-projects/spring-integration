@@ -33,16 +33,14 @@ import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 import reactor.core.Disposable;
-import reactor.core.Exceptions;
 import reactor.core.publisher.BaseSubscriber;
-import reactor.core.publisher.Operators;
 
 
 /**
  * @author Artem Bilan
  * @since 5.0
  */
-public class ReactiveConsumer extends AbstractEndpoint {
+public class ReactiveStreamsConsumer extends AbstractEndpoint {
 
 	private final Publisher<Message<Object>> publisher;
 
@@ -55,14 +53,14 @@ public class ReactiveConsumer extends AbstractEndpoint {
 	private volatile Subscription subscription;
 
 	@SuppressWarnings("unchecked")
-	public ReactiveConsumer(MessageChannel inputChannel, MessageHandler messageHandler) {
+	public ReactiveStreamsConsumer(MessageChannel inputChannel, MessageHandler messageHandler) {
 		this(inputChannel,
 				messageHandler instanceof Subscriber
 						? (Subscriber<Message<?>>) messageHandler
 						: new MessageHandlerSubscriber(messageHandler));
 	}
 
-	public ReactiveConsumer(MessageChannel inputChannel, final Subscriber<Message<?>> subscriber) {
+	public ReactiveStreamsConsumer(MessageChannel inputChannel, final Subscriber<Message<?>> subscriber) {
 		Assert.notNull(inputChannel, "'inputChannel' must not be null");
 		Assert.notNull(subscriber, "'subscriber' must not be null");
 
@@ -93,11 +91,11 @@ public class ReactiveConsumer extends AbstractEndpoint {
 		}
 		this.publisher.subscribe(new BaseSubscriber<Message<?>>() {
 
-			private final Subscriber<Message<?>> delegate = ReactiveConsumer.this.subscriber;
+			private final Subscriber<Message<?>> delegate = ReactiveStreamsConsumer.this.subscriber;
 
 			public void hookOnSubscribe(Subscription s) {
 				this.delegate.onSubscribe(s);
-				ReactiveConsumer.this.subscription = s;
+				ReactiveStreamsConsumer.this.subscription = s;
 			}
 
 			public void hookOnNext(Message<?> message) {
@@ -105,7 +103,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 					this.delegate.onNext(message);
 				}
 				catch (Exception e) {
-					ReactiveConsumer.this.errorHandler.handleError(e);
+					ReactiveStreamsConsumer.this.errorHandler.handleError(e);
 					hookOnError(e);
 				}
 			}
@@ -160,18 +158,11 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 		@Override
 		public void onError(Throwable t) {
-			if (t == null) {
-				throw Exceptions.argumentIsNullException();
-			}
-			onComplete();
-			Operators.onErrorDropped(t);
 		}
 
 		@Override
 		public void onComplete() {
-			if (this.subscription != null) {
-				this.subscription = null;
-			}
+			dispose();
 		}
 
 		@Override
@@ -185,7 +176,7 @@ public class ReactiveConsumer extends AbstractEndpoint {
 
 		@Override
 		public boolean isDisposed() {
-			return false;
+			return this.subscription == null;
 		}
 
 

@@ -17,9 +17,6 @@
 package org.springframework.integration.dsl.channel;
 
 import org.springframework.integration.channel.FluxMessageChannel;
-import org.springframework.messaging.Message;
-
-import reactor.core.publisher.FluxProcessor;
 
 /**
  * @author Artem Bilan
@@ -31,10 +28,6 @@ public class FluxMessageChannelSpec extends MessageChannelSpec<FluxMessageChanne
 
 	FluxMessageChannelSpec() {
 		this.channel = new FluxMessageChannel();
-	}
-
-	FluxMessageChannelSpec(FluxProcessor<Message<?>, Message<?>> processor) {
-		this.channel = new FluxMessageChannel(processor);
 	}
 
 }

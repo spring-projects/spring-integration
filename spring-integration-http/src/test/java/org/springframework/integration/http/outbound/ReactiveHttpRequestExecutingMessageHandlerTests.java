@@ -18,26 +18,29 @@ package org.springframework.integration.http.outbound;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
 
-import java.time.Duration;
+import java.util.List;
 
 import org.junit.Test;
+import org.reactivestreams.Subscriber;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.reactive.ClientHttpConnector;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Shiliang Li
@@ -66,12 +69,15 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 		FluxMessageChannel ackChannel = new FluxMessageChannel();
 		reactiveHandler.setOutputChannel(ackChannel);
 		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
+		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
 
-		Message<?> ack = Mono.from(ackChannel).block(Duration.ofSeconds(10));
-
-		assertNotNull(ack);
-		assertNotNull(ack.getHeaders());
-		assertEquals(ack.getHeaders().get(HttpHeaders.STATUS_CODE), HttpStatus.OK);
+		StepVerifier.create(ackChannel, 2)
+				.assertNext(m -> assertThat(m, hasHeader(HttpHeaders.STATUS_CODE, HttpStatus.OK)))
+				.assertNext(m -> assertThat(m, hasHeader(HttpHeaders.STATUS_CODE, HttpStatus.OK)))
+				.then(() ->
+						((Subscriber<?>) TestUtils.getPropertyValue(ackChannel, "subscribers", List.class).get(0))
+								.onComplete())
+				.verifyComplete();
 	}
 
 	@Test

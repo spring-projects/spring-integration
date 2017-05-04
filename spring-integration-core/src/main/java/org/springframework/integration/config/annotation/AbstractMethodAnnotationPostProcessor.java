@@ -55,7 +55,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.endpoint.ReactiveConsumer;
+import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -321,7 +321,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			Assert.state(ObjectUtils.isEmpty(pollers), "A '@Poller' should not be specified for Annotation-based " +
 					"endpoint, since '" + inputChannel + "' is a SubscribableChannel (not pollable).");
 			if (inputChannel instanceof Publisher) {
-				endpoint = new ReactiveConsumer(inputChannel, handler);
+				endpoint = new ReactiveStreamsConsumer(inputChannel, handler);
 			}
 			else {
 				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);

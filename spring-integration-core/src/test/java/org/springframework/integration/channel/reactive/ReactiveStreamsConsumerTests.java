@@ -22,8 +22,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -46,28 +46,26 @@ import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.springframework.integration.endpoint.ReactiveConsumer;
+import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.GenericMessage;
 
-import reactor.core.publisher.EmitterProcessor;
-
 /**
  * @author Artem Bilan
  *
  * @since 5.0
  */
-public class ReactiveConsumerTests {
+public class ReactiveStreamsConsumerTests {
 
 	@Test
-	public void testReactiveConsumerReactiveChannel() throws InterruptedException {
-		FluxMessageChannel testChannel = new FluxMessageChannel(EmitterProcessor.create(false));
+	public void testReactiveStreamsConsumerFluxMessageChannel() throws InterruptedException {
+		FluxMessageChannel testChannel = new FluxMessageChannel();
 
 		List<Message<?>> result = new LinkedList<>();
 		CountDownLatch stopLatch = new CountDownLatch(2);
@@ -79,7 +77,7 @@ public class ReactiveConsumerTests {
 
 		MessageHandler testSubscriber = new MethodInvokingMessageHandler(messageHandler, (String) null);
 
-		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
+		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
@@ -103,7 +101,7 @@ public class ReactiveConsumerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testReactiveConsumerDirectChannel() throws InterruptedException {
+	public void testReactiveStreamsConsumerDirectChannel() throws InterruptedException {
 		DirectChannel testChannel = new DirectChannel();
 
 		Subscriber<Message<?>> testSubscriber = (Subscriber<Message<?>>) Mockito.mock(Subscriber.class);
@@ -117,7 +115,7 @@ public class ReactiveConsumerTests {
 				.given(testSubscriber)
 				.onNext(any(Message.class));
 
-		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
+		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
@@ -163,7 +161,7 @@ public class ReactiveConsumerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testReactiveConsumerPollableChannel() throws InterruptedException {
+	public void testReactiveStreamsConsumerPollableChannel() throws InterruptedException {
 		QueueChannel testChannel = new QueueChannel();
 
 		Subscriber<Message<?>> testSubscriber = (Subscriber<Message<?>>) Mockito.mock(Subscriber.class);
@@ -177,7 +175,7 @@ public class ReactiveConsumerTests {
 				.given(testSubscriber)
 				.onNext(any(Message.class));
 
-		ReactiveConsumer reactiveConsumer = new ReactiveConsumer(testChannel, testSubscriber);
+		ReactiveStreamsConsumer reactiveConsumer = new ReactiveStreamsConsumer(testChannel, testSubscriber);
 		reactiveConsumer.setBeanFactory(mock(BeanFactory.class));
 		reactiveConsumer.afterPropertiesSet();
 		reactiveConsumer.start();
@@ -223,7 +221,7 @@ public class ReactiveConsumerTests {
 	}
 
 	@Test
-	public void testReactiveConsumerViaConsumerEndpointFactoryBean() throws Exception {
+	public void testReactiveStreamsConsumerViaConsumerEndpointFactoryBean() throws Exception {
 		FluxMessageChannel testChannel = new FluxMessageChannel();
 
 		List<Message<?>> result = new LinkedList<>();

@@ -16,9 +16,9 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.messaging.Message;
+import org.reactivestreams.Publisher;
 
-import reactor.core.publisher.Flux;
+import org.springframework.messaging.Message;
 
 /**
  * @author Artem Bilan
@@ -26,8 +26,8 @@ import reactor.core.publisher.Flux;
  *
  * @since 5.0
  */
-public interface FluxSubscribableChannel {
+public interface ReactiveStreamsSubscribableChannel {
 
-	void subscribeTo(Flux<Message<?>> publisher);
+	void subscribeTo(Publisher<Message<?>> publisher);
 
 }

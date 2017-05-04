@@ -35,8 +35,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
-import reactor.core.publisher.Flux;
-
 /**
  * The central factory for fluent {@link IntegrationFlowBuilder} API.
  *
@@ -307,10 +305,10 @@ public final class IntegrationFlows {
 	 * @param publisher the {@link Publisher} to subscribe to.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
-	public static IntegrationFlowBuilder from(Flux<Message<?>> publisher) {
+	public static IntegrationFlowBuilder from(Publisher<Message<?>> publisher) {
 		FluxMessageChannel reactiveChannel = new FluxMessageChannel();
 		reactiveChannel.subscribeTo(publisher);
-		return from(reactiveChannel);
+		return from((MessageChannel) reactiveChannel);
 	}
 
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,

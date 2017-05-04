@@ -32,7 +32,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.log4j.Level;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
@@ -49,7 +48,6 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -68,9 +66,6 @@ import reactor.core.publisher.Flux;
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class ReactiveStreamsTests {
-
-//	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.DEBUG, "org.springframework.integration");
 
 	@Autowired
 	@Qualifier("reactiveFlow")

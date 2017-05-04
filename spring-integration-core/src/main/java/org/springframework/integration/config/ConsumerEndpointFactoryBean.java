@@ -39,7 +39,7 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.endpoint.ReactiveConsumer;
+import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -286,7 +286,7 @@ public class ConsumerEndpointFactoryBean
 				this.endpoint = pollingConsumer;
 			}
 			else {
-				this.endpoint = new ReactiveConsumer(channel, this.handler);
+				this.endpoint = new ReactiveStreamsConsumer(channel, this.handler);
 			}
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);

@@ -31,8 +31,6 @@ import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.messaging.Message;
 
-import reactor.core.publisher.FluxProcessor;
-
 /**
  * @author Artem Bilan
  * @author Gary Russell
@@ -138,14 +136,6 @@ public class Channels {
 
 	public FluxMessageChannelSpec flux(String id) {
 		return MessageChannels.flux(id);
-	}
-
-	public FluxMessageChannelSpec flux(FluxProcessor<Message<?>, Message<?>> processor) {
-		return MessageChannels.flux(processor);
-	}
-
-	public FluxMessageChannelSpec flux(String id, FluxProcessor<Message<?>, Message<?>> processor) {
-		return MessageChannels.flux(id, processor);
 	}
 
 	Channels() {
