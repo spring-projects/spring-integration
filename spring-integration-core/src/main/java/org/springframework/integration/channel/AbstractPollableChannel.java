@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 * receiving thread is interrupted.
 	 */
 	@Override
-	public final Message<?> receive() {
+	public Message<?> receive() {
 		return receive(-1);
 	}
 
@@ -86,7 +86,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 * interrupted.
 	 */
 	@Override
-	public final Message<?> receive(long timeout) {
+	public Message<?> receive(long timeout) {
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
