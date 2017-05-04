@@ -89,7 +89,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		}
 	}
 
-	private void doSubscribeTo(Publisher<Message<?>> publisher) {
+	protected void doSubscribeTo(Publisher<Message<?>> publisher) {
 		Flux.from(publisher)
 				.doOnSubscribe(s -> FluxMessageChannel.this.upstreamSubscribed = true)
 				.doOnComplete(() -> {

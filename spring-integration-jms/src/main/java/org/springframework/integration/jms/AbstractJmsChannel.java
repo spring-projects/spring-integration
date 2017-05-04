@@ -38,7 +38,7 @@ public abstract class AbstractJmsChannel extends AbstractMessageChannel {
 	}
 
 
-	JmsTemplate getJmsTemplate() {
+	protected JmsTemplate getJmsTemplate() {
 		return this.jmsTemplate;
 	}
 
