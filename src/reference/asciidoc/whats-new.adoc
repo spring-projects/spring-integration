@@ -200,3 +200,11 @@ See <<stomp>> for more information.
 - Simple WebService Inbound and Outbound gateways can now deal with the complete `WebServiceMessage` as a `payload`, allowing the manipulation of MTOM attachments.
 
 See <<ws>> for more information.
+
+==== Redis Changes
+
+The `RedisStoreWritingMessageHandler` is supplied now with additional String-based setters for SpEL expressions - convenience with Java configuration.
+The `zsetIncrementExpression` can now be configured on the `RedisStoreWritingMessageHandler`, as well.
+In addition this property has been changed from `true` to `false` since `INCR` option on `ZADD` Redis command is optional.
+
+See <<redis>> for more information.

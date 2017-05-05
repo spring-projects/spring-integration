@@ -1080,6 +1080,14 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="zset-increment-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					SpEL expression that returns the INCR flag for the ZADD command. Only applies
+					if the 'collection-type' is ZSET.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="extract-payload-elements" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>

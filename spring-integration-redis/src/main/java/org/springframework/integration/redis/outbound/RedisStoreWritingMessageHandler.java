@@ -75,11 +75,9 @@ import org.springframework.util.NumberUtils;
  */
 public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 
-	private final Expression zsetIncrementScoreExpression =
+	private Expression zsetIncrementScoreExpression =
 			new FunctionExpression<Message<?>>(m ->
 					m.getHeaders().get(RedisHeaders.ZSET_INCREMENT_SCORE));
-
-	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile Expression keyExpression =
 			new FunctionExpression<Message<?>>(m ->
@@ -90,6 +88,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 					m.getHeaders().get(RedisHeaders.MAP_KEY));
 
 	private volatile boolean mapKeyExpressionExplicitlySet;
+
+	private volatile StandardEvaluationContext evaluationContext;
 
 	private volatile RedisTemplate<String, ?> redisTemplate = new StringRedisTemplate();
 
@@ -135,11 +135,25 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * {@link #setKeyExpression(Expression)} instead of this method (they are mutually exclusive).
 	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
 	 * @param key The key.
-	 * @see #setKeyExpression(Expression)
+	 * @see #setKeyExpression
 	 */
 	public void setKey(String key) {
 		Assert.hasText(key, "key must not be empty");
 		this.setKeyExpression(new LiteralExpression(key));
+	}
+
+	/**
+	 * Specifies a SpEL Expression to be used to determine the key for the Redis store.
+	 * If an expression is not needed, then a literal value may be passed to the
+	 * {@link #setKey(String)} method instead of this one (they are mutually exclusive).
+	 * If neither setter is called, the default expression will be 'headers.{@link RedisHeaders#KEY}'.
+	 * @param keyExpression The key expression.
+	 * @see #setKey(String)
+	 * @since 5.0
+	 */
+	public void setKeyExpressionString(String keyExpression) {
+		Assert.hasText(keyExpression, "'keyExpression' must not be empty");
+		setKeyExpression(EXPRESSION_PARSER.parseExpression(keyExpression));
 	}
 
 	/**
@@ -180,11 +194,44 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * Sets the expression used as the key for Map and Properties entries.
 	 * Default is 'headers.{@link RedisHeaders#MAP_KEY}'
 	 * @param mapKeyExpression The map key expression.
+	 * @since 5.0
+	 */
+	public void setMapKeyExpressionString(String mapKeyExpression) {
+		Assert.hasText(mapKeyExpression, "'mapKeyExpression' must not be empty");
+		setMapKeyExpression(EXPRESSION_PARSER.parseExpression(mapKeyExpression));
+	}
+
+	/**
+	 * Sets the expression used as the key for Map and Properties entries.
+	 * Default is 'headers.{@link RedisHeaders#MAP_KEY}'
+	 * @param mapKeyExpression The map key expression.
 	 */
 	public void setMapKeyExpression(Expression mapKeyExpression) {
 		Assert.notNull(mapKeyExpression, "'mapKeyExpression' must not be null");
 		this.mapKeyExpression = mapKeyExpression;
 		this.mapKeyExpressionExplicitlySet = true;
+	}
+
+	/**
+	 * Set the expression used as the INCR flag for the ZADD command in case of ZSet collection.
+	 * Default is 'headers.{@link RedisHeaders#ZSET_INCREMENT_SCORE}'
+	 * @param zsetIncrementScoreExpression The ZADD INCR flag expression.
+	 * @since 5.0
+	 */
+	public void setZsetIncrementExpressionString(String zsetIncrementScoreExpression) {
+		Assert.hasText(zsetIncrementScoreExpression, "'zsetIncrementScoreExpression' must not be empty");
+		setZsetIncrementExpression(EXPRESSION_PARSER.parseExpression(zsetIncrementScoreExpression));
+	}
+
+	/**
+	 * Set the expression used as the INCR flag for the ZADD command in case of ZSet collection.
+	 * Default is 'headers.{@link RedisHeaders#ZSET_INCREMENT_SCORE}'
+	 * @param zsetIncrementScoreExpression The ZADD INCR flag expression.
+	 * @since 5.0
+	 */
+	public void setZsetIncrementExpression(Expression zsetIncrementScoreExpression) {
+		Assert.notNull(zsetIncrementScoreExpression, "'zsetIncrementScoreExpression' must not be null");
+		this.zsetIncrementScoreExpression = zsetIncrementScoreExpression;
 	}
 
 	@Override
@@ -308,10 +355,8 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	private boolean extractZsetIncrementHeader(Message<?> message) {
-		if (message.getHeaders().containsKey(RedisHeaders.ZSET_INCREMENT_SCORE)) {
-			return this.zsetIncrementScoreExpression.getValue(this.evaluationContext, message, Boolean.class);
-		}
-		return false;
+		Boolean value = this.zsetIncrementScoreExpression.getValue(this.evaluationContext, message, Boolean.class);
+		return value != null ? value : false;
 	}
 
 	private void writeToList(RedisList<Object> list, Message<?> message) {
