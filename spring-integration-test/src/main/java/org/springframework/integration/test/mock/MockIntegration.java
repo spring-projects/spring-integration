@@ -21,6 +21,7 @@ import static org.mockito.BDDMockito.given;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hamcrest.Matcher;
 import org.mockito.Mockito;
 
 import org.springframework.integration.core.MessageSource;
@@ -112,6 +113,10 @@ public final class MockIntegration {
 				.willReturn(message, messages);
 
 		return messageSource;
+	}
+
+	public static MockMessageHandler.MockMessageHandlerWithReply mockMessageHandler(Matcher<Message<?>> matcher) {
+		return new MockMessageHandler.MockMessageHandlerWithReply(matcher);
 	}
 
 	private MockIntegration() {

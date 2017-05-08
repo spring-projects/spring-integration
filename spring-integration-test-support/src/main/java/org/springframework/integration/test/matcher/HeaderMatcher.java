@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,12 +104,12 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasHeader(String key, Matcher<?> valueMatcher) {
+	public static Matcher<Message<?>> hasHeader(String key, Matcher<?> valueMatcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(key, valueMatcher));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasHeaderKey(String key) {
+	public static Matcher<Message<?>> hasHeaderKey(String key) {
 		return new HeaderMatcher(MapContentMatchers.hasKey(key));
 	}
 

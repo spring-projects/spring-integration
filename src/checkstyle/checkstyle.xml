@@ -96,6 +96,7 @@
 				org.springframework.integration.test.matcher.MockitoMessageMatchers.*,
 				org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.*,
 				org.springframework.integration.test.matcher.PayloadMatcher.*,
+				org.springframework.integration.test.mock.MockIntegration.*,
 				org.springframework.integration.test.util.TestUtils.*,
 				org.springframework.test.web.client.match.MockRestRequestMatchers.*,
 				org.springframework.test.web.client.response.MockRestResponseCreators.*,
