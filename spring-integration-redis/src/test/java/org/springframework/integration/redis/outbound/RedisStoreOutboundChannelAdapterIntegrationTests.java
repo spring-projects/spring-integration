@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  */
 @ContextConfiguration
@@ -190,7 +191,10 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		RedisZSet<String> redisZSet = new DefaultRedisZSet<String>("foo", this.redisTemplate);
 		assertEquals(0, redisZSet.size());
 
-		Message<String> message = MessageBuilder.withPayload("bar").setHeader(RedisHeaders.KEY, "foo").build();
+		Message<String> message = MessageBuilder.withPayload("bar")
+				.setHeader(RedisHeaders.KEY, "foo")
+				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, true)
+				.build();
 		this.zsetChannel.send(message);
 
 		assertEquals(1, redisZSet.size());
@@ -210,7 +214,6 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader(RedisHeaders.KEY, "foo")
-				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, false)
 				.build();
 		this.zsetChannel.send(message);
 
@@ -232,6 +235,7 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader(RedisHeaders.KEY, "foo")
 				.setHeader(RedisHeaders.ZSET_SCORE, 2)
+				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, true)
 				.build();
 		this.zsetChannel.send(message);
 
@@ -280,7 +284,9 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 		presidents.put("John Quincy Adams", 19);
 		presidents.put("Zachary Taylor", 19);
 
-		Message<Map<String, Integer>> message = MessageBuilder.withPayload(presidents).build();
+		Message<Map<String, Integer>> message = MessageBuilder.withPayload(presidents)
+				.setHeader(RedisHeaders.ZSET_INCREMENT_SCORE, true)
+				.build();
 
 		this.mapToZsetChannel.send(message);
 
@@ -293,7 +299,6 @@ public class RedisStoreOutboundChannelAdapterIntegrationTests extends RedisAvail
 				this.beanFactory.getBean("mapToZset.handler", RedisStoreWritingMessageHandler.class);
 		assertEquals("'presidents'", TestUtils.getPropertyValue(handler, "keyExpression.expression"));
 
-		// test default (increment by score) behavior
 		this.mapToZsetChannel.send(message);
 
 		assertEquals(5, redisZset.size());
