@@ -135,7 +135,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 */
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
+		this.applicationEventPublisher = applicationEventPublisher; // NOSONAR (inconsistent synchronization)
 	}
 
 	@Override
