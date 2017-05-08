@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
@@ -110,19 +111,24 @@ public class ChannelTests extends LogAdjustingTestSupport {
 		assertEquals(0, TestUtils.getPropertyValue(factory, "connectionListener.delegates", Collection.class).size());
 	}
 
+	@SuppressWarnings("unchecked")
 	private void waitForNewConsumer(PublishSubscribeAmqpChannel channel, BlockingQueueConsumer consumer)
 			throws Exception {
-		BlockingQueueConsumer newConsumer = (BlockingQueueConsumer) TestUtils
-				.getPropertyValue(channel, "container.consumers", Map.class).keySet().iterator().next();
+
+		final Object consumersMonitor = TestUtils.getPropertyValue(channel, "container.consumersMonitor");
 		int n = 0;
-		boolean newConsumerIsConsuming = newConsumer != consumer && TestUtils.getPropertyValue(newConsumer,
-				"consumerTags", Map.class).size() > 0;
-		while (n++ < 100 && !newConsumerIsConsuming) {
+		while (n++ < 100) {
+			Set<BlockingQueueConsumer> consumers = TestUtils.getPropertyValue(channel, "container.consumers", Map.class).keySet();
+			synchronized (consumersMonitor) {
+				if (!consumers.isEmpty()) {
+					BlockingQueueConsumer newConsumer = consumers.iterator().next();
+					if (newConsumer != consumer && TestUtils.getPropertyValue(newConsumer,
+							"consumerTags", Map.class).size() > 0) {
+						break;
+					}
+				}
+			}
 			Thread.sleep(100);
-			newConsumer = (BlockingQueueConsumer) TestUtils
-					.getPropertyValue(channel, "container.consumers", Map.class).keySet().iterator().next();
-			newConsumerIsConsuming = newConsumer != consumer && TestUtils.getPropertyValue(newConsumer,
-					"consumerTags", Map.class).size() > 0;
 		}
 		assertTrue("Failed to restart consumer", n < 100);
 	}
