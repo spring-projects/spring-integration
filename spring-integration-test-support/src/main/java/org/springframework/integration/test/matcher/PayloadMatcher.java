@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,44 +56,38 @@ import org.springframework.messaging.Message;
  * @author Iwein Fuld
  *
  */
-@SuppressWarnings("rawtypes")
-public class PayloadMatcher extends TypeSafeMatcher<Message> {
+public class PayloadMatcher extends TypeSafeMatcher<Message<?>> {
 
-	private final Matcher matcher;
+	private final Matcher<?> matcher;
 
 	/**
 	 * Create a PayloadMatcher that matches the payload of messages against the given matcher
 	 */
-	PayloadMatcher(Matcher matcher) {
+	private PayloadMatcher(Matcher<?> matcher) {
 		super();
 		this.matcher = matcher;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
-	public boolean matchesSafely(Message message) {
-		return matcher.matches(message.getPayload());
+	public boolean matchesSafely(Message<?> message) {
+		return this.matcher.matches(message.getPayload());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	//@Override
 	@Override
 	public void describeTo(Description description) {
-		description.appendText("a Message with payload: ").appendDescriptionOf(matcher);
+		description.appendText("a Message with payload: ")
+				.appendDescriptionOf(this.matcher);
 
 	}
 
 	@Factory
-	public static <T> Matcher<Message> hasPayload(T payload) {
+	public static <T> Matcher<Message<?>> hasPayload(T payload) {
 		return new PayloadMatcher(IsEqual.equalTo(payload));
 	}
 
 	@Factory
-	public static <T> Matcher<Message> hasPayload(Matcher<? super T> payloadMatcher) {
+	public static <T> Matcher<Message<?>> hasPayload(Matcher<? super T> payloadMatcher) {
 		return new PayloadMatcher(payloadMatcher);
 	}
+
 }

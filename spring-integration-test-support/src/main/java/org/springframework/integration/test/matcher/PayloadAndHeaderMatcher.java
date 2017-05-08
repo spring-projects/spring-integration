@@ -47,6 +47,7 @@ import org.springframework.messaging.MessageHeaders;
  * </pre>
  *
  * @author Dave Syer
+ * @author Artem Bilan
  *
  */
 public class PayloadAndHeaderMatcher extends BaseMatcher<Message<?>> {
@@ -65,28 +66,32 @@ public class PayloadAndHeaderMatcher extends BaseMatcher<Message<?>> {
 	private PayloadAndHeaderMatcher(Message<?> expected, String... ignoreKeys) {
 		this.ignoreKeys = ignoreKeys;
 		this.payload = expected.getPayload();
-		this.headers = getHeaders(expected);
+		this.headers = extractHeadersToAssert(expected);
 	}
 
-	private Map<String, Object> getHeaders(Message<?> operand) {
-		HashMap<String, Object> headers = new HashMap<String, Object>(operand.getHeaders());
+	private Map<String, Object> extractHeadersToAssert(Message<?> operand) {
+		HashMap<String, Object> headers = new HashMap<>(operand.getHeaders());
 		headers.remove(MessageHeaders.ID);
 		headers.remove(MessageHeaders.TIMESTAMP);
-		for (String key : ignoreKeys) {
-			headers.remove(key);
+		if (this.ignoreKeys != null) {
+			for (String key : this.ignoreKeys) {
+				headers.remove(key);
+			}
 		}
 		return headers;
 	}
 
 	public boolean matches(Object arg) {
 		Message<?> input = (Message<?>) arg;
-		Map<String, Object> inputHeaders = getHeaders(input);
-		return input.getPayload().equals(payload) && inputHeaders.equals(headers);
+		Map<String, Object> inputHeaders = extractHeadersToAssert(input);
+		return input.getPayload().equals(this.payload) && inputHeaders.equals(this.headers);
 	}
 
 	public void describeTo(Description description) {
-		description.appendText("a Message with Headers that match except ID and timestamp for payload: ").appendValue(
-				payload).appendText(" and headers: ").appendValue(headers);
+		description.appendText("a Message with Headers that match except ID and timestamp for payload: ")
+				.appendValue(this.payload)
+				.appendText(" and headers: ")
+				.appendValue(this.headers);
 	}
 
 }

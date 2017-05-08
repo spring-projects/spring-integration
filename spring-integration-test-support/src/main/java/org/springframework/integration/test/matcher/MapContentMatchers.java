@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.test.matcher;
 
-import static org.hamcrest.CoreMatchers.anything;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +23,8 @@ import java.util.Map;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.AllOf;
-import org.hamcrest.core.IsEqual;
 
 /**
  * Matchers that examine the contents of a {@link Map}.
@@ -62,6 +60,7 @@ import org.hamcrest.core.IsEqual;
  * @author Alex Peters
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public class MapContentMatchers<T, V> extends
@@ -71,67 +70,48 @@ public class MapContentMatchers<T, V> extends
 
 	private final Matcher<V> valueMatcher;
 
-	/**
-	 * @param key
-	 * @param value
-	 */
-	MapContentMatchers(T key, V value) {
-		this(key, IsEqual.equalTo(value));
+	private MapContentMatchers(T key, V value) {
+		this(key, Matchers.equalTo(value));
 	}
 
-	/**
-	 * @param key
-	 * @param valueMatcher
-	 */
-	MapContentMatchers(T key, Matcher<V> valueMatcher) {
-		super();
+	private MapContentMatchers(T key, Matcher<V> valueMatcher) {
 		this.key = key;
 		this.valueMatcher = valueMatcher;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean matchesSafely(Map<? super T, ? super V> item) {
 		return item.containsKey(key) && valueMatcher.matches(item.get(key));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public void describeTo(Description description) {
 		description.appendText("an entry with key ").appendValue(key)
 				.appendText(" and value matching ").appendDescriptionOf(
-						valueMatcher);
+				valueMatcher);
 
 	}
 
 	@Factory
-	public static <T, V> Matcher<Map<? super T, ? super V>> hasEntry(T key,
-			V value) {
-		return new MapContentMatchers<T, V>(key, value);
+	public static <T, V> Matcher<Map<? super T, ? super V>> hasEntry(T key, V value) {
+		return new MapContentMatchers<>(key, value);
 	}
 
 	@Factory
-	public static <T, V> Matcher<Map<? super T, ? super V>> hasEntry(T key,
-			Matcher<V> valueMatcher) {
-		return new MapContentMatchers<T, V>(key, valueMatcher);
+	public static <T, V> Matcher<Map<? super T, ? super V>> hasEntry(T key, Matcher<V> valueMatcher) {
+		return new MapContentMatchers<>(key, valueMatcher);
 	}
 
 	@Factory
 	@SuppressWarnings("unchecked")
 	public static <T, V> Matcher<Map<? super T, ? super V>> hasKey(T key) {
-		return new MapContentMatchers<T, V>(key, (Matcher<V>) anything("any Value"));
+		return new MapContentMatchers<>(key, (Matcher<V>) Matchers.anything());
 	}
 
 	@Factory
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T, V> Matcher<Map<? super T, ? super V>> hasAllEntries(
-			Map<T, V> entries) {
-		List<Matcher<? extends Map<? super T, ? super V>>> matchers = new ArrayList<Matcher<? extends Map<? super T, ? super V>>>(
-				entries.size());
+	public static <T, V> Matcher<Map<? super T, ? super V>> hasAllEntries(Map<T, V> entries) {
+		List<Matcher<Map<? super T, ? super V>>> matchers = new ArrayList<>(entries.size());
 		for (Map.Entry<T, V> entry : entries.entrySet()) {
 			final V value = entry.getValue();
 			if (value instanceof Matcher<?>) {
@@ -144,4 +124,5 @@ public class MapContentMatchers<T, V> extends
 		//return AllOf.allOf(matchers); //Does not work with Hamcrest 1.3
 		return new AllOf(matchers);
 	}
+
 }

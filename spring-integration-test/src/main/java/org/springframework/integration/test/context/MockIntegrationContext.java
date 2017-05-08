@@ -27,8 +27,14 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.IntegrationConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.test.mock.MockMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -83,6 +89,9 @@ public class MockIntegrationContext implements BeanFactoryAware {
 					if (endpoint instanceof SourcePollingChannelAdapter) {
 						directFieldAccessor.setPropertyValue("source", e.getValue());
 					}
+					else if (endpoint instanceof IntegrationConsumer) {
+						directFieldAccessor.setPropertyValue("handler", e.getValue());
+					}
 				});
 	}
 
@@ -112,7 +121,47 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		instead(pollingAdapterId, mockMessageSource, SourcePollingChannelAdapter.class, "source", autoStartup);
 	}
 
-	private void instead(String endpointId, Object mock, Class<?> endpointClass, String property,
+	public void instead(String consumerEndpointId, MessageHandler mockMessageHandler) {
+		instead(consumerEndpointId, mockMessageHandler, true);
+	}
+
+	public void instead(String consumerEndpointId, MessageHandler mockMessageHandler, boolean autoStartup) {
+		Object endpoint = this.beanFactory.getBean(consumerEndpointId, IntegrationConsumer.class);
+		if (autoStartup && endpoint instanceof Lifecycle) {
+			((Lifecycle) endpoint).stop();
+		}
+		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
+		Object targetMessageHandler = directFieldAccessor.getPropertyValue("handler");
+		this.beans.put(consumerEndpointId, targetMessageHandler);
+
+		if (mockMessageHandler instanceof MessageProducer) {
+			if (targetMessageHandler instanceof MessageProducer) {
+				MessageChannel outputChannel = TestUtils.getPropertyValue(targetMessageHandler, "outputChannel",
+						MessageChannel.class);
+				((MessageProducer) mockMessageHandler).setOutputChannel(outputChannel);
+			}
+			else {
+				if (mockMessageHandler instanceof MockMessageHandler) {
+					if (TestUtils.getPropertyValue(mockMessageHandler, "hasReplies", Boolean.class)) {
+						throw new IllegalStateException("The [" + mockMessageHandler + "] " +
+								"with replies can't replace simple MessageHandler [" + targetMessageHandler + "]");
+					}
+				}
+				else {
+					throw new IllegalStateException("The MessageProducer handler [" + mockMessageHandler + "] " +
+							"can't replace simple MessageHandler [" + targetMessageHandler + "]");
+				}
+			}
+		}
+
+		directFieldAccessor.setPropertyValue("handler", mockMessageHandler);
+
+		if (autoStartup && endpoint instanceof Lifecycle) {
+			((Lifecycle) endpoint).start();
+		}
+	}
+
+	private void instead(String endpointId, Object messagingComponent, Class<?> endpointClass, String property,
 			boolean autoStartup) {
 		Object endpoint = this.beanFactory.getBean(endpointId, endpointClass);
 		if (autoStartup && endpoint instanceof Lifecycle) {
@@ -120,7 +169,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		}
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
 		this.beans.put(endpointId, directFieldAccessor.getPropertyValue(property));
-		directFieldAccessor.setPropertyValue("source", mock);
+		directFieldAccessor.setPropertyValue(property, messagingComponent);
 		if (autoStartup && endpoint instanceof Lifecycle) {
 			((Lifecycle) endpoint).start();
 		}
