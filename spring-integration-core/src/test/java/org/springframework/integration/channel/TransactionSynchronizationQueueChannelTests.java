@@ -18,20 +18,16 @@ package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -49,24 +45,26 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class TransactionSynchronizationQueueChannelTests {
 
 	@Autowired
-	private PollableChannel queueChannel;
+	private QueueChannel queueChannel;
 
 	@Autowired
-	private PollableChannel good;
+	private QueueChannel good;
 
 	@Autowired
-	private Service service;
+	private QueueChannel queueChannel2;
 
-	@Autowired
-	private PollableChannel queueChannel2;
+	@Before
+	public void setup() {
+		this.good.purge(null);
+		this.queueChannel.purge(null);
+		this.queueChannel2.purge(null);
+	}
 
 	@Test
 	public void testCommit() throws Exception {
-		service.latch = new CountDownLatch(1);
-		GenericMessage<String> sentMessage = new GenericMessage<String>("hello");
-		queueChannel.send(sentMessage);
-		assertTrue(service.latch.await(10, TimeUnit.SECONDS));
-		Message<?> message = good.receive(1000);
+		GenericMessage<String> sentMessage = new GenericMessage<>("hello");
+		this.queueChannel.send(sentMessage);
+		Message<?> message = this.good.receive(10000);
 		assertNotNull(message);
 		assertEquals("hello", message.getPayload());
 		assertSame(message, sentMessage);
@@ -74,38 +72,32 @@ public class TransactionSynchronizationQueueChannelTests {
 
 	@Test
 	public void testRollback() throws Exception {
-		service.latch = new CountDownLatch(1);
-		queueChannel.send(new GenericMessage<String>("fail"));
-		assertTrue(service.latch.await(10, TimeUnit.SECONDS));
-		Message<?> message = queueChannel.receive(1000);
+		this.queueChannel.send(new GenericMessage<>("fail"));
+		Message<?> message = this.good.receive(10000);
 		assertNotNull(message);
 		assertEquals("retry:fail", message.getPayload());
-		assertNull(good.receive(0));
 	}
 
 	@Test
 	public void testIncludeChannelName() throws Exception {
-		service.latch = new CountDownLatch(1);
 		Message<String> sentMessage = MessageBuilder.withPayload("hello")
 				.setHeader("foo", "bar").build();
 		queueChannel2.send(sentMessage);
-		assertTrue(service.latch.await(10, TimeUnit.SECONDS));
 		Message<?> message = good.receive(1000);
 		assertNotNull(message);
 		assertEquals("hello processed ok from queueChannel2", message.getPayload());
 		assertNotNull(message.getHeaders().get("foo"));
 		assertEquals("bar", message.getHeaders().get("foo"));
-		}
+	}
 
 	public static class Service {
-		private CountDownLatch latch;
 
 		public void handle(String foo) {
-			latch.countDown();
 			if (foo.startsWith("fail")) {
 				throw new RuntimeException("planned failure");
 			}
 		}
+
 	}
 
 }

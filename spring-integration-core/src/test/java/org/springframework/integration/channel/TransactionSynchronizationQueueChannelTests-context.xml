@@ -5,6 +5,11 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
+
+	<bean id="service"
+		  class="org.springframework.integration.channel.TransactionSynchronizationQueueChannelTests$Service"/>
+
 	<int:channel id="queueChannel">
 		<int:queue />
 	</int:channel>
@@ -15,7 +20,6 @@
 		</int:poller>
 	</int:service-activator>
 
-	<bean id="service" class="org.springframework.integration.channel.TransactionSynchronizationQueueChannelTests$Service"/>
 
 	<int:transaction-synchronization-factory id="txSyncFactory">
 		<int:after-commit channel="good" />
@@ -25,8 +29,6 @@
 	<int:channel id="good">
 		<int:queue />
 	</int:channel>
-
-	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager" />
 
 	<int:channel id="queueChannel2">
 		<int:queue />
@@ -42,9 +44,5 @@
 		<int:after-commit expression="payload + ' processed ok from ' + #inputChannel.componentName"
 			channel="good" />
 	</int:transaction-synchronization-factory>
-
-	<int:channel id="good">
-		<int:queue />
-	</int:channel>
 
 </beans>
