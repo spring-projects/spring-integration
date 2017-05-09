@@ -16,14 +16,14 @@
 
 package org.springframework.integration.store;
 
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
+
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * Value Object holding metadata about a MessageGroup in the MessageGroupStore.
@@ -37,11 +37,9 @@ public class MessageGroupMetadata implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final Object groupId;
+	private List<UUID> messageIds = new LinkedList<UUID>();
 
-	private final List<UUID> messageIds = new LinkedList<UUID>();
-
-	private final long timestamp;
+	private long timestamp;
 
 	private volatile boolean complete;
 
@@ -49,9 +47,12 @@ public class MessageGroupMetadata implements Serializable {
 
 	private volatile int lastReleasedMessageSequenceNumber;
 
+	private MessageGroupMetadata() {
+		//For Jackson
+	}
+
 	public MessageGroupMetadata(MessageGroup messageGroup) {
 		Assert.notNull(messageGroup, "'messageGroup' must not be null");
-		this.groupId = messageGroup.getGroupId();
 		for (Message<?> message : messageGroup.getMessages()) {
 			this.messageIds.add(message.getHeaders().getId());
 		}
@@ -73,10 +74,6 @@ public class MessageGroupMetadata implements Serializable {
 		this.lastModified = lastModified;
 	}
 
-	public Object getGroupId() {
-		return this.groupId;
-	}
-
 	public Iterator<UUID> messageIdIterator() {
 		return this.messageIds.iterator();
 	}
@@ -90,6 +87,10 @@ public class MessageGroupMetadata implements Serializable {
 			return this.messageIds.get(0);
 		}
 		return null;
+	}
+
+	public List<UUID> getMessageIds() {
+		return this.messageIds;
 	}
 
 	void complete() {
