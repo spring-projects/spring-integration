@@ -16,11 +16,10 @@
 
 package org.springframework.integration.test.matcher;
 
-import static org.hamcrest.CoreMatchers.is;
-
 import java.util.Date;
 import java.util.Map;
 
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
@@ -71,8 +70,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Artem Bilan
  *
  */
-@SuppressWarnings("rawtypes")
-public class HeaderMatcher extends TypeSafeMatcher<Message> {
+public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	private final Matcher<?> matcher;
 
@@ -85,82 +83,83 @@ public class HeaderMatcher extends TypeSafeMatcher<Message> {
 	}
 
 	@Override
-	public boolean matchesSafely(Message item) {
-		return matcher.matches(item.getHeaders());
+	public boolean matchesSafely(Message<?> item) {
+		return this.matcher.matches(item.getHeaders());
 	}
 
 	@Override
 	public void describeTo(Description description) {
-		description.appendText("a Message with Headers containing ").appendDescriptionOf(matcher);
+		description.appendText("a Message with Headers containing ")
+				.appendDescriptionOf(this.matcher);
 	}
 
 	@Factory
-	public static <T> Matcher<Message> hasHeader(String key, T value) {
+	public static <T> Matcher<Message<?>> hasHeader(String key, T value) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(key, value));
 	}
 
 	@Factory
-	public static <T> Matcher<Message> hasHeader(String key, Matcher<T> valueMatcher) {
+	public static <T> Matcher<Message<?>> hasHeader(String key, Matcher<T> valueMatcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(key, valueMatcher));
 	}
 
 	@Factory
-	public static Matcher<Message> hasHeaderKey(String key) {
+	public static Matcher<Message<?>> hasHeaderKey(String key) {
 		return new HeaderMatcher(MapContentMatchers.hasKey(key));
 	}
 
 	@Factory
-	public static Matcher<Message> hasAllHeaders(Map<String, ?> entries) {
+	public static Matcher<Message<?>> hasAllHeaders(Map<String, ?> entries) {
 		return new HeaderMatcher(MapContentMatchers.hasAllEntries(entries));
 	}
 
 	@Factory
-	public static <T> Matcher<Message> hasMessageId(T value) {
+	public static <T> Matcher<Message<?>> hasMessageId(T value) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.ID, value));
 	}
 
 	@Factory
-	public static <T> Matcher<Message> hasCorrelationId(T value) {
+	public static <T> Matcher<Message<?>> hasCorrelationId(T value) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry("correlationId", value));
 	}
 
 	@Factory
-	public static Matcher<Message> hasSequenceNumber(Integer value) {
-		return hasSequenceNumber(is(value));
+	public static Matcher<Message<?>> hasSequenceNumber(Integer value) {
+		return hasSequenceNumber(CoreMatchers.is(value));
 	}
 
 	@Factory
-	public static Matcher<Message> hasSequenceNumber(Matcher<Integer> matcher) {
+	public static Matcher<Message<?>> hasSequenceNumber(Matcher<Integer> matcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry("sequenceNumber", matcher));
 	}
 
 	@Factory
-	public static Matcher<Message> hasSequenceSize(Integer value) {
-		return hasSequenceSize(is(value));
+	public static Matcher<Message<?>> hasSequenceSize(Integer value) {
+		return hasSequenceSize(CoreMatchers.is(value));
 	}
 
 	@Factory
-	public static Matcher<Message> hasSequenceSize(Matcher<Integer> value) {
+	public static Matcher<Message<?>> hasSequenceSize(Matcher<Integer> value) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry("sequenceSize", value));
 	}
 
 	@Factory
-	public static Matcher<Message> hasExpirationDate(Date value) {
-		return hasExpirationDate(is(value.getTime()));
+	public static Matcher<Message<?>> hasExpirationDate(Date value) {
+		return hasExpirationDate(CoreMatchers.is(value.getTime()));
 	}
 
 	@Factory
-	public static Matcher<Message> hasExpirationDate(Matcher<Long> matcher) {
+	public static Matcher<Message<?>> hasExpirationDate(Matcher<Long> matcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry("expirationDate", matcher));
 	}
 
 	@Factory
-	public static Matcher<Message> hasTimestamp(Date value) {
-		return hasTimestamp(is(value.getTime()));
+	public static Matcher<Message<?>> hasTimestamp(Date value) {
+		return hasTimestamp(CoreMatchers.is(value.getTime()));
 	}
 
 	@Factory
-	public static Matcher<Message> hasTimestamp(Matcher<Long> matcher) {
+	public static Matcher<Message<?>> hasTimestamp(Matcher<Long> matcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.TIMESTAMP, matcher));
 	}
 

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.test.mock;
 
-import static org.junit.Assert.assertThat;
-
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,19 +24,39 @@ import java.util.function.Function;
 import org.hamcrest.Matcher;
 
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
+import org.springframework.integration.test.matcher.PayloadAndHeaderMatcher;
+import org.springframework.integration.test.matcher.PayloadMatcher;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
+ * The {@link AbstractMessageProducingHandler} extension for the assertion purpose in tests.
+ * <p>
+ * The provided {@link Matcher}s are applied to the incoming messages one at a time
+ * until the last {@link Matcher}, which is applied for all subsequent messages -
+ * the similar behavior exists in the
+ * {@code Mockito.doReturn(Object toBeReturned, Object... toBeReturnedNext)}.
+ * <p>
+ * Typically is used as a chain of assertions and optional replies for them:
+ * <pre class="code">
+ * {@code
+ *      MockIntegration.mockMessageHandler(hasHeader("bar", "BAR"))
+ *               .thenReply()
+ *               .assertNext(new GenericMessage<>("foo", Collections.singletonMap("key", "value")))
+ *               .assertNext(hasPayload("foo"))
+ *               .thenReply(m -> m.getPayload("X"));
+ * }
+ * </pre>
+ *
  * @author Artem Bilan
  *
  * @since 5.0
  */
-@SuppressWarnings("rawtypes")
 public class MockMessageHandler extends AbstractMessageProducingHandler {
 
-	protected final Map<Matcher<Message>, Function<Message<?>, ?>> matchers = new LinkedHashMap<>();
+	protected final Map<Matcher<Message<?>>, Function<Message<?>, ?>> matchers = new LinkedHashMap<>();
 
-	protected Matcher<Message> lastKey;
+	protected Matcher<Message<?>> lastKey;
 
 	protected Function<Message<?>, ?> lastReplyFunction;
 
@@ -47,7 +65,20 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 	protected MockMessageHandler() {
 	}
 
-	public MockMessageHandlerWithReply assertNext(Matcher<Message> nextMessageMatcher) {
+	public MockMessageHandlerWithReply assertNext(Object payload) {
+		return assertNext(PayloadMatcher.hasPayload(payload));
+	}
+
+	public MockMessageHandlerWithReply assertNext(Message<?> message) {
+		return assertNext(PayloadAndHeaderMatcher.sameExceptIgnorableHeaders(message));
+	}
+
+	public MockMessageHandlerWithReply assertNext(Message<?> message, String... headersToIgnore) {
+		return assertNext(PayloadAndHeaderMatcher.sameExceptIgnorableHeaders(message, headersToIgnore));
+	}
+
+	public MockMessageHandlerWithReply assertNext(Matcher<Message<?>> nextMessageMatcher) {
+		Assert.notNull(nextMessageMatcher, "'nextMessageMatcher' must not be null");
 		this.matchers.put(nextMessageMatcher, null);
 		this.lastKey = nextMessageMatcher;
 		this.lastReplyFunction = null;
@@ -56,21 +87,21 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Matcher<Message> matcher = this.lastKey;
+		Matcher<Message<?>> matcher = this.lastKey;
 		Function<Message<?>, ?> replyFunction = this.lastReplyFunction;
 
 		synchronized (this) {
-			Iterator<Map.Entry<Matcher<Message>, Function<Message<?>, ?>>> entryIterator =
+			Iterator<Map.Entry<Matcher<Message<?>>, Function<Message<?>, ?>>> entryIterator =
 					this.matchers.entrySet().iterator();
 			if (entryIterator.hasNext()) {
-				Map.Entry<Matcher<Message>, Function<Message<?>, ?>> matcherFunctionEntry = entryIterator.next();
+				Map.Entry<Matcher<Message<?>>, Function<Message<?>, ?>> matcherFunctionEntry = entryIterator.next();
 				matcher = matcherFunctionEntry.getKey();
 				replyFunction = matcherFunctionEntry.getValue();
 				entryIterator.remove();
 			}
 		}
 
-		assertThat(message, matcher);
+		org.junit.Assert.assertThat(message, matcher);
 
 		if (replyFunction != null) {
 			sendOutputs(replyFunction.apply(message), message);
@@ -79,18 +110,34 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 
 	static class MockMessageHandlerWithReply extends MockMessageHandler {
 
-		MockMessageHandlerWithReply(Matcher<Message> nextMessageMatcher) {
+		MockMessageHandlerWithReply(Matcher<Message<?>> nextMessageMatcher) {
 			assertNext(nextMessageMatcher);
 		}
 
+		/**
+		 * Add the {@link Function#identity()} reply to the current assertion.
+		 * Produces the {@code requestMessage} as a reply.
+		 * @return this
+		 */
 		public MockMessageHandler thenReply() {
 			return thenReply(Function.identity());
 		}
 
+		/**
+		 * Add the {@link Function} for static payload reply to the current assertion.
+		 * @param reply the object which becomes as a payload for the reply.
+		 * @return this
+		 */
 		public MockMessageHandler thenReply(Object reply) {
 			return thenReply(m -> reply);
 		}
 
+		/**
+		 * Add the {@link Function} for the reply based on the {@code requestMessage}
+		 * to the current assertion.
+		 * @param replyFunction the function to build reply based on the requestMessage
+		 * @return this
+		 */
 		public MockMessageHandler thenReply(Function<Message<?>, ?> replyFunction) {
 			this.matchers.put(this.lastKey, replyFunction);
 			this.lastReplyFunction = replyFunction;

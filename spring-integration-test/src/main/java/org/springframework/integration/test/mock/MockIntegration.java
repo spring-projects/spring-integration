@@ -16,15 +16,16 @@
 
 package org.springframework.integration.test.mock;
 
-import static org.mockito.BDDMockito.given;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hamcrest.Matcher;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.test.matcher.PayloadAndHeaderMatcher;
+import org.springframework.integration.test.matcher.PayloadMatcher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -86,11 +87,10 @@ public final class MockIntegration {
 	 * @return the mocked {@link MessageSource}
 	 * @see Mockito#mock(Class)
 	 */
-	@SuppressWarnings("rawtypes")
 	public static MessageSource<?> mockMessageSource(Message<?> message) {
 		MessageSource messageSource = Mockito.mock(MessageSource.class);
 
-		given(messageSource.receive())
+		BDDMockito.given(messageSource.receive())
 				.willReturn(message);
 
 		return messageSource;
@@ -105,18 +105,64 @@ public final class MockIntegration {
 	 * @return the mocked {@link MessageSource}
 	 * @see Mockito#mock(Class)
 	 */
-	@SuppressWarnings("rawtypes")
 	public static MessageSource<?> mockMessageSource(Message<?> message, Message<?>... messages) {
 		MessageSource messageSource = Mockito.mock(MessageSource.class);
 
-		given(messageSource.receive())
+		BDDMockito.given(messageSource.receive())
 				.willReturn(message, messages);
 
 		return messageSource;
 	}
 
-	@SuppressWarnings("rawtypes")
-	public static MockMessageHandler.MockMessageHandlerWithReply mockMessageHandler(Matcher<Message> matcher) {
+	/**
+	 * Build a Mockito spy over the {@link MockMessageHandler} instance
+	 * based on the provided payload to assert incoming messages.
+	 * @param payload the to assert incoming messages
+	 * @return the MockMessageHandler instance ready for interaction
+	 * @see Mockito#spy(Object)
+	 * @see MockMessageHandler
+	 */
+	public static MockMessageHandler.MockMessageHandlerWithReply mockMessageHandler(Object payload) {
+		return mockMessageHandler(PayloadMatcher.hasPayload(payload));
+	}
+
+	/**
+	 * Build a Mockito spy over the {@link MockMessageHandler} instance
+	 * based on the provided message to assert incoming messages.
+	 * @param message the to assert incoming messages
+	 * @return the MockMessageHandler instance ready for interaction
+	 * @see Mockito#spy(Object)
+	 * @see MockMessageHandler
+	 * @see PayloadAndHeaderMatcher
+	 */
+	public static MockMessageHandler.MockMessageHandlerWithReply mockMessageHandler(Message<?> message) {
+		return mockMessageHandler(PayloadAndHeaderMatcher.sameExceptIgnorableHeaders(message));
+	}
+
+	/**
+	 * Build a Mockito spy over the {@link MockMessageHandler} instance
+	 * based on the provided message to assert incoming messages.
+	 * @param message the to assert incoming messages
+	 * @param headersToIgnore the headers to ignore during assertion
+	 * @return the MockMessageHandler instance ready for interaction
+	 * @see Mockito#spy(Object)
+	 * @see MockMessageHandler
+	 * @see PayloadAndHeaderMatcher
+	 */
+	public static MockMessageHandler.MockMessageHandlerWithReply mockMessageHandler(Message<?> message,
+			String... headersToIgnore) {
+		return mockMessageHandler(PayloadAndHeaderMatcher.sameExceptIgnorableHeaders(message, headersToIgnore));
+	}
+
+	/**
+	 * Build a Mockito spy over the {@link MockMessageHandler} instance
+	 * based on the provided message to assert incoming messages.
+	 * @param matcher the matcher to assert incoming messages
+	 * @return the MockMessageHandler instance ready for interaction
+	 * @see Mockito#spy(Object)
+	 * @see MockMessageHandler
+	 */
+	public static MockMessageHandler.MockMessageHandlerWithReply mockMessageHandler(Matcher<Message<?>> matcher) {
 		return Mockito.spy(new MockMessageHandler.MockMessageHandlerWithReply(matcher));
 	}
 

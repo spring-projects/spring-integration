@@ -44,17 +44,17 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -66,7 +66,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MockMessageHandlerTests.Config.class)
 @SpringIntegrationTest
-@DirtiesContext
 public class MockMessageHandlerTests {
 
 	@Autowired
@@ -128,7 +127,7 @@ public class MockMessageHandlerTests {
 		assertEquals("barbar", receive.getPayload());
 
 		MessageHandler mockMessageHandler =
-				mockMessageHandler(hasPayload("foo"))
+				mockMessageHandler(new GenericMessage<>("foo"))
 						.thenReply(m -> m.getPayload().toString().toUpperCase());
 
 		this.mockIntegrationContext.instead("mockMessageHandlerTests.Config.myService.serviceActivator",
@@ -151,7 +150,7 @@ public class MockMessageHandlerTests {
 
 	@Test
 	public void testMockRawHandler() {
-		MessageHandler mockMessageHandler = mockMessageHandler(notNullValue(Message.class));
+		MessageHandler mockMessageHandler = mockMessageHandler(hasPayload(notNullValue()));
 
 		String endpointId = "rawHandlerConsumer";
 		this.mockIntegrationContext.instead(endpointId, mockMessageHandler);
@@ -196,9 +195,10 @@ public class MockMessageHandlerTests {
 		public MessageHandler mockHandler() {
 			return mockMessageHandler(hasHeader("bar", "BAR"))
 					.thenReply()
-					.assertNext(hasHeader("baz", "BAZ"))
+					.assertNext(MessageBuilder.withPayload("foo").setHeader("baz", "BAZ").build(),
+							"bar", MessageHeaders.REPLY_CHANNEL)
 					.thenReply()
-					.assertNext(hasPayload("foo"))
+					.assertNext("foo")
 					.thenReply("foo");
 		}
 

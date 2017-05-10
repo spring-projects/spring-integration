@@ -16,14 +16,11 @@
 
 package org.springframework.integration.test.matcher;
 
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
-import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
-
 import java.util.Map;
 
 import org.hamcrest.Matcher;
 import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 
@@ -75,30 +72,28 @@ public class MockitoMessageMatchers {
 		super();
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <T> Message<T> messageWithPayload(Matcher<T> payloadMatcher) {
-		return argThat(new HamcrestArgumentMatcher<>(hasPayload(payloadMatcher)));
+	public static <T> Message<?> messageWithPayload(Matcher<? super T> payloadMatcher) {
+		return ArgumentMatchers.argThat(new HamcrestArgumentMatcher<>(PayloadMatcher.hasPayload(payloadMatcher)));
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <T> Message<T> messageWithPayload(T payload) {
-		return argThat(new HamcrestArgumentMatcher<>(hasPayload(payload)));
+	public static <T> Message<?> messageWithPayload(T payload) {
+		return ArgumentMatchers.argThat(new HamcrestArgumentMatcher<>(PayloadMatcher.hasPayload(payload)));
 	}
 
 	public static Message<?> messageWithHeaderEntry(String key, Object value) {
-		return argThat(new HamcrestArgumentMatcher<>(hasHeader(key, value)));
+		return ArgumentMatchers.argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.hasHeader(key, value)));
 	}
 
 	public static Message<?> messageWithHeaderKey(String key) {
-		return argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.hasHeaderKey(key)));
+		return ArgumentMatchers.argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.hasHeaderKey(key)));
 	}
 
 	public static <T> Message<?> messageWithHeaderEntry(String key, Matcher<T> valueMatcher) {
-		return argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.<T>hasHeader(key, valueMatcher)));
+		return ArgumentMatchers.argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.<T>hasHeader(key, valueMatcher)));
 	}
 
 	public static Message<?> messageWithHeaderEntries(Map<String, ?> entries) {
-		return argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.hasAllHeaders(entries)));
+		return ArgumentMatchers.argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.hasAllHeaders(entries)));
 	}
 
 }
