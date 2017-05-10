@@ -319,7 +319,7 @@ Handling these events using an `<int-event:inbound-channel-adapter/>` can be use
 
 As described in EIP, a http://www.eaipatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
 This can be very useful when dealing with components that have a capability to buffer messages (_Aggregator, Resequencer_, etc.) if reliability is a concern.
-In Spring Integration, the MessageStore strategy also provides the foundation for thehttp://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
+In Spring Integration, the MessageStore strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
 
 Spring Integration's Redis module provides the `RedisMessageStore`.
 
@@ -338,6 +338,21 @@ As you can see it is a simple bean configuration, and it expects a `RedisConnect
 
 By default the `RedisMessageStore` will use Java serialization to serialize the Message.
 However if you want to use a different serialization technique (e.g., JSON), you can provide your own serializer via the `valueSerializer` property of the `RedisMessageStore`.
+
+Starting with _version 4.3.10_, the Framework provides Jackson Serializer and Deserializer implementations for `Message`s and `MessageHeaders` - `MessageHeadersJacksonSerializer` and `MessageJacksonDeserializer` hierarchy, respectively.
+They has to be configured via `SimpleModule` options for the `ObjectMapper`.
+In addition the `enableDefaultTyping` should be configured on the `ObjectMapper` to add type information for each serialized complex object.
+That type information is unequivocally used during deserialization.
+To avoid such a boilerplate codding, the Framework suggest utility as of `JacksonJsonUtils.messagingAwareMapper()`, which is already supplied with all mentioned above properties and serializers.
+To manage JSON serialization in the `RedisMessageStore`, it must be then configured like:
+
+[source,java]
+----
+RedisMessageStore store = new RedisMessageStore(jedisConnectionFactory);
+ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
+RedisSerializer<Object> serializer = new GenericJackson2JsonRedisSerializer(mapper);
+store.setValueSerializer(serializer);
+----
 
 [[redis-cms]]
 ==== Redis Channel Message Stores

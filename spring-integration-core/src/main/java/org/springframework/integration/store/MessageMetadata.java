@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,20 @@ import java.util.UUID;
  * Value Object holding metadata about a Message in the MessageStore.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class MessageMetadata implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final UUID messageId;
+	private UUID messageId;
 
-	private long timestamp;
+	private volatile long timestamp;
+
+	private MessageMetadata() {
+		//For Jackson deserialization
+	}
 
 	public MessageMetadata(UUID messageId) {
 		this.messageId = messageId;
