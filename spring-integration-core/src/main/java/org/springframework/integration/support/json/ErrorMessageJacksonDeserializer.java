@@ -19,7 +19,6 @@ package org.springframework.integration.support.json;
 import java.io.IOException;
 
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
 import com.fasterxml.jackson.databind.DeserializationContext;
