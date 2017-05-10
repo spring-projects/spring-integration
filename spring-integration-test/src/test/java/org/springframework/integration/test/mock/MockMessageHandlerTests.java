@@ -18,11 +18,10 @@ package org.springframework.integration.test.mock;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
@@ -158,9 +157,7 @@ public class MockMessageHandlerTests {
 		this.mockIntegrationContext.instead(endpointId, mockMessageHandler);
 
 		Object endpoint = this.context.getBean(endpointId);
-		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
-		assertThat(handler, not(instanceOf(ExpressionEvaluatingMessageHandler.class)));
-		assertNotSame(mockMessageHandler, handler);
+		assertSame(mockMessageHandler, TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class));
 
 		GenericMessage<String> message = new GenericMessage<>("foo");
 

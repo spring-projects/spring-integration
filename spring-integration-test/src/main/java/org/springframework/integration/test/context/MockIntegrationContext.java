@@ -142,10 +142,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 			}
 			else {
 				if (mockMessageHandler instanceof MockMessageHandler) {
-					if (!TestUtils.getPropertyValue(mockMessageHandler, "hasReplies", Boolean.class)) {
-						mockMessageHandler = mockMessageHandler::handleMessage;
-					}
-					else {
+					if (TestUtils.getPropertyValue(mockMessageHandler, "hasReplies", Boolean.class)) {
 						throw new IllegalStateException("The [" + mockMessageHandler + "] " +
 								"with replies can't replace simple MessageHandler [" + targetMessageHandler + "]");
 					}
