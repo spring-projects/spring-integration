@@ -77,12 +77,12 @@ public class MockitoMessageMatchers {
 
 	@SuppressWarnings("unchecked")
 	public static <T> Message<T> messageWithPayload(Matcher<T> payloadMatcher) {
-		return argThat(new HamcrestArgumentMatcher<>((Matcher<Message<T>>) (Matcher<?>) hasPayload(payloadMatcher)));
+		return argThat(new HamcrestArgumentMatcher<>(hasPayload(payloadMatcher)));
 	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> Message<T> messageWithPayload(T payload) {
-		return argThat(new HamcrestArgumentMatcher<>((Matcher<Message<T>>) (Matcher<?>) hasPayload(payload)));
+		return argThat(new HamcrestArgumentMatcher<>(hasPayload(payload)));
 	}
 
 	public static Message<?> messageWithHeaderEntry(String key, Object value) {

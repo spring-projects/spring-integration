@@ -25,7 +25,7 @@ import java.util.function.Function;
 
 import org.hamcrest.Matcher;
 
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
 
 /**
@@ -33,68 +33,68 @@ import org.springframework.messaging.Message;
  *
  * @since 5.0
  */
-public class MockMessageHandler extends AbstractReplyProducingMessageHandler {
+@SuppressWarnings("rawtypes")
+public class MockMessageHandler extends AbstractMessageProducingHandler {
 
-	protected final Map<Matcher<Message<?>>, Function<Message<?>, ?>> matchers = new LinkedHashMap<>();
+	protected final Map<Matcher<Message>, Function<Message<?>, ?>> matchers = new LinkedHashMap<>();
 
-	protected Matcher<Message<?>> lastKey;
+	protected Matcher<Message> lastKey;
 
 	protected Function<Message<?>, ?> lastReplyFunction;
+
+	protected boolean hasReplies;
 
 	protected MockMessageHandler() {
 	}
 
-	public MockMessageHandlerWithReply expect(Matcher<Message<?>> messageMatcher) {
-		this.matchers.put(messageMatcher, null);
-		this.lastKey = messageMatcher;
+	public MockMessageHandlerWithReply assertNext(Matcher<Message> nextMessageMatcher) {
+		this.matchers.put(nextMessageMatcher, null);
+		this.lastKey = nextMessageMatcher;
+		this.lastReplyFunction = null;
 		return (MockMessageHandlerWithReply) this;
 	}
 
 	@Override
-	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Matcher<Message<?>> matcher = this.lastKey;
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		Matcher<Message> matcher = this.lastKey;
 		Function<Message<?>, ?> replyFunction = this.lastReplyFunction;
 
 		synchronized (this) {
-			Iterator<Map.Entry<Matcher<Message<?>>, Function<Message<?>, ?>>> entryIterator = matchers.entrySet().iterator();
+			Iterator<Map.Entry<Matcher<Message>, Function<Message<?>, ?>>> entryIterator =
+					this.matchers.entrySet().iterator();
 			if (entryIterator.hasNext()) {
-				Map.Entry<Matcher<Message<?>>, Function<Message<?>, ?>> matcherFunctionEntry = entryIterator.next();
+				Map.Entry<Matcher<Message>, Function<Message<?>, ?>> matcherFunctionEntry = entryIterator.next();
 				matcher = matcherFunctionEntry.getKey();
 				replyFunction = matcherFunctionEntry.getValue();
 				entryIterator.remove();
 			}
 		}
-		assertThat(requestMessage, matcher);
+
+		assertThat(message, matcher);
 
 		if (replyFunction != null) {
-			return replyFunction.apply(requestMessage);
+			sendOutputs(replyFunction.apply(message), message);
 		}
-
-		return null;
 	}
 
 	static class MockMessageHandlerWithReply extends MockMessageHandler {
 
-		MockMessageHandlerWithReply(Matcher<Message<?>> messageMatcher) {
-			expect(messageMatcher);
+		MockMessageHandlerWithReply(Matcher<Message> nextMessageMatcher) {
+			assertNext(nextMessageMatcher);
 		}
 
-		@Override
-		public MockMessageHandlerWithReply expect(Matcher<Message<?>> messageMatcher) {
-			return super.expect(messageMatcher);
+		public MockMessageHandler thenReply() {
+			return thenReply(Function.identity());
 		}
 
-		public MockMessageHandler andReply() {
-			return andReply(Function.identity());
+		public MockMessageHandler thenReply(Object reply) {
+			return thenReply(m -> reply);
 		}
 
-		public MockMessageHandler andReply(Object reply) {
-			return andReply(m -> reply);
-		}
-
-		public MockMessageHandler andReply(Function<Message<?>, ?> replyFunction) {
+		public MockMessageHandler thenReply(Function<Message<?>, ?> replyFunction) {
 			this.matchers.put(this.lastKey, replyFunction);
 			this.lastReplyFunction = replyFunction;
+			this.hasReplies = this.lastReplyFunction != null;
 			return this;
 		}
 

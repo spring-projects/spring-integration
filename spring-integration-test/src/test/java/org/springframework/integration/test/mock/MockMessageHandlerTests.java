@@ -16,11 +16,16 @@
 
 package org.springframework.integration.test.mock;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.verify;
 import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 import static org.springframework.integration.test.mock.MockIntegration.mockMessageHandler;
@@ -30,17 +35,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.expression.ValueExpression;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
@@ -59,6 +71,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class MockMessageHandlerTests {
 
 	@Autowired
+	private ApplicationContext context;
+
+	@Autowired
 	private MockIntegrationContext mockIntegrationContext;
 
 	@Autowired
@@ -66,6 +81,9 @@ public class MockMessageHandlerTests {
 
 	@Autowired
 	private MessageChannel pojoServiceChannel;
+
+	@Autowired
+	private MessageChannel rawChannel;
 
 	@Autowired
 	private QueueChannel results;
@@ -112,7 +130,7 @@ public class MockMessageHandlerTests {
 
 		MessageHandler mockMessageHandler =
 				mockMessageHandler(hasPayload("foo"))
-						.andReply(m -> m.getPayload().toString().toUpperCase());
+						.thenReply(m -> m.getPayload().toString().toUpperCase());
 
 		this.mockIntegrationContext.instead("mockMessageHandlerTests.Config.myService.serviceActivator",
 				mockMessageHandler);
@@ -132,6 +150,41 @@ public class MockMessageHandlerTests {
 		}
 	}
 
+	@Test
+	public void testMockRawHandler() {
+		MessageHandler mockMessageHandler = mockMessageHandler(notNullValue(Message.class));
+
+		String endpointId = "rawHandlerConsumer";
+		this.mockIntegrationContext.instead(endpointId, mockMessageHandler);
+
+		Object endpoint = this.context.getBean(endpointId);
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		assertThat(handler, not(instanceOf(ExpressionEvaluatingMessageHandler.class)));
+		assertNotSame(mockMessageHandler, handler);
+
+		GenericMessage<String> message = new GenericMessage<>("foo");
+
+		this.rawChannel.send(message);
+
+		verify(mockMessageHandler)
+				.handleMessage(message);
+
+		this.mockIntegrationContext.resetBeans(endpointId);
+
+		mockMessageHandler =
+				mockMessageHandler(hasPayload(notNullValue()))
+						.thenReply();
+
+		try {
+			this.mockIntegrationContext.instead(endpointId, mockMessageHandler);
+			fail("IllegalStateException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), containsString("with replies can't replace simple MessageHandler"));
+		}
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -145,16 +198,27 @@ public class MockMessageHandlerTests {
 		@ServiceActivator(inputChannel = "mockHandlerChannel")
 		public MessageHandler mockHandler() {
 			return mockMessageHandler(hasHeader("bar", "BAR"))
-					.andReply()
-					.expect(hasHeader("baz", "BAZ"))
-					.andReply()
-					.expect(hasPayload("foo"))
-					.andReply();
+					.thenReply()
+					.assertNext(hasHeader("baz", "BAZ"))
+					.thenReply()
+					.assertNext(hasPayload("foo"))
+					.thenReply("foo");
 		}
 
 		@ServiceActivator(inputChannel = "pojoServiceChannel", outputChannel = "results")
 		public String myService(String payload) {
 			return payload + payload;
+		}
+
+		@Bean
+		public SubscribableChannel rawChannel() {
+			return new DirectChannel();
+		}
+
+		@Bean
+		public EventDrivenConsumer rawHandlerConsumer() {
+			return new EventDrivenConsumer(rawChannel(),
+					new ExpressionEvaluatingMessageHandler(new ValueExpression<>("test")));
 		}
 
 	}

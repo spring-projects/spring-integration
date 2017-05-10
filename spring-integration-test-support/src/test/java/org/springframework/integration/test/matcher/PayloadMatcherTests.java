@@ -26,7 +26,6 @@ import static org.springframework.integration.test.matcher.PayloadMatcher.hasPay
 
 import java.math.BigDecimal;
 
-import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
@@ -75,11 +74,11 @@ public class PayloadMatcherTests {
 		}
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void shouldMatchNonParametrizedMessage() throws Exception {
 		Message message = this.message;
-		assertThat(message, (Matcher<Message>) (Matcher<?>) hasPayload(new BigDecimal("1.123")));
+		assertThat(message, hasPayload(new BigDecimal("1.123")));
 	}
 
 }

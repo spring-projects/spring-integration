@@ -68,103 +68,99 @@ import org.springframework.messaging.MessageHeaders;
  *
  * @author Alex Peters
  * @author Iwein Fuld
+ * @author Artem Bilan
  *
  */
-public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
+@SuppressWarnings("rawtypes")
+public class HeaderMatcher extends TypeSafeMatcher<Message> {
 
 	private final Matcher<?> matcher;
 
 	/**
-	 * @param matcher
+	 * @param matcher the target matcher to delegate
 	 */
-	HeaderMatcher(Matcher<?> matcher) {
+	private HeaderMatcher(Matcher<?> matcher) {
 		super();
 		this.matcher = matcher;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
-	public boolean matchesSafely(Message<?> item) {
+	public boolean matchesSafely(Message item) {
 		return matcher.matches(item.getHeaders());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public void describeTo(Description description) {
 		description.appendText("a Message with Headers containing ").appendDescriptionOf(matcher);
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasHeader(String key, T value) {
+	public static <T> Matcher<Message> hasHeader(String key, T value) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(key, value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasHeader(String key, Matcher<?> valueMatcher) {
+	public static <T> Matcher<Message> hasHeader(String key, Matcher<T> valueMatcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(key, valueMatcher));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasHeaderKey(String key) {
+	public static Matcher<Message> hasHeaderKey(String key) {
 		return new HeaderMatcher(MapContentMatchers.hasKey(key));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasAllHeaders(Map<String, ?> entries) {
+	public static Matcher<Message> hasAllHeaders(Map<String, ?> entries) {
 		return new HeaderMatcher(MapContentMatchers.hasAllEntries(entries));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasMessageId(T value) {
+	public static <T> Matcher<Message> hasMessageId(T value) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.ID, value));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasCorrelationId(T value) {
+	public static <T> Matcher<Message> hasCorrelationId(T value) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry("correlationId", value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasSequenceNumber(Integer value) {
+	public static Matcher<Message> hasSequenceNumber(Integer value) {
 		return hasSequenceNumber(is(value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasSequenceNumber(Matcher<Integer> matcher) {
+	public static Matcher<Message> hasSequenceNumber(Matcher<Integer> matcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry("sequenceNumber", matcher));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasSequenceSize(Integer value) {
+	public static Matcher<Message> hasSequenceSize(Integer value) {
 		return hasSequenceSize(is(value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasSequenceSize(Matcher<Integer> value) {
+	public static Matcher<Message> hasSequenceSize(Matcher<Integer> value) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry("sequenceSize", value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasExpirationDate(Date value) {
+	public static Matcher<Message> hasExpirationDate(Date value) {
 		return hasExpirationDate(is(value.getTime()));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasExpirationDate(Matcher<Long> matcher) {
+	public static Matcher<Message> hasExpirationDate(Matcher<Long> matcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry("expirationDate", matcher));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasTimestamp(Date value) {
+	public static Matcher<Message> hasTimestamp(Date value) {
 		return hasTimestamp(is(value.getTime()));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasTimestamp(Matcher<Long> matcher) {
+	public static Matcher<Message> hasTimestamp(Matcher<Long> matcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.TIMESTAMP, matcher));
 	}
 

@@ -31,6 +31,7 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.IntegrationConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.test.mock.MockMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -125,14 +126,41 @@ public class MockIntegrationContext implements BeanFactoryAware {
 	}
 
 	public void instead(String consumerEndpointId, MessageHandler mockMessageHandler, boolean autoStartup) {
-		instead(consumerEndpointId, mockMessageHandler, IntegrationConsumer.class, "handler", autoStartup);
+		Object endpoint = this.beanFactory.getBean(consumerEndpointId, IntegrationConsumer.class);
+		if (autoStartup && endpoint instanceof Lifecycle) {
+			((Lifecycle) endpoint).stop();
+		}
+		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
+		Object targetMessageHandler = directFieldAccessor.getPropertyValue("handler");
+		this.beans.put(consumerEndpointId, targetMessageHandler);
+
 		if (mockMessageHandler instanceof MessageProducer) {
-			Object targetMessageHandler = this.beans.get(consumerEndpointId);
 			if (targetMessageHandler instanceof MessageProducer) {
 				MessageChannel outputChannel = TestUtils.getPropertyValue(targetMessageHandler, "outputChannel",
 						MessageChannel.class);
 				((MessageProducer) mockMessageHandler).setOutputChannel(outputChannel);
 			}
+			else {
+				if (mockMessageHandler instanceof MockMessageHandler) {
+					if (!TestUtils.getPropertyValue(mockMessageHandler, "hasReplies", Boolean.class)) {
+						mockMessageHandler = mockMessageHandler::handleMessage;
+					}
+					else {
+						throw new IllegalStateException("The [" + mockMessageHandler + "] " +
+								"with replies can't replace simple MessageHandler [" + targetMessageHandler + "]");
+					}
+				}
+				else {
+					throw new IllegalStateException("The MessageProducer handler [" + mockMessageHandler + "] " +
+							"can't replace simple MessageHandler [" + targetMessageHandler + "]");
+				}
+			}
+		}
+
+		directFieldAccessor.setPropertyValue("handler", mockMessageHandler);
+
+		if (autoStartup && endpoint instanceof Lifecycle) {
+			((Lifecycle) endpoint).start();
 		}
 	}
 

@@ -91,7 +91,7 @@ public final class MockIntegration {
 		MessageSource messageSource = Mockito.mock(MessageSource.class);
 
 		given(messageSource.receive())
-				.<Message<?>>willReturn(message);
+				.willReturn(message);
 
 		return messageSource;
 	}
@@ -115,8 +115,9 @@ public final class MockIntegration {
 		return messageSource;
 	}
 
-	public static MockMessageHandler.MockMessageHandlerWithReply mockMessageHandler(Matcher<Message<?>> matcher) {
-		return new MockMessageHandler.MockMessageHandlerWithReply(matcher);
+	@SuppressWarnings("rawtypes")
+	public static MockMessageHandler.MockMessageHandlerWithReply mockMessageHandler(Matcher<Message> matcher) {
+		return Mockito.spy(new MockMessageHandler.MockMessageHandlerWithReply(matcher));
 	}
 
 	private MockIntegration() {
