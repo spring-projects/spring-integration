@@ -25,6 +25,8 @@ import org.reactivestreams.Subscription;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.router.MessageRouter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -40,7 +42,11 @@ import reactor.core.publisher.BaseSubscriber;
  * @author Artem Bilan
  * @since 5.0
  */
-public class ReactiveStreamsConsumer extends AbstractEndpoint {
+public class ReactiveStreamsConsumer extends AbstractEndpoint implements IntegrationConsumer {
+
+	private final MessageChannel inputChannel;
+
+	private final MessageHandler messageHandler;
 
 	private final Publisher<Message<Object>> publisher;
 
@@ -61,18 +67,46 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint {
 	}
 
 	public ReactiveStreamsConsumer(MessageChannel inputChannel, final Subscriber<Message<?>> subscriber) {
+		this.inputChannel = inputChannel;
 		Assert.notNull(inputChannel, "'inputChannel' must not be null");
 		Assert.notNull(subscriber, "'subscriber' must not be null");
 
 		this.publisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
-
 		this.subscriber = subscriber;
-
 		this.lifecycleDelegate = subscriber instanceof Lifecycle ? (Lifecycle) subscriber : null;
+		if (subscriber instanceof MessageHandlerSubscriber) {
+			this.messageHandler = ((MessageHandlerSubscriber) subscriber).messageHandler;
+		}
+		else {
+			this.messageHandler = this.subscriber::onNext;
+		}
 	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
+	}
+
+	@Override
+	public MessageChannel getInputChannel() {
+		return this.inputChannel;
+	}
+
+	@Override
+	public MessageChannel getOutputChannel() {
+		if (this.messageHandler instanceof MessageProducer) {
+			return ((MessageProducer) this.messageHandler).getOutputChannel();
+		}
+		else if (this.messageHandler instanceof MessageRouter) {
+			return ((MessageRouter) this.messageHandler).getDefaultOutputChannel();
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
+	public MessageHandler getHandler() {
+		return this.messageHandler;
 	}
 
 	@Override
