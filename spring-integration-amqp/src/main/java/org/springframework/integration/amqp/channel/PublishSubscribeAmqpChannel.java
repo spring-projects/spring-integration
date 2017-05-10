@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,8 +98,8 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 		admin.declareQueue(this.queue);
 		this.binding = BindingBuilder.bind(this.queue).to(this.exchange);
 		admin.declareBinding(this.binding);
-		if (!this.initialized && this.getAmqpTemplate() instanceof RabbitTemplate) {
-			ConnectionFactory connectionFactory = this.getConnectionFactory();
+		if (!this.initialized && getAmqpTemplate() instanceof RabbitTemplate) {
+			ConnectionFactory connectionFactory = getConnectionFactory();
 			if (connectionFactory != null) {
 				connectionFactory.addConnectionListener(this);
 			}
@@ -108,9 +108,9 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 		return this.queue.getName();
 	}
 
-	private void doDeclares() {
-		if (this.isRunning()) {
-			AmqpAdmin admin = this.getAdmin();
+	protected void doDeclares() {
+		if (isRunning()) {
+			AmqpAdmin admin = getAdmin();
 			if (admin != null) {
 				if (this.queue != null) {
 					admin.declareQueue(this.queue);
@@ -125,7 +125,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	@Override
 	protected AbstractDispatcher createDispatcher() {
 		BroadcastingDispatcher broadcastingDispatcher = new BroadcastingDispatcher(true);
-		broadcastingDispatcher.setBeanFactory(this.getBeanFactory());
+		broadcastingDispatcher.setBeanFactory(getBeanFactory());
 		return broadcastingDispatcher;
 	}
 
@@ -137,15 +137,15 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	@Override
 	public void destroy() throws Exception {
 		super.destroy();
-		if (this.getConnectionFactory() != null) {
-			this.getConnectionFactory().removeConnectionListener(this);
+		if (getConnectionFactory() != null) {
+			getConnectionFactory().removeConnectionListener(this);
 			this.initialized = false;
 		}
 	}
 
 	@Override
 	public void start() {
-		this.doDeclares(); // connection may have been lost while we were stopped
+		doDeclares(); // connection may have been lost while we were stopped
 		super.start();
 	}
 

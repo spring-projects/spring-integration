@@ -450,7 +450,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
-	private Message<?> convertPayloadIfNecessary(Message<?> message) {
+	protected Message<?> convertPayloadIfNecessary(Message<?> message) {
 		// first pass checks if the payload type already matches any of the datatypes
 		for (Class<?> datatype : this.datatypes) {
 			if (datatype.isAssignableFrom(message.getPayload().getClass())) {
