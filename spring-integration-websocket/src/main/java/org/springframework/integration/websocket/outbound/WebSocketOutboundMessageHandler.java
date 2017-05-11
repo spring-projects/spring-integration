@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.support.json.JacksonJsonUtils;
+import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
 import org.springframework.integration.websocket.support.PassThruSubProtocolHandler;
@@ -52,7 +52,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 	{
 		this.defaultConverters.add(new StringMessageConverter());
 		this.defaultConverters.add(new ByteArrayMessageConverter());
-		if (JacksonJsonUtils.isJackson2Present()) {
+		if (JacksonPresent.isJackson2Present()) {
 			DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
 			resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
 			MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();

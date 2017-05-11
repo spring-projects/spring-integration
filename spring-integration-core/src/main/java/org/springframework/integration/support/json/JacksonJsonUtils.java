@@ -20,7 +20,6 @@ import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -43,35 +42,35 @@ public final class JacksonJsonUtils {
 		super();
 	}
 
-	private static final ClassLoader classLoader = JacksonJsonUtils.class.getClassLoader();
-
-	private static final boolean jackson2Present =
-			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader) &&
-					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", classLoader);
-
-	private static final boolean jacksonPresent =
-			ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", classLoader) &&
-					ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", classLoader);
-
+	/**
+	 * @return true if Jackson 2 is present in the classpath
+	 * @deprecated since 4.3.10 in favor of {@link JacksonPresent}
+	 */
+	@Deprecated
 	public static boolean isJackson2Present() {
-		return jackson2Present;
-	}
-
-	public static boolean isJacksonPresent() {
-		return jacksonPresent;
+		return JacksonPresent.isJackson2Present();
 	}
 
 	/**
-	 * Return an {@link ObjectMapper} if available,
+	 * @return true if Jackson 2 is present in the classpath
+	 * @deprecated since 4.3.10 in favor of {@link JacksonPresent}
+	 */
+	@Deprecated
+	public static boolean isJacksonPresent() {
+		return JacksonPresent.isJacksonPresent();
+	}
+
+	/**
+	 * Return an {@link com.fasterxml.jackson.databind.ObjectMapper} if available,
 	 * supplied with Message specific serializers and deserializers.
 	 * Also configured to store typo info in the {@code @class} property.
 	 * @return the mapper.
 	 * @throws IllegalStateException if an implementation is not available.
 	 * @since 4.3.10
 	 */
-	public static ObjectMapper messagingAwareMapper() {
-		if (jackson2Present) {
-			ObjectMapper mapper = new ObjectMapper();
+	public static com.fasterxml.jackson.databind.ObjectMapper messagingAwareMapper() {
+		if (JacksonPresent.isJackson2Present()) {
+			ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
 			mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
 			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 			mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
