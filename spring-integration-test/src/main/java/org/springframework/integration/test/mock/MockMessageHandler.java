@@ -65,18 +65,43 @@ public class MockMessageHandler extends AbstractMessageProducingHandler {
 	protected MockMessageHandler() {
 	}
 
+	/**
+	 * Add the {@link PayloadMatcher#hasPayload} assertion to the stack to
+	 * verify the next incoming message.
+	 * @param payload the static payload to assert against next incoming message
+	 * @return this
+	 */
 	public MockMessageHandlerWithReply assertNext(Object payload) {
 		return assertNext(PayloadMatcher.hasPayload(payload));
 	}
 
+	/**
+	 * Add the {@link PayloadAndHeaderMatcher#sameExceptIgnorableHeaders}
+	 * assertion to the stack to verify the next incoming message.
+	 * @param message the static message to assert against next incoming message
+	 * @return this
+	 */
 	public MockMessageHandlerWithReply assertNext(Message<?> message) {
 		return assertNext(PayloadAndHeaderMatcher.sameExceptIgnorableHeaders(message));
 	}
 
+	/**
+	 /**
+	 * Add the {@link PayloadAndHeaderMatcher#sameExceptIgnorableHeaders}
+	 * assertion to the stack to verify the next incoming message.
+	 * @param message the static message to assert against next incoming message
+	 * @param headersToIgnore the header names do not involve in the assertion
+	 * @return this
+	 */
 	public MockMessageHandlerWithReply assertNext(Message<?> message, String... headersToIgnore) {
 		return assertNext(PayloadAndHeaderMatcher.sameExceptIgnorableHeaders(message, headersToIgnore));
 	}
 
+	/**
+	 * Add the provided {@link Matcher} to the stack to verify the next incoming message.
+	 * @param nextMessageMatcher the matcher to assert against next incoming message
+	 * @return this
+	 */
 	public MockMessageHandlerWithReply assertNext(Matcher<Message<?>> nextMessageMatcher) {
 		Assert.notNull(nextMessageMatcher, "'nextMessageMatcher' must not be null");
 		this.matchers.put(nextMessageMatcher, null);
