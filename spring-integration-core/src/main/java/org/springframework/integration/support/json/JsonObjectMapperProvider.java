@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public final class JsonObjectMapperProvider {
 	 * @throws IllegalStateException if an implementation is not available.
 	 */
 	public static JsonObjectMapper<?, ?> newInstance() {
-		if (JacksonJsonUtils.isJackson2Present()) {
+		if (JacksonPresent.isJackson2Present()) {
 			return new Jackson2JsonObjectMapper();
 		}
 		else if (boonPresent) {
@@ -66,7 +66,7 @@ public final class JsonObjectMapperProvider {
 	 * @since 4.2.7
 	 */
 	public static boolean jsonAvailable() {
-		return JacksonJsonUtils.isJackson2Present() || boonPresent;
+		return JacksonPresent.isJackson2Present() || boonPresent;
 	}
 
 }
