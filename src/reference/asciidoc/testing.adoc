@@ -287,6 +287,27 @@ assertNotNull(receive);
 assertEquals("FOO", receive.getPayload());
 ----
 
+Unlike full Mockito `MessageSource` mock, the `MockMessageHandler` is just regular `AbstractMessageProducingHandler` extension wrapped to the Mockito spy in the `MockIntegration.mockMessageHandler()`.
+The `MockMessageHandler` suggests requests verification and reply producing functionality during regular integration flow send and receive process.
+It must be supplied with `Matcher` s to verify request messages and optional reply `Function` to build result based on the request message:
+
+[source,java]
+----
+MockIntegration.mockMessageHandler(hasHeader("bar", "BAR"))
+            .thenReply()
+            .assertNext(new GenericMessage<>("foo", Collections.singletonMap("key", "value")))
+            .assertNext(hasPayload("foo"))
+            .thenReply(m -> m.getPayload("X"));
+----
+
+The `Matcher` s (and their optional reply `Function` s) are applied to the request messages one by one: the first incoming message is verified against first `Matcher` in chain and reply is build based on this message if `thenReply()` is present for that `Matcher`.
+The next message is verified against the next `Matcher` in chain and so on until only the last `Matcher` is left.
+Then it is applied for all subsequent messages together with its reply `Function`.
+The similar behavior exists in the `Mockito.doReturn(Object toBeReturned, Object... toBeReturnedNext)` functionality.
+
+
+See `MockIntegration` and `MockMessageHandler` JavaDocs for more information.
+
 [[testing-other-resources]]
 === Other Resources
 

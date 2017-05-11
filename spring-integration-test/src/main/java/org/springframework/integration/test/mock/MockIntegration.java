@@ -117,7 +117,7 @@ public final class MockIntegration {
 	/**
 	 * Build a Mockito spy over the {@link MockMessageHandler} instance
 	 * based on the provided payload to assert incoming messages.
-	 * @param payload the to assert incoming messages
+	 * @param payload the static payload to assert incoming messages
 	 * @return the MockMessageHandler instance ready for interaction
 	 * @see Mockito#spy(Object)
 	 * @see MockMessageHandler
@@ -129,7 +129,7 @@ public final class MockIntegration {
 	/**
 	 * Build a Mockito spy over the {@link MockMessageHandler} instance
 	 * based on the provided message to assert incoming messages.
-	 * @param message the to assert incoming messages
+	 * @param message the static message to assert incoming messages
 	 * @return the MockMessageHandler instance ready for interaction
 	 * @see Mockito#spy(Object)
 	 * @see MockMessageHandler
@@ -142,7 +142,7 @@ public final class MockIntegration {
 	/**
 	 * Build a Mockito spy over the {@link MockMessageHandler} instance
 	 * based on the provided message to assert incoming messages.
-	 * @param message the to assert incoming messages
+	 * @param message the static message to assert incoming messages
 	 * @param headersToIgnore the headers to ignore during assertion
 	 * @return the MockMessageHandler instance ready for interaction
 	 * @see Mockito#spy(Object)
