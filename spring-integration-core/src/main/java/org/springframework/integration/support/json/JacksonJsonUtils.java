@@ -20,7 +20,6 @@ import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.ClassUtils;
 
 /**
  * Utility methods for Jackson.
@@ -37,22 +36,22 @@ public final class JacksonJsonUtils {
 		super();
 	}
 
-	private static final ClassLoader classLoader = JacksonJsonUtils.class.getClassLoader();
-
-	private static final boolean jackson2Present =
-			ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader) &&
-					ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", classLoader);
-
-	private static final boolean jacksonPresent =
-			ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", classLoader) &&
-					ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", classLoader);
-
+	/**
+	 * @return true if Jackson 2 is present in the classpath
+	 * @deprecated since 4.3.10 in favor of {@link JacksonPresent}
+	 */
+	@Deprecated
 	public static boolean isJackson2Present() {
-		return jackson2Present;
+		return JacksonPresent.isJackson2Present();
 	}
 
+	/**
+	 * @return true if Jackson 2 is present in the classpath
+	 * @deprecated since 4.3.10 in favor of {@link JacksonPresent}
+	 */
+
 	public static boolean isJacksonPresent() {
-		return jacksonPresent;
+		return JacksonPresent.isJacksonPresent();
 	}
 
 	/**
@@ -64,7 +63,7 @@ public final class JacksonJsonUtils {
 	 * @since 4.3.10
 	 */
 	public static com.fasterxml.jackson.databind.ObjectMapper messagingAwareMapper() {
-		if (jackson2Present) {
+		if (JacksonPresent.isJackson2Present()) {
 			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
 			mapper.configure(com.fasterxml.jackson.databind.MapperFeature.DEFAULT_VIEW_INCLUSION, false);
 			mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
