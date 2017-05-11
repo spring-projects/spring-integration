@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.integration.support.json.JacksonJsonUtils;
+import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.GenericMessageConverter;
@@ -77,7 +77,7 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 	private static Collection<MessageConverter> initDefaults() {
 		List<MessageConverter> converters = new LinkedList<>();
 
-		if (JacksonJsonUtils.isJackson2Present()) {
+		if (JacksonPresent.isJackson2Present()) {
 			converters.add(new MappingJackson2MessageConverter());
 		}
 		converters.add(new ByteArrayMessageConverter());
