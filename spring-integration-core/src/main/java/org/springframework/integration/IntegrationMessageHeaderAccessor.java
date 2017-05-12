@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Andy Wilkinson
  * @author Artem Bilan
+ * @author Gary Russel
+ *
  * @since 4.0
  *
  */
@@ -155,6 +157,20 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	@Override
 	protected boolean isReadOnly(String headerName) {
 		return super.isReadOnly(headerName) || this.readOnlyHeaders.contains(headerName);
+	}
+
+	@Override
+	public Map<String, Object> toMap() {
+		if (ObjectUtils.isEmpty(this.readOnlyHeaders)) {
+			return super.toMap();
+		}
+		else {
+			Map<String, Object> headers = super.toMap();
+			for (String header : this.readOnlyHeaders) {
+				headers.remove(header);
+			}
+			return headers;
+		}
 	}
 
 }

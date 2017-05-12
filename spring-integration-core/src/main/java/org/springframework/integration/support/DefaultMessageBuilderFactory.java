@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.support;
+
+import java.util.Arrays;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -37,7 +39,24 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 	 * @since 4.3.2
 	 */
 	public void setReadOnlyHeaders(String... readOnlyHeaders) {
-		this.readOnlyHeaders = readOnlyHeaders;
+		this.readOnlyHeaders = Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length);
+	}
+
+	/**
+	 * Add headers to the configured list of read only headers.
+	 * @param readOnlyHeaders the additional headers.
+	 * @since 4.3.10
+	 */
+	public void addReadOnlyHeaders(String... readOnlyHeaders) {
+		String[] headers = this.readOnlyHeaders;
+		if (headers == null || headers.length == 0) {
+			headers = Arrays.copyOf(readOnlyHeaders, readOnlyHeaders.length);
+		}
+		else {
+			headers = Arrays.copyOf(headers, headers.length + readOnlyHeaders.length);
+			System.arraycopy(readOnlyHeaders, 0, headers, this.readOnlyHeaders.length, readOnlyHeaders.length);
+		}
+		this.readOnlyHeaders = headers;
 	}
 
 	@Override
