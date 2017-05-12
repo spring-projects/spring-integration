@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * The default message builder; creates immutable {@link GenericMessage}s.
@@ -49,6 +50,8 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	private final Message<T> originalMessage;
 
 	private volatile boolean modified;
+
+	private String[] readOnlyHeaders;
 
 	/**
 	 * Private constructor to be invoked from the static factory methods only.
@@ -106,7 +109,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 */
 	@Override
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
-		this.headerAccessor.setHeader(headerName,  headerValue);
+		this.headerAccessor.setHeader(headerName, headerValue);
 		return this;
 	}
 
@@ -136,6 +139,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 		this.headerAccessor.removeHeaders(headerPatterns);
 		return this;
 	}
+
 	/**
 	 * Remove the value for the given header name.
 	 * @param headerName The header name.
@@ -284,16 +288,16 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * @see IntegrationMessageHeaderAccessor#isReadOnly(String)
 	 */
 	public MessageBuilder<T> readOnlyHeaders(String... readOnlyHeaders) {
+		this.readOnlyHeaders = readOnlyHeaders;
 		this.headerAccessor.setReadOnlyHeaders(readOnlyHeaders);
 		return this;
 	}
 
-
-
 	@Override
 	@SuppressWarnings("unchecked")
 	public Message<T> build() {
-		if (!this.modified && !this.headerAccessor.isModified() && this.originalMessage != null) {
+		if (!this.modified && !this.headerAccessor.isModified() && this.originalMessage != null
+				&& !containsReadOnly(this.originalMessage.getHeaders())) {
 			return this.originalMessage;
 		}
 		if (this.payload instanceof Throwable) {
@@ -301,5 +305,17 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 		}
 		return new GenericMessage<T>(this.payload, this.headerAccessor.toMap());
 	}
+
+	private boolean containsReadOnly(MessageHeaders headers) {
+		if (!ObjectUtils.isEmpty(this.readOnlyHeaders)) {
+			for (String readOnly : this.readOnlyHeaders) {
+				if (headers.containsKey(readOnly)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 
 }
