@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -293,7 +293,8 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	@Override
 	@SuppressWarnings("unchecked")
 	public Message<T> build() {
-		if (!this.modified && !this.headerAccessor.isModified() && this.originalMessage != null) {
+		if (!this.modified && !this.headerAccessor.isModified() && this.originalMessage != null
+				&& !this.headerAccessor.containsReadOnly(this.originalMessage.getHeaders())) {
 			return this.originalMessage;
 		}
 		if (this.payload instanceof Throwable) {
