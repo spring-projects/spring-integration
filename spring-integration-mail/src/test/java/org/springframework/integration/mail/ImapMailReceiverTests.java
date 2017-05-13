@@ -38,6 +38,7 @@ import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -218,14 +219,15 @@ public class ImapMailReceiverTests {
 		else {
 			org.springframework.messaging.Message<?> received = channel.receive(10000);
 			assertNotNull(received);
-			assertNotNull(received.getHeaders().get(MailHeaders.RAW_HEADERS));
-			assertThat((String) received.getHeaders().get(MailHeaders.CONTENT_TYPE),
-					equalTo("TEXT/PLAIN; charset=ISO-8859-1"));
-			assertThat((String) received.getHeaders().get(MessageHeaders.CONTENT_TYPE),
-					equalTo("TEXT/PLAIN; charset=ISO-8859-1"));
-			assertThat((String) received.getHeaders().get(MailHeaders.FROM), equalTo("Bar <bar@baz>"));
-			assertThat(((String[]) received.getHeaders().get(MailHeaders.TO))[0], equalTo("Foo <foo@bar>"));
-			assertThat((String) received.getHeaders().get(MailHeaders.SUBJECT), equalTo("Test Email"));
+			MessageHeaders headers = received.getHeaders();
+			assertNotNull(headers.get(MailHeaders.RAW_HEADERS));
+			assertThat(headers.get(MailHeaders.CONTENT_TYPE), equalTo("TEXT/PLAIN; charset=ISO-8859-1"));
+			assertThat(headers.get(MessageHeaders.CONTENT_TYPE), equalTo("TEXT/PLAIN; charset=ISO-8859-1"));
+			assertThat(headers.get(MailHeaders.FROM), equalTo("Bar <bar@baz>"));
+			assertThat((headers.get(MailHeaders.TO, String[].class))[0], equalTo("Foo <foo@bar>"));
+			assertThat(Arrays.toString(headers.get(MailHeaders.CC, String[].class)), equalTo("[a@b, c@d]"));
+			assertThat(Arrays.toString(headers.get(MailHeaders.BCC, String[].class)), equalTo("[e@f, g@h]"));
+			assertThat(headers.get(MailHeaders.SUBJECT), equalTo("Test Email"));
 			if (simple) {
 				assertThat(received.getPayload(), equalTo(TestMailServer.MailServer.MailHandler.BODY + "\r\n"));
 			}
@@ -448,7 +450,6 @@ public class ImapMailReceiverTests {
 		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
 	}
 
-	@SuppressWarnings("resource")
 	@Test
 	@Ignore
 	public void testMessageHistory() throws Exception {
