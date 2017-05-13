@@ -289,7 +289,9 @@ public class TestMailServer {
 							assertions.add("searchWithUserFlag");
 						}
 						else if (line.contains("FETCH 1 (ENVELOPE")) {
-							write("* 1 FETCH (RFC822.SIZE 6909 INTERNALDATE \"27-May-2013 09:45:41 +0000\" "
+							write("* 1 FETCH (RFC822.SIZE "
+									+ MESSAGE.length()
+									+ " INTERNALDATE \"27-May-2013 09:45:41 +0000\" "
 									+ "FLAGS (\\Seen) "
 									+ "ENVELOPE (\"Mon, 27 May 2013 15:14:49 +0530\" "
 									+ "\"Test Email\" "
