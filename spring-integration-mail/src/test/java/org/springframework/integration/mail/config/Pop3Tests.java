@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.mail.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -65,6 +67,8 @@ public class Pop3Tests {
 		assertNotNull(message);
 		MessageHeaders headers = message.getHeaders();
 		assertEquals("Foo <foo@bar>", headers.get(MailHeaders.TO, String[].class)[0]);
+		assertEquals("[a@b, c@d]", Arrays.toString(headers.get(MailHeaders.CC, String[].class)));
+		assertEquals("[e@f, g@h]", Arrays.toString(headers.get(MailHeaders.BCC, String[].class)));
 		assertEquals("Bar <bar@baz>", headers.get(MailHeaders.FROM));
 		assertEquals("Test Email", headers.get(MailHeaders.SUBJECT));
 		assertEquals("foo\r\n\r\n", message.getPayload());

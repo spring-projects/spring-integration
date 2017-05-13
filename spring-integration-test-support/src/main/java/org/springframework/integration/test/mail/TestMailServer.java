@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,21 +289,28 @@ public class TestMailServer {
 							assertions.add("searchWithUserFlag");
 						}
 						else if (line.contains("FETCH 1 (ENVELOPE")) {
-							write("* 1 FETCH (RFC822.SIZE 6909 INTERNALDATE \"27-May-2013 09:45:41 +0000\" "
+							write("* 1 FETCH (RFC822.SIZE "
+									+ MESSAGE.length()
+									+ " INTERNALDATE \"27-May-2013 09:45:41 +0000\" "
 									+ "FLAGS (\\Seen) "
 									+ "ENVELOPE (\"Mon, 27 May 2013 15:14:49 +0530\" "
-									+ "\"Test Email\" ((\"Bar\" NIL \"bar\" \"baz\")) "
-									+ "((\"Bar\" NIL \"bar\" \"baz\")) "
-									+ "((\"Bar\" NIL \"bar\" \"baz\")) "
-									+ "((\"Foo\" NIL \"foo\" \"bar\")) NIL NIL "
-									+ "\"<4DA0A7E4.3010506@baz.net>\" "
-									+ "\"<CACVnpJkAUUfa3d_-4GNZW2WpxbB39tBCHC=T0gc7hty6dOEHcA@foo.bar.com>\") "
-									+ "BODYSTRUCTURE (\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1176 43)))");
+									+ "\"Test Email\" "
+									+ "((\"Bar\" NIL \"bar\" \"baz\")) " // From
+									+ "((\"Bar\" NIL \"bar\" \"baz\")) " // Sender
+									+ "((\"Bar\" NIL \"bar\" \"baz\")) " // Reply To
+									+ "((\"Foo\" NIL \"foo\" \"bar\")) " // To
+									+ "((NIL NIL \"a\" \"b\") (NIL NIL \"c\" \"d\")) " // cc
+									+ "((NIL NIL \"e\" \"f\") (NIL NIL \"g\" \"h\")) " // bcc
+									+ "\"<4DA0A7E4.3010506@baz.net>\" " // In reply to
+									+ "\"<CACVnpJkAUUfa3d_-4GNZW2WpxbB39tBCHC=T0gc7hty6dOEHcA@foo.bar.com>\") " // msgid
+									+ "BODYSTRUCTURE "
+									+ "(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1 5)))");
 							write(tag + "OK FETCH completed");
 						}
 						else if (line.contains("FETCH 2 (BODYSTRUCTURE)")) {
 							write("* 2 FETCH " +
-									"BODYSTRUCTURE (\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1176 43)))");
+									"BODYSTRUCTURE "
+									+ "(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1 5)))");
 							write(tag + "OK FETCH completed");
 						}
 						else if (line.contains("STORE 1 +FLAGS (\\Flagged)")) {
@@ -446,7 +453,12 @@ public class TestMailServer {
 			public static final String BODY = "foo\r\n";
 
 			public static final String MESSAGE =
-					"To: Foo <foo@bar>\r\nFrom: Bar <bar@baz>\r\nSubject: Test Email\r\n\r\n" + BODY;
+					"To: Foo <foo@bar>\r\n"
+					+ "cc: a@b, c@d\r\n"
+					+ "bcc: e@f, g@h\r\n"
+					+ "From: Bar <bar@baz>\r\n"
+					+ "Subject: Test Email\r\n"
+					+ "\r\n" + BODY;
 
 			protected final Socket socket;
 
