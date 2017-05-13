@@ -302,13 +302,13 @@ public class TestMailServer {
 									+ "\"<4DA0A7E4.3010506@baz.net>\" " // In reply to
 									+ "\"<CACVnpJkAUUfa3d_-4GNZW2WpxbB39tBCHC=T0gc7hty6dOEHcA@foo.bar.com>\") " // msgid
 									+ "BODYSTRUCTURE "
-									+ "(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1176 43)))");
+									+ "(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1 5)))");
 							write(tag + "OK FETCH completed");
 						}
 						else if (line.contains("FETCH 2 (BODYSTRUCTURE)")) {
 							write("* 2 FETCH " +
 									"BODYSTRUCTURE "
-									+ "(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1176 43)))");
+									+ "(\"TEXT\" \"PLAIN\" (\"CHARSET\" \"ISO-8859-1\") NIL NIL \"7BIT\" 1 5)))");
 							write(tag + "OK FETCH completed");
 						}
 						else if (line.contains("STORE 1 +FLAGS (\\Flagged)")) {
