@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,7 +391,7 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message2);
 		Message<?> out1 = replyChannel.receive(0);
 		assertNull(out1);
-		out1 = discardChannel.receive(1000);
+		out1 = discardChannel.receive(10000);
 		assertNotNull(out1);
 		Message<?> out2 = discardChannel.receive(10);
 		assertNotNull(out2);
@@ -399,7 +399,7 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message1);
 		Message<?> out3 = discardChannel.receive(0);
 		assertNull(out3);
-		out3 = discardChannel.receive(1000);
+		out3 = discardChannel.receive(10000);
 		assertNotNull(out3);
 	}
 
