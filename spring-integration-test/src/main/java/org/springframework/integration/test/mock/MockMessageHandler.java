@@ -17,34 +17,36 @@
 package org.springframework.integration.test.mock;
 
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.hamcrest.Matcher;
+import org.mockito.ArgumentCaptor;
+import org.mockito.internal.matchers.CapturingMatcher;
 
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
-import org.springframework.integration.test.matcher.PayloadAndHeaderMatcher;
-import org.springframework.integration.test.matcher.PayloadMatcher;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
- * The {@link AbstractMessageProducingHandler} extension for the assertion purpose in tests.
+ * The {@link AbstractMessageProducingHandler} extension for the mocking purpose in tests.
  * <p>
- * The provided {@link Matcher}s are applied to the incoming messages one at a time
- * until the last {@link Matcher}, which is applied for all subsequent messages -
- * the similar behavior exists in the
+ * The provided {@link Consumer}s and {@link Function}s are applied to the incoming
+ * messages one at a time until the last, which is applied for all subsequent messages.
+ * The similar behavior exists in the
  * {@code Mockito.doReturn(Object toBeReturned, Object... toBeReturnedNext)}.
  * <p>
- * Typically is used as a chain of assertions and optional replies for them:
+ * Typically is used as a chain of stub actions:
  * <pre class="code">
  * {@code
- *      MockIntegration.mockMessageHandler(hasHeader("bar", "BAR"))
- *               .thenReply()
- *               .assertNext(new GenericMessage<>("foo", Collections.singletonMap("key", "value")))
- *               .assertNext(hasPayload("foo"))
- *               .thenReply(m -> m.getPayload("X"));
+ *      MockIntegration.mockMessageHandler()
+ *               .handleNext(...)
+ *               .handleNext(...)
+ *               .handleNextAndReply(...)
+ *               .handleNextAndReply(...)
+ *               .handleNext(...)
+ *               .handleNextAndReply(...);
  * }
  * </pre>
  *
@@ -54,122 +56,73 @@ import org.springframework.util.Assert;
  */
 public class MockMessageHandler extends AbstractMessageProducingHandler {
 
-	protected final Map<Matcher<Message<?>>, Function<Message<?>, ?>> matchers = new LinkedHashMap<>();
+	protected final List<Function<Message<?>, ?>> messageFunctions = new LinkedList<>();
 
-	protected Matcher<Message<?>> lastKey;
+	private final CapturingMatcher<Message<?>> capturingMatcher;
 
-	protected Function<Message<?>, ?> lastReplyFunction;
+	protected Function<Message<?>, ?> lastFunction;
 
 	protected boolean hasReplies;
 
-	protected MockMessageHandler() {
+	@SuppressWarnings("unchecked")
+	protected MockMessageHandler(ArgumentCaptor<Message<?>> messageArgumentCaptor) {
+		if (messageArgumentCaptor != null) {
+			this.capturingMatcher = (CapturingMatcher<Message<?>>) TestUtils.getPropertyValue(messageArgumentCaptor,
+					"capturingMatcher", CapturingMatcher.class);
+		}
+		else {
+			this.capturingMatcher = null;
+		}
 	}
 
 	/**
-	 * Add the {@link PayloadMatcher#hasPayload} assertion to the stack to
-	 * verify the next incoming message.
-	 * @param payload the static payload to assert against next incoming message
+	 * Add the {@link Consumer} to the stack to handle the next incoming message.
+	 * @param nextMessageConsumer the Consumer to handle the next incoming message.
 	 * @return this
 	 */
-	public MockMessageHandlerWithReply assertNext(Object payload) {
-		return assertNext(PayloadMatcher.hasPayload(payload));
+	public MockMessageHandler handleNext(Consumer<Message<?>> nextMessageConsumer) {
+		this.lastFunction = m -> {
+			nextMessageConsumer.accept(m);
+			return null;
+		};
+		this.messageFunctions.add(this.lastFunction);
+		return this;
 	}
 
 	/**
-	 * Add the {@link PayloadAndHeaderMatcher#sameExceptIgnorableHeaders}
-	 * assertion to the stack to verify the next incoming message.
-	 * @param message the static message to assert against next incoming message
+	 * Add the {@link Function} to the stack to handle the next incoming message
+	 * and produce reply for it.
+	 * @param nextMessageFunction the Function to handle the next incoming message.
 	 * @return this
 	 */
-	public MockMessageHandlerWithReply assertNext(Message<?> message) {
-		return assertNext(PayloadAndHeaderMatcher.sameExceptIgnorableHeaders(message));
-	}
-
-	/**
-	 /**
-	 * Add the {@link PayloadAndHeaderMatcher#sameExceptIgnorableHeaders}
-	 * assertion to the stack to verify the next incoming message.
-	 * @param message the static message to assert against next incoming message
-	 * @param headersToIgnore the header names do not involve in the assertion
-	 * @return this
-	 */
-	public MockMessageHandlerWithReply assertNext(Message<?> message, String... headersToIgnore) {
-		return assertNext(PayloadAndHeaderMatcher.sameExceptIgnorableHeaders(message, headersToIgnore));
-	}
-
-	/**
-	 * Add the provided {@link Matcher} to the stack to verify the next incoming message.
-	 * @param nextMessageMatcher the matcher to assert against next incoming message
-	 * @return this
-	 */
-	public MockMessageHandlerWithReply assertNext(Matcher<Message<?>> nextMessageMatcher) {
-		Assert.notNull(nextMessageMatcher, "'nextMessageMatcher' must not be null");
-		this.matchers.put(nextMessageMatcher, null);
-		this.lastKey = nextMessageMatcher;
-		this.lastReplyFunction = null;
-		return (MockMessageHandlerWithReply) this;
+	public MockMessageHandler handleNextAndReply(Function<Message<?>, ?> nextMessageFunction) {
+		this.lastFunction = nextMessageFunction;
+		this.messageFunctions.add(this.lastFunction);
+		this.hasReplies = true;
+		return this;
 	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Matcher<Message<?>> matcher = this.lastKey;
-		Function<Message<?>, ?> replyFunction = this.lastReplyFunction;
+		if (this.capturingMatcher != null) {
+			this.capturingMatcher.captureFrom(message);
+		}
+
+		Function<Message<?>, ?> function = this.lastFunction;
 
 		synchronized (this) {
-			Iterator<Map.Entry<Matcher<Message<?>>, Function<Message<?>, ?>>> entryIterator =
-					this.matchers.entrySet().iterator();
-			if (entryIterator.hasNext()) {
-				Map.Entry<Matcher<Message<?>>, Function<Message<?>, ?>> matcherFunctionEntry = entryIterator.next();
-				matcher = matcherFunctionEntry.getKey();
-				replyFunction = matcherFunctionEntry.getValue();
-				entryIterator.remove();
+			Iterator<Function<Message<?>, ?>> iterator = this.messageFunctions.iterator();
+			if (iterator.hasNext()) {
+				function = iterator.next();
+				iterator.remove();
 			}
 		}
 
-		org.junit.Assert.assertThat(message, matcher);
+		Object result = function.apply(message);
 
-		if (replyFunction != null) {
-			sendOutputs(replyFunction.apply(message), message);
+		if (result != null) {
+			sendOutputs(result, message);
 		}
-	}
-
-	static class MockMessageHandlerWithReply extends MockMessageHandler {
-
-		MockMessageHandlerWithReply(Matcher<Message<?>> nextMessageMatcher) {
-			assertNext(nextMessageMatcher);
-		}
-
-		/**
-		 * Add the {@link Function#identity()} reply to the current assertion.
-		 * Produces the {@code requestMessage} as a reply.
-		 * @return this
-		 */
-		public MockMessageHandler thenReply() {
-			return thenReply(Function.identity());
-		}
-
-		/**
-		 * Add the {@link Function} for static payload reply to the current assertion.
-		 * @param reply the object which becomes as a payload for the reply.
-		 * @return this
-		 */
-		public MockMessageHandler thenReply(Object reply) {
-			return thenReply(m -> reply);
-		}
-
-		/**
-		 * Add the {@link Function} for the reply based on the {@code requestMessage}
-		 * to the current assertion.
-		 * @param replyFunction the function to build reply based on the requestMessage
-		 * @return this
-		 */
-		public MockMessageHandler thenReply(Function<Message<?>, ?> replyFunction) {
-			this.matchers.put(this.lastKey, replyFunction);
-			this.lastReplyFunction = replyFunction;
-			this.hasReplies = this.lastReplyFunction != null;
-			return this;
-		}
-
 	}
 
 }

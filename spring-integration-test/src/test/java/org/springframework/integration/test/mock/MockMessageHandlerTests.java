@@ -18,25 +18,30 @@ package org.springframework.integration.test.mock;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
+import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 import static org.springframework.integration.test.mock.MockIntegration.mockMessageHandler;
+
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -86,6 +91,9 @@ public class MockMessageHandlerTests {
 	@Autowired
 	private QueueChannel results;
 
+	@Autowired
+	private ArgumentCaptor<Message<?>> messageArgumentCaptor;
+
 	@After
 	public void tearDown() {
 		this.mockIntegrationContext.resetBeans();
@@ -115,6 +123,20 @@ public class MockMessageHandlerTests {
 			assertNotNull(receive);
 			assertEquals("foo", receive.getPayload());
 		}
+
+		List<Message<?>> messages = this.messageArgumentCaptor.getAllValues();
+
+		assertEquals(4, messages.size());
+
+		assertThat(messages.get(0), hasHeader("bar", "BAR"));
+		assertThat(messages.get(1),
+				sameExceptIgnorableHeaders(MessageBuilder.withPayload("foo")
+								.setHeader("baz", "BAZ")
+								.build(),
+						"bar", MessageHeaders.REPLY_CHANNEL));
+
+		assertThat(messages.get(2), hasPayload("foo"));
+		assertThat(messages.get(3), hasPayload("foo"));
 	}
 
 	@Test
@@ -127,8 +149,8 @@ public class MockMessageHandlerTests {
 		assertEquals("barbar", receive.getPayload());
 
 		MessageHandler mockMessageHandler =
-				mockMessageHandler(new GenericMessage<>("foo"))
-						.thenReply(m -> m.getPayload().toString().toUpperCase());
+				mockMessageHandler()
+						.handleNextAndReply(m -> m.getPayload().toString().toUpperCase());
 
 		this.mockIntegrationContext.instead("mockMessageHandlerTests.Config.myService.serviceActivator",
 				mockMessageHandler);
@@ -149,8 +171,12 @@ public class MockMessageHandlerTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMockRawHandler() {
-		MessageHandler mockMessageHandler = mockMessageHandler(hasPayload(notNullValue()));
+		ArgumentCaptor<Message<?>> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
+		MessageHandler mockMessageHandler =
+				spy(mockMessageHandler(messageArgumentCaptor))
+						.handleNext(m -> { });
 
 		String endpointId = "rawHandlerConsumer";
 		this.mockIntegrationContext.instead(endpointId, mockMessageHandler);
@@ -165,11 +191,13 @@ public class MockMessageHandlerTests {
 		verify(mockMessageHandler)
 				.handleMessage(message);
 
+		assertSame(message, messageArgumentCaptor.getValue());
+
 		this.mockIntegrationContext.resetBeans(endpointId);
 
 		mockMessageHandler =
-				mockMessageHandler(hasPayload(notNullValue()))
-						.thenReply();
+				mockMessageHandler()
+						.handleNextAndReply(m -> m);
 
 		try {
 			this.mockIntegrationContext.instead(endpointId, mockMessageHandler);
@@ -191,15 +219,24 @@ public class MockMessageHandlerTests {
 		}
 
 		@Bean
-		@ServiceActivator(inputChannel = "mockHandlerChannel")
+		@SuppressWarnings("unchecked")
+		public ArgumentCaptor<Message<?>> messageArgumentCaptor() {
+			return ArgumentCaptor.forClass(Message.class);
+		}
+
+		@Bean
+		public PollableChannel mockHandlerChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "mockHandlerChannel",
+				poller = @Poller(fixedDelay = "100"))
 		public MessageHandler mockHandler() {
-			return mockMessageHandler(hasHeader("bar", "BAR"))
-					.thenReply()
-					.assertNext(MessageBuilder.withPayload("foo").setHeader("baz", "BAZ").build(),
-							"bar", MessageHeaders.REPLY_CHANNEL)
-					.thenReply()
-					.assertNext("foo")
-					.thenReply("foo");
+			return mockMessageHandler(messageArgumentCaptor())
+					.handleNextAndReply(m -> m)
+					.handleNextAndReply(m -> m)
+					.handleNextAndReply(m -> "foo");
 		}
 
 		@ServiceActivator(inputChannel = "pojoServiceChannel", outputChannel = "results")
