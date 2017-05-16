@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package org.springframework.integration.dsl;
  * <p>
  * The {@link StandardIntegrationFlow} implementation (produced by {@link IntegrationFlowBuilder})
  * represents a container for the integration components, which will be registered
- * in the application context. Typically is used as {@code &#64;Bean} definition:
+ * in the application context. Typically is used as a {@code @Bean} definition:
  * <pre class="code">
  *  &#64;Bean
  *  public IntegrationFlow fileReadingFlow() {
@@ -73,6 +73,11 @@ package org.springframework.integration.dsl;
 @FunctionalInterface
 public interface IntegrationFlow {
 
+	/**
+	 * The callback-based function to declare the chain of EIP-methods to
+	 * configure an integration flow with the provided {@link IntegrationFlowDefinition}.
+	 * @param flow the {@link IntegrationFlowDefinition} to configure
+	 */
 	void configure(IntegrationFlowDefinition<?> flow);
 
 }
