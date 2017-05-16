@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl.context;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -169,6 +170,15 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	public MessagingTemplate messagingTemplateFor(String flowId) {
 		return this.registry.get(flowId)
 				.getMessagingTemplate();
+	}
+
+	/**
+	 * Provide the state of the mapping of integration flow names to their
+	 * {@link IntegrationFlowRegistration} instances.
+	 * @return the registry of flow ids and their registration.
+	 */
+	public Map<String, IntegrationFlowRegistration> getRegistry() {
+		return Collections.unmodifiableMap(this.registry);
 	}
 
 	private String generateBeanName(Object instance, String parentName) {
