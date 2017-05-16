@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.dsl.ComponentsRegistration;
 
@@ -29,34 +28,41 @@ import org.springframework.integration.dsl.ComponentsRegistration;
  * An {@link AmqpBaseInboundGatewaySpec} implementation for a {@link AmqpInboundGateway}.
  * Allows to provide {@link AbstractMessageListenerContainer} options.
  *
+ * @param <S> the spec type.
+ * @param <C> the container type.
+ *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public abstract class AmqpInboundGatewaySpec
 				<S extends AmqpInboundGatewaySpec<S, C>, C extends AbstractMessageListenerContainer>
-		extends AmqpBaseInboundGatewaySpec<S> implements ComponentsRegistration {
+		extends AmqpBaseInboundGatewaySpec<S>
+		implements ComponentsRegistration {
 
-	protected final C listenerContainer;
+	protected final AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec;
 
-	AmqpInboundGatewaySpec(C listenerContainer) {
-		super(new AmqpInboundGateway(listenerContainer));
-		this.listenerContainer = listenerContainer;
+	AmqpInboundGatewaySpec(AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec) {
+		super(new AmqpInboundGateway(listenerContainerSpec.get()));
+		this.listenerContainerSpec = listenerContainerSpec;
 	}
 
 	/**
 	 * Instantiate {@link AmqpInboundGateway} based on the provided {@link AbstractMessageListenerContainer}
 	 * and {@link AmqpTemplate}.
-	 * @param listenerContainer the {@link SimpleMessageListenerContainer} to use.
+	 * @param listenerContainerSpec the {@link AbstractMessageListenerContainerSpec} to use.
 	 * @param amqpTemplate the {@link AmqpTemplate} to use.
 	 */
-	AmqpInboundGatewaySpec(C listenerContainer, AmqpTemplate amqpTemplate) {
-		super(new AmqpInboundGateway(listenerContainer, amqpTemplate));
-		this.listenerContainer = listenerContainer;
+	AmqpInboundGatewaySpec(
+			AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec,
+			AmqpTemplate amqpTemplate) {
+		super(new AmqpInboundGateway(listenerContainerSpec.get(), amqpTemplate));
+		this.listenerContainerSpec = listenerContainerSpec;
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
-		return Collections.<Object>singleton(this.listenerContainer);
+	public Map<Object, String> getComponentsToRegister() {
+		return Collections.singletonMap(this.listenerContainerSpec.get(), this.listenerContainerSpec.getId());
 	}
 
 }

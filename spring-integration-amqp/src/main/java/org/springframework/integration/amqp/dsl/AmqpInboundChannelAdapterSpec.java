@@ -16,8 +16,8 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
@@ -31,6 +31,7 @@ import org.springframework.integration.dsl.MessageProducerSpec;
  * @param <C> the container type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public abstract class AmqpInboundChannelAdapterSpec
@@ -38,16 +39,16 @@ public abstract class AmqpInboundChannelAdapterSpec
 		extends AmqpBaseInboundChannelAdapterSpec<S>
 		implements ComponentsRegistration {
 
-	protected final C listenerContainer;
+	protected final AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec;
 
-	AmqpInboundChannelAdapterSpec(C listenerContainer) {
-		super(new AmqpInboundChannelAdapter(listenerContainer));
-		this.listenerContainer = listenerContainer;
+	AmqpInboundChannelAdapterSpec(AbstractMessageListenerContainerSpec<?, C> listenerContainerSpec) {
+		super(new AmqpInboundChannelAdapter(listenerContainerSpec.get()));
+		this.listenerContainerSpec = listenerContainerSpec;
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
-		return Collections.<Object>singleton(this.listenerContainer);
+	public Map<Object, String> getComponentsToRegister() {
+		return Collections.singletonMap(this.listenerContainerSpec.get(), this.listenerContainerSpec.getId());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
@@ -49,7 +49,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 
 	private final List<Advice> adviceChain = new LinkedList<>();
 
-	private final Collection<Object> componentsToRegister = new ArrayList<>();
+	private final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
 
 	PollerSpec(Trigger trigger) {
 		this.target = new PollerMetadata();
@@ -92,7 +92,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	public PollerSpec errorChannel(MessageChannel errorChannel) {
 		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 		errorHandler.setDefaultErrorChannel(errorChannel);
-		this.componentsToRegister.add(errorHandler);
+		this.componentsToRegister.put(errorHandler, null);
 		return errorHandler(errorHandler);
 	}
 
@@ -106,7 +106,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	public PollerSpec errorChannel(String errorChannelName) {
 		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 		errorHandler.setDefaultErrorChannelName(errorChannelName);
-		this.componentsToRegister.add(errorHandler);
+		this.componentsToRegister.put(errorHandler, null);
 		return errorHandler(errorHandler);
 	}
 
@@ -163,7 +163,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 */
 	public PollerSpec transactional() {
 		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder().build();
-		this.componentsToRegister.add(transactionInterceptor);
+		this.componentsToRegister.put(transactionInterceptor, null);
 		return transactional(transactionInterceptor);
 	}
 
@@ -193,7 +193,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		return this.componentsToRegister;
 	}
 

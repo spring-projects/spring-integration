@@ -25,6 +25,8 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
  * Spec for a gateway with a {@link SimpleMessageListenerContainer}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -32,15 +34,15 @@ public class AmqpInboundGatewaySMLCSpec
 		extends AmqpInboundGatewaySpec<AmqpInboundGatewaySMLCSpec, SimpleMessageListenerContainer> {
 
 	AmqpInboundGatewaySMLCSpec(SimpleMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
-		super(listenerContainer, amqpTemplate);
+		super(new SimpleMessageListenerContainerSpec(listenerContainer), amqpTemplate);
 	}
 
 	AmqpInboundGatewaySMLCSpec(SimpleMessageListenerContainer listenerContainer) {
-		super(listenerContainer);
+		super(new SimpleMessageListenerContainerSpec(listenerContainer));
 	}
 
 	public AmqpInboundGatewaySMLCSpec configureContainer(Consumer<SimpleMessageListenerContainerSpec> configurer) {
-		configurer.accept(new SimpleMessageListenerContainerSpec(this.listenerContainer));
+		configurer.accept((SimpleMessageListenerContainerSpec) this.listenerContainerSpec);
 		return this;
 	}
 

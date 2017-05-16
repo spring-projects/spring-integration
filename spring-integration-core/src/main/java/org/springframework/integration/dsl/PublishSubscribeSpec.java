@@ -16,9 +16,8 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.dsl.channel.PublishSubscribeChannelSpec;
@@ -30,7 +29,7 @@ import org.springframework.integration.dsl.channel.PublishSubscribeChannelSpec;
  */
 public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSubscribeSpec> {
 
-	private final List<Object> subscriberFlows = new ArrayList<>();
+	private final Map<Object, String> subscriberFlows = new LinkedHashMap<>();
 
 	PublishSubscribeSpec() {
 		super();
@@ -50,15 +49,15 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 				IntegrationFlows.from(this.channel)
 						.bridge();
 		flow.configure(flowBuilder);
-		this.subscriberFlows.add(flowBuilder.get());
+		this.subscriberFlows.put(flowBuilder.get(), null);
 		return _this();
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
-		List<Object> objects = new ArrayList<Object>();
-		objects.addAll(super.getComponentsToRegister());
-		objects.addAll(this.subscriberFlows);
+	public Map<Object, String> getComponentsToRegister() {
+		Map<Object, String> objects = new LinkedHashMap<>();
+		objects.putAll(super.getComponentsToRegister());
+		objects.putAll(this.subscriberFlows);
 		return objects;
 	}
 

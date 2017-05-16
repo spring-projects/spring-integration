@@ -17,8 +17,8 @@
 package org.springframework.integration.file.dsl;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
@@ -261,9 +261,9 @@ public class FileWritingMessageHandlerSpec
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		if (this.defaultFileNameGenerator != null) {
-			return Collections.singletonList(this.defaultFileNameGenerator);
+			return Collections.singletonMap(this.defaultFileNameGenerator, null);
 		}
 		return null;
 	}

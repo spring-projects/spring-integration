@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.integration.mail.dsl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -64,7 +64,7 @@ public class ImapIdleChannelAdapterSpec
 
 	private final ImapMailReceiver receiver;
 
-	private final Collection<Object> componentsToRegister = new ArrayList<Object>();
+	private final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
 
 	private final List<Advice> adviceChain = new LinkedList<>();
 
@@ -80,7 +80,7 @@ public class ImapIdleChannelAdapterSpec
 		super(new ImapIdleChannelAdapter(receiver));
 		this.target.setAdviceChain(this.adviceChain);
 		this.receiver = receiver;
-		this.componentsToRegister.add(receiver);
+		this.componentsToRegister.put(receiver, receiver.getComponentName());
 		this.externalReceiver = externalReceiver;
 	}
 
@@ -326,7 +326,7 @@ public class ImapIdleChannelAdapterSpec
 	 */
 	public ImapIdleChannelAdapterSpec transactional() {
 		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder(false).build();
-		this.componentsToRegister.add(transactionInterceptor);
+		this.componentsToRegister.put(transactionInterceptor, null);
 		return transactional(transactionInterceptor);
 	}
 
@@ -352,7 +352,7 @@ public class ImapIdleChannelAdapterSpec
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		return this.componentsToRegister;
 	}
 

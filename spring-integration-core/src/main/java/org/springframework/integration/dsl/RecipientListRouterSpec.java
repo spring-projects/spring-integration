@@ -76,7 +76,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	public RecipientListRouterSpec recipient(String channelName, Expression expression) {
 		ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
 		this.handler.addRecipient(channelName, selector);
-		this.componentsToRegister.add(selector);
+		this.componentsToRegister.put(selector, null);
 		return _this();
 	}
 
@@ -146,7 +146,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 		if (expression != null) {
 			ExpressionEvaluatingSelector selector = new ExpressionEvaluatingSelector(expression);
 			this.handler.addRecipient(channel, selector);
-			this.componentsToRegister.add(selector);
+			this.componentsToRegister.put(selector, null);
 		}
 		else {
 			this.handler.addRecipient(channel);
@@ -247,7 +247,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 		DirectChannel channel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		subFlow.configure(flowBuilder);
-		this.componentsToRegister.add(flowBuilder.get());
+		this.componentsToRegister.put(flowBuilder.get(), null);
 		return channel;
 	}
 

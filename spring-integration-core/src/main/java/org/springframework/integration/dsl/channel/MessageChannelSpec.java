@@ -18,9 +18,10 @@ package org.springframework.integration.dsl.channel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -44,7 +45,7 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 		extends IntegrationComponentSpec<S, C>
 		implements ComponentsRegistration {
 
-	private final List<Object> componentsToRegister = new ArrayList<>();
+	private final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
 
 	private final List<Class<?>> datatypes = new ArrayList<>();
 
@@ -108,7 +109,7 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 	 */
 	public S wireTap(WireTapSpec wireTapSpec) {
 		WireTap interceptor = wireTapSpec.get();
-		this.componentsToRegister.add(interceptor);
+		this.componentsToRegister.put(interceptor, null);
 		return interceptor(interceptor);
 	}
 
@@ -118,7 +119,7 @@ public abstract class MessageChannelSpec<S extends MessageChannelSpec<S, C>, C e
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		return this.componentsToRegister;
 	}
 

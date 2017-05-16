@@ -16,8 +16,8 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.BeanNameAware;
@@ -46,7 +46,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		extends IntegrationComponentSpec<S, Tuple2<F, H>>
 		implements ComponentsRegistration {
 
-	protected final Collection<Object> componentsToRegister = new ArrayList<>();
+	protected final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
 
 	protected H handler;
 
@@ -87,9 +87,9 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 * @see PollerSpec
 	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
-		Collection<Object> componentsToRegister = pollerMetadataSpec.getComponentsToRegister();
+		Map<Object, String> componentsToRegister = pollerMetadataSpec.getComponentsToRegister();
 		if (componentsToRegister != null) {
-			this.componentsToRegister.addAll(componentsToRegister);
+			this.componentsToRegister.putAll(componentsToRegister);
 		}
 		return poller(pollerMetadataSpec.get());
 	}
@@ -116,7 +116,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	public abstract S autoStartup(boolean autoStartup);
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		return this.componentsToRegister.isEmpty()
 				? null
 				: this.componentsToRegister;

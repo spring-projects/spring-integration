@@ -17,9 +17,9 @@
 package org.springframework.integration.file.dsl;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -260,9 +260,9 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		if (this.expressionFileListFilter != null) {
-			return Collections.singleton(this.expressionFileListFilter);
+			return Collections.singletonMap(this.expressionFileListFilter, null);
 		}
 		else {
 			return null;

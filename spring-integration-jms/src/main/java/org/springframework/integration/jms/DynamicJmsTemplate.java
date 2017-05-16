@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0.2
  */
 public class DynamicJmsTemplate extends JmsTemplate {
@@ -32,13 +34,13 @@ public class DynamicJmsTemplate extends JmsTemplate {
 			return super.getPriority();
 		}
 		Assert.isTrue(priority >= 0 && priority <= 9, "JMS priority must be in the range of 0-9");
-		return priority.intValue();
+		return priority;
 	}
 
 	@Override
 	public long getReceiveTimeout() {
 		Long receiveTimeout = DynamicJmsTemplateProperties.getReceiveTimeout();
-		return (receiveTimeout != null) ? receiveTimeout.longValue() : super.getReceiveTimeout();
+		return (receiveTimeout != null) ? receiveTimeout : super.getReceiveTimeout();
 	}
 
 }

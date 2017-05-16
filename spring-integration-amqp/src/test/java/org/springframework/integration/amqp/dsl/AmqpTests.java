@@ -37,6 +37,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.junit.BrokerRunning;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -61,6 +62,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
 @RunWith(SpringRunner.class)
@@ -68,7 +70,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class AmqpTests {
 
 	@ClassRule
-	public static BrokerRunning brokerRunning = BrokerRunning.isRunning();
+	public static BrokerRunning brokerRunning =
+			BrokerRunning.isRunningWithEmptyQueues("amqpOutboundInput", "amqpReplyChannel", "asyncReplies",
+					"defaultReplyTo", "si.dsl.test", "testTemplateChannelTransacted");
 
 	@Autowired
 	private ConnectionFactory rabbitConnectionFactory;
@@ -83,10 +87,13 @@ public class AmqpTests {
 	@Autowired
 	private AmqpInboundGateway amqpInboundGateway;
 
+	@Autowired(required = false)
+	@Qualifier("amqpInboundGatewayContainer")
+	private SimpleMessageListenerContainer amqpInboundGatewayContainer;
+
 	@AfterClass
 	public static void tearDown() {
-		brokerRunning.removeTestQueues("amqpOutboundInput", "amqpReplyChannel", "asyncReplies", "defaultReplyTo",
-				"si.dsl.test", "testTemplateChannelTransacted");
+		brokerRunning.removeTestQueues();
 	}
 
 	@Test
@@ -103,6 +110,8 @@ public class AmqpTests {
 		result = this.amqpTemplate.receiveAndConvert("defaultReplyTo");
 		assertEquals("HELLO WORLD", result);
 		assertSame(this.amqpTemplate, TestUtils.getPropertyValue(this.amqpInboundGateway, "amqpTemplate"));
+
+		assertNotNull(this.amqpInboundGatewayContainer);
 	}
 
 	@Autowired
@@ -213,6 +222,7 @@ public class AmqpTests {
 					.from(Amqp.inboundGateway(rabbitConnectionFactory, amqpTemplate, queue())
 							.id("amqpInboundGateway")
 							.configureContainer(c -> c
+								.id("amqpInboundGatewayContainer")
 								.recoveryInterval(5000)
 								.concurrentConsumers(1))
 							.defaultReplyTo(defaultReplyTo().getName()))

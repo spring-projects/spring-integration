@@ -16,12 +16,15 @@
 
 package org.springframework.integration.jms.dsl;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.jms.JmsHeaderMapper;
@@ -127,8 +130,9 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	/**
 	 * A {@link JmsTemplate}-based {@link JmsOutboundChannelAdapterSpec} extension.
 	 */
-	public static class JmsOutboundChannelSpecTemplateAware extends
-			JmsOutboundChannelAdapterSpec<JmsOutboundChannelSpecTemplateAware> {
+	public static class JmsOutboundChannelSpecTemplateAware
+			extends JmsOutboundChannelAdapterSpec<JmsOutboundChannelSpecTemplateAware>
+			implements ComponentsRegistration {
 
 		JmsOutboundChannelSpecTemplateAware(ConnectionFactory connectionFactory) {
 			super(connectionFactory);
@@ -138,6 +142,11 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.jmsTemplateSpec);
 			return _this();
+		}
+
+		@Override
+		public Map<Object, String> getComponentsToRegister() {
+			return Collections.singletonMap(this.jmsTemplateSpec.get(), this.jmsTemplateSpec.getId());
 		}
 
 	}

@@ -16,10 +16,12 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.SmartLifecycle;
@@ -63,7 +65,7 @@ import org.springframework.context.SmartLifecycle;
  */
 public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
 
-	private final List<Object> integrationComponents;
+	private final Map<Object, String> integrationComponents;
 
 	private final List<SmartLifecycle> lifecycles = new LinkedList<>();
 
@@ -71,8 +73,8 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	private boolean running;
 
-	StandardIntegrationFlow(Set<Object> integrationComponents) {
-		this.integrationComponents = new LinkedList<>(integrationComponents);
+	StandardIntegrationFlow(Map<Object, String> integrationComponents) {
+		this.integrationComponents = new LinkedHashMap<>(integrationComponents);
 	}
 
 	//TODO Figure out some custom DestinationResolver when we don't register singletons - remove NOSONAR above when done
@@ -84,13 +86,13 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		return this.registerComponents;
 	}
 
-	public void setIntegrationComponents(List<Object> integrationComponents) {
+	public void setIntegrationComponents(Map<Object, String> integrationComponents) {
 		this.integrationComponents.clear();
-		this.integrationComponents.addAll(integrationComponents);
+		this.integrationComponents.putAll(integrationComponents);
 	}
 
-	public List<Object> getIntegrationComponents() {
-		return this.integrationComponents;
+	public Map<Object, String> getIntegrationComponents() {
+		return Collections.unmodifiableMap(this.integrationComponents);
 	}
 
 	@Override
@@ -101,7 +103,8 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	@Override
 	public void start() {
 		if (!this.running) {
-			ListIterator<Object> iterator = this.integrationComponents.listIterator(this.integrationComponents.size());
+			List<Object> components = new LinkedList<>(this.integrationComponents.keySet());
+			ListIterator<Object> iterator = components.listIterator(this.integrationComponents.size());
 			this.lifecycles.clear();
 			while (iterator.hasPrevious()) {
 				Object component = iterator.previous();

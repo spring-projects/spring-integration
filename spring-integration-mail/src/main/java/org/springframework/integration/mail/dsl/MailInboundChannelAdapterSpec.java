@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.mail.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
  * @since 5.0
  */
 public abstract class
-		MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R extends AbstractMailReceiver>
+MailInboundChannelAdapterSpec<S extends MailInboundChannelAdapterSpec<S, R>, R extends AbstractMailReceiver>
 		extends MessageSourceSpec<S, MailReceivingMessageSource>
 		implements ComponentsRegistration {
 
@@ -253,8 +253,8 @@ public abstract class
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
-		return Collections.<Object>singletonList(this.receiver);
+	public Map<Object, String> getComponentsToRegister() {
+		return Collections.singletonMap(this.receiver, this.receiver.getComponentName());
 	}
 
 	@Override

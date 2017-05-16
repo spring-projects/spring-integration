@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.Set;
+import java.util.Map;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -35,7 +35,7 @@ class PublisherIntegrationFlow<T> extends StandardIntegrationFlow implements Pub
 
 	private final Publisher<Message<T>> delegate;
 
-	PublisherIntegrationFlow(Set<Object> integrationComponents, Publisher<Message<T>> publisher) {
+	PublisherIntegrationFlow(Map<Object, String> integrationComponents, Publisher<Message<T>> publisher) {
 		super(integrationComponents);
 		this.delegate = publisher;
 	}

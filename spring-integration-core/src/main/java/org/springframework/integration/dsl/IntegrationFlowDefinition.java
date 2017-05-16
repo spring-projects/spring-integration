@@ -16,9 +16,8 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -120,7 +119,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	private static final Set<MessageProducer> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
 
-	protected final Set<Object> integrationComponents = new LinkedHashSet<>();
+	protected final Map<Object, String> integrationComponents = new LinkedHashMap<>();
 
 	protected MessageChannel currentMessageChannel;
 
@@ -134,13 +133,13 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	B addComponent(Object component) {
-		this.integrationComponents.add(component);
+		this.integrationComponents.put(component, null);
 		return _this();
 	}
 
-	B addComponents(Collection<Object> components) {
+	B addComponents(Map<Object, String> components) {
 		if (components != null) {
-			this.integrationComponents.addAll(components);
+			this.integrationComponents.putAll(components);
 		}
 		return _this();
 	}
@@ -1974,9 +1973,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 		BridgeHandler bridgeHandler = new BridgeHandler();
 		boolean registerSubflowBridge = false;
-		Collection<Object> componentsToRegister = routerSpec.getComponentsToRegister();
+		Map<Object, String> componentsToRegister = routerSpec.getComponentsToRegister();
 		if (!CollectionUtils.isEmpty(componentsToRegister)) {
-			for (Object component : componentsToRegister) {
+			for (Map.Entry<Object, String> entry : componentsToRegister.entrySet()) {
+				Object component = entry.getKey();
 				if (component instanceof IntegrationFlowDefinition) {
 					IntegrationFlowDefinition<?> flowBuilder = (IntegrationFlowDefinition<?>) component;
 					if (flowBuilder.isOutputChannelRequired()) {
@@ -1986,7 +1986,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 					addComponent(flowBuilder.get());
 				}
 				else {
-					addComponent(component);
+					this.integrationComponents.put(component, entry.getValue());
 				}
 			}
 		}
@@ -2621,7 +2621,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	private B registerOutputChannelIfCan(MessageChannel outputChannel) {
 		if (!(outputChannel instanceof FixedSubscriberChannelPrototype)) {
-			this.integrationComponents.add(outputChannel);
+			this.integrationComponents.put(outputChannel, null);
 			if (this.currentComponent != null) {
 				String channelName = null;
 				if (outputChannel instanceof MessageChannelReference) {
@@ -2718,7 +2718,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			}
 
 			if (this.implicitChannel) {
-				Optional<Object> lastComponent = this.integrationComponents.stream().reduce((first, second) -> second);
+				Optional<Object> lastComponent =
+						this.integrationComponents.keySet()
+								.stream()
+								.reduce((first, second) -> second);
 				if (lastComponent.get() instanceof WireTapSpec) {
 					channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 				}
