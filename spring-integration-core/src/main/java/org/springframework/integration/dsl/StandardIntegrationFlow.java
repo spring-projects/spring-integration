@@ -25,22 +25,49 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.context.SmartLifecycle;
 
 /**
+ * The general implementation of the {@link IntegrationFlow} instantiated
+ * by the Framework. Represents a logical container for the components configured
+ * for the integration flow. Can be treated as a single component, especially
+ * when the manual declaration with the
+ * {@link org.springframework.integration.dsl.context.IntegrationFlowContext}.
+ * <p>
+ * Being logical container for the target integration component, this class controls
+ * lifecycle of all components, when its {@code start()} and {@code stop()} are performed.
+ * <p>
+ * This component isn't {@code autoStartup} by default, because all the components are
+ * registered as beans in the application context and their initial start up phase is
+ * controlled from the lifecycle processor automatically.
+ * <p>
+ * When we register {@link IntegrationFlow} manually using
+ * {@link org.springframework.integration.dsl.context.IntegrationFlowContext} API,
+ * the lifecycle processor from the application context isn't involved any more,
+ * therefore we should control {@code autoStartup} manually or reply on
+ * {@link org.springframework.integration.dsl.context.IntegrationFlowContext} API.
+ * <p>
+ * This component doesn't track its {@code running} state during {@code stop()} action
+ * and delegate directly to the registered components to avoid dangling processes
+ * after removal manually registered {@link IntegrationFlow}.
+ *
  * @author Artem Bilan
  *
  * @since 5.0
+ *
+ * @see IntegrationFlows
+ * @see org.springframework.integration.config.dsl.IntegrationFlowBeanPostProcessor
+ * @see org.springframework.integration.dsl.context.IntegrationFlowContext
  */
 public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
 
 	private final List<Object> integrationComponents;
 
-	private final List<SmartLifecycle> lifecycles = new LinkedList<SmartLifecycle>();
+	private final List<SmartLifecycle> lifecycles = new LinkedList<>();
 
 	private final boolean registerComponents = true; // NOSONAR
 
 	private boolean running;
 
 	StandardIntegrationFlow(Set<Object> integrationComponents) {
-		this.integrationComponents = new LinkedList<Object>(integrationComponents);
+		this.integrationComponents = new LinkedList<>(integrationComponents);
 	}
 
 	//TODO Figure out some custom DestinationResolver when we don't register singletons - remove NOSONAR above when done
@@ -84,31 +111,27 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.running) {
-			AggregatingCallback aggregatingCallback = new AggregatingCallback(this.lifecycles.size(), callback);
-			ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
-			while (iterator.hasPrevious()) {
-				SmartLifecycle lifecycle = iterator.previous();
-				if (lifecycle.isRunning()) {
-					lifecycle.stop(aggregatingCallback);
-				}
-				else {
-					aggregatingCallback.run();
-				}
+		AggregatingCallback aggregatingCallback = new AggregatingCallback(this.lifecycles.size(), callback);
+		ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
+		while (iterator.hasPrevious()) {
+			SmartLifecycle lifecycle = iterator.previous();
+			if (lifecycle.isRunning()) {
+				lifecycle.stop(aggregatingCallback);
 			}
-			this.running = false;
+			else {
+				aggregatingCallback.run();
+			}
 		}
+		this.running = false;
 	}
 
 	@Override
 	public void stop() {
-		if (this.running) {
-			ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
-			while (iterator.hasPrevious()) {
-				iterator.previous().stop();
-			}
-			this.running = false;
+		ListIterator<SmartLifecycle> iterator = this.lifecycles.listIterator(this.lifecycles.size());
+		while (iterator.hasPrevious()) {
+			iterator.previous().stop();
 		}
+		this.running = false;
 	}
 
 	@Override
