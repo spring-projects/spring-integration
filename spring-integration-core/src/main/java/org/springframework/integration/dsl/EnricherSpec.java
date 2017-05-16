@@ -150,7 +150,7 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(requestChannel);
 		subFlow.configure(flowBuilder);
 
-		this.componentsToRegister.add(flowBuilder.get());
+		this.componentsToRegister.put(flowBuilder.get(), null);
 
 		return requestChannel(requestChannel);
 	}

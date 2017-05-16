@@ -17,9 +17,8 @@
 package org.springframework.integration.file.dsl;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
@@ -234,12 +233,12 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
-		List<Object> componentsToRegister = new ArrayList<>();
-		componentsToRegister.add(this.synchronizer);
+	public Map<Object, String> getComponentsToRegister() {
+		Map<Object, String> componentsToRegister = new LinkedHashMap<>();
+		componentsToRegister.put(this.synchronizer, null);
 
 		if (this.expressionFileListFilter != null) {
-			componentsToRegister.add(this.expressionFileListFilter);
+			componentsToRegister.put(this.expressionFileListFilter, null);
 		}
 
 		return componentsToRegister;

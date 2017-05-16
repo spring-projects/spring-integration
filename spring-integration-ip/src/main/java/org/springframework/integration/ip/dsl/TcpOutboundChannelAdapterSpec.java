@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.ip.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
@@ -29,6 +29,8 @@ import org.springframework.scheduling.TaskScheduler;
  * A {@link MessageHandlerSpec} for {@link TcpSendingMessageHandler}s.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -89,9 +91,10 @@ public class TcpOutboundChannelAdapterSpec
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
-		return this.connectionFactory == null ? Collections.emptyList()
-				: Collections.singletonList(this.connectionFactory);
+	public Map<Object, String> getComponentsToRegister() {
+		return this.connectionFactory != null
+				? Collections.singletonMap(this.connectionFactory, this.connectionFactory.getComponentName())
+				: null;
 	}
 
 }

@@ -16,10 +16,10 @@
 
 package org.springframework.integration.config.dsl;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.BeansException;
@@ -130,45 +130,44 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 		}
 	}
 
-	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String beanName) {
-		String flowNamePrefix = beanName + ".";
+	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) {
+		String flowNamePrefix = flowBeanName + ".";
 		int subFlowNameIndex = 0;
 		int channelNameIndex = 0;
 		boolean registerSingleton = flow.isRegisterComponents();
 
 
-		List<Object> integrationComponents = new ArrayList<>(flow.getIntegrationComponents());
-		for (int i = 0; i < integrationComponents.size(); i++) {
-			Object component = integrationComponents.get(i);
+		Map<Object, String> integrationComponents = flow.getIntegrationComponents();
+		Map<Object, String> targetIntegrationComponents = new LinkedHashMap<>(integrationComponents.size());
+
+		for (Map.Entry<Object, String> entry : integrationComponents.entrySet()) {
+			Object component = entry.getKey();
 			if (component instanceof ConsumerEndpointSpec) {
 				ConsumerEndpointSpec<?, ?> endpointSpec = (ConsumerEndpointSpec<?, ?>) component;
 				MessageHandler messageHandler = endpointSpec.get().getT2();
 				ConsumerEndpointFactoryBean endpoint = endpointSpec.get().getT1();
 				String id = endpointSpec.getId();
 
-				Collection<?> messageHandlers = this.beanFactory.getBeansOfType(messageHandler.getClass(), false,
-						false).values();
+				if (id == null) {
+					id = generateBeanName(endpoint, entry.getValue());
+				}
+
+				Collection<?> messageHandlers =
+						this.beanFactory.getBeansOfType(messageHandler.getClass(), false, false)
+								.values();
 
 				if (!messageHandlers.contains(messageHandler)) {
 					String handlerBeanName = generateBeanName(messageHandler);
-					String[] handlerAlias = id != null
-							? new String[] { id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX }
-							: null;
+					String[] handlerAlias = new String[] { id + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX };
 
-					registerComponent(messageHandler, handlerBeanName, beanName, registerSingleton);
-					if (handlerAlias != null) {
-						for (String alias : handlerAlias) {
-							this.beanFactory.registerAlias(handlerBeanName, alias);
-						}
+					registerComponent(messageHandler, handlerBeanName, flowBeanName, registerSingleton);
+					for (String alias : handlerAlias) {
+						this.beanFactory.registerAlias(handlerBeanName, alias);
 					}
 				}
 
-				String endpointBeanName = id;
-				if (endpointBeanName == null) {
-					endpointBeanName = generateBeanName(endpoint);
-				}
-				registerComponent(endpoint, endpointBeanName, beanName, registerSingleton);
-				integrationComponents.set(i, endpoint);
+				registerComponent(endpoint, id, flowBeanName, registerSingleton);
+				targetIntegrationComponents.put(endpoint, id);
 			}
 			else {
 				Collection<?> values = this.beanFactory.getBeansOfType(component.getClass(), false, false).values();
@@ -176,17 +175,21 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 					if (component instanceof AbstractMessageChannel) {
 						String channelBeanName = ((AbstractMessageChannel) component).getComponentName();
 						if (channelBeanName == null) {
-							channelBeanName = flowNamePrefix + "channel" +
-									BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + channelNameIndex++;
+							channelBeanName = entry.getValue();
+							if (channelBeanName == null) {
+								channelBeanName = flowNamePrefix + "channel" +
+										BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + channelNameIndex++;
+							}
 						}
-						registerComponent(component, channelBeanName, beanName, registerSingleton);
+						registerComponent(component, channelBeanName, flowBeanName, registerSingleton);
+						targetIntegrationComponents.put(component, channelBeanName);
 					}
 					else if (component instanceof MessageChannelReference) {
 						String channelBeanName = ((MessageChannelReference) component).getName();
 						if (!this.beanFactory.containsBean(channelBeanName)) {
 							DirectChannel directChannel = new DirectChannel();
-							registerComponent(directChannel, channelBeanName, beanName, registerSingleton);
-							integrationComponents.set(i, directChannel);
+							registerComponent(directChannel, channelBeanName, flowBeanName, registerSingleton);
+							targetIntegrationComponents.put(directChannel, channelBeanName);
 						}
 					}
 					else if (component instanceof FixedSubscriberChannel) {
@@ -196,26 +199,29 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 							channelBeanName = flowNamePrefix + "channel" +
 									BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + channelNameIndex++;
 						}
-						registerComponent(component, channelBeanName, beanName, registerSingleton);
+						registerComponent(component, channelBeanName, flowBeanName, registerSingleton);
+						targetIntegrationComponents.put(component, channelBeanName);
 					}
 					else if (component instanceof SourcePollingChannelAdapterSpec) {
 						SourcePollingChannelAdapterSpec spec = (SourcePollingChannelAdapterSpec) component;
-						Collection<Object> componentsToRegister = spec.getComponentsToRegister();
+						Map<Object, String> componentsToRegister = spec.getComponentsToRegister();
 						if (!CollectionUtils.isEmpty(componentsToRegister)) {
-							componentsToRegister.stream()
-									.filter(o -> !this.beanFactory.getBeansOfType(o.getClass(), false, false)
-											.values()
-											.contains(o))
-									.forEach(o -> registerComponent(o, generateBeanName(o))
-									);
+							componentsToRegister.entrySet()
+									.stream()
+									.filter(o ->
+											!this.beanFactory.getBeansOfType(o.getKey().getClass(), false, false)
+													.values()
+													.contains(o.getKey()))
+									.forEach(o ->
+											registerComponent(o.getKey(), generateBeanName(o.getKey(), o.getValue())));
 						}
 						SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean = spec.get().getT1();
 						String id = spec.getId();
 						if (!StringUtils.hasText(id)) {
-							id = generateBeanName(pollingChannelAdapterFactoryBean);
+							id = generateBeanName(pollingChannelAdapterFactoryBean, entry.getValue());
 						}
-						registerComponent(pollingChannelAdapterFactoryBean, id, beanName, registerSingleton);
-						integrationComponents.set(i, pollingChannelAdapterFactoryBean);
+						registerComponent(pollingChannelAdapterFactoryBean, id, flowBeanName, registerSingleton);
+						targetIntegrationComponents.put(pollingChannelAdapterFactoryBean, id);
 
 						MessageSource<?> messageSource = spec.get().getT2();
 						if (!this.beanFactory.getBeansOfType(messageSource.getClass(), false, false)
@@ -226,25 +232,37 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 									&& ((NamedComponent) messageSource).getComponentName() != null) {
 								messageSourceId = ((NamedComponent) messageSource).getComponentName();
 							}
-							registerComponent(messageSource, messageSourceId, beanName, registerSingleton);
+							registerComponent(messageSource, messageSourceId, flowBeanName, registerSingleton);
 						}
 					}
 					else if (component instanceof StandardIntegrationFlow) {
-						String subFlowBeanName = flowNamePrefix + "subFlow" +
-								BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + subFlowNameIndex++;
-						registerComponent(component, subFlowBeanName, beanName, registerSingleton);
+						String subFlowBeanName =
+								entry.getValue() != null
+										? entry.getValue()
+										: flowNamePrefix + "subFlow" +
+												BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + subFlowNameIndex++;
+						registerComponent(component, subFlowBeanName, flowBeanName, registerSingleton);
+						targetIntegrationComponents.put(component, subFlowBeanName);
 					}
 					else if (component instanceof AnnotationGatewayProxyFactoryBean) {
-						registerComponent(component, flowNamePrefix + "gateway", beanName, registerSingleton);
+						String gatewayId = entry.getValue() != null
+								? entry.getValue()
+								: flowNamePrefix + "gateway";
+						registerComponent(component, gatewayId, flowBeanName, registerSingleton);
+						targetIntegrationComponents.put(component, gatewayId);
 					}
 					else {
-						String generateBeanName = generateBeanName(component);
-						registerComponent(component, generateBeanName, beanName, registerSingleton);
+						String generateBeanName = generateBeanName(component, entry.getValue());
+						registerComponent(component, generateBeanName, flowBeanName, registerSingleton);
 					}
+				}
+				else {
+					targetIntegrationComponents.put(entry.getKey(), entry.getValue());
 				}
 			}
 		}
-		flow.setIntegrationComponents(integrationComponents);
+
+		flow.setIntegrationComponents(targetIntegrationComponents);
 		return flow;
 	}
 
@@ -256,15 +274,21 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private void processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean) {
-		registerComponent(bean.get(), generateBeanName(bean.get()), null, false);
+		registerComponent(bean.get(), generateBeanName(bean.get(), bean.getId()), null, false);
 		if (bean instanceof ComponentsRegistration) {
-			Collection<Object> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
+			Map<Object, String> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
 			if (!CollectionUtils.isEmpty(componentsToRegister)) {
-				componentsToRegister.stream()
-						.filter(component -> !this.beanFactory.getBeansOfType(component.getClass(), false, false)
-								.values()
-								.contains(component))
-						.forEach(component -> registerComponent(component, generateBeanName(component)));
+
+				componentsToRegister.entrySet()
+						.stream()
+						.filter(component ->
+								!this.beanFactory.getBeansOfType(component.getKey().getClass(), false, false)
+										.values()
+										.contains(component.getKey()))
+						.forEach(component ->
+								registerComponent(component.getKey(),
+										generateBeanName(component.getKey(), component.getValue())));
+
 			}
 		}
 	}
@@ -293,9 +317,17 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private String generateBeanName(Object instance) {
+		return generateBeanName(instance, null);
+	}
+
+	private String generateBeanName(Object instance, String fallbackId) {
 		if (instance instanceof NamedComponent && ((NamedComponent) instance).getComponentName() != null) {
 			return ((NamedComponent) instance).getComponentName();
 		}
+		else if (fallbackId != null) {
+			return fallbackId;
+		}
+
 		String generatedBeanName = instance.getClass().getName();
 		String id = generatedBeanName;
 		int counter = -1;

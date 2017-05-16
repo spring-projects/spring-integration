@@ -437,7 +437,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 		headerEnricher.setShouldSkipNulls(this.shouldSkipNulls);
 		headerEnricher.setMessageProcessor(this.messageProcessor);
 
-		this.componentsToRegister.add(headerEnricher);
+		this.componentsToRegister.put(headerEnricher, null);
 
 		this.handler = new MessageTransformingHandler(headerEnricher);
 		return super.doGet();

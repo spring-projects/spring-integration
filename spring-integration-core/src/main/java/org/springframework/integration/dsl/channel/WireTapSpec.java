@@ -16,8 +16,8 @@
 
 package org.springframework.integration.dsl.channel;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -101,9 +101,9 @@ public class WireTapSpec extends IntegrationComponentSpec<WireTapSpec, WireTap> 
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		if (this.selector != null) {
-			return Collections.singleton(this.selector);
+			return Collections.singletonMap(this.selector, null);
 		}
 		else {
 			return null;

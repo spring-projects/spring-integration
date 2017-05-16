@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.Collection;
+import java.util.Map;
 
 /**
  * The marker interface for the {@link IntegrationComponentSpec} implementation,
@@ -33,6 +33,6 @@ import java.util.Collection;
 @FunctionalInterface
 public interface ComponentsRegistration {
 
-	Collection<Object> getComponentsToRegister();
+	Map<Object, String> getComponentsToRegister();
 
 }

@@ -16,8 +16,9 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.Executor;
 
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
@@ -45,9 +46,19 @@ public abstract class AmqpInboundChannelAdapterSpec
 		this.listenerContainer = listenerContainer;
 	}
 
+	/**
+	 * @param containerId the bean name for internal listener container instance.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setBeanName(String)
+	 */
+	public AmqpInboundChannelAdapterSpec containerId(String containerId) {
+		this.containerId = containerId;
+		return this;
+	}
+
 	@Override
-	public Collection<Object> getComponentsToRegister() {
-		return Collections.<Object>singleton(this.listenerContainer);
+	public Map<Object, String> getComponentsToRegister() {
+		return Collections.singletonMap(this.listenerContainer, this.containerId);
 	}
 
 }

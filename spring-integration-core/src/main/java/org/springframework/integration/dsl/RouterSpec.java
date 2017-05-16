@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -161,19 +160,19 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		subFlow.configure(flowBuilder);
 
-		this.componentsToRegister.add(flowBuilder);
+		this.componentsToRegister.put(flowBuilder, null);
 
 		this.mappingProvider.addMapping(key, channel);
 		return _this();
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		// The 'mappingProvider' must be added to the 'componentsToRegister' in the end to
 		// let all other components to be registered before the 'RouterMappingProvider.onInit()' logic.
 		if (!this.mappingProviderRegistered) {
 			if (!this.mappingProvider.mapping.isEmpty()) {
-				this.componentsToRegister.add(this.mappingProvider);
+				this.componentsToRegister.put(this.mappingProvider, null);
 			}
 			this.mappingProviderRegistered = true;
 		}

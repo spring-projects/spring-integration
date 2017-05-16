@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.springframework.integration.amqp.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.Executor;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
@@ -54,9 +55,19 @@ public abstract class AmqpInboundGatewaySpec
 		this.listenerContainer = listenerContainer;
 	}
 
+	/**
+	 * @param containerId the bean name for internal listener container instance.
+	 * @return the spec.
+	 * @see SimpleMessageListenerContainer#setBeanName(String)
+	 */
+	public AmqpInboundGatewaySpec containerId(String containerId) {
+		this.containerId = containerId;
+		return this;
+	}
+
 	@Override
-	public Collection<Object> getComponentsToRegister() {
-		return Collections.<Object>singleton(this.listenerContainer);
+	public Map<Object, String> getComponentsToRegister() {
+		return Collections.singletonMap(this.listenerContainer, this.containerId);
 	}
 
 }

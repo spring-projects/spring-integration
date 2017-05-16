@@ -91,7 +91,7 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 		DirectChannel channel = new DirectChannel();
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		discardFlow.configure(flowBuilder);
-		this.componentsToRegister.add(flowBuilder.get());
+		this.componentsToRegister.put(flowBuilder.get(), null);
 		return discardChannel(channel);
 	}
 

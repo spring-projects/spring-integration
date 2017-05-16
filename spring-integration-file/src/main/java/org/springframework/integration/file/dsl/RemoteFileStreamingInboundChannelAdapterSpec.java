@@ -16,8 +16,8 @@
 
 package org.springframework.integration.file.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
@@ -127,9 +127,9 @@ public abstract class RemoteFileStreamingInboundChannelAdapterSpec<F,
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		if (this.expressionFileListFilter != null) {
-			return Collections.singleton(this.expressionFileListFilter);
+			return Collections.singletonMap(this.expressionFileListFilter, null);
 		}
 		else {
 			return null;

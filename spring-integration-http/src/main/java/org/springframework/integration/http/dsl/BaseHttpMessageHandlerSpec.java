@@ -16,7 +16,6 @@
 
 package org.springframework.integration.http.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -310,10 +309,11 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 	}
 
 	@Override
-	public Collection<Object> getComponentsToRegister() {
+	public Map<Object, String> getComponentsToRegister() {
 		this.target.setUriVariableExpressions(this.uriVariableExpressions);
-		return Collections.singletonList(this.headerMapper);
+		return Collections.singletonMap(this.headerMapper, null);
 	}
 
 	protected abstract boolean isClientSet();
+
 }

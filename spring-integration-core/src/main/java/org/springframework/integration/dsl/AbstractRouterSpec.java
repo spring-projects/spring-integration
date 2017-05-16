@@ -96,7 +96,7 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
 		subFlow.configure(flowBuilder);
 
-		this.componentsToRegister.add(flowBuilder);
+		this.componentsToRegister.put(flowBuilder, null);
 
 		return defaultOutputChannel(channel);
 	}
