@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,29 @@
 
 package org.springframework.integration.file.remote;
 
-import java.io.IOException;
-
-import org.springframework.integration.file.remote.session.Session;
-
 /**
- * Callback invoked by {@code RemoteFileOperations.execute()} - allows multiple operations
- * on a session.
- *
+ * Callback for using the same session for multiple
+ * RemoteFileTemplate operations.
+
  * @param <F> the type the operations accepts.
  * @param <T> the type the callback returns.
  *
- * @author Gary Russell
- * @since 3.0
+ * @author Artem Bilan
  *
+ * @since 5.0
  */
 @FunctionalInterface
-public interface SessionCallback<F, T> {
+public interface OperationsCallback<F, T> {
 
 	/**
-	 * Called within the context of a session.
-	 * Perform some operation(s) on the session. The caller will take
-	 * care of closing the session after this method exits.
+	 * Execute any number of operations using a dedicated remote
+	 * session as long as those operations are performed
+	 * on the template argument and on the calling thread.
+	 * The session will be closed when the callback exits.
 	 *
-	 * @param session The session.
-	 * @return The result of type T.
-	 * @throws IOException Any IOException.
+	 * @param operations the RemoteFileOperations.
+	 * @return the result of operations.
 	 */
-	T doInSession(Session<F> session) throws IOException;
+	T doInOperations(RemoteFileOperations<F> operations);
 
 }

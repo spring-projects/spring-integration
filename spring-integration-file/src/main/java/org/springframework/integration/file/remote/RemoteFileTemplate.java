@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author David Turanski
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -66,6 +68,13 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 * the {@link SessionFactory} for acquiring remote file Sessions.
 	 */
 	protected final SessionFactory<F> sessionFactory;
+
+	/*
+	 * Not static as normal since we want this TL to be scoped within the template instance.
+	 */
+	private final ThreadLocal<Session<F>> contextSessions = new ThreadLocal<>();
+
+	private final AtomicInteger activeTemplateCallbacks = new AtomicInteger();
 
 	private volatile String temporaryFileSuffix = ".writing";
 
@@ -398,6 +407,14 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	@Override
 	public Session<F> getSession() {
+		if (this.activeTemplateCallbacks.get() > 0) {
+			Session<F> session = this.contextSessions.get();
+			// If no session in the ThreadLocal, no {@code invoke()} in this call stack
+			if (session != null) {
+				return session;
+			}
+		}
+
 		return this.sessionFactory.getSession();
 	}
 
@@ -405,9 +422,17 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	@Override
 	public <T> T execute(SessionCallback<F, T> callback) {
 		Session<F> session = null;
+		boolean invokeScope = false;
+		if (this.activeTemplateCallbacks.get() > 0) {
+			session = this.contextSessions.get();
+		}
 		try {
-			session = this.sessionFactory.getSession();
-			Assert.notNull(session, "failed to acquire a Session");
+			if (session == null) {
+				session = this.sessionFactory.getSession();
+			}
+			else {
+				invokeScope = true;
+			}
 			return callback.doInSession(session);
 		}
 		catch (Exception e) {
@@ -420,7 +445,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			throw new MessagingException("Failed to execute on session", e);
 		}
 		finally {
-			if (session != null) {
+			if (!invokeScope) {
 				try {
 					session.close();
 				}
@@ -429,6 +454,29 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 						this.logger.debug("failed to close Session", ignored);
 					}
 				}
+			}
+		}
+	}
+
+	@Override
+	public <T> T invoke(OperationsCallback<F, T> action) {
+		Session<F> contextSession = this.contextSessions.get();
+		if (contextSession == null) {
+			this.contextSessions.set(this.sessionFactory.getSession());
+		}
+		this.activeTemplateCallbacks.incrementAndGet();
+
+		try {
+			return action.doInOperations(this);
+		}
+		finally {
+			this.activeTemplateCallbacks.decrementAndGet();
+			if (contextSession == null) {
+				Session<F> session = this.contextSessions.get();
+				if (session != null) {
+					session.close();
+				}
+				this.contextSessions.remove();
 			}
 		}
 	}

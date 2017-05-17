@@ -42,12 +42,15 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.RemoteFileUtils;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.PartialSuccessException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -79,6 +82,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		 * List remote files.
 		 */
 		LS("ls"),
+
+		/**
+		 * List remote file names.
+		 */
+		NLST("nlst"),
 
 		/**
 		 * Retrieve a remote file.
@@ -551,6 +559,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			switch (this.command) {
 				case LS:
 					return doLs(requestMessage);
+				case NLST:
+					return doNlst(requestMessage);
 				case GET:
 					return doGet(requestMessage);
 				case MGET:
@@ -575,11 +585,43 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		final String fullDir = dir;
-		List<?> payload = this.remoteFileTemplate.execute(session ->
-				AbstractRemoteFileOutboundGateway.this.ls(session, fullDir));
+		List<?> payload = this.remoteFileTemplate.execute(session -> ls(requestMessage, session, fullDir));
 		return getMessageBuilderFactory()
 				.withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir);
+	}
+
+	private Object doNlst(Message<?> requestMessage) {
+		String dir = this.fileNameProcessor.processMessage(requestMessage);
+		if (dir != null && !dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
+			dir += this.remoteFileTemplate.getRemoteFileSeparator();
+		}
+		final String fullDir = dir;
+		List<?> payload = this.remoteFileTemplate.execute(session -> nlst(requestMessage, session, fullDir));
+
+		return getMessageBuilderFactory()
+				.withPayload(payload)
+				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir);
+	}
+
+	/**
+	 * List remote files names for the provided directory.
+	 * The message can be consulted for some context related to the current request;
+	 * isn't used in the default implementation.
+	 * @param message the message related to the current request
+	 * @param session the session to perform list file names command
+	 * @param dir the remote directory to list file names
+	 * @return the list of file/directory names in the provided dir
+	 * @throws IOException the IO exception during performing remote command
+	 * @since 5.0
+	 */
+	protected List<String> nlst(Message<?> message, Session<F> session, String dir) throws IOException {
+		String remoteDirectory = buildRemotePath(dir, "");
+		List<String> fileNames = Arrays.asList(session.listNames(remoteDirectory));
+		if (!this.options.contains(Option.NOSORT)) {
+			Collections.sort(fileNames);
+		}
+		return fileNames;
 	}
 
 	private Object doGet(final Message<?> requestMessage) {
@@ -627,12 +669,27 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String remoteFilename = getRemoteFilename(remoteFilePath);
 		String remoteDir = getRemoteDirectory(remoteFilePath, remoteFilename);
 
-		boolean payload = this.remoteFileTemplate.remove(remoteFilePath);
+		boolean payload = this.remoteFileTemplate.execute(session -> rm(requestMessage, session, remoteFilePath));
 
 		return getMessageBuilderFactory()
 				.withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename);
+	}
+
+	/**
+	 * Perform remote delete for the provided path.
+	 * The message can be consulted to determine some context;
+	 * isn't used in the default implementation.
+	 * @param message the request message related to the path to remove
+	 * @param session the remote protocol session to perform remove command
+	 * @param remoteFilePath the remote path to remove
+	 * @return true or false as a result of the remote removal
+	 * @throws IOException the IO exception during performing remote command
+	 * @since 5.0
+	 */
+	protected boolean rm(Message<?> message, Session<F> session, String remoteFilePath) throws IOException {
+		return session.remove(remoteFilePath);
 	}
 
 	private Object doMv(Message<?> requestMessage) {
@@ -642,12 +699,39 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String remoteFileNewPath = this.renameProcessor.processMessage(requestMessage);
 		Assert.hasLength(remoteFileNewPath, "New filename cannot be empty");
 
-		this.remoteFileTemplate.rename(remoteFilePath, remoteFileNewPath);
+		Boolean result =
+				this.remoteFileTemplate.execute(session ->
+						mv(requestMessage, session, remoteFilePath, remoteFileNewPath));
+
 		return getMessageBuilderFactory()
-				.withPayload(Boolean.TRUE)
+				.withPayload(result)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 				.setHeader(FileHeaders.RENAME_TO, remoteFileNewPath);
+	}
+
+	/**
+	 * Move one remote path to another.
+	 * The message can be consulted to determine some context;
+	 * isn't used in the default implementation.
+	 * @param message the request message related to this move command
+	 * @param session the remote protocol session to perform move command
+	 * @param remoteFilePath the source remote path
+	 * @param remoteFileNewPath the target remote path
+	 * @return true or false as a result of the operation
+	 * @throws IOException the IO exception during performing remote command
+	 * @since 5.0
+	 */
+	protected boolean mv(Message<?> message, Session<F> session, String remoteFilePath, String remoteFileNewPath)
+			throws IOException {
+		int lastSeparator = remoteFileNewPath.lastIndexOf(this.remoteFileTemplate.getRemoteFileSeparator());
+		if (lastSeparator > 0) {
+			String remoteFileDirectory = remoteFileNewPath.substring(0, lastSeparator + 1);
+			RemoteFileUtils.makeDirectories(remoteFileDirectory, session,
+					this.remoteFileTemplate.getRemoteFileSeparator(), this.logger);
+		}
+		session.rename(remoteFilePath, remoteFileNewPath);
+		return true;
 	}
 
 	private String doPut(Message<?> requestMessage) {
@@ -655,25 +739,40 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	private String doPut(Message<?> requestMessage, String subDirectory) {
-		String path = this.remoteFileTemplate.send(requestMessage, subDirectory, this.fileExistsMode);
+		return this.remoteFileTemplate.invoke(template ->
+				put(requestMessage, template.getSession(), subDirectory));
+	}
+
+	/**
+	 * Put the file based on the message to the remote server.
+	 * The message can be consulted to determine some context.
+	 * The session argument isn't used in the default implementation.
+	 * @param message the request message related to this put command
+	 * @param session the remote protocol session related to this invocation context
+	 * @param subDirectory the target sub directory to put
+	 * @since 5.0
+	 */
+	protected String put(Message<?> message, Session<F> session, String subDirectory) {
+		String path = this.remoteFileTemplate.send(message, subDirectory, this.fileExistsMode);
 		if (path == null) {
-			throw new MessagingException(requestMessage, "No local file found for " + requestMessage);
+			throw new MessagingException(message, "No local file found for " + message);
 		}
 		if (this.chmod != null && isChmodCapable()) {
 			doChmod(this.remoteFileTemplate, path, this.chmod);
 		}
 		return path;
+
 	}
 
 	/**
 	 * Set the mode on the remote file after transfer; the default implementation does
 	 * nothing.
-	 * @param remoteFileTemplate the remote file template.
+	 * @param remoteFileOperations the remote file template.
 	 * @param path the path.
 	 * @param chmod the chmod to set.
 	 * @since 4.3
 	 */
-	protected void doChmod(RemoteFileTemplate<F> remoteFileTemplate, String path, int chmod) {
+	protected void doChmod(RemoteFileOperations<F> remoteFileOperations, String path, int chmod) {
 		// no-op
 	}
 
@@ -689,26 +788,40 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			throw new IllegalArgumentException("Only File or String payloads allowed for 'mput'");
 		}
 		if (!file.isDirectory()) {
-			return this.doPut(requestMessage);
+			return doPut(requestMessage);
 		}
 		else {
-			return putLocalDirectory(requestMessage, file, null);
+			File localDir = file;
+			return this.remoteFileTemplate.invoke(t ->
+					mPut(requestMessage, t.getSession(), localDir));
 		}
+	}
+
+	/**
+	 * Put files from the provided directory to the remote server recursively.
+	 * The message can be consulted to determine some context.
+	 * The session argument isn't used in the default implementation.
+	 * @param message the request message related to this mPut command
+	 * @param session the remote protocol session for this invocation context
+	 * @param localDir the local directory to mput to the server
+	 * @since 5.0
+	 */
+	protected List<String> mPut(Message<?> message, Session<F> session, File localDir) {
+		return putLocalDirectory(message, localDir, null);
 	}
 
 	private List<String> putLocalDirectory(Message<?> requestMessage, File file, String subDirectory) {
 		File[] files = file.listFiles();
 		List<File> filteredFiles = this.filterMputFiles(files);
-		List<String> replies = new ArrayList<String>();
+		List<String> replies = new ArrayList<>();
 		try {
 			for (File filteredFile : filteredFiles) {
 				if (!filteredFile.isDirectory()) {
-					String path = this.doPut(this.getMessageBuilderFactory().withPayload(filteredFile)
-							.copyHeaders(requestMessage.getHeaders())
-							.build(), subDirectory);
+					String path = doPut(new MutableMessage<>(filteredFile, requestMessage.getHeaders()), subDirectory);
 					if (path == null) { //NOSONAR - false positive
 						if (logger.isDebugEnabled()) {
-							logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
+							logger.debug("File " + filteredFile.getAbsolutePath()
+									+ " removed before transfer; ignoring");
 						}
 					}
 					else {
@@ -719,7 +832,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					String newSubDirectory = (StringUtils.hasText(subDirectory) ?
 							subDirectory + this.remoteFileTemplate.getRemoteFileSeparator() : "")
 							+ filteredFile.getName();
-					replies.addAll(this.putLocalDirectory(requestMessage, filteredFile, newSubDirectory));
+					replies.addAll(putLocalDirectory(requestMessage, filteredFile, newSubDirectory));
 				}
 			}
 		}
@@ -734,14 +847,24 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						"Partially successful 'mput' operation" + (subDirectory == null ? "" : (" on " + subDirectory)),
 						e, replies, filteredFiles);
 			}
-			else if (e instanceof MessagingException) {
-				throw (MessagingException) e;
+			else {
+				throw e;
 			}
 		}
 		return replies;
 	}
 
-	protected List<?> ls(Session<F> session, String dir) throws IOException {
+	/**
+	 * List remote files to local representation.
+	 * The message can be consulted for some context for the current request;
+	 * isn't used in the default implementation.
+	 * @param message the message related to the list request
+	 * @param session the session to perform list command
+	 * @param dir the remote directory to list content
+	 * @return the list of remote files
+	 * @throws IOException the IO exception during performing remote command
+	 */
+	protected List<?> ls(Message<?> message, Session<F> session, String dir) throws IOException {
 		List<F> lsFiles = listFilesInRemoteDir(session, dir, "");
 		if (!this.options.contains(Option.LINKS)) {
 			purgeLinks(lsFiles);
@@ -842,8 +965,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * Copy a remote file to the configured local directory.
-	 *
-	 *
 	 * @param message the message.
 	 * @param session the session.
 	 * @param remoteDir the remote directory.
@@ -955,7 +1076,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		List<File> files = new ArrayList<File>();
 		String remotePath = buildRemotePath(remoteDirectory, remoteFilename);
 		@SuppressWarnings("unchecked")
-		List<AbstractFileInfo<F>> remoteFiles = (List<AbstractFileInfo<F>>) ls(session, remotePath);
+		List<AbstractFileInfo<F>> remoteFiles = (List<AbstractFileInfo<F>>) ls(message, session, remotePath);
 		if (remoteFiles.size() == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
 			throw new MessagingException("No files found at "
 					+ (remoteDirectory != null ? remoteDirectory : "Client Working Directory")
@@ -1001,7 +1122,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			String remoteFilename) throws IOException {
 		List<File> files = new ArrayList<File>();
 		@SuppressWarnings("unchecked")
-		List<AbstractFileInfo<F>> fileNames = (List<AbstractFileInfo<F>>) ls(session, remoteDirectory);
+		List<AbstractFileInfo<F>> fileNames = (List<AbstractFileInfo<F>>) ls(message, session, remoteDirectory);
 		if (fileNames.size() == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
 			throw new MessagingException("No files found at "
 					+ (remoteDirectory != null ? remoteDirectory : "Client Working Directory")

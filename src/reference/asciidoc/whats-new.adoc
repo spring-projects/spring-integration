@@ -136,6 +136,12 @@ The FTP and SFTP outbound channel adapters, as well as `PUT` command of the outb
 The inbound channel adapters now can build file tree locally and use a new `RecursiveDirectoryScanner` by default for local directory.
 Also these adapters can now be switched to the `WatchService` instead.
 
+The `NLST` command has been added to the `AbstractRemoteFileOutboundGateway` to perform only list files names remote command.
+
+The `FtpOutboundGateway` can now be supplied with `workingDirExpression` to change the FTP client working directory for the current request message.
+
+The `RemoteFileTemplate` is supplied now with the `invoke(OperationsCallback<F, T> action)` to perform several `RemoteFileOperations` calls in the scope of the same, thread-bounded, `Session`.
+
 See <<ftp>> and <<sftp>> for more information.
 
 

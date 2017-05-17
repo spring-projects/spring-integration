@@ -161,7 +161,7 @@ subprojects { subproject ->
 			testCompile project(":spring-integration-test-support")
 		}
 
-		testRuntime "org.slf4j:slf4j-log4j12:$slf4jVersion"
+		testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 
 	// enable all compiler warnings; individual projects may customize further

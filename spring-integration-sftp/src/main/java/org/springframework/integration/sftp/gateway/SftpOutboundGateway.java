@@ -24,6 +24,7 @@ import java.util.List;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
 import org.springframework.integration.file.remote.MessageSessionCallback;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -147,8 +148,8 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	}
 
 	@Override
-	protected void doChmod(RemoteFileTemplate<LsEntry> remoteFileTemplate, final String path, final int chmod) {
-		remoteFileTemplate.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
+	protected void doChmod(RemoteFileOperations<LsEntry> remoteFileOperations, final String path, final int chmod) {
+		remoteFileOperations.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
 				try {
 					client.chmod(chmod, path);
 				}

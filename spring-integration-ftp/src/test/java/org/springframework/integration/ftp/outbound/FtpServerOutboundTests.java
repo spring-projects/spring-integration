@@ -147,6 +147,9 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 	private DirectChannel inboundLs;
 
 	@Autowired
+	private DirectChannel inboundNlst;
+
+	@Autowired
 	private SourcePollingChannelAdapter ftpInbound;
 
 	@Autowired
@@ -620,6 +623,25 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		List<String> files = (List<String>) receive.getPayload();
 		assertEquals(2, files.size());
 		assertThat(files, containsInAnyOrder(" ftpSource1.txt", "ftpSource2.txt"));
+
+		FTPFile[] ftpFiles = ftpSessionFactory.getSession().list(null);
+		for (FTPFile ftpFile : ftpFiles) {
+			if (!ftpFile.isDirectory()) {
+				assertTrue(files.contains(ftpFile.getName()));
+			}
+		}
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testNlstAndWorkingDirExpression() throws IOException {
+		this.inboundNlst.send(new GenericMessage<>("foo"));
+		Message<?> receive = this.output.receive(10000);
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(List.class));
+		List<String> files = (List<String>) receive.getPayload();
+		assertEquals(3, files.size());
+		assertThat(files, containsInAnyOrder("subFtpSource", " ftpSource1.txt", "ftpSource2.txt"));
 
 		FTPFile[] ftpFiles = ftpSessionFactory.getSession().list(null);
 		for (FTPFile ftpFile : ftpFiles) {
