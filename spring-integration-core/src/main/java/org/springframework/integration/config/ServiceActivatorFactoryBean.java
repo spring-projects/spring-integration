@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.StringUtils;
 
@@ -32,6 +32,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Liu
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
@@ -55,8 +57,8 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 		if (handler == null) {
 			handler = configureHandler(
 					StringUtils.hasText(targetMethodName)
-					? new ServiceActivatingHandler(targetObject, targetMethodName)
-					: new ServiceActivatingHandler(targetObject));
+							? new ServiceActivatingHandler(targetObject, targetMethodName)
+							: new ServiceActivatingHandler(targetObject));
 		}
 		return handler;
 	}
@@ -80,15 +82,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 			 * Return a reply-producing message handler so that we still get 'produced no reply' messages
 			 * and the super class will inject the advice chain to advise the handler method if needed.
 			 */
-			handler = new AbstractReplyProducingMessageHandler() {
-
-				@Override
-				protected Object handleRequestMessage(Message<?> requestMessage) {
-
-					((MessageHandler) targetObject).handleMessage(requestMessage);
-					return null;
-				}
-			};
+			handler = new ReplyProducingMessageHandlerWrapper((MessageHandler) targetObject);
 
 		}
 		return handler;
@@ -135,7 +129,7 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 			else {
 				if (this.requiresReply && logger.isDebugEnabled()) {
 					logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
-					+ handler.getComponentName() + " doesn't support it.");
+							+ handler.getComponentName() + " doesn't support it.");
 				}
 			}
 		}

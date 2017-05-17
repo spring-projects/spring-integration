@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.util.MessagingAnnotationUtils;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.StringUtils;
 
@@ -82,43 +81,6 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 		this.setOutputChannelIfPresent(annotations, serviceActivator);
 		return serviceActivator;
-	}
-
-	private static final class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingMessageHandler
-			implements Lifecycle {
-
-		private final MessageHandler target;
-
-		ReplyProducingMessageHandlerWrapper(MessageHandler target) {
-			this.target = target;
-		}
-
-		@Override
-		protected Object handleRequestMessage(Message<?> requestMessage) {
-			this.target.handleMessage(requestMessage);
-			return null;
-		}
-
-		@Override
-		public void start() {
-			if (this.target instanceof Lifecycle) {
-				((Lifecycle) this.target).start();
-			}
-
-		}
-
-		@Override
-		public void stop() {
-			if (this.target instanceof Lifecycle) {
-				((Lifecycle) this.target).stop();
-			}
-		}
-
-		@Override
-		public boolean isRunning() {
-			return !(this.target instanceof Lifecycle) || ((Lifecycle) this.target).isRunning();
-		}
-
 	}
 
 }

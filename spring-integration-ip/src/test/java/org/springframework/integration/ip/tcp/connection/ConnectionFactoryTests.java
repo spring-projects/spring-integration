@@ -150,7 +150,7 @@ public class ConnectionFactoryTests extends LogAdjustingTestSupport {
 		List<String> clients = clientFactory.getOpenConnectionIds();
 		assertEquals(1, clients.size());
 		assertTrue(clients.contains(client.getConnectionId()));
-		assertTrue("Server connection failed to register", serverConnectionInitLatch.await(1, TimeUnit.SECONDS));
+		assertTrue("Server connection failed to register", serverConnectionInitLatch.await(10, TimeUnit.SECONDS));
 		List<String> servers = serverFactory.getOpenConnectionIds();
 		assertEquals(1, servers.size());
 		assertTrue(serverFactory.closeConnection(servers.get(0)));
