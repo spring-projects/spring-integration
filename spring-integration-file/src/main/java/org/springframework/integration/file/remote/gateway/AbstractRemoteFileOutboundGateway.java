@@ -81,6 +81,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		LS("ls"),
 
 		/**
+		 * List remote file names.
+		 */
+		NLST("nlst"),
+
+		/**
 		 * Retrieve a remote file.
 		 */
 		GET("get"),
@@ -551,6 +556,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			switch (this.command) {
 				case LS:
 					return doLs(requestMessage);
+				case NLST:
+					return doNlst(requestMessage);
 				case GET:
 					return doGet(requestMessage);
 				case MGET:
@@ -575,8 +582,20 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
 		final String fullDir = dir;
-		List<?> payload = this.remoteFileTemplate.execute(session ->
-				AbstractRemoteFileOutboundGateway.this.ls(session, fullDir));
+		List<?> payload = this.remoteFileTemplate.execute(session -> ls(requestMessage, session, fullDir));
+		return getMessageBuilderFactory()
+				.withPayload(payload)
+				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir);
+	}
+
+	private Object doNlst(Message<?> requestMessage) {
+		String dir = this.fileNameProcessor.processMessage(requestMessage);
+		if (dir != null && !dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
+			dir += this.remoteFileTemplate.getRemoteFileSeparator();
+		}
+		final String fullDir = dir;
+		List<?> payload = this.remoteFileTemplate.execute(session -> nlst(requestMessage, session, fullDir));
+
 		return getMessageBuilderFactory()
 				.withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, dir);
@@ -627,12 +646,16 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String remoteFilename = getRemoteFilename(remoteFilePath);
 		String remoteDir = getRemoteDirectory(remoteFilePath, remoteFilename);
 
-		boolean payload = this.remoteFileTemplate.remove(remoteFilePath);
+		boolean payload = this.remoteFileTemplate.execute(session -> rm(requestMessage, session, remoteFilePath));
 
 		return getMessageBuilderFactory()
 				.withPayload(payload)
 				.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 				.setHeader(FileHeaders.REMOTE_FILE, remoteFilename);
+	}
+
+	protected boolean rm(Message<?> message, Session<F> session, String remoteFilePath) throws IOException {
+		return session.remove(remoteFilePath);
 	}
 
 	private Object doMv(Message<?> requestMessage) {
@@ -741,7 +764,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return replies;
 	}
 
-	protected List<?> ls(Session<F> session, String dir) throws IOException {
+	protected List<?> ls(Message<?> message, Session<F> session, String dir) throws IOException {
 		List<F> lsFiles = listFilesInRemoteDir(session, dir, "");
 		if (!this.options.contains(Option.LINKS)) {
 			purgeLinks(lsFiles);
@@ -769,6 +792,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			return canonicalFiles;
 		}
+	}
+
+	protected List<String> nlst(Message<?> message, Session<F> session, String dir) throws IOException {
+		String remoteDirectory = buildRemotePath(dir, "");
+		List<String> fileNames = Arrays.asList(session.listNames(remoteDirectory));
+		if (!this.options.contains(Option.NOSORT)) {
+			Collections.sort(fileNames);
+		}
+		return fileNames;
 	}
 
 	private List<F> listFilesInRemoteDir(Session<F> session, String directory, String subDirectory) throws IOException {
@@ -955,7 +987,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		List<File> files = new ArrayList<File>();
 		String remotePath = buildRemotePath(remoteDirectory, remoteFilename);
 		@SuppressWarnings("unchecked")
-		List<AbstractFileInfo<F>> remoteFiles = (List<AbstractFileInfo<F>>) ls(session, remotePath);
+		List<AbstractFileInfo<F>> remoteFiles = (List<AbstractFileInfo<F>>) ls(message, session, remotePath);
 		if (remoteFiles.size() == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
 			throw new MessagingException("No files found at "
 					+ (remoteDirectory != null ? remoteDirectory : "Client Working Directory")
@@ -1001,7 +1033,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			String remoteFilename) throws IOException {
 		List<File> files = new ArrayList<File>();
 		@SuppressWarnings("unchecked")
-		List<AbstractFileInfo<F>> fileNames = (List<AbstractFileInfo<F>>) ls(session, remoteDirectory);
+		List<AbstractFileInfo<F>> fileNames = (List<AbstractFileInfo<F>>) ls(message, session, remoteDirectory);
 		if (fileNames.size() == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
 			throw new MessagingException("No files found at "
 					+ (remoteDirectory != null ? remoteDirectory : "Client Working Directory")

@@ -178,8 +178,8 @@
 
 	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
 							  request-channel="inboundLs"
-							  command="ls"
-							  command-options="-1"
+							  command="nlst"
+							  working-dir-expression="'ftpSource'"
 							  reply-channel="output"/>
 
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
