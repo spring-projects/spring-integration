@@ -17,7 +17,7 @@ It is probably more common to have at least a _Transformer_ between the two syst
 If data format translation is not required, the Messaging Bridge may indeed be sufficient.
 
 [[bridge-namespace]]
-==== Configuring Bridge
+==== Configuring a Bridge with XML
 
 The <bridge> element is used to create a Messaging Bridge between two Message Channels or Channel Adapters.
 Simply provide the "input-channel" and "output-channel" attributes:
@@ -50,3 +50,64 @@ The various Channel Adapters will be discussed in upcoming chapters.
 
 NOTE: If no 'output-channel' is defined on a bridge, the reply channel provided by the inbound Message will be used, if available.
 If neither output or reply channel is available, an Exception will be thrown.
+
+[[bridge-annot]]
+==== Configuring a Bridge with Java Configuration
+
+[source, java]
+----
+@Bean
+public PollableChannel polled() {
+    return new QueueChannel();
+}
+
+@Bean
+@BridgeFrom(value = "polled", poller = @Poller(fixedDelay = "5000", maxMessagesPerPoll = "10"))
+public SubscribableChannel direct() {
+    return new DirectChannel();
+}
+----
+
+or
+
+[source, java]
+----
+@Bean
+@BridgeTo(value = "direct", poller = @Poller(fixedDelay = "5000", maxMessagesPerPoll = "10"))
+public PollableChannel polled() {
+    return new QueueChannel();
+}
+
+@Bean
+public SubscribableChannel direct() {
+    return new DirectChannel();
+}
+----
+
+Or, using a `BridgeHandler`:
+
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel = "polled",
+        poller = @Poller(fixedRate = "5000", maxMessagesPerPoll = "10"))
+public BridgeHandler bridge() {
+    BridgeHandler bridge = new BridgeHandler();
+    bridge.setOutputChannelName("direct");
+    return bridge;
+}
+----
+
+[[bridge-dsl]]
+==== Configuring a Bridge with the Java DSL
+
+[source, java]
+----
+@Bean
+public IntegrationFlow bridgeFlow() {
+    return IntegrationFlows.from("polled")
+            .bridge(e -> e.poller(Pollers.fixedDelay(5000).maxMessagesPerPoll(10)))
+            .channel("direct")
+            .get();
+}
+----
