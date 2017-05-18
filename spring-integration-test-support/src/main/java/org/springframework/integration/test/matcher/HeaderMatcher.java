@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
 
 package org.springframework.integration.test.matcher;
 
-import static org.hamcrest.CoreMatchers.is;
-
 import java.util.Date;
 import java.util.Map;
 
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
@@ -68,6 +67,7 @@ import org.springframework.messaging.MessageHeaders;
  *
  * @author Alex Peters
  * @author Iwein Fuld
+ * @author Artem Bilan
  *
  */
 public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
@@ -75,27 +75,22 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 	private final Matcher<?> matcher;
 
 	/**
-	 * @param matcher
+	 * @param matcher the target matcher to delegate
 	 */
-	HeaderMatcher(Matcher<?> matcher) {
+	private HeaderMatcher(Matcher<?> matcher) {
 		super();
 		this.matcher = matcher;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean matchesSafely(Message<?> item) {
-		return matcher.matches(item.getHeaders());
+		return this.matcher.matches(item.getHeaders());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public void describeTo(Description description) {
-		description.appendText("a Message with Headers containing ").appendDescriptionOf(matcher);
+		description.appendText("a Message with Headers containing ")
+				.appendDescriptionOf(this.matcher);
 	}
 
 	@Factory
@@ -104,12 +99,12 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasHeader(String key, Matcher<?> valueMatcher) {
+	public static <T> Matcher<Message<?>> hasHeader(String key, Matcher<T> valueMatcher) {
 		return new HeaderMatcher(MapContentMatchers.hasEntry(key, valueMatcher));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasHeaderKey(String key) {
+	public static Matcher<Message<?>> hasHeaderKey(String key) {
 		return new HeaderMatcher(MapContentMatchers.hasKey(key));
 	}
 
@@ -130,7 +125,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	@Factory
 	public static Matcher<Message<?>> hasSequenceNumber(Integer value) {
-		return hasSequenceNumber(is(value));
+		return hasSequenceNumber(CoreMatchers.is(value));
 	}
 
 	@Factory
@@ -140,7 +135,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	@Factory
 	public static Matcher<Message<?>> hasSequenceSize(Integer value) {
-		return hasSequenceSize(is(value));
+		return hasSequenceSize(CoreMatchers.is(value));
 	}
 
 	@Factory
@@ -150,7 +145,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	@Factory
 	public static Matcher<Message<?>> hasExpirationDate(Date value) {
-		return hasExpirationDate(is(value.getTime()));
+		return hasExpirationDate(CoreMatchers.is(value.getTime()));
 	}
 
 	@Factory
@@ -160,7 +155,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 
 	@Factory
 	public static Matcher<Message<?>> hasTimestamp(Date value) {
-		return hasTimestamp(is(value.getTime()));
+		return hasTimestamp(CoreMatchers.is(value.getTime()));
 	}
 
 	@Factory

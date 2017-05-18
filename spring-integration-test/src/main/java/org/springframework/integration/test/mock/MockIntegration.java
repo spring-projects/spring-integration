@@ -16,11 +16,11 @@
 
 package org.springframework.integration.test.mock;
 
-import static org.mockito.BDDMockito.given;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mockito.ArgumentCaptor;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 
 import org.springframework.integration.core.MessageSource;
@@ -89,8 +89,8 @@ public final class MockIntegration {
 	public static MessageSource<?> mockMessageSource(Message<?> message) {
 		MessageSource messageSource = Mockito.mock(MessageSource.class);
 
-		given(messageSource.receive())
-				.<Message<?>>willReturn(message);
+		BDDMockito.given(messageSource.receive())
+				.willReturn(message);
 
 		return messageSource;
 	}
@@ -108,10 +108,27 @@ public final class MockIntegration {
 	public static MessageSource<?> mockMessageSource(Message<?> message, Message<?>... messages) {
 		MessageSource messageSource = Mockito.mock(MessageSource.class);
 
-		given(messageSource.receive())
+		BDDMockito.given(messageSource.receive())
 				.willReturn(message, messages);
 
 		return messageSource;
+	}
+
+	/**
+	 * Build a {@link MockMessageHandler} instance.
+	 * @return the {@link MockMessageHandler} instance ready for interaction
+	 */
+	public static MockMessageHandler mockMessageHandler() {
+		return mockMessageHandler(null);
+	}
+
+	/**
+	 * Build a {@link MockMessageHandler} instance based on the provided {@link ArgumentCaptor}.
+	 * @param messageArgumentCaptor the Mockito ArgumentCaptor to capture incoming messages
+	 * @return the MockMessageHandler instance ready for interaction
+	 */
+	public static MockMessageHandler mockMessageHandler(ArgumentCaptor<Message<?>> messageArgumentCaptor) {
+		return new MockMessageHandler(messageArgumentCaptor);
 	}
 
 	private MockIntegration() {

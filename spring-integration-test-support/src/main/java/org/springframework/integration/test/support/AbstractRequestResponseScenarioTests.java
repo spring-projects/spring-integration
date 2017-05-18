@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.springframework.integration.test.support;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,8 +41,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * <li>A payload or message to send as a request message on the inputChannel</li>
  * <li>A handler to validate the response received on the outputChannel</li>
  * </ul>
+ *
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public abstract class AbstractRequestResponseScenarioTests {
@@ -78,16 +78,16 @@ public abstract class AbstractRequestResponseScenarioTests {
 				((SubscribableChannel) outputChannel).subscribe(scenario.getResponseValidator());
 			}
 
-			assertTrue(name + ": message not sent on " + scenario.getInputChannelName(),
+			Assert.assertTrue(name + ": message not sent on " + scenario.getInputChannelName(),
 					inputChannel.send(scenario.getMessage()));
 
 			if (outputChannel instanceof PollableChannel) {
 				Message<?> response = ((PollableChannel) outputChannel).receive(10000);
-				assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(), response);
+				Assert.assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(), response);
 				scenario.getResponseValidator().handleMessage(response);
 			}
 
-			assertNotNull("message was not handled on " + outputChannel + " for scenario '" + name + "'.",
+			Assert.assertNotNull("message was not handled on " + outputChannel + " for scenario '" + name + "'.",
 					scenario.getResponseValidator().getLastMessage());
 
 			if (outputChannel instanceof SubscribableChannel) {

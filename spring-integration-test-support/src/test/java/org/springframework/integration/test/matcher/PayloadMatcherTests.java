@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,51 +35,43 @@ import org.springframework.messaging.support.MessageBuilder;
  * @author Alex Peters
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class PayloadMatcherTests {
 
-	static final BigDecimal ANY_PAYLOAD = new BigDecimal("1.123");
+	private static final BigDecimal ANY_PAYLOAD = new BigDecimal("1.123");
 
-	Message<BigDecimal> message = MessageBuilder.withPayload(ANY_PAYLOAD).build();
+	private final Message<BigDecimal> message = MessageBuilder.withPayload(ANY_PAYLOAD).build();
 
 	@Test
 	public void hasPayload_withEqualValue_matches() throws Exception {
-		assertThat(message, hasPayload(new BigDecimal("1.123")));
+		assertThat(this.message, hasPayload(new BigDecimal("1.123")));
 	}
 
 	@Test
 	public void hasPayload_withNotEqualValue_notMatching() throws Exception {
-		assertThat(message, not(hasPayload(new BigDecimal("456"))));
+		assertThat(this.message, not(hasPayload(new BigDecimal("456"))));
 	}
 
 	@Test
 	public void hasPayload_withMatcher_matches() throws Exception {
-		assertThat(message,
-				hasPayload(is(instanceOf(BigDecimal.class))));
-		assertThat(message, hasPayload(notNullValue()));
+		assertThat(this.message, hasPayload(is(instanceOf(BigDecimal.class))));
+		assertThat(this.message, hasPayload(notNullValue()));
 	}
 
 	@Test
-	public void hasPayload_withNotMatchingMatcher_notMatching()
-			throws Exception {
-		assertThat(message, not((hasPayload(is(instanceOf(String.class))))));
+	public void hasPayload_withNotMatchingMatcher_notMatching() throws Exception {
+		assertThat(this.message, not((hasPayload(is(instanceOf(String.class))))));
 	}
 
 	@Test
 	public void readableException() throws Exception {
 		try {
-			assertThat(message, hasPayload("woot"));
+			assertThat(this.message, hasPayload("woot"));
 		}
 		catch (AssertionError ae) {
 			assertTrue(ae.getMessage().contains("Expected: a Message with payload: "));
 		}
-	}
-
-	@SuppressWarnings("rawtypes")
-	@Test
-	public void shouldMatchNonParametrizedMessage() throws Exception {
-		Message message = this.message;
-		assertThat(message, hasPayload(new BigDecimal("1.123")));
 	}
 
 }

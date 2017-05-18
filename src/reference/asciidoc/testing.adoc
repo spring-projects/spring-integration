@@ -287,6 +287,41 @@ assertNotNull(receive);
 assertEquals("FOO", receive.getPayload());
 ----
 
+Unlike full Mockito `MessageSource` mock, the `MockMessageHandler` is just regular `AbstractMessageProducingHandler` extension with a chain API to stub handling for incoming messages.
+The `MockMessageHandler` suggests `handleNext(Consumer<Message<?>>)` to provide one-way stub for the next request message.
+The `handleNextAndReply(Function<Message<?>, ?>)` is present for performing the same stub logic for the next request message and produce reply for it.
+They can be chained any way to simulate any arbitrary request-reply scenarios for all expected request messages variants.
+These consumers and functions applied for the incoming messages as one at a time from the stack until the last.
+Afterwards that last one is applied for all the subsequent messages.
+The behavior is similar to the Mockito `Answer` or `doReturn()` API.
+
+In addition the Mockito `ArgumentCaptor<Message<?>>` can be supplied to the `MockMessageHandler`.
+Each request message for the `MockMessageHandler` is reported to that `ArgumentCaptor`.
+Afterwards, in the test-case, its `getValue()/getAllValues()` can be used to verify and assert those request messages:
+
+The `MockIntegrationContext` provides an `instead()` API for such a `MockMessageHandler` to replace the `MessageHandler` for the particular endpoint in the real application context.
+
+The typical usage sample is like:
+
+[source,java]
+----
+ArgumentCaptor<Message<?>> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
+
+MessageHandler mockMessageHandler =
+        mockMessageHandler(messageArgumentCaptor)
+                .handleNextAndReply(m -> m.getPayload().toString().toUpperCase());
+
+this.mockIntegrationContext.instead("myService.serviceActivator", mockMessageHandler);
+GenericMessage<String> message = new GenericMessage<>("foo");
+this.myChannel.send(message);
+Message<?> receive = this.results.receive(10000);
+assertNotNull(receive);
+assertEquals("FOO", receive.getPayload());
+assertSame(message, messageArgumentCaptor.getValue());
+----
+
+See `MockIntegration` and `MockMessageHandler` JavaDocs for more information.
+
 [[testing-other-resources]]
 === Other Resources
 
