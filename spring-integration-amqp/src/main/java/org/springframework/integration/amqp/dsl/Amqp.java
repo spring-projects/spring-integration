@@ -20,12 +20,14 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 
 /**
  * Factory class for AMQP components.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 5.0
  */
 public final class Amqp {
@@ -36,10 +38,10 @@ public final class Amqp {
 	 * @param queueNames the queueNames.
 	 * @return the AmqpInboundGatewaySpec.
 	 */
-	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, String... queueNames) {
+	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory, String... queueNames) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueueNames(queueNames);
-		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer);
+		return inboundGateway(listenerContainer);
 	}
 
 	/**
@@ -49,11 +51,11 @@ public final class Amqp {
 	 * @param queueNames the queueNames.
 	 * @return the AmqpInboundGatewaySpec.
 	 */
-	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
+	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
 			String... queueNames) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueueNames(queueNames);
-		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer, amqpTemplate);
+		return inboundGateway(listenerContainer, amqpTemplate);
 	}
 
 
@@ -63,10 +65,10 @@ public final class Amqp {
 	 * @param queues the queues.
 	 * @return the AmqpInboundGatewaySpec.
 	 */
-	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, Queue... queues) {
+	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory, Queue... queues) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueues(queues);
-		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer);
+		return inboundGateway(listenerContainer);
 	}
 
 	/**
@@ -76,74 +78,126 @@ public final class Amqp {
 	 * @param queues the queues.
 	 * @return the AmqpInboundGatewaySpec.
 	 */
-	public static AmqpInboundGatewaySpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
+	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
 			Queue... queues) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueues(queues);
-		return (AmqpInboundGatewaySpec) inboundGateway(listenerContainer, amqpTemplate);
+		return inboundGateway(listenerContainer, amqpTemplate);
 	}
 
 	/**
-	 * Create an initial {@link AmqpBaseInboundGatewaySpec}
+	 * Create an initial {@link AmqpInboundGatewaySMLCSpec}
 	 * with provided {@link SimpleMessageListenerContainer}.
 	 * Note: only endpoint options are available from spec.
 	 * The {@code listenerContainer} options should be specified
-	 * on the provided {@link SimpleMessageListenerContainer}.
+	 * on the provided {@link SimpleMessageListenerContainer} using
+	 * {@link AmqpInboundGatewaySMLCSpec#configureContainer(java.util.function.Consumer)}.
 	 * @param listenerContainer the listenerContainer
-	 * @return the AmqpBaseInboundGatewaySpec.
+	 * @return the AmqpInboundGatewaySMLCSpec.
 	 */
-	public static AmqpBaseInboundGatewaySpec<?> inboundGateway(SimpleMessageListenerContainer listenerContainer) {
-		return new AmqpInboundGatewaySpec(listenerContainer);
+	public static AmqpInboundGatewaySMLCSpec inboundGateway(SimpleMessageListenerContainer listenerContainer) {
+		return new AmqpInboundGatewaySMLCSpec(listenerContainer);
 	}
 
 	/**
-	 * Create an initial {@link AmqpBaseInboundGatewaySpec}
+	 * Create an initial {@link AmqpInboundGatewaySMLCSpec}
 	 * with provided {@link SimpleMessageListenerContainer}.
 	 * Note: only endpoint options are available from spec.
 	 * The {@code listenerContainer} options should be specified
-	 * on the provided {@link SimpleMessageListenerContainer}.
+	 * on the provided {@link SimpleMessageListenerContainer}using
+	 * {@link AmqpInboundGatewaySMLCSpec#configureContainer(java.util.function.Consumer)}.
 	 * @param listenerContainer the listenerContainer
 	 * @param amqpTemplate the {@link AmqpTemplate} to use.
-	 * @return the AmqpBaseInboundGatewaySpec.
+	 * @return the AmqpInboundGatewaySMLCSpec.
 	 */
-	public static AmqpBaseInboundGatewaySpec<?> inboundGateway(SimpleMessageListenerContainer listenerContainer,
+	public static AmqpInboundGatewaySMLCSpec inboundGateway(SimpleMessageListenerContainer listenerContainer,
 			AmqpTemplate amqpTemplate) {
-		return new AmqpInboundGatewaySpec(listenerContainer, amqpTemplate);
+		return new AmqpInboundGatewaySMLCSpec(listenerContainer, amqpTemplate);
 	}
 
 	/**
-	 * Create an initial AmqpInboundChannelAdapterSpec.
+	 * Create an initial {@link DirectMessageListenerContainerSpec}
+	 * with provided {@link DirectMessageListenerContainer}.
+	 * Note: only endpoint options are available from spec.
+	 * The {@code listenerContainer} options should be specified
+	 * on the provided {@link DirectMessageListenerContainer} using
+	 * {@link AmqpInboundGatewayDMLCSpec#configureContainer(java.util.function.Consumer)}.
+	 * @param listenerContainer the listenerContainer
+	 * @return the AmqpInboundGatewayDMLCSpec.
+	 */
+	public static AmqpInboundGatewayDMLCSpec inboundGateway(DirectMessageListenerContainer listenerContainer) {
+		return new AmqpInboundGatewayDMLCSpec(listenerContainer);
+	}
+
+	/**
+	 * Create an initial {@link AmqpInboundGatewayDMLCSpec}
+	 * with provided {@link DirectMessageListenerContainer}.
+	 * Note: only endpoint options are available from spec.
+	 * The {@code listenerContainer} options should be specified
+	 * on the provided {@link DirectMessageListenerContainer} using
+	 * {@link AmqpInboundGatewayDMLCSpec#configureContainer(java.util.function.Consumer)}.
+	 * @param listenerContainer the listenerContainer
+	 * @param amqpTemplate the {@link AmqpTemplate} to use.
+	 * @return the AmqpInboundGatewayDMLCSpec.
+	 */
+	public static AmqpInboundGatewayDMLCSpec inboundGateway(DirectMessageListenerContainer listenerContainer,
+			AmqpTemplate amqpTemplate) {
+		return new AmqpInboundGatewayDMLCSpec(listenerContainer, amqpTemplate);
+	}
+
+	/**
+	 * Create an initial AmqpInboundChannelAdapterSpec using a
+	 * {@link SimpleMessageListenerContainer}.
 	 * @param connectionFactory the connectionFactory.
 	 * @param queueNames the queueNames.
 	 * @return the AmqpInboundChannelAdapterSpec.
 	 */
-	public static AmqpInboundChannelAdapterSpec inboundAdapter(ConnectionFactory connectionFactory,
+	public static AmqpInboundChannelAdapterSMLCSpec inboundAdapter(ConnectionFactory connectionFactory,
 			String... queueNames) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueueNames(queueNames);
-		return (AmqpInboundChannelAdapterSpec) inboundAdapter(listenerContainer);
+		return new AmqpInboundChannelAdapterSMLCSpec(listenerContainer);
 	}
 
 	/**
-	 * Create an initial AmqpInboundChannelAdapterSpec.
+	 * Create an initial AmqpInboundChannelAdapterSpec using a
+	 * {@link SimpleMessageListenerContainer}.
 	 * @param connectionFactory the connectionFactory.
 	 * @param queues the queues.
 	 * @return the AmqpInboundChannelAdapterSpec.
 	 */
-	public static AmqpInboundChannelAdapterSpec inboundAdapter(ConnectionFactory connectionFactory, Queue... queues) {
+	public static AmqpInboundChannelAdapterSMLCSpec inboundAdapter(ConnectionFactory connectionFactory, Queue... queues) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueues(queues);
-		return (AmqpInboundChannelAdapterSpec) inboundAdapter(listenerContainer);
+		return new AmqpInboundChannelAdapterSMLCSpec(listenerContainer);
 	}
 
 	/**
-	 * Create an initial AmqpInboundChannelAdapterSpec.
+	 * Create an initial {@link AmqpInboundGatewaySMLCSpec}
+	 * with provided {@link SimpleMessageListenerContainer}.
+	 * Note: only endpoint options are available from spec.
+	 * The {@code listenerContainer} options should be specified
+	 * on the provided {@link SimpleMessageListenerContainer} using
+	 * {@link AmqpInboundGatewaySMLCSpec#configureContainer(java.util.function.Consumer)}.
 	 * @param listenerContainer the listenerContainer
-	 * @return the AmqpInboundChannelAdapterSpec.
+	 * @return the AmqpInboundGatewaySMLCSpec.
 	 */
-	public static AmqpBaseInboundChannelAdapterSpec<?> inboundAdapter(
-			SimpleMessageListenerContainer listenerContainer) {
-		return new AmqpInboundChannelAdapterSpec(listenerContainer);
+	public static AmqpInboundChannelAdapterSMLCSpec inboundAdapter(SimpleMessageListenerContainer listenerContainer) {
+		return new AmqpInboundChannelAdapterSMLCSpec(listenerContainer);
+	}
+
+	/**
+	 * Create an initial {@link AmqpInboundGatewayDMLCSpec}
+	 * with provided {@link DirectMessageListenerContainer}.
+	 * Note: only endpoint options are available from spec.
+	 * The {@code listenerContainer} options should be specified
+	 * on the provided {@link DirectMessageListenerContainer} using
+	 * {@link AmqpInboundGatewaySMLCSpec#configureContainer(java.util.function.Consumer)}.
+	 * @param listenerContainer the listenerContainer
+	 * @return the AmqpInboundGatewaySMLCSpec.
+	 */
+	public static AmqpInboundChannelAdapterDMLCSpec inboundAdapter(DirectMessageListenerContainer listenerContainer) {
+		return new AmqpInboundChannelAdapterDMLCSpec(listenerContainer);
 	}
 
 	/**
