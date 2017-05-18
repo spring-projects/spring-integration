@@ -43,6 +43,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.RemoteFileUtils;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
@@ -721,6 +722,12 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	protected boolean mv(Message<?> message, Session<F> session, String remoteFilePath, String remoteFileNewPath)
 			throws IOException {
+		int lastSeparator = remoteFileNewPath.lastIndexOf(this.remoteFileTemplate.getRemoteFileSeparator());
+		if (lastSeparator > 0) {
+			String remoteFileDirectory = remoteFileNewPath.substring(0, lastSeparator + 1);
+			RemoteFileUtils.makeDirectories(remoteFileDirectory, session,
+					this.remoteFileTemplate.getRemoteFileSeparator(), this.logger);
+		}
 		session.rename(remoteFilePath, remoteFileNewPath);
 		return true;
 	}
