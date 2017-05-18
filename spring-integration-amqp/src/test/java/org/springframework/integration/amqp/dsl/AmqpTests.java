@@ -36,6 +36,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.junit.BrokerRunning;
+import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -211,6 +212,23 @@ public class AmqpTests {
 			return IntegrationFlows
 					.from(Amqp.inboundGateway(rabbitConnectionFactory, amqpTemplate, queue())
 							.id("amqpInboundGateway")
+							.configureContainer(c -> c
+								.recoveryInterval(5000)
+								.concurrentConsumers(1))
+							.defaultReplyTo(defaultReplyTo().getName()))
+					.transform("hello "::concat)
+					.transform(String.class, String::toUpperCase)
+					.get();
+		}
+
+		// syntax only
+		public IntegrationFlow amqpDMLCFlow(ConnectionFactory rabbitConnectionFactory, AmqpTemplate amqpTemplate) {
+			return IntegrationFlows
+					.from(Amqp.inboundGateway(new DirectMessageListenerContainer())
+							.id("amqpInboundGateway")
+							.configureContainer(c -> c
+								.recoveryInterval(5000)
+								.consumersPerQueue(1))
 							.defaultReplyTo(defaultReplyTo().getName()))
 					.transform("hello "::concat)
 					.transform(String.class, String::toUpperCase)
