@@ -228,6 +228,13 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 				() -> super.rm(message, session, remoteFilePath));
 	}
 
+	@Override
+	protected boolean mv(Message<?> message, Session<FTPFile> session, String remoteFilePath, String remoteFileNewPath)
+			throws IOException {
+		return doInWorkingDirectory(message, session,
+				() -> super.mv(message, session, remoteFilePath, remoteFileNewPath));
+	}
+
 	private <V> V doInWorkingDirectory(Message<?> message, Session<FTPFile> session, Callable<V> task)
 			throws IOException {
 		Expression workingDirExpression = this.workingDirExpression;
@@ -244,6 +251,10 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 		catch (Exception e) {
 			if (e instanceof IOException) {
 				throw (IOException) e;
+
+			}
+			else if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
 			}
 			else {
 				throw new IOException("Uncategorised IO exception", e);
