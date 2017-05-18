@@ -16,11 +16,14 @@
 
 package org.springframework.integration.jms.dsl;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.integration.jms.JmsHeaderMapper;
@@ -33,6 +36,7 @@ import org.springframework.util.Assert;
  * @param <S> the target {@link JmsInboundChannelAdapterSpec} implementation type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec<S>>
@@ -92,8 +96,9 @@ public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec
 	/**
 	 * A {@link JmsTemplate}-based {@link JmsInboundChannelAdapterSpec} extension.
 	 */
-	public static class JmsInboundChannelSpecTemplateAware extends
-			JmsInboundChannelAdapterSpec<JmsInboundChannelSpecTemplateAware> {
+	public static class JmsInboundChannelSpecTemplateAware
+			extends JmsInboundChannelAdapterSpec<JmsInboundChannelSpecTemplateAware>
+			implements ComponentsRegistration {
 
 		JmsInboundChannelSpecTemplateAware(ConnectionFactory connectionFactory) {
 			super(connectionFactory);
@@ -109,6 +114,11 @@ public class JmsInboundChannelAdapterSpec<S extends JmsInboundChannelAdapterSpec
 			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.jmsTemplateSpec);
 			return _this();
+		}
+
+		@Override
+		public Map<Object, String> getComponentsToRegister() {
+			return Collections.singletonMap(this.jmsTemplateSpec.get(), this.jmsTemplateSpec.getId());
 		}
 
 	}

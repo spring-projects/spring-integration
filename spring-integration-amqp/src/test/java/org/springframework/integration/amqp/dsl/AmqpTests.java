@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,6 +90,11 @@ public class AmqpTests {
 	@Autowired(required = false)
 	@Qualifier("amqpInboundGatewayContainer")
 	private SimpleMessageListenerContainer amqpInboundGatewayContainer;
+
+	@AfterClass
+	public static void tearDown() {
+		brokerRunning.removeTestQueues();
+	}
 
 	@Test
 	public void testAmqpInboundGatewayFlow() throws Exception {

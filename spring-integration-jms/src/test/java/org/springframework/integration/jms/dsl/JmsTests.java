@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.listener.MessageListenerContainer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -127,6 +128,17 @@ public class JmsTests {
 	@Autowired
 	private AtomicBoolean jmsInboundGatewayChannelCalled;
 
+	@Autowired(required = false)
+	@Qualifier("jmsOutboundFlowTemplate")
+	private JmsTemplate jmsOutboundFlowTemplate;
+
+	@Autowired(required = false)
+	@Qualifier("jmsMessageDrivenRedeliveryFlowContainer")
+	private MessageListenerContainer jmsMessageDrivenRedeliveryFlowContainer;
+
+	@Autowired
+	private CountDownLatch redeliveryLatch;
+
 	@Test
 	public void testPollingFlow() {
 		this.controlBus.send("@'jmsTests.ContextConfiguration.integerMessageSource.inboundChannelAdapter'.start()");
@@ -174,6 +186,8 @@ public class JmsTests {
 
 		assertNotNull(receive);
 		assertEquals("foo", receive.getPayload());
+
+		assertNotNull(this.jmsOutboundFlowTemplate);
 	}
 
 	@Test
@@ -206,9 +220,6 @@ public class JmsTests {
 		assertEquals("foo", received.getPayload());
 	}
 
-	@Autowired
-	private CountDownLatch redeliveryLatch;
-
 	@Test
 	public void testJmsRedeliveryFlow() throws InterruptedException {
 		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("foo")
@@ -216,6 +227,8 @@ public class JmsTests {
 				.build());
 
 		assertTrue(this.redeliveryLatch.await(10, TimeUnit.SECONDS));
+
+		assertNotNull(this.jmsMessageDrivenRedeliveryFlowContainer);
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
@@ -279,8 +292,10 @@ public class JmsTests {
 
 		@Bean
 		public IntegrationFlow jmsOutboundFlow() {
-			return f -> f.handle(Jms.outboundAdapter(jmsConnectionFactory())
-					.destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER));
+			return f -> f
+					.handle(Jms.outboundAdapter(jmsConnectionFactory())
+							.destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
+							.configureJmsTemplate(t -> t.id("jmsOutboundFlowTemplate")));
 		}
 
 		@Bean
@@ -353,16 +368,16 @@ public class JmsTests {
 		@Bean
 		public IntegrationFlow jmsOutboundGatewayFlow() {
 			return f -> f.handle(Jms.outboundGateway(jmsConnectionFactory())
-									.replyContainer(c -> c.idleReplyContainerTimeout(10))
-									.requestDestination("jmsPipelineTest"),
+							.replyContainer(c -> c.idleReplyContainerTimeout(10))
+							.requestDestination("jmsPipelineTest"),
 					e -> e.id("jmsOutboundGateway"));
 		}
 
 		@Bean
 		public IntegrationFlow jmsInboundGatewayFlow() {
 			return IntegrationFlows.from(Jms.inboundGateway(jmsConnectionFactory())
-							.requestChannel(jmsInboundGatewayInputChannel())
-							.destination("jmsPipelineTest"))
+					.requestChannel(jmsInboundGatewayInputChannel())
+					.destination("jmsPipelineTest"))
 					.<String, String>transform(String::toUpperCase)
 					.get();
 		}
@@ -392,7 +407,8 @@ public class JmsTests {
 			return IntegrationFlows
 					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory())
 							.errorChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)
-							.destination("jmsMessageDrivenRedelivery"))
+							.destination("jmsMessageDrivenRedelivery")
+							.configureListenerContainer(c -> c.id("jmsMessageDrivenRedeliveryFlowContainer")))
 					.<String, String>transform(p -> {
 						throw new RuntimeException("intentional");
 					})

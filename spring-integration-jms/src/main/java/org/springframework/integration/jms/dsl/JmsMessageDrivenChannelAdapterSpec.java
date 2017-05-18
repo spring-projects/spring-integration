@@ -16,10 +16,13 @@
 
 package org.springframework.integration.jms.dsl;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.jms.Destination;
 
+import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
 import org.springframework.integration.jms.JmsHeaderMapper;
@@ -34,6 +37,7 @@ import org.springframework.util.Assert;
  * @param <S> the target {@link JmsMessageDrivenChannelAdapterSpec} implementation type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChannelAdapterSpec<S>>
@@ -81,7 +85,8 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	 */
 	public static class
 			JmsMessageDrivenChannelAdapterListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
-			extends JmsMessageDrivenChannelAdapterSpec<JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>> {
+			extends JmsMessageDrivenChannelAdapterSpec<JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>>
+			implements ComponentsRegistration {
 
 		private final JmsListenerContainerSpec<S, C> spec;
 
@@ -89,6 +94,7 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 			super(spec.get());
 			this.spec = spec;
 			this.spec.get().setAutoStartup(false);
+
 		}
 
 		/**
@@ -123,6 +129,11 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.spec);
 			return _this();
+		}
+
+		@Override
+		public Map<Object, String> getComponentsToRegister() {
+			return Collections.singletonMap(this.spec.get(), this.spec.getId());
 		}
 
 	}

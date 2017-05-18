@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ import org.springframework.jms.support.destination.JmsDestinationAccessor;
  * @param <A> the target {@link JmsDestinationAccessor} implementation type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
-public abstract class
-		JmsDestinationAccessorSpec<S extends JmsDestinationAccessorSpec<S, A>, A extends JmsDestinationAccessor>
+public abstract class JmsDestinationAccessorSpec<S extends JmsDestinationAccessorSpec<S, A>, A extends JmsDestinationAccessor>
 		extends IntegrationComponentSpec<S, A> {
 
 	protected JmsDestinationAccessorSpec(A accessor) {
@@ -42,6 +42,11 @@ public abstract class
 	S connectionFactory(ConnectionFactory connectionFactory) {
 		this.target.setConnectionFactory(connectionFactory);
 		return _this();
+	}
+
+	@Override
+	public S id(String id) {
+		return super.id(id);
 	}
 
 	/**
