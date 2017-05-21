@@ -16,52 +16,88 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willReturn;
+
+import java.util.Collections;
 
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.containsString;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 @RunWith(org.mockito.runners.MockitoJUnitRunner.class)
 public class AbstractReplyProducingMessageHandlerTests {
 
-	private AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+	private final AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			return requestMessage;
 		}
 	};
 
-	private Message<?> message = MessageBuilder.withPayload("test").build();
+	private final Message<?> message = MessageBuilder.withPayload("test").build();
 
 	@Mock
-	private MessageChannel channel = null;
+	private final MessageChannel channel = null;
 
 
 	@Test
 	public void errorMessageShouldContainChannelName() {
-		handler.setOutputChannel(channel);
-		when(channel.send(message)).thenReturn(false);
-		when(channel.toString()).thenReturn("testChannel");
+		this.handler.setOutputChannel(this.channel);
+		given(this.channel.send(this.message)).willReturn(false);
+		given(this.channel.toString()).willReturn("testChannel");
 		try {
-			handler.handleMessage(message);
+			this.handler.handleMessage(this.message);
 			fail("Expected a MessagingException");
 		}
 		catch (MessagingException e) {
 			assertThat(e.getMessage(), containsString("'testChannel'"));
 		}
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testNotPropagate() {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new GenericMessage<String>("world", Collections.singletonMap("bar", "RAB"));
+			}
+
+		};
+		handler.setNotPropagatedHeaders("foo", "bar");
+		handler.setOutputChannel(this.channel);
+		ArgumentCaptor<Message<?>> captor = (ArgumentCaptor<Message<?>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(Message.class);
+		willReturn(true).given(this.channel).send(captor.capture());
+		handler.handleMessage(MessageBuilder.withPayload("hello")
+				.setHeader("foo", "FOO")
+				.setHeader("bar", "BAR")
+				.setHeader("baz", "BAZ")
+				.build());
+		Message<?> out = captor.getValue();
+		assertThat(out, notNullValue());
+		assertThat(out.getHeaders().get("foo"), nullValue());
+		assertThat(out.getHeaders().get("bar"), equalTo("RAB"));
+		assertThat(out.getHeaders().get("baz"), equalTo("BAZ"));
 	}
 
 }
