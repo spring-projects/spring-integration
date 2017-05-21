@@ -16,9 +16,13 @@
 
 package org.springframework.integration.handler;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.reactivestreams.Publisher;
@@ -37,6 +41,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
@@ -57,6 +62,8 @@ import reactor.core.publisher.Mono;
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
 		implements MessageProducer {
 
+	private final Set<String> notPropagatedHeaders = new HashSet<String>();
+
 	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile MessageChannel outputChannel;
@@ -64,6 +71,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	private volatile String outputChannelName;
 
 	private volatile boolean async;
+
+	private boolean selectiveHeaderPropagation;
 
 	/**
 	 * Set the timeout for sending reply Messages.
@@ -101,6 +110,21 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 */
 	protected boolean isAsync() {
 		return this.async;
+	}
+
+	/**
+	 * Set headers that will NOT be copied from the inbound message if
+	 * {@link #shouldCopyRequestHeaders() shouldCopyRequestHeaaders} is true.
+	 * @param headers the headers to not propagate from the inbound message.
+	 * @since 4.3.10
+	 */
+	public void setNotPropagatedHeaders(String... headers) {
+		if (!ObjectUtils.isEmpty(headers)) {
+			Assert.noNullElements(headers, "null elements are not allowed in 'headers'");
+			this.notPropagatedHeaders.clear();
+			this.notPropagatedHeaders.addAll(Arrays.asList(headers));
+		}
+		this.selectiveHeaderPropagation = this.notPropagatedHeaders.size() > 0;
 	}
 
 	@Override
@@ -147,7 +171,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected void produceOutput(Object reply, final Message<?> requestMessage) {
 		final MessageHeaders requestHeaders = requestMessage.getHeaders();
 
@@ -299,7 +322,16 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			builder = this.getMessageBuilderFactory().withPayload(output);
 		}
 		if (this.shouldCopyRequestHeaders()) {
-			builder.copyHeadersIfAbsent(requestHeaders);
+			if (this.selectiveHeaderPropagation) {
+				Map<String, Object> headersToCopy = new HashMap<String, Object>(requestHeaders);
+				for (String header : this.notPropagatedHeaders) {
+					headersToCopy.remove(header);
+				}
+				builder.copyHeadersIfAbsent(headersToCopy);
+			}
+			else {
+				builder.copyHeadersIfAbsent(requestHeaders);
+			}
 		}
 		return builder.build();
 	}
