@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,16 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * {@link OutboundMessageMapper} implementation the converts a {@link Message} to a JSON string representation.
+ * {@link OutboundMessageMapper} implementation the converts a {@link Message} to a JSON
+ * string representation.
+ * <p>
+ * Consider using the {@link EmbeddedJsonHeadersMessageMapper} instead; it provides more
+ * flexibility for determining which headers are included.
  *
  * @author Jeremy Grelle
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> {
@@ -47,6 +52,7 @@ public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> 
 		this.shouldExtractPayload = shouldExtractPayload;
 	}
 
+	@Override
 	public String fromMessage(Message<?> message) throws Exception {
 		return this.jsonObjectMapper.toJson(this.shouldExtractPayload ? message.getPayload() : message);
 	}
