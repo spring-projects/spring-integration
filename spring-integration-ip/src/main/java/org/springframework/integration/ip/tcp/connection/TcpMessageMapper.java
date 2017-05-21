@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -77,6 +78,8 @@ public class TcpMessageMapper implements
 	private volatile boolean addContentTypeHeader;
 
 	private BeanFactory beanFactory;
+
+	private BytesMessageMapper bytesMessageMapper;
 
 	/**
 	 * Set the charset to use when converting outbound String messages to {@code byte[]}.
@@ -138,6 +141,15 @@ public class TcpMessageMapper implements
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * Set a {@link BytesMessageMapper} to use when mapping byte[].
+	 * @param bytesMessageMapper the mapper.
+	 * @since 5.0
+	 */
+	public void setBytesMessageMapper(BytesMessageMapper bytesMessageMapper) {
+		this.bytesMessageMapper = bytesMessageMapper;
+	}
+
 	protected MessageBuilderFactory getMessageBuilderFactory() {
 		if (!this.messageBuilderFactorySet) {
 			if (this.beanFactory != null) {
@@ -148,12 +160,20 @@ public class TcpMessageMapper implements
 		return this.messageBuilderFactory;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Message<?> toMessage(TcpConnection connection) throws Exception {
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {
-			AbstractIntegrationMessageBuilder<Object> messageBuilder = getMessageBuilderFactory().withPayload(payload);
+			AbstractIntegrationMessageBuilder<Object> messageBuilder;
+			if (this.bytesMessageMapper != null && payload instanceof byte[]) {
+				messageBuilder = (AbstractIntegrationMessageBuilder<Object>) getMessageBuilderFactory()
+						.fromMessage(this.bytesMessageMapper.toMessage((byte[]) payload));
+			}
+			else {
+				messageBuilder = getMessageBuilderFactory().withPayload(payload);
+			}
 			this.addStandardHeaders(connection, messageBuilder);
 			this.addCustomHeaders(connection, messageBuilder);
 			message = messageBuilder.build();
@@ -208,6 +228,9 @@ public class TcpMessageMapper implements
 
 	@Override
 	public Object fromMessage(Message<?> message) throws Exception {
+		if (this.bytesMessageMapper != null) {
+			return this.bytesMessageMapper.fromMessage(message);
+		}
 		if (this.stringToBytes) {
 			return getPayloadAsBytes(message);
 		}
