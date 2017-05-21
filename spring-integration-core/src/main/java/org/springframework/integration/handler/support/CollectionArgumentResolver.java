@@ -86,7 +86,7 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 
 		if (Iterator.class.isAssignableFrom(parameter.getParameterType())) {
 			if (value instanceof Iterable) {
-				return ((Iterable) value).iterator();
+				return ((Iterable<?>) value).iterator();
 			}
 			else {
 				return Collections.singleton(value).iterator();
