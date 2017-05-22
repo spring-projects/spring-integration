@@ -519,7 +519,7 @@ public class ChannelPublishingJmsMessageListener
 			return super.buildErrorMessage(null, throwable);
 		}
 
-		MessagingTemplate getMessagingTemplate() {
+		protected MessagingTemplate getMessagingTemplate() {
 			return this.messagingTemplate;
 		}
 

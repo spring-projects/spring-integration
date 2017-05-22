@@ -38,6 +38,8 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.rabbitmq.client.Channel;
+
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
  * Spring Integration Messages, and sends the results to a Message Channel.
@@ -138,21 +140,42 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	@Override
 	protected void onInit() throws Exception {
-		this.messageListenerContainer.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
+		this.messageListenerContainer.setMessageListener(new Listener());
+		this.messageListenerContainer.afterPropertiesSet();
+		if (!this.amqpTemplateExplicitlySet) {
+			((RabbitTemplate) this.amqpTemplate).afterPropertiesSet();
+		}
+		super.onInit();
+	}
+
+	@Override
+	protected void doStart() {
+		this.messageListenerContainer.start();
+	}
+
+	@Override
+	protected void doStop() {
+		this.messageListenerContainer.stop();
+	}
+
+	private class Listener implements ChannelAwareMessageListener {
+
+		@Override
+		public void onMessage(Message message, Channel channel) throws Exception {
 			boolean error = false;
 			Map<String, Object> headers = null;
 			Object payload = null;
 			try {
-				payload = this.amqpMessageConverter.fromMessage(message);
-				headers = this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
-				if (this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL) {
+				payload = AmqpInboundGateway.this.amqpMessageConverter.fromMessage(message);
+				headers = AmqpInboundGateway.this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
+				if (AmqpInboundGateway.this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL) {
 					headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
 					headers.put(AmqpHeaders.CHANNEL, channel);
 				}
 			}
 			catch (RuntimeException e) {
 				if (getErrorChannel() != null) {
-					this.messagingTemplate.send(getErrorChannel(), new ErrorMessage(
+					AmqpInboundGateway.this.messagingTemplate.send(getErrorChannel(), new ErrorMessage(
 							new ListenerExecutionFailedException("Message conversion failed", e, message)));
 				}
 				else {
@@ -180,7 +203,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 						String contentEncoding = messageProperties.getContentEncoding();
 						long contentLength = messageProperties.getContentLength();
 						String contentType = messageProperties.getContentType();
-						this.headerMapper.fromHeadersToReply(reply.getHeaders(), messageProperties);
+						AmqpInboundGateway.this.headerMapper.fromHeadersToReply(reply.getHeaders(), messageProperties);
 						// clear the replyTo from the original message since we are using it now
 						messageProperties.setReplyTo(null);
 						// reset the content-* properties as determined by the MessageConverter
@@ -195,36 +218,23 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					};
 
 					if (replyTo != null) {
-						this.amqpTemplate.convertAndSend(replyTo.getExchangeName(),
+						AmqpInboundGateway.this.amqpTemplate.convertAndSend(replyTo.getExchangeName(),
 								replyTo.getRoutingKey(), reply.getPayload(), messagePostProcessor);
 					}
 					else {
-						if (!this.amqpTemplateExplicitlySet) {
+						if (!AmqpInboundGateway.this.amqpTemplateExplicitlySet) {
 							throw new IllegalStateException("There is no 'replyTo' message property " +
 									"and the `defaultReplyTo` hasn't been configured.");
 						}
 						else {
-							this.amqpTemplate.convertAndSend(reply.getPayload(), messagePostProcessor);
+							AmqpInboundGateway.this.amqpTemplate.convertAndSend(reply.getPayload(),
+									messagePostProcessor);
 						}
 					}
 				}
 			}
-		});
-		this.messageListenerContainer.afterPropertiesSet();
-		if (!this.amqpTemplateExplicitlySet) {
-			((RabbitTemplate) this.amqpTemplate).afterPropertiesSet();
 		}
-		super.onInit();
-	}
 
-	@Override
-	protected void doStart() {
-		this.messageListenerContainer.start();
-	}
-
-	@Override
-	protected void doStop() {
-		this.messageListenerContainer.stop();
 	}
 
 }
