@@ -42,6 +42,7 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
+import org.springframework.integration.file.remote.RemoteFileOperations;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.RemoteFileUtils;
 import org.springframework.integration.file.remote.session.Session;
@@ -49,6 +50,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.PartialSuccessException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -737,25 +739,40 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	private String doPut(Message<?> requestMessage, String subDirectory) {
-		String path = this.remoteFileTemplate.send(requestMessage, subDirectory, this.fileExistsMode);
+		return this.remoteFileTemplate.invoke(template ->
+				put(requestMessage, template.getSession(), subDirectory));
+	}
+
+	/**
+	 * Put the file based on the message to the remote server.
+	 * The message can be consulted to determine some context.
+	 * The session argument isn't used in the default implementation.
+	 * @param message the request message related to this put command
+	 * @param session the remote protocol session related to this invocation context
+	 * @param subDirectory the target sub directory to put
+	 * @since 5.0
+	 */
+	protected String put(Message<?> message, Session<F> session, String subDirectory) {
+		String path = this.remoteFileTemplate.send(message, subDirectory, this.fileExistsMode);
 		if (path == null) {
-			throw new MessagingException(requestMessage, "No local file found for " + requestMessage);
+			throw new MessagingException(message, "No local file found for " + message);
 		}
 		if (this.chmod != null && isChmodCapable()) {
 			doChmod(this.remoteFileTemplate, path, this.chmod);
 		}
 		return path;
+
 	}
 
 	/**
 	 * Set the mode on the remote file after transfer; the default implementation does
 	 * nothing.
-	 * @param remoteFileTemplate the remote file template.
+	 * @param remoteFileOperations the remote file template.
 	 * @param path the path.
 	 * @param chmod the chmod to set.
 	 * @since 4.3
 	 */
-	protected void doChmod(RemoteFileTemplate<F> remoteFileTemplate, String path, int chmod) {
+	protected void doChmod(RemoteFileOperations<F> remoteFileOperations, String path, int chmod) {
 		// no-op
 	}
 
@@ -771,26 +788,40 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			throw new IllegalArgumentException("Only File or String payloads allowed for 'mput'");
 		}
 		if (!file.isDirectory()) {
-			return this.doPut(requestMessage);
+			return doPut(requestMessage);
 		}
 		else {
-			return putLocalDirectory(requestMessage, file, null);
+			File localDir = file;
+			return this.remoteFileTemplate.invoke(t ->
+					mPut(requestMessage, t.getSession(), localDir));
 		}
+	}
+
+	/**
+	 * Put files from the provided directory to the remote server recursively.
+	 * The message can be consulted to determine some context.
+	 * The session argument isn't used in the default implementation.
+	 * @param message the request message related to this mPut command
+	 * @param session the remote protocol session for this invocation context
+	 * @param localDir the local directory to mput to the server
+	 * @since 5.0
+	 */
+	protected List<String> mPut(Message<?> message, Session<F> session, File localDir) {
+		return putLocalDirectory(message, localDir, null);
 	}
 
 	private List<String> putLocalDirectory(Message<?> requestMessage, File file, String subDirectory) {
 		File[] files = file.listFiles();
 		List<File> filteredFiles = this.filterMputFiles(files);
-		List<String> replies = new ArrayList<String>();
+		List<String> replies = new ArrayList<>();
 		try {
 			for (File filteredFile : filteredFiles) {
 				if (!filteredFile.isDirectory()) {
-					String path = this.doPut(this.getMessageBuilderFactory().withPayload(filteredFile)
-							.copyHeaders(requestMessage.getHeaders())
-							.build(), subDirectory);
+					String path = doPut(new MutableMessage<>(filteredFile, requestMessage.getHeaders()), subDirectory);
 					if (path == null) { //NOSONAR - false positive
 						if (logger.isDebugEnabled()) {
-							logger.debug("File " + filteredFile.getAbsolutePath() + " removed before transfer; ignoring");
+							logger.debug("File " + filteredFile.getAbsolutePath()
+									+ " removed before transfer; ignoring");
 						}
 					}
 					else {
@@ -801,7 +832,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					String newSubDirectory = (StringUtils.hasText(subDirectory) ?
 							subDirectory + this.remoteFileTemplate.getRemoteFileSeparator() : "")
 							+ filteredFile.getName();
-					replies.addAll(this.putLocalDirectory(requestMessage, filteredFile, newSubDirectory));
+					replies.addAll(putLocalDirectory(requestMessage, filteredFile, newSubDirectory));
 				}
 			}
 		}
@@ -816,8 +847,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 						"Partially successful 'mput' operation" + (subDirectory == null ? "" : (" on " + subDirectory)),
 						e, replies, filteredFiles);
 			}
-			else if (e instanceof MessagingException) {
-				throw (MessagingException) e;
+			else {
+				throw e;
 			}
 		}
 		return replies;

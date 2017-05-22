@@ -137,6 +137,16 @@ public interface RemoteFileOperations<F> {
 	<T> T execute(SessionCallback<F, T> callback);
 
 	/**
+	 * Invoke the callback and run all operations on the template argument in a dedicated
+	 * thread-bound session and reliably close the it afterwards.
+	 * @param action the call back.
+	 * @param <T> the return type.
+	 * @return the result from the {@link OperationsCallback#doInOperations(RemoteFileOperations)}
+	 * @since 5.0
+	 */
+	<T> T invoke(OperationsCallback<F, T> action);
+
+	/**
 	 * Execute the callback's doWithClient method after obtaining a session's
 	 * client, providing access to low level methods.
 	 * Reliably closes the session when the method exits.

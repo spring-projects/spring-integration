@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,28 @@
 
 package org.springframework.integration.ftp.dsl;
 
+import java.util.function.Function;
+
 import org.apache.commons.net.ftp.FTPFile;
 
+import org.springframework.expression.Expression;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.dsl.RemoteFileOutboundGatewaySpec;
-import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
+import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
+import org.springframework.messaging.Message;
 
 /**
  * A {@link RemoteFileOutboundGatewaySpec} for FTP.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class FtpOutboundGatewaySpec extends RemoteFileOutboundGatewaySpec<FTPFile, FtpOutboundGatewaySpec> {
 
-	FtpOutboundGatewaySpec(AbstractRemoteFileOutboundGateway<FTPFile> outboundGateway) {
+	FtpOutboundGatewaySpec(FtpOutboundGateway outboundGateway) {
 		super(outboundGateway);
 	}
 
@@ -50,5 +56,37 @@ public class FtpOutboundGatewaySpec extends RemoteFileOutboundGatewaySpec<FTPFil
 	public FtpOutboundGatewaySpec regexFileNameFilter(String regex) {
 		return filter(new FtpRegexPatternFileListFilter(regex));
 	}
+
+	/**
+	 * Specify a SpEL {@link Expression} to evaluate FTP client working directory
+	 * against request message.
+	 * @param workingDirExpression the SpEL expression to evaluate working directory
+	 */
+	public FtpOutboundGatewaySpec workingDirExpression(String workingDirExpression) {
+		((FtpOutboundGateway) this.target).setWorkingDirExpressionString(workingDirExpression);
+		return this;
+	}
+
+	/**
+	 * Specify a SpEL {@link Expression} to evaluate FTP client working directory
+	 * against request message.
+	 * @param workingDirExpression the SpEL expression to evaluate working directory
+	 */
+	public FtpOutboundGatewaySpec workingDirExpression(Expression workingDirExpression) {
+		((FtpOutboundGateway) this.target).setWorkingDirExpression(workingDirExpression);
+		return this;
+	}
+
+	/**
+	 * Specify a {@link Function} to evaluate FTP client working directory
+	 * against request message.
+	 * @param workingDirFunction the function to evaluate working directory
+	 */
+	public FtpOutboundGatewaySpec workingDirFunction(Function<Message<?>, String> workingDirFunction) {
+		((FtpOutboundGateway) this.target).setWorkingDirExpression(new FunctionExpression<>(workingDirFunction));
+		return this;
+	}
+
+
 
 }

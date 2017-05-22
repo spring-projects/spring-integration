@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.net.ftp.FTPClient;
@@ -38,6 +39,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 
 /**
  * Outbound Gateway for performing remote file operations via FTP/FTPS.
@@ -235,16 +237,43 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 				() -> super.mv(message, session, remoteFilePath, remoteFileNewPath));
 	}
 
+	@Override
+	protected String put(Message<?> message, Session<FTPFile> session, String subDirectory) {
+		try {
+			return doInWorkingDirectory(message, session,
+					() -> super.put(message, session, subDirectory));
+		}
+		catch (IOException e) {
+			throw new MessageHandlingException(message, "Cannot handle PUT command", e);
+		}
+	}
+
+	@Override
+	protected List<String> mPut(Message<?> message, Session<FTPFile> session, File localDir) {
+		try {
+			return doInWorkingDirectory(message, session,
+					() -> super.mPut(message, session, localDir));
+		}
+		catch (IOException e) {
+			throw new MessageHandlingException(message, "Cannot handle MPUT command", e);
+		}
+	}
+
 	private <V> V doInWorkingDirectory(Message<?> message, Session<FTPFile> session, Callable<V> task)
 			throws IOException {
 		Expression workingDirExpression = this.workingDirExpression;
 		FTPClient ftpClient = (FTPClient) session.getClientInstance();
 		String currentWorkingDirectory = null;
+		boolean restoreWorkingDirectory = false;
 		try {
 			if (workingDirExpression != null) {
 				currentWorkingDirectory = ftpClient.printWorkingDirectory();
-				String workingDir = workingDirExpression.getValue(this.evaluationContext, message, String.class);
-				ftpClient.changeWorkingDirectory(workingDir);
+				String newWorkingDirectory =
+						workingDirExpression.getValue(this.evaluationContext, message, String.class);
+				if (!Objects.equals(currentWorkingDirectory, newWorkingDirectory)) {
+					ftpClient.changeWorkingDirectory(newWorkingDirectory);
+					restoreWorkingDirectory = true;
+				}
 			}
 			return task.call();
 		}
@@ -261,7 +290,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 			}
 		}
 		finally {
-			if (workingDirExpression != null) {
+			if (restoreWorkingDirectory) {
 				ftpClient.changeWorkingDirectory(currentWorkingDirectory);
 			}
 		}
