@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
@@ -47,6 +48,8 @@ import com.rabbitmq.client.Channel;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 2.1
  */
 public class AmqpInboundGateway extends MessagingGatewaySupport {
@@ -139,19 +142,57 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	@Override
 	protected void onInit() throws Exception {
-		this.messageListenerContainer.setMessageListener(new ChannelAwareMessageListener() {
-			@Override
-			public void onMessage(Message message, Channel channel) {
-				Object payload = AmqpInboundGateway.this.amqpMessageConverter.fromMessage(message);
-				Map<String, Object> headers =
-						AmqpInboundGateway.this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
+		this.messageListenerContainer.setMessageListener(new Listener());
+		this.messageListenerContainer.afterPropertiesSet();
+		if (!this.amqpTemplateExplicitlySet) {
+			((RabbitTemplate) this.amqpTemplate).afterPropertiesSet();
+		}
+		super.onInit();
+	}
+
+	@Override
+	protected void doStart() {
+		this.messageListenerContainer.start();
+	}
+
+	@Override
+	protected void doStop() {
+		this.messageListenerContainer.stop();
+	}
+
+	protected class Listener implements ChannelAwareMessageListener {
+
+		@Override
+		public void onMessage(Message message, Channel channel) throws Exception {
+			boolean error = false;
+			Map<String, Object> headers = null;
+			Object payload = null;
+			try {
+				payload = AmqpInboundGateway.this.amqpMessageConverter.fromMessage(message);
+				headers = AmqpInboundGateway.this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
 				if (AmqpInboundGateway.this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL) {
 					headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
 					headers.put(AmqpHeaders.CHANNEL, channel);
 				}
-				org.springframework.messaging.Message<?> request =
-						getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
-				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
+			}
+			catch (RuntimeException e) {
+				if (getErrorChannel() != null) {
+					AmqpInboundGateway.this.messagingTemplate.send(getErrorChannel(), buildErrorMessage(null,
+							new ListenerExecutionFailedException("Message conversion failed", e, message)));
+				}
+				else {
+					throw e;
+				}
+				error = true;
+			}
+
+			if (!error) {
+				final org.springframework.messaging.Message<?> reply =
+						sendAndReceiveMessage(
+								getMessageBuilderFactory()
+										.withPayload(payload)
+										.copyHeaders(headers)
+										.build());
 				if (reply != null) {
 					Address replyTo;
 					String replyToProperty = message.getMessageProperties().getReplyTo();
@@ -170,8 +211,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 							String contentEncoding = messageProperties.getContentEncoding();
 							long contentLength = messageProperties.getContentLength();
 							String contentType = messageProperties.getContentType();
-							AmqpInboundGateway.this.headerMapper.fromHeadersToReply(reply.getHeaders(),
-									messageProperties);
+							AmqpInboundGateway.this.headerMapper.fromHeadersToReply(reply.getHeaders(), messageProperties);
 							// clear the replyTo from the original message since we are using it now
 							messageProperties.setReplyTo(null);
 							// reset the content-* properties as determined by the MessageConverter
@@ -183,7 +223,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 								messageProperties.setContentType(contentType);
 							}
 							return message;
-						}
+						};
 
 					};
 
@@ -203,23 +243,8 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					}
 				}
 			}
-
-		});
-		this.messageListenerContainer.afterPropertiesSet();
-		if (!this.amqpTemplateExplicitlySet) {
-			((RabbitTemplate) this.amqpTemplate).afterPropertiesSet();
 		}
-		super.onInit();
-	}
 
-	@Override
-	protected void doStart() {
-		this.messageListenerContainer.start();
-	}
-
-	@Override
-	protected void doStop() {
-		this.messageListenerContainer.stop();
 	}
 
 }

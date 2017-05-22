@@ -19,6 +19,8 @@ package org.springframework.integration.amqp.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyBoolean;
@@ -43,6 +45,8 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConversionException;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -225,6 +229,71 @@ public class InboundEndpointTests {
 
 	}
 
+	@Test
+	public void testAdapterConversionError() throws Exception {
+		Connection connection = mock(Connection.class);
+		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		when(connectionFactory.createConnection()).thenReturn(connection);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setOutputChannel(outputChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		adapter.setMessageConverter(new MessageConverter() {
+
+			@Override
+			public org.springframework.amqp.core.Message toMessage(Object object, MessageProperties messageProperties)
+					throws MessageConversionException {
+				throw new MessageConversionException("intended");
+			}
+
+			@Override
+			public Object fromMessage(org.springframework.amqp.core.Message message) throws MessageConversionException {
+				return null;
+			}
+
+		});
+		adapter.afterPropertiesSet();
+		((ChannelAwareMessageListener) container.getMessageListener()).onMessage(null, null);
+		assertNull(outputChannel.receive(0));
+		assertNotNull(errorChannel.receive(0));
+	}
+
+	@Test
+	public void testGatewayConversionError() throws Exception {
+		Connection connection = mock(Connection.class);
+		doAnswer(invocation -> mock(Channel.class)).when(connection).createChannel(anyBoolean());
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		when(connectionFactory.createConnection()).thenReturn(connection);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
+		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
+		QueueChannel outputChannel = new QueueChannel();
+		adapter.setRequestChannel(outputChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		adapter.setMessageConverter(new MessageConverter() {
+
+			@Override
+			public org.springframework.amqp.core.Message toMessage(Object object, MessageProperties messageProperties)
+					throws MessageConversionException {
+				throw new MessageConversionException("intended");
+			}
+
+			@Override
+			public Object fromMessage(org.springframework.amqp.core.Message message) throws MessageConversionException {
+				return null;
+			}
+
+		});
+		adapter.afterPropertiesSet();
+		((ChannelAwareMessageListener) container.getMessageListener()).onMessage(null, null);
+		assertNull(outputChannel.receive(0));
+		assertNotNull(errorChannel.receive(0));
+	}
 
 	public static class Foo {
 
