@@ -165,7 +165,7 @@ By default, reverse DNS lookups are done on inbound packets to convert IP addres
 In environments where DNS is not configured, this can cause delays.
 This default behavior can be overridden by setting the `lookup-host` attribute to "false".
 
-[[connection-factories]]
+[[tcp-connection-factories]]
 === TCP Connection Factories
 
 For TCP, the configuration of the underlying connection is provided using a Connection Factory.
@@ -364,6 +364,41 @@ Initially, the first factory in the configured list is used; if a connection sub
 
 NOTE: When using the failover connection factory, the singleUse property must be consistent between the factory itself and the list of factories it is configured to use.
 
+[[tcp-affinity-cf]]
+==== TCP Thread Affinity Connection Factory
+
+Spring Integration _version 5.0_ introduced this connection factory.
+It binds a connection to the calling thread and the same connection is reused each time that thread sends a message.
+This continues until the connection is closed (by the server or network) or until the thread calls the `releaseConnection()` method.
+The connections themselves are provided by another client factory implementation; which must be configured to provide non-shared (single-use) connections so that each thread gets a connection.
+
+Example configuration:
+
+[source, java]
+----
+@Bean
+public TcpNetClientConnectionFactory cf() {
+    TcpNetClientConnectionFactory cf = new TcpNetClientConnectionFactory("localhost",
+            Integer.parseInt(System.getProperty(PORT)));
+    cf.setSingleUse(true);
+    return cf;
+}
+
+@Bean
+public ThreadAffinityClientConnectionFactory tacf() {
+    return new ThreadAffinityClientConnectionFactory(cf());
+}
+
+@Bean
+@ServiceActivator(inputChannel = "out")
+public TcpOutboundGateway outGate() {
+    TcpOutboundGateway outGate = new TcpOutboundGateway();
+    outGate.setConnectionFactory(tacf());
+    outGate.setReplyChannelName("toString");
+    return outGate;
+}
+----
+
 [[ip-interceptors]]
 === TCP Connection Interceptors
 
@@ -429,7 +464,7 @@ Beginning with version 3.0, changes to `TcpConnection` s are reported by `TcpCon
 * `throwable` - the `Throwable` (for `TcpConnectionExceptionEvent` events only)
 * `source` - the `TcpConnection`; this can be used, for example, to determine the remote IP Address with `getHostAddress()` (cast required)
 
-In addition, since _version 4.0_ the standard deserializers discussed in <<connection-factories>> now emit `TcpDeserializationExceptionEvent` s when problems are encountered decoding the data stream.
+In addition, since _version 4.0_ the standard deserializers discussed in <<tcp-connection-factories>> now emit `TcpDeserializationExceptionEvent` s when problems are encountered decoding the data stream.
 These events contain the exception, the buffer that was in the process of being built, and an offset into the buffer (if available) at the point the exception occurred.
 Applications can use a normal `ApplicationListener`, or see <<appevent-inbound>>, to capture these events, allowing analysis of the problem.
 
@@ -637,7 +672,7 @@ Such a transformer may transform the original payload to a new object containing
 Of course, live objects (such as reply channels) from the headers can not be included in the transformed payload.
 
 If such a strategy is chosen you will need to ensure the connection factory has an appropriate serializer/deserializer pair to handle such a payload, such as the `DefaultSerializer/Deserializer` which use java serialization, or a custom serializer and deserializer.
-The `ByteArray*Serializer` options mentioned in <<connection-factories>>, including the default `ByteArrayCrLfSerializer`, do not support such payloads, unless the transformed payload is a `String` or `byte[]`,
+The `ByteArray*Serializer` options mentioned in <<tcp-connection-factories>>, including the default `ByteArrayCrLfSerializer`, do not support such payloads, unless the transformed payload is a `String` or `byte[]`,
 
 [NOTE]
 =====

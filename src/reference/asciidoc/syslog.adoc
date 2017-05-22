@@ -96,7 +96,7 @@ NOTE: When using the `udp-attributes` element, the `port` attribute must be prov
 
 A `TCP` adapter that sends messages to channel `fromSyslog`.
 It also shows how to reference an externally defined connection factory, which can be used for advanced configuration (socket keep alive etc).
-For more information, see <<connection-factories>>.
+For more information, see <<tcp-connection-factories>>.
 
 NOTE: The externally configured `connection-factory` must be of type `server` and, the port is defined there rather than on the `inbound-channel-adapter` element itself.
 
