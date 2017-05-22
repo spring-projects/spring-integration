@@ -331,8 +331,8 @@ public class ChannelPublishingJmsMessageListener
 			if (errorChannel == null) {
 				throw e;
 			}
-			errorChannel.send(this.gatewayDelegate.buildErrorMessage(
-					new MessagingException("Inbound conversion failed for: " + jmsMessage, e)));
+			this.gatewayDelegate.getMessagingTemplate().send(errorChannel, this.gatewayDelegate
+					.buildErrorMessage(new MessagingException("Inbound conversion failed for: " + jmsMessage, e)));
 			errors = true;
 		}
 		if (!errors) {
