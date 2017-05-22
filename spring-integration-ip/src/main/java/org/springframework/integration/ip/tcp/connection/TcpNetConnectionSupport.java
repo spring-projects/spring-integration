@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,23 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import java.nio.channels.SocketChannel;
+import java.net.Socket;
 
 import org.springframework.context.ApplicationEventPublisher;
 
 
 /**
- * Used by NIO connection factories to instantiate a {@link TcpNioConnection} object.
- * Implementations for SSL and non-SSL {@link TcpNioConnection}s are provided.
+ * Used by NET connection factories to instantiate a {@link TcpNetConnection} object.
  * @author Gary Russell
- * @since 2.2
+ * @since 5.0
  *
  */
 @FunctionalInterface
-public interface TcpNioConnectionSupport {
+public interface TcpNetConnectionSupport {
 
 	/**
-	 * Create a new {@link TcpNioConnection} object wrapping the {@link SocketChannel}
-	 * @param socketChannel the SocketChannel.
+	 * Create a new {@link TcpNetConnection} object wrapping the {@link Socket}.
+	 * @param socket the Socket.
 	 * @param server true if this connection is a server connection.
 	 * @param lookupHost true if hostname lookup should be performed, otherwise the connection will
 	 * be identified using the ip address.
@@ -41,10 +40,10 @@ public interface TcpNioConnectionSupport {
 	 * be sent; may be null if event publishing is not required.
 	 * @param connectionFactoryName the name of the connection factory creating this connection; used
 	 * during event publishing, may be null, in which case "unknown" will be used.
-	 * @return the TcpNioConnection
+	 * @return the TcpNetConnection
 	 * @throws Exception Any exception.
 	 */
-	TcpNioConnection createNewConnection(SocketChannel socketChannel,
+	TcpNetConnection createNewConnection(Socket socket,
 			boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher,
 			String connectionFactoryName) throws Exception;

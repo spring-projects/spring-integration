@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnection.ChannelInputStream;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
@@ -49,23 +47,12 @@ import org.springframework.messaging.support.ErrorMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2.2
  *
  */
 public class TcpNetConnectionTests {
-
-	private final ApplicationEventPublisher nullPublisher = new ApplicationEventPublisher() {
-
-		@Override
-		public void publishEvent(ApplicationEvent event) {
-		}
-
-		@Override
-		public void publishEvent(Object event) {
-
-		}
-
-	};
 
 	@Test
 	public void testErrorLog() throws Exception {
@@ -73,7 +60,7 @@ public class TcpNetConnectionTests {
 		InputStream stream = mock(InputStream.class);
 		when(socket.getInputStream()).thenReturn(stream);
 		when(stream.read()).thenReturn((int) 'x');
-		TcpNetConnection connection = new TcpNetConnection(socket, true, false, nullPublisher, null);
+		TcpNetConnection connection = new TcpNetConnection(socket, true, false, e -> { }, null);
 		connection.setDeserializer(new ByteArrayStxEtxSerializer());
 		final AtomicReference<Object> log = new AtomicReference<Object>();
 		Log logger = mock(Log.class);
@@ -88,8 +75,8 @@ public class TcpNetConnectionTests {
 		connection.run();
 		assertNotNull(log.get());
 		assertEquals("Read exception " +
-				connection.getConnectionId() +
-				" MessageMappingException:Expected STX to begin message",
+						connection.getConnectionId() +
+						" MessageMappingException:Expected STX to begin message",
 				log.get());
 	}
 
@@ -98,7 +85,7 @@ public class TcpNetConnectionTests {
 		SocketChannel socketChannel = mock(SocketChannel.class);
 		Socket socket = mock(Socket.class);
 		when(socketChannel.socket()).thenReturn(socket);
-		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false, nullPublisher, null);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, true, false, e -> { }, null);
 		ChannelInputStream inputStream =
 				TestUtils.getPropertyValue(connection, "channelInputStream", ChannelInputStream.class);
 		inputStream.write(ByteBuffer.wrap(new byte[] { (byte) 0x80 }));
@@ -111,7 +98,7 @@ public class TcpNetConnectionTests {
 		PipedInputStream pipe = new PipedInputStream();
 		when(inSocket.getInputStream()).thenReturn(pipe);
 
-		TcpConnectionSupport inboundConnection = new TcpNetConnection(inSocket, true, false, nullPublisher, null);
+		TcpConnectionSupport inboundConnection = new TcpNetConnection(inSocket, true, false, e -> { }, null);
 		inboundConnection.setDeserializer(new MapJsonSerializer());
 		MapMessageConverter inConverter = new MapMessageConverter();
 		MessageConvertingTcpMessageMapper inMapper = new MessageConvertingTcpMessageMapper(inConverter);
@@ -119,7 +106,7 @@ public class TcpNetConnectionTests {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Socket outSocket = mock(Socket.class);
-		TcpNetConnection outboundConnection = new TcpNetConnection(outSocket, true, false, nullPublisher, null);
+		TcpNetConnection outboundConnection = new TcpNetConnection(outSocket, true, false, e -> { }, null);
 		when(outSocket.getOutputStream()).thenReturn(baos);
 
 		MapMessageConverter outConverter = new MapMessageConverter();

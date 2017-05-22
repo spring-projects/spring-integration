@@ -931,7 +931,7 @@ The keystore file names (first two constructor arguments) use the Spring `Resour
 Starting with _version 4.3.6_, when using NIO, you can specify an `ssl-handshake-timeout` (seconds) on the connection factory.
 This timeout (default 30) is used during SSL handshake when waiting for data; if the timeout is exceeded, the process is aborted and the socket closed.
 
-[[advanced-techniques]]
+[[tcp-advanced-techniques]]
 === Advanced Techniques
 
 ==== Strategy Interfaces
@@ -942,8 +942,10 @@ However, a number of strategy interfaces are provided to allow customization and
 * `TcpSSLContextSupport`
 * `TcpSocketFactorySupport`
 * `TcpSocketSupport`
+* `TcpNetConnectionSupport`
 * `TcpNioConnectionSupport`
 
+.TcpSSLContextSupport
 [source,java]
 ----
 public interface TcpSSLContextSupport {
@@ -957,6 +959,7 @@ Implementations of this interface are responsible for creating an SSLContext.
 The implementation provided by the framework is the `DefaultTcpSSLContextSupport` described above.
 If you require different behavior, implement this interface and provide the connection factory with a reference to a bean of your class' implementation.
 
+.TcpSocketFactorySupport
 [source,java]
 ----
 public interface TcpSocketFactorySupport {
@@ -975,6 +978,7 @@ The second implementation is `DefaultTcpNetSSLSocketFactorySupport`; this is use
 
 NOTE: This interface only applies if `using-nio` is "false"; socket factories are not used by NIO.
 
+.TcpSocketSupport
 [source,java]
 ----
 public interface TcpSocketSupport {
@@ -993,6 +997,56 @@ The sole implementation provided by the framework is the `DefaultTcpSocketSuppor
 
 To supply your own implementation of `TcpSocketFactorySupport` or `TcpSocketSupport`, provide the connection factory with references to beans of your custom type using the `socket-factory-support` and `socket-support` attributes, respectively.
 
+.TcpNetConnectionSupport
+[source, java]
+----
+public interface TcpNetConnectionSupport {
+
+	TcpNetConnection createNewConnection(Socket socket,
+			boolean server, boolean lookupHost,
+			ApplicationEventPublisher applicationEventPublisher,
+			String connectionFactoryName) throws Exception;
+
+}
+----
+
+This interface is invoked to create `TcpNetConnection` objects (or objects from subclasses).
+The framework provides a single implementation `DefatulTcpNetConnectionSupport` which creates simple `TcpNetConnection` objects by default.
+It has two properties `pushbackCapable` and `pushbackBufferSize`; when push back is enabled, the implementation returns a subclass that wraps the connection's `InputStream` in a `PushbackInputStream`.
+Aligned with the `PushbackInputStream` default, the buffer size defaults to 1.
+This enables deserializers to "unread" (push back) bytes into the stream.
+The following is a trivial example of how it might be used in a delegating deserializer which "peeks" at the first byte to determine which deserializer to invoke:
+
+[source, java]
+----
+public class CompositeDeserializer implements Deserializer<byte[]> {
+
+    private final ByteArrayStxEtxSerializer stxEtx = new ByteArrayStxEtxSerializer();
+
+    private final ByteArrayCrLfSerializer crlf = new ByteArrayCrLfSerializer();
+
+    @Override
+    public byte[] deserialize(InputStream inputStream) throws IOException {
+        PushbackInputStream pbis = (PushbackInputStream) inputStream;
+        int first = pbis.read();
+        if (first < 0) {
+            throw new SoftEndOfStreamException();
+        }
+        pbis.unread(first);
+        if (first == ByteArrayStxEtxSerializer.STX) {
+            this.receivedStxEtx = true;
+            return this.stxEtx.deserialize(pbis);
+        }
+        else {
+            this.receivedCrLf = true;
+            return this.crlf.deserialize(pbis);
+        }
+    }
+
+}
+----
+
+.TcpNioConnectionSupport
 [source, java]
 ----
 public interface TcpNioConnectionSupport {
@@ -1005,9 +1059,10 @@ public interface TcpNioConnectionSupport {
 }
 ----
 
-This interface is invoked to create `TcpNioConnection` objects (or subclasses).
+This interface is invoked to create `TcpNioConnection` objects (or objects from subclasses).
 Two implementations are provided `DefaultTcpNioSSLConnectionSupport` and `DefaultTcpNioConnectionSupport` which are used depending on whether SSL is in use or not.
 A common use case would be to subclass `DefaultTcpNioSSLConnectionSupport` and override `postProcessSSLEngine`; see the example below.
+As with the `DefatulTcpNetConnectionSupport`, these implementations also support push back.
 
 ==== Example: Enabling SSL Client Authentication
 
@@ -1221,7 +1276,7 @@ Defaults to true.
 | Y
 | Y
 |
-| See <<advanced-techniques>>
+| See <<tcp-advanced-techniques>>
 | read-delay
 | Y
 | Y

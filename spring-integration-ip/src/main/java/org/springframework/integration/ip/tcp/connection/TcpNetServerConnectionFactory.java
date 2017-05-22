@@ -42,6 +42,8 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 
 	private volatile TcpSocketFactorySupport tcpSocketFactorySupport = new DefaultTcpNetSocketFactorySupport();
 
+	private TcpNetConnectionSupport tcpNetConnectionSupport = new DefaultTcpNetConnectionSupport();
+
 	/**
 	 * Listens for incoming connections on the port.
 	 * @param port The port.
@@ -73,6 +75,16 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		else {
 			return null;
 		}
+	}
+
+	/**
+	 * Set the {@link TcpNetConnectionSupport} to use to create connection objects.
+	 * @param connectionSupport the connection support.
+	 * @since 5.0
+	 */
+	public void setTcpNetConnectionSupport(TcpNetConnectionSupport connectionSupport) {
+		Assert.notNull(connectionSupport, "'connectionSupport' cannot be null");
+		this.tcpNetConnectionSupport = connectionSupport;
 	}
 
 	/**
@@ -137,8 +149,8 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 						logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
 					}
 					setSocketAttributes(socket);
-					TcpConnectionSupport connection = new TcpNetConnection(socket, true, isLookupHost(),
-							getApplicationEventPublisher(), getComponentName());
+					TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, true,
+							isLookupHost(), getApplicationEventPublisher(), getComponentName());
 					connection = wrapConnection(connection);
 					initializeConnection(connection, socket);
 					getTaskExecutor().execute(connection);

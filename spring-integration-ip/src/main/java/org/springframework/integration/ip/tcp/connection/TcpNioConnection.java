@@ -167,7 +167,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	@Override
 	public Object getPayload() throws Exception {
-		return this.getDeserializer().deserialize(this.channelInputStream);
+		return this.getDeserializer().deserialize(inputStream());
 	}
 
 	@Override
@@ -177,12 +177,21 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	@Override
 	public Object getDeserializerStateKey() {
-		return this.channelInputStream;
+		return inputStream();
 	}
 
 	@Override
 	public SSLSession getSslSession() {
 		return null;
+	}
+
+	/**
+	 * Subclasses can override this, for example to wrap the input stream.
+	 * @return the input stream.
+	 * @since 5.0
+	 */
+	protected InputStream inputStream() {
+		return this.channelInputStream;
 	}
 
 	/**

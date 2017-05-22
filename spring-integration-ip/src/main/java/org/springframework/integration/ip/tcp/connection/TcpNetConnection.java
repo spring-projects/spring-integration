@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2016 the original author or authors.
+ * Copyright 2001-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
@@ -118,7 +120,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 
 	@Override
 	public Object getPayload() throws Exception {
-		return this.getDeserializer().deserialize(this.socket.getInputStream());
+		return this.getDeserializer().deserialize(inputStream());
 	}
 
 	@Override
@@ -129,7 +131,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	@Override
 	public Object getDeserializerStateKey() {
 		try {
-			return this.socket.getInputStream();
+			return inputStream();
 		}
 		catch (Exception e) {
 			return null;
@@ -144,6 +146,16 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 		else {
 			return null;
 		}
+	}
+
+	/**
+	 * Subclasses can override this, for example to wrap the input stream.
+	 * @return the input stream.
+	 * @throws IOException if an exception occurs.
+	 * @since 5.0
+	 */
+	protected InputStream inputStream() throws IOException {
+		return this.socket.getInputStream();
 	}
 
 	/**

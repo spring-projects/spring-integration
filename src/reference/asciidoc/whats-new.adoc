@@ -215,5 +215,9 @@ See <<redis>> for more information.
 
 ==== TCP Changes
 
+
 A new `ThreadAffinityClientConnectionFactory` is provided that binds TCP connections to threads.
 See <<tcp-affinity-cf>> for more information.
+
+You can now configure the TCP connection factories to support `PushbackInputStream` s, allowing deserializers to "unread" (push back) bytes after "reading ahead".
+See <<tcp-advanced-techniques>> for more information.

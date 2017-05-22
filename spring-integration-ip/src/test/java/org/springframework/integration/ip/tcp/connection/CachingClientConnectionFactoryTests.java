@@ -83,19 +83,19 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext
 public class CachingClientConnectionFactoryTests {
 
 	@Autowired
@@ -742,7 +742,7 @@ public class CachingClientConnectionFactoryTests {
 			if (!(message instanceof ErrorMessage)) {
 				if (count.decrementAndGet() < 1) {
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(100);
 					}
 					catch (InterruptedException e) {
 						Thread.currentThread().interrupt();

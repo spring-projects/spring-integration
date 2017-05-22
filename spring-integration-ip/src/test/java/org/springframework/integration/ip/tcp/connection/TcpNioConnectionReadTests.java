@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.SocketFactory;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
@@ -41,6 +42,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
@@ -51,6 +53,9 @@ import org.springframework.messaging.support.ErrorMessage;
  * @since 2.0
  */
 public class TcpNioConnectionReadTests {
+
+	@Rule
+	public LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
 
 	private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -111,7 +116,7 @@ public class TcpNioConnectionReadTests {
 		AbstractServerConnectionFactory scf = getConnectionFactory(serializer, message -> {
 			responses.add(message);
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(10);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
