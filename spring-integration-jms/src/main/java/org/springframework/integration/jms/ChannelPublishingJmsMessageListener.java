@@ -32,6 +32,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -330,8 +331,9 @@ public class ChannelPublishingJmsMessageListener
 			if (errorChannel == null) {
 				throw e;
 			}
-			errorChannel.send(this.gatewayDelegate.buildErrorMessage(
-					new MessagingException("Inbound conversion failed for: " + jmsMessage, e)));
+			this.gatewayDelegate.getMessagingTemplate().send(errorChannel,
+					this.gatewayDelegate.buildErrorMessage(
+							new MessagingException("Inbound conversion failed for: " + jmsMessage, e)));
 			errors = true;
 		}
 		if (!errors) {
@@ -514,8 +516,12 @@ public class ChannelPublishingJmsMessageListener
 			return super.sendAndReceiveMessage(request);
 		}
 
-		public ErrorMessage buildErrorMessage(Throwable throwable) {
+		protected ErrorMessage buildErrorMessage(Throwable throwable) {
 			return super.buildErrorMessage(null, throwable);
+		}
+
+		protected MessagingTemplate getMessagingTemplate() {
+			return this.messagingTemplate;
 		}
 
 		@Override
