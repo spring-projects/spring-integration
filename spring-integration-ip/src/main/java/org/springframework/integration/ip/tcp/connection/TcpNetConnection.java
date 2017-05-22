@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2017 the original author or authors.
+ * Copyright 2001-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,10 +78,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	 */
 	@Override
 	public void close() {
-		if (isIgnoreClose()) {
-			return;
-		}
-		setNoReadErrorOnClose(true);
+		this.setNoReadErrorOnClose(true);
 		try {
 			this.socket.close();
 		}

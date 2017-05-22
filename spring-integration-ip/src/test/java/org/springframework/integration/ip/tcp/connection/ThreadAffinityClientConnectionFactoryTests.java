@@ -21,6 +21,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 
@@ -52,12 +53,38 @@ public class ThreadAffinityClientConnectionFactoryTests {
 	private static final String PORT = "ThreadAffinityClientConnectionFactoryTests.port";
 
 	@Test
-	public void testAffinity() throws Exception {
-		AnnotationConfigApplicationContext server = new AnnotationConfigApplicationContext(Server.class);
+	public void testAffinityNet() throws Exception {
+		AnnotationConfigApplicationContext server = new AnnotationConfigApplicationContext(ServerNet.class);
 		TcpNetServerConnectionFactory serverCF = server.getBean(TcpNetServerConnectionFactory.class);
-		int port = serverCF.getPort();
+		int port = waitForPort(serverCF);
 		System.setProperty(PORT, String.valueOf(port));
-		AnnotationConfigApplicationContext client = new AnnotationConfigApplicationContext(Client.class);
+		AnnotationConfigApplicationContext client = new AnnotationConfigApplicationContext(ClientNet.class);
+		doTest(server, serverCF, client);
+	}
+
+	@Test
+	public void testAffinityNio() throws Exception {
+		AnnotationConfigApplicationContext server = new AnnotationConfigApplicationContext(ServerNio.class);
+		TcpNioServerConnectionFactory serverCF = server.getBean(TcpNioServerConnectionFactory.class);
+		int port = waitForPort(serverCF);
+		System.setProperty(PORT, String.valueOf(port));
+		AnnotationConfigApplicationContext client = new AnnotationConfigApplicationContext(ClientNio.class);
+		doTest(server, serverCF, client);
+	}
+
+	private int waitForPort(AbstractServerConnectionFactory serverCF) throws InterruptedException {
+		int port = serverCF.getPort();
+		int n = 0;
+		while (n++ < 200 && port == 0) {
+			Thread.sleep(100);
+			port = serverCF.getPort();
+		}
+		assertTrue(n < 200);
+		return port;
+	}
+
+	protected void doTest(AnnotationConfigApplicationContext server, AbstractServerConnectionFactory serverCF,
+			AnnotationConfigApplicationContext client) throws InterruptedException {
 		MessageChannel channel = client.getBean("out", MessageChannel.class);
 		QueueChannel replies = new QueueChannel();
 		Message<?> message = new GenericMessage<>("foo",
@@ -91,7 +118,7 @@ public class ThreadAffinityClientConnectionFactoryTests {
 
 	@Configuration
 	@EnableIntegration
-	public static class Server {
+	public static class ServerNet {
 
 		@Bean
 		public TcpNetServerConnectionFactory sf() {
@@ -115,11 +142,69 @@ public class ThreadAffinityClientConnectionFactoryTests {
 
 	@Configuration
 	@EnableIntegration
-	public static class Client {
+	public static class ClientNet {
 
 		@Bean
 		public TcpNetClientConnectionFactory cf() {
 			TcpNetClientConnectionFactory cf = new TcpNetClientConnectionFactory("localhost",
+					Integer.parseInt(System.getProperty(PORT)));
+			cf.setSingleUse(true);
+			return cf;
+		}
+
+		@Bean
+		public ThreadAffinityClientConnectionFactory tacf() {
+			return new ThreadAffinityClientConnectionFactory(cf());
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "out")
+		public TcpOutboundGateway outGate() {
+			TcpOutboundGateway outGate = new TcpOutboundGateway();
+			outGate.setConnectionFactory(tacf());
+			outGate.setReplyChannelName("toString");
+			return outGate;
+		}
+
+		@Bean
+		@Transformer(inputChannel = "toString")
+		public ObjectToStringTransformer otst() {
+			return new ObjectToStringTransformer();
+		}
+
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class ServerNio {
+
+		@Bean
+		public TcpNioServerConnectionFactory sf() {
+			return new TcpNioServerConnectionFactory(0);
+		}
+
+		@Bean
+		public TcpInboundGateway inGate() {
+			TcpInboundGateway inGate = new TcpInboundGateway();
+			inGate.setConnectionFactory(sf());
+			inGate.setRequestChannelName("in");
+			return inGate;
+		}
+
+		@ServiceActivator(inputChannel = "in")
+		public String handle(Message<?> message) {
+			return IpHeaders.CONNECTION_ID + ":" + (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
+		}
+
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class ClientNio {
+
+		@Bean
+		public TcpNioClientConnectionFactory cf() {
+			TcpNioClientConnectionFactory cf = new TcpNioClientConnectionFactory("localhost",
 					Integer.parseInt(System.getProperty(PORT)));
 			cf.setSingleUse(true);
 			return cf;

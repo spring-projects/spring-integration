@@ -89,8 +89,6 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	private volatile boolean manualListenerRegistration;
 
-	private volatile boolean ignoreClose;
-
 	public TcpConnectionSupport() {
 		this(null);
 	}
@@ -173,7 +171,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 			outerInterceptor.close();
 			if (isException) {
 				// ensure physical close in case the interceptor did not close
-				close();
+				this.close();
 			}
 		}
 	}
@@ -336,20 +334,6 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	protected void setNoReadErrorOnClose(boolean noReadErrorOnClose) {
 		this.noReadErrorOnClose = noReadErrorOnClose;
-	}
-
-	public boolean isIgnoreClose() {
-		return this.ignoreClose;
-	}
-
-	@Override
-	public void disableClose() {
-		this.ignoreClose = true;
-	}
-
-	@Override
-	public void enableClose() {
-		this.ignoreClose = false;
 	}
 
 	protected final void sendExceptionToListener(Exception e) {

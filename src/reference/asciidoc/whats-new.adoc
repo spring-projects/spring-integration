@@ -212,4 +212,4 @@ See <<redis>> for more information.
 ==== TCP Changes
 
 A new `ThreadAffinityClientConnectionFactory` is provided that binds TCP connections to threads.
-See <<affinity-cf>> for more information.
+See <<tcp-affinity-cf>> for more information.

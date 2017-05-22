@@ -19,6 +19,8 @@ package org.springframework.integration.ip.tcp.connection;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import javax.net.ssl.SSLSession;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -28,6 +30,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.expression.Expression;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
@@ -35,7 +38,7 @@ import org.springframework.util.Assert;
 /**
  * A client connection factory that binds a connection to a thread. Close operations
  * are ignored; to physically close a connection and release the thread local, invoke
- * {@link #releaseConnection()).
+ * {@link #releaseConnection()}.
  *
  * @author Gary Russell
  * @since 5.0
@@ -48,7 +51,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	/*
 	 * Not static because we might have several factories with different delegates.
 	 */
-	private final ThreadLocal<TcpConnectionSupport> connections = new ThreadLocal<>();
+	private final ThreadLocal<TcpThreadConnection> connections = new ThreadLocal<>();
 
 	public ThreadAffinityClientConnectionFactory(AbstractClientConnectionFactory connectionFactory) {
 		super("", 0);
@@ -57,24 +60,23 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 		this.connectionFactory = connectionFactory;
 	}
 
-	public void releaseConnection() {
-		TcpConnectionSupport connection = this.connections.get();
-		if (connection != null) {
-			this.connections.remove();
-			connection.enableClose();
-			connection.close();
-		}
-	}
-
 	@Override
 	public TcpConnectionSupport getConnection() throws Exception {
-		TcpConnectionSupport connection = this.connections.get();
+		TcpThreadConnection connection = this.connections.get();
 		if (connection == null || !connection.isOpen()) {
-			connection = this.connectionFactory.getConnection();
-			connection.disableClose();
+			TcpConnectionSupport delegate = this.connectionFactory.getConnection();
+			connection = new TcpThreadConnection(delegate);
 			this.connections.set(connection);
 		}
 		return connection;
+	}
+
+	public void releaseConnection() {
+		TcpThreadConnection connection = this.connections.get();
+		if (connection != null) {
+			this.connections.remove();
+			connection.connection.close();
+		}
 	}
 
 	/*
@@ -374,6 +376,163 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ":" + this.connectionFactory.toString();
+	}
+
+	/**
+	 * Delegates all calls except {@link #close()} to the wrapped connection.
+	 */
+	private static class TcpThreadConnection extends TcpConnectionSupport {
+
+		private final TcpConnectionSupport connection;
+
+		TcpThreadConnection(TcpConnectionSupport connection) {
+			this.connection = connection;
+		}
+
+		@Override
+		public boolean isOpen() {
+			return this.connection.isOpen();
+		}
+
+		@Override
+		public void send(Message<?> message) throws Exception {
+			this.connection.send(message);
+		}
+
+		@Override
+		public int hashCode() {
+			return this.connection.hashCode();
+		}
+
+		@Override
+		public Object getPayload() throws Exception {
+			return this.connection.getPayload();
+		}
+
+		@Override
+		public int getPort() {
+			return this.connection.getPort();
+		}
+
+		@Override
+		public Object getDeserializerStateKey() {
+			return this.connection.getDeserializerStateKey();
+		}
+
+		@Override
+		public SSLSession getSslSession() {
+			return this.connection.getSslSession();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return this.connection.equals(obj);
+		}
+
+		@Override
+		public void close() {
+			// empty
+		}
+
+		@Override
+		public TcpMessageMapper getMapper() {
+			return this.connection.getMapper();
+		}
+
+		@Override
+		public void setMapper(TcpMessageMapper mapper) {
+			this.connection.setMapper(mapper);
+		}
+
+		@Override
+		public Deserializer<?> getDeserializer() {
+			return this.connection.getDeserializer();
+		}
+
+		@Override
+		public void setDeserializer(Deserializer<?> deserializer) {
+			this.connection.setDeserializer(deserializer);
+		}
+
+		@Override
+		public Serializer<?> getSerializer() {
+			return this.connection.getSerializer();
+		}
+
+		@Override
+		public void setSerializer(Serializer<?> serializer) {
+			this.connection.setSerializer(serializer);
+		}
+
+		@Override
+		public void registerListener(TcpListener listener) {
+			this.connection.registerListener(listener);
+		}
+
+		@Override
+		public void enableManualListenerRegistration() {
+			this.connection.enableManualListenerRegistration();
+		}
+
+		@Override
+		public void registerSender(TcpSender sender) {
+			this.connection.registerSender(sender);
+		}
+
+		@Override
+		public TcpListener getListener() {
+			return this.connection.getListener();
+		}
+
+		@Override
+		public TcpSender getSender() {
+			return this.connection.getSender();
+		}
+
+		@Override
+		public boolean isServer() {
+			return this.connection.isServer();
+		}
+
+		@Override
+		public long incrementAndGetConnectionSequence() {
+			return this.connection.incrementAndGetConnectionSequence();
+		}
+
+		@Override
+		public String getHostAddress() {
+			return this.connection.getHostAddress();
+		}
+
+		@Override
+		public String getHostName() {
+			return this.connection.getHostName();
+		}
+
+		@Override
+		public String getConnectionId() {
+			return this.connection.getConnectionId();
+		}
+
+		@Override
+		public String toString() {
+			return "TcpThreadConnection:" + this.connection.getConnectionId();
+		}
+
+		@Override
+		public SocketInfo getSocketInfo() {
+			return this.connection.getSocketInfo();
+		}
+
+		@Override
+		public void publishEvent(TcpConnectionEvent event) {
+			this.connection.publishEvent(event);
+		}
+
+		@Override
+		public void run() {
+		}
+
 	}
 
 }
