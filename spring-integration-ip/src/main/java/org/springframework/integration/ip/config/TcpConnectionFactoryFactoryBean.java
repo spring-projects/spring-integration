@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.DefaultTcpNetConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioConnectionSupport;
@@ -38,6 +39,7 @@ import org.springframework.integration.ip.tcp.connection.DefaultTcpSocketSupport
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNetConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnectionSupport;
@@ -118,6 +120,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile TcpNioConnectionSupport nioConnectionSupport;
 
+	private volatile TcpNetConnectionSupport netConnectionSupport;
+
 	private volatile TcpSocketFactorySupport socketFactorySupport;
 
 	private volatile ApplicationEventPublisher applicationEventPublisher;
@@ -178,6 +182,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
 				connectionFactory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
+				connectionFactory.setTcpNetConnectionSupport(this.obtainNetConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			}
 			else {
@@ -185,6 +190,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
 				connectionFactory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
+				connectionFactory.setTcpNetConnectionSupport(this.obtainNetConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			}
 		}
@@ -241,6 +247,15 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		}
 		else {
 			return new DefaultTcpNioSSLConnectionSupport(this.sslContextSupport);
+		}
+	}
+
+	private TcpNetConnectionSupport obtainNetConnectionSupport() {
+		if (this.netConnectionSupport != null) {
+			return this.netConnectionSupport;
+		}
+		else {
+			return new DefaultTcpNetConnectionSupport();
 		}
 	}
 
@@ -467,13 +482,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		this.socketSupport = tcpSocketSupport;
 	}
 
-	/**
-	 * Rare property - not exposed through namespace
-	 * @param tcpNioSupport The tcpNioSupport to set.
-	 */
 	public void setNioConnectionSupport(TcpNioConnectionSupport tcpNioSupport) {
 		Assert.notNull(tcpNioSupport, "TcpNioConnectionSupport may not be null");
 		this.nioConnectionSupport = tcpNioSupport;
+	}
+
+	public void setNetConnectionSupport(TcpNetConnectionSupport tcpNetSupport) {
+		Assert.notNull(tcpNetSupport, "TcpNetConnectionSupport may not be null");
+		this.netConnectionSupport = tcpNetSupport;
 	}
 
 	public void setSocketFactorySupport(

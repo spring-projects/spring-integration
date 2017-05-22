@@ -49,6 +49,7 @@ import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.DefaultTcpNetConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNetSSLSocketFactorySupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport;
 import org.springframework.integration.ip.tcp.connection.DefaultTcpSSLContextSupport;
@@ -263,6 +264,9 @@ public class ParserUnitTests {
 
 	@Autowired
 	TcpSocketSupport socketSupport;
+
+	@Autowired
+	DefaultTcpNetConnectionSupport netConnectionSupport;
 
 	@Autowired
 	TcpSSLContextSupport contextSupport;
@@ -657,6 +661,7 @@ public class ParserUnitTests {
 		assertSame(socketFactorySupport, dfa.getPropertyValue("tcpSocketFactorySupport"));
 		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
 		assertEquals(34, TestUtils.getPropertyValue(this.secureServerNio, "sslHandshakeTimeout"));
+		assertSame(this.netConnectionSupport, dfa.getPropertyValue("tcpNetConnectionSupport"));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,9 @@ import org.springframework.util.Assert;
 public class TcpNetClientConnectionFactory extends
 		AbstractClientConnectionFactory {
 
-	private volatile TcpSocketFactorySupport tcpSocketFactorySupport = new DefaultTcpNetSocketFactorySupport();
+	private TcpSocketFactorySupport tcpSocketFactorySupport = new DefaultTcpNetSocketFactorySupport();
+
+	private TcpNetConnectionSupport tcpNetConnectionSupport = new DefaultTcpNetConnectionSupport();
 
 	/**
 	 * Creates a TcpNetClientConnectionFactory for connections to the host and port.
@@ -48,13 +50,23 @@ public class TcpNetClientConnectionFactory extends
 	protected TcpConnectionSupport buildNewConnection() throws IOException, SocketException, Exception {
 		Socket socket = createSocket(this.getHost(), this.getPort());
 		setSocketAttributes(socket);
-		TcpConnectionSupport connection = new TcpNetConnection(socket, false, this.isLookupHost(),
-				this.getApplicationEventPublisher(), this.getComponentName());
+		TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, false, isLookupHost(),
+				getApplicationEventPublisher(), getComponentName());
 		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
 		this.getTaskExecutor().execute(connection);
 		this.harvestClosedConnections();
 		return connection;
+	}
+
+	/**
+	 * Set the {@link TcpNetConnectionSupport} to use to create connection objects.
+	 * @param connectionSupport the connection support.
+	 * @since 5.0
+	 */
+	public void setTcpNetConnectionSupport(TcpNetConnectionSupport connectionSupport) {
+		Assert.notNull(connectionSupport, "'connectionSupport' cannot be null");
+		this.tcpNetConnectionSupport = connectionSupport;
 	}
 
 	@Override

@@ -92,7 +92,11 @@
 		apply-sequence="true"
 		ssl-context-support="sslContextSupport"
 		socket-support="socketSupport"
+		net-connection-support="netConnectionSupport"
 		socket-factory-support="socketFactorySupport" />
+
+	<bean id="netConnectionSupport"
+		class="org.springframework.integration.ip.tcp.connection.DefaultTcpNetConnectionSupport" />
 
 	<ip:tcp-connection-factory id="secureServerNio"
 		type="server"

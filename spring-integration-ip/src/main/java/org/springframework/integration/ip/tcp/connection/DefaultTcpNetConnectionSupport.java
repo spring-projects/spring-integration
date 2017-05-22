@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,35 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
-import java.nio.channels.SocketChannel;
+import java.net.Socket;
 
 import org.springframework.context.ApplicationEventPublisher;
 
 
 /**
- * Implementation of {@link TcpNioConnectionSupport} for non-SSL
- * NIO connections.
+ * Default implementation of {@link TcpNetConnectionSupport}.
  * @author Gary Russell
- * @since 2.2
+ * @since 5.0
  *
  */
-public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport implements TcpNioConnectionSupport {
+public class DefaultTcpNetConnectionSupport extends AbstractTcpConnectionSupport implements TcpNetConnectionSupport {
 
 	@Override
-	public TcpNioConnection createNewConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
+	public TcpNetConnection createNewConnection(Socket socket, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
 		if (isPushbackCapable()) {
-			return new PushBackTcpNioConnection(socketChannel, server, lookupHost, applicationEventPublisher,
+			return new PushBackTcpNetConnection(socket, server, lookupHost, applicationEventPublisher,
 					connectionFactoryName, getPushbackBufferSize());
 		}
 		else {
-			return new TcpNioConnection(socketChannel, server, lookupHost, applicationEventPublisher,
-					connectionFactoryName);
+			return new TcpNetConnection(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		}
 	}
 
-	public static class PushBackTcpNioConnection extends TcpNioConnection {
+	public static class PushBackTcpNetConnection extends TcpNetConnection {
 
 		private final int pushbackBufferSize;
 
@@ -55,16 +54,15 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 
 		private volatile InputStream original;
 
-		public PushBackTcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
-				int bufferSize) throws Exception {
-			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
+		public PushBackTcpNetConnection(Socket socket, boolean server, boolean lookupHost,
+				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName, int bufferSize) {
+			super(socket, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 			this.pushbackBufferSize = bufferSize;
 			this.connectionId = "pushback:" + super.getConnectionId();
 		}
 
 		@Override
-		protected InputStream inputStream() {
+		protected InputStream inputStream() throws IOException {
 			if (this.pushbackStream == null || super.inputStream() != this.original) {
 				this.pushbackStream = new PushbackInputStream(super.inputStream(), this.pushbackBufferSize);
 			}

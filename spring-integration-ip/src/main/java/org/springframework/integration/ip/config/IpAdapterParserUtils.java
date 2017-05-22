@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,8 @@ public abstract class IpAdapterParserUtils {
 	public static final String SOCKET_SUPPORT = "socket-support";
 
 	public static final String NIO_CONNECTION_SUPPORT = "nio-connection-support";
+
+	public static final String NET_CONNECTION_SUPPORT = "net-connection-support";
 
 	public static final String SOCKET_FACTORY_SUPPORT = "socket-factory-support";
 

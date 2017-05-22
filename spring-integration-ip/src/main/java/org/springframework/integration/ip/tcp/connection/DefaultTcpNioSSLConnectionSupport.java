@@ -17,6 +17,8 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.nio.channels.SocketChannel;
 import java.security.GeneralSecurityException;
 
@@ -33,7 +35,7 @@ import org.springframework.util.Assert;
  * @since 2.2
  *
  */
-public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSupport {
+public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupport implements TcpNioConnectionSupport {
 
 	private volatile SSLContext sslContext;
 
@@ -56,8 +58,15 @@ public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSuppor
 			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
 		SSLEngine sslEngine = this.sslContext.createSSLEngine();
 		postProcessSSLEngine(sslEngine);
-		TcpNioSSLConnection tcpNioSSLConnection = new TcpNioSSLConnection(socketChannel, server, lookupHost,
-				applicationEventPublisher, connectionFactoryName, sslEngine);
+		TcpNioSSLConnection tcpNioSSLConnection;
+		if (isPushbackCapable()) {
+			tcpNioSSLConnection = new PushBackTcpNioSSLConnection(socketChannel, server, lookupHost,
+					applicationEventPublisher, connectionFactoryName, sslEngine, getPushbackBufferSize());
+		}
+		else {
+			tcpNioSSLConnection = new TcpNioSSLConnection(socketChannel, server, lookupHost, applicationEventPublisher,
+					connectionFactoryName, sslEngine);
+		}
 		tcpNioSSLConnection.init();
 		return tcpNioSSLConnection;
 	}
@@ -69,6 +78,39 @@ public class DefaultTcpNioSSLConnectionSupport implements TcpNioConnectionSuppor
 	 */
 	protected void postProcessSSLEngine(SSLEngine sslEngine) {
 		// NOSONAR (empty)
+	}
+
+	public static class PushBackTcpNioSSLConnection extends TcpNioSSLConnection {
+
+		private final int pushBackBufferSize;
+
+		private final String connectionId;
+
+		private volatile PushbackInputStream pushbackStream;
+
+		private volatile InputStream original;
+
+		public PushBackTcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
+				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName, SSLEngine sslEngine,
+				int bufferSize) throws Exception {
+			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName, sslEngine);
+			this.pushBackBufferSize = bufferSize;
+			this.connectionId = "pushback:" + super.getConnectionId();
+		}
+
+		@Override
+		protected InputStream inputStream() {
+			if (this.pushbackStream == null || super.inputStream() != this.original) {
+				this.pushbackStream = new PushbackInputStream(super.inputStream(), this.pushBackBufferSize);
+			}
+			return this.pushbackStream;
+		}
+
+		@Override
+		public String getConnectionId() {
+			return this.connectionId;
+		}
+
 	}
 
 }
