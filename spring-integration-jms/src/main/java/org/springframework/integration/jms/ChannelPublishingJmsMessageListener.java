@@ -32,6 +32,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
@@ -516,6 +517,10 @@ public class ChannelPublishingJmsMessageListener
 
 		public ErrorMessage buildErrorMessage(Throwable throwable) {
 			return super.buildErrorMessage(null, throwable);
+		}
+
+		MessagingTemplate getMessagingTemplate() {
+			return this.messagingTemplate;
 		}
 
 		@Override

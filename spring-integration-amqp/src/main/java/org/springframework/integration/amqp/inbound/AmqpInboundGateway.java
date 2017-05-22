@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,14 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -137,58 +139,73 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	@Override
 	protected void onInit() throws Exception {
 		this.messageListenerContainer.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
-			Object payload = this.amqpMessageConverter.fromMessage(message);
-			Map<String, Object> headers =
-					this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
-			if (this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL) {
-				headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
-				headers.put(AmqpHeaders.CHANNEL, channel);
+			boolean error = false;
+			Map<String, Object> headers = null;
+			Object payload = null;
+			try {
+				payload = this.amqpMessageConverter.fromMessage(message);
+				headers = this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
+				if (this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL) {
+					headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
+					headers.put(AmqpHeaders.CHANNEL, channel);
+				}
 			}
-			org.springframework.messaging.Message<?> request = getMessageBuilderFactory()
-					.withPayload(payload)
-					.copyHeaders(headers)
-					.build();
-			final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(request);
-			if (reply != null) {
-				Address replyTo;
-				String replyToProperty = message.getMessageProperties().getReplyTo();
-				if (replyToProperty != null) {
-					replyTo = new Address(replyToProperty);
+			catch (RuntimeException e) {
+				if (getErrorChannel() != null) {
+					this.messagingTemplate.send(getErrorChannel(), new ErrorMessage(
+							new ListenerExecutionFailedException("Message conversion failed", e, message)));
 				}
 				else {
-					replyTo = AmqpInboundGateway.this.defaultReplyTo;
+					throw e;
 				}
-
-				MessagePostProcessor messagePostProcessor = message1 -> {
-					MessageProperties messageProperties = message1.getMessageProperties();
-					String contentEncoding = messageProperties.getContentEncoding();
-					long contentLength = messageProperties.getContentLength();
-					String contentType = messageProperties.getContentType();
-					this.headerMapper.fromHeadersToReply(reply.getHeaders(), messageProperties);
-					// clear the replyTo from the original message since we are using it now
-					messageProperties.setReplyTo(null);
-					// reset the content-* properties as determined by the MessageConverter
-					if (StringUtils.hasText(contentEncoding)) {
-						messageProperties.setContentEncoding(contentEncoding);
-					}
-					messageProperties.setContentLength(contentLength);
-					if (contentType != null) {
-						messageProperties.setContentType(contentType);
-					}
-					return message1;
-				};
-
-				if (replyTo != null) {
-					this.amqpTemplate.convertAndSend(replyTo.getExchangeName(),
-							replyTo.getRoutingKey(), reply.getPayload(), messagePostProcessor);
-				}
-				else {
-					if (!this.amqpTemplateExplicitlySet) {
-						throw new IllegalStateException("There is no 'replyTo' message property " +
-								"and the `defaultReplyTo` hasn't been configured.");
+				error = true;
+			}
+			if (!error) {
+				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(getMessageBuilderFactory()
+						.withPayload(payload)
+						.copyHeaders(headers)
+						.build());
+				if (reply != null) {
+					Address replyTo;
+					String replyToProperty = message.getMessageProperties().getReplyTo();
+					if (replyToProperty != null) {
+						replyTo = new Address(replyToProperty);
 					}
 					else {
-						this.amqpTemplate.convertAndSend(reply.getPayload(), messagePostProcessor);
+						replyTo = AmqpInboundGateway.this.defaultReplyTo;
+					}
+
+					MessagePostProcessor messagePostProcessor = message1 -> {
+						MessageProperties messageProperties = message1.getMessageProperties();
+						String contentEncoding = messageProperties.getContentEncoding();
+						long contentLength = messageProperties.getContentLength();
+						String contentType = messageProperties.getContentType();
+						this.headerMapper.fromHeadersToReply(reply.getHeaders(), messageProperties);
+						// clear the replyTo from the original message since we are using it now
+						messageProperties.setReplyTo(null);
+						// reset the content-* properties as determined by the MessageConverter
+						if (StringUtils.hasText(contentEncoding)) {
+							messageProperties.setContentEncoding(contentEncoding);
+						}
+						messageProperties.setContentLength(contentLength);
+						if (contentType != null) {
+							messageProperties.setContentType(contentType);
+						}
+						return message1;
+					};
+
+					if (replyTo != null) {
+						this.amqpTemplate.convertAndSend(replyTo.getExchangeName(),
+								replyTo.getRoutingKey(), reply.getPayload(), messagePostProcessor);
+					}
+					else {
+						if (!this.amqpTemplateExplicitlySet) {
+							throw new IllegalStateException("There is no 'replyTo' message property " +
+									"and the `defaultReplyTo` hasn't been configured.");
+						}
+						else {
+							this.amqpTemplate.convertAndSend(reply.getPayload(), messagePostProcessor);
+						}
 					}
 				}
 			}
