@@ -208,3 +208,8 @@ The `zsetIncrementExpression` can now be configured on the `RedisStoreWritingMes
 In addition this property has been changed from `true` to `false` since `INCR` option on `ZADD` Redis command is optional.
 
 See <<redis>> for more information.
+
+==== TCP Changes
+
+A new `ThreadAffinityClientConnectionFactory` is provided that binds TCP connections to threads.
+See <<tcp-affinity-cf>> for more information.

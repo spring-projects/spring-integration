@@ -158,7 +158,7 @@ If a TCP server socket factory is configured to listen on a random port, the act
 be obtained using `getPort()`.
 `getServerSocketAddress()` is also available.
 
-See <<connection-factories>> for more information.
+See <<tcp-connection-factories>> for more information.
 
 [[x4.2-tcp-gw-rto]]
 ===== TCP Gateway Remote Timeout
