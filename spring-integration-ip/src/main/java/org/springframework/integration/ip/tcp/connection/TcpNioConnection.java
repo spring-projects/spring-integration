@@ -188,7 +188,6 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	/**
 	 * Subclasses can override this, for example to wrap the input stream.
 	 * @return the input stream.
-	 * @throws IOException if an exception occurs.
 	 * @since 5.0
 	 */
 	protected InputStream inputStream() {
