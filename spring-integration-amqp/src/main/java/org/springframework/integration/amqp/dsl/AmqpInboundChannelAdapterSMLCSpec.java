@@ -24,18 +24,20 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
  * Spec for an inbound channel adapter with a {@link SimpleMessageListenerContainer}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
-public class AmqpInboundChannelAdapterSMLCSpec extends AmqpInboundChannelAdapterSpec<AmqpInboundChannelAdapterSMLCSpec,
-		SimpleMessageListenerContainer> {
+public class AmqpInboundChannelAdapterSMLCSpec
+		extends AmqpInboundChannelAdapterSpec<AmqpInboundChannelAdapterSMLCSpec, SimpleMessageListenerContainer> {
 
 	AmqpInboundChannelAdapterSMLCSpec(SimpleMessageListenerContainer listenerContainer) {
-		super(listenerContainer);
+		super(new SimpleMessageListenerContainerSpec(listenerContainer));
 	}
 
 	AmqpInboundChannelAdapterSMLCSpec configureContainer(Consumer<SimpleMessageListenerContainerSpec> configurer) {
-		configurer.accept(new SimpleMessageListenerContainerSpec(this.listenerContainer));
+		configurer.accept((SimpleMessageListenerContainerSpec) this.listenerContainerSpec);
 		return this;
 	}
 

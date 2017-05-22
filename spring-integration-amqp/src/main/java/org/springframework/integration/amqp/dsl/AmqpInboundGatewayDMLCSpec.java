@@ -25,6 +25,8 @@ import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
  * Spec for a gateway with a {@link DirectMessageListenerContainer}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -32,15 +34,15 @@ public class AmqpInboundGatewayDMLCSpec
 		extends AmqpInboundGatewaySpec<AmqpInboundGatewayDMLCSpec, DirectMessageListenerContainer> {
 
 	AmqpInboundGatewayDMLCSpec(DirectMessageListenerContainer listenerContainer, AmqpTemplate amqpTemplate) {
-		super(listenerContainer, amqpTemplate);
+		super(new DirectMessageListenerContainerSpec(listenerContainer), amqpTemplate);
 	}
 
 	AmqpInboundGatewayDMLCSpec(DirectMessageListenerContainer listenerContainer) {
-		super(listenerContainer);
+		super(new DirectMessageListenerContainerSpec(listenerContainer));
 	}
 
 	public AmqpInboundGatewayDMLCSpec configureContainer(Consumer<DirectMessageListenerContainerSpec> configurer) {
-		configurer.accept(new DirectMessageListenerContainerSpec(this.listenerContainer));
+		configurer.accept((DirectMessageListenerContainerSpec) this.listenerContainerSpec);
 		return this;
 	}
 
