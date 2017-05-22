@@ -133,4 +133,20 @@ public interface TcpConnection extends Runnable {
 	 */
 	SocketInfo getSocketInfo();
 
+	/**
+	 * Ignore close operations. Implementations are not required to implement this.
+	 * @since 5.0
+	 */
+	default void disableClose() {
+		// empty
+	}
+
+	/**
+	 * Enable close operations.  Implementations are not required to implement this.
+	 * @since 5.0
+	 */
+	default void enableClose() {
+		// empty
+	}
+
 }

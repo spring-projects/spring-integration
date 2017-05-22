@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2016 the original author or authors.
+ * Copyright 2001-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -239,6 +239,16 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
+	}
+
+	/**
+	 * Specify the Spring Integration reply channel name. If this property is not
+	 * set the gateway will check for a 'replyChannel' header on the request.
+	 * @param replyChannel The reply channel.
+	 * @since 5.0
+	 */
+	public void setReplyChannelName(String replyChannel) {
+		this.setOutputChannelName(replyChannel);
 	}
 
 	@Override
