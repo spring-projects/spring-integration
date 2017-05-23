@@ -597,6 +597,7 @@ Only files matching this regular expression will be picked up by this adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attributeGroup ref="chmod" />
 		<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
     </xsd:complexType>
 
@@ -1024,6 +1025,17 @@ Only files matching this regular expression will be picked up by this adapter.
 			<xsd:simpleType>
 				<xsd:union memberTypes="mode xsd:string"/>
 			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="chmod">
+		<xsd:attribute name="chmod" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Change the mode of the file (or remote file) after writing. Integer value
+					expressed in Octal, e.g. '644'.
+				</xsd:documentation>
+			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:attributeGroup>
 

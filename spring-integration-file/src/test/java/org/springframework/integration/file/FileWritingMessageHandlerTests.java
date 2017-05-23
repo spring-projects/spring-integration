@@ -46,12 +46,16 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -61,6 +65,7 @@ import org.junit.rules.TemporaryFolder;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.Expression;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.support.FileExistsMode;
@@ -123,10 +128,38 @@ public class FileWritingMessageHandlerTests {
 	}
 
 	@Test
-	public void supportedType() throws Exception {
+	public void permissions() {
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(mock(Expression.class));
+		handler.setChmod(0421);
+		Set<?> permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
+		assertThat(permissions.size(), equalTo(3));
+		assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+		assertTrue(permissions.contains(PosixFilePermission.GROUP_WRITE));
+		assertTrue(permissions.contains(PosixFilePermission.OTHERS_EXECUTE));
+		handler.setChmod(0600);
+		permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
+		assertThat(permissions.size(), equalTo(2));
+		assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+		assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+		handler.setChmod(0777);
+		permissions = TestUtils.getPropertyValue(handler, "permissions", Set.class);
+		assertThat(permissions.size(), equalTo(9));
+	}
+
+	@Test
+	public void supportedTypeAndPermissions() throws Exception {
+		if (!SystemUtils.IS_OS_WINDOWS) {
+			handler.setChmod(0777);
+		}
 		handler.setOutputChannel(new NullChannel());
 		handler.handleMessage(new GenericMessage<String>("test"));
-		assertThat(outputDirectory.listFiles()[0], notNullValue());
+		File[] output = outputDirectory.listFiles();
+		assertThat(output.length, equalTo(1));
+		assertThat(output[0], notNullValue());
+		if (!SystemUtils.IS_OS_WINDOWS) {
+			Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(output[0].toPath());
+			assertThat(permissions.size(), equalTo(9));
+		}
 	}
 
 	@Test

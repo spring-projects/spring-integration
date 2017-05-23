@@ -17,6 +17,7 @@
 								   channel="testChannel"
 								   directory="${java.io.tmpdir}"
 								   temporary-file-suffix=".foo"
+								   chmod="777"
 								   filename-generator-expression="'foo.txt'"/>
 
 	<file:outbound-channel-adapter id="adapterWithCustomNameGenerator"
