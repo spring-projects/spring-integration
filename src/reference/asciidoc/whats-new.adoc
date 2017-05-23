@@ -140,6 +140,8 @@ The `NLST` command has been added to the `AbstractRemoteFileOutboundGateway` to 
 
 The `FtpOutboundGateway` can now be supplied with `workingDirExpression` to change the FTP client working directory for the current request message.
 
+The `RemoteFileTemplate` is supplied now with the `invoke(OperationsCallback<F, T> action)` to perform several `RemoteFileOperations` calls in the scope of the same, thread-bounded, `Session`.
+
 See <<ftp>> and <<sftp>> for more information.
 
 

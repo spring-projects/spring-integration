@@ -768,6 +768,7 @@ The _FTP Outbound Gateway_ provides a limited set of commands to interact with a
 Commands supported are:
 
 * ls (list files)
+* nlsr (list file names)
 * get (retrieve file)
 * mget (retrieve file(s))
 * rm (remove file(s))
@@ -803,6 +804,23 @@ therefore the `expression` attribute can be omitted.
 From Java perspective there are two new constructor without `expression` argument for convenience.
 The `null` for `LS` command is treated as an Client working directory according to the FTP protocol.
 The working directory can be set via the `FTPClient.changeWorkingDirectory()` function when you extend the `DefaultFtpSessionFactory` and implement `postProcessClientAfterConnect()` callback.
+
+*nlst*
+
+(Since _version 5.0_)
+
+Lists remote file names and supports the following options:
+
+* -f - do not sort the list
+
+The message payload resulting from an _nlst_ operation is a list of file names.
+
+The remote directory that the _nlst_ command acted on is provided in the `file_remoteDirectory` header.
+
+Unlike the `-1` option for the _ls_ command (see above), the _nlst_ command perform real `NLST` command on target FTP server.
+This command is useful when server doesn't support `LS` by security restrictions or some other reason.
+At the same time the result of the _nlst_ is just names, therefore framework can't determine which entity is directory to perform filtering or recursive listing, for example.
+The target application is responsible in the proper logic on the result of this _nlst_ command.
 
 *get*
 
@@ -986,17 +1004,18 @@ Here is an example of a gateway configured for an ls command...
     reply-channel="toSplitter"/>
 ----
 
-The payload of the message sent to the toSplitter channel is a list of String objects containing the filename of each
-file.
+The payload of the message sent to the `toSplitter` channel is a list of String objects containing the filename of each file.
 If the `command-options` was omitted, it would be a list of `FileInfo` objects.
-Options are provided space-delimited, e.g.
-`command-options="-1 -dirs -links"`.
+Options are provided space-delimited, e.g. `command-options="-1 -dirs -links"`.
 
 Starting with _version 4.2_, the `GET`, `MGET`, `PUT` and `MPUT` commands support a `FileExistsMode` property (`mode`
 when using the namespace support). This affects the behavior when the local file exists (`GET` and `MGET`) or the remote
 file exists (`PUT` and `MPUT`). Supported modes are `REPLACE`, `APPEND`, `FAIL` and `IGNORE`.
 For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE` and for `GET` and `MGET`
 operations, the default is `FAIL`.
+
+Starting with _version 5.0_, the `setWorkingDirExpression()` (`working-dir-expression`) option is added to the `FtpOutboundGateway` (`<int-ftp:outbound-gateway>`) to change the client working directory at runtime against request message.
+The previous working directory is restored after gateway operation.
 
 ==== Configuring with Java Configuration
 
@@ -1178,6 +1197,12 @@ See `FtpSession.exists()` for more information.
 Since we know that the `FileExistsMode.FAIL` case is always only looking for a file (and not a directory), we safely use `NLST` mode for the `FtpMessageHandler` and `FtpOutboundGateway` components.
 
 For any other cases the `FtpRemoteFileTemplate` can be extended for implementing a custom logic in the overridden `exist()` method.
+
+Starting with _version 5.0_, the new `RemoteFileOperations.invoke(OperationsCallback<F, T> action)` method has been added.
+This method allows to perform several `RemoteFileOperations` calls in the scope of the same, thread-bounded, `Session`.
+This is useful when you need to perform several high-level API of the `RemoteFileTemplate` as one unit of work.
+For example `AbstractRemoteFileOutboundGateway` does that with the _mput_ command implementation, where we perform _put_ for each file in the provided directory and recursively for its sub-directories.
+See their JavaDocs for more information.
 
 [[ftp-session-callback]]
 === MessageSessionCallback
