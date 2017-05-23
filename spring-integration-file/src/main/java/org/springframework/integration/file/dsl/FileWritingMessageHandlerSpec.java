@@ -251,6 +251,7 @@ public class FileWritingMessageHandlerSpec
 	 * file permissions.
 	 * @param chmod the permissions.
 	 * @throws IllegalArgumentException if the value is higher than 0777.
+	 * @return the spec.
 	 * @see FileWritingMessageHandler#setChmod(int)
 	 */
 	public FileWritingMessageHandlerSpec chmod(int chmod) {
