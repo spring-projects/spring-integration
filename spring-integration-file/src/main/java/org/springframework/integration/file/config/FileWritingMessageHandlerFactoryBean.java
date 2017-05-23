@@ -73,6 +73,8 @@ public class FileWritingMessageHandlerFactoryBean
 
 	private volatile MessageFlushPredicate flushPredicate;
 
+	private String chmod;
+
 	public void setFileExistsMode(String fileExistsModeAsString) {
 		this.fileExistsMode = FileExistsMode.getForString(fileExistsModeAsString);
 	}
@@ -137,6 +139,10 @@ public class FileWritingMessageHandlerFactoryBean
 		this.flushPredicate = flushPredicate;
 	}
 
+	public void setChmod(String chmod) {
+		this.chmod = chmod;
+	}
+
 	@Override
 	protected FileWritingMessageHandler createHandler() {
 
@@ -194,6 +200,9 @@ public class FileWritingMessageHandlerFactoryBean
 		}
 		if (this.flushPredicate != null) {
 			handler.setFlushPredicate(this.flushPredicate);
+		}
+		if (this.chmod != null) {
+			handler.setChmodOctal(this.chmod);
 		}
 
 		return handler;

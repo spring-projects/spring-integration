@@ -111,7 +111,11 @@ See <<file-tailing>> for more information.
 The flush predicates for the `FileWritingMessageHandler` now have an additional parameter.
 See <<file-flushing>> for more information.
 
-The file outbound channel adapter (`FileWritingMessageHandler`) now supports the `REPLACE_IF_MODIFIED` `FileExistsMode`.
+The file outbound channel adapter and gateway (`FileWritingMessageHandler`) now support the `REPLACE_IF_MODIFIED` `FileExistsMode`.
+See <<file-writing-destination-exists>> for more information.
+
+They also now support setting file permissions on the newly written file.
+See <<file-permissions>> for more information.
 
 ==== (S)FTP Changes
 
