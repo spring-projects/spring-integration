@@ -222,7 +222,7 @@ The `MockIntegrationContext` is aimed to be used in the target test-cases for mo
 public void testMockMessageSource() {
     MessageSource<String> messageSource = () -> new GenericMessage<>("foo");
 
-    this.mockIntegrationContext.instead("mySourceEndpoint", messageSource);
+    this.mockIntegrationContext.substituteMessageSourceFor("mySourceEndpoint", messageSource);
 
     Message<?> receive = this.results.receive(10_000);
     assertNotNull(receive);
@@ -280,7 +280,7 @@ For this purpose, the aforementioned `MockIntegrationContext` should be used fro
 
 [source,java]
 ----
-this.mockIntegrationContext.instead("mySourceEndpoint",
+this.mockIntegrationContext.substituteMessageSourceFor("mySourceEndpoint",
         MockIntegration.mockMessageSource("foo", "bar", "baz"));
 Message<?> receive = this.results.receive(10_000);
 assertNotNull(receive);
@@ -298,7 +298,7 @@ In addition, a Mockito `ArgumentCaptor<Message<?>>` can be supplied to the `Mock
 Each request message for the `MockMessageHandler` is captured by that `ArgumentCaptor`.
 During the test, its `getValue()/getAllValues()` can be used to verify and assert those request messages.
 
-The `MockIntegrationContext` provides an `instead()` API for replacing the actual configured `MessageHandler` with a `MockMessageHandler`, in the particular endpoint in the application context under test.
+The `MockIntegrationContext` provides an `substituteMessageHandlerFor()` API for replacing the actual configured `MessageHandler` with a `MockMessageHandler`, in the particular endpoint in the application context under test.
 
 A typical usage might be:
 
@@ -310,7 +310,8 @@ MessageHandler mockMessageHandler =
         mockMessageHandler(messageArgumentCaptor)
                 .handleNextAndReply(m -> m.getPayload().toString().toUpperCase());
 
-this.mockIntegrationContext.instead("myService.serviceActivator", mockMessageHandler);
+this.mockIntegrationContext.substituteMessageHandlerFor("myService.serviceActivator",
+                               mockMessageHandler);
 GenericMessage<String> message = new GenericMessage<>("foo");
 this.myChannel.send(message);
 Message<?> received = this.results.receive(10000);

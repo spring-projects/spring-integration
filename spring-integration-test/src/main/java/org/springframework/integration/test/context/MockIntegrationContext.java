@@ -103,8 +103,8 @@ public class MockIntegrationContext implements BeanFactoryAware {
 	 * @param mockMessageSource the {@link MessageSource} to replace in the endpoint bean
 	 * @see org.springframework.integration.test.mock.MockIntegration#mockMessageSource
 	 */
-	public void instead(String pollingAdapterId, MessageSource<?> mockMessageSource) {
-		instead(pollingAdapterId, mockMessageSource, true);
+	public void substituteMessageSourceFor(String pollingAdapterId, MessageSource<?> mockMessageSource) {
+		substituteMessageSourceFor(pollingAdapterId, mockMessageSource, true);
 	}
 
 	/**
@@ -117,15 +117,18 @@ public class MockIntegrationContext implements BeanFactoryAware {
 	 * @param autoStartup start or not the endpoint after replacing its {@link MessageSource}
 	 * @see org.springframework.integration.test.mock.MockIntegration#mockMessageSource
 	 */
-	public void instead(String pollingAdapterId, MessageSource<?> mockMessageSource, boolean autoStartup) {
-		instead(pollingAdapterId, mockMessageSource, SourcePollingChannelAdapter.class, "source", autoStartup);
+	public void substituteMessageSourceFor(String pollingAdapterId, MessageSource<?> mockMessageSource,
+			boolean autoStartup) {
+		substituteMessageSourceFor(pollingAdapterId, mockMessageSource, SourcePollingChannelAdapter.class, "source",
+				autoStartup);
 	}
 
-	public void instead(String consumerEndpointId, MessageHandler mockMessageHandler) {
-		instead(consumerEndpointId, mockMessageHandler, true);
+	public void substituteMessageHandlerFor(String consumerEndpointId, MessageHandler mockMessageHandler) {
+		substituteMessageHandlerFor(consumerEndpointId, mockMessageHandler, true);
 	}
 
-	public void instead(String consumerEndpointId, MessageHandler mockMessageHandler, boolean autoStartup) {
+	public void substituteMessageHandlerFor(String consumerEndpointId, MessageHandler mockMessageHandler,
+			boolean autoStartup) {
 		Object endpoint = this.beanFactory.getBean(consumerEndpointId, IntegrationConsumer.class);
 		if (autoStartup && endpoint instanceof Lifecycle) {
 			((Lifecycle) endpoint).stop();
@@ -161,8 +164,8 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		}
 	}
 
-	private void instead(String endpointId, Object messagingComponent, Class<?> endpointClass, String property,
-			boolean autoStartup) {
+	private void substituteMessageSourceFor(String endpointId, Object messagingComponent, Class<?> endpointClass,
+			String property, boolean autoStartup) {
 		Object endpoint = this.beanFactory.getBean(endpointId, endpointClass);
 		if (autoStartup && endpoint instanceof Lifecycle) {
 			((Lifecycle) endpoint).stop();

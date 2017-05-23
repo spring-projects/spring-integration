@@ -152,8 +152,9 @@ public class MockMessageHandlerTests {
 				mockMessageHandler()
 						.handleNextAndReply(m -> m.getPayload().toString().toUpperCase());
 
-		this.mockIntegrationContext.instead("mockMessageHandlerTests.Config.myService.serviceActivator",
-				mockMessageHandler);
+		this.mockIntegrationContext
+				.substituteMessageHandlerFor("mockMessageHandlerTests.Config.myService.serviceActivator",
+						mockMessageHandler);
 
 		this.pojoServiceChannel.send(new GenericMessage<>("foo"));
 		receive = this.results.receive(10000);
@@ -171,15 +172,14 @@ public class MockMessageHandlerTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testMockRawHandler() {
-		ArgumentCaptor<Message<?>> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
+		ArgumentCaptor<Message<?>> messageArgumentCaptor = MockIntegration.messageArgumentCaptor();
 		MessageHandler mockMessageHandler =
 				spy(mockMessageHandler(messageArgumentCaptor))
 						.handleNext(m -> { });
 
 		String endpointId = "rawHandlerConsumer";
-		this.mockIntegrationContext.instead(endpointId, mockMessageHandler);
+		this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
 
 		Object endpoint = this.context.getBean(endpointId);
 		assertSame(mockMessageHandler, TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class));
@@ -200,7 +200,7 @@ public class MockMessageHandlerTests {
 						.handleNextAndReply(m -> m);
 
 		try {
-			this.mockIntegrationContext.instead(endpointId, mockMessageHandler);
+			this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
 			fail("IllegalStateException expected");
 		}
 		catch (Exception e) {
@@ -219,9 +219,8 @@ public class MockMessageHandlerTests {
 		}
 
 		@Bean
-		@SuppressWarnings("unchecked")
 		public ArgumentCaptor<Message<?>> messageArgumentCaptor() {
-			return ArgumentCaptor.forClass(Message.class);
+			return MockIntegration.messageArgumentCaptor();
 		}
 
 		@Bean

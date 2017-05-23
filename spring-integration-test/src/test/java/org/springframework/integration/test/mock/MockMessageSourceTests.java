@@ -85,7 +85,7 @@ public class MockMessageSourceTests {
 
 	@Test
 	public void testMockMessageSource() {
-		this.mockIntegrationContext.instead("mySourceEndpoint",
+		this.mockIntegrationContext.substituteMessageSourceFor("mySourceEndpoint",
 				MockIntegration.mockMessageSource("foo", "bar", "baz"));
 
 		Message<?> receive = this.results.receive(10_000);
@@ -179,7 +179,7 @@ public class MockMessageSourceTests {
 	@Test
 	public void testWrongBeanForInstead() {
 		try {
-			this.mockIntegrationContext.instead("errorChannel", () -> null);
+			this.mockIntegrationContext.substituteMessageSourceFor("errorChannel", () -> null);
 			fail("BeanNotOfRequiredTypeException expected");
 		}
 		catch (Exception e) {

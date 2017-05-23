@@ -128,7 +128,12 @@ public final class MockIntegration {
 	 * @return the MockMessageHandler instance ready for interaction
 	 */
 	public static MockMessageHandler mockMessageHandler(ArgumentCaptor<Message<?>> messageArgumentCaptor) {
-		return new MockMessageHandler(messageArgumentCaptor);
+		return Mockito.spy(new MockMessageHandler(messageArgumentCaptor));
+	}
+
+	@SuppressWarnings("unchecked")
+	public static ArgumentCaptor<Message<?>> messageArgumentCaptor() {
+		return ArgumentCaptor.forClass(Message.class);
 	}
 
 	private MockIntegration() {
