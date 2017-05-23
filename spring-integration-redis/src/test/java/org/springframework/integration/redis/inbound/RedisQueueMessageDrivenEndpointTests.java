@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -80,6 +81,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 	@Autowired
@@ -122,7 +124,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(channel);
-		endpoint.setReceiveTimeout(1000);
+		endpoint.setReceiveTimeout(10);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
@@ -167,7 +169,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.setExpectMessage(true);
 		endpoint.setOutputChannel(channel);
 		endpoint.setErrorChannel(errorChannel);
-		endpoint.setReceiveTimeout(1000);
+		endpoint.setReceiveTimeout(10);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
@@ -248,7 +250,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		dfa.setPropertyValue("boundListOperations", boundListOperations);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(new DirectChannel());
-		endpoint.setReceiveTimeout(1000);
+		endpoint.setReceiveTimeout(10);
 
 		ExecutorService executorService = Executors.newCachedThreadPool();
 		endpoint.setTaskExecutor(executorService);
@@ -266,9 +268,9 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		endpoint.stop(() -> stopLatch.countDown());
 
 		executorService.shutdown();
-		assertTrue(executorService.awaitTermination(10, TimeUnit.SECONDS));
+		assertTrue(executorService.awaitTermination(20, TimeUnit.SECONDS));
 
-		assertTrue(stopLatch.await(10, TimeUnit.SECONDS));
+		assertTrue(stopLatch.await(21, TimeUnit.SECONDS));
 
 		verify(boundListOperations, atLeastOnce()).rightPush(any(byte[].class));
 	}
@@ -358,7 +360,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 				new RedisQueueMessageDrivenEndpoint(queueName, this.connectionFactory);
 		endpoint.setBeanFactory(Mockito.mock(BeanFactory.class));
 		endpoint.setOutputChannel(channel);
-		endpoint.setReceiveTimeout(1000);
+		endpoint.setReceiveTimeout(10);
 		endpoint.setRightPop(false);
 		endpoint.afterPropertiesSet();
 		endpoint.start();
