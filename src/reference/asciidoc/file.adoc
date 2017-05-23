@@ -706,6 +706,12 @@ copy was required).
 For other payloads, if the `FileHeaders.SET_MODIFIED` header (`file_setModified`) is present, it will be used to set
 the destination file's `lastModified` timestamp, as long as the header is a `Number`.
 
+[[file-permissions]]
+==== File Permissions
+
+Starting with _version 5.0_, when writing files to a file system that supports Posix permissions, you can specify those permissions on the outbound channel adapter or gateway.
+The property is an integer and is usually supplied in the familiar octal format; e.g. `0640` meaning the owner has read/write permissions, the group has read only permission and others have no access.
+
 [[file-outbound-channel-adapter]]
 ==== File Outbound Channel Adapter
 

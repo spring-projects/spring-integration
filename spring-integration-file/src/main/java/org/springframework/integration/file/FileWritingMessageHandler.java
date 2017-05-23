@@ -29,10 +29,14 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.regex.Matcher;
@@ -48,6 +52,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
@@ -151,6 +156,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile MessageFlushPredicate flushPredicate = new DefaultFlushPredicate();
 
 	private volatile boolean preserveTimestamp;
+
+	private Set<PosixFilePermission> permissions;
 
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
@@ -367,6 +374,75 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.preserveTimestamp = preserveTimestamp;
 	}
 
+	/**
+	 * String setter for Spring XML convenience.
+	 * @param chmod permissions as an octal string e.g "600";
+	 * @see #setChmod(int)
+	 * @since 5.0
+	 */
+	public void setChmodOctal(String chmod) {
+		Assert.notNull(chmod, "'chmod' cannot be null");
+		setChmod(Integer.parseInt(chmod, 8));
+	}
+
+	/**
+	 * Set the file permissions after uploading, e.g. 0600 for
+	 * owner read/write. Only applies to file systems that support posix
+	 * file permissions.
+	 * @param chmod the permissions.
+	 * @throws IllegalArgumentException if the value is higher than 0777.
+	 * @since 5.0
+	 */
+	public void setChmod(int chmod) {
+		Assert.isTrue(chmod <= 0777, "'chmod' must be between 0 and 0777 (octal)");
+		if (!FileUtils.IS_POSIX) {
+			this.logger.error("'chmod' setting ignored - the file system does not support Posix attributes");
+			return;
+		}
+		/*
+		 * Bitset.valueOf(byte[]) takes a little-endian array of bytes to create a BitSet.
+		 * Since we are interested in 9 bits, we construct an array with the low-order byte
+		 * (bits 0-7) followed by the second order byte (bit 8).
+		 * BitSet.stream() returns a stream of ints representing those bits that are set.
+		 * We use that stream with a switch to create the set of PosixFilePermissions
+		 * representing the bits that were set in the chmod value.
+		 */
+		BitSet bits = BitSet.valueOf(new byte[] { (byte) chmod, (byte) (chmod >> 8) });
+		final Set<PosixFilePermission> permissions = new HashSet<>();
+		bits.stream().forEach(b -> {
+			switch (b) {
+			case 0:
+				permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+				break;
+			case 1:
+				permissions.add(PosixFilePermission.OTHERS_WRITE);
+				break;
+			case 2:
+				permissions.add(PosixFilePermission.OTHERS_READ);
+				break;
+			case 3:
+				permissions.add(PosixFilePermission.GROUP_EXECUTE);
+				break;
+			case 4:
+				permissions.add(PosixFilePermission.GROUP_WRITE);
+				break;
+			case 5:
+				permissions.add(PosixFilePermission.GROUP_READ);
+				break;
+			case 6:
+				permissions.add(PosixFilePermission.OWNER_EXECUTE);
+				break;
+			case 7:
+				permissions.add(PosixFilePermission.OWNER_WRITE);
+				break;
+			case 8:
+				permissions.add(PosixFilePermission.OWNER_READ);
+				break;
+			}
+		});
+		this.permissions = permissions;
+	}
+
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
@@ -481,6 +557,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				if (this.preserveTimestamp) {
 					if (timestamp instanceof Number) {
 						resultFile.setLastModified(((Number) timestamp).longValue());
+					}
+					else if (timestamp == null) {
+						if (this.logger.isWarnEnabled()) {
+							this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
+									+ " must be a Number, not null");
+						}
 					}
 					else {
 						if (this.logger.isWarnEnabled()) {
@@ -744,6 +826,20 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (this.deleteSourceFiles && originalFile != null) {
 			originalFile.delete();
+		}
+
+		setPermissions(resultFile);
+	}
+
+	/**
+	 * Set permissions on newly written files.
+	 * @param resultFile the file.
+	 * @throws IOException any exception.
+	 * @since 5.0
+	 */
+	protected void setPermissions(File resultFile) throws IOException {
+		if (this.permissions != null) {
+			Files.setPosixFilePermissions(resultFile.toPath(), this.permissions);
 		}
 	}
 

@@ -17,6 +17,7 @@
 package org.springframework.integration.file.config;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
@@ -26,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +43,7 @@ import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.FileWritingMessageHandler.MessageFlushPredicate;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -140,6 +143,9 @@ public class FileOutboundChannelAdapterParserTests {
 		assertEquals("'foo.txt'", expression.getExpressionString());
 		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
 		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("flushWhenIdle"));
+		if (FileUtils.IS_POSIX) {
+			assertThat(TestUtils.getPropertyValue(handler, "permissions", Set.class).size(), equalTo(9));
+		}
 	}
 
 	@Test
