@@ -65,9 +65,13 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.ChainFileListFilter;
+import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.splitter.FileSplitter;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.file.tail.ApacheCommonsFileTailingMessageProducer;
@@ -395,7 +399,10 @@ public class FileTests {
 		public IntegrationFlow fileSplitterFlow() {
 			return IntegrationFlows
 					.from(Files.inboundAdapter(tmpDir.getRoot())
-									.filterFunction(f -> "foo.tmp".equals(f.getName())),
+									.filter(new ChainFileListFilter<File>()
+											.addFilter(new AcceptOnceFileListFilter<>())
+											.addFilter(new ExpressionFileListFilter<>(
+													new FunctionExpression<File>(f -> "foo.tmp".equals(f.getName()))))),
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.split(Files.splitter()
 									.markers()
