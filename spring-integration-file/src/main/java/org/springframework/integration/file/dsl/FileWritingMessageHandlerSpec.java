@@ -245,6 +245,19 @@ public class FileWritingMessageHandlerSpec
 		return this;
 	}
 
+	/**
+	 * Set the file permissions after uploading, e.g. 0600 for
+	 * owner read/write. Only applies to file systems that support posix
+	 * file permissions.
+	 * @param chmod the permissions.
+	 * @throws IllegalArgumentException if the value is higher than 0777.
+	 * @see FileWritingMessageHandler#setChmod(int)
+	 */
+	public FileWritingMessageHandlerSpec chmod(int chmod) {
+		this.target.setChmod(chmod);
+		return this;
+	}
+
 	@Override
 	public Collection<Object> getComponentsToRegister() {
 		if (this.defaultFileNameGenerator != null) {

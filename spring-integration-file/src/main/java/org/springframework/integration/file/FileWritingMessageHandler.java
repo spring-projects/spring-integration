@@ -558,6 +558,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					if (timestamp instanceof Number) {
 						resultFile.setLastModified(((Number) timestamp).longValue());
 					}
+					else if (timestamp == null) {
+						if (this.logger.isWarnEnabled()) {
+							this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
+									+ " must be a Number, not null");
+						}
+					}
 					else {
 						if (this.logger.isWarnEnabled()) {
 							this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
