@@ -52,6 +52,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
@@ -389,10 +390,23 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * owner read/write. Only applies to file systems that support posix
 	 * file permissions.
 	 * @param chmod the permissions.
+	 * @throws IllegalArgumentException if the value is higher than 0777.
 	 * @since 5.0
 	 */
 	public void setChmod(int chmod) {
 		Assert.isTrue(chmod <= 0777, "'chmod' must be between 0 and 0777 (octal)");
+		if (!FileUtils.IS_POSIX) {
+			this.logger.error("'chmod' setting ignored - the file system does not support Posix attributes");
+			return;
+		}
+		/*
+		 * Bitset.valueOf(byte[]) takes a little-endian array of bytes to create a BitSet.
+		 * Since we are interested in 9 bits, we construct an array with the low-order byte
+		 * (bits 0-7) followed by the second order byte (bit 8).
+		 * BitSet.stream() returns a stream of ints representing those bits that are set.
+		 * We use that stream with a switch to create the set of PosixFilePermissions
+		 * representing the bits that were set in the chmod value.
+		 */
 		BitSet bits = BitSet.valueOf(new byte[] { (byte) chmod, (byte) (chmod >> 8) });
 		final Set<PosixFilePermission> permissions = new HashSet<>();
 		bits.stream().forEach(b -> {
