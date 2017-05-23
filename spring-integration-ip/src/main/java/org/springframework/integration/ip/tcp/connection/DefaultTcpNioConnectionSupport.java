@@ -45,7 +45,7 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 		}
 	}
 
-	public static class PushBackTcpNioConnection extends TcpNioConnection {
+	private static final class PushBackTcpNioConnection extends TcpNioConnection {
 
 		private final int pushbackBufferSize;
 
@@ -53,9 +53,9 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 
 		private volatile PushbackInputStream pushbackStream;
 
-		private volatile InputStream original;
+		private volatile InputStream wrapped;
 
-		public PushBackTcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
+		PushBackTcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
 				int bufferSize) throws Exception {
 			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
@@ -65,8 +65,11 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 
 		@Override
 		protected InputStream inputStream() {
-			if (this.pushbackStream == null || super.inputStream() != this.original) {
-				this.pushbackStream = new PushbackInputStream(super.inputStream(), this.pushbackBufferSize);
+			InputStream wrapped = super.inputStream();
+			// It shouldn't be possible for the wrapped stream to change but, just in case...
+			if (this.pushbackStream == null || wrapped != this.wrapped) {
+				this.pushbackStream = new PushbackInputStream(wrapped, this.pushbackBufferSize);
+				this.wrapped = wrapped;
 			}
 			return this.pushbackStream;
 		}

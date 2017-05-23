@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher;
  * @since 5.0
  *
  */
+@FunctionalInterface
 public interface TcpNetConnectionSupport {
 
 	/**

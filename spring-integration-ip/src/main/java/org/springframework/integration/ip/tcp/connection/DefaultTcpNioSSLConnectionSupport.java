@@ -80,28 +80,31 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 		// NOSONAR (empty)
 	}
 
-	public static class PushBackTcpNioSSLConnection extends TcpNioSSLConnection {
+	private static final class PushBackTcpNioSSLConnection extends TcpNioSSLConnection {
 
-		private final int pushBackBufferSize;
+		private final int pushbackBufferSize;
 
 		private final String connectionId;
 
 		private volatile PushbackInputStream pushbackStream;
 
-		private volatile InputStream original;
+		private volatile InputStream wrapped;
 
-		public PushBackTcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
+		PushBackTcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName, SSLEngine sslEngine,
 				int bufferSize) throws Exception {
 			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName, sslEngine);
-			this.pushBackBufferSize = bufferSize;
+			this.pushbackBufferSize = bufferSize;
 			this.connectionId = "pushback:" + super.getConnectionId();
 		}
 
 		@Override
 		protected InputStream inputStream() {
-			if (this.pushbackStream == null || super.inputStream() != this.original) {
-				this.pushbackStream = new PushbackInputStream(super.inputStream(), this.pushBackBufferSize);
+			InputStream wrapped = super.inputStream();
+			// It shouldn't be possible for the wrapped stream to change but, just in case...
+			if (this.pushbackStream == null || wrapped != this.wrapped) {
+				this.pushbackStream = new PushbackInputStream(wrapped, this.pushbackBufferSize);
+				this.wrapped = wrapped;
 			}
 			return this.pushbackStream;
 		}
