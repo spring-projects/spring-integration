@@ -292,9 +292,18 @@ See <<jdbc-outbound-channel-adapter>> for more information about `MessagePrepare
 === JDBC Message Store
 
 Spring Integration provides 2 JDBC specific Message Store implementations.
-The first one, is the `JdbcMessageStore` which is suitable to be used in conjunction with _Aggregators_ and the
-_Claim-Check_ pattern.
+The first one, is the `JdbcMessageStore` which is suitable to be used in conjunction with _Aggregators_ and the _Claim-Check_ pattern.
 While it can be used for backing _Message Channels_ as well, you may want to consider using the `JdbcChannelMessageStore` implementation instead, as it provides a more targeted and scalable implementation.
+
+==== Initializing the Database
+
+Before starting to use JDBC Message Store components, it is important to provision target data base with the appropriate objects.
+
+Spring Integration ships with some sample scripts that can be used to initialize a database.
+In the `spring-integration-jdbc` JAR file you can find scripts in the `org.springframework.integration.jdbc` package: there is a create and a drop script example for a range of common database platforms.
+A common way to use these scripts is to reference them in a https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
+Note that the scripts are provided as samples or specifications of the the required table and column names.
+You may find that you need to enhance them for production use (e.g. with index declarations).
 
 [[jdbc-message-store-generic]]
 ==== The Generic JDBC Message Store
@@ -439,14 +448,6 @@ To configure that scenario, simply extend one message store bean from the other:
     <int:priority-queue message-store="priorityStore"/>
 </int:channel>
 ----
-
-==== Initializing the Database
-
-Spring Integration ships with some sample scripts that can be used to initialize a database.
-In the `spring-integration-jdbc` JAR file you can find scripts in the `org.springframework.integration.jdbc` package: there is a create and a drop script example for a range of common database platforms.
-A common way to use these scripts is to reference them in a https://docs.spring.io/spring/docs/current/spring-framework-reference/html/jdbc.html#jdbc-intializing-datasource[Spring JDBC data source initializer].
-`Note that the scripts are provided as samples or specifications of the the required table and column names.
-You may find that you need to enhance them for production use (e.g. with index declarations).
 
 ==== Partitioning a Message Store
 
