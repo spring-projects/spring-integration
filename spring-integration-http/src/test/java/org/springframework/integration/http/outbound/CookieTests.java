@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -43,8 +43,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.1
  *
@@ -74,7 +75,7 @@ public class CookieTests {
 
 	@Test
 	public void testCookie() throws Exception {
-		ch1.send(new GenericMessage<String>("Hello, world!"));
+		ch1.send(new GenericMessage<>("Hello, world!"));
 		Assert.assertNotNull(ch6.receive());
 
 
@@ -98,6 +99,7 @@ public class CookieTests {
 
 		public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod)
 				throws IOException {
+
 			return new ClientHttpRequest() {
 
 				private HttpHeaders headers = new HttpHeaders();
@@ -115,6 +117,11 @@ public class CookieTests {
 				}
 
 				public HttpMethod getMethod() {
+					return null;
+				}
+
+				@Override
+				public String getMethodValue() {
 					return null;
 				}
 
@@ -148,11 +155,14 @@ public class CookieTests {
 						public int getRawStatusCode() throws IOException {
 							return 200;
 						}
+
 					};
 				}
 
 			};
+
 		}
 
 	}
+
 }
