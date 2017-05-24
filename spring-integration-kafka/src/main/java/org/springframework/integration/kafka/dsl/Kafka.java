@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,10 @@ public final class Kafka {
 	 * @param kafkaTemplate the {@link KafkaTemplate} to use
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
-	 * @return the Kafka09ProducerMessageHandlerSpec.
+	 * @param <S> the {@link KafkaProducerMessageHandlerSpec} extension type.
+	 * @return the KafkaProducerMessageHandlerSpec.
 	 */
-	public static <K, V> KafkaProducerMessageHandlerSpec<K, V>
+	public static <K, V, S extends KafkaProducerMessageHandlerSpec<K, V, S>> KafkaProducerMessageHandlerSpec<K, V, S>
 	outboundChannelAdapter(KafkaTemplate<K, V> kafkaTemplate) {
 		return new KafkaProducerMessageHandlerSpec<>(kafkaTemplate);
 	}
@@ -68,11 +69,11 @@ public final class Kafka {
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer}.
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
-	 * @param <A> the {@link KafkaMessageDrivenChannelAdapterSpec} extension type.
-	 * @return the Kafka09MessageDrivenChannelAdapterSpec.
+	 * @param <S> the {@link KafkaMessageDrivenChannelAdapterSpec} extension type.
+	 * @return the KafkaMessageDrivenChannelAdapterSpec.
 	 */
-	public static <K, V, A extends KafkaMessageDrivenChannelAdapterSpec<K, V, A>>
-	KafkaMessageDrivenChannelAdapterSpec<K, V, A> messageDrivenChannelAdapter(
+	public static <K, V, S extends KafkaMessageDrivenChannelAdapterSpec<K, V, S>>
+	KafkaMessageDrivenChannelAdapterSpec<K, V, S> messageDrivenChannelAdapter(
 			AbstractMessageListenerContainer<K, V> listenerContainer) {
 		return messageDrivenChannelAdapter(listenerContainer, KafkaMessageDrivenChannelAdapter.ListenerMode.record);
 	}
@@ -84,7 +85,7 @@ public final class Kafka {
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
 	 * @param <A> the {@link KafkaMessageDrivenChannelAdapterSpec} extension type.
-	 * @return the Kafka09MessageDrivenChannelAdapterSpec.
+	 * @return the KafkaMessageDrivenChannelAdapterSpec.
 	 */
 	public static <K, V, A extends KafkaMessageDrivenChannelAdapterSpec<K, V, A>>
 	KafkaMessageDrivenChannelAdapterSpec<K, V, A> messageDrivenChannelAdapter(

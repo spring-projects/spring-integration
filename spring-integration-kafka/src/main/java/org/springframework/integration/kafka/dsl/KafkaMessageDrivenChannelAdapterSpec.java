@@ -16,8 +16,8 @@
 
 package org.springframework.integration.kafka.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -26,6 +26,7 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.integration.dsl.ComponentsRegistration;
+import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -194,8 +195,8 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 		}
 
 		@Override
-		public Collection<Object> getComponentsToRegister() {
-			return Collections.singleton(this.spec.container);
+		public Map<Object, String> getComponentsToRegister() {
+			return Collections.singletonMap(this.spec.container, this.spec.getId());
 		}
 
 	}
@@ -207,7 +208,8 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 * @param <K> the key type.
 	 * @param <V> the value type.
 	 */
-	public static class KafkaMessageListenerContainerSpec<K, V> {
+	public static class KafkaMessageListenerContainerSpec<K, V>
+			extends IntegrationComponentSpec<KafkaMessageListenerContainerSpec<K, V>, ConcurrentMessageListenerContainer<K, V>> {
 
 		private final ConcurrentMessageListenerContainer<K, V> container;
 
@@ -228,6 +230,11 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 
 		KafkaMessageListenerContainerSpec(ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
 			this(consumerFactory, new ContainerProperties(topicPattern));
+		}
+
+		@Override
+		public KafkaMessageListenerContainerSpec<K, V> id(String id) {
+			return super.id(id);
 		}
 
 		/**
@@ -395,6 +402,18 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 		 */
 		public KafkaMessageListenerContainerSpec<K, V> ackOnError(boolean ackOnError) {
 			this.container.getContainerProperties().setAckOnError(ackOnError);
+			return this;
+		}
+
+		/**
+		 * Set the group id for this container. Overrides any {@code group.id} property
+		 * provided by the consumer factory configuration.
+		 * @param groupId the group id.
+		 * @return the spec.
+		 * @see ContainerProperties#setAckOnError(boolean)
+		 */
+		public KafkaMessageListenerContainerSpec<K, V> groupId(String groupId) {
+			this.container.getContainerProperties().setGroupId(groupId);
 			return this;
 		}
 
