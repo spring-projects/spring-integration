@@ -418,6 +418,22 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.messagingTemplate.receive(replyChannel);
 	}
 
+	protected Object receive(long timeout) {
+		this.initializeIfNecessary();
+		MessageChannel replyChannel = getReplyChannel();
+		Assert.state(replyChannel != null && (replyChannel instanceof PollableChannel),
+				"receive is not supported, because no pollable reply channel has been configured");
+		return this.messagingTemplate.receiveAndConvert(replyChannel, timeout);
+	}
+
+	protected Message<?> receiveMessage(long timeout) {
+		initializeIfNecessary();
+		MessageChannel replyChannel = getReplyChannel();
+		Assert.state(replyChannel instanceof PollableChannel,
+				"receive is not supported, because no pollable reply channel has been configured");
+		return this.messagingTemplate.receive(replyChannel, timeout);
+	}
+
 	protected Object sendAndReceive(Object object) {
 		return this.doSendAndReceive(object, true);
 	}

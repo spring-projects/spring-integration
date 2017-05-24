@@ -82,6 +82,9 @@ The `RequestReplyExchanger` interface now has a `throws MessagingException` clau
 
 See <<gateway-error-handling>> for more information.
 
+The request and reply timeouts can now be specified as SpEL expressions.
+See <<gateway-timeouts>> for more information.
+
 ==== Aggregator Performance Changes
 
 Aggregators now use a `SimpleSequenceSizeReleaseStrategy` by default, which is more efficient, especially with large groups.

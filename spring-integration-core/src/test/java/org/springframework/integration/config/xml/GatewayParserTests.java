@@ -45,6 +45,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.expression.Expression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.gateway.GatewayMethodMetadata;
@@ -95,16 +96,26 @@ public class GatewayParserTests {
 		service.oneWay("foo");
 		PollableChannel channel = (PollableChannel) context.getBean("otherRequestChannel");
 		Message<?> result = channel.receive(10000);
+		assertNotNull(result);
 		assertEquals("fiz", result.getPayload());
 		assertEquals("bar", result.getHeaders().get("foo"));
 		assertEquals("qux", result.getHeaders().get("baz"));
 		GatewayProxyFactoryBean fb = context.getBean("&methodOverride", GatewayProxyFactoryBean.class);
+		assertEquals(1000L, TestUtils.getPropertyValue(fb, "defaultRequestTimeout", Expression.class).getValue());
+		assertEquals(2000L, TestUtils.getPropertyValue(fb, "defaultReplyTimeout", Expression.class).getValue());
 		Map<?, ?> methods = TestUtils.getPropertyValue(fb, "methodMetadataMap", Map.class);
 		GatewayMethodMetadata meta = (GatewayMethodMetadata) methods.get("oneWay");
 		assertNotNull(meta);
 		assertEquals("456", meta.getRequestTimeout());
 		assertEquals("123", meta.getReplyTimeout());
 		assertEquals("foo", meta.getReplyChannelName());
+		meta = (GatewayMethodMetadata) methods.get("oneWayWithTimeouts");
+		assertNotNull(meta);
+		assertEquals("#args[1]", meta.getRequestTimeout());
+		assertEquals("#args[2]", meta.getReplyTimeout());
+		service.oneWayWithTimeouts("foo", 100L, 200L);
+		result = channel.receive(10000);
+		assertNotNull(result);
 	}
 
 	@Test

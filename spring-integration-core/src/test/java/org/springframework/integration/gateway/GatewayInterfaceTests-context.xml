@@ -19,7 +19,6 @@
 		<int:method name="baz">
 			<int:header name="name" value="overrideGlobal"/>
 		</int:method>
-		<int:method name="lateReply" request-channel="lateReplyChannel" reply-timeout="0"/>
 	</int:gateway>
 
 	<int:chain input-channel="lateReplyChannel" >
