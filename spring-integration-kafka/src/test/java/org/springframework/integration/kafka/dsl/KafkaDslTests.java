@@ -44,8 +44,10 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
@@ -75,10 +77,8 @@ public class KafkaDslTests {
 
 	private static final String TEST_TOPIC2 = "test-topic2";
 
-	private static final String TEST_TOPIC3 = "test-topic3";
-
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3);
+	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2);
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -100,6 +100,18 @@ public class KafkaDslTests {
 
 	@Autowired
 	private PollableChannel errorChannel;
+
+	@Autowired(required = false)
+	@Qualifier("topic1ListenerContainer")
+	private MessageListenerContainer messageListenerContainer;
+
+	@Autowired(required = false)
+	@Qualifier("kafkaTemplate:" + TEST_TOPIC1)
+	private KafkaTemplate<?, ?> kafkaTemplateTopic1;
+
+	@Autowired(required = false)
+	@Qualifier("kafkaTemplate:" + TEST_TOPIC2)
+	private KafkaTemplate<?, ?> kafkaTemplateTopic2;
 
 	@Test
 	public void testKafkaAdapters() {
@@ -153,6 +165,10 @@ public class KafkaDslTests {
 		assertThat(error).isNotNull();
 		assertThat(error).isInstanceOf(ErrorMessage.class);
 		assertThat(error.getPayload()).isInstanceOf(MessageRejectedException.class);
+
+		assertThat(this.messageListenerContainer).isNotNull();
+		assertThat(this.kafkaTemplateTopic1).isNotNull();
+		assertThat(this.kafkaTemplateTopic2).isNotNull();
 	}
 
 	@Configuration
@@ -178,7 +194,8 @@ public class KafkaDslTests {
 					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
 							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
 							.configureListenerContainer(c ->
-									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL))
+									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL)
+											.id("topic1ListenerContainer"))
 							.errorChannel("errorChannel")
 							.retryTemplate(new RetryTemplate())
 							.filterInRetry(true))
@@ -222,13 +239,14 @@ public class KafkaDslTests {
 									kafkaMessageHandler(producerFactory(), TEST_TOPIC1)
 											.timestampExpression("T(Long).valueOf('1487694048633')"),
 									e -> e.id("kafkaProducer1")))
-							.subscribe(sf -> sf.handle(kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
+							.subscribe(sf -> sf.handle(
+									kafkaMessageHandler(producerFactory(), TEST_TOPIC2)
 											.timestamp(m -> 1487694048644L),
 									e -> e.id("kafkaProducer2")))
 					);
 		}
 
-		private KafkaProducerMessageHandlerSpec<Integer, String> kafkaMessageHandler(
+		private KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandler(
 				ProducerFactory<Integer, String> producerFactory, String topic) {
 			return Kafka
 					.outboundChannelAdapter(producerFactory)
@@ -236,7 +254,8 @@ public class KafkaDslTests {
 							.getHeaders()
 							.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
 					.partitionId(m -> 10)
-					.topicExpression("headers[kafka_topic] ?: '" + topic + "'");
+					.topicExpression("headers[kafka_topic] ?: '" + topic + "'")
+					.configureKafkaTemplate(t -> t.id("kafkaTemplate:" + topic));
 		}
 
 	}

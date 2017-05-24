@@ -16,42 +16,44 @@
 
 package org.springframework.integration.kafka.dsl;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.ComponentsRegistration;
+import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.LoggingProducerListener;
 import org.springframework.kafka.support.ProducerListener;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * A {@link MessageHandlerSpec} implementation for the {@link KafkaProducerMessageHandler}.
  *
  * @param <K> the key type.
  * @param <V> the value type.
+ * @param <S> the {@link KafkaProducerMessageHandlerSpec} extension type.
  *
  * @author Artem Bilan
  * @author Biju Kunjummen
  *
  * @since 3.0
  */
-public class KafkaProducerMessageHandlerSpec<K, V>
-		extends MessageHandlerSpec<KafkaProducerMessageHandlerSpec<K, V>, KafkaProducerMessageHandler<K, V>> {
-
-	protected final KafkaTemplate<K, V> kafkaTemplate;
+public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessageHandlerSpec<K, V, S>>
+		extends MessageHandlerSpec<S, KafkaProducerMessageHandler<K, V>> {
 
 	KafkaProducerMessageHandlerSpec(KafkaTemplate<K, V> kafkaTemplate) {
-		this.target = new KafkaProducerMessageHandler<K, V>(kafkaTemplate);
-		this.kafkaTemplate = kafkaTemplate;
+		this.target = new KafkaProducerMessageHandler<>(kafkaTemplate);
 	}
 
 	/**
@@ -59,10 +61,9 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param topic the Kafka topic name.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> topic(String topic) {
+	public S topic(String topic) {
 		return topicExpression(new LiteralExpression(topic));
 	}
-
 
 	/**
 	 * Configure a SpEL expression to determine the Kafka topic at runtime against
@@ -70,7 +71,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param topicExpression the topic SpEL expression.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> topicExpression(String topicExpression) {
+	public S topicExpression(String topicExpression) {
 		return topicExpression(PARSER.parseExpression(topicExpression));
 	}
 
@@ -80,7 +81,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param topicExpression the topic expression.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> topicExpression(Expression topicExpression) {
+	public S topicExpression(Expression topicExpression) {
 		this.target.setTopicExpression(topicExpression);
 		return _this();
 	}
@@ -98,7 +99,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @return the current {@link KafkaProducerMessageHandlerSpec}.
 	 * @see FunctionExpression
 	 */
-	public <P> KafkaProducerMessageHandlerSpec<K, V> topic(Function<Message<P>, String> topicFunction) {
+	public <P> S topic(Function<Message<P>, String> topicFunction) {
 		return topicExpression(new FunctionExpression<>(topicFunction));
 	}
 
@@ -108,7 +109,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param messageKeyExpression the message key SpEL expression.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> messageKeyExpression(String messageKeyExpression) {
+	public S messageKeyExpression(String messageKeyExpression) {
 		return messageKeyExpression(PARSER.parseExpression(messageKeyExpression));
 	}
 
@@ -117,7 +118,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param messageKey the message key to use.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> messageKey(String messageKey) {
+	public S messageKey(String messageKey) {
 		return messageKeyExpression(new LiteralExpression(messageKey));
 	}
 
@@ -127,7 +128,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param messageKeyExpression the message key expression.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> messageKeyExpression(Expression messageKeyExpression) {
+	public S messageKeyExpression(Expression messageKeyExpression) {
 		this.target.setMessageKeyExpression(messageKeyExpression);
 		return _this();
 	}
@@ -145,7 +146,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @return the current {@link KafkaProducerMessageHandlerSpec}.
 	 * @see FunctionExpression
 	 */
-	public <P> KafkaProducerMessageHandlerSpec<K, V> messageKey(Function<Message<P>, ?> messageKeyFunction) {
+	public <P> S messageKey(Function<Message<P>, ?> messageKeyFunction) {
 		return messageKeyExpression(new FunctionExpression<>(messageKeyFunction));
 	}
 
@@ -154,7 +155,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param partitionId the partitionId to use.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> partitionId(Integer partitionId) {
+	public S partitionId(Integer partitionId) {
 		return partitionIdExpression(new ValueExpression<Integer>(partitionId));
 	}
 
@@ -164,7 +165,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param partitionIdExpression the partitionId expression to use.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> partitionIdExpression(String partitionIdExpression) {
+	public S partitionIdExpression(String partitionIdExpression) {
 		return partitionIdExpression(PARSER.parseExpression(partitionIdExpression));
 	}
 
@@ -180,7 +181,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param <P> the expected payload type.
 	 * @return the spec.
 	 */
-	public <P> KafkaProducerMessageHandlerSpec<K, V> partitionId(Function<Message<P>, Integer> partitionIdFunction) {
+	public <P> S partitionId(Function<Message<P>, Integer> partitionIdFunction) {
 		return partitionIdExpression(new FunctionExpression<>(partitionIdFunction));
 	}
 
@@ -190,7 +191,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param partitionIdExpression the partitionId expression to use.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> partitionIdExpression(Expression partitionIdExpression) {
+	public S partitionIdExpression(Expression partitionIdExpression) {
 		this.target.setPartitionIdExpression(partitionIdExpression);
 		return _this();
 	}
@@ -201,7 +202,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param timestampExpression the timestamp expression to use.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> timestampExpression(String timestampExpression) {
+	public S timestampExpression(String timestampExpression) {
 		return this.timestampExpression(PARSER.parseExpression(timestampExpression));
 	}
 
@@ -217,7 +218,7 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param <P> the expected payload type.
 	 * @return the spec.
 	 */
-	public <P> KafkaProducerMessageHandlerSpec<K, V> timestamp(Function<Message<P>, Long> timestampFunction) {
+	public <P> S timestamp(Function<Message<P>, Long> timestampFunction) {
 		return timestampExpression(new FunctionExpression<>(timestampFunction));
 	}
 
@@ -226,10 +227,8 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * request Message as a root object of evaluation context.
 	 * @param timestampExpression the timestamp expression to use.
 	 * @return the spec.
-	 *
-	 * @since 3.0
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> timestampExpression(Expression timestampExpression) {
+	public S timestampExpression(Expression timestampExpression) {
 		this.target.setTimestampExpression(timestampExpression);
 		return _this();
 	}
@@ -242,9 +241,9 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param sync the send mode; async by default.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> sync(boolean sync) {
+	public S sync(boolean sync) {
 		this.target.setSync(sync);
-		return this;
+		return _this();
 	}
 
 	/**
@@ -253,9 +252,9 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param sendTimeout the timeout to wait for result fo send operation.
 	 * @return the spec.
 	 */
-	public KafkaProducerMessageHandlerSpec<K, V> sendTimeout(long sendTimeout) {
+	public S sendTimeout(long sendTimeout) {
 		this.target.setSendTimeout(sendTimeout);
-		return this;
+		return _this();
 	}
 
 	/**
@@ -264,26 +263,87 @@ public class KafkaProducerMessageHandlerSpec<K, V>
 	 * @param <K> the key type.
 	 * @param <V> the value type.
 	 */
-	public static class KafkaProducerMessageHandlerTemplateSpec<K, V> extends KafkaProducerMessageHandlerSpec<K, V>
+	public static class KafkaProducerMessageHandlerTemplateSpec<K, V> extends KafkaProducerMessageHandlerSpec<K, V, KafkaProducerMessageHandlerTemplateSpec<K, V>>
 			implements ComponentsRegistration {
 
+		private final KafkaTemplateSpec<K, V> kafkaTemplateSpec;
+
+		@SuppressWarnings("unchecked")
 		KafkaProducerMessageHandlerTemplateSpec(ProducerFactory<K, V> producerFactory) {
 			super(new KafkaTemplate<>(producerFactory));
+			this.kafkaTemplateSpec = new KafkaTemplateSpec<>((KafkaTemplate<K, V>) this.target.getKafkaTemplate());
 		}
 
-		public KafkaProducerMessageHandlerTemplateSpec<K, V> producerListener(ProducerListener<K, V> producerListener) {
-			this.kafkaTemplate.setProducerListener(producerListener);
-			return this;
-		}
-
-		public KafkaProducerMessageHandlerTemplateSpec<K, V> messageConverter(RecordMessageConverter messageConverter) {
-			this.kafkaTemplate.setMessageConverter(messageConverter);
-			return this;
+		/**
+		 * Configure a Kafka Template by invoking the {@link Consumer} callback, with a
+		 * {@link KafkaProducerMessageHandlerSpec.KafkaTemplateSpec} argument.
+		 * @param configurer the configurer Java 8 Lambda.
+		 * @return the spec.
+		 */
+		public KafkaProducerMessageHandlerTemplateSpec<K, V> configureKafkaTemplate(
+				Consumer<KafkaTemplateSpec<K, V>> configurer) {
+			Assert.notNull(configurer, "The 'configurer' cannot be null");
+			configurer.accept(this.kafkaTemplateSpec);
+			return _this();
 		}
 
 		@Override
-		public Collection<Object> getComponentsToRegister() {
-			return Collections.singleton(this.kafkaTemplate);
+		public Map<Object, String> getComponentsToRegister() {
+			return Collections.singletonMap(this.kafkaTemplateSpec.get(), kafkaTemplateSpec.getId());
+		}
+
+	}
+
+	/**
+	 * An {@link IntegrationComponentSpec} implementation for the {@link KafkaTemplate}.
+	 *
+	 * @param <K> the key type.
+	 * @param <V> the value type.
+	 */
+	public static class KafkaTemplateSpec<K, V>
+			extends IntegrationComponentSpec<KafkaTemplateSpec<K, V>, KafkaTemplate<K, V>> {
+
+		KafkaTemplateSpec(KafkaTemplate<K, V> kafkaTemplate) {
+			this.target = kafkaTemplate;
+		}
+
+		@Override
+		public KafkaTemplateSpec<K, V> id(String id) {
+			return super.id(id);
+		}
+
+		/**
+		 /**
+		 * Set the default topic for send methods where a topic is not
+		 * providing.
+		 * @param defaultTopic the topic.
+		 * @return the spec
+		 */
+		public KafkaTemplateSpec<K, V> defaultTopic(String defaultTopic) {
+			this.target.setDefaultTopic(defaultTopic);
+			return this;
+		}
+
+		/**
+		 * Set a {@link ProducerListener} which will be invoked when Kafka acknowledges
+		 * a send operation. By default a {@link LoggingProducerListener} is configured
+		 * which logs errors only.
+		 * @param producerListener the listener; may be {@code null}.
+		 * @return the spec
+		 */
+		public KafkaTemplateSpec<K, V> producerListener(ProducerListener<K, V> producerListener) {
+			this.target.setProducerListener(producerListener);
+			return this;
+		}
+
+		/**
+		 * Set the message converter to use.
+		 * @param messageConverter the message converter.
+		 * @return the spec
+		 */
+		public KafkaTemplateSpec<K, V> messageConverter(RecordMessageConverter messageConverter) {
+			this.target.setMessageConverter(messageConverter);
+			return this;
 		}
 
 	}
