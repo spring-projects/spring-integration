@@ -430,6 +430,37 @@ sample demonstrates both techniques to return the exception to the caller.
 It emulates a Socket IO error to the waiting thread using an `aggregator` with `group-timeout` (see <<agg-and-group-to>>)
 and `MessagingTimeoutException` reply on the discard flow.
 
+[[gateway-timeouts]]
+==== Gateway Timeouts
+
+There are two properties `requestTimeout` and `replyTimeout`.
+The request timeout only applies if the channel can block (e.g. a bounded `QueueChannel` that is full).
+The reply timeout is how long the gateway will wait for a reply, or return `null`; it defaults to infinity.
+
+The timeouts can be set as defaults for all methods on the gateway (`defaultRequestTimeout`, `defaultReplyTimeout`) (or on the `MessagingGateway` interface annotation).
+Individual methods can override these defaults (in `<method/>` child elements) or on the `@Gateway` annotation.
+
+Starting with _version 5.0_ the timeouts can be defined as expressions:
+
+[source, java]
+----
+@Gateway(payloadExpression = "#args[0]", requestChannel = "someChannel",
+        requestTimeoutExpression = "#args[1]", replyTimeoutExpression = "#args[2]")
+String lateReply(String payload, long requestTimeout, long replyTimeout);
+----
+
+The evaluation context has a `BeanResolver` (use `@someBean` to reference other beans) and the `#args` array variable is available.
+
+When configuring with XML, the timeout attributes can be a simple long value or a SpEL expression.
+
+[source, xml]
+----
+<method name="someMethod" request-channel="someRequestChannel"
+                      payload-expression="#args[0]"
+                      request-timeout="1000"
+                      reply-timeout="#args[1]">
+</method>
+----
 
 [[async-gateway]]
 ==== Asynchronous Gateway

@@ -79,6 +79,8 @@
 			 service-interface="org.springframework.integration.gateway.TestService"
 			 default-request-channel="requestChannel"
 			 default-reply-channel="replyChannel"
+			 default-request-timeout="1000"
+			 default-reply-timeout="2000"
 			 async-executor="testExecutor">
 		<default-header name="baz" value="qux"/>
 		<method name="oneWay" request-channel="otherRequestChannel"
@@ -87,6 +89,10 @@
 							  payload-expression="'fiz'"
 							  reply-channel="foo">
 			<header name="foo" value="bar"/>
+		</method>
+		<method name="oneWayWithTimeouts" request-channel="otherRequestChannel"
+							  request-timeout="#args[1]"
+							  reply-timeout="#args[2]">
 		</method>
 	</gateway>
 

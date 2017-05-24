@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,20 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 			}
 		}
 		return super.sendAndReceive(destination, requestMessage);
+	}
+
+	public Object receiveAndConvert(MessageChannel destination, long timeout) {
+		Message<?> message = doReceive(destination, timeout);
+		if (message != null) {
+			return doConvert(message, null);
+		}
+		else {
+			return null;
+		}
+	}
+
+	public Message<?> receive(MessageChannel destination, long timeout) {
+		return doReceive(destination, timeout);
 	}
 
 }

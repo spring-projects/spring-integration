@@ -46,7 +46,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -63,6 +62,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
 import org.springframework.integration.annotation.BridgeTo;
@@ -357,15 +357,17 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testLateReply() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml",
+				this.getClass());
 		Bar baz = ac.getBean(Bar.class);
-		String reply = baz.lateReply("hello");
+		String reply = baz.lateReply("hello", 1000, 0);
 		assertNull(reply);
 		PollableChannel errorChannel = ac.getBean("errorChannel", PollableChannel.class);
 		Message<?> receive = errorChannel.receive(5000);
 		assertNotNull(receive);
 		MessagingException messagingException = (MessagingException) receive.getPayload();
-		assertThat(messagingException.getMessage(), Matchers.startsWith("Reply message received but the receiving thread has exited due to a timeout"));
+		assertThat(messagingException.getMessage(),
+				startsWith("Reply message received but the receiving thread has exited due to a timeout"));
 		ac.close();
 	}
 
@@ -436,10 +438,12 @@ public class GatewayInterfaceTests {
 		assertNotNull(this.gatewayByAnnotationGPFB);
 
 		assertSame(this.exec, this.annotationGatewayProxyFactoryBean.getAsyncExecutor());
-		assertEquals(1111L,
-				TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean, "defaultRequestTimeout"));
-		assertEquals(222L,
-				TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean, "defaultReplyTimeout"));
+		assertEquals(1111L, TestUtils
+				.getPropertyValue(this.annotationGatewayProxyFactoryBean, "defaultRequestTimeout", Expression.class)
+				.getValue());
+		assertEquals(222L, TestUtils
+				.getPropertyValue(this.annotationGatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class)
+				.getValue());
 
 		Collection<MessagingGatewaySupport> messagingGateways =
 				this.annotationGatewayProxyFactoryBean.getGateways().values();
@@ -490,7 +494,9 @@ public class GatewayInterfaceTests {
 
 		void baz(String payload);
 
-		String lateReply(String payload);
+		@Gateway(payloadExpression = "#args[0]", requestChannel = "lateReplyChannel",
+				requestTimeoutExpression = "#args[1]", replyTimeoutExpression = "#args[2]")
+		String lateReply(String payload, long requestTimeout, long replyTimeout);
 
 	}
 

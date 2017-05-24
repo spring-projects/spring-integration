@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.QueueChannel;
@@ -391,8 +392,10 @@ public class ChainParserTests {
 				GatewayProxyFactoryBean.class);
 		assertEquals("strings", TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestChannelName"));
 		assertEquals("numbers", TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyChannelName"));
-		assertEquals(new Long(1000), TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestTimeout", Long.class));
-		assertEquals(new Long(100), TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Long.class));
+		assertEquals(new Long(1000), TestUtils
+				.getPropertyValue(gatewayProxyFactoryBean, "defaultRequestTimeout", Expression.class).getValue());
+		assertEquals(new Long(100), TestUtils
+				.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class).getValue());
 
 		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.objectToStringTransformerWithinChain.handler"));
 		assertTrue(this.beanFactory.containsBean("subComponentsIdSupport1$child.objectToMapTransformerWithinChain.handler"));

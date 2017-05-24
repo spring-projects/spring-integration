@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import java.util.Map.Entry;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.Expression;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,7 +46,8 @@ public class GatewayXmlAndAnnotationTests {
 
 	@Test
 	public void test() {
-		assertEquals(123L, TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout"));
+		assertEquals(123L, TestUtils.getPropertyValue(gatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class)
+				.getValue());
 		@SuppressWarnings("unchecked")
 		Map<Method, MessagingGatewaySupport> gatewayMap = TestUtils.getPropertyValue(gatewayProxyFactoryBean,
 				"gatewayMap", Map.class);

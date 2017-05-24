@@ -420,6 +420,27 @@ To recap, *Inbound Channel Adapters* are used for one-way integration bringing d
 
 
 
+| *STOMP*
+
+
+| <<stomp-inbound-adapter>>
+
+
+| <<stomp-outbound-adapter>>
+
+
+| N
+
+
+| N
+
+
+
+
+
+
+
+
 | *Stream*
 
 
@@ -433,10 +454,6 @@ To recap, *Inbound Channel Adapters* are used for one-way integration bringing d
 
 
 | N
-
-
-
-
 
 
 

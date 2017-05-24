@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ import java.lang.annotation.Target;
  *
  * @see MessagingGateway
  */
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
@@ -80,18 +80,40 @@ public @interface Gateway {
 	/**
 	 * Specify the timeout (ms) when sending to the request channel - only applies if the
 	 * send might block (such as a bounded {@code QueueChannel} that is currently full.
-	 * Overrides the encompassing gatewsy's default request timeout.
+	 * Overrides the encompassing gateway's default request timeout.
 	 * @return the timeout.
+	 * @see #requestTimeoutExpression()
 	 */
 	long requestTimeout() default Long.MIN_VALUE;
+
+	/**
+	 * Specify a SpEL Expression to determine the timeout (ms) when sending to the request
+	 * channel - only applies if the send might block (such as a bounded
+	 * {@code QueueChannel} that is currently full. Overrides the encompassing gateway's
+	 * default request timeout. Overrides {@link #requestTimeout()}.
+	 * @return the timeout.
+	 * @since 5.0
+	 */
+	String requestTimeoutExpression() default "";
 
 	/**
 	 * Specify the time (ms) that the thread sending the request will wait for a reply.
 	 * The timer starts when the thread returns to the gateway, not when the request
 	 * message is sent. Overrides the encompassing gateway's default reply timeout.
 	 * @return the timeout.
+	 * @see #replyTimeoutExpression()
 	 */
 	long replyTimeout() default Long.MIN_VALUE;
+
+	/**
+	 * Specify a SpEL Expression to determine the the time (ms) that the thread sending
+	 * the request will wait for a reply. The timer starts when the thread returns to the
+	 * gateway, not when the request message is sent. Overrides the encompassing gateway's
+	 * default reply timeout. Overrides {@link #replyTimeout()}.
+	 * @return the timeout.
+	 * @since 5.0
+	 */
+	String replyTimeoutExpression() default "";
 
 	/**
 	 * Specify a SpEL expression to determine the payload of the request message.
@@ -103,6 +125,6 @@ public @interface Gateway {
 	 * Specify additional headers that will be added to the request message.
 	 * @return the headers.
 	 */
-	GatewayHeader[] headers() default {};
+	GatewayHeader[] headers() default { };
 
 }
