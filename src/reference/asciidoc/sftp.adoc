@@ -791,6 +791,7 @@ The _SFTP Outbound Gateway_ provides a limited set of commands to interact with 
 Commands supported are:
 
 * ls (list files)
+* nlst (list file names)
 * get (retrieve file)
 * mget (retrieve file(s))
 * rm (remove file(s))
@@ -820,6 +821,20 @@ When using the recursive option (`-R`), the `fileName` includes any subdirectory
 If the `-dirs` option is included, each recursive directory is also returned as an element in the list.
 In this case, it is recommended that the `-1` is not used because you would not be able to determine files Vs.
 directories, which is achievable using the `FileInfo` objects.
+
+*nlst*
+
+(Since _version 5.0_)
+
+Lists remote file names and supports the following options:
+
+* -f - do not sort the list
+
+The message payload resulting from an _nlst_ operation is a list of file names.
+
+The remote directory that the _nlst_ command acted on is provided in the `file_remoteDirectory` header.
+
+The SFTP protocol doesn't provide _list names_ functionality, s this command is fully equivalent of the _ls_ command with `-1` option and added here for convenience.
 
 *get*
 

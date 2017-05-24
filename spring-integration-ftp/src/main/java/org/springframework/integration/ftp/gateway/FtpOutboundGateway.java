@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,44 @@
 
 package org.springframework.integration.ftp.gateway;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.Callable;
 
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
+import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 
 /**
  * Outbound Gateway for performing remote file operations via FTP/FTPS.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFile> {
+
+	private Expression workingDirExpression;
+
+	private StandardEvaluationContext evaluationContext;
 
 	/**
 	 * Construct an instance using the provided session factory and callback for
@@ -111,6 +127,26 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 		this(remoteFileTemplate, command, null);
 	}
 
+	/**
+	 * Specify an {@link Expression} to evaluate FTP client working directory
+	 * against request message.
+	 * @param workingDirExpression the expression to evaluate working directory
+	 * @since 5.0
+	 */
+	public void setWorkingDirExpression(Expression workingDirExpression) {
+		this.workingDirExpression = workingDirExpression;
+	}
+
+	/**
+	 * Specify a SpEL {@link Expression} to evaluate FTP client working directory
+	 * against request message.
+	 * @param workingDirExpression the SpEL expression to evaluate working directory
+	 * @since 5.0
+	 */
+	public void setWorkingDirExpressionString(String workingDirExpression) {
+		setWorkingDirExpression(EXPRESSION_PARSER.parseExpression(workingDirExpression));
+	}
+
 	@Override
 	public String getComponentType() {
 		return "ftp:outbound-gateway";
@@ -151,9 +187,113 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	}
 
 	@Override
+	protected void doInit() {
+		super.doInit();
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+	}
+
+	@Override
 	protected FTPFile enhanceNameWithSubDirectory(FTPFile file, String directory) {
 		file.setName(directory + file.getName());
 		return file;
+	}
+
+	@Override
+	protected List<?> ls(Message<?> message, Session<FTPFile> session, String dir) throws IOException {
+		return doInWorkingDirectory(message, session,
+				() -> super.ls(message, session, dir));
+	}
+
+	@Override
+	protected List<String> nlst(Message<?> message, Session<FTPFile> session, String dir) throws IOException {
+		return doInWorkingDirectory(message, session,
+				() -> super.nlst(message, session, dir));
+	}
+
+	@Override
+	protected File get(Message<?> message, Session<FTPFile> session, String remoteDir, String remoteFilePath,
+			String remoteFilename, FTPFile fileInfoParam) throws IOException {
+		return doInWorkingDirectory(message, session,
+				() -> super.get(message, session, remoteDir, remoteFilePath, remoteFilename, fileInfoParam));
+	}
+
+	@Override
+	protected List<File> mGet(Message<?> message, Session<FTPFile> session, String remoteDirectory,
+			String remoteFilename) throws IOException {
+		return doInWorkingDirectory(message, session,
+				() -> super.mGet(message, session, remoteDirectory, remoteFilename));
+	}
+
+	@Override
+	protected boolean rm(Message<?> message, Session<FTPFile> session, String remoteFilePath) throws IOException {
+		return doInWorkingDirectory(message, session,
+				() -> super.rm(message, session, remoteFilePath));
+	}
+
+	@Override
+	protected boolean mv(Message<?> message, Session<FTPFile> session, String remoteFilePath, String remoteFileNewPath)
+			throws IOException {
+		return doInWorkingDirectory(message, session,
+				() -> super.mv(message, session, remoteFilePath, remoteFileNewPath));
+	}
+
+	@Override
+	protected String put(Message<?> message, Session<FTPFile> session, String subDirectory) {
+		try {
+			return doInWorkingDirectory(message, session,
+					() -> super.put(message, session, subDirectory));
+		}
+		catch (IOException e) {
+			throw new MessageHandlingException(message, "Cannot handle PUT command", e);
+		}
+	}
+
+	@Override
+	protected List<String> mPut(Message<?> message, Session<FTPFile> session, File localDir) {
+		try {
+			return doInWorkingDirectory(message, session,
+					() -> super.mPut(message, session, localDir));
+		}
+		catch (IOException e) {
+			throw new MessageHandlingException(message, "Cannot handle MPUT command", e);
+		}
+	}
+
+	private <V> V doInWorkingDirectory(Message<?> message, Session<FTPFile> session, Callable<V> task)
+			throws IOException {
+		Expression workingDirExpression = this.workingDirExpression;
+		FTPClient ftpClient = (FTPClient) session.getClientInstance();
+		String currentWorkingDirectory = null;
+		boolean restoreWorkingDirectory = false;
+		try {
+			if (workingDirExpression != null) {
+				currentWorkingDirectory = ftpClient.printWorkingDirectory();
+				String newWorkingDirectory =
+						workingDirExpression.getValue(this.evaluationContext, message, String.class);
+				if (!Objects.equals(currentWorkingDirectory, newWorkingDirectory)) {
+					ftpClient.changeWorkingDirectory(newWorkingDirectory);
+					restoreWorkingDirectory = true;
+				}
+			}
+			return task.call();
+		}
+		catch (Exception e) {
+			if (e instanceof IOException) {
+				throw (IOException) e;
+
+			}
+			else if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			else {
+				throw new IOException("Uncategorised IO exception", e);
+			}
+		}
+		finally {
+			if (restoreWorkingDirectory) {
+				ftpClient.changeWorkingDirectory(currentWorkingDirectory);
+			}
+		}
 	}
 
 }

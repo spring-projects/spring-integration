@@ -182,6 +182,12 @@
 							  command-options="-1"
 							  reply-channel="output"/>
 
+	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+							  request-channel="inboundNlst"
+							  command="nlst"
+							  working-dir-expression="'ftpSource'"
+							  reply-channel="output"/>
+
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
 									 channel="output"
 									 auto-startup="false"
