@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author Artem Bilan
  * @author Gunnar Hillert
  * @author Gary Russell
+ *
  * @since 1.0.3
  */
 public class DelayHandlerTests {
@@ -134,7 +135,7 @@ public class DelayHandlerTests {
 		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", 100).build();
+				.setHeader("delay", 100).build();
 		input.send(message);
 		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -147,7 +148,7 @@ public class DelayHandlerTests {
 		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", -7000).build();
+				.setHeader("delay", -7000).build();
 		input.send(message);
 		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -160,7 +161,7 @@ public class DelayHandlerTests {
 		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", "not a number").build();
+				.setHeader("delay", "not a number").build();
 		input.send(message);
 		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -173,7 +174,7 @@ public class DelayHandlerTests {
 		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", new Date(new Date().getTime() + 150)).build();
+				.setHeader("delay", new Date(new Date().getTime() + 150)).build();
 		input.send(message);
 		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -186,7 +187,7 @@ public class DelayHandlerTests {
 		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
+				.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
 		input.send(message);
 		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -199,7 +200,7 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		Date nullDate = null;
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", nullDate).build();
+				.setHeader("delay", nullDate).build();
 		input.send(message);
 		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -212,7 +213,7 @@ public class DelayHandlerTests {
 		this.startDelayerHandler();
 		Date future = new Date(new Date().getTime() + 60 * 1000);
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", future).build();
+				.setHeader("delay", future).build();
 		input.send(message);
 		waitForLatch(100);
 	}
@@ -223,7 +224,7 @@ public class DelayHandlerTests {
 		this.setDelayExpression();
 		this.startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", "20").build();
+				.setHeader("delay", "20").build();
 		input.send(message);
 		waitForLatch(10000);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -475,7 +476,7 @@ public class DelayHandlerTests {
 		this.delayHandler.reschedulePersistedMessages();
 		Queue<?> works = TestUtils.getPropertyValue(this.taskScheduler, "scheduledExecutor.workQueue", Queue.class);
 		int n = 0;
-		while(n++ < 2000 && works.size() == 0) {
+		while (n++ < 2000 && works.size() == 0) {
 			Thread.sleep(10);
 		}
 		assertEquals(1, works.size());
