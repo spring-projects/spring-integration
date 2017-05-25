@@ -43,16 +43,26 @@ The input argument might either be a `Message` or a simple POJO.
 In the latter case, the splitter will receive the payload of the incoming message.
 Since this decouples the code from the Spring Integration API and will typically be easier to test, it is the recommended approach.
 
-*Splitter and Iterators*
+*Iterators*
 
 Starting with _version 4.1_, the `AbstractMessageSplitter` supports the `Iterator` type for the `value` to split.
 Note, in the case of an `Iterator` (or `Iterable`), we don't have access to the number of underlying items and the `SEQUENCE_SIZE` header is set to `0`.
 This means that the default `SequenceSizeReleaseStrategy` of an `<aggregator>` won't work and the group for the `CORRELATION_ID` from the `splitter` won't be released; it will remain as `incomplete`.
 In this case you should use an appropriate custom `ReleaseStrategy` or rely on `send-partial-result-on-expiry` together with `group-timeout` or a `MessageGroupStoreReaper`.
 
+Starting with _version 5.0_, the `AbstractMessageSplitter` provides `protected obtainSizeIfPossible()` methods to allow the determination of the size of the `Iterable` and `Iterator` objects if that is possible.
+For example `XPathMessageSplitter` can determine the size of the underlying `NodeList` object.
+
 An `Iterator` object is useful to avoid the need for building an entire collection in the memory before splitting.
 For example, when underlying items are populated from some external system (e.g.
 DataBase or FTP `MGET`) using iterations or streams.
+
+*Stream and Flux*
+
+Starting with _version 5.0_, the `AbstractMessageSplitter` supports the Java `Stream` and Reactive Streams `Publisher` types for the `value` to split.
+In this case the target `Iterator` is built on their iteration functionality.
+
+In addition, if Splitter's output channel is an instance of a `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` produces a `Flux` result instead of an `Iterator` and the output channel is _subscribed_ to this `Flux` for back-pressure based splitting on downstream flow demand.
 
 [[splitter-config]]
 ==== Configuring Splitter
