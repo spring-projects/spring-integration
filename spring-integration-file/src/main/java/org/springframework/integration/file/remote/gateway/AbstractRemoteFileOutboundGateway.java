@@ -750,6 +750,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param message the request message related to this put command
 	 * @param session the remote protocol session related to this invocation context
 	 * @param subDirectory the target sub directory to put
+	 * @return The remote path, or null if no local file was found.
 	 * @since 5.0
 	 */
 	protected String put(Message<?> message, Session<F> session, String subDirectory) {
@@ -804,6 +805,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param message the request message related to this mPut command
 	 * @param session the remote protocol session for this invocation context
 	 * @param localDir the local directory to mput to the server
+	 * @return The list of remote paths for sent files
 	 * @since 5.0
 	 */
 	protected List<String> mPut(Message<?> message, Session<F> session, File localDir) {

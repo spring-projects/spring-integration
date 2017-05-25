@@ -61,6 +61,8 @@ public class FtpOutboundGatewaySpec extends RemoteFileOutboundGatewaySpec<FTPFil
 	 * Specify a SpEL {@link Expression} to evaluate FTP client working directory
 	 * against request message.
 	 * @param workingDirExpression the SpEL expression to evaluate working directory
+	 * @return the spec
+	 * @see FtpOutboundGateway#setWorkingDirExpression(Expression)
 	 */
 	public FtpOutboundGatewaySpec workingDirExpression(String workingDirExpression) {
 		((FtpOutboundGateway) this.target).setWorkingDirExpressionString(workingDirExpression);
@@ -71,6 +73,8 @@ public class FtpOutboundGatewaySpec extends RemoteFileOutboundGatewaySpec<FTPFil
 	 * Specify a SpEL {@link Expression} to evaluate FTP client working directory
 	 * against request message.
 	 * @param workingDirExpression the SpEL expression to evaluate working directory
+	 * @return the spec
+	 * @see FtpOutboundGateway#setWorkingDirExpression(Expression)
 	 */
 	public FtpOutboundGatewaySpec workingDirExpression(Expression workingDirExpression) {
 		((FtpOutboundGateway) this.target).setWorkingDirExpression(workingDirExpression);
@@ -81,12 +85,12 @@ public class FtpOutboundGatewaySpec extends RemoteFileOutboundGatewaySpec<FTPFil
 	 * Specify a {@link Function} to evaluate FTP client working directory
 	 * against request message.
 	 * @param workingDirFunction the function to evaluate working directory
+	 * @return the spec
+	 * @see FtpOutboundGateway#setWorkingDirExpression(Expression)
 	 */
 	public FtpOutboundGatewaySpec workingDirFunction(Function<Message<?>, String> workingDirFunction) {
 		((FtpOutboundGateway) this.target).setWorkingDirExpression(new FunctionExpression<>(workingDirFunction));
 		return this;
 	}
-
-
 
 }
