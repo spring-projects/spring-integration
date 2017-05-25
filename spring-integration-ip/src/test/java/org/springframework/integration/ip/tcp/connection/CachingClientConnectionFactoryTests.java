@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -457,13 +458,13 @@ public class CachingClientConnectionFactoryTests {
 		new DirectFieldAccessor(this.clientAdapterCf).setPropertyValue("port", this.serverCf.getPort());
 
 		this.outbound.send(new GenericMessage<>("Hello, world!"));
-		Message<?> m = inbound.receive(10000);
+		Message<?> m = inbound.receive(20000);
 		assertNotNull(m);
 		String connectionId = m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
 
 		// assert we use the same connection from the pool
 		outbound.send(new GenericMessage<String>("Hello, world!"));
-		m = inbound.receive(10000);
+		m = inbound.receive(20000);
 		assertNotNull(m);
 		assertEquals(connectionId, m.getHeaders().get(IpHeaders.CONNECTION_ID, String.class));
 	}
@@ -473,7 +474,8 @@ public class CachingClientConnectionFactoryTests {
 	public void gatewayIntegrationTest() throws Exception {
 		final List<String> connectionIds = new ArrayList<String>();
 		final AtomicBoolean okToRun = new AtomicBoolean(true);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(new Runnable() {
 
 			@Override
 			public void run() {
@@ -515,6 +517,8 @@ public class CachingClientConnectionFactoryTests {
 		assertEquals(connectionIds.get(0), connectionIds.get(1));
 
 		okToRun.set(false);
+		exec.shutdownNow();
+		assertTrue(exec.awaitTermination(20, TimeUnit.SECONDS));
 	}
 
 	@Test
