@@ -403,4 +403,9 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ":" + this.connectionId;
+	}
+
 }
