@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -187,6 +188,21 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		}
 	}
 
+	@Override
+	protected int obtainSizeIfPossible(Iterator<?> iterator) {
+		Iterator<?> theIterator = iterator;
+
+		if (iterator instanceof TransformFunctionIterator) {
+			theIterator = ((TransformFunctionIterator) iterator).delegate;
+		}
+
+		if (theIterator instanceof NodeListIterator) {
+			return ((NodeListIterator) theIterator).nodeList.getLength();
+		}
+
+		return 0;
+	}
+
 	@SuppressWarnings("unchecked")
 	private Object splitDocument(Document document) throws Exception {
 		Object nodes = splitNode(document);
@@ -209,16 +225,17 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 			return splitStrings;
 		}
 		else {
-			return new FunctionIterator<>((Iterator<Node>) nodes, node -> {
-				StringResult result = new StringResult();
-				try {
-					transformer.transform(new DOMSource(node), result);
-				}
-				catch (TransformerException e) {
-					throw new IllegalStateException("failed to create DocumentBuilder", e);
-				}
-				return result.toString();
-			});
+			return new TransformFunctionIterator((Iterator<Node>) nodes,
+					node -> {
+						StringResult result = new StringResult();
+						try {
+							transformer.transform(new DOMSource(node), result);
+						}
+						catch (TransformerException e) {
+							throw new IllegalStateException("failed to create DocumentBuilder", e);
+						}
+						return result.toString();
+					});
 		}
 	}
 
@@ -243,7 +260,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private List<Node> convertNodesToDocuments(List<Node> nodes) throws ParserConfigurationException {
 		DocumentBuilder documentBuilder = getNewDocumentBuilder();
-		List<Node> documents = new ArrayList<Node>(nodes.size());
+		List<Node> documents = new ArrayList<>(nodes.size());
 		for (Node node : nodes) {
 			Document document = convertNodeToDocument(documentBuilder, node);
 			documents.add(document);
@@ -302,6 +319,18 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException("Operation not supported");
+		}
+
+	}
+
+	private static final class TransformFunctionIterator extends FunctionIterator<Node, String> {
+
+		private final Iterator<Node> delegate;
+
+		TransformFunctionIterator(Iterator<Node> delegate,
+				Function<? super Node, ? extends String> function) {
+			super(delegate, function);
+			this.delegate = delegate;
 		}
 
 	}
