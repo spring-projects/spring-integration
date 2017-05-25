@@ -473,8 +473,11 @@ public class DelayHandlerTests {
 		dfa.setPropertyValue("requestDate", requestDate.getTimeInMillis());
 		this.taskScheduler.afterPropertiesSet();
 		this.delayHandler.reschedulePersistedMessages();
-		Thread.sleep(10);
 		Queue<?> works = TestUtils.getPropertyValue(this.taskScheduler, "scheduledExecutor.workQueue", Queue.class);
+		int n = 0;
+		while(n++ < 2000 && works.size() == 0) {
+			Thread.sleep(10);
+		}
 		assertEquals(1, works.size());
 	}
 
