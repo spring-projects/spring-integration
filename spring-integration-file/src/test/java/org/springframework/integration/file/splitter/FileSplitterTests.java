@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
+import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -34,11 +37,13 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.reactivestreams.Subscriber;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -46,12 +51,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -63,9 +70,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.FileCopyUtils;
 
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1.2
  */
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class)
@@ -75,7 +86,7 @@ public class FileSplitterTests {
 
 	private static File file;
 
-	static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
+	private static final String SAMPLE_CONTENT = "HelloWorld\näöüß";
 
 	@Autowired
 	private MessageChannel input1;
@@ -262,6 +273,39 @@ public class FileSplitterTests {
 		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
 		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
 		assertEquals(2, fileMarker.getLineCount());
+	}
+
+	@Test
+	public void testFileSplitterReactive() {
+		FluxMessageChannel outputChannel = new FluxMessageChannel();
+		FileSplitter splitter = new FileSplitter(true, true);
+		splitter.setApplySequence(true);
+		splitter.setOutputChannel(outputChannel);
+		splitter.handleMessage(new GenericMessage<>(file));
+
+
+		StepVerifier.create(outputChannel)
+				.assertNext(m -> {
+					assertThat(m, hasHeaderKey(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+					assertThat(m, hasHeader(FileHeaders.MARKER, "START"));
+					assertThat(m, hasPayload(instanceOf(FileSplitter.FileMarker.class)));
+					FileMarker fileMarker = (FileSplitter.FileMarker) m.getPayload();
+					assertEquals(FileMarker.Mark.START, fileMarker.getMark());
+					assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+				})
+				.expectNextCount(2)
+				.assertNext(m -> {
+					assertThat(m, hasHeader(FileHeaders.MARKER, "END"));
+					assertThat(m, hasPayload(instanceOf(FileSplitter.FileMarker.class)));
+					FileMarker fileMarker = (FileSplitter.FileMarker) m.getPayload();
+					assertEquals(FileMarker.Mark.END, fileMarker.getMark());
+					assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+					assertEquals(2, fileMarker.getLineCount());
+				})
+				.then(() ->
+						((Subscriber<?>) TestUtils.getPropertyValue(outputChannel, "subscribers", List.class).get(0))
+								.onComplete())
+				.verifyComplete();
 	}
 
 	@Configuration
