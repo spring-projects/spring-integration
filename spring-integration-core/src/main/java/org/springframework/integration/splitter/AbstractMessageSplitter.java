@@ -93,7 +93,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			}
 		}
 		else if (result instanceof Iterator<?>) {
-			Iterator iter = (Iterator<Object>) result;
+			Iterator<Object> iter = (Iterator<Object>) result;
 			sequenceSize = obtainSizeIfPossible(iter);
 			if (reactive) {
 				flux = Flux.fromIterable(() -> iter);
