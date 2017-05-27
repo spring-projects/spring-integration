@@ -171,6 +171,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void produceOutput(Object reply, final Message<?> requestMessage) {
 		final MessageHeaders requestHeaders = requestMessage.getHeaders();
 
