@@ -67,8 +67,8 @@ public class LoggingJavaApplication {
         return adapter;
     }
 
-    @MessagingGateway(defaultRequestChannel = "logChannel")
-    public interface MyGateway {
+   @MessagingGateway(defaultRequestChannel = "logChannel") // logChannel is created above via @ServiceActivator
+   public interface MyGateway {
 
         void sendToLogger(String data);
 
