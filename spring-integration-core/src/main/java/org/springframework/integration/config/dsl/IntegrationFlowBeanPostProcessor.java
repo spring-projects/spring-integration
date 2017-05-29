@@ -66,6 +66,7 @@ import org.springframework.util.StringUtils;
  * if necessary.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 5.0
  */
 public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware,
@@ -252,8 +253,9 @@ public class IntegrationFlowBeanPostProcessor implements BeanPostProcessor, Bean
 						targetIntegrationComponents.put(component, gatewayId);
 					}
 					else {
-						String generateBeanName = generateBeanName(component, entry.getValue());
-						registerComponent(component, generateBeanName, flowBeanName, registerSingleton);
+						String generatedBeanName = generateBeanName(component, entry.getValue());
+						registerComponent(component, generatedBeanName, flowBeanName, registerSingleton);
+						targetIntegrationComponents.put(component, generatedBeanName);
 					}
 				}
 				else {
