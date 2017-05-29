@@ -28,6 +28,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
@@ -49,9 +50,12 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
+import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
+import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -66,6 +70,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -79,6 +84,54 @@ public class ManualFlowTests {
 
 	@Autowired
 	private BeanFactory beanFactory;
+
+	@Test
+	public void testWithAnonymousMessageProducerStart() {
+		final AtomicBoolean started = new AtomicBoolean();
+		MessageProducerSupport producer = new MessageProducerSupport() {
+
+			@Override
+			protected void doStart() {
+				started.set(true);
+				super.doStart();
+			}
+
+		};
+		QueueChannel channel = new QueueChannel();
+		IntegrationFlow flow = IntegrationFlows.from(producer)
+						.channel(channel)
+						.get();
+		this.integrationFlowContext.registration(flow).register();
+		assertTrue(started.get());
+	}
+
+	@Test
+	public void testWithAnonymousMessageProducerSpecStart() {
+		final AtomicBoolean started = new AtomicBoolean();
+		class MyProducer extends MessageProducerSupport {
+
+			@Override
+			protected void doStart() {
+				started.set(true);
+				super.doStart();
+			}
+
+		}
+		class MyProducerSpec extends MessageProducerSpec<MyProducerSpec, MyProducer> {
+
+			MyProducerSpec(MyProducer producer) {
+				super(producer);
+			}
+
+		}
+		MyProducerSpec spec = new MyProducerSpec(new MyProducer());
+		QueueChannel channel = new QueueChannel();
+		IntegrationFlow flow = IntegrationFlows.from(spec.id("foo"))
+						.channel(channel)
+						.get();
+		this.integrationFlowContext.registration(flow).register();
+		assertTrue(started.get());
+	}
 
 	@Test
 	public void testManualFlowRegistration() throws InterruptedException {
