@@ -72,13 +72,6 @@ See <<transaction-synchronization>> for more information.
 The aggregator expression-based `ReleaseStrategy` now evaluates the expression against the `MesageGroup` instead of just the collection of `Message<?>`.
 See <<aggregator-spel>> for more information.
 
-==== JMS Changes
-
-Previously, Spring Integration JMS XML configuration used a default bean name `connectionFactory` for the JMS Connection Factory, allowing the property to be omitted from component definitions.
-It has now been renamed to `jmsConnectionFactory`, which is the bean name used by Spring Boot to auto-configure the JMS Connection Factory bean.
-
-If your application is relying on the previous behavior, rename your `connectionFactory` bean to `jmsConnectionFactory`, or specifically configure your components to use your bean using its current name.
-
 ==== Gateway Changes
 
 The gateway now correctly sets the `errorChannel` header when the gateway method has a `void` return type and an error channel is provided.
@@ -88,6 +81,28 @@ This had the effect that synchronous downstream flows (running on the calling th
 The `RequestReplyExchanger` interface now has a `throws MessagingException` clause to meet all the proposed messages exchange contract.
 
 See <<gateway-error-handling>> for more information.
+
+==== Aggregator Performance Changes
+
+Aggregators now use a `SimpleSequenceSizeReleaseStrategy` by default, which is more efficient, especially with large groups.
+Empty groups are now scheduled for removal after `empty-group-min-timeout`.
+See <<aggregator>> for more information.
+
+==== Splitter Changes
+
+The Splitter component now can handle and split Java `Stream` and Reactive Streams `Publisher` splitting objects.
+If output channel is `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` builds a `Flux` for subsequent iteration instead of regular `Iterator` independently of splitting object.
+In addition `AbstractMessageSplitter` provides `protected obtainSizeIfPossible()` API to allow to determine the size of the `Iterable` and `Iterator` objects if that is possible.
+See <<splitter>> for more information.
+
+==== JMS Changes
+
+Previously, Spring Integration JMS XML configuration used a default bean name `connectionFactory` for the JMS Connection Factory, allowing the property to be omitted from component definitions.
+It has now been renamed to `jmsConnectionFactory`, which is the bean name used by Spring Boot to auto-configure the JMS Connection Factory bean.
+
+If your application is relying on the previous behavior, rename your `connectionFactory` bean to `jmsConnectionFactory`, or specifically configure your components to use your bean using its current name.
+
+See <<jms>> for more information.
 
 ==== Mail Changes
 
@@ -179,12 +194,6 @@ See <<content-type-conversion-outbound>> for more information.
 
 The `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty string by default instead of `X-`.
 See <<http-header-mapping>> for more information.
-
-==== Aggregator Performance Changes
-
-Aggregators now use a `SimpleSequenceSizeReleaseStrategy` by default, which is more efficient, especially with large groups.
-Empty groups are now scheduled for removal after `empty-group-min-timeout`.
-See <<aggregator>> for more information.
 
 ==== MQTT Changes
 

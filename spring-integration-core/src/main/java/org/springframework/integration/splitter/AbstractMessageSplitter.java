@@ -157,10 +157,23 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		}
 	}
 
+	/**
+	 * Obtain a size of the provided {@link Iterable}.
+	 * Default implementation returns {@link Collection#size()} if that,
+	 * or {@code 0} otherwise.
+	 * @param iterable the {@link Iterable} to obtain the size
+	 * @return the size of the {@link Iterable}
+	 */
 	protected int obtainSizeIfPossible(Iterable<?> iterable) {
 		return iterable instanceof Collection ? ((Collection<?>) iterable).size() : 0;
 	}
 
+	/**
+	 * Obtain a size of the provided {@link Iterator}.
+	 * Default implementation returns {@code 0}.
+	 * @param iterator the {@link Iterator} to obtain the size
+	 * @return the size of the {@link Iterator}
+	 */
 	protected int obtainSizeIfPossible(Iterator<?> iterator) {
 		return 0;
 	}
