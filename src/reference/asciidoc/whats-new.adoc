@@ -132,6 +132,8 @@ See <<file-writing-destination-exists>> for more information.
 They also now support setting file permissions on the newly written file.
 See <<file-permissions>> for more information.
 
+A new `FileSystemMarkerFilePresentFileListFilter` is now available; see <<file-incomplete>> for more information.
+
 ==== (S)FTP Changes
 
 The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
@@ -159,6 +161,7 @@ The `RemoteFileTemplate` is supplied now with the `invoke(OperationsCallback<F, 
 
 See <<ftp>> and <<sftp>> for more information.
 
+New filters for detecting incomplete remote files are now provided; see <<ftp-incomplete>> and <<sftp-incomplete>> for more information.
 
 ==== Integration Properties
 

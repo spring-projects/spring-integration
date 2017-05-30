@@ -523,6 +523,21 @@ The file will be reopened for each chunk (the default is to keep the file open).
 
 IMPORTANT: Specifying the `delay`, `end` or `reopen` attributes, forces the use of the Apache commons-io adapter and the `native-options` attribute is not allowed.
 
+[[file-incomplete]]
+==== Dealing With Incomplete Data
+
+A common problem in file transfer scenarios is how to determine that the transfer is complete, so you don't start reading an incomplete file.
+A common technique to solve this problem is to write the file with a temporary name and then atomically rename it to the final name.
+This, together with a filter that masks the temporary file from being picked up by the consumer provides a robust solution.
+This technique is used by Spring Integration components that write files (locally or remotely); by default, they append `.writing` to the file name and remove it when the transfer is complete.
+
+Another common technique is to write a second "marker" file to indicate the file transfer is complete.
+In this scenario, say, you should not consider `foo.txt` to be available for use until `foo.txt.complete` is also present.
+Spring Integration _version 5.0_ introduces new filters to support this mechanism.
+Implementations are provided for the file system (`FileSystemMarkerFilePresentFileListFilter`), <<ftp-incomplete, FTP>> and <<sftp-incomplete, SFTP>>.
+They are configurable such that the marker file can have any name, although it will usually be related to the file being transferred.
+See the javadocs for more information.
+
 [[file-writing]]
 === Writing files
 

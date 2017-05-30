@@ -509,6 +509,14 @@ public class FtpJavaApplication {
 }
 ----
 
+[[ftp-incomplete]]
+==== Dealing With Incomplete Data
+
+See <<file-incomplete>>.
+
+The `FtpSystemMarkerFilePresentFileListFilter` is provided to filter remote files that don't have a corresponding marker file on the remote system.
+See the javadocs for configuration information.
+
 [[ftp-streaming]]
 === FTP Streaming Inbound Channel Adapter
 
