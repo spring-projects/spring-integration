@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
+import org.reactivestreams.Publisher;
+
+import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
+
+import reactor.core.publisher.Flux;
 
 /**
  * Base class for Message-splitting handlers.
@@ -57,32 +64,75 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			return null;
 		}
 
-		Iterator<Object> iterator;
+		boolean reactive = getOutputChannel() instanceof ReactiveStreamsSubscribableChannel;
+		setAsync(reactive);
+
+		Iterator<Object> iterator = null;
+		Flux<Object> flux = null;
+
 		final int sequenceSize;
-		if (result instanceof Collection) {
-			Collection<Object> items = (Collection<Object>) result;
-			sequenceSize = items.size();
-			iterator = items.iterator();
+
+		if (result instanceof Iterable<?>) {
+			Iterable<Object> iterable = (Iterable<Object>) result;
+			sequenceSize = obtainSizeIfPossible(iterable);
+			if (reactive) {
+				flux = Flux.fromIterable(iterable);
+			}
+			else {
+				iterator = iterable.iterator();
+			}
 		}
 		else if (result.getClass().isArray()) {
 			Object[] items = (Object[]) result;
 			sequenceSize = items.length;
-			iterator = Arrays.asList(items).iterator();
-		}
-		else if (result instanceof Iterable<?>) {
-			sequenceSize = 0;
-			iterator = ((Iterable<Object>) result).iterator();
+			if (reactive) {
+				flux = Flux.fromArray(items);
+			}
+			else {
+				iterator = Arrays.asList(items).iterator();
+			}
 		}
 		else if (result instanceof Iterator<?>) {
+			Iterator<Object> iter = (Iterator<Object>) result;
+			sequenceSize = obtainSizeIfPossible(iter);
+			if (reactive) {
+				flux = Flux.fromIterable(() -> iter);
+			}
+			else {
+				iterator = iter;
+			}
+		}
+		else if (result instanceof Stream<?>) {
+			Stream<Object> stream = ((Stream<Object>) result);
 			sequenceSize = 0;
-			iterator = (Iterator<Object>) result;
+			if (reactive) {
+				flux = Flux.fromStream(stream);
+			}
+			else {
+				iterator = stream.iterator();
+			}
+		}
+		else if (result instanceof Publisher<?>) {
+			Publisher<Object> publisher = (Publisher<Object>) result;
+			sequenceSize = 0;
+			if (reactive) {
+				flux = Flux.from(publisher);
+			}
+			else {
+				iterator = Flux.from((Publisher<Object>) result).toIterable().iterator();
+			}
 		}
 		else {
 			sequenceSize = 1;
-			iterator = Collections.singleton(result).iterator();
+			if (reactive) {
+				flux = Flux.just(result);
+			}
+			else {
+				iterator = Collections.singleton(result).iterator();
+			}
 		}
 
-		if (!iterator.hasNext()) {
+		if (iterator != null && !iterator.hasNext()) {
 			return null;
 		}
 
@@ -91,13 +141,41 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			messageHeaders = new HashMap<>(messageHeaders);
 			addHeaders(message, messageHeaders);
 		}
+
 		final Map<String, Object> headers = messageHeaders;
 		final Object correlationId = message.getHeaders().getId();
 		final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
-		return new FunctionIterator<Object, AbstractIntegrationMessageBuilder<?>>(iterator,
-				object ->
-						createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(), sequenceSize));
+		Function<Object, AbstractIntegrationMessageBuilder<?>> messageBuilderFunction =
+				object -> createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(), sequenceSize);
+
+		if (reactive) {
+			return flux.map(messageBuilderFunction);
+		}
+		else {
+			return new FunctionIterator<>(iterator, messageBuilderFunction);
+		}
+	}
+
+	/**
+	 * Obtain a size of the provided {@link Iterable}.
+	 * Default implementation returns {@link Collection#size()} if that,
+	 * or {@code 0} otherwise.
+	 * @param iterable the {@link Iterable} to obtain the size
+	 * @return the size of the {@link Iterable}
+	 */
+	protected int obtainSizeIfPossible(Iterable<?> iterable) {
+		return iterable instanceof Collection ? ((Collection<?>) iterable).size() : 0;
+	}
+
+	/**
+	 * Obtain a size of the provided {@link Iterator}.
+	 * Default implementation returns {@code 0}.
+	 * @param iterator the {@link Iterator} to obtain the size
+	 * @return the size of the {@link Iterator}
+	 */
+	protected int obtainSizeIfPossible(Iterator<?> iterator) {
+		return 0;
 	}
 
 	private AbstractIntegrationMessageBuilder<?> createBuilder(Object item, Map<String, Object> headers,
@@ -146,10 +224,15 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 	@Override
 	protected void produceOutput(Object result, Message<?> requestMessage) {
-		Iterator<?> iterator = (Iterator<?>) result;
-		while (iterator.hasNext()) {
-			super.produceOutput(iterator.next(), requestMessage);
+		if (result instanceof Iterator<?>) {
+			Iterator<?> iterator = (Iterator<?>) result;
+			while (iterator.hasNext()) {
+				super.produceOutput(iterator.next(), requestMessage);
 
+			}
+		}
+		else {
+			super.produceOutput(result, requestMessage);
 		}
 	}
 
