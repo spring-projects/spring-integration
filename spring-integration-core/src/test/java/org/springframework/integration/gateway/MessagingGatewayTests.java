@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -71,6 +72,7 @@ public class MessagingGatewayTests {
 		this.messagingGateway.afterPropertiesSet();
 		this.messagingGateway.start();
 		applicationContext.refresh();
+		Mockito.when(this.messageMock.getHeaders()).thenReturn(new MessageHeaders(Collections.emptyMap()));
 	}
 
 
