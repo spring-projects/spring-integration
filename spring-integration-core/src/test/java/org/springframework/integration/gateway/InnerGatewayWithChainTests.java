@@ -22,7 +22,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -78,11 +77,7 @@ public class InnerGatewayWithChainTests {
 		assertEquals("ERROR from errorChannelA", reply);
 	}
 
-	@Test @Ignore
-	/*
-	 * Temporary ignore until messaging template is reverted:
-	 * https://github.com/spring-projects/spring-framework/pull/1435#pullrequestreview-41277681
-	 */
+	@Test
 	public void testExceptionHandledByInnerGateway() {
 		String reply = testGatewayWithErrorChannelA.echo(0);
 		assertEquals("ERROR from errorChannelB", reply);
