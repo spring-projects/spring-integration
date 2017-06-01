@@ -31,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +53,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import reactor.core.publisher.Flux;
@@ -104,7 +104,6 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	@Repeat(10)
 	public void testPollableReactiveFlow() throws Exception {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
@@ -113,7 +112,7 @@ public class ReactiveStreamsTests {
 		Flux.from(this.pollablePublisher)
 				.take(6)
 				.filter(m -> m.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
-				.log("org.springframework.integration.flux2")
+				.log("org.springframework.integration.flux2", Level.WARNING)
 				.doOnNext(p -> latch.countDown())
 				.subscribe();
 
@@ -127,14 +126,14 @@ public class ReactiveStreamsTests {
 								.concatWith(this.pollablePublisher)
 								.take(7)
 								.map(Message::getPayload)
-								.log("org.springframework.integration.flux")
+								.log("org.springframework.integration.flux", Level.WARNING)
 								.collectList()
 								.block(Duration.ofSeconds(10))
 				);
 
 		this.inputChannel.send(new GenericMessage<>("6,7,8,9,10"));
 
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertTrue(latch.await(20, TimeUnit.SECONDS));
 		List<Integer> integers = future.get(20, TimeUnit.SECONDS);
 
 		assertNotNull(integers);
