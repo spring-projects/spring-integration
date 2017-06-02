@@ -264,6 +264,7 @@ The `ByteArrayRawSerializer`^*^, converts a byte array to a stream of bytes and 
 When using this serializer, message reception will hang until the client closes the socket, or a timeout occurs; a timeout will NOT result in a message.
 When this serializer is being used, and the client is a Spring Integration application, the client must use a connection factory that is configured with single-use=true - this causes the adapter to close the socket after sending the message; the serializer will not, itself, close the connection.
 This serializer should only be used with connection factories used by channel adapters (not gateways), and the connection factories should be used by either an inbound or outbound adapter, and not both.
+Also see `ByteArrayElasticRawDeserializer` below.
 
 NOTE: Before version 4.2.2, when using NIO, this serializer treated a timeout (during read) as an end of file and the
 data read so far was emitted as a message.
@@ -293,6 +294,11 @@ If you wish to use the same mechanism in custom deserializers, subclass `Abstrac
 instead of its super class `AbstractByteArraySerializer`, and implement `doDeserialize()` instead of `deserialize()`.
 The buffer will be returned to the pool automatically.
 `AbstractPooledBufferByteArraySerializer` also provides a convenient utility method `copyToSizedArray()`.
+
+__Version 5.0__ added the `ByteArrayElasticRawDeserializer`.
+This is similar to the deserializer side of `ByteArrayRawSerializer` above, except it is not necessary to set a `maxMessageSize`.
+Internally, it uses a `ByteArrayOutputStream` which allows the buffer to grow as needed.
+The client must close the socket in an orderly manner to signal end of message.
 
 The `MapJsonSerializer` uses a Jackson `ObjectMapper` to convert between a `Map` and JSON.
 This can be used in conjunction with a `MessageConvertingTcpMessageMapper` and a `MapMessageConverter` to transfer selected headers and the payload in a JSON format.
