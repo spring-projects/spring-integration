@@ -28,7 +28,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * A FileListFilter that only passes files matched by one or more {@link FileNameFileListFilter}
+ * A FileListFilter that only passes files matched by one or more {@link FileListFilter}
  * if a corresponding marker file is also present to indicate a file transfer is complete.
  *
  * @author Gary Russell
