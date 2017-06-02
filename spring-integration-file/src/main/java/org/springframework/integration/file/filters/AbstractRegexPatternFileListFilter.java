@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractDirectoryAwareFileListFilter<F>
-		implements FileNameFileListFilter<F>, InitializingBean {
+		implements InitializingBean {
 
 	private volatile Pattern pattern;
 

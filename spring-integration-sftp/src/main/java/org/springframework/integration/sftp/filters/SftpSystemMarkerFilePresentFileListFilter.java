@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.integration.file.filters.AbstractMarkerFilePresentFileListFilter;
-import org.springframework.integration.file.filters.FileNameFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
@@ -33,21 +33,21 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  */
 public class SftpSystemMarkerFilePresentFileListFilter extends AbstractMarkerFilePresentFileListFilter<LsEntry> {
 
-	SftpSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<LsEntry> filter) {
+	SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter) {
 		super(filter);
 	}
 
-	SftpSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<LsEntry> filter, String suffix) {
+	SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter, String suffix) {
 		super(filter, suffix);
 	}
 
-	SftpSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<LsEntry> filter,
+	SftpSystemMarkerFilePresentFileListFilter(FileListFilter<LsEntry> filter,
 			Function<String, String> function) {
 		super(filter, function);
 	}
 
 	SftpSystemMarkerFilePresentFileListFilter(
-			Map<FileNameFileListFilter<LsEntry>, Function<String, String>> filtersAndFunctions) {
+			Map<FileListFilter<LsEntry>, Function<String, String>> filtersAndFunctions) {
 		super(filtersAndFunctions);
 	}
 

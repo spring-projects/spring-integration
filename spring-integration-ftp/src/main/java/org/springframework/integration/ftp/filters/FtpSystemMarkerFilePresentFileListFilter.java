@@ -22,7 +22,7 @@ import java.util.function.Function;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.filters.AbstractMarkerFilePresentFileListFilter;
-import org.springframework.integration.file.filters.FileNameFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 
 /**
  * FTP implementation of {@link AbstractMarkerFilePresentFileListFilter}.
@@ -33,21 +33,21 @@ import org.springframework.integration.file.filters.FileNameFileListFilter;
  */
 public class FtpSystemMarkerFilePresentFileListFilter extends AbstractMarkerFilePresentFileListFilter<FTPFile> {
 
-	FtpSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<FTPFile> filter) {
+	FtpSystemMarkerFilePresentFileListFilter(FileListFilter<FTPFile> filter) {
 		super(filter);
 	}
 
-	FtpSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<FTPFile> filter, String suffix) {
+	FtpSystemMarkerFilePresentFileListFilter(FileListFilter<FTPFile> filter, String suffix) {
 		super(filter, suffix);
 	}
 
-	FtpSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<FTPFile> filter,
+	FtpSystemMarkerFilePresentFileListFilter(FileListFilter<FTPFile> filter,
 			Function<String, String> function) {
 		super(filter, function);
 	}
 
 	FtpSystemMarkerFilePresentFileListFilter(
-			Map<FileNameFileListFilter<FTPFile>, Function<String, String>> filtersAndFunctions) {
+			Map<FileListFilter<FTPFile>, Function<String, String>> filtersAndFunctions) {
 		super(filtersAndFunctions);
 	}
 

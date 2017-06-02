@@ -29,21 +29,21 @@ import java.util.function.Function;
  */
 public class FileSystemMarkerFilePresentFileListFilter extends AbstractMarkerFilePresentFileListFilter<File> {
 
-	FileSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<File> filter) {
+	FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter) {
 		super(filter);
 	}
 
-	FileSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<File> filter, String suffix) {
+	FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter, String suffix) {
 		super(filter, suffix);
 	}
 
-	FileSystemMarkerFilePresentFileListFilter(FileNameFileListFilter<File> filter,
+	FileSystemMarkerFilePresentFileListFilter(FileListFilter<File> filter,
 			Function<String, String> function) {
 		super(filter, function);
 	}
 
 	FileSystemMarkerFilePresentFileListFilter(
-			Map<FileNameFileListFilter<File>, Function<String, String>> filtersAndFunctions) {
+			Map<FileListFilter<File>, Function<String, String>> filtersAndFunctions) {
 		super(filtersAndFunctions);
 	}
 

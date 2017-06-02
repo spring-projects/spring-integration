@@ -64,7 +64,7 @@ public class AbstractMarkerFilePresentFileListFilterTests {
 
 	@Test
 	public void testMulti() {
-		Map<FileNameFileListFilter<String>, Function<String, String>> map = new HashMap<>();
+		Map<FileListFilter<String>, Function<String, String>> map = new HashMap<>();
 		map.put(new StringSimplePatternFilter("*.txt"),
 				AbstractMarkerFilePresentFileListFilter.defaultFileNameFunction(".done"));
 		map.put(new StringSimplePatternFilter("*.xml"),
@@ -97,21 +97,21 @@ public class AbstractMarkerFilePresentFileListFilterTests {
 
 	private static class StringMarkerFilePresentFileListFilter extends AbstractMarkerFilePresentFileListFilter<String> {
 
-		StringMarkerFilePresentFileListFilter(FileNameFileListFilter<String> filter) {
+		StringMarkerFilePresentFileListFilter(FileListFilter<String> filter) {
 			super(filter);
 		}
 
-		StringMarkerFilePresentFileListFilter(FileNameFileListFilter<String> filter, String suffix) {
+		StringMarkerFilePresentFileListFilter(FileListFilter<String> filter, String suffix) {
 			super(filter, suffix);
 		}
 
-		StringMarkerFilePresentFileListFilter(FileNameFileListFilter<String> filter,
+		StringMarkerFilePresentFileListFilter(FileListFilter<String> filter,
 				Function<String, String> function) {
 			super(filter, function);
 		}
 
 		StringMarkerFilePresentFileListFilter(
-				Map<FileNameFileListFilter<String>, Function<String, String>> filtersAndFunctions) {
+				Map<FileListFilter<String>, Function<String, String>> filtersAndFunctions) {
 			super(filtersAndFunctions);
 		}
 

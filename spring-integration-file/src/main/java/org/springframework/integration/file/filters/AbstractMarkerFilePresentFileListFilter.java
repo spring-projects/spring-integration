@@ -37,33 +37,33 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractMarkerFilePresentFileListFilter<F> implements FileListFilter<F> {
 
-	private final Map<FileNameFileListFilter<F>, Function<String, String>> filtersAndFunctions = new HashMap<>();
+	private final Map<FileListFilter<F>, Function<String, String>> filtersAndFunctions = new HashMap<>();
 
 	/**
-	 * Construct an instance with a single {@link FileNameFileListFilter} and ".complete"
+	 * Construct an instance with a single {@link FileListFilter} and ".complete"
 	 * will be appended to the name of a matched file when looking for the marker file.
 	 * i.e. if a file {@code foo.txt} is matched by the filter this filter will only pass
 	 * "foo.txt" if "foo.txt.complete" is present.
 	 * @param filter the file name filter.
 	 */
-	public AbstractMarkerFilePresentFileListFilter(FileNameFileListFilter<F> filter) {
+	public AbstractMarkerFilePresentFileListFilter(FileListFilter<F> filter) {
 		this(filter, defaultFileNameFunction(".complete"));
 	}
 
 	/**
-	 * Construct an instance with a single {@link FileNameFileListFilter} and a suffix
+	 * Construct an instance with a single {@link FileListFilter} and a suffix
 	 * that will will be appended to the name of a matched file when looking for the marker
 	 * file. i.e. if a file {@code foo.txt} is matched by the filter and the suffix is
 	 * ".complete", this filter will only pass "foo.txt" if "foo.txt.complete" is present.
 	 * @param filter the file name filter.
 	 * @param suffix the replacement suffix.
 	 */
-	public AbstractMarkerFilePresentFileListFilter(FileNameFileListFilter<F> filter, String suffix) {
+	public AbstractMarkerFilePresentFileListFilter(FileListFilter<F> filter, String suffix) {
 		this(filter, defaultFileNameFunction(suffix));
 	}
 
 	/**
-	 * Construct an instance with a single {@link FileNameFileListFilter} and a function
+	 * Construct an instance with a single {@link FileListFilter} and a function
 	 * that will be applied to the name of a matched file when looking for the marker
 	 * file. The function returns the name of the marker file to match, or {@code null}
 	 * for never match. If a file {@code foo.txt} is matched by the filter and the
@@ -72,13 +72,13 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 	 * @param filter the file name filter.
 	 * @param function the function to create the marker file name from the file name.
 	 */
-	public AbstractMarkerFilePresentFileListFilter(FileNameFileListFilter<F> filter,
+	public AbstractMarkerFilePresentFileListFilter(FileListFilter<F> filter,
 			Function<String, String> function) {
 		this(Collections.singletonMap(filter, function));
 	}
 
 	/**
-	 * Construct an instance with a map of {@link FileNameFileListFilter} and functions be
+	 * Construct an instance with a map of {@link FileListFilter} and functions be
 	 * applied to the name of a matched file when looking for the marker file. i.e. if a
 	 * file {@code foo.txt} is matched by one of the filters and the corresponding
 	 * function returns "foo.txt.complete", this filter will only pass "foo.txt" if
@@ -86,12 +86,12 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 	 * match, or {@code null} for never match. Due to type erasure, we cannot provide a
 	 * constructor taking {@code Map<Filter, suffix}. For convenience, you can use
 	 * {@link #defaultFileNameFunction(String)} to use the default function used by the
-	 * {@link #AbstractMarkerFilePresentFileListFilter(FileNameFileListFilter, String)}
+	 * {@link #AbstractMarkerFilePresentFileListFilter(FileListFilter, String)}
 	 * constructor.
 	 * @param filtersAndFunctions the filters and functions.
 	 */
 	public AbstractMarkerFilePresentFileListFilter(
-			Map<FileNameFileListFilter<F>, Function<String, String>> filtersAndFunctions) {
+			Map<FileListFilter<F>, Function<String, String>> filtersAndFunctions) {
 		this.filtersAndFunctions.putAll(filtersAndFunctions);
 	}
 
@@ -111,12 +111,12 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 		if (files.length < 2) {
 			return Collections.emptyList();
 		}
-		final Set<String> candidates = Arrays.asList(files).stream()
-				.map(f -> getFilename(f))
+		final Set<String> candidates = Arrays.stream(files)
+				.map(this::getFilename)
 				.collect(Collectors.toSet());
 		List<F> results = new ArrayList<>();
 		for (F file : files) {
-			if (this.filtersAndFunctions.entrySet().stream().anyMatch(entry -> {
+			boolean anyMatch = this.filtersAndFunctions.entrySet().stream().anyMatch(entry -> {
 				F[] fileToCheck = (F[]) Array.newInstance(file.getClass(), 1);
 				fileToCheck[0] = file;
 				if (entry.getKey().filterFiles(fileToCheck).size() > 0) {
@@ -124,7 +124,8 @@ public abstract class AbstractMarkerFilePresentFileListFilter<F> implements File
 					return markerName != null && candidates.contains(markerName);
 				}
 				return false;
-			})) {
+			});
+			if (anyMatch) {
 				results.add(file);
 			}
 		}
