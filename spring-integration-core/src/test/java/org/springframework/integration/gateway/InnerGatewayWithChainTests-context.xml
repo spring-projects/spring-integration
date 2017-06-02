@@ -6,64 +6,64 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int:channel id="errorChannelA"/>
-	
-	<int:service-activator input-channel="errorChannelA" expression="'ERROR from errorChannelA'"/>
-		
-	<int:channel id="errorChannelB"/>
-	
-	<int:service-activator input-channel="errorChannelB" expression="'ERROR from errorChannelB'"/>
-		
 
-	<int:gateway id="testGatewayWithErrorChannelA" 
+	<int:service-activator input-channel="errorChannelA" expression="'ERROR from errorChannelA'"/>
+
+	<int:channel id="errorChannelB"/>
+
+	<int:service-activator input-channel="errorChannelB" expression="'ERROR from errorChannelB'"/>
+
+
+	<int:gateway id="testGatewayWithErrorChannelA"
 	             service-interface="org.springframework.integration.gateway.InnerGatewayWithChainTests.TestGateway"
 	             default-request-channel="requestChannelA"
 	             error-channel="errorChannelA"/>
-	                    
+
 	<int:chain input-channel="requestChannelA">
 		<int:service-activator expression="1/(payload-5)"/>
 		<int:gateway request-channel="requestChannelB" error-channel="errorChannelB"/>
 	</int:chain>
-	
-	<int:gateway id="testGatewayWithErrorChannelAA" 
+
+	<int:gateway id="testGatewayWithErrorChannelAA"
 	             service-interface="org.springframework.integration.gateway.InnerGatewayWithChainTests.TestGateway"
 	             default-request-channel="requestChannelAA"
 	             error-channel="errorChannelA"/>
-	                    
+
 	<int:chain input-channel="requestChannelAA">
 		<int:service-activator expression="1/(payload-5)"/>
 		<int:gateway request-channel="requestChannelB"/>
 	</int:chain>
-	
-	<int:gateway id="testGatewayWithNoErrorChannelAAA" 
+
+	<int:gateway id="testGatewayWithNoErrorChannelAAA"
 	             service-interface="org.springframework.integration.gateway.InnerGatewayWithChainTests.TestGateway"
 	             default-request-channel="requestChannelAAA"/>
-	                    
+
 	<int:chain input-channel="requestChannelAAA">
 		<int:service-activator expression="1/(payload-5)"/>
 		<int:gateway request-channel="requestChannelB"/>
 	</int:chain>
-	
+
 	<int:inbound-channel-adapter id="inboundAdapterDefaultErrorChannel" auto-startup="false" expression="5" channel="requestChannelAAAA">
 		<int:poller fixed-rate="2000"/>
 	</int:inbound-channel-adapter>
-	                    
+
 	<int:chain input-channel="requestChannelAAAA">
 		<int:service-activator expression="1/(payload-5)"/>
 		<int:gateway request-channel="requestChannelB"/>
 	</int:chain>
-	
+
 	<int:inbound-channel-adapter id="inboundAdapterAssignedErrorChannel" auto-startup="false" expression="5" channel="requestChannelAAAA">
 		<int:poller fixed-rate="2000" error-channel="assignedErrorChannel"/>
 	</int:inbound-channel-adapter>
-	                    
+
 	<int:chain input-channel="requestChannelAAAA">
 		<int:service-activator expression="1/(payload-5)"/>
 		<int:gateway request-channel="requestChannelB"/>
 	</int:chain>
-	
+
 	<int:publish-subscribe-channel id="assignedErrorChannel"/>
-	
-	
+
+
 	<int:service-activator input-channel="requestChannelB" expression="10/payload"/>
-	
+
 </beans>
