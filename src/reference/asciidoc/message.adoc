@@ -370,6 +370,13 @@ If the strategy is the same, but parameterized, the strategy in the first contex
 
 In addition to the default strategy, two additional `IdGenerators` are provided; `org.springframework.util.JdkIdGenerator` uses the previous `UUID.randomUUID()` mechanism; `o.s.i.support.IdGenerators.SimpleIncrementingIdGenerator` can be used in cases where a UUID is not really needed and a simple incrementing value is sufficient.
 
+[[read-only-headers]]
+===== Read-only Headers
+
+The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and the cannot be overridden.
+With the `spring.integration.readOnly.headers` global property (see <<global-properties>>) you can specify any header names which become read-only.
+When you try to build a new message using `MessageBuilder`, this kind of headers are ignored and particular `INFO` message is emitted to logs.
+
 [[message-implementations]]
 ==== Message Implementations
 

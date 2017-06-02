@@ -39,6 +39,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +49,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +73,8 @@ import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -79,6 +83,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
@@ -101,6 +106,8 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
 public class GatewayInterfaceTests {
+
+	private static final String IGNORE_HEADER = "ignoreHeader";
 
 	@Autowired
 	private Int2634Gateway int2634Gateway;
@@ -140,6 +147,9 @@ public class GatewayInterfaceTests {
 
 	@Autowired
 	private MessageChannel errorChannel;
+
+	@Autowired
+	private IgnoredHeaderGateway ignoredHeaderGateway;
 
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethod() throws Exception {
@@ -453,6 +463,25 @@ public class GatewayInterfaceTests {
 		assertEquals("baz", ((LiteralExpression) barHeaderExpression).getValue());
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testIgnoredHeader() {
+		MessageHandler messageHandler = mock(MessageHandler.class);
+
+		((SubscribableChannel) this.errorChannel).subscribe(messageHandler);
+		this.ignoredHeaderGateway.service("foo", "theHeaderValue");
+
+		ArgumentCaptor<Message<?>> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
+
+		verify(messageHandler).handleMessage(messageArgumentCaptor.capture());
+
+		Message<?> message = messageArgumentCaptor.getValue();
+
+		assertFalse(message.getHeaders().containsKey(IGNORE_HEADER));
+
+		((SubscribableChannel) this.errorChannel).unsubscribe(messageHandler);
+	}
+
 
 	public interface Foo {
 
@@ -512,6 +541,13 @@ public class GatewayInterfaceTests {
 			includeFilters = @ComponentScan.Filter(TestMessagingGateway.class))
 	@EnableIntegration
 	public static class TestConfig {
+
+		@Bean(name = IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
+		public Properties integrationProperties() {
+			Properties properties = new Properties();
+			properties.setProperty(IntegrationProperties.READ_ONLY_HEADERS, IGNORE_HEADER);
+			return properties;
+		}
 
 		@Bean
 		@BridgeTo
@@ -613,6 +649,14 @@ public class GatewayInterfaceTests {
 	public interface NotAGatewayByScanFilter {
 
 		String foo(String payload);
+
+	}
+
+	@MessagingGateway(defaultRequestChannel = "errorChannel")
+	@TestMessagingGateway
+	public interface IgnoredHeaderGateway {
+
+		void service(String payload, @Header(IGNORE_HEADER) String myHeader);
 
 	}
 
