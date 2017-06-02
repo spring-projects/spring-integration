@@ -16,12 +16,16 @@
 
 package org.springframework.integration.amqp.inbound;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
@@ -41,6 +45,7 @@ import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -49,9 +54,11 @@ import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.json.JsonToObjectTransformer;
 import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.integration.mapping.support.JsonHeaders;
@@ -59,8 +66,10 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.retry.support.RetryTemplate;
 
 import com.rabbitmq.client.Channel;
 
@@ -293,6 +302,56 @@ public class InboundEndpointTests {
 		((ChannelAwareMessageListener) container.getMessageListener()).onMessage(null, null);
 		assertNull(outputChannel.receive(0));
 		assertNotNull(errorChannel.receive(0));
+	}
+
+	@Test
+	public void testRetryWithinOnMessageAdapter() throws Exception {
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(container);
+		adapter.setOutputChannel(new DirectChannel());
+		adapter.setRetryTemplate(new RetryTemplate());
+		QueueChannel errors = new QueueChannel();
+		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
+		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
+		adapter.setRecoveryCallback(recoveryCallback);
+		adapter.afterPropertiesSet();
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		listener.onMessage(org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
+				.andProperties(new MessageProperties()).build(), null);
+		Message<?> errorMessage = errors.receive(0);
+		assertNotNull(errorMessage);
+		assertThat(errorMessage.getPayload(), instanceOf(MessagingException.class));
+		assertThat(((MessagingException) errorMessage.getPayload()).getMessage(), containsString("Dispatcher has no"));
+		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
+				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_DATA, org.springframework.amqp.core.Message.class);
+		assertThat(amqpMessage, notNullValue());
+		assertNull(errors.receive(0));
+	}
+
+	@Test
+	public void testRetryWithinOnMessageGateway() throws Exception {
+		ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
+		AbstractMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+		AmqpInboundGateway adapter = new AmqpInboundGateway(container);
+		adapter.setRequestChannel(new DirectChannel());
+		adapter.setRetryTemplate(new RetryTemplate());
+		QueueChannel errors = new QueueChannel();
+		ErrorMessageSendingRecoverer recoveryCallback = new ErrorMessageSendingRecoverer(errors);
+		recoveryCallback.setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
+		adapter.setRecoveryCallback(recoveryCallback);
+		adapter.afterPropertiesSet();
+		ChannelAwareMessageListener listener = (ChannelAwareMessageListener) container.getMessageListener();
+		listener.onMessage(org.springframework.amqp.core.MessageBuilder.withBody("foo".getBytes())
+				.andProperties(new MessageProperties()).build(), null);
+		Message<?> errorMessage = errors.receive(0);
+		assertNotNull(errorMessage);
+		assertThat(errorMessage.getPayload(), instanceOf(MessagingException.class));
+		assertThat(((MessagingException) errorMessage.getPayload()).getMessage(), containsString("Dispatcher has no"));
+		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
+				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_DATA, org.springframework.amqp.core.Message.class);
+		assertThat(amqpMessage, notNullValue());
+		assertNull(errors.receive(0));
 	}
 
 	public static class Foo {

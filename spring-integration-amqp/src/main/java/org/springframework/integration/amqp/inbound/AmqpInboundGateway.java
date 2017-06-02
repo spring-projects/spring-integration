@@ -32,9 +32,18 @@ import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFaile
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
+import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -54,6 +63,8 @@ import com.rabbitmq.client.Channel;
  */
 public class AmqpInboundGateway extends MessagingGatewaySupport {
 
+	private static final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<AttributeAccessor>();
+
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
 	private final AmqpTemplate amqpTemplate;
@@ -65,6 +76,10 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	private volatile AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	private Address defaultReplyTo;
+
+	private RetryTemplate retryTemplate;
+
+	private RecoveryCallback<? extends Object> recoveryCallback;
 
 	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer) {
 		this(listenerContainer, new RabbitTemplate(listenerContainer.getConnectionFactory()), false);
@@ -93,6 +108,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.messageListenerContainer.setAutoStartup(false);
 		this.amqpTemplate = amqpTemplate;
 		this.amqpTemplateExplicitlySet = amqpTemplateExplicitlySet;
+		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
 	}
 
 
@@ -135,6 +151,30 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.defaultReplyTo = new Address(defaultReplyTo);
 	}
 
+	/**
+	 * Set a {@link RetryTemplate} to use for retrying a message delivery within the
+	 * gateway. Unlike adding retry at the container level, this can be used with an
+	 * {@code ErrorMessageSendingRecoverer} {@link RecoveryCallback} to publish to the
+	 * error channel after retries are exhausted. You generally should not configure an
+	 * error channel when using retry here, use a {@link RecoveryCallback} instead.
+	 * @param retryTemplate the template.
+	 * @see #setRecoveryCallback(RecoveryCallback)
+	 * @since 4.3.10.
+	 */
+	public void setRetryTemplate(RetryTemplate retryTemplate) {
+		this.retryTemplate = retryTemplate;
+	}
+
+	/**
+	 * Set a {@link RecoveryCallback} when using retry within the gateway.
+	 * @param recoveryCallback the callback.
+	 * @see #setRetryTemplate(RetryTemplate)
+	 * @since 4.3.10
+	 */
+	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
+		this.recoveryCallback = recoveryCallback;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "amqp:inbound-gateway";
@@ -142,12 +182,26 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	@Override
 	protected void onInit() throws Exception {
-		this.messageListenerContainer.setMessageListener(new Listener());
+		if (this.retryTemplate != null) {
+			Assert.state(getErrorChannel() == null, "Cannot have an 'errorChannel' property when a 'RetryTemplate' is "
+					+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "
+					+ "send an error message when retries are exhausted");
+		}
+		Listener messageListener = new Listener();
+		if (this.retryTemplate != null) {
+			this.retryTemplate.registerListener(messageListener);
+		}
+		this.messageListenerContainer.setMessageListener(messageListener);
 		this.messageListenerContainer.afterPropertiesSet();
 		if (!this.amqpTemplateExplicitlySet) {
 			((RabbitTemplate) this.amqpTemplate).afterPropertiesSet();
 		}
 		super.onInit();
+		if (this.retryTemplate != null && getErrorChannel() != null) {
+			logger.warn("Usually, when using a RetryTemplate you should use an ErrorMessageSendingRecoverer and not "
+					+ "provide an errorChannel. Using an errorChannel could defeat retry and will receive an error "
+					+ "message for each delivery attempt.");
+		}
 	}
 
 	@Override
@@ -160,10 +214,63 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.messageListenerContainer.stop();
 	}
 
-	protected class Listener implements ChannelAwareMessageListener {
+	/**
+	 * If there's a retry template, it will set the attributes holder via the listener. If
+	 * there's no retry template, but there's an error channel, we create a new attributes
+	 * holder here. If an attributes holder exists (by either method), we set the
+	 * attributes for use by the {@link ErrorMessageStrategy}.
+	 * @param record the record.
+	 * @param message the message.
+	 * @since 4.3.10
+	 */
+	private void setAttributesIfNecessary(Message amqpMessage, org.springframework.messaging.Message<?> message) {
+		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
+		boolean needAttributes = needHolder || this.retryTemplate != null;
+		if (needHolder) {
+			attributesHolder.set(ErrorMessageUtils.getAttributeAccessor(null, null));
+		}
+		if (needAttributes) {
+			AttributeAccessor attributes = attributesHolder.get();
+			if (attributes != null) {
+				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
+				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_DATA, amqpMessage);
+			}
+		}
+	}
 
+	@Override
+	protected AttributeAccessor getErrorMessageAttributes(org.springframework.messaging.Message<?> message) {
+		AttributeAccessor attributes = attributesHolder.get();
+		if (attributes == null) {
+			return super.getErrorMessageAttributes(message);
+		}
+		else {
+			return attributes;
+		}
+	}
+
+	protected class Listener implements ChannelAwareMessageListener, RetryListener {
+
+		@SuppressWarnings("unchecked")
 		@Override
-		public void onMessage(Message message, Channel channel) throws Exception {
+		public void onMessage(final Message message, final Channel channel) throws Exception {
+			if (AmqpInboundGateway.this.retryTemplate == null) {
+				doOnMessage(message, channel);
+			}
+			else {
+				AmqpInboundGateway.this.retryTemplate.execute(new RetryCallback<Object, RuntimeException>() {
+
+					@Override
+					public Object doWithRetry(RetryContext context) throws RuntimeException {
+						doOnMessage(message, channel);
+						return null;
+					}
+
+				}, (RecoveryCallback<Object>) AmqpInboundGateway.this.recoveryCallback);
+			}
+		}
+
+		private void doOnMessage(Message message, Channel channel) {
 			boolean error = false;
 			Map<String, Object> headers = null;
 			Object payload = null;
@@ -187,12 +294,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			}
 
 			if (!error) {
-				final org.springframework.messaging.Message<?> reply =
-						sendAndReceiveMessage(
-								getMessageBuilderFactory()
-										.withPayload(payload)
-										.copyHeaders(headers)
-										.build());
+				org.springframework.messaging.Message<Object> messagingMessage = getMessageBuilderFactory()
+						.withPayload(payload)
+						.copyHeaders(headers)
+						.build();
+				setAttributesIfNecessary(message, messagingMessage);
+				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(messagingMessage);
 				if (reply != null) {
 					Address replyTo;
 					String replyToProperty = message.getMessageProperties().getReplyTo();
@@ -243,6 +350,24 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					}
 				}
 			}
+		}
+
+		@Override
+		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
+			attributesHolder.set(context);
+			return true;
+		}
+
+		@Override
+		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
+			// Empty
+		}
+
+		@Override
+		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
+			// Empty
 		}
 
 	}
