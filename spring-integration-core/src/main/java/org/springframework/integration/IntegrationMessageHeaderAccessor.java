@@ -155,7 +155,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	}
 
 	@Override
-	protected boolean isReadOnly(String headerName) {
+	public boolean isReadOnly(String headerName) {
 		return super.isReadOnly(headerName) || this.readOnlyHeaders.contains(headerName);
 	}
 

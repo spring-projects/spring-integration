@@ -20,6 +20,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -42,6 +45,8 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  */
 public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T> {
+
+	private static final Log logger = LogFactory.getLog(MessageBuilder.class);
 
 	private final T payload;
 
@@ -176,7 +181,16 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 */
 	@Override
 	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, ?> headersToCopy) {
-		this.headerAccessor.copyHeadersIfAbsent(headersToCopy);
+		if (headersToCopy != null) {
+			for (Map.Entry<String, ?> entry : headersToCopy.entrySet()) {
+				if (!this.headerAccessor.isReadOnly(entry.getKey())) {
+					this.headerAccessor.setHeaderIfAbsent(entry.getKey(), entry.getValue());
+				}
+				else if (logger.isInfoEnabled()) {
+					logger.info("The header [" + entry + "] is ignored for population because it is is readOnly.");
+				}
+			}
+		}
 		return this;
 	}
 
