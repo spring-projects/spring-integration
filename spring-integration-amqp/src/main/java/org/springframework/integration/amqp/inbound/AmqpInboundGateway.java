@@ -34,7 +34,6 @@ import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -177,7 +176,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			}
 			catch (RuntimeException e) {
 				if (getErrorChannel() != null) {
-					AmqpInboundGateway.this.messagingTemplate.send(getErrorChannel(), new ErrorMessage(
+					AmqpInboundGateway.this.messagingTemplate.send(getErrorChannel(), buildErrorMessage(null,
 							new ListenerExecutionFailedException("Message conversion failed", e, message)));
 				}
 				else {
