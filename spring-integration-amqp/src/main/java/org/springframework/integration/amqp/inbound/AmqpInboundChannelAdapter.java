@@ -30,7 +30,6 @@ import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 
 import com.rabbitmq.client.Channel;
@@ -137,7 +136,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			}
 			catch (RuntimeException e) {
 				if (getErrorChannel() != null) {
-					getMessagingTemplate().send(getErrorChannel(), new ErrorMessage(
+					getMessagingTemplate().send(getErrorChannel(), buildErrorMessage(null,
 							new ListenerExecutionFailedException("Message conversion failed", e, message)));
 				}
 				else {
