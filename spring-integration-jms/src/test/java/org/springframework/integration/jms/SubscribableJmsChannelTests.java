@@ -336,6 +336,7 @@ public class SubscribableJmsChannelTests {
 		List<String> logList  = insertMockLoggerInListener(channel);
 		listener.onMessage(new StubTextMessage("Hello, world!"));
 		verifyLogReceived(logList);
+		channel.destroy();
 	}
 
 	private List<String> insertMockLoggerInListener(

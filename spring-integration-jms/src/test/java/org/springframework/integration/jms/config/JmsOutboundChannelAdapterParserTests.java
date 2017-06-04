@@ -161,7 +161,7 @@ public class JmsOutboundChannelAdapterParserTests {
 	@Test(expected = BeanDefinitionStoreException.class)
 	public void adapterWithEmptyConnectionFactory() {
 		try {
-			new ClassPathXmlApplicationContext("jmsOutboundWithEmptyConnectionFactory.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsOutboundWithEmptyConnectionFactory.xml", this.getClass()).close();
 		}
 		catch (BeanDefinitionStoreException e) {
 			assertTrue(e.getMessage().contains("connection-factory"));

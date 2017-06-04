@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertTrue;
@@ -26,7 +27,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.SubscribableJmsChannel;
@@ -40,6 +41,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public class JmsChannelHistoryTests {
@@ -70,12 +72,15 @@ public class JmsChannelHistoryTests {
 	@Test
 	public void testFullConfig() throws Exception{
 		ActiveMqTestUtils.prepare();
-		ApplicationContext ac = new ClassPathXmlApplicationContext("JmsChannelHistoryTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("JmsChannelHistoryTests-context.xml", this.getClass());
 		SubscribableChannel channel = ac.getBean("jmsChannel", SubscribableChannel.class);
 		PollableChannel resultChannel = ac.getBean("resultChannel", PollableChannel.class);
 		channel.send(new GenericMessage<String>("hello"));
 		Message<?> resultMessage = resultChannel.receive(5000);
 		MessageHistory history = MessageHistory.read(resultMessage);
  		assertTrue(history.get(0).contains("jmsChannel"));
+		ac.close();
 	}
+
 }

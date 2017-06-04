@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.request_reply;
 
 import static org.junit.Assert.assertEquals;
@@ -56,6 +57,7 @@ import org.springframework.messaging.MessageDeliveryException;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMultiContextTests {
 
@@ -198,6 +200,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 			}
 		}
 		assertEquals(50, replyCounter + timeoutCounter);
+
+		context.close();
 	}
 
 	@Test
@@ -246,6 +250,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		assertEquals(0, missmatches.get());
 		assertEquals(0, failures.get());
 		assertEquals(0, timeouts.get());
+
+		context.close();
 	}
 
 	private void print(AtomicInteger failures, AtomicInteger timeouts, AtomicInteger missmatches, long echangesProcessed){
@@ -279,4 +285,5 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		}
 		return null;
 	}
+
 }

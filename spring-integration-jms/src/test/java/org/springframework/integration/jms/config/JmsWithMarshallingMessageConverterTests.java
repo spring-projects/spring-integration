@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.jms.config;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -43,6 +43,7 @@ import org.springframework.oxm.XmlMappingException;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class JmsWithMarshallingMessageConverterTests {
 
@@ -50,7 +51,7 @@ public class JmsWithMarshallingMessageConverterTests {
 	@SuppressWarnings("unchecked")
 	public void demoWithMarshallingConverter() {
 		ActiveMqTestUtils.prepare();
-		ApplicationContext ac = new ClassPathXmlApplicationContext(
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext(
 				"JmsWithMarshallingMessageConverterTests-context.xml", JmsWithMarshallingMessageConverterTests.class);
 		MessageChannel input = ac.getBean("outbound-gateway-channel", MessageChannel.class);
 		PollableChannel output = ac.getBean("output", PollableChannel.class);
@@ -60,6 +61,7 @@ public class JmsWithMarshallingMessageConverterTests {
 		// check for couple of JMS headers, make sure they are present
 		assertNotNull(headers.get("jms_redelivered"));
 		assertEquals("HELLO", replyMessage.getPayload());
+		ac.close();
 	}
 
 
@@ -68,6 +70,7 @@ public class JmsWithMarshallingMessageConverterTests {
 		public String echo(String value) {
 			return value.toUpperCase();
 		}
+
 	}
 
 
@@ -87,6 +90,7 @@ public class JmsWithMarshallingMessageConverterTests {
 		public boolean supports(Class<?> clazz) {
 			return true;
 		}
+
 	}
 
 
@@ -102,6 +106,7 @@ public class JmsWithMarshallingMessageConverterTests {
 			io.read(bytes);
 			return new GenericMessage<String>(new String(bytes));
 		}
+
 	}
 
 }
