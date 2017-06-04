@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.filters;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -31,6 +33,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.gemfire.metadata.GemfireMetadataStore;
@@ -39,7 +42,7 @@ import org.springframework.integration.redis.metadata.RedisMetadataStore;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 
-import com.gemstone.gemfire.cache.CacheFactory;
+import com.gemstone.gemfire.cache.Cache;
 
 /**
  * @author Gary Russell
@@ -69,7 +72,14 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 
 	@Test
 	public void testFileSystemWithGemfireMetadataStore() throws Exception {
-		this.testFileSystem(new GemfireMetadataStore(new CacheFactory().create()));
+		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
+		Properties gemfireProperties = new Properties();
+		gemfireProperties.setProperty("mcast-port", "0");
+		cacheFactoryBean.setProperties(gemfireProperties);
+		cacheFactoryBean.afterPropertiesSet();
+		Cache cache = cacheFactoryBean.getObject();
+		testFileSystem(new GemfireMetadataStore(cache));
+		cacheFactoryBean.destroy();
 	}
 
 	private void testFileSystem(ConcurrentMetadataStore store) throws Exception {

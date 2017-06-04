@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,30 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.util.Properties;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.GemfireTemplate;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.CacheFactory;
 import com.gemstone.gemfire.cache.Region;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
 public class GemfireMetadataStoreTests {
 
-	private static Cache cache;
+	private static CacheFactoryBean cacheFactoryBean;
 
 	private static ConcurrentMetadataStore metadataStore;
 
@@ -48,19 +50,23 @@ public class GemfireMetadataStoreTests {
 
 	@BeforeClass
 	public static void startUp() throws Exception {
-		cache = new CacheFactory().create();
+		cacheFactoryBean = new CacheFactoryBean();
+		Properties gemfireProperties = new Properties();
+		gemfireProperties.setProperty("mcast-port", "0");
+		cacheFactoryBean.setProperties(gemfireProperties);
+		cacheFactoryBean.afterPropertiesSet();
+		Cache cache = cacheFactoryBean.getObject();
 		metadataStore = new GemfireMetadataStore(cache);
 		region = cache.getRegion(GemfireMetadataStore.KEY);
 	}
 
 	@AfterClass
-	public static void cleanUp() {
+	public static void cleanUp() throws Exception {
 		if (region != null) {
 			region.close();
 		}
-		if (cache != null) {
-			cache.close();
-			Assert.isTrue(cache.isClosed(), "Cache did not close after close() call");
+		if (cacheFactoryBean != null) {
+			cacheFactoryBean.destroy();
 		}
 	}
 

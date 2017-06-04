@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import com.gemstone.gemfire.cache.Scope;
  * @author David Turanski
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class GemfireMessageStoreTests {
@@ -133,6 +134,10 @@ public class GemfireMessageStoreTests {
 	@BeforeClass
 	public static void init() throws Exception {
 		cacheFactoryBean = new CacheFactoryBean();
+		Properties gemfireProperties = new Properties();
+		gemfireProperties.setProperty("mcast-port", "0");
+		cacheFactoryBean.setProperties(gemfireProperties);
+		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = cacheFactoryBean.getObject();
 		region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
 	}

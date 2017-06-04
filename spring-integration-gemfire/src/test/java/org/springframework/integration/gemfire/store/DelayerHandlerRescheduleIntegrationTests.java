@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
@@ -48,6 +49,7 @@ import com.gemstone.gemfire.cache.Scope;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 public class DelayerHandlerRescheduleIntegrationTests {
@@ -64,6 +66,9 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	@BeforeClass
 	public static void startUp() throws Exception {
 		cacheFactoryBean = new CacheFactoryBean();
+		Properties gemfireProperties = new Properties();
+		gemfireProperties.setProperty("mcast-port", "0");
+		cacheFactoryBean.setProperties(gemfireProperties);
 		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = cacheFactoryBean.getObject();
 		region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
