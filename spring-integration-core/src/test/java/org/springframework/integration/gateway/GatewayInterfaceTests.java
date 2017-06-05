@@ -543,7 +543,7 @@ public class GatewayInterfaceTests {
 	public static class TestConfig {
 
 		@Bean(name = IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)
-		public Properties integrationProperties() {
+		public static Properties integrationProperties() {
 			Properties properties = new Properties();
 			properties.setProperty(IntegrationProperties.READ_ONLY_HEADERS, IGNORE_HEADER);
 			return properties;
