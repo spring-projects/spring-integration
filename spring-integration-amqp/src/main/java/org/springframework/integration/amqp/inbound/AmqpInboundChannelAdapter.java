@@ -176,7 +176,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			AttributeAccessor attributes = attributesHolder.get();
 			if (attributes != null) {
 				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
-				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_MESSAGE, amqpMessage);
+				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
 			}
 		}
 	}
