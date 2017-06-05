@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,23 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
+import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 
 import com.rabbitmq.client.Channel;
@@ -40,10 +50,13 @@ import com.rabbitmq.client.Channel;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		OrderlyShutdownCapable {
+
+	private static final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<AttributeAccessor>();
 
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
@@ -51,6 +64,9 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	private volatile AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
+	private RetryTemplate retryTemplate;
+
+	private RecoveryCallback<? extends Object> recoveryCallback;
 
 	public AmqpInboundChannelAdapter(AbstractMessageListenerContainer listenerContainer) {
 		Assert.notNull(listenerContainer, "listenerContainer must not be null");
@@ -60,6 +76,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 						"configure its own listener implementation.");
 		this.messageListenerContainer = listenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
+		setErrorMessageStrategy(new AmqpMessageHeaderErrorMessageStrategy());
 	}
 
 
@@ -73,6 +90,31 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		this.headerMapper = headerMapper;
 	}
 
+	/**
+	 * Set a {@link RetryTemplate} to use for retrying a message delivery within the
+	 * adapter. Unlike adding retry at the container level, this can be used with an
+	 * {@code ErrorMessageSendingRecoverer} {@link RecoveryCallback} to publish to the
+	 * error channel after retries are exhausted. You generally should not configure an
+	 * error channel when using retry here, use a {@link RecoveryCallback} instead.
+	 * @param retryTemplate the template.
+	 * @see #setRecoveryCallback(RecoveryCallback)
+	 * @since 4.3.10.
+	 */
+	public void setRetryTemplate(RetryTemplate retryTemplate) {
+		this.retryTemplate = retryTemplate;
+	}
+
+	/**
+	 * Set a {@link RecoveryCallback} when using retry within the adapter.
+	 * @param recoveryCallback the callback.
+	 * @see #setRetryTemplate(RetryTemplate)
+	 * @since 4.3.10
+	 */
+	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
+		this.recoveryCallback = recoveryCallback;
+	}
+
+
 	@Override
 	public String getComponentType() {
 		return "amqp:inbound-channel-adapter";
@@ -80,22 +122,16 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 	@Override
 	protected void onInit() {
-		this.messageListenerContainer.setMessageListener(new ChannelAwareMessageListener() {
-
-			@Override
-			public void onMessage(Message message, Channel channel) throws Exception {
-				Object payload = AmqpInboundChannelAdapter.this.messageConverter.fromMessage(message);
-				Map<String, Object> headers =
-						AmqpInboundChannelAdapter.this.headerMapper.toHeadersFromRequest(message.getMessageProperties());
-				if (AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode()
-						== AcknowledgeMode.MANUAL) {
-					headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
-					headers.put(AmqpHeaders.CHANNEL, channel);
-				}
-				sendMessage(getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build());
-			}
-
-		});
+		if (this.retryTemplate != null) {
+			Assert.state(getErrorChannel() == null, "Cannot have an 'errorChannel' property when a 'RetryTemplate' is "
+					+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "
+					+ "send an error message when retries are exhausted");
+		}
+		Listener messageListener = new Listener();
+		if (this.retryTemplate != null) {
+			this.retryTemplate.registerListener(messageListener);
+		}
+		this.messageListenerContainer.setMessageListener(messageListener);
 		this.messageListenerContainer.afterPropertiesSet();
 		super.onInit();
 	}
@@ -123,13 +159,116 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 * <p>No-op
-	 */
 	@Override
 	public int afterShutdown() {
 		return 0;
+	}
+
+	/**
+	 * If there's a retry template, it will set the attributes holder via the listener. If
+	 * there's no retry template, but there's an error channel, we create a new attributes
+	 * holder here. If an attributes holder exists (by either method), we set the
+	 * attributes for use by the {@link ErrorMessageStrategy}.
+	 * @param record the record.
+	 * @param message the message.
+	 * @since 4.3.10
+	 */
+	private void setAttributesIfNecessary(Message amqpMessage, org.springframework.messaging.Message<?> message) {
+		boolean needHolder = getErrorChannel() != null && this.retryTemplate == null;
+		boolean needAttributes = needHolder || this.retryTemplate != null;
+		if (needHolder) {
+			attributesHolder.set(ErrorMessageUtils.getAttributeAccessor(null, null));
+		}
+		if (needAttributes) {
+			AttributeAccessor attributes = attributesHolder.get();
+			if (attributes != null) {
+				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
+				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_DATA, amqpMessage);
+			}
+		}
+	}
+
+	@Override
+	protected AttributeAccessor getErrorMessageAttributes(org.springframework.messaging.Message<?> message) {
+		AttributeAccessor attributes = attributesHolder.get();
+		if (attributes == null) {
+			return super.getErrorMessageAttributes(message);
+		}
+		else {
+			return attributes;
+		}
+	}
+
+	protected class Listener implements ChannelAwareMessageListener, RetryListener {
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void onMessage(final Message message, final Channel channel) throws Exception {
+			try {
+				if (AmqpInboundChannelAdapter.this.retryTemplate == null) {
+					processMessage(message, channel);
+				}
+				else {
+					AmqpInboundChannelAdapter.this.retryTemplate.execute(new RetryCallback<Object, RuntimeException>() {
+
+						@Override
+						public Void doWithRetry(RetryContext context) throws RuntimeException {
+							processMessage(message, channel);
+							return null;
+						}
+
+					}, (RecoveryCallback<Object>) AmqpInboundChannelAdapter.this.recoveryCallback);
+				}
+			}
+			catch (RuntimeException e) {
+				if (getErrorChannel() != null) {
+					getMessagingTemplate().send(getErrorChannel(), buildErrorMessage(null,
+							new ListenerExecutionFailedException("Message conversion failed", e, message)));
+				}
+				else {
+					throw e;
+				}
+			}
+			finally {
+				attributesHolder.remove();
+			}
+		}
+
+		private void processMessage(Message message, Channel channel) {
+			Object payload = AmqpInboundChannelAdapter.this.messageConverter.fromMessage(message);
+			Map<String, Object> headers = AmqpInboundChannelAdapter.this.headerMapper
+					.toHeadersFromRequest(message.getMessageProperties());
+			if (AmqpInboundChannelAdapter.this.messageListenerContainer.getAcknowledgeMode()
+					== AcknowledgeMode.MANUAL) {
+				headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
+				headers.put(AmqpHeaders.CHANNEL, channel);
+			}
+			final org.springframework.messaging.Message<Object> messagingMessage = getMessageBuilderFactory()
+					.withPayload(payload)
+					.copyHeaders(headers)
+					.build();
+			setAttributesIfNecessary(message, messagingMessage);
+			sendMessage(messagingMessage);
+		}
+
+		@Override
+		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
+			attributesHolder.set(context);
+			return true;
+		}
+
+		@Override
+		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
+			// Empty
+		}
+
+		@Override
+		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
+				Throwable throwable) {
+			// Empty
+		}
+
 	}
 
 }
