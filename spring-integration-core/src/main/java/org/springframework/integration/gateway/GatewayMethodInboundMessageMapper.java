@@ -355,12 +355,12 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			Assert.isTrue(messageOrPayload != null, "unable to determine a Message or payload parameter on method ["
 					+ GatewayMethodInboundMessageMapper.this.method + "]");
 			if (GatewayMethodInboundMessageMapper.this.sendTimeoutExpression != null) {
-				headers.putIfAbsent(GenericMessagingTemplate.DEFAULT_SEND_TIMEOUT_HEADER,
+				headers.computeIfAbsent(GenericMessagingTemplate.DEFAULT_SEND_TIMEOUT_HEADER, v ->
 						GatewayMethodInboundMessageMapper.this.sendTimeoutExpression
 								.getValue(methodInvocationEvaluationContext, Long.class));
 			}
 			if (GatewayMethodInboundMessageMapper.this.replyTimeoutExpression != null) {
-				headers.putIfAbsent(GenericMessagingTemplate.DEFAULT_RECEIVE_TIMEOUT_HEADER,
+				headers.computeIfAbsent(GenericMessagingTemplate.DEFAULT_RECEIVE_TIMEOUT_HEADER, v ->
 						GatewayMethodInboundMessageMapper.this.replyTimeoutExpression
 								.getValue(methodInvocationEvaluationContext, Long.class));
 			}

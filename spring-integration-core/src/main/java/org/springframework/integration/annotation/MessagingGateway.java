@@ -35,6 +35,7 @@ import java.lang.annotation.Target;
  * ignores interfaces.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  *
  * @see IntegrationComponentScan

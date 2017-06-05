@@ -87,11 +87,12 @@ public @interface Gateway {
 	long requestTimeout() default Long.MIN_VALUE;
 
 	/**
-	 * Specify the timeout (ms) when sending to the request channel - only applies if the
-	 * send might block (such as a bounded {@code QueueChannel} that is currently full.
-	 * Overrides the encompassing gateway's default request timeout.
-	 * Overrides {@link #requestTimeout()}.
+	 * Specify a SpEL Expression to determine the timeout (ms) when sending to the request
+	 * channel - only applies if the send might block (such as a bounded
+	 * {@code QueueChannel} that is currently full. Overrides the encompassing gateway's
+	 * default request timeout. Overrides {@link #requestTimeout()}.
 	 * @return the timeout.
+	 * @since 5.0
 	 */
 	String requestTimeoutExpression() default "";
 
@@ -105,11 +106,12 @@ public @interface Gateway {
 	long replyTimeout() default Long.MIN_VALUE;
 
 	/**
-	 * Specify the time (ms) that the thread sending the request will wait for a reply.
-	 * The timer starts when the thread returns to the gateway, not when the request
-	 * message is sent. Overrides the encompassing gateway's default reply timeout.
-	 * Overrides {@link #replyTimeout()}.
+	 * Specify a SpEL Expression to determine the the time (ms) that the thread sending
+	 * the request will wait for a reply. The timer starts when the thread returns to the
+	 * gateway, not when the request message is sent. Overrides the encompassing gateway's
+	 * default reply timeout. Overrides {@link #replyTimeout()}.
 	 * @return the timeout.
+	 * @since 5.0
 	 */
 	String replyTimeoutExpression() default "";
 
