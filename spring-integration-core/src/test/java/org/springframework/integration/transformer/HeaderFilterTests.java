@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,35 @@
 
 package org.springframework.integration.transformer;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
 
+import java.util.Date;
 import java.util.UUID;
 
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class HeaderFilterTests {
@@ -74,6 +85,62 @@ public class HeaderFilterTests {
 		assertEquals("testErrorChannel", result.getHeaders().getErrorChannel());
 		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
 		assertEquals(correlationId, new IntegrationMessageHeaderAccessor(result).getCorrelationId());
+	}
+
+	@Test
+	public void testIdHeaderRemoval() {
+		HeaderFilter filter = new HeaderFilter("foo", MessageHeaders.ID);
+		try {
+			filter.afterPropertiesSet();
+			fail("BeanInitializationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanInitializationException.class));
+			assertThat(e.getMessage(), containsString("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers."));
+		}
+	}
+
+	@Test
+	public void testTimestampHeaderRemoval() {
+		HeaderFilter filter = new HeaderFilter(MessageHeaders.TIMESTAMP);
+		try {
+			filter.afterPropertiesSet();
+			fail("BeanInitializationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanInitializationException.class));
+			assertThat(e.getMessage(), containsString("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers."));
+		}
+	}
+
+	@Test
+	public void testIdPatternRemoval() {
+		HeaderFilter filter = new HeaderFilter("*", MessageHeaders.ID);
+		filter.setPatternMatch(true);
+		try {
+			filter.afterPropertiesSet();
+			fail("BeanInitializationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanInitializationException.class));
+			assertThat(e.getMessage(), containsString("HeaderFilter cannot remove 'id' and 'timestamp' read-only headers."));
+		}
+	}
+
+	@Test
+	public void testPatternRemoval() {
+		HeaderFilter filter = new HeaderFilter("time*");
+		filter.setPatternMatch(true);
+
+		filter.afterPropertiesSet();
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader("time", new Date())
+				.build();
+
+		Message<?> result = filter.transform(message);
+
+		assertThat(result, hasHeaderKey(MessageHeaders.TIMESTAMP));
+		assertThat(result, not(hasHeaderKey("time")));
 	}
 
 }

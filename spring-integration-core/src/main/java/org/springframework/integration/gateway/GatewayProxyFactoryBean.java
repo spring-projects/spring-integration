@@ -22,7 +22,10 @@ import java.lang.reflect.Type;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -39,7 +42,9 @@ import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -54,6 +59,7 @@ import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -62,6 +68,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -622,6 +629,33 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			headers = new HashMap<>();
 			headers.put(MessageHeaders.ERROR_CHANNEL, errorChannel);
 		}
+
+		if (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory) {
+			Set<String> headerNames = new HashSet<>(headerExpressions.keySet());
+
+			if (this.globalMethodMetadata != null) {
+				headerNames.addAll(this.globalMethodMetadata.getHeaderExpressions().keySet());
+			}
+
+			List<MethodParameter> methodParameters = GatewayMethodInboundMessageMapper.getMethodParameterList(method);
+
+			for (MethodParameter methodParameter : methodParameters) {
+				Header header = methodParameter.getParameterAnnotation(Header.class);
+				if (header != null) {
+					String headerName = GatewayMethodInboundMessageMapper.determineHeaderName(header, methodParameter);
+					headerNames.add(headerName);
+				}
+			}
+
+			for (String header : headerNames) {
+				if ((MessageHeaders.ID.equals(header) || MessageHeaders.TIMESTAMP.equals(header))) {
+					throw new BeanInitializationException(
+							"Messaging Gateway cannot override 'id' and 'timestamp' read-only headers.\n" +
+									"Wrong headers configuration for " + getComponentName());
+				}
+			}
+		}
+
 		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method,
 				headerExpressions,
 				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,

@@ -16,10 +16,13 @@
 
 package org.springframework.integration.gateway;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
@@ -35,6 +38,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -43,6 +47,8 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -50,7 +56,9 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.ReflectionUtils;
 
@@ -83,6 +91,7 @@ public class GatewayProxyFactoryBeanTests {
 		startResponder(requestChannel);
 		GenericConversionService cs = new DefaultConversionService();
 		Converter<String, byte[]> stringToByteConverter = new Converter<String, byte[]>() {
+
 			@Override
 			public byte[] convert(String source) {
 				return source.getBytes();
@@ -312,6 +321,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		DirectChannel channel = new DirectChannel();
 		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) {
 				Method method = ReflectionUtils.findMethod(
@@ -356,6 +366,57 @@ public class GatewayProxyFactoryBeanTests {
 		String bar = (String) message.getHeaders().get("foo");
 		assertNotNull(bar);
 		assertThat(bar, equalTo("bar"));
+	}
+
+	@Test
+	public void testIdHeaderOverrideHeaderExpression() {
+		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean();
+		gpfb.setBeanFactory(mock(BeanFactory.class));
+
+		GatewayMethodMetadata meta = new GatewayMethodMetadata();
+		meta.setHeaderExpressions(Collections.singletonMap(MessageHeaders.ID, new LiteralExpression("bar")));
+		gpfb.setGlobalMethodMetadata(meta);
+
+		try {
+			gpfb.afterPropertiesSet();
+			fail("BeanInitializationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanInitializationException.class));
+			assertThat(e.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+		}
+	}
+
+	@Test
+	public void testIdHeaderOverrideGatewayHeaderAnnotation() {
+		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean();
+		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setServiceInterface(HeadersOverwriteService.class);
+
+		try {
+			gpfb.afterPropertiesSet();
+			fail("BeanInitializationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanInitializationException.class));
+			assertThat(e.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+		}
+	}
+
+	@Test
+	public void testTimeStampHeaderOverrideParamHeaderAnnotation() {
+		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean();
+		gpfb.setBeanFactory(mock(BeanFactory.class));
+		gpfb.setServiceInterface(HeadersParamService.class);
+
+		try {
+			gpfb.afterPropertiesSet();
+			fail("BeanInitializationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(BeanInitializationException.class));
+			assertThat(e.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+		}
 	}
 
 //	@Test
@@ -413,6 +474,18 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 
+	interface HeadersOverwriteService {
+
+		@Gateway(headers = @GatewayHeader(name = MessageHeaders.ID, value = "id"))
+		Message<?> echo(String s);
+	}
+
+	interface HeadersParamService {
+
+		Message<?> echo(String s, @Header(MessageHeaders.TIMESTAMP) String foo);
+	}
+
+
 	interface TestExceptionThrowingInterface {
 
 		String throwCheckedException(String s) throws TestException;
@@ -421,6 +494,7 @@ public class GatewayProxyFactoryBeanTests {
 
 	@SuppressWarnings("serial")
 	static class TestException extends Exception {
+
 	}
 
 

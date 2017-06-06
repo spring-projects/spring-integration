@@ -242,7 +242,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						"payload or Message. Found more than one on method [" + methodParameter.getMethod() + "]");
 	}
 
-	private String determineHeaderName(Annotation headerAnnotation, MethodParameter methodParameter) {
+	static String determineHeaderName(Annotation headerAnnotation, MethodParameter methodParameter) {
 		String valueAttribute = (String) AnnotationUtils.getValue(headerAnnotation);
 		String headerName = StringUtils.hasText(valueAttribute) ? valueAttribute : methodParameter.getParameterName();
 		Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is " +
@@ -250,11 +250,10 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return headerName;
 	}
 
-	private static List<MethodParameter> getMethodParameterList(Method method) {
+	static List<MethodParameter> getMethodParameterList(Method method) {
 		List<MethodParameter> parameterList = new LinkedList<>();
 		ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
-		int parameterCount = method.getParameterTypes().length;
-		for (int i = 0; i < parameterCount; i++) {
+		for (int i = 0; i < method.getParameterCount(); i++) {
 			MethodParameter methodParameter = new SynthesizingMethodParameter(method, i);
 			methodParameter.initParameterNameDiscovery(parameterNameDiscoverer);
 			parameterList.add(methodParameter);
@@ -307,8 +306,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						foundPayloadAnnotation = true;
 					}
 					else if (annotation.annotationType().equals(Header.class)) {
-						String headerName =
-								GatewayMethodInboundMessageMapper.this.determineHeaderName(annotation, methodParameter);
+						String headerName = determineHeaderName(annotation, methodParameter);
 						if ((Boolean) AnnotationUtils.getValue(annotation, "required") && argumentValue == null) {
 							throw new IllegalArgumentException("Received null argument value for required header: '"
 									+ headerName + "'");

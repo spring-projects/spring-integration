@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -30,10 +31,12 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -49,22 +52,25 @@ import org.springframework.util.ReflectionUtils;
  * @author Artem Bilan
  * @author Liujiong
  * @author Kris Jacyna
+ *
  * @since 2.1
  */
-public class ContentEnricher extends AbstractReplyProducingMessageHandler
-		implements Lifecycle {
+public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
+	/**
+	 * Customized SpelExpressionParser to allow to specify nested properties when paren is null
+	 */
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private volatile Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<Expression, Expression>();
+	private volatile Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<>();
 
 	private volatile Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions =
-			new HashMap<String, HeaderValueMessageProcessor<?>>();
+			new HashMap<>();
 
-	private volatile Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
+	private volatile Map<Expression, Expression> propertyExpressions = new HashMap<>();
 
 	private volatile Map<String, HeaderValueMessageProcessor<?>> headerExpressions =
-			new HashMap<String, HeaderValueMessageProcessor<?>>();
+			new HashMap<>();
 
 	private EvaluationContext sourceEvaluationContext;
 
@@ -93,7 +99,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	private volatile Long replyTimeout;
 
 	public void setNullResultPropertyExpressions(Map<String, Expression> nullResultPropertyExpressions) {
-		Map<Expression, Expression> localMap = new HashMap<Expression, Expression>(nullResultPropertyExpressions.size());
+		Map<Expression, Expression> localMap = new HashMap<>(nullResultPropertyExpressions.size());
 		for (Map.Entry<String, Expression> entry : nullResultPropertyExpressions.entrySet()) {
 			String key = entry.getKey();
 			Expression value = entry.getValue();
@@ -103,8 +109,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	}
 
 	public void setNullResultHeaderExpressions(Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions) {
-		this.nullResultHeaderExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>(
-				nullResultHeaderExpressions);
+		this.nullResultHeaderExpressions = new HashMap<>(nullResultHeaderExpressions);
 	}
 
 	/**
@@ -117,7 +122,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		Assert.notEmpty(propertyExpressions, "propertyExpressions must not be empty");
 		Assert.noNullElements(propertyExpressions.keySet().toArray(), "propertyExpressions keys must not be empty");
 		Assert.noNullElements(propertyExpressions.values().toArray(), "propertyExpressions values must not be empty");
-		Map<Expression, Expression> localMap = new HashMap<Expression, Expression>(propertyExpressions.size());
+		Map<Expression, Expression> localMap = new HashMap<>(propertyExpressions.size());
 		for (Map.Entry<String, Expression> entry : propertyExpressions.entrySet()) {
 			String key = entry.getKey();
 			Expression value = entry.getValue();
@@ -137,7 +142,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		Assert.notEmpty(headerExpressions, "headerExpressions must not be empty");
 		Assert.noNullElements(headerExpressions.keySet().toArray(), "headerExpressions keys must not be empty");
 		Assert.noNullElements(headerExpressions.values().toArray(), "headerExpressions values must not be empty");
-		this.headerExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>(headerExpressions);
+		this.headerExpressions = new HashMap<>(headerExpressions);
 	}
 
 	/**
@@ -316,19 +321,35 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		targetContext.setBeanResolver(null);
 		this.targetEvaluationContext = targetContext;
 
-		if (this.getBeanFactory() != null) {
-			for (HeaderValueMessageProcessor<?> headerValueMessageProcessor : this.headerExpressions.values()) {
-				if (headerValueMessageProcessor instanceof BeanFactoryAware) {
-					((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(getBeanFactory());
+		if (getBeanFactory() != null) {
+			boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
+
+			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
+				if (checkReadOnlyHeaders &&
+						(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
+					throw new BeanInitializationException(
+							"ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
+									"Wrong 'headerExpressions' [" + this.headerExpressions
+									+ "] configuration for " + getComponentName());
+				}
+				if (entry.getValue() instanceof BeanFactoryAware) {
+					((BeanFactoryAware) entry.getValue()).setBeanFactory(getBeanFactory());
 				}
 			}
-			for (HeaderValueMessageProcessor<?> headerValueMessageProcessor : this.nullResultHeaderExpressions.values()) {
-				if (headerValueMessageProcessor instanceof BeanFactoryAware) {
-					((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(getBeanFactory());
+
+			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions.entrySet()) {
+				if (checkReadOnlyHeaders &&
+						(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
+					throw new BeanInitializationException(
+							"ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
+									"Wrong 'nullResultHeaderExpressions' [" + this.nullResultHeaderExpressions
+									+ "] configuration for " + getComponentName());
+				}
+				if (entry.getValue() instanceof BeanFactoryAware) {
+					((BeanFactoryAware) entry.getValue()).setBeanFactory(getBeanFactory());
 				}
 			}
 		}
-
 	}
 
 	@Override
