@@ -37,6 +37,9 @@ public interface TestService {
 
 	void oneWay(String input);
 
+	@Payload("#args[0]")
+	void oneWayWithTimeouts(String input, Long sendTimeout, Long receiveTimeout);
+
 	String solicitResponse();
 
 	Message<String> getMessage();

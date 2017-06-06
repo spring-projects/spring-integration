@@ -735,7 +735,8 @@
 					Provides the amount of time dispatcher would wait to send a message.
 					This timeout would only apply if there is a potential to block in the send call.
 					For example if this gateway is hooked up to a Queue channel. 
-					Value is specified in milliseconds.
+					Value is specified in milliseconds; it can be a simple long value or a SpEL
+					expression; array variable #args is available.
 							]]>
 					</xsd:documentation>
 				</xsd:annotation>
@@ -747,7 +748,9 @@
 					Allows you to specify how long this gateway will wait for the reply message
 					before returning. By default it will wait indefinitely. 'null' is returned
 					if the gateway times out.
-					Value is specified in milliseconds.
+					Value is specified in milliseconds; it can be a simple long value or a SpEL
+					expression; array variable #args is available.
+					Also used for receive-only operations as the receive timeout.
 							]]>
 					</xsd:documentation>
 				</xsd:annotation>
@@ -850,7 +853,8 @@
 					Provides the amount of time dispatcher would wait to send a message.
 					This timeout would only apply if there is a potential to block in the send call.
 					For example if this gateway is hooked up to a Queue channel. 
-					Value is specified in milliseconds.
+					Value is specified in milliseconds; it can be a simple long value or a SpEL
+					expression; array variable '#args' is available.
 							]]>
 				</xsd:documentation>
 			</xsd:annotation>
@@ -871,7 +875,9 @@
 					Specifies how long this gateway will wait for the reply message
 					before returning. By default it will wait indefinitely. 'null' is returned
 					if the gateway times out.
-					Value is specified in milliseconds.
+					Value is specified in milliseconds; it can be a simple long value or a SpEL
+					expression; array variable '#args' is available.
+					Also used for receive-only operations as the receive timeout.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>

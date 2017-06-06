@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import java.lang.annotation.Target;
  * ignores interfaces.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  *
  * @see IntegrationComponentScan
@@ -76,17 +77,20 @@ public @interface MessagingGateway {
 	String errorChannel() default "";
 
 	/**
-	 * Provides the amount of time dispatcher would wait to send a {@code Message}.
-	 * This timeout would only apply if there is a potential to block in the send call.
-	 * For example if this gateway is hooked up to a {@code QueueChannel}.
+	 * Provides the amount of time dispatcher would wait to send a {@code Message}. This
+	 * timeout would only apply if there is a potential to block in the send call. For
+	 * example if this gateway is hooked up to a {@code QueueChannel}. Value is specified
+	 * in milliseconds; it can be a simple long value or a SpEL expression; array variable
+	 * #args is available.
 	 * @return the suggested timeout in milliseconds, if any
 	 */
 	String defaultRequestTimeout() default "-9223372036854775808";
 
 	/**
 	 * Allows to specify how long this gateway will wait for the reply {@code Message}
-	 * before returning. By default it will wait indefinitely. {@code null} is returned
-	 if the gateway times out.
+	 * before returning. By default it will wait indefinitely. {@code null} is returned if
+	 * the gateway times out. Value is specified in milliseconds; it can be a simple long
+	 * value or a SpEL expression; array variable #args is available.
 	 * @return the suggested timeout in milliseconds, if any
 	 */
 	String defaultReplyTimeout() default "-9223372036854775808";

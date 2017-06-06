@@ -145,8 +145,10 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 			gatewayProxyBuilder.addPropertyReference("mapper", mapper);
 		}
 
-		gatewayProxyBuilder.addPropertyValue("defaultRequestTimeout", gatewayAttributes.get("defaultRequestTimeout"));
-		gatewayProxyBuilder.addPropertyValue("defaultReplyTimeout", gatewayAttributes.get("defaultReplyTimeout"));
+		gatewayProxyBuilder.addPropertyValue("defaultRequestTimeoutExpressionString",
+				gatewayAttributes.get("defaultRequestTimeout"));
+		gatewayProxyBuilder.addPropertyValue("defaultReplyTimeoutExpressionString",
+				gatewayAttributes.get("defaultReplyTimeout"));
 		gatewayProxyBuilder.addPropertyValue("methodMetadataMap", gatewayAttributes.get("methods"));
 
 

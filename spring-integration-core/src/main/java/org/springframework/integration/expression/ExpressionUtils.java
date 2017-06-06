@@ -27,6 +27,8 @@ import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -43,6 +45,8 @@ import org.springframework.util.Assert;
  * @since 2.2
  */
 public final class ExpressionUtils {
+
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
 	private static final Log logger = LogFactory.getLog(ExpressionUtils.class);
 
@@ -139,6 +143,40 @@ public final class ExpressionUtils {
 					expression.getExpressionString(), value.getClass().getName()));
 		}
 		return file;
+	}
+
+	/**
+	 * Return a {@link ValueExpression} for a simple literal, otherwise
+	 * a {@link org.springframework.expression.spel.standard.SpelExpression}.
+	 * @param expression the expression string.
+	 * @return the expression.
+	 * @since 5.0
+	 */
+	public static Expression intExpression(String expression) {
+		try {
+			return new ValueExpression<>(Integer.parseInt(expression));
+		}
+		catch (NumberFormatException e) {
+			// empty
+		}
+		return EXPRESSION_PARSER.parseExpression(expression);
+	}
+
+	/**
+	 * Return a {@link ValueExpression} for a simple literal, otherwise
+	 * a {@link org.springframework.expression.spel.standard.SpelExpression}.
+	 * @param expression the expression string.
+	 * @return the expression.
+	 * @since 5.0
+	 */
+	public static Expression longExpression(String expression) {
+		try {
+			return new ValueExpression<>(Long.parseLong(expression));
+		}
+		catch (NumberFormatException e) {
+			// empty
+		}
+		return EXPRESSION_PARSER.parseExpression(expression);
 	}
 
 }

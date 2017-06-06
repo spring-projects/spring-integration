@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * @param <V> - The expected value type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class ValueExpression<V> implements Expression {
@@ -167,6 +168,11 @@ public class ValueExpression<V> implements Expression {
 	@Override
 	public String getExpressionString() {
 		return this.value.toString();
+	}
+
+	@Override
+	public String toString() {
+		return "ValueExpression [value=" + this.value + "]";
 	}
 
 }
