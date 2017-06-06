@@ -254,7 +254,12 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		@Override
 		public void onMessage(final Message message, final Channel channel) throws Exception {
 			if (AmqpInboundGateway.this.retryTemplate == null) {
-				doOnMessage(message, channel);
+				try {
+					doOnMessage(message, channel);
+				}
+				finally {
+					attributesHolder.remove();
+				}
 			}
 			else {
 				AmqpInboundGateway.this.retryTemplate.execute(context -> {
@@ -346,14 +351,16 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 		@Override
 		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			attributesHolder.set(context);
+			if (AmqpInboundGateway.this.recoveryCallback != null) {
+				attributesHolder.set(context);
+			}
 			return true;
 		}
 
 		@Override
 		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
 				Throwable throwable) {
-			// Empty
+			attributesHolder.remove();
 		}
 
 		@Override

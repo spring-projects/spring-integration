@@ -199,7 +199,12 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		public void onMessage(final Message message, final Channel channel) throws Exception {
 			try {
 				if (AmqpInboundChannelAdapter.this.retryTemplate == null) {
-					processMessage(message, channel);
+					try {
+						processMessage(message, channel);
+					}
+					finally {
+						attributesHolder.remove();
+					}
 				}
 				else {
 					AmqpInboundChannelAdapter.this.retryTemplate.execute(context -> {
@@ -217,9 +222,6 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 				else {
 					throw e;
 				}
-			}
-			finally {
-				attributesHolder.remove();
 			}
 		}
 
@@ -242,14 +244,16 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 
 		@Override
 		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			attributesHolder.set(context);
+			if (AmqpInboundChannelAdapter.this.recoveryCallback != null) {
+				attributesHolder.set(context);
+			}
 			return true;
 		}
 
 		@Override
 		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
 				Throwable throwable) {
-			// Empty
+			attributesHolder.remove();
 		}
 
 		@Override
