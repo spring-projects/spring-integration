@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,14 @@
 
 package org.springframework.integration.transformer;
 
+import java.util.Arrays;
+
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 /**
@@ -27,6 +32,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class HeaderFilter extends IntegrationObjectSupport implements Transformer {
@@ -48,6 +55,22 @@ public class HeaderFilter extends IntegrationObjectSupport implements Transforme
 	@Override
 	public String getComponentType() {
 		return "header-filter";
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory) {
+			for (String header : this.headersToRemove) {
+				if (!header.contains("*")
+						&& (MessageHeaders.ID.equals(header) || MessageHeaders.TIMESTAMP.equals(header))) {
+					throw new BeanInitializationException(
+							"HeaderFilter cannot remove 'id' and 'timestamp' read-only headers.\n" +
+									"Wrong 'headersToRemove' [" + Arrays.toString(this.headersToRemove)
+									+ "] configuration for " + getComponentName());
+				}
+			}
+		}
 	}
 
 	@Override

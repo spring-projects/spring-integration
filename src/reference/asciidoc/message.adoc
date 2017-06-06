@@ -374,8 +374,15 @@ In addition to the default strategy, two additional `IdGenerators` are provided;
 ===== Read-only Headers
 
 The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and the cannot be overridden.
-With the `spring.integration.readOnly.headers` global property (see <<global-properties>>) you can specify any header names which become read-only.
+
+Since _version 4.3.2_, the `MessageBuilder` provides the `readOnlyHeaders(String... readOnlyHeaders)` API to customize a list of headers which should not be copied from an upstream `Message`.
+Just the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read only by default.
+The global `spring.integration.readOnly.headers` property (see <<global-properties>>) is provided to customize `DefaultMessageBuilderFactory` for Framework components.
+This can be useful when you would like do not populate some out-of-the-box headers, like `contentType` by the `ObjectToJsonTransformer` (see <<json-transformers>>).
+
 When you try to build a new message using `MessageBuilder`, this kind of headers are ignored and particular `INFO` message is emitted to logs.
+
+Starting with _version 5.0_, <<gateway,Messaging Gateway>>, <<header-enricher,Header Enricher>>, <<payload-enricher,Content Enricher>> and <<header-filter, Header Filter>> don't allow to configure `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` header names when `DefaultMessageBuilderFactory` is used and they throw `BeanInitializationException`.
 
 [[message-implementations]]
 ==== Message Implementations
@@ -468,8 +475,3 @@ assertEquals(2, lessImportantMessage.getHeaders().getPriority());
 
 The `priority` header is only considered when using a `PriorityChannel` (as described in the next chapter).
 It is defined as _java.lang.Integer_.
-
-Since _version 4.3.2_, the `MessageBuilder` provides the `readOnlyHeaders(String... readOnlyHeaders)` API to customize a list of headers which should not be copied from an upstream `Message`.
-Just the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read only by default.
-The global `spring.integration.readOnly.headers` property (see <<global-properties>>) is provided to customize `DefaultMessageBuilderFactory` for Framework components.
-This can be useful when you would like do not populate some out-of-the-box headers, like `contentType` by the `ObjectToJsonTransformer` (see <<json-transformers>>).

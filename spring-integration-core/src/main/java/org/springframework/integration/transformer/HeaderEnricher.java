@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 
 /**
@@ -112,7 +115,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 
 				boolean headerDoesNotExist = headerMap.get(key) == null;
 
-				/**
+				/*
 				 * Only evaluate value expression if necessary
 				 */
 				if (headerDoesNotExist || shouldOverwrite) {
@@ -155,23 +158,36 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 	@Override
 	public void onInit() throws Exception {
 		boolean shouldOverwrite = this.defaultOverwrite;
-		for (HeaderValueMessageProcessor<?> processor : this.headersToAdd.values()) {
-			if (processor instanceof BeanFactoryAware && this.getBeanFactory() != null) {
-				((BeanFactoryAware) processor).setBeanFactory(this.getBeanFactory());
+		boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
+
+		for (Entry<String, ? extends HeaderValueMessageProcessor<?>> entry : this.headersToAdd.entrySet()) {
+			if (checkReadOnlyHeaders &&
+					(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
+				throw new BeanInitializationException(
+						"HeaderEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
+								"Wrong 'headersToAdd' [" + this.headersToAdd
+								+ "] configuration for " + getComponentName());
+			}
+
+			HeaderValueMessageProcessor<?> processor = entry.getValue();
+			if (processor instanceof BeanFactoryAware && getBeanFactory() != null) {
+				((BeanFactoryAware) processor).setBeanFactory(getBeanFactory());
 			}
 			Boolean processorOverwrite = processor.isOverwrite();
 			if (processorOverwrite != null) {
 				shouldOverwrite |= processorOverwrite;
 			}
 		}
+
 		if (this.messageProcessor != null
 				&& this.messageProcessor instanceof BeanFactoryAware
-				&& this.getBeanFactory() != null) {
-			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
+				&& getBeanFactory() != null) {
+			((BeanFactoryAware) this.messageProcessor).setBeanFactory(getBeanFactory());
 		}
-		if (!shouldOverwrite && !this.shouldSkipNulls) {
-			logger.warn(this.getComponentName()
-					+ " is configured to not overwrite existing headers. 'shouldSkipNulls = false' will have no effect");
+
+		if (!shouldOverwrite && !this.shouldSkipNulls && logger.isWarnEnabled()) {
+			logger.warn(getComponentName() +
+					" is configured to not overwrite existing headers. 'shouldSkipNulls = false' will have no effect");
 		}
 	}
 
