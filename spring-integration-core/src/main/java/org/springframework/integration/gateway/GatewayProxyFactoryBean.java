@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@ import java.lang.reflect.Type;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -37,7 +40,9 @@ import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -50,13 +55,16 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -84,8 +92,6 @@ import reactor.rx.Promises;
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint
 		implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
-
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final boolean reactorPresent = ClassUtils.isPresent("reactor.rx.Promise",
 			GatewayProxyFactoryBean.class.getClassLoader());
@@ -544,7 +550,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 					}
 					headerExpressions.put(name, hasValue
 							? new LiteralExpression(value)
-							: PARSER.parseExpression(expression));
+							: EXPRESSION_PARSER.parseExpression(expression));
 				}
 			}
 
@@ -570,6 +576,32 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				}
 			}
 		}
+
+		if (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory) {
+			Set<String> headerNames = new HashSet<String>(headerExpressions.keySet());
+
+			if (this.globalMethodMetadata != null) {
+				headerNames.addAll(this.globalMethodMetadata.getHeaderExpressions().keySet());
+			}
+
+			List<MethodParameter> methodParameters = GatewayMethodInboundMessageMapper.getMethodParameterList(method);
+
+			for (MethodParameter methodParameter : methodParameters) {
+				Header header = methodParameter.getParameterAnnotation(Header.class);
+				if (header != null) {
+					String headerName = GatewayMethodInboundMessageMapper.determineHeaderName(header, methodParameter);
+					headerNames.add(headerName);
+				}
+			}
+
+			for (String header : headerNames) {
+				if ((MessageHeaders.ID.equals(header) || MessageHeaders.TIMESTAMP.equals(header))) {
+					logger.warn("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers.\n" +
+									"Wrong headers configuration for " + getComponentName());
+				}
+			}
+		}
+
 		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method,
 				headerExpressions,
 				this.globalMethodMetadata != null ? this.globalMethodMetadata.getHeaderExpressions() : null,
@@ -715,7 +747,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				if (t instanceof RuntimeException) {
 					throw (RuntimeException) t;
 				}
-				throw new MessagingException("asynchronous gateway invocation failed", t);
+				throw new MessagingException("Asynchronous gateway invocation failed", t);
 			}
 		}
 

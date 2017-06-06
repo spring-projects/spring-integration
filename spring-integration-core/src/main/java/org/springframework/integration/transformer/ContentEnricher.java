@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -30,10 +31,12 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -49,11 +52,14 @@ import org.springframework.util.ReflectionUtils;
  * @author Artem Bilan
  * @author Liujiong
  * @author Kris Jacyna
+ *
  * @since 2.1
  */
-public class ContentEnricher extends AbstractReplyProducingMessageHandler
-		implements Lifecycle {
+public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
+	/**
+	 * Customized SpelExpressionParser to allow to specify nested properties when paren is null
+	 */
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private volatile Map<Expression, Expression> nullResultPropertyExpressions = new HashMap<Expression, Expression>();
@@ -103,8 +109,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 	}
 
 	public void setNullResultHeaderExpressions(Map<String, HeaderValueMessageProcessor<?>> nullResultHeaderExpressions) {
-		this.nullResultHeaderExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>(
-				nullResultHeaderExpressions);
+		this.nullResultHeaderExpressions = new HashMap<String, HeaderValueMessageProcessor<?>>(nullResultHeaderExpressions);
 	}
 
 	/**
@@ -316,19 +321,33 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler
 		targetContext.setBeanResolver(null);
 		this.targetEvaluationContext = targetContext;
 
-		if (this.getBeanFactory() != null) {
-			for (HeaderValueMessageProcessor<?> headerValueMessageProcessor : this.headerExpressions.values()) {
-				if (headerValueMessageProcessor instanceof BeanFactoryAware) {
-					((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(getBeanFactory());
+		if (getBeanFactory() != null) {
+			boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
+
+			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.headerExpressions.entrySet()) {
+				if (checkReadOnlyHeaders &&
+						(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
+					this.logger.warn("ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
+									"Wrong 'headerExpressions' [" + this.headerExpressions
+									+ "] configuration for " + getComponentName());
+				}
+				if (entry.getValue() instanceof BeanFactoryAware) {
+					((BeanFactoryAware) entry.getValue()).setBeanFactory(getBeanFactory());
 				}
 			}
-			for (HeaderValueMessageProcessor<?> headerValueMessageProcessor : this.nullResultHeaderExpressions.values()) {
-				if (headerValueMessageProcessor instanceof BeanFactoryAware) {
-					((BeanFactoryAware) headerValueMessageProcessor).setBeanFactory(getBeanFactory());
+
+			for (Map.Entry<String, HeaderValueMessageProcessor<?>> entry : this.nullResultHeaderExpressions.entrySet()) {
+				if (checkReadOnlyHeaders &&
+						(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
+					this.logger.warn("ContentEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
+									"Wrong 'nullResultHeaderExpressions' [" + this.nullResultHeaderExpressions
+									+ "] configuration for " + getComponentName());
+				}
+				if (entry.getValue() instanceof BeanFactoryAware) {
+					((BeanFactoryAware) entry.getValue()).setBeanFactory(getBeanFactory());
 				}
 			}
 		}
-
 	}
 
 	@Override

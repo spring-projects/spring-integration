@@ -152,7 +152,12 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 */
 	@Override
 	public MessageBuilder<T> removeHeader(String headerName) {
-		this.headerAccessor.removeHeader(headerName);
+		if (!this.headerAccessor.isReadOnly(headerName)) {
+			this.headerAccessor.removeHeader(headerName);
+		}
+		else if (logger.isInfoEnabled()) {
+			logger.info("The header [" + headerName + "] is ignored for removal because it is is readOnly.");
+		}
 		return this;
 	}
 
