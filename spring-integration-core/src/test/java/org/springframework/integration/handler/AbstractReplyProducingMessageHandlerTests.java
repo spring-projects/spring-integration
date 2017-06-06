@@ -20,6 +20,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.emptyCollectionOf;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.BDDMockito.given;
@@ -42,6 +44,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Iwein Fuld
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Marius Bogoevici
  */
 @RunWith(org.mockito.runners.MockitoJUnitRunner.class)
 public class AbstractReplyProducingMessageHandlerTests {
@@ -84,9 +87,42 @@ public class AbstractReplyProducingMessageHandlerTests {
 			}
 
 		};
+		assertThat(handler.getNotPropagatedHeaders(), emptyCollectionOf(String.class));
 		handler.setNotPropagatedHeaders("foo", "bar");
 		handler.setOutputChannel(this.channel);
+		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("foo", "bar"));
 		ArgumentCaptor<Message<?>> captor = (ArgumentCaptor<Message<?>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(Message.class);
+		willReturn(true).given(this.channel).send(captor.capture());
+		handler.handleMessage(MessageBuilder.withPayload("hello")
+				.setHeader("foo", "FOO")
+				.setHeader("bar", "BAR")
+				.setHeader("baz", "BAZ")
+				.build());
+		Message<?> out = captor.getValue();
+		assertThat(out, notNullValue());
+		assertThat(out.getHeaders().get("foo"), nullValue());
+		assertThat(out.getHeaders().get("bar"), equalTo("RAB"));
+		assertThat(out.getHeaders().get("baz"), equalTo("BAZ"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testNotPropagateAdd() {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new GenericMessage<String>("world", Collections.singletonMap("bar", "RAB"));
+			}
+
+		};
+		assertThat(handler.getNotPropagatedHeaders(), emptyCollectionOf(String.class));
+		handler.setNotPropagatedHeaders("foo");
+		handler.addNotPropagatedHeaders("bar");
+		handler.setOutputChannel(this.channel);
+		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("foo", "bar"));
+		ArgumentCaptor<Message<?>> captor =
+				(ArgumentCaptor<Message<?>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture());
 		handler.handleMessage(MessageBuilder.withPayload("hello")
 				.setHeader("foo", "FOO")
