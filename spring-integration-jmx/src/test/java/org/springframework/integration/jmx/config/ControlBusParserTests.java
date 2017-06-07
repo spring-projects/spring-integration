@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,16 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class ControlBusParserTests {
 
@@ -48,7 +48,7 @@ public class ControlBusParserTests {
 		MessageChannel control = this.context.getBean("controlChannel", MessageChannel.class);
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		Object value = messagingTemplate.convertSendAndReceive(control,
-				"@integrationMbeanExporter.getChannelSendRate('testChannel').count", null);
+				"@integrationMbeanExporter.getChannelSendRate('testChannel').count", Object.class);
 		assertEquals(0, value);
 		MBeanExporter exporter = this.context.getBean(MBeanExporter.class);
 		exporter.destroy();

@@ -600,6 +600,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		if (StringUtils.hasText(this.replyDestinationName)) {
 			container.setDestinationName(this.replyDestinationName);
 		}
+		else {
+			// to be resolved to the TemporaryQueue
+			container.setDestinationName("");
+		}
 		if (this.destinationResolver != null) {
 			container.setDestinationResolver(this.destinationResolver);
 		}
@@ -1399,7 +1403,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		@Override
 		protected String getDestinationDescription() {
 			if (this.replyDestination instanceof TemporaryQueue) {
-				return "Temporary queue:" + this.replyDestination.toString();
+				return "Temporary queue: " + this.replyDestination.toString();
 			}
 			else if (super.getDestination() != null) {
 				try {
