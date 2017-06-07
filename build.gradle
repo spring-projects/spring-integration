@@ -30,6 +30,7 @@ allprojects {
 	group = 'org.springframework.integration'
 
 	repositories {
+//		maven { url 'https://repo.spring.io/libs-staging-local' }
 		if (version.endsWith('BUILD-SNAPSHOT') || project.hasProperty('platformVersion')) {
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
@@ -101,7 +102,7 @@ subprojects { subproject ->
 		hibernateVersion = '5.1.0.Final'
 		hsqldbVersion = '2.3.3'
 		h2Version = '1.4.180'
-		jackson2Version = '2.7.3'
+		jackson2Version = '2.8.8'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.5.6'
 		jedisVersion = '2.7.3'
@@ -126,16 +127,16 @@ subprojects { subproject ->
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.21"
 		tomcatVersion = "8.0.33"
-		smackVersion = '4.1.7'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.6.8.RELEASE'
+		smackVersion = '4.1.9'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '1.6.10.RELEASE'
 		springDataJpaVersion = '1.10.10.RELEASE'
 		springDataMongoVersion = '1.9.10.RELEASE'
 		springDataRedisVersion = '1.7.10.RELEASE'
 		springGemfireVersion = '1.8.10.RELEASE'
-		springSecurityVersion = '4.1.0.RELEASE'
+		springSecurityVersion = '4.1.4.RELEASE'
 		springSocialTwitterVersion = '1.1.2.RELEASE'
 		springRetryVersion = '1.1.3.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.3.8.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '4.3.9.RELEASE'
 		springWsVersion = '2.3.0.RELEASE'
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
@@ -156,7 +157,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.7.2.201409121644"
+		toolVersion = "0.7.8"
 	}
 
 	// dependencies that are common across all java projects
