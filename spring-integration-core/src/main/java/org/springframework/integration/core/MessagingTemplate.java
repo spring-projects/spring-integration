@@ -100,7 +100,7 @@ public class MessagingTemplate extends GenericMessagingTemplate {
 	public Object receiveAndConvert(MessageChannel destination, long timeout) {
 		Message<?> message = doReceive(destination, timeout);
 		if (message != null) {
-			return doConvert(message, null);
+			return doConvert(message, Object.class);
 		}
 		else {
 			return null;

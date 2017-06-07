@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,19 +92,19 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncReceiveAndConvert() {
-		return this.executor.submit(() -> (R) receiveAndConvert(null));
+		return this.executor.submit(() -> (R) receiveAndConvert(Object.class));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncReceiveAndConvert(final PollableChannel channel) {
-		return this.executor.submit(() -> (R) receiveAndConvert(channel, null));
+		return this.executor.submit(() -> (R) receiveAndConvert(channel, Object.class));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncReceiveAndConvert(final String channelName) {
-		return this.executor.submit(() -> (R) receiveAndConvert(channelName, null));
+		return this.executor.submit(() -> (R) receiveAndConvert(channelName, Object.class));
 	}
 
 	@Override
@@ -125,40 +125,42 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final Object request) {
-		return this.executor.submit(() -> (R) convertSendAndReceive(request, null));
+		return this.executor.submit(() -> (R) convertSendAndReceive(request, Object.class));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final MessageChannel channel, final Object request) {
-		return this.executor.submit(() -> (R) convertSendAndReceive(channel, request, null));
+		return this.executor.submit(() -> (R) convertSendAndReceive(channel, request, Object.class));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final String channelName, final Object request) {
-		return this.executor.submit(() -> (R) convertSendAndReceive(channelName, request, null));
+		return this.executor.submit(() -> (R) convertSendAndReceive(channelName, request, Object.class));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final Object request,
 			final MessagePostProcessor requestPostProcessor) {
-		return this.executor.submit(() -> (R) convertSendAndReceive(request, null, requestPostProcessor));
+		return this.executor.submit(() -> (R) convertSendAndReceive(request, Object.class, requestPostProcessor));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final MessageChannel channel, final Object request,
 			final MessagePostProcessor requestPostProcessor) {
-		return this.executor.submit(() -> (R) convertSendAndReceive(channel, request, null, requestPostProcessor));
+		return this.executor
+				.submit(() -> (R) convertSendAndReceive(channel, request, Object.class, requestPostProcessor));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <R> Future<R> asyncConvertSendAndReceive(final String channelName, final Object request,
 			final MessagePostProcessor requestPostProcessor) {
-		return this.executor.submit(() -> (R) convertSendAndReceive(channelName, request, null, requestPostProcessor));
+		return this.executor
+				.submit(() -> (R) convertSendAndReceive(channelName, request, Object.class, requestPostProcessor));
 	}
 
 }

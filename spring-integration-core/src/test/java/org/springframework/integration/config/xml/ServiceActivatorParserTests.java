@@ -204,7 +204,7 @@ public class ServiceActivatorParserTests {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(channel);
 
-		return template.convertSendAndReceive(payload, null);
+		return template.convertSendAndReceive(payload, Object.class);
 	}
 
 

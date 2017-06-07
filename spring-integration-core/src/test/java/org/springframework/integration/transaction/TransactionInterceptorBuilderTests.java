@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,10 +58,10 @@ public class TransactionInterceptorBuilderTests {
 		verify(this.interceptor2, null);
 	}
 
-	private void verify(TransactionInterceptor interceptor, PlatformTransactionManager txm) {
+	private void verify(TransactionInterceptor interceptor, PlatformTransactionManager txm) throws Exception {
 		assertSame(txm, interceptor.getTransactionManager());
 		TransactionAttribute atts = interceptor.getTransactionAttributeSource()
-				.getTransactionAttribute(null, null);
+				.getTransactionAttribute(TransactionInterceptorBuilderTests.class.getDeclaredMethod("test"), null);
 		Assert.assertThat(atts.getPropagationBehavior(), equalTo(Propagation.REQUIRES_NEW.value()));
 		Assert.assertThat(atts.getIsolationLevel(), equalTo(Isolation.SERIALIZABLE.value()));
 		Assert.assertThat(atts.getTimeout(), equalTo(42));
