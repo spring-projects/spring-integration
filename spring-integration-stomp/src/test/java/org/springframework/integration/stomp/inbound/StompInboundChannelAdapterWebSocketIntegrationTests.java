@@ -176,7 +176,8 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests extends LogAdju
 		Throwable throwable = errorMessage.getPayload();
 		assertThat(throwable, instanceOf(MessageHandlingException.class));
 		assertThat(throwable.getCause(), instanceOf(MessageConversionException.class));
-		assertThat(throwable.getMessage(), containsString("No suitable converter, payloadType=interface java.util.Map"));
+		assertThat(throwable.getMessage(),
+				containsString("No suitable converter for payload type [interface java.util.Map]"));
 
 		this.serverContext.close();
 

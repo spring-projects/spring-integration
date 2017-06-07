@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
@@ -102,6 +103,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 @ContextConfiguration
@@ -426,6 +428,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 	static class IncrementController {
 
 		@MessageMapping("/increment")
+		@SendTo
 		public int handle(int i) {
 			return i + 1;
 		}
@@ -491,15 +494,22 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 		@Bean
 		public ApplicationListener<SessionSubscribeEvent> webSocketEventListener(
 				final AbstractSubscribableChannel clientOutboundChannel) {
-			return event -> {
-				Message<byte[]> message = event.getMessage();
-				StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(message);
-				if (stompHeaderAccessor.getReceipt() != null) {
-					stompHeaderAccessor.setHeader("stompCommand", StompCommand.RECEIPT);
-					stompHeaderAccessor.setReceiptId(stompHeaderAccessor.getReceipt());
-					clientOutboundChannel.send(
-							MessageBuilder.createMessage(new byte[0], stompHeaderAccessor.getMessageHeaders()));
+			// Cannot be lambda because Java can't infer generic type from lambdas,
+			// therefore we end up with ClassCastException for other event types
+			return new ApplicationListener<SessionSubscribeEvent>() {
+
+				@Override
+				public void onApplicationEvent(SessionSubscribeEvent event) {
+					Message<byte[]> message = event.getMessage();
+					StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(message);
+					if (stompHeaderAccessor.getReceipt() != null) {
+						stompHeaderAccessor.setHeader("stompCommand", StompCommand.RECEIPT);
+						stompHeaderAccessor.setReceiptId(stompHeaderAccessor.getReceipt());
+						clientOutboundChannel.send(
+								MessageBuilder.createMessage(new byte[0], stompHeaderAccessor.getMessageHeaders()));
+					}
 				}
+
 			};
 		}
 
