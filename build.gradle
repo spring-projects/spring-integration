@@ -310,7 +310,7 @@ project('spring-integration-core') {
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
-		compile "io.projectreactor:reactor-test:$reactorVersion"
+		compile "io.projectreactor.addons:reactor-test:$reactorVersion"
 	}
 }
 
