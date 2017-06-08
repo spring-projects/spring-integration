@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.redis.rules;
 
+import java.time.Duration;
+
 import org.junit.Assume;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 
 /**
@@ -39,9 +43,15 @@ public final class RedisAvailableRule implements MethodRule {
 		if (redisAvailable != null) {
 			JedisConnectionFactory connectionFactory = null;
 			try {
-				connectionFactory = new JedisConnectionFactory();
-				connectionFactory.setPort(REDIS_PORT);
-				connectionFactory.setTimeout(10000);
+				RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+				redisStandaloneConfiguration.setPort(REDIS_PORT);
+
+				JedisClientConfiguration clientConfiguration = JedisClientConfiguration.builder()
+						.connectTimeout(Duration.ofSeconds(10))
+						.readTimeout(Duration.ofSeconds(10))
+						.build();
+
+				connectionFactory = new JedisConnectionFactory(redisStandaloneConfiguration, clientConfiguration);
 				connectionFactory.afterPropertiesSet();
 				connectionFactory.getConnection();
 				connectionFactoryResource.set(connectionFactory);
@@ -51,14 +61,17 @@ public final class RedisAvailableRule implements MethodRule {
 					connectionFactory.destroy();
 				}
 				return new Statement() {
+
 					@Override
 					public void evaluate() throws Throwable {
 						Assume.assumeTrue("Skipping test due to Redis not being available on port: " + REDIS_PORT, false);
 					}
 				};
+
 			}
 
 			return new Statement() {
+
 				@Override
 				public void evaluate() throws Throwable {
 					try {
@@ -72,14 +85,17 @@ public final class RedisAvailableRule implements MethodRule {
 						}
 					}
 				}
+
 			};
 		}
 
 		return new Statement() {
+
 			@Override
 			public void evaluate() throws Throwable {
 				base.evaluate();
 			}
+
 		};
 	}
 
