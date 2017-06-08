@@ -459,7 +459,10 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		Message<Foo> fooMessage = new GenericMessage<>(new Foo("foo"));
 		try {
-			store.addMessagesToGroup(1, fooMessage);
+			store.addMessageToGroup(1, fooMessage)
+					.getMessages()
+					.iterator()
+					.next();
 			fail("SerializationException expected");
 		}
 		catch (Exception e) {
@@ -513,15 +516,21 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+
 			Foo foo1 = (Foo) o;
-			return Objects.equals(this.foo, foo1.foo);
+
+			return this.foo != null ? this.foo.equals(foo1.foo) : foo1.foo == null;
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(this.foo);
+			return Objects.hashCode(this.foo);
 		}
 
 	}

@@ -38,7 +38,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
-import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
@@ -71,7 +70,7 @@ public final class JacksonJsonUtils {
 			mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
 			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-			mapper.setDefaultTyping(createWhitelistedDefaultTyping(trustedPackages));
+			mapper.setDefaultTyping(new WhitelistTypeResolverBuilder(trustedPackages));
 
 			GenericMessageJacksonDeserializer genericMessageDeserializer = new GenericMessageJacksonDeserializer();
 			genericMessageDeserializer.setMapper(mapper);
@@ -99,13 +98,6 @@ public final class JacksonJsonUtils {
 		}
 	}
 
-	private static TypeResolverBuilder<?> createWhitelistedDefaultTyping(String... trustedPackages) {
-		TypeResolverBuilder<?> typeResolverBuilder = new WhitelistTypeResolverBuilder(trustedPackages);
-		typeResolverBuilder = typeResolverBuilder.init(JsonTypeInfo.Id.CLASS, null);
-		typeResolverBuilder = typeResolverBuilder.inclusion(JsonTypeInfo.As.PROPERTY);
-		return typeResolverBuilder;
-	}
-
 	/**
 	 * An implementation of {@link ObjectMapper.DefaultTypeResolverBuilder}
 	 * that wraps a default {@link TypeIdResolver} to the {@link WhitelistTypeIdResolver}.
@@ -117,11 +109,16 @@ public final class JacksonJsonUtils {
 	 */
 	private static final class WhitelistTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
 
+		private static final long serialVersionUID = 1L;
+
 		private final String[] trustedPackages;
 
 		WhitelistTypeResolverBuilder(String... trustedPackages) {
 			super(ObjectMapper.DefaultTyping.NON_FINAL);
 			this.trustedPackages = trustedPackages;
+
+			init(JsonTypeInfo.Id.CLASS, null)
+					.inclusion(JsonTypeInfo.As.PROPERTY);
 		}
 
 		@Override

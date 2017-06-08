@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore {
@@ -92,10 +93,14 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(Message<T> message) {
+		doAddMessage(message);
+		return (Message<T>) getMessage(message.getHeaders().getId());
+	}
+
+	protected void doAddMessage(Message<?> message) {
 		Assert.notNull(message, "'message' must not be null");
 		UUID messageId = message.getHeaders().getId();
 		doStoreIfAbsent(MESSAGE_KEY_PREFIX + messageId, new MessageHolder(message));
-		return (Message<T>) getMessage(messageId);
 	}
 
 	@Override
@@ -162,7 +167,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		}
 
 		for (Message<?> message : messages) {
-			addMessage(message);
+			doAddMessage(message);
 			if (metadata != null) {
 				metadata.add(message.getHeaders().getId());
 			}
