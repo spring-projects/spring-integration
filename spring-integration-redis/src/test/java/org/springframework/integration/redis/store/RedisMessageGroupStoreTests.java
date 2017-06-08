@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.store;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -23,11 +24,13 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -453,6 +456,74 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertEquals(errorMessage.getOriginalMessage(), ((ErrorMessage) errorMessageResult).getOriginalMessage());
 		assertEquals(errorMessage.getPayload().getMessage(),
 				((ErrorMessage) errorMessageResult).getPayload().getMessage());
+
+		Message<Foo> fooMessage = new GenericMessage<>(new Foo("foo"));
+		try {
+			store.addMessagesToGroup(1, fooMessage);
+			fail("SerializationException expected");
+		}
+		catch (Exception e) {
+			assertThat(e.getCause().getCause(), instanceOf(IllegalArgumentException.class));
+			assertThat(e.getMessage(),
+					containsString("The class with " +
+							"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo and name of " +
+							"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo " +
+							"is not in the trusted packages:"));
+		}
+
+		mapper = JacksonJsonUtils.messagingAwareMapper(getClass().getPackage().getName());
+
+		serializer = new GenericJackson2JsonRedisSerializer(mapper);
+		store.setValueSerializer(serializer);
+
+		store.removeMessageGroup(1);
+		messageGroup = store.addMessageToGroup(1, fooMessage);
+		assertEquals(1, messageGroup.size());
+		assertEquals(fooMessage, messageGroup.getMessages().iterator().next());
+
+		mapper = JacksonJsonUtils.messagingAwareMapper("*");
+
+		serializer = new GenericJackson2JsonRedisSerializer(mapper);
+		store.setValueSerializer(serializer);
+
+		store.removeMessageGroup(1);
+		messageGroup = store.addMessageToGroup(1, fooMessage);
+		assertEquals(1, messageGroup.size());
+		assertEquals(fooMessage, messageGroup.getMessages().iterator().next());
+	}
+
+	private static class Foo {
+
+		private String foo;
+
+		Foo() {
+		}
+
+		Foo(String foo) {
+			this.foo = foo;
+		}
+
+		public String getFoo() {
+			return this.foo;
+		}
+
+		public void setFoo(String foo) {
+			this.foo = foo;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			Foo foo1 = (Foo) o;
+			return Objects.equals(this.foo, foo1.foo);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.foo);
+		}
+
 	}
 
 }
