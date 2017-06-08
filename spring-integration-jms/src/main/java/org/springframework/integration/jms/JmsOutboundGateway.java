@@ -597,7 +597,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		if (this.replyDestination != null) {
 			container.setDestination(this.replyDestination);
 		}
-		if (StringUtils.hasText(this.replyDestinationName)) {
+		else if (StringUtils.hasText(this.replyDestinationName)) {
 			container.setDestinationName(this.replyDestinationName);
 		}
 		else {
@@ -1163,15 +1163,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		if (logger.isDebugEnabled()) {
 			if (reply == null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug(this.getComponentName() + " Timed out waiting for reply with CorrelationId "
-							+ correlationId);
-				}
+				logger.debug(this.getComponentName() + " Timed out waiting for reply with CorrelationId "
+						+ correlationId);
 			}
 			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug(this.getComponentName() + " Obtained reply with CorrelationId " + correlationId);
-				}
+				logger.debug(this.getComponentName() + " Obtained reply with CorrelationId " + correlationId);
 			}
 		}
 		return reply;
@@ -1372,7 +1368,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 
 		public Destination getReplyDestination() {
-			Destination replyDest = this.getDestination();
+			Destination replyDest = getDestination();
 			if (replyDest == null) {
 				replyDest = this.replyDestination;
 			}
