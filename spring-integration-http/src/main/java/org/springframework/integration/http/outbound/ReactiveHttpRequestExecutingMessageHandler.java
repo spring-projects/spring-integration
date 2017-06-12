@@ -21,17 +21,18 @@ import java.util.function.Supplier;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.ResolvableType;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ReactiveHttpInputMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -135,22 +136,22 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 				});
 
 		if (isExpectReply()) {
-			ResolvableType responseType;
+			BodyExtractor<? extends Mono<?>, ReactiveHttpInputMessage> bodyExtractor;
 
 			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-				responseType = ResolvableType.forType(((ParameterizedTypeReference<?>) expectedResponseType).getType());
+				bodyExtractor = BodyExtractors.toMono((ParameterizedTypeReference<?>) expectedResponseType);
 			}
 			else if (expectedResponseType != null) {
-				responseType = ResolvableType.forClass((Class<?>) expectedResponseType);
+				bodyExtractor = BodyExtractors.toMono((Class<?>) expectedResponseType);
 			}
 			else {
-				responseType = null;
+				bodyExtractor = null;
 			}
 
 			return responseMono
 					.map(response ->
-							new ResponseEntity<>(responseType != null
-									? response.body(BodyExtractors.toMono(responseType)).block()
+							new ResponseEntity<>(bodyExtractor != null
+									? response.body(bodyExtractor).block()
 									: null,
 									response.headers().asHttpHeaders(),
 									response.statusCode()))
