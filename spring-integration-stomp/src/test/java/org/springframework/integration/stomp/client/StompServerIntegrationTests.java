@@ -72,8 +72,8 @@ import org.springframework.util.SocketUtils;
 public class StompServerIntegrationTests {
 
 	@ClassRule
-	public static Log4jClassLevelAdjuster adjuster = new Log4jClassLevelAdjuster(Level.TRACE, "org.springframework", "org.springframework.integration.stomp",
-			"org.apache.activemq.broker", "reactor.io", "io.netty");
+	public static Log4jClassLevelAdjuster adjuster = new Log4jClassLevelAdjuster(Level.TRACE, "org.springframework",
+			"org.springframework.integration.stomp", "org.apache.activemq.broker", "reactor.io", "io.netty");
 
 	private static BrokerService activeMQBroker;
 
