@@ -232,7 +232,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			AttributeAccessor attributes = attributesHolder.get();
 			if (attributes != null) {
 				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
-				attributes.setAttribute(AmqpHeaders.RAW_MESSAGE, amqpMessage);
+				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
 			}
 		}
 	}

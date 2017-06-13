@@ -38,11 +38,17 @@ import org.springframework.messaging.support.ErrorMessage;
  */
 public class AmqpMessageHeaderErrorMessageStrategy implements ErrorMessageStrategy {
 
+	/**
+	 * Header name/retry context variable for the raw received message.
+	 */
+	public static final String AMQP_RAW_MESSAGE = AmqpHeaders.PREFIX + "raw_message";
+
+	@SuppressWarnings("deprecation")
 	@Override
 	public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor context) {
 		Object inputMessage = context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
 		Map<String, Object> headers =
-				Collections.singletonMap(AmqpHeaders.RAW_MESSAGE, context.getAttribute(AmqpHeaders.RAW_MESSAGE));
+				Collections.singletonMap(AMQP_RAW_MESSAGE, context.getAttribute(AMQP_RAW_MESSAGE));
 		return new ErrorMessage(throwable, headers, inputMessage instanceof Message ? (Message<?>) inputMessage : null);
 	}
 

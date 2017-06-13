@@ -309,7 +309,7 @@ public class InboundEndpointTests {
 		assertThat(errorMessage.getPayload(), instanceOf(MessagingException.class));
 		assertThat(((MessagingException) errorMessage.getPayload()).getMessage(), containsString("Dispatcher has no"));
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
-				.get(AmqpHeaders.RAW_MESSAGE, org.springframework.amqp.core.Message.class);
+				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
 		assertThat(amqpMessage, notNullValue());
 		assertNull(errors.receive(0));
 	}
@@ -334,7 +334,7 @@ public class InboundEndpointTests {
 		assertThat(errorMessage.getPayload(), instanceOf(MessagingException.class));
 		assertThat(((MessagingException) errorMessage.getPayload()).getMessage(), containsString("Dispatcher has no"));
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
-				.get(AmqpHeaders.RAW_MESSAGE, org.springframework.amqp.core.Message.class);
+				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
 		assertThat(amqpMessage, notNullValue());
 		assertNull(errors.receive(0));
 	}
