@@ -473,7 +473,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			fail("SerializationException expected");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause().getCause(), instanceOf(IllegalArgumentException.class));
+			assertThat(e.getCause(), instanceOf(IllegalArgumentException.class));
 			assertThat(e.getMessage(),
 					containsString("The class with " +
 							"org.springframework.integration.redis.store.RedisMessageGroupStoreTests$Foo and name of " +
@@ -489,7 +489,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store.removeMessageGroup(1);
 		messageGroup = store.addMessageToGroup(1, fooMessage);
 		assertEquals(1, messageGroup.size());
-		assertEquals(fooMessage, messageGroup.getMessages().iterator().next());
+		assertEquals(fooMessage.getPayload(), messageGroup.getMessages().iterator().next().getPayload());
 
 		mapper = JacksonJsonUtils.messagingAwareMapper("*");
 
@@ -499,7 +499,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store.removeMessageGroup(1);
 		messageGroup = store.addMessageToGroup(1, fooMessage);
 		assertEquals(1, messageGroup.size());
-		assertEquals(fooMessage, messageGroup.getMessages().iterator().next());
+		assertEquals(fooMessage.getPayload(), messageGroup.getMessages().iterator().next().getPayload());
 	}
 
 	private static class Foo {

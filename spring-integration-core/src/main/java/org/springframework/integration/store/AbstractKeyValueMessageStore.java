@@ -138,7 +138,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		for (Message<?> message : messages) {
 			// enrich Message with additional headers and add it to MS
 			Message<?> enrichedMessage = enrichMessage(message);
-			doAddMessage(message);
+			doAddMessage(enrichedMessage);
 			if (metadata != null) {
 				metadata.add(enrichedMessage.getHeaders().getId());
 			}
