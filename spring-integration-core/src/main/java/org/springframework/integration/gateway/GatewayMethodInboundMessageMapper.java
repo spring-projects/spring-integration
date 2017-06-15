@@ -47,7 +47,6 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.core.GenericMessagingTemplate;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;

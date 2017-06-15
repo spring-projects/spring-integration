@@ -20,11 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -162,8 +158,8 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 			if (checkReadOnlyHeaders &&
 					(MessageHeaders.ID.equals(entry.getKey()) || MessageHeaders.TIMESTAMP.equals(entry.getKey()))) {
 				this.logger.warn("HeaderEnricher cannot override 'id' and 'timestamp' read-only headers.\n" +
-								"Wrong 'headersToAdd' [" + this.headersToAdd
-								+ "] configuration for " + getComponentName());
+						"Wrong 'headersToAdd' [" + this.headersToAdd
+						+ "] configuration for " + getComponentName());
 			}
 
 			HeaderValueMessageProcessor<?> processor = entry.getValue();

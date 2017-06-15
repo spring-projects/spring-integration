@@ -18,7 +18,6 @@ package org.springframework.integration.transformer;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
