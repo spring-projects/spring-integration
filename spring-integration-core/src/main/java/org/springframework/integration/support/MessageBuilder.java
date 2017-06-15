@@ -188,11 +188,9 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, ?> headersToCopy) {
 		if (headersToCopy != null) {
 			for (Map.Entry<String, ?> entry : headersToCopy.entrySet()) {
-				if (!this.headerAccessor.isReadOnly(entry.getKey())) {
-					this.headerAccessor.setHeaderIfAbsent(entry.getKey(), entry.getValue());
-				}
-				else if (logger.isInfoEnabled()) {
-					logger.info("The header [" + entry + "] is ignored for population because it is is readOnly.");
+				String headerName = entry.getKey();
+				if (!this.headerAccessor.isReadOnly(headerName)) {
+					this.headerAccessor.setHeaderIfAbsent(headerName, entry.getValue());
 				}
 			}
 		}

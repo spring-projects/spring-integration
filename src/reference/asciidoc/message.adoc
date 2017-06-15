@@ -373,7 +373,7 @@ In addition to the default strategy, two additional `IdGenerators` are provided;
 [[read-only-headers]]
 ===== Read-only Headers
 
-The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and the cannot be overridden.
+The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and they cannot be overridden.
 
 Since _version 4.3.2_, the `MessageBuilder` provides the `readOnlyHeaders(String... readOnlyHeaders)` API to customize a list of headers which should not be copied from an upstream `Message`.
 Just the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read only by default.
