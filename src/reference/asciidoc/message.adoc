@@ -373,8 +373,13 @@ In addition to the default strategy, two additional `IdGenerators` are provided;
 [[read-only-headers]]
 ===== Read-only Headers
 
-The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and the cannot be overridden.
-With the `spring.integration.readOnly.headers` global property (see <<global-properties>>) you can specify any header names which become read-only.
+The `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read-only headers and they cannot be overridden.
+
+Since _version 4.3.2_, the `MessageBuilder` provides the `readOnlyHeaders(String... readOnlyHeaders)` API to customize a list of headers which should not be copied from an upstream `Message`.
+Just the `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are read only by default.
+The global `spring.integration.readOnly.headers` property (see <<global-properties>>) is provided to customize `DefaultMessageBuilderFactory` for Framework components.
+This can be useful when you would like do not populate some out-of-the-box headers, like `contentType` by the `ObjectToJsonTransformer` (see <<json-transformers>>).
+
 When you try to build a new message using `MessageBuilder`, this kind of headers are ignored and particular `INFO` message is emitted to logs.
 
 [[message-implementations]]
