@@ -137,9 +137,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	/**
 	 * Get the header names this handler doesn't propagate.
-	 * @return an immutable {@link java.util.Collection} of headers that will
-	 *         not be copied from the inbound message if
-	 *         {@link #shouldCopyRequestHeaders()} is true.
+	 * @return an immutable {@link java.util.Collection} of headers that will not be
+	 * copied from the inbound message if {@link #shouldCopyRequestHeaders()} is true.
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)
 	 */
@@ -149,8 +148,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	/**
 	 * Add headers that will NOT be copied from the inbound message if
-	 * {@link #shouldCopyRequestHeaders()} is true, instead of overwriting
-	 * the existing set.
+	 * {@link #shouldCopyRequestHeaders()} is true, instead of overwriting the existing
+	 * set.
 	 * @param headers the headers to not propagate from the inbound message.
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)

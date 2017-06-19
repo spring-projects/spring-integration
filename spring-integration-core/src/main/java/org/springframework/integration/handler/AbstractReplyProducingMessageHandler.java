@@ -39,7 +39,7 @@ import org.springframework.util.CollectionUtils;
  * @author David Liu
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
-		implements BeanClassLoaderAware {
+		implements HeaderPropagationAware, BeanClassLoaderAware {
 
 	private volatile RequestHandler advisedRequestHandler;
 

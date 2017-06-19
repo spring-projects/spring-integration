@@ -64,7 +64,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  */
 public class MessageHandlerChain extends AbstractMessageProducingHandler implements MessageProducer,
-		CompositeMessageHandler, Lifecycle {
+		HeaderPropagationAware, CompositeMessageHandler, Lifecycle {
 
 	private volatile List<MessageHandler> handlers;
 
