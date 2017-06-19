@@ -62,7 +62,7 @@ import reactor.core.publisher.Mono;
  * since 4.1
  */
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
-		implements MessageProducer {
+		implements MessageProducer, HeaderPropagationAware {
 
 	private final Set<String> notPropagatedHeaders = new HashSet<String>();
 
@@ -120,6 +120,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * @param headers the headers to not propagate from the inbound message.
 	 * @since 4.3.10
 	 */
+	@Override
 	public void setNotPropagatedHeaders(String... headers) {
 		updateNotPropagatedHeaders(headers, false);
 	}
@@ -142,6 +143,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)
 	 */
+	@Override
 	public Collection<String> getNotPropagatedHeaders() {
 		return Collections.unmodifiableSet(this.notPropagatedHeaders);
 	}
@@ -154,6 +156,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)
 	 */
+	@Override
 	public void addNotPropagatedHeaders(String... headers) {
 		updateNotPropagatedHeaders(headers, true);
 	}

@@ -45,7 +45,6 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
-import org.springframework.integration.handler.HeaderPropagationAware;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -86,8 +85,8 @@ import org.springframework.util.CollectionUtils;
  * @author Enrique Rodriguez
  * @since 2.0
  */
-public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler implements
-		DiscardingMessageHandler, HeaderPropagationAware, DisposableBean, ApplicationEventPublisherAware, Lifecycle {
+public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
+		implements DiscardingMessageHandler, DisposableBean, ApplicationEventPublisherAware, Lifecycle {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
