@@ -276,6 +276,41 @@ Alternatively, implement `SmartLifecycle`, put your bean in a late phase, and se
 [[programming-tips]]
 === Programming Tips and Tricks
 
+==== XML Schemas
+
+When using XML configuration, to avoid getting false schema validation errors, you should use a "Spring-aware" IDE, such as the Spring Tool Suite (STS) (or eclipse with the Spring IDE plugins) or IntelliJ IDEA, for example.
+These IDEs know how to resolve the correct XML schema from the classpath (using the `META-INF/spring.schemas` file in the jar(s)).
+When using STS, or eclipse with the plugin, be sure to enable `Spring Project Nature` on the project.
+
+The schemas hosted on the internet for certain legacy modules (those that existed in version 1.0) are the 1.0 versions for compatibility reasons; if your IDE uses these schemas, you will likely see false errors.
+
+Each of these online schemas has a warning similar to this:
+
+[IMPORTANT]
+====
+This schema is for the 1.0 version of Spring Integration Core. We cannot update it to the current schema
+because that will break any applications using 1.0.3 or lower. For subsequent versions, the unversioned
+schema is resolved from the classpath and obtained from the jar.
+Please refer to github:
+
+https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config
+====
+
+The affected modules are
+
+- core  (`spring-integration.xsd`)
+- file
+- http
+- jms
+- mail
+- rmi
+- security
+- stream
+- ws
+- xml
+
+==== Finding Class Names for Java and DSL Configuration
+
 With XML configuration and Spring Integration Namespace support, the XML Parsers hide how
 target beans are built and wired together.
 For Java & Annotation Configuration, it is important to understand the Framework API for the target end-user
