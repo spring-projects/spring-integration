@@ -384,6 +384,21 @@ When you try to build a new message using `MessageBuilder`, this kind of headers
 
 Starting with _version 5.0_, <<gateway,Messaging Gateway>>, <<header-enricher,Header Enricher>>, <<payload-enricher,Content Enricher>> and <<header-filter, Header Filter>> don't allow to configure `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` header names when `DefaultMessageBuilderFactory` is used and they throw `BeanInitializationException`.
 
+[[header-propagation]]
+===== Header Propagation
+
+When messages are processed (and modified) by message-producing endpoints (such as a <<service-activator, service activator>>), in general, inbound headers are propagated to the outbound message.
+One exception to this is a <<transformer, transformer>>, when a complete message is returned to the framework; in that case, the user code is responsible for the entire outbound message.
+When a transformer just returns the payload; the inbound headers **are** propagated.
+Also, a header is only propagated if it does not already exist in the outbound message, allowing user code to change header values as needed.
+
+Starting with _version 4.3.10_, you can configure message handlers (that modify messages and produce output) to suppress the propagation of specific headers.
+Call the `setNotPropagatedHeaders()` or `addNotPropagatedHeaders()` methods on the `MessageProducingMessageHandler` abstract class, to configure the header(s) you don't want to be copied.
+You can also globally suppress propagation of specific message headers by setting the `readOnlyHeaders` property in `META-INF/spring.integration.properties` to a comma-delimited list of headers.
+
+IMPORTANT: Header propagation suppression does not apply to those endpoints that don't modify the message, e.g. <<bridge, bridges>> and <<router, routers>>
+
+
 [[message-implementations]]
 ==== Message Implementations
 
