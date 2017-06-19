@@ -620,13 +620,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (append) {
 			final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
-			final FileState state = getFileState(fileToWriteTo, false);
-
 			WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
 					fileToWriteTo.getAbsolutePath()) {
 
 				@Override
 				protected void whileLocked() throws IOException {
+					FileState state = getFileState(fileToWriteTo, false);
 					BufferedOutputStream bos = null;
 					try {
 						bos = state != null ? state.stream : createOutputStream(fileToWriteTo, true);
@@ -704,8 +703,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			throws IOException {
 		final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
-		final FileState state = getFileState(fileToWriteTo, false);
-
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
@@ -713,6 +710,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
+				FileState state = getFileState(fileToWriteTo, false);
 				BufferedOutputStream bos = null;
 				try {
 					bos = state != null ? state.stream : createOutputStream(fileToWriteTo, append);
@@ -748,8 +746,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			throws IOException {
 		final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
-		final FileState state = getFileState(fileToWriteTo, true);
-
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
 
 		WhileLockedProcessor whileLockedProcessor = new WhileLockedProcessor(this.lockRegistry,
@@ -757,6 +753,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
+				FileState state = getFileState(fileToWriteTo, true);
 				BufferedWriter writer = null;
 				try {
 					writer = state != null ? state.writer : createWriter(fileToWriteTo, append);
