@@ -62,7 +62,7 @@ import reactor.core.publisher.Mono;
  * since 4.1
  */
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
-		implements MessageProducer {
+		implements MessageProducer, HeaderPropagationAware {
 
 	private final Set<String> notPropagatedHeaders = new HashSet<String>();
 
@@ -120,6 +120,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * @param headers the headers to not propagate from the inbound message.
 	 * @since 4.3.10
 	 */
+	@Override
 	public void setNotPropagatedHeaders(String... headers) {
 		updateNotPropagatedHeaders(headers, false);
 	}
@@ -137,24 +138,25 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	/**
 	 * Get the header names this handler doesn't propagate.
-	 * @return an immutable {@link java.util.Collection} of headers that will
-	 *         not be copied from the inbound message if
-	 *         {@link #shouldCopyRequestHeaders()} is true.
+	 * @return an immutable {@link java.util.Collection} of headers that will not be
+	 * copied from the inbound message if {@link #shouldCopyRequestHeaders()} is true.
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)
 	 */
+	@Override
 	public Collection<String> getNotPropagatedHeaders() {
 		return Collections.unmodifiableSet(this.notPropagatedHeaders);
 	}
 
 	/**
 	 * Add headers that will NOT be copied from the inbound message if
-	 * {@link #shouldCopyRequestHeaders()} is true, instead of overwriting
-	 * the existing set.
+	 * {@link #shouldCopyRequestHeaders()} is true, instead of overwriting the existing
+	 * set.
 	 * @param headers the headers to not propagate from the inbound message.
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)
 	 */
+	@Override
 	public void addNotPropagatedHeaders(String... headers) {
 		updateNotPropagatedHeaders(headers, true);
 	}
