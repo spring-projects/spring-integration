@@ -16,6 +16,9 @@
 
 package org.springframework.integration.http.dsl;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,11 +30,13 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.reactivestreams.Publisher;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -44,7 +49,9 @@ import org.springframework.integration.http.outbound.HttpRequestExecutingMessage
 import org.springframework.integration.http.outbound.ReactiveHttpRequestExecutingMessageHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
@@ -57,16 +64,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Artem Bilan
@@ -90,11 +100,17 @@ public class HttpDslTests {
 
 	private MockMvc mockMvc;
 
+	private WebTestClient webTestClient;
+
 	@Before
 	public void setup() {
 		this.mockMvc =
 				MockMvcBuilders.webAppContextSetup(this.wac)
 						.apply(springSecurity())
+						.build();
+
+		this.webTestClient =
+				WebTestClient.bindToApplicationContext(this.wac)
 						.build();
 	}
 
@@ -140,9 +156,45 @@ public class HttpDslTests {
 								.string("FOO"));
 	}
 
+	@Autowired
+	private PollableChannel storeChannel;
+
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testHttpReactivePost() {
+		this.webTestClient.post().uri("/reactivePost")
+				.body(Flux.just("foo", "bar", "baz"), String.class)
+				.exchange()
+				.expectStatus().isAccepted();
+
+		Message<?> store = this.storeChannel.receive(10_000);
+		assertNotNull(store);
+		assertThat(store.getPayload(), instanceOf(Flux.class));
+
+		StepVerifier
+				.create((Publisher<String>) store.getPayload())
+				.expectNext("foo", "bar", "baz")
+				.verifyComplete();
+
+	}
+
+	@Test
+	public void testSse() {
+		Flux<String> responseBody =
+				this.webTestClient.get().uri("/sse")
+						.exchange()
+						.returnResult(String.class)
+						.getResponseBody();
+
+		StepVerifier
+				.create(responseBody)
+				.expectNext("foo", "bar", "baz")
+				.verifyComplete();
+	}
 
 	@Configuration
-	@EnableWebMvc
+	@EnableWebFlux
 	@EnableWebSecurity
 	@EnableIntegration
 	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
@@ -208,6 +260,26 @@ public class HttpDslTests {
 									.httpMethod(HttpMethod.GET)
 									.expectedResponseType(String.class),
 							e -> e.id("serviceInternalReactiveGateway"))
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow httpReactiveInboundChannelAdapterFlow() {
+			return IntegrationFlows
+					.from(Http.inboundReactiveChannelAdapter("/reactivePost")
+							.requestMapping(m -> m.methods(HttpMethod.POST))
+							.requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
+							.statusCodeFunction(m -> HttpStatus.ACCEPTED))
+					.channel(c -> c.queue("storeChannel"))
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow sseFlow() {
+			return IntegrationFlows
+					.from(Http.inboundReactiveGateway("/sse")
+							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
+					.handle((p, h) -> Flux.just("foo", "bar", "baz"))
 					.get();
 		}
 

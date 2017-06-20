@@ -16,34 +16,47 @@
 
 package org.springframework.integration.gateway;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.reactivestreams.Subscriber;
 
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.MessageTimeoutException;
+import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
 import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
+
+import reactor.core.publisher.Mono;
 
 /**
  * A convenient base class for connecting application code to
@@ -450,10 +463,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		if (requestChannel == null) {
 			throw new MessagingException("No request channel available. Cannot send request message.");
 		}
-		MessageChannel replyChannel = getReplyChannel();
-		if (replyChannel != null && this.replyMessageCorrelator == null) {
-			this.registerReplyMessageCorrelator();
-		}
+
+		registerReplyMessageCorrelatorIfNecessary();
+
 		Object reply = null;
 		Throwable error = null;
 		Message<?> requestMessage = null;
@@ -533,6 +545,129 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return reply;
 	}
 
+	protected Mono<Message<?>> sendAndReceiveMessageReactive(Object object) {
+		initializeIfNecessary();
+		Assert.notNull(object, "request must not be null");
+		MessageChannel requestChannel = getRequestChannel();
+		if (requestChannel == null) {
+			throw new MessagingException("No request channel available. Cannot send request message.");
+		}
+
+		registerReplyMessageCorrelatorIfNecessary();
+
+		return doSendAndReceiveMessageReactive(requestChannel, object, false);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Mono<Message<?>> doSendAndReceiveMessageReactive(MessageChannel requestChannel, Object object,
+			boolean error) {
+
+		return Mono.defer(() -> {
+			Message<?> message;
+			try {
+				message = object instanceof Message<?>
+						? (Message<?>) object
+						: this.requestMapper.toMessage(object);
+
+				message = this.historyWritingPostProcessor.postProcessMessage(message);
+
+			}
+			catch (Exception e) {
+				throw new MessageMappingException("Cannot map to message: " + object, e);
+			}
+
+			Object originalReplyChannelHeader = message.getHeaders().getReplyChannel();
+			Object originalErrorChannelHeader = message.getHeaders().getErrorChannel();
+
+			FutureReplyChannel replyChannel = new FutureReplyChannel();
+
+			Message<?> requestMessage = MutableMessageBuilder.fromMessage(message)
+					.setReplyChannel(replyChannel)
+					.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
+					.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
+					.setErrorChannel(replyChannel)
+					.build();
+
+			if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
+				((ReactiveStreamsSubscribableChannel) requestChannel)
+						.subscribeTo(Mono.just(requestMessage));
+			}
+			else {
+				long sendTimeout = sendTimeout(requestMessage);
+
+				boolean sent =
+						sendTimeout >= 0
+								? requestChannel.send(requestMessage, sendTimeout)
+								: requestChannel.send(requestMessage);
+
+				if (!sent) {
+					throw new MessageDeliveryException(requestMessage,
+							"Failed to send message to channel '" + requestChannel +
+									"' within timeout: " + sendTimeout);
+				}
+			}
+
+			return Mono.fromFuture(replyChannel.messageFuture)
+					.doOnSubscribe(s -> {
+						if (!error && this.countsEnabled) {
+							this.messageCount.incrementAndGet();
+						}
+					})
+					.<Message<?>>map(replyMessage ->
+							MessageBuilder.fromMessage(replyMessage)
+									.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
+									.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
+									.build())
+
+					.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
+		});
+	}
+
+	private Mono<Message<?>> handleSendError(Message<?> requestMessage, Throwable exception) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("failure occurred in gateway sendAndReceiveReactive: " + exception.getMessage());
+		}
+		MessageChannel errorChannel = getErrorChannel();
+		if (errorChannel != null) {
+			ErrorMessage errorMessage = buildErrorMessage(requestMessage, exception);
+			try {
+				return doSendAndReceiveMessageReactive(errorChannel, errorMessage, true);
+			}
+			catch (Exception errorFlowFailure) {
+				throw new MessagingException(errorMessage, "failure occurred in error-handling flow", errorFlowFailure);
+			}
+		}
+		else {
+			// no errorChannel so we'll propagate
+			throw wrapExceptionIfNecessary(exception, "gateway received checked Exception");
+		}
+	}
+
+	private long sendTimeout(Message<?> requestMessage) {
+		Long sendTimeout = headerToLong(requestMessage.getHeaders()
+				.get(this.messagingTemplate.getSendTimeoutHeader()));
+		return (sendTimeout != null ? sendTimeout : this.messagingTemplate.getSendTimeout());
+	}
+
+	private long receiveTimeout(Message<?> requestMessage) {
+		Long receiveTimeout = headerToLong(requestMessage.getHeaders()
+				.get(this.messagingTemplate.getReceiveTimeoutHeader()));
+		return (receiveTimeout != null ? receiveTimeout : this.messagingTemplate.getReceiveTimeout());
+	}
+
+	@Nullable
+	private Long headerToLong(@Nullable Object headerValue) {
+		if (headerValue instanceof Number) {
+			return ((Number) headerValue).longValue();
+		}
+		else if (headerValue instanceof String) {
+			return Long.parseLong((String) headerValue);
+		}
+		else {
+			return null;
+		}
+	}
+
 	/**
 	 * Build an error message for the message and throwable using the configured
 	 * {@link ErrorMessageStrategy}.
@@ -542,9 +677,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @since 4.3.10
 	 */
 	protected final ErrorMessage buildErrorMessage(Message<?> requestMessage, Throwable throwable) {
-		ErrorMessage errorMessage = this.errorMessageStrategy.buildErrorMessage(throwable,
-				getErrorMessageAttributes(requestMessage));
-		return errorMessage;
+		return this.errorMessageStrategy.buildErrorMessage(throwable, getErrorMessageAttributes(requestMessage));
 	}
 
 	/**
@@ -560,42 +693,60 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	private void rethrow(Throwable t, String description) {
-		if (t instanceof RuntimeException) {
-			throw (RuntimeException) t;
-		}
-		throw new MessagingException(description, t);
+		throw wrapExceptionIfNecessary(t, description);
 	}
 
-	private void registerReplyMessageCorrelator() {
-		synchronized (this.replyMessageCorrelatorMonitor) {
-			if (this.replyMessageCorrelator != null) {
-				return;
+	private RuntimeException wrapExceptionIfNecessary(Throwable t, String description) {
+		if (t instanceof RuntimeException) {
+			return (RuntimeException) t;
+		}
+		else {
+			return new MessagingException(description, t);
+		}
+	}
+
+	protected void registerReplyMessageCorrelatorIfNecessary() {
+		MessageChannel replyChannel = getReplyChannel();
+		if (replyChannel != null && this.replyMessageCorrelator == null) {
+			boolean shouldStartCorrelator;
+			synchronized (this.replyMessageCorrelatorMonitor) {
+				if (this.replyMessageCorrelator != null) {
+					return;
+				}
+				AbstractEndpoint correlator;
+				BridgeHandler handler = new BridgeHandler();
+				if (getBeanFactory() != null) {
+					handler.setBeanFactory(getBeanFactory());
+				}
+				handler.afterPropertiesSet();
+				if (replyChannel instanceof SubscribableChannel) {
+					correlator = new EventDrivenConsumer((SubscribableChannel) replyChannel, handler);
+				}
+				else if (replyChannel instanceof PollableChannel) {
+					PollingConsumer endpoint = new PollingConsumer((PollableChannel) replyChannel, handler);
+					endpoint.setBeanFactory(getBeanFactory());
+					endpoint.setReceiveTimeout(this.replyTimeout);
+					endpoint.afterPropertiesSet();
+					correlator = endpoint;
+				}
+				else if (replyChannel instanceof ReactiveStreamsSubscribableChannel) {
+					ReactiveStreamsConsumer endpoint =
+							new ReactiveStreamsConsumer(replyChannel, (Subscriber<Message<?>>) handler);
+					endpoint.afterPropertiesSet();
+					correlator = endpoint;
+				}
+				else {
+					throw new MessagingException("Unsupported 'replyChannel' type [" + replyChannel.getClass() + "]."
+							+ "SubscribableChannel or PollableChannel type are supported.");
+				}
+				this.replyMessageCorrelator = correlator;
+				shouldStartCorrelator = true;
 			}
-			AbstractEndpoint correlator = null;
-			BridgeHandler handler = new BridgeHandler();
-			if (this.getBeanFactory() != null) {
-				handler.setBeanFactory(this.getBeanFactory());
+			if (shouldStartCorrelator && isRunning()) {
+				if (isRunning()) {
+					this.replyMessageCorrelator.start();
+				}
 			}
-			handler.afterPropertiesSet();
-			MessageChannel replyChannel = getReplyChannel();
-			if (replyChannel instanceof SubscribableChannel) {
-				correlator = new EventDrivenConsumer((SubscribableChannel) replyChannel, handler);
-			}
-			else if (replyChannel instanceof PollableChannel) {
-				PollingConsumer endpoint = new PollingConsumer((PollableChannel) replyChannel, handler);
-				endpoint.setBeanFactory(this.getBeanFactory());
-				endpoint.setReceiveTimeout(this.replyTimeout);
-				endpoint.afterPropertiesSet();
-				correlator = endpoint;
-			}
-			else {
-				throw new MessagingException("Unsupported 'replyChannel' type [" + replyChannel.getClass() + "]."
-						+ "SubscribableChannel or PollableChannel type are supported.");
-			}
-			if (this.isRunning()) {
-				correlator.start();
-			}
-			this.replyMessageCorrelator = correlator;
 		}
 	}
 
@@ -637,6 +788,17 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				return (Message<?>) object;
 			}
 			return (object != null) ? this.messageBuilderFactory.withPayload(object).build() : null;
+		}
+
+	}
+
+	private static class FutureReplyChannel implements MessageChannel {
+
+		private final CompletableFuture<Message<?>> messageFuture = new CompletableFuture<>();
+
+		@Override
+		public boolean send(Message<?> message, long timeout) {
+			return this.messageFuture.complete(message);
 		}
 
 	}

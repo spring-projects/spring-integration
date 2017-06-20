@@ -106,7 +106,7 @@ subprojects { subproject ->
 		hibernateVersion = '5.2.10.Final'
 		hsqldbVersion = '2.4.0'
 		h2Version = '1.4.194'
-		jackson2Version = '2.9.0.pr3'
+		jackson2Version = '2.9.0.pr4'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.6.0-rc1'
 		jedisVersion = '2.9.0'
@@ -124,8 +124,8 @@ subprojects { subproject ->
 		mysqlVersion = '5.1.41'
 		pahoMqttClientVersion = '1.1.1'
 		postgresVersion = '42.0.0'
-		reactorNettyVersion = '0.7.0.BUILD-SNAPSHOT'
-		reactorVersion = '3.1.0.BUILD-SNAPSHOT'
+		reactorNettyVersion = '0.7.0.M1'
+		reactorVersion = '3.1.0.M3'
 		romeToolsVersion = '1.7.2'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"
@@ -152,7 +152,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.7.8"
+		toolVersion = "0.7.9"
 	}
 
 	// dependencies that are common across all java projects
@@ -396,8 +396,9 @@ project('spring-integration-http') {
 	description = 'Spring Integration HTTP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-webmvc:$springVersion"
-		compile "org.springframework:spring-webflux:$springVersion"
+		compile "org.springframework:spring-web:$springVersion"
+		compile ("org.springframework:spring-webmvc:$springVersion", optional)
+		compile ("org.springframework:spring-webflux:$springVersion", optional)
 		compile ("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
 		compile ("com.rometools:rome:$romeToolsVersion", optional)
 		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)

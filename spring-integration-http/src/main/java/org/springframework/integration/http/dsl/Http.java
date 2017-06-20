@@ -24,6 +24,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
+import org.springframework.integration.http.inbound.ReactiveHttpInboundEndpoint;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -465,6 +466,28 @@ public final class Http {
 	 */
 	public static HttpRequestHandlerEndpointSpec inboundGateway(String... path) {
 		return new HttpRequestHandlerEndpointSpec(new HttpRequestHandlingMessagingGateway(), path);
+	}
+
+
+	/**
+	 * Create an {@link ReactiveHttpInboundEndpointSpec} builder for one-way reactive adapter
+	 * based on the provided {@code path} array for mapping.
+	 * @param path the path mapping URIs (e.g. "/myPath.do").
+	 * @return the ReactiveHttpInboundEndpointSpec instance
+	 */
+	public static ReactiveHttpInboundEndpointSpec inboundReactiveChannelAdapter(String... path) {
+		ReactiveHttpInboundEndpoint httpInboundChannelAdapter = new ReactiveHttpInboundEndpoint(false);
+		return new ReactiveHttpInboundEndpointSpec(httpInboundChannelAdapter, path);
+	}
+
+	/**
+	 * Create an {@link ReactiveHttpInboundEndpointSpec} builder for request-reply reactive gateway
+	 * based on the provided {@code path} array for mapping.
+	 * @param path the path mapping URIs (e.g. "/myPath.do").
+	 * @return the ReactiveHttpInboundEndpointSpec instance
+	 */
+	public static ReactiveHttpInboundEndpointSpec inboundReactiveGateway(String... path) {
+		return new ReactiveHttpInboundEndpointSpec(new ReactiveHttpInboundEndpoint(), path);
 	}
 
 	private Http() {

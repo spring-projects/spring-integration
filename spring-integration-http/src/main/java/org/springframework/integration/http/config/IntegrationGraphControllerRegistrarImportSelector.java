@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.integration.http.support.HttpContextUtils;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.3
  */
 class IntegrationGraphControllerRegistrarImportSelector implements ImportSelector {
@@ -33,7 +34,7 @@ class IntegrationGraphControllerRegistrarImportSelector implements ImportSelecto
 
 	@Override
 	public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-		if (HttpContextUtils.SERVLET_PRESENT) {
+		if (HttpContextUtils.WEB_MVC_PRESENT) {
 			return new String[] { IntegrationGraphControllerRegistrar.class.getName() };
 		}
 		else {
