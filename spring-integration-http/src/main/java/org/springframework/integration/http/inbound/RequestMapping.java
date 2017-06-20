@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 public class RequestMapping {
 
+	private String name = "";
+
 	private String[] pathPatterns;
 
 	private HttpMethod[] methods = new HttpMethod[]{HttpMethod.GET, HttpMethod.POST};
@@ -44,6 +46,14 @@ public class RequestMapping {
 	private String[] consumes = new String[0];
 
 	private String[] produces = new String[0];
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 	public void setPathPatterns(String... pathPatterns) {
 		Assert.notEmpty(pathPatterns, "at least one path pattern is required");

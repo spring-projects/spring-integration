@@ -47,6 +47,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class MultipartAsRawByteArrayTests {
@@ -61,7 +62,7 @@ public class MultipartAsRawByteArrayTests {
 		QueueChannel requestChannel = new QueueChannel();
 		gw.setRequestChannel(requestChannel);
 		gw.setBeanFactory(mock(BeanFactory.class));
-		gw.setRequestPayloadType(byte[].class);
+		gw.setRequestPayloadTypeClass(byte[].class);
 		gw.afterPropertiesSet();
 		gw.start();
 

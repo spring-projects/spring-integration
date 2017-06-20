@@ -152,7 +152,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.7.8"
+		toolVersion = "0.7.9"
 	}
 
 	// dependencies that are common across all java projects
@@ -391,8 +391,9 @@ project('spring-integration-http') {
 	description = 'Spring Integration HTTP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-webmvc:$springVersion"
-		compile "org.springframework:spring-webflux:$springVersion"
+		compile "org.springframework:spring-web:$springVersion"
+		compile ("org.springframework:spring-webmvc:$springVersion", optional)
+		compile ("org.springframework:spring-webflux:$springVersion", optional)
 		compile ("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
 		compile ("com.rometools:rome:$romeToolsVersion", optional)
 		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)

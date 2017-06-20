@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,13 @@
 
 package org.springframework.integration.http.support;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * Utility class for accessing HTTP integration components
@@ -33,18 +39,35 @@ public final class HttpContextUtils {
 	}
 
 	/**
-	 * The {@code boolean} flag to indicate if the {@code org.springframework.web.servlet.DispatcherServlet}
+	 * The {@code boolean} flag to indicate if the
+	 * {@code org.springframework.web.servlet.DispatcherServlet}
 	 * is present in the CLASSPATH to allow to register the Integration server components,
 	 * e.g. {@code IntegrationGraphController}.
 	 */
-	public static final boolean SERVLET_PRESENT =
+	public static final boolean WEB_MVC_PRESENT =
 			ClassUtils.isPresent("org.springframework.web.servlet.DispatcherServlet",
-			HttpContextUtils.class.getClassLoader());
+					HttpContextUtils.class.getClassLoader());
 
 	/**
-	 * @see org.springframework.integration.http.config.HttpInboundEndpointParser
+	 * The {@code boolean} flag to indicate if the
+	 * {@code org.springframework.web.reactive.result.method.RequestMappingInfo}
+	 * is present in the CLASSPATH to allow to register the Integration server reactive components.
+	 */
+	public static final boolean WEB_FLUX_PRESENT =
+			ClassUtils.isPresent("org.springframework.web.reactive.result.method.RequestMappingInfo",
+					HttpContextUtils.class.getClassLoader());
+
+	/**
+	 * The name for the infrastructure
+	 * {@link org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping} bean.
 	 */
 	public static final String HANDLER_MAPPING_BEAN_NAME = "integrationRequestMappingHandlerMapping";
+
+	/**
+	 * The name for the infrastructure
+	 * {@link org.springframework.integration.http.inbound.ReactiveIntegrationRequestMappingHandlerMapping} bean.
+	 */
+	public static final String REACTIVE_HANDLER_MAPPING_BEAN_NAME = "reactiveIntegrationRequestMappingHandlerMapping";
 
 	/**
 	 * Represents the environment property for the {@code IntegrationGraphController} request mapping path.
@@ -61,5 +84,31 @@ public final class HttpContextUtils {
 	 * Represents the bean name for the default {@code IntegrationGraphController}.
 	 */
 	public static final String GRAPH_CONTROLLER_BEAN_NAME = "integrationGraphController";
+
+	/**
+	 * Converts a provided {@link org.springframework.integration.http.inbound.RequestMapping}
+	 * to the Spring Web {@link RequestMapping} annotation.
+	 * @param requestMapping the {@link org.springframework.integration.http.inbound.RequestMapping} to convert.
+	 * @return the {@link RequestMapping} annotation.
+	 * @since 5.0
+	 */
+	public static RequestMapping convertRequestMappingToAnnotation(
+			org.springframework.integration.http.inbound.RequestMapping requestMapping) {
+		if (ObjectUtils.isEmpty(requestMapping.getPathPatterns())) {
+			return null;
+		}
+
+		Map<String, Object> requestMappingAttributes = new HashMap<>();
+		requestMappingAttributes.put("name", requestMapping.getName());
+		requestMappingAttributes.put("value", requestMapping.getPathPatterns());
+		requestMappingAttributes.put("path", requestMapping.getPathPatterns());
+		requestMappingAttributes.put("method", requestMapping.getRequestMethods());
+		requestMappingAttributes.put("params", requestMapping.getParams());
+		requestMappingAttributes.put("headers", requestMapping.getHeaders());
+		requestMappingAttributes.put("consumes", requestMapping.getConsumes());
+		requestMappingAttributes.put("produces", requestMapping.getProduces());
+
+		return AnnotationUtils.synthesizeAnnotation(requestMappingAttributes, RequestMapping.class, null);
+	}
 
 }
