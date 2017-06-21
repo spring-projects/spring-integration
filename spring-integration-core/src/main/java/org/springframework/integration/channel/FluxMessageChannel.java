@@ -25,6 +25,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
@@ -59,6 +60,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
+		Assert.state(subscribers.size() > 0, () -> "The [" + this + "] doesn't have subscribers to accept messages");
 		this.sink.next(message);
 		return true;
 	}
