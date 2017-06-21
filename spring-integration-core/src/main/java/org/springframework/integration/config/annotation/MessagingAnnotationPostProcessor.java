@@ -148,7 +148,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	@Override
 	public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		final Class<?> beanClass = this.getBeanClass(bean);
+
+		Class<?> beanClass = AopUtils.getTargetClass(bean);
 
 		ReflectionUtils.doWithMethods(beanClass, method -> {
 			Map<Class<? extends Annotation>, List<Annotation>> annotationChains = new HashMap<>();
@@ -258,11 +259,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			}
 		}
 		return false;
-	}
-
-	protected Class<?> getBeanClass(Object bean) {
-		Class<?> targetClass = AopUtils.getTargetClass(bean);
-		return (targetClass != null) ? targetClass : bean.getClass();
 	}
 
 	protected String generateBeanName(String originalBeanName, Method method,

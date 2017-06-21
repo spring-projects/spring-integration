@@ -119,7 +119,7 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 		WebClient.RequestBodySpec requestSpec =
 				this.webClient.method(httpMethod)
 						.uri(b -> uriSupplier.get())
-						.headers(httpRequest.getHeaders());
+						.headers(headers -> headers.putAll(httpRequest.getHeaders()));
 
 		if (httpRequest.hasBody()) {
 			requestSpec.body(BodyInserters.fromObject(httpRequest.getBody()));
