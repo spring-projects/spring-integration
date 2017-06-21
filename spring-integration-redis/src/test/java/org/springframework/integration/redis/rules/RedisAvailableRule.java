@@ -47,8 +47,8 @@ public final class RedisAvailableRule implements MethodRule {
 				redisStandaloneConfiguration.setPort(REDIS_PORT);
 
 				JedisClientConfiguration clientConfiguration = JedisClientConfiguration.builder()
-						.connectTimeout(Duration.ofSeconds(10))
-						.readTimeout(Duration.ofSeconds(10))
+						.connectTimeout(Duration.ofSeconds(20))
+						.readTimeout(Duration.ofSeconds(20))
 						.build();
 
 				connectionFactory = new JedisConnectionFactory(redisStandaloneConfiguration, clientConfiguration);

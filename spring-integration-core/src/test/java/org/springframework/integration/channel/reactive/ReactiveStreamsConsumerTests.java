@@ -88,7 +88,14 @@ public class ReactiveStreamsConsumerTests {
 
 		reactiveConsumer.stop();
 
-		testChannel.send(testMessage);
+		try {
+			testChannel.send(testMessage);
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageDeliveryException.class));
+			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), containsString("doesn't have subscribers to accept messages"));
+		}
 
 		reactiveConsumer.start();
 
@@ -246,7 +253,14 @@ public class ReactiveStreamsConsumerTests {
 
 		endpointFactoryBean.stop();
 
-		testChannel.send(testMessage);
+		try {
+			testChannel.send(testMessage);
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(MessageDeliveryException.class));
+			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), containsString("doesn't have subscribers to accept messages"));
+		}
 
 		endpointFactoryBean.start();
 
@@ -258,18 +272,6 @@ public class ReactiveStreamsConsumerTests {
 		assertTrue(stopLatch.await(10, TimeUnit.SECONDS));
 		assertThat(result.size(), equalTo(3));
 		assertThat(result, Matchers.<Message<?>>contains(testMessage, testMessage2, testMessage2));
-	}
-
-	@Test
-	public void testFluxMessageChannelSendWithoutSubscription() {
-		try {
-			new FluxMessageChannel().send(new GenericMessage<>("foo"));
-		}
-		catch (Exception e) {
-			assertThat(e, instanceOf(MessageDeliveryException.class));
-			assertThat(e.getCause(), instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("doesn't have subscribers to accept messages"));
-		}
 	}
 
 }

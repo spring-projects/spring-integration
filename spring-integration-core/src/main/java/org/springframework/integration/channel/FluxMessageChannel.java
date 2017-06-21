@@ -60,7 +60,8 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		Assert.state(subscribers.size() > 0, () -> "The [" + this + "] doesn't have subscribers to accept messages");
+		Assert.state(this.subscribers.size() > 0,
+				() -> "The [" + this + "] doesn't have subscribers to accept messages");
 		this.sink.next(message);
 		return true;
 	}
