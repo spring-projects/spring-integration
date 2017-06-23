@@ -228,6 +228,11 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"), containsString(dir));
 		}
+		this.inboundMGet.send(new GenericMessage<Object>(dir + "*.txt"));
+		result = this.output.receive(1000);
+		assertNotNull(result);
+		localFiles = (List<File>) result.getPayload();
+		assertThat(localFiles.size(), equalTo(0));
 	}
 
 	@Test

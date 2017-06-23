@@ -42,6 +42,7 @@
 							  command="mget"
 							  command-options="-f -P"
 							  expression="payload"
+							  mode="IGNORE"
 							  local-directory-expression="@extraConfig.targetLocalDirectoryName + (#remoteDirectory ?: '')"
 							  local-filename-generator-expression="#remoteFileName.replaceFirst('ftpSource', 'localTarget')"
 							  reply-channel="output"/>
