@@ -90,7 +90,7 @@ subprojects { subproject ->
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.3'
 		curatorVersion = '2.8.0'
-		derbyVersion = '10.11.1.1'
+		derbyVersion = '10.13.1.1'
 		eclipseLinkVersion = '2.4.2'
 		ftpServerVersion = '1.0.6'
 		groovyVersion = '2.4.4'
@@ -458,8 +458,6 @@ project('spring-integration-jpa') {
 		testCompile "org.springframework.data:spring-data-jpa:$springDataJpaVersion"
 
 		testCompile "com.h2database:h2:$h2Version"
-		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
-		testCompile "org.apache.derby:derby:$derbyVersion"
 
 		testCompile "org.hibernate:hibernate-entitymanager:$hibernateVersion"
 
