@@ -60,6 +60,7 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -70,9 +71,11 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.InputStreamCallback;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
+import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway.Option;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
+import org.springframework.integration.ftp.gateway.FtpOutboundGateway;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.PartialSuccessException;
@@ -106,6 +109,10 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 
 	@Autowired
 	private DirectChannel inboundGet;
+
+	@Autowired
+	@Qualifier("getGW.handler")
+	private FtpOutboundGateway getGw;
 
 	@Autowired
 	private DirectChannel invalidDirExpression;
@@ -179,6 +186,19 @@ public class FtpServerOutboundTests extends FtpTestSupport {
 		localFile = (File) result.getPayload();
 		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
 				containsString(dir.toUpperCase()));
+	}
+
+	@Test
+	public void testGetWithRemove() {
+		String dir = "ftpSource/";
+		this.getGw.setOption(Option.DELETE);
+		this.inboundGet.send(new GenericMessage<Object>(dir + "ftpSource2.txt"));
+		Message<?> result = this.output.receive(1000);
+		assertNotNull(result);
+		File localFile = (File) result.getPayload();
+		assertThat(localFile.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),
+				containsString(dir.toUpperCase()));
+		assertThat(new File(getSourceRemoteDirectory(), "ftpSource2.txt").exists(), equalTo(false));
 	}
 
 	@Test

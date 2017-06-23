@@ -17,7 +17,8 @@
 
 	<int:channel id="inboundGet"/>
 
-	<int-ftp:outbound-gateway session-factory="ftpSessionFactory"
+	<int-ftp:outbound-gateway id="getGW"
+							  session-factory="ftpSessionFactory"
 							  request-channel="inboundGet"
 							  command="get"
 							  command-options="-P"

@@ -176,6 +176,8 @@ The `RemoteFileTemplate` is supplied now with the `invoke(OperationsCallback<F, 
 
 New filters for detecting incomplete remote files are now provided.
 
+The `FtpOutboundGateway` and `SftpOutboundGateway` now support an option to remove the remote file after a successful transfer using the `GET` or `MGET` commands.
+
 See <<ftp>> and <<sftp>> for more information.
 
 ==== Integration Properties
