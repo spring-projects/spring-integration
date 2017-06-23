@@ -32,6 +32,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
+import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.messaging.Message;
 
 /**
@@ -338,6 +339,19 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 		return _this();
 	}
 
+	/**
+	 * Determine the action to take when using GET and MGET operations when the file
+	 * already exists locally, or PUT and MPUT when the file exists on the remote
+	 * system.
+	 * @param fileExistsMode the fileExistsMode to set.
+	 * @return the current Spec
+	 */
+	public S fileExistsMode(FileExistsMode fileExistsMode) {
+		this.target.setFileExistsMode(fileExistsMode);
+		return _this();
+	}
+
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		Map<Object, String> componentsToRegister = new LinkedHashMap<>();
@@ -350,7 +364,6 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 
 		return componentsToRegister;
 	}
-
 
 	/**
 	 * Specify a simple pattern to match remote files (e.g. '*.txt').
