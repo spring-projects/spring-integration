@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import javax.sql.DataSource;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 
 /**
  *
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
@@ -40,9 +41,7 @@ public class JdbcOutboundGatewayTests {
 
 	@Test
 	public void testSetMaxRowsPerPollWithoutSelectQuery() {
-
-
-		DataSource dataSource = new EmbeddedDatabaseBuilder().build();
+		EmbeddedDatabase dataSource = new EmbeddedDatabaseBuilder().build();
 
 		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "update something");
 
@@ -51,18 +50,17 @@ public class JdbcOutboundGatewayTests {
 			jdbcOutboundGateway.setBeanFactory(mock(BeanFactory.class));
 			jdbcOutboundGateway.afterPropertiesSet();
 
+			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.", e.getMessage());
-			return;
 		}
 
-		fail("Expected an IllegalArgumentException to be thrown.");
-
+		dataSource.shutdown();
 	}
 
 	@Test
-	public void testConstructorWithNulljdbcOperations() {
+	public void testConstructorWithNullJdbcOperations() {
 
 		JdbcOperations jdbcOperations = null;
 
@@ -79,44 +77,39 @@ public class JdbcOutboundGatewayTests {
 
 	@Test
 	public void testConstructorWithEmptyAndNullQueries() {
-
-		final DataSource dataSource = new EmbeddedDatabaseBuilder().build();
+		EmbeddedDatabase dataSource = new EmbeddedDatabaseBuilder().build();
 
 		final String selectQuery = "   ";
 		final String updateQuery = null;
 
 		try {
 			new JdbcOutboundGateway(dataSource, updateQuery, selectQuery);
+
+			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
 			Assert.assertEquals("The 'updateQuery' and the 'selectQuery' must not both be null or empty.", e.getMessage());
-			return;
 		}
 
-		fail("Expected an IllegalArgumentException to be thrown.");
+		dataSource.shutdown();
 	}
 
-	/**
-	 * Test method for
-	 * {@link org.springframework.integration.jdbc.JdbcOutboundGateway#setMaxRowsPerPoll(Integer)}.
-	 */
 	@Test
 	public void testSetMaxRowsPerPoll() {
-
-
-		DataSource dataSource = new EmbeddedDatabaseBuilder().build();
+		EmbeddedDatabase dataSource = new EmbeddedDatabaseBuilder().build();
 
 		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "select * from DOES_NOT_EXIST");
 
 		try {
 			jdbcOutboundGateway.setMaxRowsPerPoll(null);
+
+			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("MaxRowsPerPoll must not be null.", e.getMessage());
-			return;
 		}
 
-		fail("Expected an IllegalArgumentException to be thrown.");
-
+		dataSource.shutdown();
 	}
+
 }
