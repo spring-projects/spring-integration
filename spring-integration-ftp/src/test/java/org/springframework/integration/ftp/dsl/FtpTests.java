@@ -62,6 +62,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * 
  * @since 5.0
  */
 @RunWith(SpringRunner.class)
@@ -170,6 +171,7 @@ public class FtpTests extends FtpTestSupport {
 				.handle(Ftp.outboundGateway(sessionFactory(),
 						AbstractRemoteFileOutboundGateway.Command.MGET, "payload")
 						.options(AbstractRemoteFileOutboundGateway.Option.RECURSIVE)
+						.fileExistsMode(FileExistsMode.IGNORE)
 						.filterExpression("name matches 'subFtpSource|.*1.txt'")
 						.localDirectoryExpression("'" + getTargetLocalDirectoryName() + "' + #remoteDirectory")
 						.localFilenameExpression("#remoteFileName.replaceFirst('ftpSource', 'localTarget')"))
