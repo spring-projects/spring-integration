@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,39 +198,35 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			}
 			return;
 		}
-		final CountDownLatch latch = new CountDownLatch(1);
-		this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
+		final CountDownLatch connectLatch = new CountDownLatch(1);
+		this.stompSessionListenableFuture.addCallback(
+				stompSession -> {
+					if (AbstractStompSessionManager.this.logger.isDebugEnabled()) {
+						AbstractStompSessionManager.this.logger.debug("onSuccess");
+					}
+					AbstractStompSessionManager.this.connected = true;
+					AbstractStompSessionManager.this.connecting = false;
+					stompSession.setAutoReceipt(isAutoReceiptEnabled());
+					if (AbstractStompSessionManager.this.applicationEventPublisher != null) {
+						AbstractStompSessionManager.this.applicationEventPublisher.publishEvent(
+								new StompSessionConnectedEvent(this));
+					}
+					AbstractStompSessionManager.this.reconnectFuture = null;
+					connectLatch.countDown();
 
-			@Override
-			public void onFailure(Throwable e) {
-				if (AbstractStompSessionManager.this.logger.isDebugEnabled()) {
-					AbstractStompSessionManager.this.logger.debug("onFailure", e);
-				}
-				latch.countDown();
-				if (epoch == AbstractStompSessionManager.this.epoch.get()) {
-					scheduleReconnect(e);
-				}
-			}
+				},
+				e -> {
+					if (AbstractStompSessionManager.this.logger.isDebugEnabled()) {
+						AbstractStompSessionManager.this.logger.debug("onFailure", e);
+					}
+					connectLatch.countDown();
+					if (epoch == AbstractStompSessionManager.this.epoch.get()) {
+						scheduleReconnect(e);
+					}
+				});
 
-			@Override
-			public void onSuccess(StompSession stompSession) {
-				if (AbstractStompSessionManager.this.logger.isDebugEnabled()) {
-					AbstractStompSessionManager.this.logger.debug("onSuccess");
-				}
-				AbstractStompSessionManager.this.connected = true;
-				AbstractStompSessionManager.this.connecting = false;
-				stompSession.setAutoReceipt(isAutoReceiptEnabled());
-				if (AbstractStompSessionManager.this.applicationEventPublisher != null) {
-					AbstractStompSessionManager.this.applicationEventPublisher.publishEvent(
-							new StompSessionConnectedEvent(this));
-				}
-				AbstractStompSessionManager.this.reconnectFuture = null;
-				latch.countDown();
-			}
-
-		});
 		try {
-			if (!latch.await(10, TimeUnit.SECONDS)) {
+			if (!connectLatch.await(30, TimeUnit.SECONDS)) {
 				this.logger.error("No response to connection attempt");
 				if (epoch == this.epoch.get()) {
 					scheduleReconnect(null);
@@ -261,7 +257,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		if (this.stompClient.getTaskScheduler() != null) {
 			this.reconnectFuture = this.stompClient.getTaskScheduler()
-					.schedule((Runnable) () -> connect(), new Date(System.currentTimeMillis() + this.recoveryInterval));
+					.schedule(this::connect, new Date(System.currentTimeMillis() + this.recoveryInterval));
 		}
 		else {
 			this.logger.info("For automatic reconnection the 'stompClient' should be configured with a TaskScheduler.");

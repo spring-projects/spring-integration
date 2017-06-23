@@ -118,9 +118,13 @@ public class StompServerIntegrationTests extends LogAdjustingTestSupport {
 		MessageChannel stompOutputChannel1 = context1.getBean("stompOutputChannel", MessageChannel.class);
 		MessageChannel stompOutputChannel2 = context2.getBean("stompOutputChannel", MessageChannel.class);
 
-		Message<?> eventMessage = stompEvents1.receive(10000);
+		Message<?> eventMessage;
+		do {
+			eventMessage = stompEvents1.receive(10000);
+		}
+		while (eventMessage != null && !(eventMessage.getPayload() instanceof StompSessionConnectedEvent));
+
 		assertNotNull(eventMessage);
-		assertThat(eventMessage.getPayload(), instanceOf(StompSessionConnectedEvent.class));
 
 		eventMessage = stompEvents1.receive(10000);
 		assertNotNull(eventMessage);
