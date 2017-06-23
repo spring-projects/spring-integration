@@ -1039,12 +1039,16 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if (!appending && !tempFile.renameTo(localFile)) {
 				throw new MessagingException("Failed to rename local file");
 			}
-			if (this.options.contains(Option.PRESERVE_TIMESTAMP)) {
+			if (this.options.contains(Option.PRESERVE_TIMESTAMP)
+					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)) {
 				localFile.setLastModified(getModified(fileInfo));
 			}
 		}
 		else if (FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)) {
 			logger.debug("Local file '" + localFile + "' has the same modified timestamp, ignored");
+			if (this.command.equals(Command.MGET)) {
+				localFile = null;
+			}
 		}
 		else if (!FileExistsMode.IGNORE.equals(fileExistsMode)) {
 			throw new MessageHandlingException(message, "Local file " + localFile + " already exists");
@@ -1052,6 +1056,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Existing file skipped: " + localFile);
+			}
+			if (this.command.equals(Command.MGET)) {
+				localFile = null;
 			}
 		}
 		return localFile;
@@ -1098,9 +1105,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				 */
 				String fileName = this.getRemoteFilename(fullFileName);
 				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
-				File file = get(message, session, actualRemoteDirectory,
-						fullFileName, fileName, lsEntry.getFileInfo());
-				files.add(file);
+				File file = get(message, session, actualRemoteDirectory, fullFileName, fileName, lsEntry.getFileInfo());
+				if (file != null) {
+					files.add(file);
+				}
 			}
 		}
 		catch (Exception e) {
@@ -1141,9 +1149,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				 */
 				String fileName = this.getRemoteFilename(fullFileName);
 				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
-				File file = get(message, session, actualRemoteDirectory,
-						fullFileName, fileName, lsEntry.getFileInfo());
-				files.add(file);
+				File file = get(message, session, actualRemoteDirectory, fullFileName, fileName, lsEntry.getFileInfo());
+				if (file != null) {
+					files.add(file);
+				}
 			}
 		}
 		catch (Exception e) {

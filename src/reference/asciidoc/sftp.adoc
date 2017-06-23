@@ -908,7 +908,7 @@ You can either do that in your custom code, or route a copy of the message to a 
 
 *mget*
 
-_mget_ retrieves multiple remote files based on a pattern and supports the following option:
+_mget_ retrieves multiple remote files based on a pattern and supports the following options:
 
 * -P - preserve the timestamps of the remote files
 
@@ -918,9 +918,14 @@ _mget_ retrieves multiple remote files based on a pattern and supports the follo
 
 The message payload resulting from an _mget_ operation is a `List<File>` object - a List of File objects, each representing a retrieved file.
 
+IMPORTANT: Startng with _version 5.0_, if the `FileExistsMode` is `IGNORE`, the payload of the output message will no longer contain files that were not fetched due to the file already existing.
+Previously, the array contained all files, including those that already existed.
+
+
 The expression used to determine the remote path should produce a result that ends with `*` - e.g. `foo/*` will fetch the complete tree under `foo`.
 
 Starting with _version 5.0_, a recursive `MGET`, combined with the new `FileExistsMode.REPLACE_IF_MODIFIED` mode, can be used to periodically synchronize an entire remote directory tree locally.
+This mode will set the local file last modified timestamp to the remote file timestamp, regardless of the `-P` (preserve timestamp) option.
 
 .Notes for when using recursion (`-R`)
 [IMPORTANT]
