@@ -922,13 +922,13 @@ The expression used to determine the remote path should produce a result that en
 
 Starting with _version 5.0_, a recursive `MGET`, combined with the new `FileExistsMode.REPLACE_IF_MODIFIED` mode, can be used to periodically synchronize an entire remote directory tree locally.
 
-[NOTE]
 .Notes for when using recursion (`-R`)
+[IMPORTANT]
 =====
 
 The pattern is ignored, and `*` is assumed.
 By default, the entire remote tree is retrieved.
-However, files in the tree can be filtered, by providing a`FileListFilter`; directories in the tree can also be filtered this way.
+However, files in the tree can be filtered, by providing a `FileListFilter`; directories in the tree can also be filtered this way.
 A `FileListFilter` can be provided by reference or by `filename-pattern` or `filename-regex` attributes.
 For example, `filename-regex="(subDir|.*1.txt)"` will retrieve all files ending with `1.txt` in the remote directory and the subdirectory `subDir`.
 However, see below for an alternative available in _version 5.0_.
