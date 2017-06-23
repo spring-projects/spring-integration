@@ -1040,7 +1040,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				throw new MessagingException("Failed to rename local file");
 			}
 			if (this.options.contains(Option.PRESERVE_TIMESTAMP)
-					|| fileExistsMode.equals(FileExistsMode.REPLACE_IF_MODIFIED)) {
+					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)) {
 				localFile.setLastModified(getModified(fileInfo));
 			}
 		}
