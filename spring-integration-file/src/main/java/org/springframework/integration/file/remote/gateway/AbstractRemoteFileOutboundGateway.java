@@ -1053,8 +1053,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			if (this.options.contains(Option.DELETE)) {
 				boolean result = session.remove(remoteFilePath);
-				if (logger.isDebugEnabled()) {
-					logger.debug(remoteFilePath + " deletion result: " + result);
+				if (!result) {
+					logger.error("Failed to delete: " + remoteFilePath);
+				}
+				else if (logger.isDebugEnabled()) {
+					logger.debug(remoteFilePath + " deleted");
 				}
 			}
 		}
