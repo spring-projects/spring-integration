@@ -70,6 +70,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 
 	/**
 	 * Instantiate a {@link JdbcMetadataStore} using provided dataSource {@link DataSource}.
+	 * @param dataSource a {@link DataSource}
 	 */
 	public JdbcMetadataStore(DataSource dataSource) {
 		this(new JdbcTemplate(dataSource));
@@ -77,6 +78,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 
 	/**
 	 * Instantiate a {@link JdbcMetadataStore} using provided jdbcOperations {@link JdbcOperations}.
+	 * @param jdbcOperations a {@link JdbcOperations}
 	 */
 	public JdbcMetadataStore(JdbcOperations jdbcOperations) {
 		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
