@@ -26,17 +26,24 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.sql.DataSource;
+
 import org.apache.geode.cache.CacheFactory;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.gemfire.metadata.GemfireMetadataStore;
+import org.springframework.integration.jdbc.metadata.JdbcMetadataStore;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.redis.metadata.RedisMetadataStore;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
@@ -44,7 +51,13 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
  * @since 4.0
  *
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext // close at the end after class
 public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisAvailableTests {
+
+	@Autowired
+	private DataSource dataSource;
 
 	@Test
 	@RedisAvailable
@@ -67,6 +80,13 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 	@Test
 	public void testFileSystemWithGemfireMetadataStore() throws Exception {
 		this.testFileSystem(new GemfireMetadataStore(new CacheFactory().create()));
+	}
+
+	@Test
+	public void testFileSystemWithJdbcMetadataStore() throws Exception {
+		JdbcMetadataStore metadataStore = new JdbcMetadataStore(dataSource);
+		metadataStore.afterPropertiesSet();
+		this.testFileSystem(metadataStore);
 	}
 
 	private void testFileSystem(ConcurrentMetadataStore store) throws Exception {

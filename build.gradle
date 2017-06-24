@@ -337,6 +337,9 @@ project('spring-integration-file') {
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
 		testCompile project(":spring-integration-gemfire")
+		testCompile project(":spring-integration-jdbc")
+		testCompile "org.apache.derby:derby:$derbyVersion"
+		testCompile "org.apache.derby:derbyclient:$derbyVersion"
 		testCompile "redis.clients:jedis:$jedisVersion"
 	}
 }
