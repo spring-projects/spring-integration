@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.jdbc.metadata;
 
 import static org.junit.Assert.assertEquals;
@@ -36,9 +52,9 @@ public class JdbcMetadataStoreTests {
 
 	@Test
 	public void keyAndValuesArePreservedOnPut() {
-		metadataStore.put("foo","bar");
-		metadataStore.put("foo","bar1");
-		metadataStore.put("foo2","bar2");
+		metadataStore.put("foo", "bar");
+		metadataStore.put("foo", "bar1");
+		metadataStore.put("foo2", "bar2");
 		String bar1 = metadataStore.get("foo");
 		String bar2 = metadataStore.get("foo2");
 		assertEquals("bar1", bar1);
@@ -47,8 +63,8 @@ public class JdbcMetadataStoreTests {
 
 	@Test
 	public void keyAndValuesAreNotPreservedOnRemove() {
-		metadataStore.put("foo","bar");
-		metadataStore.put("foo2","bar2");
+		metadataStore.put("foo", "bar");
+		metadataStore.put("foo2", "bar2");
 		metadataStore.remove("foo");
 		String bar = metadataStore.get("foo");
 		metadataStore.remove("foo2");
@@ -59,8 +75,8 @@ public class JdbcMetadataStoreTests {
 
 	@Test
 	public void keyAndValuesAreNotOverwrittenOnPutIfAbsent() {
-		metadataStore.put("foo","bar");
-		metadataStore.putIfAbsent("foo","bar1");
+		metadataStore.put("foo", "bar");
+		metadataStore.putIfAbsent("foo", "bar1");
 		String bar = metadataStore.get("foo");
 		assertEquals("bar", bar);
 	}
