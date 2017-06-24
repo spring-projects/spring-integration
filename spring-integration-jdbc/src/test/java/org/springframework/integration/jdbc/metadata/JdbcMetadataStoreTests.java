@@ -35,7 +35,7 @@ public class JdbcMetadataStoreTests {
 	}
 
 	@Test
-	public void keyAndValuesArePreservedOnPut(){
+	public void keyAndValuesArePreservedOnPut() {
 		metadataStore.put("foo","bar");
 		metadataStore.put("foo","bar1");
 		metadataStore.put("foo2","bar2");
@@ -46,7 +46,7 @@ public class JdbcMetadataStoreTests {
 	}
 
 	@Test
-	public void keyAndValuesAreNotPreservedOnRemove(){
+	public void keyAndValuesAreNotPreservedOnRemove() {
 		metadataStore.put("foo","bar");
 		metadataStore.put("foo2","bar2");
 		metadataStore.remove("foo");
@@ -58,7 +58,7 @@ public class JdbcMetadataStoreTests {
 	}
 
 	@Test
-	public void keyAndValuesAreNotOverwrittenOnPutIfAbsent(){
+	public void keyAndValuesAreNotOverwrittenOnPutIfAbsent() {
 		metadataStore.put("foo","bar");
 		metadataStore.putIfAbsent("foo","bar1");
 		String bar = metadataStore.get("foo");
@@ -66,7 +66,7 @@ public class JdbcMetadataStoreTests {
 	}
 
 	@Test
-	public void nonExistentKeyIsNotRemoved(){
+	public void nonExistentKeyIsNotRemoved() {
 		metadataStore.remove("non-existent");
 		String ne = metadataStore.get("non-existent");
 		assertNull(ne);

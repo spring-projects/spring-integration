@@ -1,6 +1,20 @@
-package org.springframework.integration.jdbc.metadata;
+/*
+ * Copyright 2002-2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import static org.springframework.integration.jdbc.store.JdbcMessageStore.DEFAULT_TABLE_PREFIX;
+package org.springframework.integration.jdbc.metadata;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,11 +39,16 @@ import org.springframework.util.StringUtils;
  */
 public class JdbcMetadataStore implements ConcurrentMetadataStore {
 
+	/**
+	 * Default value for the table prefix property.
+	 */
+	public static final String DEFAULT_TABLE_PREFIX = "INT_";
+
 	private final JdbcOperations jdbcTemplate;
 
 	private volatile Map<Query, String> queryCache = new HashMap<>();
 
-	private enum Query{
+	private enum Query {
 		GET_VALUE("SELECT METADATA_VALUE FROM %PREFIX%METADATA_STORE WHERE METADATA_KEY=?"),
 		GET_VALUE_FOR_UPDATE("SELECT METADATA_VALUE FROM %PREFIX%METADATA_STORE WHERE METADATA_KEY=? FOR UPDATE"),
 		REPLACE_VALUE("UPDATE %PREFIX%METADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND METADATA_VALUE=?"),
@@ -69,7 +88,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 	public String putIfAbsent(String key, String value) {
 		Assert.notNull(key, "'key' cannot be null");
 		Assert.notNull(value, "'value' cannot be null");
-		while(true) {
+		while (true) {
 			//try to insert if does not exists
 			int affectedRows = this.jdbcTemplate.update(getQuery(Query.PUT_IF_ABSENT_VALUE), ps -> {
 				ps.setString(1, key);
@@ -85,7 +104,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 				try {
 					return this.jdbcTemplate.queryForObject(getQuery(Query.GET_VALUE), String.class, key);
 				}
-				catch (EmptyResultDataAccessException e){
+				catch (EmptyResultDataAccessException e) {
 					//somebody deleted it between calls. try to insert again (go to beginning of while loop)
 				}
 			}
@@ -110,7 +129,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 	public void put(String key, String value) {
 		Assert.notNull(key, "'key' cannot be null");
 		Assert.notNull(value, "'value' cannot be null");
-		while(true) {
+		while (true) {
 			//try to insert if does not exist, if exists we will try to update it
 			int affectedRows = this.jdbcTemplate.update(getQuery(Query.PUT_IF_ABSENT_VALUE), ps -> {
 				ps.setString(1, key);
@@ -143,7 +162,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 		try {
 			return this.jdbcTemplate.queryForObject(getQuery(Query.GET_VALUE), String.class, key);
 		}
-		catch (EmptyResultDataAccessException e){
+		catch (EmptyResultDataAccessException e) {
 			//if there are no rows with this key, return null
 			return null;
 		}
