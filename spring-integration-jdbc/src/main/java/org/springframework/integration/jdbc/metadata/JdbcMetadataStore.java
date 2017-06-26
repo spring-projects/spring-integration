@@ -44,6 +44,8 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
+	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
+
 	private final JdbcOperations jdbcTemplate;
 
 	private volatile Map<Query, String> queryCache = new HashMap<>();
@@ -54,7 +56,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 		REPLACE_VALUE("UPDATE %PREFIX%METADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND METADATA_VALUE=?"),
 		REPLACE_VALUE_BY_KEY("UPDATE %PREFIX%METADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=?"),
 		REMOVE_VALUE("DELETE FROM %PREFIX%METADATA_STORE WHERE METADATA_KEY=?"),
-		PUT_IF_ABSENT_VALUE("INSERT INTO INT_METADATA_STORE(METADATA_KEY, METADATA_VALUE) "
+		PUT_IF_ABSENT_VALUE("INSERT INTO %PREFIX%METADATA_STORE(METADATA_KEY, METADATA_VALUE) "
 				+ "SELECT ?, ? FROM INT_METADATA_STORE WHERE METADATA_KEY=? HAVING COUNT(*)=0");
 
 		private String sql;
@@ -81,8 +83,18 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 	 * @param jdbcOperations a {@link JdbcOperations}
 	 */
 	public JdbcMetadataStore(JdbcOperations jdbcOperations) {
-		Assert.notNull(jdbcOperations, "'dataSource' must not be null");
+		Assert.notNull(jdbcOperations, "'jdbcOperations' must not be null");
 		this.jdbcTemplate = jdbcOperations;
+	}
+
+	/**
+	 * Public setter for the table prefix property. This will be prefixed to all the table names before queries are
+	 * executed. Defaults to {@link #DEFAULT_TABLE_PREFIX}.
+	 *
+	 * @param tablePrefix the tablePrefix to set
+	 */
+	public void setTablePrefix(String tablePrefix) {
+		this.tablePrefix = tablePrefix;
 	}
 
 	@Override
@@ -98,7 +110,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 				ps.setString(3, key);
 			});
 			if (affectedRows > 0) {
-				//it was not in the table, so we just inserted it
+				//it was not in the table, so we have just inserted it
 				return null;
 			}
 			else {
@@ -193,6 +205,6 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore {
 
 	private String getQuery(Query base) {
 		return this.queryCache.computeIfAbsent(base, b ->
-				StringUtils.replace(b.getSql(), "%PREFIX%", DEFAULT_TABLE_PREFIX));
+				StringUtils.replace(b.getSql(), "%PREFIX%", this.tablePrefix));
 	}
 }
