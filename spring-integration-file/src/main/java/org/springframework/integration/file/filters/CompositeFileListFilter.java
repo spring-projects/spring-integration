@@ -103,11 +103,12 @@ public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, 
 
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<F> filterFiles(F[] files) {
 		Assert.notNull(files, "'files' should not be null");
 		List<F> results = new ArrayList<F>(Arrays.asList(files));
 		for (FileListFilter<F> fileFilter : this.fileFilters) {
-			List<F> currentResults = fileFilter.filterFiles(files);
+			List<F> currentResults = fileFilter.filterFiles(results.toArray((F[]) new Object[results.size()]));
 			results.retainAll(currentResults);
 		}
 		return results;
