@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.nio.charset.Charset;
 
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.file.splitter.FileSplitter;
+import org.springframework.util.StringUtils;
 
 /**
  * The {@link MessageHandlerSpec} for the {@link FileSplitter}.
@@ -27,6 +28,8 @@ import org.springframework.integration.file.splitter.FileSplitter;
  * @author Artem Bilan
  *
  * @since 5.0
+ *
+ * @see FileSplitter
  */
 public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileSplitter> {
 
@@ -39,6 +42,8 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	private Charset charset;
 
 	private boolean applySequence;
+
+	private String firstLineHeaderName;
 
 	FileSplitterSpec() {
 		this(true);
@@ -79,7 +84,6 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	 * {@link org.springframework.integration.file.splitter.FileSplitter.FileMarker}s
 	 * Defaults to {@code false}.
 	 * @return the FileSplitterSpec
-	 * @see FileSplitter
 	 */
 	public FileSplitterSpec markers() {
 		return markers(false);
@@ -92,7 +96,6 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 	 * Defaults to {@code false} for markers and {@code false} for markersJson.
 	 * @param asJson the asJson flag to use.
 	 * @return the FileSplitterSpec
-	 * @see FileSplitter
 	 */
 	public FileSplitterSpec markers(boolean asJson) {
 		this.markers = true;
@@ -113,12 +116,25 @@ public class FileSplitterSpec extends MessageHandlerSpec<FileSplitterSpec, FileS
 		return this;
 	}
 
+	/**
+	 * Specify the header name for the first line to be carried as a header in the
+	 * messages emitted for the remaining lines.
+	 * @param firstLineHeaderName the header name to carry first line.
+	 * @return the FileSplitterSpec
+	 */
+	public FileSplitterSpec firstLineAsHeader(String firstLineHeaderName) {
+		this.firstLineHeaderName = firstLineHeaderName;
+		return this;
+	}
 
 	@Override
 	protected FileSplitter doGet() {
 		FileSplitter fileSplitter = new FileSplitter(this.iterator, this.markers, this.markersJson);
 		fileSplitter.setApplySequence(this.applySequence);
 		fileSplitter.setCharset(this.charset);
+		if (StringUtils.hasText(this.firstLineHeaderName)) {
+			fileSplitter.setFirstLineAsHeader(this.firstLineHeaderName);
+		}
 		return fileSplitter;
 	}
 

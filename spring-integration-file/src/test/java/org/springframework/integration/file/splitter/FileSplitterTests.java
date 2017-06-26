@@ -307,6 +307,64 @@ public class FileSplitterTests {
 				.verifyComplete();
 	}
 
+	@Test
+	public void testFirstLineAsHeader() {
+		QueueChannel outputChannel = new QueueChannel();
+		FileSplitter splitter = new FileSplitter(true, true);
+		splitter.setFirstLineAsHeader("firstLine");
+		splitter.setOutputChannel(outputChannel);
+		splitter.handleMessage(new GenericMessage<>(file));
+		Message<?> received = outputChannel.receive(0);
+		assertNotNull(received);
+		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertNull(received.getHeaders().get("firstLine"));
+		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
+		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		received = outputChannel.receive(0);
+		assertEquals("HelloWorld", received.getHeaders().get("firstLine"));
+		assertNotNull(received);
+		received = outputChannel.receive(0);
+		assertNotNull(received);
+		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
+		assertNull(received.getHeaders().get("firstLine"));
+		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertEquals(1, fileMarker.getLineCount());
+	}
+
+	@Test
+	public void testFirstLineAsHeaderOnlyHeader() throws IOException {
+		QueueChannel outputChannel = new QueueChannel();
+		FileSplitter splitter = new FileSplitter(true, true);
+		splitter.setFirstLineAsHeader("firstLine");
+		splitter.setOutputChannel(outputChannel);
+		File file = File.createTempFile("empty", ".txt");
+		splitter.handleMessage(new GenericMessage<>(file));
+		Message<?> received = outputChannel.receive(0);
+		assertNotNull(received);
+		assertNull(received.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertNull(received.getHeaders().get("firstLine"));
+		assertEquals("START", received.getHeaders().get(FileHeaders.MARKER));
+		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		FileMarker fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileSplitter.FileMarker.Mark.START, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		received = outputChannel.receive(0);
+		assertNotNull(received);
+		assertEquals("END", received.getHeaders().get(FileHeaders.MARKER));
+		assertNull(received.getHeaders().get("firstLine"));
+		assertThat(received.getPayload(), instanceOf(FileSplitter.FileMarker.class));
+		fileMarker = (FileSplitter.FileMarker) received.getPayload();
+		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
+		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
+		assertEquals(0, fileMarker.getLineCount());
+	}
+
 	@Configuration
 	@EnableIntegration
 	@ImportResource("classpath:org/springframework/integration/file/splitter/FileSplitterTests-context.xml")

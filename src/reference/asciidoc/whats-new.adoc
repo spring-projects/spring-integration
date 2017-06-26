@@ -147,6 +147,8 @@ They also now support setting file permissions on the newly written file.
 
 A new `FileSystemMarkerFilePresentFileListFilter` is now available; see <<file-incomplete>> for more information.
 
+The `FileSplitter` now provides a `firstLineAsHeader` option to carry the first line of content as a header in the messages emitted for the remaining lines.
+
 See <<files>> for more information.
 
 ==== (S)FTP Changes

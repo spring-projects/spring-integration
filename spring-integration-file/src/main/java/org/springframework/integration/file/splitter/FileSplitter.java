@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,20 +47,28 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * The {@link AbstractMessageSplitter} implementation to split the {@link File}
- * Message payload to lines.
+ * The {@link AbstractMessageSplitter} implementation to split the {@link File} Message
+ * payload to lines.
  * <p>
- * With {@code iterator = true} (defaults to {@code true}) this class produces an {@link Iterator}
- * to process file lines on demand from {@link Iterator#next}.
- * Otherwise a {@link List} of all lines is returned to the to further
+ * With {@code iterator = true} (defaults to {@code true}) this class produces an
+ * {@link Iterator} to process file lines on demand from {@link Iterator#next}. Otherwise
+ * a {@link List} of all lines is returned to the to further
  * {@link AbstractMessageSplitter#handleRequestMessage} process.
  * <p>
- *  Can accept {@link String} as file path, {@link File}, {@link Reader} or {@link InputStream}
- *  as payload type.
- *  All other types are ignored and returned to the {@link AbstractMessageSplitter} as is.
+ * Can accept {@link String} as file path, {@link File}, {@link Reader} or
+ * {@link InputStream} as payload type. All other types are ignored and returned to the
+ * {@link AbstractMessageSplitter} as is.
+ * <p>
+ * If {@link #setFirstLineAsHeader(String)} is specified, the first line of the content is
+ * treated as a header and carried as a header with the provided name in the messages
+ * emitted for the remaining lines. In this case, if markers are enabled, the line count
+ * in the END marker does not include the header line and, if
+ * {@link #setApplySequence(boolean) applySequence} is true, the header is not included in
+ * the sequence.
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1.2
  */
 public class FileSplitter extends AbstractMessageSplitter {
@@ -75,6 +83,8 @@ public class FileSplitter extends AbstractMessageSplitter {
 	private final boolean markersJson;
 
 	private Charset charset;
+
+	private String firstLineHeaderName;
 
 	/**
 	 * Construct a splitter where the {@link #splitMessage(Message)} method returns
@@ -143,6 +153,17 @@ public class FileSplitter extends AbstractMessageSplitter {
 		this.charset = charset;
 	}
 
+	/**
+	 * Specify the header name for the first line to be carried as a header in the
+	 * messages emitted for the remaining lines.
+	 * @param firstLineHeaderName the header name to carry first line.
+	 * @since 5.0
+	 */
+	public void setFirstLineAsHeader(String firstLineHeaderName) {
+		Assert.hasText(firstLineHeaderName, "'firstLineHeaderName' must not be empty");
+		this.firstLineHeaderName = firstLineHeaderName;
+	}
+
 	@Override
 	protected Object splitMessage(final Message<?> message) {
 		Object payload = message.getPayload();
@@ -199,7 +220,8 @@ public class FileSplitter extends AbstractMessageSplitter {
 					super.close();
 				}
 				finally {
-					Closeable closeableResource = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
+					Closeable closeableResource = new IntegrationMessageHeaderAccessor(message)
+							.getCloseableResource();
 					if (closeableResource != null) {
 						closeableResource.close();
 					}
@@ -207,6 +229,20 @@ public class FileSplitter extends AbstractMessageSplitter {
 			}
 
 		};
+
+		String firstLineAsHeader;
+
+		if (this.firstLineHeaderName != null) {
+			try {
+				firstLineAsHeader = bufferedReader.readLine();
+			}
+			catch (IOException e) {
+				throw new MessageHandlingException(message, "IOException while reading first line", e);
+			}
+		}
+		else {
+			firstLineAsHeader = null;
+		}
 
 		Iterator<Object> iterator = new Iterator<Object>() {
 
@@ -275,7 +311,16 @@ public class FileSplitter extends AbstractMessageSplitter {
 					String line = this.line;
 					this.line = null;
 					this.lineCount++;
-					return line;
+
+					AbstractIntegrationMessageBuilder<String> messageBuilder =
+							getMessageBuilderFactory()
+									.withPayload(line);
+
+					if (firstLineAsHeader != null) {
+						messageBuilder.setHeader(FileSplitter.this.firstLineHeaderName, firstLineAsHeader);
+					}
+
+					return messageBuilder;
 				}
 				else {
 					this.done = true;

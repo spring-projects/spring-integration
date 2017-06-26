@@ -712,6 +712,14 @@ Only files matching this regular expression will be picked up by this adapter.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="first-line-as-header" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The header name for the first line to be carried as a header in the messages emitted for the
+						remaining lines.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="requires-reply" use="optional" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
