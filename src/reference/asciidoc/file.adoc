@@ -985,7 +985,7 @@ Starting with _version 5.0_, the `firstLineAsHeader` option is introduced to spe
 The argument passed to this property is the header name under which the first line will be carried as a header in the messages emitted for the remaining lines.
 This line is not included in the sequence header (if `applySequence` is true) nor in the `FileMarker.END` `lineCount`.
 If file contains only the header line, the file is treated as empty and therefore only `FileMarker` s are emitted during splitting (if markers are enabled, otherwise no messages are emitted).
-By default (if no header name is set), the first line is considered data and will be the payload of the first emitted message.
+By default (if no header name is set), the first line is considered to be data and will be the payload of the first emitted message.
 
 If you need more complex logic about headers extraction from the file content (not first line, not the whole content of the line, not one header etc.), consider to use <<header-enricher, Header Enricher>> upfront of the `FileSplitter`.
 The lines which have been moved to the headers might be filtered downstream from the normal content process.
