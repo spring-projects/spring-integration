@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
@@ -67,7 +69,7 @@ public class FileSplitterParserTests {
 		assertEquals(5L, TestUtils.getPropertyValue(this.splitter, "messagingTemplate.sendTimeout"));
 		assertEquals(this.out, TestUtils.getPropertyValue(this.splitter, "outputChannel"));
 		assertEquals(2, TestUtils.getPropertyValue(this.splitter, "order"));
-
+		assertEquals("foo", TestUtils.getPropertyValue(this.splitter, "firstLineHeaderName"));
 		assertEquals(this.in, TestUtils.getPropertyValue(this.fullBoat, "inputChannel"));
 		assertFalse(TestUtils.getPropertyValue(this.fullBoat, "autoStartup", Boolean.class));
 		assertEquals(1, TestUtils.getPropertyValue(this.fullBoat, "phase"));

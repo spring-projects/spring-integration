@@ -911,12 +911,13 @@ Other payload types will be emitted unchanged.
     apply-sequence="" <5>
     requires-reply="" <6>
     charset="" <7>
-    input-channel="" <8>
-    output-channel="" <9>
-    send-timeout="" <10>
-    auto-startup="" <11>
-    order="" <12>
-    phase="" /> <13>
+    first-line-as-header="" <8>
+    input-channel="" <9>
+    output-channel="" <10>
+    send-timeout="" <11>
+    auto-startup="" <12>
+    order="" <13>
+    phase="" /> <14>
 ----
 
 <1> The bean name of the splitter.
@@ -948,32 +949,21 @@ Default: `false`.
 <7> Set the charset name to be used when reading the text data into `String` payloads.
 Default: platform charset.
 
-<8> Set the input channel used to send messages to the splitter.
+<8> The name for the header to carry the first line of the content as message header for the rest of lines.
+Since _version 5.0_.
 
-<9> Set the output channel to which messages will be sent.
+<9> Set the input channel used to send messages to the splitter.
 
-<10> Set the send timeout - only applies if the `output-channel` can block - such as a full `QueueChannel`.
+<10> Set the output channel to which messages will be sent.
 
-<11> Set to `false` to disable automatically starting the splitter when the context is refreshed.
+<11> Set the send timeout - only applies if the `output-channel` can block - such as a full `QueueChannel`.
+
+<12> Set to `false` to disable automatically starting the splitter when the context is refreshed.
 Default: `true`.
 
-<12> Set the order of this endpoint if the `input-channel` is a `<publish-subscribe-channel/>`.
+<13> Set the order of this endpoint if the `input-channel` is a `<publish-subscribe-channel/>`.
 
-<13> Set the startup phase for the splitter (used when `auto-startup` is `true`).
-
-*Java Configuration*
-
-[source, java]
-----
-@Splitter(inputChannel="toSplitter")
-@Bean
-public MessageHandler fileSplitter() {
-    FileSplitter splitter = new FileSplitter(true, true);
-    splitter.setApplySequence(true);
-    splitter.setOutputChannel(outputChannel);
-    return splitter;
-}
-----
+<14> Set the startup phase for the splitter (used when `auto-startup` is `true`).
 
 The `FileSplitter` will also split any text-based `InputStream` into lines.
 When used in conjunction with an FTP or SFTP streaming inbound channel adapter, or an FTP or SFTP outbound gateway
@@ -990,3 +980,61 @@ public FileSplitter(boolean iterator, boolean markers, boolean markersJson)
 ----
 
 When `markersJson` is true, the markers will be represented as a JSON string, as long as a suitable JSON processor library, such as Jackson or Boon, is on the classpath.
+
+Starting with _version 5.0_, the `firstLineAsHeader` option is introduced to represent the first line of content under the provided header name for the messages of the rest of lines.
+This line isn't included to the sequence and the `FileMarker.END` has `lineCount` without this specific header.
+If file contains only the header line, the file is treated as empty and therefore only `FileMarker` s are emitted during splitting.
+By default there is no header extraction.
+
+If you need more complex logic about headers extraction from the file content (not first line, not the whole content of the line, not one header etc.), consider to use <<header-enricher, Header Enricher>> upfront of the `FileSplitter`.
+The lines which have been moved to the headers might be filtered downstream from the normal content process.
+
+==== Configuring with Java Configuration
+
+[source, java]
+----
+@Splitter(inputChannel="toSplitter")
+@Bean
+public MessageHandler fileSplitter() {
+    FileSplitter splitter = new FileSplitter(true, true);
+    splitter.setApplySequence(true);
+    splitter.setOutputChannel(outputChannel);
+    return splitter;
+}
+----
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the inbound adapter using the Java DSL:
+
+[source, java]
+----
+@SpringBootApplication
+public class FileSplitterApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(FileSplitterApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public IntegrationFlow fileSplitterFlow() {
+        return IntegrationFlows
+            .from(Files.inboundAdapter(tmpDir.getRoot())
+                 .filter(new ChainFileListFilter<File>()
+                        .addFilter(new AcceptOnceFileListFilter<>())
+                        .addFilter(new ExpressionFileListFilter<>(
+                             new FunctionExpression<File>(f -> "foo.tmp".equals(f.getName()))))))
+            .split(Files.splitter()
+                     .markers()
+                     .charset(StandardCharsets.US_ASCII)
+                     .firstLineAsHeader("fileHeader")
+                     .applySequence(true))
+            .channel(c -> c.queue("fileSplittingResultChannel"))
+            .get();
+    }
+
+}
+----
+

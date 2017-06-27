@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,9 +58,13 @@ import org.springframework.util.StringUtils;
  *  Can accept {@link String} as file path, {@link File}, {@link Reader} or {@link InputStream}
  *  as payload type.
  *  All other types are ignored and returned to the {@link AbstractMessageSplitter} as is.
+ * <p>
+ * If {@link #setFirstLineAsHeader(String)} is specified, the first line of the content is
+ * treated as a header and carried under provided name in message headers for the rest of lines.
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.1.2
  */
 public class FileSplitter extends AbstractMessageSplitter {
@@ -75,6 +79,8 @@ public class FileSplitter extends AbstractMessageSplitter {
 	private final boolean markersJson;
 
 	private Charset charset;
+
+	private String firstLieHeaderName;
 
 	/**
 	 * Construct a splitter where the {@link #splitMessage(Message)} method returns
@@ -143,6 +149,16 @@ public class FileSplitter extends AbstractMessageSplitter {
 		this.charset = charset;
 	}
 
+	/**
+	 * Specify the header name for the first line to be carried with the messages for the rest of lines.
+	 * @param firstLineHeaderName the header name to carry first line.
+	 * @since 5.0
+	 */
+	public void setFirstLineAsHeader(String firstLineHeaderName) {
+		Assert.hasText(firstLineHeaderName, "'firstLineHeaderName' must not be empty");
+		this.firstLieHeaderName = firstLineHeaderName;
+	}
+
 	@Override
 	protected Object splitMessage(final Message<?> message) {
 		Object payload = message.getPayload();
@@ -199,7 +215,8 @@ public class FileSplitter extends AbstractMessageSplitter {
 					super.close();
 				}
 				finally {
-					Closeable closeableResource = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
+					Closeable closeableResource = new IntegrationMessageHeaderAccessor(message)
+							.getCloseableResource();
 					if (closeableResource != null) {
 						closeableResource.close();
 					}
@@ -207,6 +224,20 @@ public class FileSplitter extends AbstractMessageSplitter {
 			}
 
 		};
+
+		String firstLineAsHeader;
+
+		if (this.firstLieHeaderName != null) {
+			try {
+				firstLineAsHeader = bufferedReader.readLine();
+			}
+			catch (IOException e) {
+				throw new MessageHandlingException(message, "IOException while reading first line", e);
+			}
+		}
+		else {
+			firstLineAsHeader = null;
+		}
 
 		Iterator<Object> iterator = new Iterator<Object>() {
 
@@ -275,7 +306,16 @@ public class FileSplitter extends AbstractMessageSplitter {
 					String line = this.line;
 					this.line = null;
 					this.lineCount++;
-					return line;
+
+					AbstractIntegrationMessageBuilder<String> messageBuilder =
+							getMessageBuilderFactory()
+									.withPayload(line);
+
+					if (firstLineAsHeader != null) {
+						messageBuilder.setHeader(FileSplitter.this.firstLieHeaderName, firstLineAsHeader);
+					}
+
+					return messageBuilder;
 				}
 				else {
 					this.done = true;
