@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.aopalliance.aop.Advice;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
@@ -30,6 +31,7 @@ import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
@@ -75,6 +77,20 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	@Override
 	public S poller(PollerMetadata pollerMetadata) {
 		this.endpointFactoryBean.setPollerMetadata(pollerMetadata);
+		return _this();
+	}
+
+	/**
+	 * Configure a {@link TaskScheduler} for scheduling tasks, for example in the
+	 * Polling Consumer. By default the global {@code ThreadPoolTaskScheduler} bean is used.
+	 * This configuration is useful when there are requirements to dedicate particular threads
+	 * for polling task, for example.
+	 * @param taskScheduler the {@link TaskScheduler} to use.
+	 * @return the endpoint spec.
+	 * @see org.springframework.integration.context.IntegrationContextUtils#getTaskScheduler(BeanFactory)
+	 */
+	public S taskScheduler(TaskScheduler taskScheduler) {
+		this.endpointFactoryBean.setTaskScheduler(taskScheduler);
 		return _this();
 	}
 

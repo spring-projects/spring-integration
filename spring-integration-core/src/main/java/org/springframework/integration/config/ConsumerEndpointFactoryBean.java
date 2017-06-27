@@ -49,6 +49,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolver;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -98,6 +99,8 @@ public class ConsumerEndpointFactoryBean
 	private volatile List<Advice> adviceChain;
 
 	private volatile DestinationResolver<MessageChannel> channelResolver;
+
+	private TaskScheduler taskScheduler;
 
 	public void setHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
@@ -158,6 +161,11 @@ public class ConsumerEndpointFactoryBean
 	public void setAdviceChain(List<Advice> adviceChain) {
 		Assert.notNull(adviceChain, "adviceChain must not be null");
 		this.adviceChain = adviceChain;
+	}
+
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		Assert.notNull(taskScheduler, "taskScheduler must not be null");
+		this.taskScheduler = taskScheduler;
 	}
 
 	@Override
@@ -296,6 +304,9 @@ public class ConsumerEndpointFactoryBean
 				phase = Integer.MAX_VALUE / 2;
 			}
 			this.endpoint.setPhase(phase);
+			if (this.taskScheduler != null) {
+				this.endpoint.setTaskScheduler(this.taskScheduler);
+			}
 			this.endpoint.afterPropertiesSet();
 			this.initialized = true;
 		}
