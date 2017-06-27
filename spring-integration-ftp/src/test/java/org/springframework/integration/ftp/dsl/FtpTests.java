@@ -27,6 +27,9 @@ import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -64,6 +67,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Artem Bilan
@@ -82,7 +86,7 @@ public class FtpTests extends FtpTestSupport {
 	private ApplicationContext context;
 
 	@Test
-	public void testFtpInboundFlow() {
+	public void testFtpInboundFlow() throws IOException {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = IntegrationFlows.from(Ftp.inboundAdapter(sessionFactory())
 						.preserveTimestamp(true)
@@ -112,6 +116,10 @@ public class FtpTests extends FtpTestSupport {
 		assertNull(out.receive(10));
 
 		File remoteFile = new File(this.sourceRemoteDirectory, " " + prefix() + "Source1.txt");
+
+		FileOutputStream fos = new FileOutputStream(remoteFile);
+		fos.write("New content".getBytes());
+		fos.close();
 		remoteFile.setLastModified(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
 
 		message = out.receive(10_000);
@@ -120,6 +128,7 @@ public class FtpTests extends FtpTestSupport {
 		assertThat(payload, instanceOf(File.class));
 		file = (File) payload;
 		assertEquals(" FTPSOURCE1.TXT.a", file.getName());
+		assertEquals("New content", FileCopyUtils.copyToString(new FileReader(file)));
 
 		MessageSource<?> source = context.getBean(FtpInboundFileSynchronizingMessageSource.class);
 		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize"), equalTo(10));
