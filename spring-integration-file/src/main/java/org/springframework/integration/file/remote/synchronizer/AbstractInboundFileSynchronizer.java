@@ -39,6 +39,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.ResettableFileListFilter;
 import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
@@ -257,24 +258,24 @@ public abstract class AbstractInboundFileSynchronizer<F>
 						}
 						filteredFiles = newList;
 					}
+
+					int copied = filteredFiles.size();
+
 					for (F file : filteredFiles) {
 						try {
 							if (file != null) {
-								copyFileToLocalDirectory(
-										remoteDirectory, file, localDirectory,
-										session);
+								if (!copyFileToLocalDirectory(remoteDirectory, file, localDirectory, session)) {
+									copied--;
+								}
 							}
 						}
-						catch (RuntimeException e1) {
+						catch (RuntimeException | IOException e1) {
 							rollbackFromFileToListEnd(filteredFiles, file);
 							throw e1;
 						}
-						catch (IOException e2) {
-							rollbackFromFileToListEnd(filteredFiles, file);
-							throw e2;
-						}
 					}
-					return filteredFiles.size();
+
+					return copied;
 				}
 				else {
 					return 0;
@@ -296,20 +297,20 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		}
 	}
 
-	protected void copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory,
+	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory,
 			Session<F> session) throws IOException {
 		String remoteFileName = this.getFilename(remoteFile);
 		String localFileName = this.generateLocalFileName(remoteFileName);
 		String remoteFilePath = remoteDirectoryPath != null
 				? (remoteDirectoryPath + this.remoteFileSeparator + remoteFileName)
 				: remoteFileName;
+
 		if (!this.isFile(remoteFile)) {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("cannot copy, not a file: " + remoteFilePath);
 			}
-			return;
+			return false;
 		}
-
 
 		long modified = getModified(remoteFile);
 
@@ -342,18 +343,42 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				}
 			}
 
-			if (tempFile.renameTo(localFile)) {
+			boolean renamed = tempFile.renameTo(localFile);
+
+			if (!renamed) {
+				if (localFile.delete()) {
+					renamed = tempFile.renameTo(localFile);
+				}
+			}
+
+			if (renamed) {
 				if (this.deleteRemoteFiles) {
 					session.remove(remoteFilePath);
 					if (this.logger.isDebugEnabled()) {
 						this.logger.debug("deleted " + remoteFilePath);
 					}
 				}
+				if (this.preserveTimestamp) {
+					localFile.setLastModified(modified);
+				}
+				return true;
 			}
-			if (this.preserveTimestamp) {
-				localFile.setLastModified(modified);
+			else {
+				if (this.logger.isInfoEnabled()) {
+					this.logger.info("Cannot rename to local file '" + localFile + "'. " +
+							"Revert the remote file '" + remoteFile + "' from filter if possible...");
+				}
+				if (this.filter instanceof ResettableFileListFilter) {
+					((ResettableFileListFilter<F>) this.filter).remove(remoteFile);
+				}
 			}
 		}
+		else if (this.logger.isWarnEnabled()) {
+			this.logger.warn("The remote file '" + remoteFile + "' hasn't been transferred " +
+					"to the existing local file '" + localFile + "'. Consider to remove local file.");
+		}
+
+		return false;
 	}
 
 	private String generateLocalFileName(String remoteFileName) {
