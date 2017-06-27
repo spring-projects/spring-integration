@@ -134,8 +134,10 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	 * @return the handler spec.
 	 * @see AbstractCorrelatingMessageHandler#setTaskScheduler(TaskScheduler)
 	 */
+	@Override
 	public S taskScheduler(TaskScheduler taskScheduler) {
-		Assert.notNull(taskScheduler, "'taskScheduler' must not be null.");
+		Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
+		super.taskScheduler(taskScheduler);
 		this.handler.setTaskScheduler(taskScheduler);
 		return _this();
 	}

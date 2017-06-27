@@ -30,9 +30,11 @@ import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.util.Assert;
 
 import reactor.util.function.Tuple2;
 
@@ -75,6 +77,21 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	@Override
 	public S poller(PollerMetadata pollerMetadata) {
 		this.endpointFactoryBean.setPollerMetadata(pollerMetadata);
+		return _this();
+	}
+
+	/**
+	 * Configure a {@link TaskScheduler} for scheduling tasks, for example in the
+	 * Polling Consumer. By default the global {@code ThreadPoolTaskScheduler} bean is used.
+	 * This configuration is useful when there are requirements to dedicate particular threads
+	 * for polling task, for example.
+	 * @param taskScheduler the {@link TaskScheduler} to use.
+	 * @return the endpoint spec.
+	 * @see org.springframework.integration.context.IntegrationContextUtils#getTaskScheduler
+	 */
+	public S taskScheduler(TaskScheduler taskScheduler) {
+		Assert.notNull(taskScheduler, "'taskScheduler' must not be null");
+		this.endpointFactoryBean.setTaskScheduler(taskScheduler);
 		return _this();
 	}
 
