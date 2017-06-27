@@ -258,7 +258,7 @@ So, the root object of the SpEL Evaluation Context is the original name of the r
 The inbound channel adapter first retrieves the file to a local directory and then emits each file according to the poller configuration.
 Starting with _version 5.0_, you can now limit the number of files fetched from the FTP server when new file retrievals are needed.
 This can be beneficial when the target files are very large and/or when running in a clustered system with a persistent file list filter discussed below.
-Use `max-fetch-size` for this purpose; a negative value (default) means no limit and all matching files will be retrieved.
+Use `max-fetch-size` for this purpose; a negative value (default) means no limit and all matching files will be retrieved; see <<ftp-max-fetch>> for more information.
 
 Starting with _Spring Integration 3.0_, you can specify the `preserve-timestamp` attribute (default `false`); when `true`, the local file's modified timestamp will be set to the value retrieved from the server; otherwise it will be set to the current time.
 
@@ -554,7 +554,7 @@ If there is a requirement to allow duplicates, the `AcceptAllFileListFilter` can
 Any other use-cases can be reached via `CompositeFileListFilter` (or `ChainFileListFilter`).
 The java configuration below shows one technique to remove the remote file after processing, avoiding duplicates.
 
-Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment.
+Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment; see <<ftp-max-fetch>> for more information.
 
 The adapter puts the remote directory and file name in headers `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` respectively.
 Starting with _version 5.0_, additional remote file information, represented in JSON by default, is provided in the `FileHeaders.REMOTE_FILE_INFO` header.
@@ -616,6 +616,27 @@ public class FtpJavaApplication {
 ----
 
 Notice that, in this example, the message handler downstream of the transformer has an advice that removes the remote file after processing.
+
+[[ftp-max-fetch]]
+=== Inbound Channel Adapters: Controlling Remote File Fetching
+
+There are two properties that should be considered when configuring inbound channel adapters.
+`max-messages-per-poll`, as with all pollers, can be used to limit the number of messages emitted on each poll (if more than the configured value are ready).
+`max-fetch-size` (since _version 5.0_) can limit the number of files retrieved from the remote server at a time.
+
+The following scenarios assume the starting state is an empty local directory.
+
+* `max-messages-per-poll=2` and `max-fetch-size=1`, the adapter will fetch one file, emit it, fetch the next file, emit it; then sleep until the next poll.
+* `max-messages-per-poll=2` and `max-fetch-size=2`), the adapter will fetch both files, then emit each one.
+* `max-messages-per-poll=2` and `max-fetch-size=4`, the adapter will fetch up to 4 files (if available) and emit the first two (if there are at least two); the next two files will be emitted on the next poll.
+* `max-messages-per-poll=2` and `max-fetch-size` not specified, the adapter will fetch all remote files and emit the first two (if there are at least two); the subsequent files will be emitted on subsequent polls (2-at-a-time); when all are consumed, the remote fetch will be attempted again, to pick up any new files.
+
+IMPORTANT: When deploying multiple instances of an application, a small `max-fetch-size` is recommended to avoid one instance "grabbing" all the files and starving other instances.
+
+Another use for `max-fetch-size` is if you want to stop fetching remote files, but continue to process files that have already been fetched.
+Setting the `matchFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<control-bus, control bus>>) effectively stops the adapter from fetching more files, but allows the poller to continue to emit messages for files that have previously been fetched.
+If the poller is active when the property is changed, the change will take effect on the next poll.
+
 
 [[ftp-outbound]]
 === FTP Outbound Channel Adapter

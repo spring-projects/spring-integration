@@ -232,6 +232,19 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 		return _this();
 	}
 
+	/**
+	 * Specify the maximum number of remote files that will be fetched on each fetch
+	 * attempt. A small number is recommended when multiple application instances are
+	 * running, to avoid one instance from "grabbing" all the files.
+	 * @param maxFetchSize the max fetch size.
+	 * @return the spec.
+	 * @see org.springframework.integration.endpoint.MessageSourceManagement#setMaxFetchSize(int)
+	 */
+	public S maxFetchSize(int maxFetchSize) {
+		this.target.setMaxFetchSize(maxFetchSize);
+		return _this();
+	}
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		Map<Object, String> componentsToRegister = new LinkedHashMap<>();
