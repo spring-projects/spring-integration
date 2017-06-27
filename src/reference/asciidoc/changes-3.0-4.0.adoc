@@ -189,7 +189,7 @@ See <<jms-outbound-channel-adapter>>.
 
 The JMS inbound channel adapter now supports the `session-transacted` attribute (default false).
 Previously, you had to inject a customized `JmsTemplate` to use transactions (the adapter allowed 'transacted' in the acknowledgeMode which was incorrect, and didn't work; this value is no longer allowed).
-See<<jms-inbound-channel-adapter>>.
+See <<jms-inbound-channel-adapter>>.
 
 [[x4.0-datatype-channel]]
 ===== Datatype Channels

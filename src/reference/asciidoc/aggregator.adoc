@@ -33,7 +33,7 @@ This default strategy may be overridden by providing a reference to a custom `Re
 
 The Aggregation API consists of a number of classes:
 
-* The interface `MessageGroupProcessor`, and its subclasses:`MethodInvokingAggregatingMessageGroupProcessor` and `ExpressionEvaluatingMessageGroupProcessor`
+* The interface `MessageGroupProcessor`, and its subclasses: `MethodInvokingAggregatingMessageGroupProcessor` and `ExpressionEvaluatingMessageGroupProcessor`
 
 * The `ReleaseStrategy` interface and its default implementation `SimpleSequenceSizeReleaseStrategy`
 

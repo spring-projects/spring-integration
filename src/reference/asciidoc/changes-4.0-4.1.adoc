@@ -40,7 +40,7 @@ See <<idempotent-receiver>> and their JavaDocs for more information.
 [[x4.1-BoonJsonObjectMapper]]
 ===== BoonJsonObjectMapper
 
-The _Boon_`JsonObjectMapper` is now provided for the JSON transformers.
+The _Boon_ `JsonObjectMapper` is now provided for the JSON transformers.
 See <<transformer>> for more information.
 
 [[x4.1-redis-queue-gateways]]

@@ -71,7 +71,7 @@ See <<mongodb>> for more information.
 ===== Syslog Support
 
 Building on the 2.2 `SyslogToMapTransformer` Spring Integration 3.0 now introduces `UDP` and `TCP` inbound channel adapters especially tailored for receiving SYSLOG messages.
-For more information, see<<syslog>>.
+For more information, see <<syslog>>.
 
 [[x3.0-tail]]
 ===== 'Tail' Support
@@ -188,7 +188,7 @@ For more information see <<aggregator-config>>.
 
 New `FileListFilter` s that use a persistent `MetadataStore` are now available.
 These can be used to prevent duplicate files after a system restart.
-See<<file-reading>>, <<ftp-inbound>>, and <<sftp-inbound>> for more information.
+See <<file-reading>>, <<ftp-inbound>>, and <<sftp-inbound>> for more information.
 
 [[x3.0-scripting-variables]]
 ===== Scripting Support: Variables Changes

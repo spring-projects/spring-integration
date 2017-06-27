@@ -36,7 +36,7 @@ In combination with the namespace and SpEL, very powerful filters can be configu
 ===== Configuring a Filter with XML
 
 The <filter> element is used to create a Message-selecting endpoint.
-In addition to "`input-channel` and `output-channel` attributes, it requires a `ref`.
+In addition to `input-channel` and `output-channel` attributes, it requires a `ref`.
 The `ref` may point to a `MessageSelector` implementation:
 [source,xml]
 ----

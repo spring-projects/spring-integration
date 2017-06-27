@@ -605,7 +605,7 @@ Together with the existing Spring Container logic, the Messaging Endpoint bean, 
 ==== Creating a Bridge with Annotations
 
 Starting with _version 4.0_, the Messaging Annotation and Java configuration provides `@BridgeFrom` and `@BridgeTo` `@Bean` method annotations to mark `MessageChannel` beans in `@Configuration` classes.
-This is just for completeness, providing a convenient mechanism to declare a`BridgeHandler` and its Message Endpoint configuration:
+This is just for completeness, providing a convenient mechanism to declare a `BridgeHandler` and its Message Endpoint configuration:
 [source,java]
 ----
 @Bean

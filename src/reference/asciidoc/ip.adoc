@@ -712,7 +712,7 @@ This can be a custom `(de)Serializer`, which would typically be needed if the pe
 A `MapJsonSerializer` is provided that will convert a Map to/from JSON.
 This uses a Spring Integration `JsonObjectMapper` to perform this function.
 You can provide a custom `JsonObjectMapper` if needed.
-By default, the serializer inserts a linefeed`0x0a` character between objects.
+By default, the serializer inserts a linefeed `0x0a` character between objects.
 See the JavaDocs for more information.
 
 NOTE: At the time of writing, the `JsonObjectMapper` uses whichever version of `Jackson` is on the classpath.

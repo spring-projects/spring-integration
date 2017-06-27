@@ -17,6 +17,7 @@
 package org.springframework.integration.ftp.dsl;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
@@ -37,10 +38,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
@@ -52,8 +55,11 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
 import org.springframework.integration.file.support.FileExistsMode;
 import org.springframework.integration.ftp.FtpTestSupport;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
+import org.springframework.integration.ftp.inbound.FtpStreamingMessageSource;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -72,12 +78,16 @@ public class FtpTests extends FtpTestSupport {
 	@Autowired
 	private IntegrationFlowContext flowContext;
 
+	@Autowired
+	private ApplicationContext context;
+
 	@Test
 	public void testFtpInboundFlow() {
 		QueueChannel out = new QueueChannel();
 		IntegrationFlow flow = IntegrationFlows.from(Ftp.inboundAdapter(sessionFactory())
 						.preserveTimestamp(true)
 						.remoteDirectory("ftpSource")
+						.maxFetchSize(10)
 						.regexFilter(".*\\.txt$")
 						.localFilename(f -> f.toUpperCase() + ".a")
 						.localDirectory(getTargetLocalDirectory()),
@@ -111,6 +121,8 @@ public class FtpTests extends FtpTestSupport {
 		file = (File) payload;
 		assertEquals(" FTPSOURCE1.TXT.a", file.getName());
 
+		MessageSource<?> source = context.getBean(FtpInboundFileSynchronizingMessageSource.class);
+		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize"), equalTo(10));
 		registration.destroy();
 	}
 
@@ -120,6 +132,7 @@ public class FtpTests extends FtpTestSupport {
 		StandardIntegrationFlow flow = IntegrationFlows.from(
 				Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sessionFactory()))
 						.remoteDirectory("ftpSource")
+						.maxFetchSize(11)
 						.regexFilter(".*\\.txt$"),
 				e -> e.id("ftpInboundAdapter").poller(Pollers.fixedDelay(100)))
 				.channel(out)
@@ -137,6 +150,8 @@ public class FtpTests extends FtpTestSupport {
 		assertThat(message.getHeaders().get(FileHeaders.REMOTE_FILE), isOneOf(" ftpSource1.txt", "ftpSource2.txt"));
 		new IntegrationMessageHeaderAccessor(message).getCloseableResource().close();
 
+		MessageSource<?> source = context.getBean(FtpStreamingMessageSource.class);
+		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize"), equalTo(11));
 		registration.destroy();
 	}
 

@@ -47,7 +47,7 @@ To determine the reply channel, it will first check if an "output-channel" was p
 
 If the method returns a result and no "output-channel" is defined, the framework will then check the request Message's `replyChannel` header value.
 If that value is available, it will then check its type.
-If it is a`MessageChannel`, the reply message will be sent to that channel.
+If it is a `MessageChannel`, the reply message will be sent to that channel.
 If it is a `String`, then the endpoint will attempt to resolve the channel name to a channel instance.
 If the channel cannot be resolved, then a `DestinationResolutionException` will be thrown.
 It it can be resolved, the Message will be sent there.

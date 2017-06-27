@@ -129,7 +129,7 @@ If you inadvertently reference the same message handler from multiple beans, you
 
 ===== Configuring a Splitter with Annotations
 
-The `@Splitter` annotation is applicable to methods that expect either the`Message` type or the message payload type, and the return values of the method should be a `Collection` of any type.
+The `@Splitter` annotation is applicable to methods that expect either the `Message` type or the message payload type, and the return values of the method should be a `Collection` of any type.
 If the returned values are not actual `Message` objects, then each item will be wrapped in a Message as its payload.
 Each message will be sent to the designated output channel for the endpoint on which the `@Splitter` is defined.
 [source,java]

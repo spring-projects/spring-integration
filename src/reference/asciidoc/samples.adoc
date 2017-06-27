@@ -438,7 +438,7 @@ public class Barista {
 
 As you can see from the code excerpt above, the barista methods have different delays (the hot drinks take 5 times as long to prepare).
 This simulates work being completed at different rates.
-When the`CafeDemo` 'main' method runs, it will loop 100 times sending a single hot drink and a single cold drink each time.
+When the `CafeDemo` 'main' method runs, it will loop 100 times sending a single hot drink and a single cold drink each time.
 It actually sends the messages by invoking the 'placeOrder' method on the Cafe interface.
 Above, you will see that the <gateway> element is specified in the configuration file.
 This triggers the creation of a proxy that implements the given 'service-interface' and connects it to a channel.

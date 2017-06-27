@@ -161,8 +161,8 @@ It receives Spring Integration messages and converts them to platform-specific m
 ----
 
 As you can see the configuration is similar to the Redis Inbound Channel Adapter.
-The adapter is implicitly injected with a `RedisConnectionFactory` which was defined with '`redisConnectionFactory`' as its bean name.
-This example also includes the optional, custom `MessageConverter` (the '`testConverter`' bean).
+The adapter is implicitly injected with a `RedisConnectionFactory` which was defined with `redisConnectionFactory` as its bean name.
+This example also includes the optional, custom `MessageConverter` (the `testConverter` bean).
 
 Since _Spring Integration 3.0_, the `<int-redis:outbound-channel-adapter>`, as an alternative to the `topic` attribute, has the `topic-expression` attribute to determine the Redis topic against the Message at runtime.
 These attributes are mutually exclusive.
@@ -339,7 +339,7 @@ As you can see it is a simple bean configuration, and it expects a `RedisConnect
 By default the `RedisMessageStore` will use Java serialization to serialize the Message.
 However if you want to use a different serialization technique (e.g., JSON), you can provide your own serializer via the `valueSerializer` property of the `RedisMessageStore`.
 
-Starting with _version 4.3.10_, the Framework provides Jackson Serializer and Deserializer implementations for `Message`s and `MessageHeaders` - `MessageHeadersJacksonSerializer` and `MessageJacksonDeserializer`, respectively.
+Starting with _version 4.3.10_, the Framework provides Jackson Serializer and Deserializer implementations for `Message` s and `MessageHeaders` - `MessageHeadersJacksonSerializer` and `MessageJacksonDeserializer`, respectively.
 They have to be configured via the `SimpleModule` options for the `ObjectMapper`.
 In addition, `enableDefaultTyping` should be configured on the `ObjectMapper` to add type information for each serialized complex object.
 That type information is then used during deserialization.

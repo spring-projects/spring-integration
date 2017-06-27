@@ -153,7 +153,7 @@ This allows a Spring Integration application to be shut down in an orderly manne
 [[x2.2-jms-og]]
 ===== JMS Oubound Gateway Improvements
 
-The JMS Outbound Gateway can now be configured to use a`MessageListener` container to receive replies.
+The JMS Outbound Gateway can now be configured to use a `MessageListener` container to receive replies.
 This can improve performance of the gateway.
 
 [[x2.2-o-t-j-t]]

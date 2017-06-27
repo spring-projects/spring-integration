@@ -174,7 +174,7 @@ In the second case (or the first when the argument for parameter `foo` is a `Map
 This can generally be resolved using a `payload-expression`, a `@Payload` annotation and/or a `@Headers` annotation.
 
 Alternatively, and whenever the conventions break down, you can take the entire responsibility for mapping the method calls to messages.
-To do this, implement an`MethodArgsMessageMapper` and provide it to the `<gateway/>` using the `mapper` attribute.
+To do this, implement an `MethodArgsMessageMapper` and provide it to the `<gateway/>` using the `mapper` attribute.
 The mapper maps a `MethodArgsHolder`, which is a simple class wrapping the `java.reflect.Method` instance and an `Object[]` containing the arguments.
 When providing a custom mapper, the `default-payload-expression` attribute and `<default-header/>` elements are not allowed on the gateway; similarly, the `payload-expression` attribute and `<header/>` elements are not allowed on any `<method/>` elements.
 
