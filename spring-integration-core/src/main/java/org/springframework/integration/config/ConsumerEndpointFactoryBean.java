@@ -164,7 +164,6 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		Assert.notNull(taskScheduler, "taskScheduler must not be null");
 		this.taskScheduler = taskScheduler;
 	}
 

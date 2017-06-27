@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.aopalliance.aop.Advice;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
@@ -35,6 +34,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.util.Assert;
 
 import reactor.util.function.Tuple2;
 
@@ -87,9 +87,10 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	 * for polling task, for example.
 	 * @param taskScheduler the {@link TaskScheduler} to use.
 	 * @return the endpoint spec.
-	 * @see org.springframework.integration.context.IntegrationContextUtils#getTaskScheduler(BeanFactory)
+	 * @see org.springframework.integration.context.IntegrationContextUtils#getTaskScheduler
 	 */
 	public S taskScheduler(TaskScheduler taskScheduler) {
+		Assert.notNull(taskScheduler, "taskScheduler must not be null");
 		this.endpointFactoryBean.setTaskScheduler(taskScheduler);
 		return _this();
 	}
