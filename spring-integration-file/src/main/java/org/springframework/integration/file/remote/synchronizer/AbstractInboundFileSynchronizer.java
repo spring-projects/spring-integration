@@ -269,7 +269,11 @@ public abstract class AbstractInboundFileSynchronizer<F>
 								}
 							}
 						}
-						catch (RuntimeException | IOException e1) {
+						catch (RuntimeException e1) {
+							rollbackFromFileToListEnd(filteredFiles, file);
+							throw e1;
+						}
+						catch (IOException e1) {
 							rollbackFromFileToListEnd(filteredFiles, file);
 							throw e1;
 						}
@@ -321,33 +325,57 @@ public abstract class AbstractInboundFileSynchronizer<F>
 					localFileName.replaceAll("/", Matcher.quoteReplacement(File.separator)).contains(File.separator)) {
 				localFile.getParentFile().mkdirs(); //NOSONAR - will fail on the writing below
 			}
-			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
-			File tempFile = new File(tempFileName);
-			OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
-			try {
-				session.read(remoteFilePath, outputStream);
-			}
-			catch (Exception e) {
-				if (e instanceof RuntimeException) {
-					throw (RuntimeException) e;
-				}
-				else {
-					throw new MessagingException("Failure occurred while copying from remote to local directory", e);
+
+			boolean transfer = true;
+
+			if (exists && !localFile.delete()) {
+				transfer = false;
+				if (this.logger.isInfoEnabled()) {
+					this.logger.info("Cannot delete local file '" + localFile +
+							"' for transferring remote file '" + remoteFile + "'. " +
+							"May be busy in other process.");
 				}
 			}
-			finally {
+
+			boolean renamed = false;
+
+			if (transfer) {
+				String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
+				File tempFile = new File(tempFileName);
+
+				OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));
 				try {
-					outputStream.close();
+					session.read(remoteFilePath, outputStream);
 				}
-				catch (Exception ignored2) {
+				catch (Exception e) {
+					if (e instanceof RuntimeException) {
+						throw (RuntimeException) e;
+					}
+					else {
+						throw new MessagingException("Failure occurred while copying from remote to local directory", e);
+					}
 				}
-			}
+				finally {
+					try {
+						outputStream.close();
+					}
+					catch (Exception ignored2) {
+					}
+				}
 
-			boolean renamed = tempFile.renameTo(localFile);
+				renamed = tempFile.renameTo(localFile);
 
-			if (!renamed) {
-				if (localFile.delete()) {
-					renamed = tempFile.renameTo(localFile);
+				if (!renamed) {
+					if (localFile.delete()) {
+						renamed = tempFile.renameTo(localFile);
+						if (!renamed && this.logger.isInfoEnabled()) {
+							this.logger.info("Cannot rename to local file '" + localFile + "' after deleting. " +
+									"May be busy in other process.");
+						}
+					}
+					else if (this.logger.isInfoEnabled()) {
+						this.logger.info("Cannot delete local file '" + localFile + "'. May be busy in other process.");
+					}
 				}
 			}
 
@@ -355,7 +383,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				if (this.deleteRemoteFiles) {
 					session.remove(remoteFilePath);
 					if (this.logger.isDebugEnabled()) {
-						this.logger.debug("deleted " + remoteFilePath);
+						this.logger.debug("deleted remote file: " + remoteFilePath);
 					}
 				}
 				if (this.preserveTimestamp) {
@@ -363,19 +391,16 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				}
 				return true;
 			}
-			else {
+			else if (this.filter instanceof ResettableFileListFilter) {
 				if (this.logger.isInfoEnabled()) {
-					this.logger.info("Cannot rename to local file '" + localFile + "'. " +
-							"Revert the remote file '" + remoteFile + "' from filter if possible...");
+					this.logger.info("The Revert the remote file '" + remoteFile + "' from filter for subsequent");
 				}
-				if (this.filter instanceof ResettableFileListFilter) {
-					((ResettableFileListFilter<F>) this.filter).remove(remoteFile);
-				}
+				((ResettableFileListFilter<F>) this.filter).remove(remoteFile);
 			}
 		}
 		else if (this.logger.isWarnEnabled()) {
 			this.logger.warn("The remote file '" + remoteFile + "' hasn't been transferred " +
-					"to the existing local file '" + localFile + "'. Consider to remove local file.");
+					"to the existing local file '" + localFile + "'. Consider removing local file.");
 		}
 
 		return false;
