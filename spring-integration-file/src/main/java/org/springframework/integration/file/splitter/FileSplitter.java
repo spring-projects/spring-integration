@@ -150,13 +150,13 @@ public class FileSplitter extends AbstractMessageSplitter {
 	}
 
 	/**
-	 * Specify the header name for the first line to be carry with the rest lines.
-	 * @param firstLieHeaderName the header name to carry first line.
+	 * Specify the header name for the first line to be carried with the messages for the rest of lines.
+	 * @param firstLineHeaderName the header name to carry first line.
 	 * @since 5.0
 	 */
-	public void setFirstLineAsHeader(String firstLieHeaderName) {
-		Assert.hasText(firstLieHeaderName, "'firstLieHeaderName' must not be empty");
-		this.firstLieHeaderName = firstLieHeaderName;
+	public void setFirstLineAsHeader(String firstLineHeaderName) {
+		Assert.hasText(firstLineHeaderName, "'firstLineHeaderName' must not be empty");
+		this.firstLieHeaderName = firstLineHeaderName;
 	}
 
 	@Override
@@ -225,10 +225,19 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		};
 
-		String firstLineAsHeader =
-				this.firstLieHeaderName != null ?
-						bufferedReader.lines().findFirst().orElse(null)
-						: null;
+		String firstLineAsHeader;
+
+		if (this.firstLieHeaderName != null) {
+			try {
+				firstLineAsHeader = bufferedReader.readLine();
+			}
+			catch (IOException e) {
+				throw new MessageHandlingException(message, "IOException while reading first line", e);
+			}
+		}
+		else {
+			firstLineAsHeader = null;
+		}
 
 		Iterator<Object> iterator = new Iterator<Object>() {
 
