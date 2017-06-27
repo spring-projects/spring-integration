@@ -67,12 +67,13 @@ public class AbstractRemoteFileSynchronizerTests {
 			}
 
 			@Override
-			protected void copyFileToLocalDirectory(String remoteDirectoryPath, String remoteFile, File localDirectory,
-					Session<String> session) throws IOException {
+			protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, String remoteFile,
+					File localDirectory, Session<String> session) throws IOException {
 				if ("bar".equals(remoteFile) && failWhenCopyingBar.getAndSet(false)) {
 					throw new IOException("fail");
 				}
 				count.incrementAndGet();
+				return true;
 			}
 
 		};

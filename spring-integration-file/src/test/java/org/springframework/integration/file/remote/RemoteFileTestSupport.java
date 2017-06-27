@@ -60,27 +60,27 @@ public abstract class RemoteFileTestSupport {
 	protected volatile File targetLocalDirectory;
 
 	public File getSourceRemoteDirectory() {
-		return sourceRemoteDirectory;
+		return this.sourceRemoteDirectory;
 	}
 
 	public File getTargetRemoteDirectory() {
-		return targetRemoteDirectory;
+		return this.targetRemoteDirectory;
 	}
 
 	public String getTargetRemoteDirectoryName() {
-		return targetRemoteDirectory.getAbsolutePath() + File.separator;
+		return this.targetRemoteDirectory.getAbsolutePath() + File.separator;
 	}
 
 	public File getSourceLocalDirectory() {
-		return sourceLocalDirectory;
+		return this.sourceLocalDirectory;
 	}
 
 	public File getTargetLocalDirectory() {
-		return targetLocalDirectory;
+		return this.targetLocalDirectory;
 	}
 
 	public String getTargetLocalDirectoryName() {
-		return targetLocalDirectory.getAbsolutePath() + File.separator;
+		return this.targetLocalDirectory.getAbsolutePath() + File.separator;
 	}
 
 	/**
