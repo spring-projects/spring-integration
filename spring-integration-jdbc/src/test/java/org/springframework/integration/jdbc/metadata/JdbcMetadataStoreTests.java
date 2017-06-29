@@ -91,7 +91,7 @@ public class JdbcMetadataStoreTests {
 	}
 
 	@Test
-	public void existingKeyValueIsReplacedWithNewValueWhenOldValueMatches(){
+	public void existingKeyValueIsReplacedWithNewValueWhenOldValueMatches() {
 		metadataStore.put("foo", "bar");
 		metadataStore.replace("foo", "bar", "bar2");
 		String bar2 = metadataStore.get("foo");
@@ -99,7 +99,7 @@ public class JdbcMetadataStoreTests {
 	}
 
 	@Test
-	public void existingKeyValueIsNotReplacedWithNewValueWhenOldValueDoesNotMatch(){
+	public void existingKeyValueIsNotReplacedWithNewValueWhenOldValueDoesNotMatch() {
 		metadataStore.put("foo", "bar");
 		metadataStore.replace("foo", "bar1", "bar2");
 		String bar = metadataStore.get("foo");
