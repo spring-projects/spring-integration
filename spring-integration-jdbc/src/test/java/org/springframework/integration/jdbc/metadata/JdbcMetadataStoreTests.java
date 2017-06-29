@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,13 @@ public class JdbcMetadataStoreTests {
 	@Autowired
 	private DataSource dataSource;
 
+
 	private JdbcMetadataStore metadataStore;
 
 	@Before
-	public void init() {
+	public void init() throws Exception {
 		metadataStore = new JdbcMetadataStore(dataSource);
+		metadataStore.afterPropertiesSet();
 	}
 
 	@Test
@@ -86,5 +88,21 @@ public class JdbcMetadataStoreTests {
 		metadataStore.remove("non-existent");
 		String ne = metadataStore.get("non-existent");
 		assertNull(ne);
+	}
+
+	@Test
+	public void existingKeyValueIsReplacedWithNewValueWhenOldValueMatches(){
+		metadataStore.put("foo", "bar");
+		metadataStore.replace("foo", "bar", "bar2");
+		String bar2 = metadataStore.get("foo");
+		assertEquals("bar2", bar2);
+	}
+
+	@Test
+	public void existingKeyValueIsNotReplacedWithNewValueWhenOldValueDoesNotMatch(){
+		metadataStore.put("foo", "bar");
+		metadataStore.replace("foo", "bar1", "bar2");
+		String bar = metadataStore.get("foo");
+		assertEquals("bar", bar);
 	}
 }
