@@ -47,6 +47,13 @@ The `ErrorMessagePublisher` and the `ErrorMessageStrategy` are provided for crea
 
 See <<namespace-errorhandler>> for more information.
 
+==== JDBC Metadata Store
+
+The `JdbcMetadataStore` implementation is now provided.
+This is useful when it is necessary to ensure transactional boundaries for metadata as well.
+
+See <<jdbc-metadata-store>> for more information.
+
 [[x5.0-general]]
 === General Changes
 

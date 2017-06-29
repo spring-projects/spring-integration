@@ -105,4 +105,5 @@ public class JdbcMetadataStoreTests {
 		String bar = metadataStore.get("foo");
 		assertEquals("bar", bar);
 	}
+
 }
