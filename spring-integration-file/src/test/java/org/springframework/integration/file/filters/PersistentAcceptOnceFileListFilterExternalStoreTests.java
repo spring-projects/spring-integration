@@ -20,19 +20,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.sql.DataSource;
-
 import org.apache.geode.cache.CacheFactory;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.gemfire.metadata.GemfireMetadataStore;
@@ -41,23 +40,20 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.redis.metadata.RedisMetadataStore;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Bojan Vukasovic
+ *
  * @since 4.0
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext // close at the end after class
 public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisAvailableTests {
-
-	@Autowired
-	private DataSource dataSource;
 
 	@Test
 	@RedisAvailable
@@ -84,9 +80,27 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 
 	@Test
 	public void testFileSystemWithJdbcMetadataStore() throws Exception {
+		EmbeddedDatabase dataSource = new EmbeddedDatabaseBuilder()
+				.setType(EmbeddedDatabaseType.H2)
+				.addScript("classpath:/org/springframework/integration/jdbc/schema-drop-h2.sql")
+				.addScript("classpath:/org/springframework/integration/jdbc/schema-h2.sql")
+				.build();
+
 		JdbcMetadataStore metadataStore = new JdbcMetadataStore(dataSource);
 		metadataStore.afterPropertiesSet();
-		this.testFileSystem(metadataStore);
+
+		try {
+			testFileSystem(metadataStore);
+
+			List<Map<String, Object>> metaData = new JdbcTemplate(dataSource)
+					.queryForList("SELECT * FROM INT_METADATA_STORE");
+
+			assertEquals(1, metaData.size());
+			assertEquals("43", metaData.get(0).get("METADATA_VALUE"));
+		}
+		finally {
+			dataSource.shutdown();
+		}
 	}
 
 	private void testFileSystem(ConcurrentMetadataStore store) throws Exception {

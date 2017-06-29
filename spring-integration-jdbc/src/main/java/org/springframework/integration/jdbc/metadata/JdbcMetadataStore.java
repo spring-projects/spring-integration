@@ -28,11 +28,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
- * Implementation of {@link MetadataStore} using a relational database via JDBC. SQL scripts to create the necessary
- * tables are packaged as <code>org/springframework/integration/jdbc/schema-*.sql</code>, where <code>*</code> is the
- * target database type.
+ * Implementation of {@link MetadataStore} using a relational database via JDBC.
+ * SQL scripts to create the necessary tables are packaged as
+ * <code>org/springframework/integration/jdbc/schema-*.sql</code>,
+ * where <code>*</code> is the target database type.
+ * <p>
+ * The transaction management is required to use this {@link MetadataStore}.
  *
  * @author Bojan Vukasovic
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingBean {
@@ -41,6 +46,8 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	 * Default value for the table prefix property.
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
+
+	private final JdbcOperations jdbcTemplate;
 
 	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
 
@@ -58,8 +65,6 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	private String putIfAbsentValueQuery = "INSERT INTO %SMETADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION) "
 			+ "SELECT ?, ?, ? FROM %SMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? HAVING COUNT(*)=0";
-
-	private final JdbcOperations jdbcTemplate;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -89,19 +94,21 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	}
 
 	/**
-	 * Public setter for the table prefix property. This will be prefixed to all the table names before queries are
+	 * Public setter for the table prefix property.
+	 * This will be prefixed to all the table names before queries are
 	 * executed. Defaults to {@link #DEFAULT_TABLE_PREFIX}.
-	 *
 	 * @param tablePrefix the tablePrefix to set
 	 */
 	public void setTablePrefix(String tablePrefix) {
+		Assert.notNull(tablePrefix, "'tablePrefix' must not be null");
 		this.tablePrefix = tablePrefix;
 	}
 
 	/**
-	 * A unique grouping identifier for all messages persisted with this store. Using multiple regions allows the store
-	 * to be partitioned (if necessary) for different purposes. Defaults to <code>DEFAULT</code>.
-	 *
+	 * A unique grouping identifier for all messages persisted with this store.
+	 * Using multiple regions allows the store
+	 * to be partitioned (if necessary) for different purposes.
+	 * Defaults to <code>DEFAULT</code>.
 	 * @param region the region name to set
 	 */
 	public void setRegion(String region) {
@@ -134,7 +141,8 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	}
 
 	private int tryToPutIfAbsent(String key, String value) {
-		return this.jdbcTemplate.update(this.putIfAbsentValueQuery, ps -> {
+		return this.jdbcTemplate.update(this.putIfAbsentValueQuery,
+				ps -> {
 					ps.setString(1, key);
 					ps.setString(2, value);
 					ps.setString(3, this.region);
@@ -149,12 +157,13 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		Assert.notNull(key, "'key' cannot be null");
 		Assert.notNull(oldValue, "'oldValue' cannot be null");
 		Assert.notNull(newValue, "'newValue' cannot be null");
-		int affectedRows = this.jdbcTemplate.update(this.replaceValueQuery, ps -> {
-			ps.setString(1, newValue);
-			ps.setString(2, key);
-			ps.setString(3, oldValue);
-			ps.setString(4, this.region);
-		});
+		int affectedRows = this.jdbcTemplate.update(this.replaceValueQuery,
+				ps -> {
+					ps.setString(1, newValue);
+					ps.setString(2, key);
+					ps.setString(3, oldValue);
+					ps.setString(4, this.region);
+				});
 		return affectedRows > 0;
 	}
 
@@ -174,14 +183,15 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 				}
 				catch (EmptyResultDataAccessException e) {
 					//if there are no rows with this key, somebody deleted it in between two calls
-					continue;	//try to insert again from beginning
+					continue;    //try to insert again from beginning
 				}
 				//lock successful, so - replace
-				this.jdbcTemplate.update(this.replaceValueByKeyQuery, ps -> {
-					ps.setString(1, value);
-					ps.setString(2, key);
-					ps.setString(3, this.region);
-				});
+				this.jdbcTemplate.update(this.replaceValueByKeyQuery,
+						ps -> {
+							ps.setString(1, value);
+							ps.setString(2, key);
+							ps.setString(3, this.region);
+						});
 			}
 			return;
 		}
@@ -220,4 +230,5 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		}
 		return null;
 	}
+
 }

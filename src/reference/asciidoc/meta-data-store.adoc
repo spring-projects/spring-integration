@@ -14,9 +14,10 @@ If you need to persist metadata between Application Context restarts, these pers
 the framework:
 
 * `PropertiesPersistingMetadataStore`
-* <<redis-metadata-store>>
 * <<gemfire-metadata-store>>
+* <<jdbc-metadata-store>>
 * <<mongodb-metadata-store>>
+* <<redis-metadata-store>>
 * <<zk-metadata-store>>
 
 
