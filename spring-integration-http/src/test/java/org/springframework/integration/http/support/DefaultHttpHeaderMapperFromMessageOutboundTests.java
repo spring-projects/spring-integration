@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.util.StopWatch;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0.1
  */
 public class DefaultHttpHeaderMapperFromMessageOutboundTests {
@@ -685,7 +686,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	public void dontPropagateContentLength() {
 		DefaultHttpHeaderMapper mapper = DefaultHttpHeaderMapper.outboundMapper();
 		// not suppressed on outbound request, by default
-		mapper.setExcludedOutboundStandardRequestHeaderNames(new String[] {"Content-Length"});
+		mapper.setExcludedOutboundStandardRequestHeaderNames("Content-Length");
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Content-Length", 4);
 

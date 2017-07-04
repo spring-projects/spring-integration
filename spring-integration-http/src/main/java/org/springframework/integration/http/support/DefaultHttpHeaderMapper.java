@@ -368,9 +368,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * mapping outbound endpoint request headers.
 	 * @param excludedOutboundStandardRequestHeaderNames the excludedStandardRequestHeaderNames to set
 	 */
-	public void setExcludedOutboundStandardRequestHeaderNames(String[] excludedOutboundStandardRequestHeaderNames) {
+	public void setExcludedOutboundStandardRequestHeaderNames(String... excludedOutboundStandardRequestHeaderNames) {
 		Assert.notNull(excludedOutboundStandardRequestHeaderNames,
 				"'excludedOutboundStandardRequestHeaderNames' must not be null");
+		Assert.noNullElements(excludedOutboundStandardRequestHeaderNames,
+				"'excludedOutboundStandardRequestHeaderNames' must not have null elements");
 		this.excludedOutboundStandardRequestHeaderNames = Arrays.copyOf(excludedOutboundStandardRequestHeaderNames,
 				excludedOutboundStandardRequestHeaderNames.length);
 	}
@@ -380,9 +382,11 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * mapping inbound endpoint response headers.
 	 * @param excludedInboundStandardResponseHeaderNames the excludedStandardResponseHeaderNames to set
 	 */
-	public void setExcludedInboundStandardResponseHeaderNames(String[] excludedInboundStandardResponseHeaderNames) {
+	public void setExcludedInboundStandardResponseHeaderNames(String... excludedInboundStandardResponseHeaderNames) {
 		Assert.notNull(excludedInboundStandardResponseHeaderNames,
 				"'excludedInboundStandardResponseHeaderNames' must not be null");
+		Assert.noNullElements(excludedInboundStandardResponseHeaderNames,
+				"'excludedInboundStandardResponseHeaderNames' must not have null elements");
 		this.excludedInboundStandardResponseHeaderNames = Arrays.copyOf(excludedInboundStandardResponseHeaderNames,
 				excludedInboundStandardResponseHeaderNames.length);
 	}
