@@ -124,8 +124,8 @@ subprojects { subproject ->
 		mysqlVersion = '5.1.41'
 		pahoMqttClientVersion = '1.1.1'
 		postgresVersion = '42.0.0'
-		reactorNettyVersion = '0.6.4.RELEASE'
-		reactorVersion = '3.1.0.M2'
+		reactorNettyVersion = '0.7.0.BUILD-SNAPSHOT'
+		reactorVersion = '3.1.0.BUILD-SNAPSHOT'
 		romeToolsVersion = '1.7.2'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"
@@ -135,7 +135,7 @@ subprojects { subproject ->
 		springDataMongoVersion = '2.0.0.M4'
 		springDataRedisVersion = '2.0.0.M4'
 		springGemfireVersion = '2.0.0.M4'
-		springSecurityVersion = '5.0.0.M2'
+		springSecurityVersion = '5.0.0.BUILD-SNAPSHOT'
 		springSocialTwitterVersion = '2.0.0.M2'
 		springRetryVersion = '1.2.0.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
@@ -310,7 +310,7 @@ project('spring-integration-core') {
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
-		compile "io.projectreactor:reactor-test:$reactorVersion"
+		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
 
@@ -341,6 +341,7 @@ project('spring-integration-file') {
 		testCompile "org.apache.derby:derby:$derbyVersion"
 		testCompile "org.apache.derby:derbyclient:$derbyVersion"
 		testCompile "redis.clients:jedis:$jedisVersion"
+		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
 
@@ -399,6 +400,7 @@ project('spring-integration-http') {
 		testCompile project(":spring-integration-security")
 		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
 		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
+		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
 
