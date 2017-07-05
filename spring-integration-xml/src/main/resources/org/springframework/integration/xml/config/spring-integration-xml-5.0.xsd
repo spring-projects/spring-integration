@@ -812,6 +812,18 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="xml-converter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to a custom 'org.springframework.integration.xml.XmlPayloadConverter' strategy
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.xml.XmlPayloadConverter" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="schema-location"/>
 					<xsd:attribute name="schema-type" default="xml-schema">
 						<xsd:simpleType>

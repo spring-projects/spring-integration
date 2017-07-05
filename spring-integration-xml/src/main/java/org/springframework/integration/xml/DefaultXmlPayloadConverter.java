@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import org.springframework.messaging.MessagingException;
-import org.springframework.xml.transform.StringSource;
 
 /**
  * Default implementation of {@link XmlPayloadConverter}. Supports
@@ -133,18 +132,14 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 	public Source convertToSource(Object object) {
 		Source source = null;
 		if (object instanceof Source) {
-			source = (Source) object;
+			return (Source) object;
 		}
 		else if (object instanceof Document) {
-			source = new DOMSource((Document) object);
-		}
-		else if (object instanceof String) {
-			source = new StringSource((String) object);
+			return new DOMSource((Document) object);
 		}
 		else {
-			throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
+			return convertToSource(convertToDocument(object));
 		}
-		return source;
 	}
 
 	protected synchronized DocumentBuilder getDocumentBuilder() {
