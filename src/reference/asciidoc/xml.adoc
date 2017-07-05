@@ -1033,8 +1033,9 @@ Please see below for an overview of all available configuration parameters:
                            schema-location=""                    <5>
                            schema-type="xml-schema"              <6>
                            throw-exception-on-rejection="false"  <7>
-                           xml-validator="">                     <8>
-    <int:poller .../>                                            <9>
+                           xml-converter=""                      <8>
+                           xml-validator="">                     <9>
+    <int:poller .../>                                            <10>
 </int-xml:validating-filter>
 ----
 
@@ -1069,10 +1070,11 @@ If not set it defaults to `xml-schema` which internally translates to `org.sprin
 <7> If `true` a `MessageRejectedException` is thrown in case validation fails for the provided Message's payload._Optional_.
 Defaults to `false` if not set.
 
+<8> Reference to a custom `org.springframework.integration.xml.XmlPayloadConverter` strategy.
+_Optional_.
 
 <8> Reference to a custom `sorg.springframework.xml.validation.XmlValidator` strategy.
 You can set this attribute or the `schema-location` attribute but not both.
 _Optional_.
 
-
-<9> _Optional_.
+<10> _Optional_.

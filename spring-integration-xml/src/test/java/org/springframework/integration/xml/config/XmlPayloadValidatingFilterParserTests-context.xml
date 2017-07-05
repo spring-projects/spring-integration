@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
@@ -15,7 +15,12 @@
 
 	<util:properties id="props">
 		<prop key="xmlSchema">xml-schema</prop>
- 	</util:properties>
+	</util:properties>
+
+	<bean id="xmlPayloadConverter" class="org.springframework.integration.xml.DefaultXmlPayloadConverter">
+		<constructor-arg
+				value="#{T (org.springframework.integration.xml.config.XmlPayloadValidatingFilterParserTests).DOCUMENT_BUILDER_FACTORY}"/>
+	</bean>
 
 	<int-xml:validating-filter id="parseOnly"
 							   order="2"
@@ -34,6 +39,7 @@
 							   input-channel="inputChannelA"
 							   output-channel="validOutputChannel"
 							   discard-channel="invalidOutputChannel"
+							   xml-converter="xmlPayloadConverter"
 							   schema-location="org/springframework/integration/xml/config/validationTestsSchema.xsd"/>
 
 	<int-xml:validating-filter id="filterB"
@@ -49,7 +55,8 @@
 							   discard-channel="invalidOutputChannel"
 							   xml-validator="xmlValidator"/>
 
-	<bean id="xmlValidator" class="org.springframework.xml.validation.XmlValidatorFactory" factory-method="createValidator">
+	<bean id="xmlValidator" class="org.springframework.xml.validation.XmlValidatorFactory"
+		  factory-method="createValidator">
 		<constructor-arg value="classpath:org/springframework/integration/xml/config/validationTestsSchema.xsd"/>
 		<constructor-arg value="http://www.w3.org/2001/XMLSchema"/>
 	</bean>

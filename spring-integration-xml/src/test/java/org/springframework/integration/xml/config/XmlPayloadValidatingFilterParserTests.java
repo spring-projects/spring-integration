@@ -26,6 +26,9 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +43,7 @@ import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.AggregatedXmlMessageValidationException;
 import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -60,6 +64,19 @@ import org.springframework.util.MultiValueMap;
 @DirtiesContext
 public class XmlPayloadValidatingFilterParserTests {
 
+	public static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+
+	static {
+		DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
+		try {
+			DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+			DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		}
+		catch (ParserConfigurationException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Autowired
 	private ApplicationContext ac;
 
@@ -79,10 +96,10 @@ public class XmlPayloadValidatingFilterParserTests {
 
 	@Test
 	public void testValidMessage() throws Exception {
-		Document doc = XmlTestUtil.getDocumentForString("<greeting>hello</greeting>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
-		MessageChannel inputChannel = ac.getBean("inputChannelA", MessageChannel.class);
+		Message<String> docMessage =
+				new GenericMessage<>("<!DOCTYPE greeting SYSTEM \"greeting.dtd\"><greeting>hello</greeting>");
+		PollableChannel validChannel = this.ac.getBean("validOutputChannel", PollableChannel.class);
+		MessageChannel inputChannel = this.ac.getBean("inputChannelA", MessageChannel.class);
 		inputChannel.send(docMessage);
 		assertNotNull(validChannel.receive(100));
 	}
@@ -98,6 +115,7 @@ public class XmlPayloadValidatingFilterParserTests {
 		assertNotNull(invalidChannel.receive(100));
 		assertNull(validChannel.receive(100));
 	}
+
 	@Test
 	public void testInvalidMessageWithThrowException() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<greeting ping=\"pong\"><other/></greeting>");
@@ -117,6 +135,7 @@ public class XmlPayloadValidatingFilterParserTests {
 					Matchers.containsString("Element 'greeting' is a simple type, so it cannot have attributes,"));
 		}
 	}
+
 	@Test
 	public void testValidMessageWithValidator() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<greeting>hello</greeting>");

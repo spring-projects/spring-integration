@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2012 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class XmlPayloadValidatingFilterParser extends AbstractConsumerEndpointPa
 		String schemaLocation = element.getAttribute("schema-location");
 		boolean validatorDefined = StringUtils.hasText(validator);
 		boolean schemaLocationDefined = StringUtils.hasText(schemaLocation);
-		if (!(validatorDefined ^ schemaLocationDefined)) {
+		if (validatorDefined == schemaLocationDefined) {
 			throw new BeanDefinitionStoreException(
 					"Exactly one of 'xml-validator' or 'schema-location' is allowed on the 'validating-filter' element");
 		}
@@ -59,8 +59,11 @@ public class XmlPayloadValidatingFilterParser extends AbstractConsumerEndpointPa
 			selectorBuilder.addConstructorArgReference(validator);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(selectorBuilder, element, "throw-exception-on-rejection");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(selectorBuilder, element, "xml-converter", "converter");
+
 		filterBuilder.addPropertyValue("targetObject", selectorBuilder.getBeanDefinition());
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(filterBuilder, element, "send-timeout");
+
 		return filterBuilder;
 	}
 
