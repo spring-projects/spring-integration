@@ -133,7 +133,7 @@ public interface TempConverter {
 
 <int:chain id="wsChain" input-channel="viaWebService">
 	<int:transformer
-	   expression="'&lt;FahrenheitToCelsius xmlns=''https://www.w3schools.com/xml/''&gt;&lt;Fahrenheit&gt;XXX&lt;/Fahrenheit&gt;&lt;/FahrenheitToCelsius&gt;'.replace('XXX', payload.toString())" />
+	   expression="'&lt;FahrenheitToCelsius xmlns=&quot;https://www.w3schools.com/xml/&quot;&gt;&lt;Fahrenheit&gt;XXX&lt;/Fahrenheit&gt;&lt;/FahrenheitToCelsius&gt;'.replace('XXX', payload.toString())" />
 	<int-ws:header-enricher>
 		<int-ws:soap-action value="https://www.w3schools.com/xml/FahrenheitToCelsius"/>
 	</int-ws:header-enricher>
