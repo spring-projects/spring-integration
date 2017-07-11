@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.CannotSerializeTransactionException;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
@@ -117,6 +118,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				catch (TransactionTimedOutException e) {
 					// try again
 				}
+				catch (QueryTimeoutException e) {
+					// try again
+				}
 				catch (InterruptedException e) {
 						/*
 						 * This method must be uninterruptible so catch and ignore
@@ -152,6 +156,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					// try again
 				}
 				catch (TransactionTimedOutException e) {
+					// try again
+				}
+				catch (QueryTimeoutException e) {
 					// try again
 				}
 				catch (InterruptedException ie) {
@@ -199,6 +206,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					// try again
 				}
 				catch (TransactionTimedOutException e) {
+					// try again
+				}
+				catch (QueryTimeoutException e) {
 					// try again
 				}
 				catch (Exception e) {
