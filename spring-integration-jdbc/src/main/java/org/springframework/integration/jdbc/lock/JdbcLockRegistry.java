@@ -116,6 +116,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 				catch (CannotSerializeTransactionException | TransactionTimedOutException | QueryTimeoutException e) {
 					// try again
 				}
+				catch (QueryTimeoutException e) {
+					// try again
+				}
 				catch (InterruptedException e) {
 						/*
 						 * This method must be uninterruptible so catch and ignore
@@ -148,6 +151,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					break;
 				}
 				catch (CannotSerializeTransactionException | TransactionTimedOutException | QueryTimeoutException e) {
+					// try again
+				}
+				catch (QueryTimeoutException e) {
 					// try again
 				}
 				catch (InterruptedException ie) {
@@ -192,6 +198,9 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					return acquired;
 				}
 				catch (CannotSerializeTransactionException | TransactionTimedOutException | QueryTimeoutException e) {
+					// try again
+				}
+				catch (QueryTimeoutException e) {
 					// try again
 				}
 				catch (Exception e) {
