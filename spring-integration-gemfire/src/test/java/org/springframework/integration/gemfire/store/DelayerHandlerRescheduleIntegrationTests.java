@@ -50,6 +50,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 public class DelayerHandlerRescheduleIntegrationTests {
@@ -100,7 +101,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
-		context.destroy();
+		context.close();
 
 		try {
 			context.getBean("input", MessageChannel.class);
@@ -144,7 +145,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		}
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 
-		context.destroy();
+		context.close();
 	}
 
 }

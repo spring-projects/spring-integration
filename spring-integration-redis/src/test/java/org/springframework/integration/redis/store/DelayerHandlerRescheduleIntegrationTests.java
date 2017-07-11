@@ -47,6 +47,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTests {
@@ -83,7 +84,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
-		context.destroy();
+		context.close();
 
 		try {
 			context.getBean("input", MessageChannel.class);
@@ -128,7 +129,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 
 		messageStore.removeMessageGroup(delayerMessageGroupId);
-		context.destroy();
+		context.close();
 	}
 
 }

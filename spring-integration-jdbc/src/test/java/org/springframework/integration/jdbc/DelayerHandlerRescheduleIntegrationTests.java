@@ -100,7 +100,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
-		context.destroy();
+		context.close();
 
 		try {
 			context.getBean("input", MessageChannel.class);
@@ -143,7 +143,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 
 		assertEquals(1, messageStore.getMessageGroupCount());
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
-		context.destroy();
+		context.close();
 	}
 
 	@Test //INT-2649
@@ -163,7 +163,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		assertEquals(1, messageStore.messageGroupSize(delayerMessageGroupId));
 
 		//To check that 'rescheduling' works in the transaction boundaries too
-		context.destroy();
+		context.close();
 		context.refresh();
 
 		assertTrue(RollbackTxSync.latch.await(20, TimeUnit.SECONDS));

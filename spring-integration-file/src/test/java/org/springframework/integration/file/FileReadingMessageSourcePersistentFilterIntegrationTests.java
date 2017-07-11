@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,27 +96,27 @@ public class FileReadingMessageSourcePersistentFilterIntegrationTests {
 
 	@Test
 	public void configured() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(pollableFileSource);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollableFileSource);
 		assertEquals(inputDir, accessor.getPropertyValue("directory"));
 	}
 
 	@Test
 	public void getFiles() throws Exception {
-		Message<File> received1 = pollableFileSource.receive();
+		Message<File> received1 = this.pollableFileSource.receive();
 		assertNotNull("This should return the first message", received1);
-		Message<File> received2 = pollableFileSource.receive();
+		Message<File> received2 = this.pollableFileSource.receive();
 		assertNotNull(received2);
-		Message<File> received3 = pollableFileSource.receive();
+		Message<File> received3 = this.pollableFileSource.receive();
 		assertNotNull(received3);
 		assertNotSame(received1 + " == " + received2, received1.getPayload(), received2.getPayload());
 		assertNotSame(received1 + " == " + received3, received1.getPayload(), received3.getPayload());
 		assertNotSame(received2 + " == " + received3, received2.getPayload(), received3.getPayload());
-		this.context.destroy();
+		this.context.close();
 
-		this.loadContextAndGetMessageSource();
-		Message<File> received4 = pollableFileSource.receive();
+		loadContextAndGetMessageSource();
+		Message<File> received4 = this.pollableFileSource.receive();
 		assertNull(received4);
-		this.context.destroy();
+		this.context.close();
 	}
 
 }

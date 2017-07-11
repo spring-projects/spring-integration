@@ -46,6 +46,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTests {
@@ -104,7 +105,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 				.getOriginal();
 		assertThat(message1, Matchers.anyOf(Matchers.is(original1), Matchers.is(original2)));
 
-		context.destroy();
+		context.close();
 
 		context.refresh();
 
@@ -123,7 +124,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends MongoDbAvailableTe
 		messageStore = context.getBean("messageStore", MessageGroupStore.class);
 
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
-		context.destroy();
+		context.close();
 	}
 
 }
