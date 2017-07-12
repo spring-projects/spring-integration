@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 
 /**
  * A circuit breaker that stops calling a failing service after threshold
@@ -28,6 +29,8 @@ import org.springframework.messaging.Message;
  * call resets the failure counter.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -56,7 +59,7 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		}
 		if (metadata.getFailures().get() >= this.threshold &&
 				System.currentTimeMillis() - metadata.getLastFailure() < this.halfOpenAfter) {
-			throw new CircuitBreakerOpenException("Circuit Breaker is Open for " + target);
+			throw new CircuitBreakerOpenException(message, "Circuit Breaker is Open for " + target);
 		}
 		try {
 			Object result = callback.execute();
@@ -99,12 +102,12 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 	/**
 	 * An exception thrown when the circuit breaker is in an open state.
 	 */
-	public static final class CircuitBreakerOpenException extends RuntimeException {
+	public static final class CircuitBreakerOpenException extends MessagingException {
 
 		private static final long serialVersionUID = 1L;
 
-		CircuitBreakerOpenException(String message) {
-			super(message);
+		public CircuitBreakerOpenException(Message<?> message, String description) {
+			super(message, description);
 		}
 
 	}
