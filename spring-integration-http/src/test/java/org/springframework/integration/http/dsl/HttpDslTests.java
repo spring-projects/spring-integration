@@ -179,6 +179,20 @@ public class HttpDslTests {
 
 	}
 
+	@Test
+	public void testSse() {
+		Flux<String> responseBody =
+				this.webTestClient.get().uri("/sse")
+						.exchange()
+						.returnResult(String.class)
+						.getResponseBody();
+
+		StepVerifier
+				.create(responseBody)
+				.expectNext("foo", "bar", "baz")
+				.verifyComplete();
+	}
+
 	@Configuration
 	@EnableWebFlux
 	@EnableWebSecurity
@@ -257,6 +271,15 @@ public class HttpDslTests {
 							.requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
 							.statusCodeFunction(m -> HttpStatus.ACCEPTED))
 					.channel(c -> c.queue("storeChannel"))
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow sseFlow() {
+			return IntegrationFlows
+					.from(Http.inboundReactiveGateway("/sse")
+							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
+					.handle((p, h) -> Flux.just("foo", "bar", "baz"))
 					.get();
 		}
 
