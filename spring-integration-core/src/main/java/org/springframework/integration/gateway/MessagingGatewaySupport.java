@@ -18,6 +18,7 @@ package org.springframework.integration.gateway;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.reactivestreams.Subscriber;
 
@@ -32,12 +33,14 @@ import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
 import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageSourceMetrics;
@@ -560,67 +563,70 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private Mono<Message<?>> doSendAndReceiveMessageReactive(MessageChannel requestChannel, Object object,
 			boolean error) {
 
-		Message<?> requestMessage = null;
-		try {
-			requestMessage =
-					object instanceof Message<?>
-							? (Message<?>) object
-							: this.requestMapper.toMessage(object);
+		FutureReplyChannel replyChannel = new FutureReplyChannel();
 
-			requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
+		AtomicReference<Message<?>> requestMessageReference = new AtomicReference<>();
 
-			Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
-			Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
+		return Mono.just(object)
+				.doOnSubscribe(s -> {
+					if (!error && this.countsEnabled) {
+						this.messageCount.incrementAndGet();
+					}
+				})
+				.<Message<?>>flatMap(o -> {
+					Message<?> requestMessage;
+					Object originalReplyChannelHeader;
+					Object originalErrorChannelHeader;
+					try {
+						requestMessage = object instanceof Message<?>
+								? (Message<?>) object
+								: this.requestMapper.toMessage(object);
 
-			FutureReplyChannel replyChannel = new FutureReplyChannel();
-			requestMessage = MessageBuilder.fromMessage(requestMessage)
-					.setReplyChannel(replyChannel)
-					.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
-					.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
-					.setErrorChannel(replyChannel)
-					.build();
+						requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
 
-			Message<?> theRequestMessage = requestMessage;
+						originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
+						originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
 
-			return Mono
-					.defer(() -> {
-						if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
-							((ReactiveStreamsSubscribableChannel) requestChannel)
-									.subscribeTo(Mono.just(theRequestMessage));
+						requestMessage = MutableMessageBuilder.fromMessage(requestMessage)
+								.setReplyChannel(replyChannel)
+								.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
+								.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
+								.setErrorChannel(replyChannel)
+								.build();
+
+						requestMessageReference.set(requestMessage);
+					}
+					catch (Exception e) {
+						throw new MessageMappingException("Cannot map to message: " + object, e);
+					}
+
+					if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
+						((ReactiveStreamsSubscribableChannel) requestChannel)
+								.subscribeTo(Mono.just(requestMessage));
+					}
+					else {
+						long sendTimeout = sendTimeout(requestMessage);
+
+						boolean sent =
+								sendTimeout >= 0
+										? requestChannel.send(requestMessage, sendTimeout)
+										: requestChannel.send(requestMessage);
+
+						if (!sent) {
+							throw new MessageDeliveryException(requestMessage,
+									"Failed to send message to channel '" + requestChannel +
+											"' within timeout: " + sendTimeout);
 						}
-						else {
-							long sendTimeout = sendTimeout(theRequestMessage);
+					}
 
-							boolean sent =
-									sendTimeout >= 0
-											? requestChannel.send(theRequestMessage, sendTimeout)
-											: requestChannel.send(theRequestMessage);
-
-							if (!sent) {
-								return Mono.error(
-										new MessageDeliveryException(theRequestMessage,
-												"Failed to send message to channel '" + requestChannel +
-														"' within timeout: " + sendTimeout));
-							}
-						}
-
-						return Mono.fromFuture(replyChannel.messageFuture);
-					})
-					.doOnSubscribe(s -> {
-						if (!error && this.countsEnabled) {
-							this.messageCount.incrementAndGet();
-						}
-					})
-					.<Message<?>>map(replyMessage ->
-							MessageBuilder.fromMessage(replyMessage)
-									.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
-									.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
-									.build())
-					.onErrorResume(t -> handleSendError(theRequestMessage, t));
-		}
-		catch (Exception e) {
-			return handleSendError(requestMessage, e);
-		}
+					return Mono.fromFuture(replyChannel.messageFuture)
+							.map(replyMessage ->
+									MessageBuilder.fromMessage(replyMessage)
+											.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
+											.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
+											.build());
+				})
+				.onErrorResume(t -> handleSendError(requestMessageReference.get(), t));
 	}
 
 	private Mono<Message<?>> handleSendError(Message<?> requestMessage, Throwable exception) {
