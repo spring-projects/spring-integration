@@ -85,6 +85,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  */
 @ContextConfiguration
@@ -110,7 +111,7 @@ public class AdvisedMessageHandlerTests {
 			fail("expected exception");
 		}
 		catch (RuntimeException e) {
-			assertThat(e.getMessage(), containsString("(myService)]"));
+			assertThat(e.getMessage(), containsString("Circuit Breaker is Open for"));
 		}
 	}
 
@@ -402,7 +403,8 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getCause().getMessage());
+			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
+			assertSame(message, ((MessagingException) e).getFailedMessage());
 		}
 
 		Map metadataMap = TestUtils.getPropertyValue(advice, "metadataMap", Map.class);
@@ -425,7 +427,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getCause().getMessage());
+			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
 		}
 
 		// Simulate some timeout in between requests
@@ -453,7 +455,7 @@ public class AdvisedMessageHandlerTests {
 			fail("Expected failure");
 		}
 		catch (Exception e) {
-			assertEquals("Circuit Breaker is Open for baz", e.getCause().getMessage());
+			assertEquals("Circuit Breaker is Open for baz", e.getMessage());
 		}
 	}
 
