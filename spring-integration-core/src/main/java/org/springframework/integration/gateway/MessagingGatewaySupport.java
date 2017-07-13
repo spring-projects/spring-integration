@@ -563,20 +563,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private Mono<Message<?>> doSendAndReceiveMessageReactive(MessageChannel requestChannel, Object object,
 			boolean error) {
 
-		FutureReplyChannel replyChannel = new FutureReplyChannel();
-
 		AtomicReference<Message<?>> requestMessageReference = new AtomicReference<>();
 
-		return Mono.just(object)
-				.doOnSubscribe(s -> {
-					if (!error && this.countsEnabled) {
-						this.messageCount.incrementAndGet();
-					}
-				})
-				.<Message<?>>flatMap(o -> {
+		return Mono
+				.<Message<?>>defer(() -> {
 					Message<?> requestMessage;
-					Object originalReplyChannelHeader;
-					Object originalErrorChannelHeader;
 					try {
 						requestMessage = object instanceof Message<?>
 								? (Message<?>) object
@@ -584,21 +575,24 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 						requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
 
-						originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
-						originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
-
-						requestMessage = MutableMessageBuilder.fromMessage(requestMessage)
-								.setReplyChannel(replyChannel)
-								.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
-								.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
-								.setErrorChannel(replyChannel)
-								.build();
-
-						requestMessageReference.set(requestMessage);
 					}
 					catch (Exception e) {
 						throw new MessageMappingException("Cannot map to message: " + object, e);
 					}
+
+					Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
+					Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
+
+					FutureReplyChannel replyChannel = new FutureReplyChannel();
+
+					requestMessage = MutableMessageBuilder.fromMessage(requestMessage)
+							.setReplyChannel(replyChannel)
+							.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
+							.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
+							.setErrorChannel(replyChannel)
+							.build();
+
+					requestMessageReference.set(requestMessage);
 
 					if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
 						((ReactiveStreamsSubscribableChannel) requestChannel)
@@ -625,6 +619,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 											.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
 											.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
 											.build());
+				})
+				.doOnSubscribe(s -> {
+					if (!error && this.countsEnabled) {
+						this.messageCount.incrementAndGet();
+					}
 				})
 				.onErrorResume(t -> handleSendError(requestMessageReference.get(), t));
 	}
