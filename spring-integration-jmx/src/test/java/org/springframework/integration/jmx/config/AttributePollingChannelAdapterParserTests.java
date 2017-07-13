@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -56,21 +57,22 @@ public class AttributePollingChannelAdapterParserTests {
 	@Autowired
 	private MessageChannel autoChannel;
 
-	@Autowired @Qualifier("autoChannel.adapter")
+	@Autowired
+	@Qualifier("autoChannel.adapter")
 	private SourcePollingChannelAdapter autoChannelAdapter;
 
 	@Test
 	public void pollForAttribute() throws Exception {
-		testBean.test("foo");
-		adapter.start();
-		Message<?> result = channel.receive(1000);
+		this.testBean.test("foo");
+		this.adapter.start();
+		Message<?> result = this.channel.receive(10000);
 		assertNotNull(result);
 		assertEquals("foo", result.getPayload());
 	}
 
 	@Test
 	public void testAutoChannel() {
-		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+		assertSame(this.autoChannel, TestUtils.getPropertyValue(this.autoChannelAdapter, "outputChannel"));
 	}
 
 }

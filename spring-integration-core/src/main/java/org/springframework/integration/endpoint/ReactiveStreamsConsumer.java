@@ -34,6 +34,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
+import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.publisher.BaseSubscriber;
 
@@ -165,7 +166,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 
 	private static final class MessageHandlerSubscriber
-			implements Subscriber<Message<?>>, Disposable, Lifecycle {
+			implements CoreSubscriber<Message<?>>, Disposable, Lifecycle {
 
 		private final Consumer<Message<?>> consumer;
 

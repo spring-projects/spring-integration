@@ -16,7 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import org.springframework.core.Ordered;
@@ -37,6 +36,8 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
+import reactor.core.CoreSubscriber;
+
 /**
  * Base class for MessageHandler implementations that provides basic validation
  * and error handling capabilities. Asserts that the incoming Message is not
@@ -50,7 +51,7 @@ import org.springframework.util.Assert;
 @IntegrationManagedResource
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler,
 		MessageHandlerMetrics, ConfigurableMetricsAware<AbstractMessageHandlerMetrics>, TrackableComponent, Orderable,
-		Subscriber<Message<?>> {
+		CoreSubscriber<Message<?>> {
 
 	private volatile boolean shouldTrack = false;
 
