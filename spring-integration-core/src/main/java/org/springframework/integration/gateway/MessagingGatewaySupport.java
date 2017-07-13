@@ -18,7 +18,6 @@ package org.springframework.integration.gateway;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.reactivestreams.Subscriber;
 
@@ -563,69 +562,65 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private Mono<Message<?>> doSendAndReceiveMessageReactive(MessageChannel requestChannel, Object object,
 			boolean error) {
 
-		AtomicReference<Message<?>> requestMessageReference = new AtomicReference<>();
+		return Mono.defer(() -> {
+			Message<?> message;
+			try {
+				message = object instanceof Message<?>
+						? (Message<?>) object
+						: this.requestMapper.toMessage(object);
 
-		return Mono
-				.<Message<?>>defer(() -> {
-					Message<?> requestMessage;
-					try {
-						requestMessage = object instanceof Message<?>
-								? (Message<?>) object
-								: this.requestMapper.toMessage(object);
+				message = this.historyWritingPostProcessor.postProcessMessage(message);
 
-						requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
+			}
+			catch (Exception e) {
+				throw new MessageMappingException("Cannot map to message: " + object, e);
+			}
 
-					}
-					catch (Exception e) {
-						throw new MessageMappingException("Cannot map to message: " + object, e);
-					}
+			Object originalReplyChannelHeader = message.getHeaders().getReplyChannel();
+			Object originalErrorChannelHeader = message.getHeaders().getErrorChannel();
 
-					Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
-					Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
+			FutureReplyChannel replyChannel = new FutureReplyChannel();
 
-					FutureReplyChannel replyChannel = new FutureReplyChannel();
+			Message<?> requestMessage = MutableMessageBuilder.fromMessage(message)
+					.setReplyChannel(replyChannel)
+					.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
+					.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
+					.setErrorChannel(replyChannel)
+					.build();
 
-					requestMessage = MutableMessageBuilder.fromMessage(requestMessage)
-							.setReplyChannel(replyChannel)
-							.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
-							.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
-							.setErrorChannel(replyChannel)
-							.build();
+			if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
+				((ReactiveStreamsSubscribableChannel) requestChannel)
+						.subscribeTo(Mono.just(requestMessage));
+			}
+			else {
+				long sendTimeout = sendTimeout(requestMessage);
 
-					requestMessageReference.set(requestMessage);
+				boolean sent =
+						sendTimeout >= 0
+								? requestChannel.send(requestMessage, sendTimeout)
+								: requestChannel.send(requestMessage);
 
-					if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
-						((ReactiveStreamsSubscribableChannel) requestChannel)
-								.subscribeTo(Mono.just(requestMessage));
-					}
-					else {
-						long sendTimeout = sendTimeout(requestMessage);
+				if (!sent) {
+					throw new MessageDeliveryException(requestMessage,
+							"Failed to send message to channel '" + requestChannel +
+									"' within timeout: " + sendTimeout);
+				}
+			}
 
-						boolean sent =
-								sendTimeout >= 0
-										? requestChannel.send(requestMessage, sendTimeout)
-										: requestChannel.send(requestMessage);
-
-						if (!sent) {
-							throw new MessageDeliveryException(requestMessage,
-									"Failed to send message to channel '" + requestChannel +
-											"' within timeout: " + sendTimeout);
+			return Mono.fromFuture(replyChannel.messageFuture)
+					.doOnSubscribe(s -> {
+						if (!error && this.countsEnabled) {
+							this.messageCount.incrementAndGet();
 						}
-					}
+					})
+					.<Message<?>>map(replyMessage ->
+							MessageBuilder.fromMessage(replyMessage)
+									.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
+									.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
+									.build())
 
-					return Mono.fromFuture(replyChannel.messageFuture)
-							.map(replyMessage ->
-									MessageBuilder.fromMessage(replyMessage)
-											.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
-											.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
-											.build());
-				})
-				.doOnSubscribe(s -> {
-					if (!error && this.countsEnabled) {
-						this.messageCount.incrementAndGet();
-					}
-				})
-				.onErrorResume(t -> handleSendError(requestMessageReference.get(), t));
+					.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
+		});
 	}
 
 	private Mono<Message<?>> handleSendError(Message<?> requestMessage, Throwable exception) {
@@ -639,14 +634,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				return doSendAndReceiveMessageReactive(errorChannel, errorMessage, true);
 			}
 			catch (Exception errorFlowFailure) {
-				return Mono.error(
-						new MessagingException(errorMessage, "failure occurred in error-handling flow",
-								errorFlowFailure));
+				throw new MessagingException(errorMessage, "failure occurred in error-handling flow", errorFlowFailure);
 			}
 		}
 		else {
 			// no errorChannel so we'll propagate
-			return Mono.error(wrapExceptionIfNecessary(exception, "gateway received checked Exception"));
+			throw wrapExceptionIfNecessary(exception, "gateway received checked Exception");
 		}
 	}
 
@@ -715,14 +708,15 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	protected void registerReplyMessageCorrelatorIfNecessary() {
 		MessageChannel replyChannel = getReplyChannel();
 		if (replyChannel != null && this.replyMessageCorrelator == null) {
+			boolean shouldStartCorrelator;
 			synchronized (this.replyMessageCorrelatorMonitor) {
 				if (this.replyMessageCorrelator != null) {
 					return;
 				}
-				AbstractEndpoint correlator = null;
+				AbstractEndpoint correlator;
 				BridgeHandler handler = new BridgeHandler();
 				if (getBeanFactory() != null) {
-					handler.setBeanFactory(this.getBeanFactory());
+					handler.setBeanFactory(getBeanFactory());
 				}
 				handler.afterPropertiesSet();
 				if (replyChannel instanceof SubscribableChannel) {
@@ -745,10 +739,13 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 					throw new MessagingException("Unsupported 'replyChannel' type [" + replyChannel.getClass() + "]."
 							+ "SubscribableChannel or PollableChannel type are supported.");
 				}
-				if (isRunning()) {
-					correlator.start();
-				}
 				this.replyMessageCorrelator = correlator;
+				shouldStartCorrelator = true;
+			}
+			if (shouldStartCorrelator && isRunning()) {
+				if (isRunning()) {
+					this.replyMessageCorrelator.start();
+				}
 			}
 		}
 	}
