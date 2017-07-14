@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -50,6 +52,8 @@ import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 
 /**
  * @author Marius Bogoevici
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
@@ -233,6 +237,14 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		barriers.put("add", new CyclicBarrier(2));
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));
+		try {
+			metadataStore.addListener(null);
+			fail("IllegalArgumentException expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalArgumentException.class));
+			assertThat(e.getMessage(), containsString("'listener' must not be null"));
+		}
 		metadataStore.addListener(new MetadataStoreListenerAdapter() {
 			@Override
 			public void onAdd(String key, String value) {
