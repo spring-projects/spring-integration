@@ -37,12 +37,13 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
 
 /**
- * Zookeeper-based {@link ListenableMetadataStore} based on a Zookeeper node. Values are stored in the children node,
- * the names of which are stored as keys.
+ * Zookeeper-based {@link ListenableMetadataStore} based on a Zookeeper node.
+ * Values are stored in the children node, the names of which are stored as keys.
  *
  * @author Marius Bogoevici
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLifecycle {
@@ -164,8 +165,9 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	}
 
 	@Override
-	public void addListener(MetadataStoreListener callback) {
-		this.listeners.add(callback);
+	public void addListener(MetadataStoreListener listener) {
+		Assert.notNull(listener, "'listener' must not be null");
+		this.listeners.add(listener);
 	}
 
 	@Override

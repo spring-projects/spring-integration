@@ -196,9 +196,9 @@ public final class JacksonJsonUtils {
 			DeserializationConfig config = (DeserializationConfig) context.getConfig();
 			JavaType result = this.delegate.typeFromId(context, id);
 
-			String packageName = result.getRawClass().getPackage().getName();
-			if (isTrustedPackage(packageName)) {
-				return this.delegate.typeFromId(context, id);
+			Package aPackage = result.getRawClass().getPackage();
+			if (aPackage == null || isTrustedPackage(aPackage.getName())) {
+				return result;
 			}
 
 			boolean isExplicitMixin = config.findMixInClassFor(result.getRawClass()) != null;
