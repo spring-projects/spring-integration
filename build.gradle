@@ -205,7 +205,13 @@ subprojects { subproject ->
 		}
 	}
 
-	task testAll(type: Test, dependsOn: [checkstyleMain, checkstyleTest])
+	task testAll(type: Test, dependsOn: check)
+
+	gradle.taskGraph.whenReady { graph ->
+		if (graph.hasTask(testAll)) {
+			test.enabled = false
+		}
+	}
 
 	tasks.withType(Test).all {
 		// suppress all console output during testing unless running `gradle -i`
