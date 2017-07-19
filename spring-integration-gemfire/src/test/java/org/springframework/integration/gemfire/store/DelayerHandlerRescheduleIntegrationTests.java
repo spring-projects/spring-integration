@@ -68,7 +68,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 	public static void startUp() throws Exception {
 		cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = cacheFactoryBean.getObject();
+		Cache cache = (Cache) cacheFactoryBean.getObject();
 		region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
 	}
 
