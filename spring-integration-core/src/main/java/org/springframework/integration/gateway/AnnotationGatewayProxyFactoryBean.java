@@ -23,6 +23,7 @@ import java.util.concurrent.Executor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.AnnotationConstants;
@@ -32,8 +33,9 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * A {@link GatewayProxyFactoryBean} extension for Java configuration,
- * when service interface is marked with the {@link MessagingGateway} annotation.
+ * A {@link GatewayProxyFactoryBean} extension for Java configuration.
+ * The service interface may be marked with the {@link MessagingGateway} annotation.
+ * Otherwise the default state is applied.
  *
  * @author Artem Bilan
  *
@@ -45,11 +47,13 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 	public AnnotationGatewayProxyFactoryBean(Class<?> serviceInterface) {
 		super(serviceInterface);
-		this.gatewayAttributes = AnnotatedElementUtils.getMergedAnnotationAttributes(serviceInterface,
+		AnnotationAttributes gatewayAttributes = AnnotatedElementUtils.getMergedAnnotationAttributes(serviceInterface,
 				MessagingGateway.class.getName(), false, true);
-		Assert.notNull(this.gatewayAttributes,
-				"The Messaging Gateway interface must be annotated with the @MessagingGateway");
-
+		if (gatewayAttributes == null) {
+			gatewayAttributes = AnnotationUtils.getAnnotationAttributes(
+					AnnotationUtils.synthesizeAnnotation(MessagingGateway.class), false, true);
+		}
+		this.gatewayAttributes = gatewayAttributes;
 	}
 
 	@Override

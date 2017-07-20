@@ -274,7 +274,7 @@ public final class IntegrationFlows {
 	 * on the provided service interface.
 	 * <p>A gateway proxy bean for provided service interface is registered under a name of
 	 * the {@link IntegrationFlow} bean plus {@code .gateway} suffix.
-	 * @param serviceInterface the class with a
+	 * @param serviceInterface the service interface class with an optional
 	 * {@link org.springframework.integration.annotation.MessagingGateway} annotation.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */

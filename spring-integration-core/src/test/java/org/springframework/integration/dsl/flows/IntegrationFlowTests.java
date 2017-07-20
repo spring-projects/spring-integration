@@ -31,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -423,11 +424,11 @@ public class IntegrationFlowTests {
 	}
 
 	@Autowired
-	private ErrorRecovererFlowGateway errorRecovererFlowGateway;
+	private Function<String, String> errorRecovererFlowGateway;
 
 	@Test
 	public void testReplyChannelFromReplyMessage() {
-		assertEquals("foo", this.errorRecovererFlowGateway.testIt("foo"));
+		assertEquals("foo", this.errorRecovererFlowGateway.apply("foo"));
 	}
 
 	@Autowired
@@ -719,7 +720,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow errorRecovererFlow() {
-			return IntegrationFlows.from(ErrorRecovererFlowGateway.class)
+			return IntegrationFlows.from(Function.class)
 					.handle((GenericHandler<?>) (p, h) -> {
 						throw new RuntimeException("intentional");
 					}, e -> e.advice(retryAdvice()))
@@ -761,13 +762,6 @@ public class IntegrationFlowTests {
 		public TaskScheduler dedicatedTaskScheduler() {
 			return new ThreadPoolTaskScheduler();
 		}
-
-	}
-
-	@MessagingGateway
-	private interface ErrorRecovererFlowGateway {
-
-		String testIt(String payload);
 
 	}
 
