@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.3.1
  */
 public class JdbcLockRegistryLeaderInitiatorTests {
@@ -155,15 +156,16 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 		assertThat(initiator1.getContext().isLeader(), is(true));
 		assertThat(initiator2.getContext().isLeader(), is(false));
 
+		// Stop second initiator, so the first one will be leader even after yield
 		initiator2.stop();
 
-		CountDownLatch revoked11 = new CountDownLatch(1);
-		initiator1.setLeaderEventPublisher(new CountingPublisher(new CountDownLatch(1), revoked11));
+		CountDownLatch granted11 = new CountDownLatch(1);
+		initiator1.setLeaderEventPublisher(new CountingPublisher(granted11));
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked11.await(10, TimeUnit.SECONDS), is(true));
-		assertThat(initiator1.getContext().isLeader(), is(false));
+		assertThat(granted11.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(initiator1.getContext().isLeader(), is(true));
 
 		initiator1.stop();
 	}
