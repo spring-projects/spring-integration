@@ -18,12 +18,10 @@ package org.springframework.integration.http.inbound;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -32,12 +30,10 @@ import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.expression.EvaluationContext;
+import org.springframework.core.ResolvableType;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -49,23 +45,18 @@ import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
+import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.MessageTimeoutException;
-import org.springframework.integration.context.OrderlyShutdownCapable;
-import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
 import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
-import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -108,51 +99,20 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Biju Kunjummen
+ *
  * @since 2.0
  */
-public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport
-		implements OrderlyShutdownCapable {
+public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInboundEndpoint {
 
-	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
-			HttpRequestHandlingEndpointSupport.class.getClassLoader());
+	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<>();
 
-	private static final boolean romeToolsPresent = ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
-							HttpRequestHandlingEndpointSupport.class.getClassLoader());
-
-	private static final List<HttpMethod> nonReadableBodyHttpMethods =
-			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
-
-	private final List<HttpMessageConverter<?>> defaultMessageConverters = new ArrayList<HttpMessageConverter<?>>();
-
-	private final boolean expectReply;
-
-	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
-
-	private volatile RequestMapping requestMapping = new RequestMapping();
-
-	private volatile CrossOrigin crossOrigin;
-
-	private volatile Class<?> requestPayloadType = null;
+	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
 
 	private volatile boolean convertersMerged;
 
 	private volatile boolean mergeWithDefaultConverters = false;
 
-	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
-
-	private volatile boolean extractReplyPayload = true;
-
 	private volatile MultipartResolver multipartResolver;
-
-	private volatile Expression payloadExpression;
-
-	private volatile Map<String, Expression> headerExpressions;
-
-	private volatile Expression statusCodeExpression;
-
-	private volatile EvaluationContext evaluationContext;
-
-	private final AtomicInteger activeCount = new AtomicInteger();
 
 	/**
 	 * Construct a gateway that will wait for the {@link #setReplyTimeout(long)
@@ -179,7 +139,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 */
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		super(expectReply);
-		this.expectReply = expectReply;
 		this.defaultMessageConverters.add(new MultipartAwareFormHttpMessageConverter());
 		this.defaultMessageConverters.add(new ByteArrayHttpMessageConverter());
 		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
@@ -211,50 +170,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	}
 
 	/**
-	 * @return Whether to expect a reply.
-	 */
-	protected boolean isExpectReply() {
-		return this.expectReply;
-	}
-
-	/**
-	 * Specifies a SpEL expression to evaluate in order to generate the Message payload.
-	 * The EvaluationContext will be populated with an HttpEntity instance as the root object,
-	 * and it may contain variables:
-	 * <ul>
-	 * <li><code>#pathVariables</code></li>
-	 * <li><code>#requestParams</code></li>
-	 * <li><code>#requestAttributes</code></li>
-	 * <li><code>#requestHeaders</code></li>
-	 * <li><code>#matrixVariables</code></li>
-	 * <li><code>#cookies</code>
-	 * </ul>
-	 * @param payloadExpression The payload expression.
-	 */
-	public void setPayloadExpression(Expression payloadExpression) {
-		this.payloadExpression = payloadExpression;
-	}
-
-	/**
-	 * Specifies a Map of SpEL expressions to evaluate in order to generate the Message headers.
-	 * The keys in the map will be used as the header names. When evaluating the expression,
-	 * the EvaluationContext will be populated with an HttpEntity instance as the root object,
-	 * and it may contain variables:
-	 * <ul>
-	 * <li><code>#pathVariables</code></li>
-	 * <li><code>#requestParams</code></li>
-	 * <li><code>#requestAttributes</code></li>
-	 * <li><code>#requestHeaders</code></li>
-	 * <li><code>#matrixVariables</code></li>
-	 * <li><code>#cookies</code>
-	 * </ul>
-	 * @param headerExpressions The header expressions.
-	 */
-	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
-		this.headerExpressions = headerExpressions;
-	}
-
-	/**
 	 * Set the message body converters to use. These converters are used to convert from and to HTTP requests and
 	 * responses.
 	 * @param messageConverters The message converters.
@@ -283,60 +198,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		this.mergeWithDefaultConverters = mergeWithDefaultConverters;
 	}
 
-	/**
-	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and MessageHeaders.
-	 * @param headerMapper The header mapper.
-	 */
-	public void setHeaderMapper(HeaderMapper<HttpHeaders> headerMapper) {
-		Assert.notNull(headerMapper, "headerMapper must not be null");
-		this.headerMapper = headerMapper;
-	}
-
-	/**
-	 * Set the {@link RequestMapping} which allows you to specify a flexible RESTFul-mapping for this endpoint.
-	 * @param requestMapping The request mapping.
-	 */
-	public void setRequestMapping(RequestMapping requestMapping) {
-		Assert.notNull(requestMapping, "requestMapping must not be null");
-		this.requestMapping = requestMapping;
-	}
-
-	public final RequestMapping getRequestMapping() {
-		return this.requestMapping;
-	}
-
-
-	/**
-	 * Set the {@link CrossOrigin} to permit cross origin requests for this endpoint.
-	 * @param crossOrigin the CrossOrigin config.
-	 * @since 4.2
-	 */
-	public void setCrossOrigin(CrossOrigin crossOrigin) {
-		this.crossOrigin = crossOrigin;
-	}
-
-	public CrossOrigin getCrossOrigin() {
-		return this.crossOrigin;
-	}
-
-	/**
-	 * Specify the type of payload to be generated when the inbound HTTP request content is read by the
-	 * {@link HttpMessageConverter}s. By default this value is null which means at runtime any "text" Content-Type will
-	 * result in String while all others default to <code>byte[].class</code>.
-	 * @param requestPayloadType The payload type.
-	 */
-	public void setRequestPayloadType(Class<?> requestPayloadType) {
-		this.requestPayloadType = requestPayloadType;
-	}
-
-	/**
-	 * Specify whether only the reply Message's payload should be passed in the response. If this is set to 'false', the
-	 * entire Message will be used to generate the response. The default is 'true'.
-	 * @param extractReplyPayload true to extract the reply payload.
-	 */
-	public void setExtractReplyPayload(boolean extractReplyPayload) {
-		this.extractReplyPayload = extractReplyPayload;
-	}
 
 	/**
 	 * Specify the {@link MultipartResolver} to use when checking requests. If no resolver is provided, the
@@ -346,40 +207,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 */
 	public void setMultipartResolver(MultipartResolver multipartResolver) {
 		this.multipartResolver = multipartResolver;
-	}
-	/**
-	 * Specify the {@link Expression} to resolve a status code for Response to override
-	 * the default '200 OK' or '500 Internal Server Error' for a timeout.
-	 * @param statusCodeExpression The status code Expression.
-	 * @since 5.0
-	 * @see #setStatusCodeExpression(Expression)
-	 */
-	public void setStatusCodeExpressionString(String statusCodeExpression) {
-		setStatusCodeExpression(EXPRESSION_PARSER.parseExpression(statusCodeExpression));
-	}
-
-	/**
-	 * Specify the {@link Expression} to resolve a status code for Response to override
-	 * the default '200 OK' or '500 Internal Server Error' for a timeout.
-	 * <p>The {@link #statusCodeExpression} is applied only for the one-way
-	 * {@code <http:inbound-channel-adapter/>} or when no reply (timeout) is received for
-	 * a gateway. The {@code <http:inbound-gateway/>} (or whenever
-	 * {@link #HttpRequestHandlingEndpointSupport(boolean) expectReply} is true) resolves
-	 * an {@link HttpStatus} from the
-	 * {@link org.springframework.integration.http.HttpHeaders#STATUS_CODE} reply
-	 * {@link Message} header.
-	 * @param statusCodeExpression The status code Expression.
-	 * @since 4.1
-	 * @see #setReplyTimeout(long)
-	 * @see HttpRequestHandlingEndpointSupport#HttpRequestHandlingEndpointSupport(boolean)
-	 */
-	public void setStatusCodeExpression(Expression statusCodeExpression) {
-		this.statusCodeExpression = statusCodeExpression;
-	}
-
-	@Override
-	public String getComponentType() {
-		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter";
 	}
 
 	/**
@@ -391,7 +218,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		BeanFactory beanFactory = this.getBeanFactory();
+		BeanFactory beanFactory = getBeanFactory();
 		if (this.multipartResolver == null && beanFactory != null) {
 			try {
 				MultipartResolver multipartResolver = beanFactory.getBean(
@@ -411,11 +238,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		}
 		if (this.messageConverters.size() == 0 || (this.mergeWithDefaultConverters && !this.convertersMerged)) {
 			this.messageConverters.addAll(this.defaultMessageConverters);
-		}
-		this.validateSupportedMethods();
-
-		if (this.statusCodeExpression != null) {
-			this.evaluationContext = createEvaluationContext();
 		}
 	}
 
@@ -437,7 +259,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		}
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws IOException {
 		this.activeCount.incrementAndGet();
@@ -445,8 +267,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			ServletServerHttpRequest request = this.prepareRequest(servletRequest);
 
 			Object requestBody = null;
-			if (this.isReadable(request)) {
-				requestBody = this.extractRequestBody(request);
+			if (isReadable(request)) {
+				requestBody = extractRequestBody(request);
 			}
 			HttpEntity httpEntity = new HttpEntity(requestBody, request.getHeaders());
 
@@ -490,14 +312,14 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 				evaluationContext.setVariable("matrixVariables", matrixVariables);
 			}
 
-			Map<String, Object> headers = this.headerMapper.toHeaders(request.getHeaders());
+			Map<String, Object> headers = getHeaderMapper().toHeaders(request.getHeaders());
 			Object payload = null;
-			if (this.payloadExpression != null) {
+			if (getPayloadExpression() != null) {
 				// create payload based on SpEL
-				payload = this.payloadExpression.getValue(evaluationContext);
+				payload = getPayloadExpression().getValue(evaluationContext);
 			}
-			if (!CollectionUtils.isEmpty(this.headerExpressions)) {
-				for (Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
+			if (!CollectionUtils.isEmpty(getHeaderExpressions())) {
+				for (Entry<String, Expression> entry : getHeaderExpressions().entrySet()) {
 					String headerName = entry.getKey();
 					Expression headerExpression = entry.getValue();
 					Object headerValue = headerExpression.getValue(evaluationContext);
@@ -541,11 +363,11 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 					reply = this.sendAndReceiveMessage(message);
 				}
 				catch (MessageTimeoutException e) {
-					if (this.statusCodeExpression != null) {
+					if (getStatusCodeExpression() != null) {
 						reply = getMessageBuilderFactory().withPayload(e.getMessage())
-									.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
-											evaluateHttpStatus())
-									.build();
+								.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
+										evaluateHttpStatus())
+								.build();
 					}
 					else {
 						reply = getMessageBuilderFactory().withPayload(e.getMessage())
@@ -583,36 +405,27 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 	 * @return The message payload (if {@link #extractReplyPayload}) otherwise the message.
 	 */
 	protected final Object setupResponseAndConvertReply(ServletServerHttpResponse response, Message<?> replyMessage) {
-
-		this.headerMapper.fromHeaders(replyMessage.getHeaders(), response.getHeaders());
+		getHeaderMapper().fromHeaders(replyMessage.getHeaders(), response.getHeaders());
 		HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(replyMessage.getHeaders());
 		if (httpStatus != null) {
 			response.setStatusCode(httpStatus);
 		}
 
 		Object reply = replyMessage;
-		if (this.extractReplyPayload) {
+		if (getExtractReplyPayload()) {
 			reply = replyMessage.getPayload();
 		}
 		return reply;
 
 	}
 
-	protected void setStatusCodeIfNeeded(ServletServerHttpResponse response) {
-		if (this.statusCodeExpression != null) {
+	protected void setStatusCodeIfNeeded(ServerHttpResponse response) {
+		if (getStatusCodeExpression() != null) {
 			HttpStatus httpStatus = evaluateHttpStatus();
 			if (httpStatus != null) {
 				response.setStatusCode(httpStatus);
 			}
 		}
-	}
-
-	private HttpStatus evaluateHttpStatus() {
-		if (this.evaluationContext == null) {
-			this.evaluationContext = createEvaluationContext();
-		}
-		Object value = this.statusCodeExpression.getValue(this.evaluationContext);
-		return buildHttpStatus(value);
 	}
 
 	/**
@@ -632,13 +445,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 			return new MultipartHttpInputMessage(this.multipartResolver.resolveMultipart(servletRequest));
 		}
 		return new ServletServerHttpRequest(servletRequest);
-	}
-
-	/**
-	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request).
-	 */
-	private boolean isReadable(ServletServerHttpRequest request) {
-		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()));
 	}
 
 	/**
@@ -666,16 +472,21 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		return convertedMap;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Object extractRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		if (contentType == null) {
 			contentType = MediaType.APPLICATION_OCTET_STREAM;
 		}
-		Class<?> expectedType = this.requestPayloadType;
-		if (expectedType == null) {
-			expectedType = ("text".equals(contentType.getType())) ? String.class : byte[].class;
+		ResolvableType requestPayloadType = getRequestPayloadType();
+		Class<?> expectedType;
+		if (requestPayloadType == null) {
+			expectedType = "text".equals(contentType.getType()) ? String.class : byte[].class;
 		}
+		else {
+			expectedType = requestPayloadType.resolve();
+		}
+
 		for (HttpMessageConverter<?> converter : this.messageConverters) {
 			if (converter.canRead(expectedType, contentType)) {
 				return converter.read((Class) expectedType, request);
@@ -684,52 +495,6 @@ public abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewa
 		throw new MessagingException(
 				"Could not convert request: no suitable HttpMessageConverter found for expected type ["
 						+ expectedType.getName() + "] and content type [" + contentType + "]");
-	}
-
-	private HttpStatus resolveHttpStatusFromHeaders(MessageHeaders headers) {
-		Object httpStatusFromHeader = headers.get(org.springframework.integration.http.HttpHeaders.STATUS_CODE);
-		return buildHttpStatus(httpStatusFromHeader);
-	}
-
-	private HttpStatus buildHttpStatus(Object httpStatusValue) {
-		HttpStatus httpStatus = null;
-		if (httpStatusValue instanceof HttpStatus) {
-			httpStatus = (HttpStatus) httpStatusValue;
-		}
-		else if (httpStatusValue instanceof Integer) {
-			httpStatus = HttpStatus.valueOf((Integer) httpStatusValue);
-		}
-		else if (httpStatusValue instanceof String) {
-			httpStatus = HttpStatus.valueOf(Integer.parseInt((String) httpStatusValue));
-		}
-		return httpStatus;
-	}
-
-	protected StandardEvaluationContext createEvaluationContext() {
-		return ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-	}
-
-	private void validateSupportedMethods() {
-		if (this.requestPayloadType != null
-				&& CollectionUtils.containsAny(nonReadableBodyHttpMethods,
-				Arrays.asList(this.requestMapping.getMethods()))) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("The 'requestPayloadType' attribute will have no relevance for one " +
-						"of the specified HTTP methods '" + nonReadableBodyHttpMethods + "'");
-			}
-		}
-	}
-
-
-	@Override
-	public int beforeShutdown() {
-		stop();
-		return this.activeCount.get();
-	}
-
-	@Override
-	public int afterShutdown() {
-		return this.activeCount.get();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import org.springframework.util.SerializationUtils;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Biju Kunjummen
+ *
  * @since 2.0
  */
 public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboundTests {
@@ -96,7 +97,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		QueueChannel requestChannel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.setRequestPayloadType(String.class);
+		gateway.setRequestPayloadTypeClass(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -134,7 +135,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setStatusCodeExpression(new LiteralExpression("foo"));
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.setRequestPayloadType(String.class);
+		gateway.setRequestPayloadTypeClass(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -162,7 +163,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		});
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.setRequestPayloadType(String.class);
+		gateway.setRequestPayloadTypeClass(String.class);
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
 		gateway.start();
@@ -238,7 +239,7 @@ public class HttpRequestHandlingMessagingGatewayTests extends AbstractHttpInboun
 		QueueChannel channel = new QueueChannel();
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
 		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.setRequestPayloadType(TestBean.class);
+		gateway.setRequestPayloadTypeClass(TestBean.class);
 		gateway.setRequestChannel(channel);
 
 		List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();

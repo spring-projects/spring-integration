@@ -122,6 +122,58 @@ This also shows how to customize the HTTP methods accepted by the gateway, which
 The reply message will be available in the Model map.
 The key that is used for that map entry by default is 'reply', but this can be overridden by setting the 'replyKey' property on the endpoint's configuration.
 
+=== WebFlux Server Side support
+
+Starting with _version 5.0_, the `ReactiveHttpInboundEndpoint`, http://docs.spring.io/spring/docs/5.0.0.RC3/spring-framework-reference/web.html#web-reactive[WebFlux] `WebHandler`, implementation is provided.
+This component is similar to the MVC-based `HttpRequestHandlingEndpointSupport` and has with it some common options via newly extracted `BaseHttpInboundEndpoint`, but can be configured, installed and performed in the Reactive foundation - Spring WebFlux environment.
+A simple sample for explanation:
+
+[source,java]
+----
+@Configuration
+@EnableWebFlux
+@EnableIntegration
+public class ReactiveHttpConfiguration {
+
+    @Bean
+    public ReactiveHttpInboundEndpoint simpleInboundEndpoint() {
+        ReactiveHttpInboundEndpoint endpoint = new ReactiveHttpInboundEndpoint();
+        RequestMapping requestMapping = new RequestMapping();
+        requestMapping.setPathPatterns("/test");
+        endpoint.setRequestMapping(requestMapping);
+        endpoint.setRequestChannelName("serviceChannel");
+        return endpoint;
+    }
+
+    @ServiceActivator(inputChannel = "serviceChannel")
+    String service() {
+        return "It works!";
+    }
+
+}
+----
+
+Everything looks similar to the `HttpRequestHandlingEndpointSupport` mentioned above, except that we use `@EnableWebFlux` to add WebFlux infrastructure to our integration application.
+Also `ReactiveHttpInboundEndpoint` performs `sendAndReceive` operation to the downstream flow via back-pressure, on demand based manner provided by the reactive HTTP server implementation.
+
+NOTE: The reply part is non-blocked as well and based on the internal `FutureReplyChannel` which is flat-mapped to the reply `Mono` for on demand resolution.
+
+The `ReactiveHttpInboundEndpoint` can be configured with the custom `ServerCodecConfigurer`, `RequestedContentTypeResolver` and even `ReactiveAdapterRegistry`.
+The last one let us to return a reply as any reactive type - Reactor `Flux`, RxJava `Observable`, `Flowable` etc.
+This way we can simply implement https://en.wikipedia.org/wiki/Server-sent_events[Server Sent Events] scenario with the Spring Integration components:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow sseFlow() {
+    return IntegrationFlows
+            .from(Http.inboundReactiveGateway("/sse")
+                    .requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
+            .handle((p, h) -> Flux.just("foo", "bar", "baz"))
+            .get();
+}
+----
+
 [[http-outbound]]
 === Http Outbound Components
 ==== HttpRequestExecutingMessageHandler
@@ -193,7 +245,7 @@ Of course, this can be an abstract class, or even an interface (such as `java.io
 
 ==== ReactiveHttpRequestExecutingMessageHandler
 
-The `ReactiveHttpRequestExecutingMessageHandler` implementation is very similar to `HttpRequestExecutingMessageHandler` instead of delegating to a `WebClient` from Spring Framework WebFlux module.
+The `ReactiveHttpRequestExecutingMessageHandler` (starting with _version 5.0_) implementation is very similar to `HttpRequestExecutingMessageHandler` instead of delegating to a `WebClient` from Spring Framework WebFlux module.
 To configure it, write a bean like this:
 
 [source,xml]
@@ -686,6 +738,26 @@ public RequestMapping mapping() {
     requestMapping.setMethods(HttpMethod.POST);
     return requestMapping;
 }
+
+@Bean
+public ReactiveHttpInboundEndpoint jsonInboundEndpoint() {
+    ReactiveHttpInboundEndpoint endpoint = new ReactiveHttpInboundEndpoint();
+    RequestMapping requestMapping = new RequestMapping();
+    requestMapping.setPathPatterns("/persons");
+    endpoint.setRequestMapping(requestMapping);
+    endpoint.setRequestChannel(fluxResultChannel());
+    return endpoint;
+}
+
+@Bean
+public MessageChannel fluxResultChannel() {
+    return new FluxMessageChannel();
+}
+
+@ServiceActivator(inputChannel = "fluxResultChannel")
+Flux<Person> getPersons() {
+    return Flux.just(new Person("Jane"), new Person("Jason"), new Person("John"));
+}
 ----
 
 .Inbound Gateway Using the Java DSL
@@ -697,6 +769,17 @@ public IntegrationFlow inbound() {
             .requestMapping(m -> m.methods(HttpMethod.POST))
             .requestPayloadType(String.class))
         .channel("httpRequest")
+        .get();
+}
+
+@Bean
+public IntegrationFlow httpReactiveInboundChannelAdapterFlow() {
+    return IntegrationFlows
+        .from(Http.inboundReactiveChannelAdapter("/reactivePost")
+            .requestMapping(m -> m.methods(HttpMethod.POST))
+            .requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
+            .statusCodeFunction(m -> HttpStatus.ACCEPTED))
+        .channel(c -> c.queue("storeChannel"))
         .get();
 }
 ----
@@ -713,6 +796,16 @@ public HttpRequestExecutingMessageHandler outbound() {
     handler.setExpectedResponseType(String.class);
     return handler;
 }
+
+@ServiceActivator(inputChannel = "reactiveHttpOutRequest")
+@Bean
+public ReactiveHttpRequestExecutingMessageHandler reactiveOutbound(WebClient client) {
+    ReactiveHttpRequestExecutingMessageHandler handler =
+        new ReactiveHttpRequestExecutingMessageHandler("http://localhost:8080/foo", client);
+    handler.setHttpMethod(HttpMethod.POST);
+    handler.setExpectedResponseType(String.class);
+    return handler;
+}
 ----
 
 .Outbound Gateway Using the Java DSL
@@ -725,6 +818,18 @@ public IntegrationFlow outbound() {
             .httpMethod(HttpMethod.POST)
             .expectedResponseType(String.class))
         .get();
+}
+
+@Bean
+public IntegrationFlow outboundReactive() {
+    return f -> f
+        .handle(Http.<MultiValueMap<String, String>>outboundReactiveGateway(m ->
+                UriComponentsBuilder.fromUriString("http://localhost:8080/foo")
+                        .queryParams(m.getPayload())
+                        .build()
+                        .toUri())
+                .httpMethod(HttpMethod.GET)
+                .expectedResponseType(String.class));
 }
 ----
 
