@@ -988,3 +988,52 @@ Therefore `prefix` property must be used on the `DefaultLockRepository` bean def
 Sometimes it happens that one application has moved to the state when it can't release distributed lock - remove the particular record in the data base.
 For this purpose such dead locks can be expired by the other application on the next locking invocation.
 The `timeToLive` (TTL) option on the `DefaultLockRepository` is provided for this purpose.
+
+[[jdbc-metadata-store]]
+=== JDBC Metadata Store
+
+Starting with _version 5.0_, the  JDBC-based `MetadataStore` (<<metadata-store>>) implementation is available.
+The `JdbcMetadataStore` can be used to maintain metadata state across application restarts.
+This `MetadataStore` implementation can be used with adapters such as:
+
+* <<twitter-inbound>>
+* <<feed-inbound-channel-adapter>>
+* <<file-reading>>
+* <<ftp-inbound>>
+* <<sftp-inbound>>
+
+In order to instruct these adapters to use the `JdbcMetadataStore`, simply declare a Spring bean using the
+bean name *metadataStore*. The _Twitter Inbound Channel Adapter_ and the _Feed Inbound Channel Adapter_ will both
+automatically pick up and use the declared `JdbcMetadataStore`:
+
+[source,java]
+----
+@Bean
+public MetadataStore metadataStore(DataSource dataSource) {
+    return new JdbcMetadataStore(dataSource);
+}
+----
+
+The data base schema scripts are located in the `org.springframework.integration.jdbc` package divided to the particular RDBMS vendors.
+For example the H2 DDL for metadata table looks like:
+
+[source,sql]
+----
+CREATE TABLE INT_METADATA_STORE  (
+	METADATA_KEY VARCHAR(255) NOT NULL,
+	METADATA_VALUE VARCHAR(4000),
+	REGION VARCHAR(100) NOT NULL,
+	constraint METADATA_STORE primary key (METADATA_KEY, REGION)
+);
+----
+
+The `INT_` can be changed according to the target data base design requirements and `JdbcMetadataStore` can be configured to the custom prefix.
+
+The `JdbcMetadataStore` also implements `ConcurrentMetadataStore`, allowing it to be reliably shared across multiple
+application instances where only one instance will be allowed to store or modify a key's value.
+All these operations are _atomic_ via transaction guarantees.
+
+The transaction management is required to use `JdbcMetadataStore`.
+All the Inbound Channel Adapters can be supplied with the `TransactionManager` reference for their poller configuration.
+Unlike non-transactional `Metadata` store implementations, with `JdbcMetadataStore`, the entry appears in the target table only after transaction commit.
+In case of rollback, no entries is added to the `INT_METADATA_STORE`.
