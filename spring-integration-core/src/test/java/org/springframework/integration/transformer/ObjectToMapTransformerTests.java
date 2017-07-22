@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@ import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.Test;
 
@@ -42,6 +44,7 @@ import org.springframework.messaging.Message;
  *
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Vikas Prasad
  * @since 2.0
  */
 public class ObjectToMapTransformerTests {
@@ -152,6 +155,27 @@ public class ObjectToMapTransformerTests {
 		ObjectToMapTransformer transformer = new ObjectToMapTransformer();
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
 		transformer.transform(message);
+	}
+
+	@Test
+	public void testJacksonJSR310Support_PassInstantField_ReturnsMapWithOnlyOneEntryForInstantField() throws Exception {
+		/*
+		 * This test will fail if Jackson is not present in the classpath. (For JUnits Jackson will always be present)
+		 */
+		// arrange
+		Person person = new Person();
+		person.deathDate = Instant.now();
+
+		Employee employee = new Employee();
+		employee.setPerson(person);
+
+		// act
+		Map<String, Object> transformedMap = new ObjectToMapTransformer().transformPayload(employee);
+
+		// assert
+		assertEquals("If JSR310 support is enabled by calling findAndRegisterModules() on the Jackson mapper, " +
+						"Instant field should not be broken. Thus the count should exactly be 1 here.",
+				1L, transformedMap.values().stream().filter(Objects::nonNull).count());
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -283,23 +307,21 @@ public class ObjectToMapTransformerTests {
 		private List<Map<String, Object>> remarks;
 		private Child child;
 		private BigDecimal age;
+		private Date birthDate;
+		public Instant deathDate;
+		private Address address;
 		public BigDecimal getAge() {
 			return age;
 		}
-
 		public void setAge(BigDecimal age) {
 			this.age = age;
 		}
-
 		public Date getBirthDate() {
 			return birthDate;
 		}
-
 		public void setBirthDate(Date birthDate) {
 			this.birthDate = birthDate;
 		}
-
-		private Date birthDate;
 		public Child getChild() {
 			return child;
 		}
@@ -312,7 +334,6 @@ public class ObjectToMapTransformerTests {
 		public void setRemarks(List<Map<String, Object>> remarks) {
 			this.remarks = remarks;
 		}
-		private Address address;
 		public String[] getAkaNames() {
 			return akaNames;
 		}
