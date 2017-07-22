@@ -58,7 +58,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		this.objectMapper = new ObjectMapper();
 		this.objectMapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
 		this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		this.objectMapper.findAndRegisterModules();	// handle JSR310
+		this.objectMapper.findAndRegisterModules();    // handle JSR310
 	}
 
 	public Jackson2JsonObjectMapper(ObjectMapper objectMapper) {

@@ -19,6 +19,7 @@ package org.springframework.integration.transformer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -39,6 +40,9 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  *
@@ -176,6 +180,34 @@ public class ObjectToMapTransformerTests {
 		assertEquals("If JSR310 support is enabled by calling findAndRegisterModules() on the Jackson mapper, " +
 						"Instant field should not be broken. Thus the count should exactly be 1 here.",
 				1L, transformedMap.values().stream().filter(Objects::nonNull).count());
+	}
+
+	@Test
+	public void testCustomMapperSupport_DisableTimestampFlag_SerializesDateAsString() throws Exception {
+		// arrange
+		Employee employee = this.buildEmployee();
+
+		ObjectMapper customMapper = new ObjectMapper();
+		// customize your mapper as you want
+		// let us say you want to transform the object to map in such a way that the value of all Date fields come as ISO-8601 String,
+		// (by default it comes as Long timestamp)
+		customMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);    // don't write Date as Long
+
+		// act
+		Map<String, Object> transformedMap = new ObjectToMapTransformer(customMapper).transformPayload(employee);
+
+		// assert
+		assertTrue("As WRITE_DATES_AS_TIMESTAMPS is set to false, Date should be serialized as String",
+				transformedMap.get("listOfDates[0][0]") instanceof String);
+
+		assertTrue("As WRITE_DATES_AS_TIMESTAMPS is set to false, Date should be serialized as String",
+				transformedMap.get("listOfDates[0][1]") instanceof String);
+
+		assertTrue("As WRITE_DATES_AS_TIMESTAMPS is set to false, Date should be serialized as String",
+				transformedMap.get("listOfDates[1][0]") instanceof String);
+
+		assertTrue("As WRITE_DATES_AS_TIMESTAMPS is set to false, Date should be serialized as String",
+				transformedMap.get("listOfDates[1][1]") instanceof String);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
