@@ -143,6 +143,7 @@ subprojects { subproject ->
 		tomcatVersion = "8.5.14"
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
+		jsr310Version = '2.8.9'
 	}
 
 	eclipse {
@@ -314,6 +315,7 @@ project('spring-integration-core') {
 		}
 		compile("io.fastjson:boon:$boonVersion", optional)
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
+		compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jsr310Version")
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
