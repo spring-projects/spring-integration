@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,17 @@ package org.springframework.integration.transformer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.Test;
 
@@ -38,10 +41,14 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 /**
  *
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Vikas Prasad
  * @since 2.0
  */
 public class ObjectToMapTransformerTests {
@@ -152,6 +159,55 @@ public class ObjectToMapTransformerTests {
 		ObjectToMapTransformer transformer = new ObjectToMapTransformer();
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
 		transformer.transform(message);
+	}
+
+	@Test
+	public void testJacksonJSR310Support_PassInstantField_ReturnsMapWithOnlyOneEntryForInstantField() throws Exception {
+		/*
+		 * This test will fail if Jackson is not present in the classpath. (For JUnits Jackson will always be present)
+		 */
+		// arrange
+		Person person = new Person();
+		person.deathDate = Instant.now();
+
+		Employee employee = new Employee();
+		employee.setPerson(person);
+
+		// act
+		Map<String, Object> transformedMap = new ObjectToMapTransformer().transformPayload(employee);
+
+		// assert
+		assertEquals("If JSR310 support is enabled by calling findAndRegisterModules() on the Jackson mapper, " +
+						"Instant field should not be broken. Thus the count should exactly be 1 here.",
+				1L, transformedMap.values().stream().filter(Objects::nonNull).count());
+	}
+
+	@Test
+	public void testCustomMapperSupport_DisableTimestampFlag_SerializesDateAsString() throws Exception {
+		// arrange
+		Employee employee = this.buildEmployee();
+
+		ObjectMapper customMapper = new ObjectMapper();
+		// customize your mapper as you want
+		// let us say you want to transform the object to map in such a way that the value of all Date fields come as ISO-8601 String,
+		// (by default it comes as Long timestamp)
+		customMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);    // don't write Date as Long
+
+		// act
+		Map<String, Object> transformedMap = new ObjectToMapTransformer(customMapper).transformPayload(employee);
+
+		// assert
+		assertTrue("As WRITE_DATES_AS_TIMESTAMPS is set to false, Date should be serialized as String",
+				transformedMap.get("listOfDates[0][0]") instanceof String);
+
+		assertTrue("As WRITE_DATES_AS_TIMESTAMPS is set to false, Date should be serialized as String",
+				transformedMap.get("listOfDates[0][1]") instanceof String);
+
+		assertTrue("As WRITE_DATES_AS_TIMESTAMPS is set to false, Date should be serialized as String",
+				transformedMap.get("listOfDates[1][0]") instanceof String);
+
+		assertTrue("As WRITE_DATES_AS_TIMESTAMPS is set to false, Date should be serialized as String",
+				transformedMap.get("listOfDates[1][1]") instanceof String);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -283,23 +339,21 @@ public class ObjectToMapTransformerTests {
 		private List<Map<String, Object>> remarks;
 		private Child child;
 		private BigDecimal age;
+		private Date birthDate;
+		public Instant deathDate;
+		private Address address;
 		public BigDecimal getAge() {
 			return age;
 		}
-
 		public void setAge(BigDecimal age) {
 			this.age = age;
 		}
-
 		public Date getBirthDate() {
 			return birthDate;
 		}
-
 		public void setBirthDate(Date birthDate) {
 			this.birthDate = birthDate;
 		}
-
-		private Date birthDate;
 		public Child getChild() {
 			return child;
 		}
@@ -312,7 +366,6 @@ public class ObjectToMapTransformerTests {
 		public void setRemarks(List<Map<String, Object>> remarks) {
 			this.remarks = remarks;
 		}
-		private Address address;
 		public String[] getAkaNames() {
 			return akaNames;
 		}

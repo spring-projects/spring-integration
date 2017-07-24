@@ -19,6 +19,8 @@ package org.springframework.integration.support.json;
 
 import org.springframework.util.ClassUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Simple factory to provide {@linkplain JsonObjectMapper}
  * instances dependently of jackson-databind or boon libs in the classpath.
@@ -27,6 +29,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Vikas Prasad
  * @since 3.0
  *
  * @see Jackson2JsonObjectMapper
@@ -58,6 +61,17 @@ public final class JsonObjectMapperProvider {
 		else {
 			throw new IllegalStateException("Neither jackson-databind.jar, nor boon.jar is present in the classpath.");
 		}
+	}
+
+	/**
+	 * Return an instance of {@link Jackson2JsonObjectMapper} with the {@link Jackson2JsonObjectMapper#objectMapper}
+	 * field set as the mapper passed by the caller.
+	 * @param mapper the customized mapper that the caller wants to use
+	 * @return Jackson2JsonObjectMapper object that wraps within the customized mapper provided
+	 * @since 5.0.0
+	 */
+	public static JsonObjectMapper<?, ?> getCustomizedJacksonMapper(ObjectMapper mapper) {
+		return new Jackson2JsonObjectMapper(mapper);
 	}
 
 	/**

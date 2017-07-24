@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Will transform an object graph into a Map. It supports a conventional Map (map of maps) where complex attributes are
@@ -52,13 +54,22 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Vikas Prasad
  * @since 2.0
  */
 public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?, ?>> {
 
-	private final JsonObjectMapper<?, ?> jsonObjectMapper = JsonObjectMapperProvider.newInstance();
+	private final JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	private volatile boolean shouldFlattenKeys = true;
+
+	public ObjectToMapTransformer() {
+		this.jsonObjectMapper = JsonObjectMapperProvider.newInstance();
+	}
+
+	public ObjectToMapTransformer(ObjectMapper objectMapper) {
+		this.jsonObjectMapper = JsonObjectMapperProvider.getCustomizedJacksonMapper(objectMapper);
+	}
 
 	public void setShouldFlattenKeys(boolean shouldFlattenKeys) {
 		this.shouldFlattenKeys = shouldFlattenKeys;
