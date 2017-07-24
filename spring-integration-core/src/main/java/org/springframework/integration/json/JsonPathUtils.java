@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.jayway.jsonpath.Predicate;
  * Note {@link #evaluate} is used as {@code #jsonPath()} SpEL function.
  *
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public final class JsonPathUtils {
@@ -41,7 +42,7 @@ public final class JsonPathUtils {
 			return JsonPath.read((File) json, jsonPath, predicates);
 		}
 		else if (json instanceof URL) {
-			return JsonPath.read((URL) json, jsonPath, predicates);
+			return JsonPath.read(((URL) json).openStream(), jsonPath, predicates);
 		}
 		else if (json instanceof InputStream) {
 			return JsonPath.read((InputStream) json, jsonPath, predicates);

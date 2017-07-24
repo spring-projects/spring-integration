@@ -91,7 +91,6 @@ subprojects { subproject ->
 		aspectjVersion = '1.8.10'
 		apacheSshdVersion = '1.4.0'
 		boonVersion = '0.34'
-		chronicleVersion = '3.5.3'
 		commonsDbcp2Version = '2.1.1'
 		commonsIoVersion = '2.4'
 		commonsNetVersion = '3.5'
@@ -115,7 +114,7 @@ subprojects { subproject ->
 		jpaApiVersion = '2.1.1'
 		jrubyVersion = '9.1.5.0'
 		jschVersion = '0.1.54'
-		jsonpathVersion = '2.2.0'
+		jsonpathVersion = '2.3.0'
 		junitVersion = '4.12'
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
@@ -130,17 +129,17 @@ subprojects { subproject ->
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"
 		smackVersion = '4.1.9'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.M4'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.M5'
 		springDataJpaVersion = '2.0.0.BUILD-SNAPSHOT'
 		springDataMongoVersion = '2.0.0.BUILD-SNAPSHOT'
 		springDataRedisVersion = '2.0.0.BUILD-SNAPSHOT'
 		springGemfireVersion = '2.0.0.BUILD-SNAPSHOT'
-		springSecurityVersion = '5.0.0.BUILD-SNAPSHOT'
-		springSocialTwitterVersion = '2.0.0.M2'
+		springSecurityVersion = '5.0.0.M3'
+		springSocialTwitterVersion = '2.0.0.M4'
 		springRetryVersion = '1.2.0.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.RC3'
 		springWsVersion = '2.4.0.RELEASE'
-		tomcatVersion = "8.5.14"
+		tomcatVersion = "8.5.16"
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.7'
 	}
@@ -237,7 +236,7 @@ subprojects { subproject ->
 
 	checkstyle {
 		configFile = file("$rootDir/src/checkstyle/checkstyle.xml")
-		toolVersion = "6.16.1"
+		toolVersion = "8.0"
 	}
 
 	artifacts {

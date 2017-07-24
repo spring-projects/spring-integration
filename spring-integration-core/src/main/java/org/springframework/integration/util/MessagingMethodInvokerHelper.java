@@ -759,13 +759,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					}
 				}, method12 -> method12.getName().equals(methodName));
 			}
-			Method method = targetMethod.get();
-			if (method != null) {
-				method = org.springframework.util.ClassUtils.getMostSpecificMethod(method, targetObject.getClass());
+			Method theMethod = targetMethod.get();
+			if (theMethod != null) {
+				theMethod = org.springframework.util.ClassUtils.getMostSpecificMethod(theMethod, targetObject.getClass());
 				InvocableHandlerMethod invocableHandlerMethod =
-						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, method);
+						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, theMethod);
 				HandlerMethod handlerMethod = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
-				checkSpelInvokerRequired(targetClass.get(), method, handlerMethod);
+				checkSpelInvokerRequired(targetClass.get(), theMethod, handlerMethod);
 				Class<?> targetParameterType = handlerMethod.getTargetParameterType();
 				if (handlerMethod.isMessageMethod()) {
 					if (candidateMessageMethods.containsKey(targetParameterType)) {
