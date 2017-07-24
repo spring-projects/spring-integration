@@ -90,7 +90,14 @@ public class KafkaOutboundAdapterParserTests {
 	public void testSyncMode() {
 		@SuppressWarnings("resource")
 		MockProducer<Integer, String> mockProducer =
-				new MockProducer<>(false, new IntegerSerializer(), new StringSerializer());
+				new MockProducer<Integer, String>(false, new IntegerSerializer(), new StringSerializer()) {
+
+					@Override
+					public void close() {
+						// To avoid non transactional closes.
+					}
+
+				};
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(() -> mockProducer);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(mock(BeanFactory.class));
