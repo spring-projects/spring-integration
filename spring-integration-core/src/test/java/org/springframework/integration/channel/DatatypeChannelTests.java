@@ -224,7 +224,7 @@ public class DatatypeChannelTests {
 	}
 
 
-	private static QueueChannel createChannel(Class<?> ... datatypes) {
+	private static QueueChannel createChannel(Class<?>... datatypes) {
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
 		channel.setDatatypes(datatypes);

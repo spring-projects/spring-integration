@@ -28,7 +28,7 @@ public class TestXmlApplicationContext extends AbstractXmlApplicationContext {
 
 	private final Resource[] resources;
 
-	public TestXmlApplicationContext(String ... xmlStrings) {
+	public TestXmlApplicationContext(String... xmlStrings) {
 		resources = new Resource[xmlStrings.length];
 		for (int i = 0; i < xmlStrings.length; i++) {
 			resources[i] = new TestResource(xmlStrings[i]);
