@@ -27,10 +27,11 @@ import org.springframework.util.ClassUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Vikas Prasad
  * @since 3.0
  *
  * @see Jackson2JsonObjectMapper
- * @see org.springframework.integration.support.json.BoonJsonObjectMapper
+ * @see BoonJsonObjectMapper
  */
 public final class JsonObjectMapperProvider {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <ul>
  * <li>{@link MapperFeature#DEFAULT_VIEW_INCLUSION} is disabled</li>
  * <li>{@link DeserializationFeature#FAIL_ON_UNKNOWN_PROPERTIES} is disabled</li>
+ * <li>{@link ObjectMapper#findAndRegisterModules()} is performed</li>
  * </ul>
  *
  * @author Artem Bilan
+ * @author Vikas Prasad
+ *
  * @since 3.0
  */
 public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
@@ -57,6 +60,7 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		this.objectMapper = new ObjectMapper();
 		this.objectMapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
 		this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		this.objectMapper.findAndRegisterModules();
 	}
 
 	public Jackson2JsonObjectMapper(ObjectMapper objectMapper) {

@@ -87,7 +87,11 @@ That message is used as a `failedMessage` property of the `MessagingException` w
 
 See <<transaction-synchronization>> for more information.
 
-The aggregator expression-based `ReleaseStrategy` now evaluates the expression against the `MesageGroup` instead of just the collection of `Message<?>`.
+The aggregator expression-based `ReleaseStrategy` now evaluates the expression against the `MessageGroup` instead of just the collection of `Message<?>`.
+
+See <<aggregator-spel>> for more information.
+
+The `ObjectToMapTransformer` can now be supplied with a customised `JsonObjectMapper`.
 
 See <<aggregator-spel>> for more information.
 

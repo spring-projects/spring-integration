@@ -1832,7 +1832,7 @@
 					<xsd:element name="payload-deserializing-transformer"
 								 type="payload-deserializing-transformer-type"/>
 					<xsd:element name="object-to-string-transformer" type="specialized-transformer-charset-aware-type"/>
-					<xsd:element name="object-to-map-transformer" type="specialized-transformer-type"/>
+					<xsd:element name="object-to-map-transformer" type="object-to-map-transformer-type"/>
 					<xsd:element name="map-to-object-transformer" type="map-to-object-transformer-type"/>
 					<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type"/>
 					<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type"/>
@@ -2441,21 +2441,41 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="specialized-transformer-type">
+				<xsd:extension base="object-to-map-transformer-type">
 					<xsd:attributeGroup ref="inputOutputChannelGroup" />
-					<xsd:attribute name="flatten" type="xsd:string" default="true">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specifies if the result Map of Maps should be transformed further to flat keys of
-								object's property paths.
-								Default is 'true'.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="object-to-map-transformer-type">
+		<xsd:complexContent>
+			<xsd:extension base="specialized-transformer-type">
+				<xsd:attribute name="flatten" type="xsd:string" default="true">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies if the result Map of Maps should be transformed further to flat keys of
+							object's property paths.
+							Default is 'true'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="object-mapper">
+					<xsd:annotation>
+						<xsd:documentation>
+							Optional reference to a JsonObjectMapper instance.
+							By default, a JsonObjectMapper that uses a JsonObjectMapperProvider.
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.support.json.JsonObjectMapper" />
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:element name="map-to-object-transformer">
 		<xsd:annotation>

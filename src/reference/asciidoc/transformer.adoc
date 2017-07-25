@@ -121,7 +121,7 @@ These will use standard Java serialization by default, but you can provide an im
 
 ====== Object-to-Map and Map-to-Object Transformers
 
-Spring Integration also provides _Object-to-Map_ and _Map-to-Object_ transformers which utilize the Spring Expression Language (SpEL) to serialize and de-serialize the object graphs.
+Spring Integration also provides _Object-to-Map_ and _Map-to-Object_ transformers which utilize the JSON to serialize and de-serialize the object graphs.
 The object hierarchy is introspected to the most primitive types (String, int, etc.).
 The path to this type is described via SpEL, which becomes the _key_ in the transformed Map.
 The primitive type becomes the value.
@@ -144,7 +144,7 @@ public class Child{
 
 \...will be transformed to a Map which looks like this: `{person.name=George, person.child.name=Jenna, person.child.nickNames[0]=Bimbo ... etc}`
 
-The SpEL-based Map allows you to describe the object structure without sharing the actual types allowing you to restore/rebuild the object graph into a differently typed Object graph as long as you maintain the structure.
+The JSON-based Map allows you to describe the object structure without sharing the actual types allowing you to restore/rebuild the object graph into a differently typed Object graph as long as you maintain the structure.
 
 For example: The above structure could be easily restored back to the following Object graph via the Map-to-Object transformer:
 [source,java]
@@ -215,7 +215,10 @@ or
 
 NOTE: NOTE: 'ref' and 'type' attributes are mutually exclusive.
 You can only use one.
-Also, if using the 'ref' attribute, you must point to a 'prototype' scoped bean, otherwise a BeanCreationException will be thrown. 
+Also, if using the 'ref' attribute, you must point to a 'prototype' scoped bean, otherwise a `BeanCreationException` will be thrown. 
+
+Starting with _version 5.0_, the `ObjectToMapTransformer` can be supplied with the customized `JsonObjectMapper`, for example in use-cases when we need special formats for dates or nulls for empty collections.
+See <<json-transformers>> for more information about `JsonObjectMapper` implementations.
 
 [[stream-transformer]]
 ====== Stream Transformer

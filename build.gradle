@@ -316,6 +316,7 @@ project('spring-integration-core') {
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
+		testCompile ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson2Version")
 	}
 }
 

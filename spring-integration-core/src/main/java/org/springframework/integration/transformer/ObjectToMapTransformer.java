@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,21 @@ import java.util.Map.Entry;
 
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Will transform an object graph into a Map. It supports a conventional Map (map of maps) where complex attributes are
- * represented as Map values as well as a flat Map where keys document the path to the value. By default it will
- * transform to a flat Map. If you need to transform to a Map of Maps set the 'shouldFlattenKeys' property to 'false'
- * via the {@link ObjectToMapTransformer#setShouldFlattenKeys(boolean)} method. It supports Collections, Maps and Arrays
- * which means that for flat maps it will flatten an Object's properties. Below is an example showing how a flattened
- * Object hierarchy is represented when 'shouldFlattenKeys' is TRUE.<br>
+ * Transforms an object graph into a Map. It supports a conventional Map (map of maps)
+ * where complex attributes are represented as Map values as well as a flat Map
+ * where keys document the path to the value. By default it will transform to a flat Map.
+ * If you need to transform to a Map of Maps set the 'shouldFlattenKeys' property to 'false'
+ * via the {@link ObjectToMapTransformer#setShouldFlattenKeys(boolean)} method.
+ * It supports Collections, Maps and Arrays which means that for flat maps it will flatten
+ * an Object's properties. Below is an example showing how a flattened
+ * Object hierarchy is represented when 'shouldFlattenKeys' is TRUE.
+ *<p>
+ * The transformation is based on to and then from JSON conversion.
  *
  * <code>
  * public class Person {
@@ -52,13 +57,35 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Vikas Prasad
+ *
  * @since 2.0
+ *
+ * @see JsonObjectMapperProvider
  */
 public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?, ?>> {
 
-	private final JsonObjectMapper<?, ?> jsonObjectMapper = JsonObjectMapperProvider.newInstance();
+	private final JsonObjectMapper<?, ?> jsonObjectMapper;
 
 	private volatile boolean shouldFlattenKeys = true;
+
+	/**
+	 * Construct with the default {@link JsonObjectMapper} instance available via
+	 * {@link JsonObjectMapperProvider#newInstance() factory}.
+	 */
+	public ObjectToMapTransformer() {
+		this(JsonObjectMapperProvider.newInstance());
+	}
+
+	/**
+	 * Construct with the provided {@link JsonObjectMapper} instance.
+	 * @param jsonObjectMapper the {@link JsonObjectMapper} to use.
+	 * @since 5.0
+	 */
+	public ObjectToMapTransformer(JsonObjectMapper<?, ?> jsonObjectMapper) {
+		Assert.notNull(jsonObjectMapper, "'jsonObjectMapper' must not be null");
+		this.jsonObjectMapper = jsonObjectMapper;
+	}
 
 	public void setShouldFlattenKeys(boolean shouldFlattenKeys) {
 		this.shouldFlattenKeys = shouldFlattenKeys;
@@ -88,7 +115,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 			this.doProcessCollection(propertyPrefix, (Collection<?>) element, resultMap);
 		}
 		else if (element != null && element.getClass().isArray()) {
-			Collection<?> collection =  CollectionUtils.arrayToList(element);
+			Collection<?> collection = CollectionUtils.arrayToList(element);
 			this.doProcessCollection(propertyPrefix, collection, resultMap);
 		}
 		else {
@@ -97,7 +124,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 	}
 
 	private Map<String, Object> flattenMap(Map<String, Object> result) {
-		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Map<String, Object> resultMap = new HashMap<>();
 		this.doFlatten("", result, resultMap);
 		return resultMap;
 	}
@@ -111,7 +138,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		}
 	}
 
-	private void doProcessCollection(String propertyPrefix,  Collection<?> list, Map<String, Object> resultMap) {
+	private void doProcessCollection(String propertyPrefix, Collection<?> list, Map<String, Object> resultMap) {
 		int counter = 0;
 		for (Object element : list) {
 			this.doProcessElement(propertyPrefix + "[" + counter + "]", element, resultMap);

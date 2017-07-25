@@ -118,6 +118,10 @@
 		<logging-channel-adapter id="loggingChannelAdapterWithinChain" level="WARN"/>
 	</chain>
 
+	<beans:bean id="jsonObjectMapper" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.integration.support.json.JsonObjectMapper"/>
+	</beans:bean>
+
 	<chain id="subComponentsIdSupport1" input-channel="subComponentsIdSupport1Channel">
 		<splitter id="splitterWithinChain"/>
 		<resequencer id="resequencerWithinChain"/>
@@ -130,7 +134,9 @@
 		<gateway id="gatewayWithinChain" request-channel="strings" reply-channel="numbers"
 				 request-timeout="1000" reply-timeout="100"/>
 		<object-to-string-transformer id="objectToStringTransformerWithinChain"/>
-		<object-to-map-transformer id="objectToMapTransformerWithinChain"/>
+		<object-to-map-transformer id="objectToMapTransformerWithinChain"
+								   flatten="false"
+								   object-mapper="jsonObjectMapper"/>
 		<map-to-object-transformer id="mapToObjectTransformerWithinChain"
 								   type="org.springframework.integration.config.ChainParserTests$FooPojo"/>
 		<object-to-json-transformer id="objectToJsonTransformerWithinChain"/>
@@ -147,7 +153,7 @@
 	</chain>
 
 	<chain id="recipientListRouterChain" input-channel="subComponentsIdSupport3Channel">
-	<recipient-list-router id="recipientListRouterWithinChain">
+		<recipient-list-router id="recipientListRouterWithinChain">
 			<recipient channel="strings"/>
 			<recipient channel="numbers"/>
 		</recipient-list-router>
