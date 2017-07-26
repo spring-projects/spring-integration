@@ -5,12 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
-		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver" />
-		<property name="url" value="jdbc:derby:memory:myDB;create=true" />
-		<property name="username" value="sa" />
-		<property name="password" value="sa" />
-	</bean>
+	<jdbc:embedded-database id="dataSource" type="DERBY" />
 
 	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS" >
 		<jdbc:script location="classpath:derby-stored-procedures-drops.sql"/>

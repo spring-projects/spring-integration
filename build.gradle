@@ -479,8 +479,6 @@ project('spring-integration-jpa') {
 		}
 
 		testCompile "com.h2database:h2:$h2Version"
-		testCompile "org.hsqldb:hsqldb:$hsqldbVersion"
-		testCompile "org.apache.derby:derby:$derbyVersion"
 
 		testCompile "org.hibernate:hibernate-entitymanager:$hibernateVersion"
 

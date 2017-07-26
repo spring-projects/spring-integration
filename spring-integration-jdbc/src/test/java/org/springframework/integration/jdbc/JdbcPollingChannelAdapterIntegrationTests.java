@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,9 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -45,36 +44,38 @@ import org.springframework.messaging.Message;
 /**
  * @author Jonas Partner
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class JdbcPollingChannelAdapterIntegrationTests {
 
-	private static Log logger = LogFactory.getLog(JdbcPollingChannelAdapterIntegrationTests.class);
+	private static EmbeddedDatabase embeddedDatabase;
 
-	private EmbeddedDatabase embeddedDatabase;
+	private static JdbcTemplate jdbcTemplate;
 
-	private JdbcTemplate jdbcTemplate;
-
-	@Before
-	public void setUp() {
+	@BeforeClass
+	public static void setUp() {
 		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-		builder
-				.setType(EmbeddedDatabaseType.DERBY)
-				.addScript(
-						"classpath:org/springframework/integration/jdbc/pollingChannelAdapterIntegrationTest.sql");
-		this.embeddedDatabase = builder.build();
-		this.jdbcTemplate = new JdbcTemplate(this.embeddedDatabase);
+		builder.setType(EmbeddedDatabaseType.DERBY)
+				.addScript("classpath:org/springframework/integration/jdbc/pollingChannelAdapterIntegrationTest.sql");
+		embeddedDatabase = builder.build();
+		jdbcTemplate = new JdbcTemplate(embeddedDatabase);
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		embeddedDatabase.shutdown();
 	}
 
 	@After
-	public void tearDown() {
-		this.embeddedDatabase.shutdown();
+	public void cleanup() {
+		jdbcTemplate.execute("DELETE FROM item");
+		jdbcTemplate.execute("DELETE FROM copy");
 	}
 
 	@Test
 	public void testSimplePollForListOfMapsNoUpdate() {
-		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
-				this.embeddedDatabase, "select * from item");
-		this.jdbcTemplate.update("insert into item values(1,2)");
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase, "select * from item");
+		jdbcTemplate.update("insert into item values(1,2)");
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		assertTrue("Wrong payload type", payload instanceof List<?>);
@@ -84,13 +85,11 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		Map<?, ?> row = (Map<?, ?>) rows.get(0);
 		assertEquals("Wrong id", 1, row.get("id"));
 		assertEquals("Wrong status", 2, row.get("status"));
-
 	}
 
 	@Test
 	public void testParameterizedPollForListOfMapsNoUpdate() {
-		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
-				this.embeddedDatabase,
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
 				"select * from item where status=:status");
 		adapter.setSelectSqlParameterSource(new SqlParameterSource() {
 
@@ -113,8 +112,9 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 			public int getSqlType(String name) {
 				return Types.INTEGER;
 			}
+
 		});
-		this.jdbcTemplate.update("insert into item values(1,2)");
+		jdbcTemplate.update("insert into item values(1,2)");
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		assertTrue("Wrong payload type", payload instanceof List<?>);
@@ -124,15 +124,13 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		Map<?, ?> row = (Map<?, ?>) rows.get(0);
 		assertEquals("Wrong id", 1, row.get("id"));
 		assertEquals("Wrong status", 2, row.get("status"));
-
 	}
 
 	@Test
 	public void testSimplePollForListWithRowMapperNoUpdate() {
-		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
-				this.embeddedDatabase, "select * from item");
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase, "select * from item");
 		adapter.setRowMapper(new ItemRowMapper());
-		this.jdbcTemplate.update("insert into item values(1,2)");
+		jdbcTemplate.update("insert into item values(1,2)");
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		List<?> rows = (List<?>) payload;
@@ -141,21 +139,19 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		Item item = (Item) rows.get(0);
 		assertEquals("Wrong id", 1, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
-
 	}
 
 	@Test
 	public void testSimplePollForListWithRowMapperAndOneUpdate() {
-		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
-				this.embeddedDatabase, "select * from item where status=2");
-		adapter
-				.setUpdateSql("update item set status = 10 where id in (:id)");
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
+				"select * from item where status=2");
+		adapter.setUpdateSql("update item set status = 10 where id in (:id)");
 		adapter.setRowMapper(new ItemRowMapper());
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 
-		this.jdbcTemplate.update("insert into item values(1,2)");
-		this.jdbcTemplate.update("insert into item values(2,2)");
+		jdbcTemplate.update("insert into item values(1,2)");
+		jdbcTemplate.update("insert into item values(2,2)");
 
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
@@ -166,32 +162,25 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		assertEquals("Wrong id", 1, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
 
-		int countOfStatusTwo = this.jdbcTemplate
-				.queryForObject("select count(*) from item where status = 2", Integer.class);
-		assertEquals(
-				"Status not updated incorect number of rows with status 2", 0,
-				countOfStatusTwo);
+		int countOfStatusTwo = jdbcTemplate.queryForObject("select count(*) from item where status = 2", Integer.class);
+		assertEquals("Status not updated incorrect number of rows with status 2", 0, countOfStatusTwo);
 
-		int countOfStatusTen = this.jdbcTemplate
-				.queryForObject("select count(*) from item where status = 10", Integer.class);
-		assertEquals(
-				"Status not updated incorect number of rows with status 10", 2,
-				countOfStatusTen);
-
+		int countOfStatusTen = jdbcTemplate.queryForObject("select count(*) from item where status = 10", Integer.class);
+		assertEquals("Status not updated incorrect number of rows with status 10", 2, countOfStatusTen);
 	}
 
 	@Test
 	public void testSimplePollForListWithRowMapperAndUpdatePerRow() {
-		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
-				this.embeddedDatabase, "select * from item where status=2");
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
+				"select * from item where status=2");
 		adapter.setUpdateSql("update item set status = 10 where id = :id");
 		adapter.setUpdatePerRow(true);
 		adapter.setRowMapper(new ItemRowMapper());
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 
-		this.jdbcTemplate.update("insert into item values(1,2)");
-		this.jdbcTemplate.update("insert into item values(2,2)");
+		jdbcTemplate.update("insert into item values(1,2)");
+		jdbcTemplate.update("insert into item values(2,2)");
 
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
@@ -202,24 +191,17 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		assertEquals("Wrong id", 1, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
 
-		int countOfStatusTwo = this.jdbcTemplate
-				.queryForObject("select count(*) from item where status = 2", Integer.class);
-		assertEquals(
-				"Status not updated incorect number of rows with status 2", 0,
-				countOfStatusTwo);
+		int countOfStatusTwo = jdbcTemplate.queryForObject("select count(*) from item where status = 2", Integer.class);
+		assertEquals("Status not updated incorrect number of rows with status 2", 0, countOfStatusTwo);
 
-		int countOfStatusTen = this.jdbcTemplate
-				.queryForObject("select count(*) from item where status = 10", Integer.class);
-		assertEquals(
-				"Status not updated incorect number of rows with status 10", 2,
-				countOfStatusTen);
-
+		int countOfStatusTen = jdbcTemplate.queryForObject("select count(*) from item where status = 10", Integer.class);
+		assertEquals("Status not updated incorrect number of rows with status 10", 2, countOfStatusTen);
 	}
 
 	@Test
 	public void testSimplePollForListWithRowMapperAndInsertPerRowAndMaxRows() {
-		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
-				this.embeddedDatabase, "select * from item where id not in (select id from copy)");
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
+				"select * from item where id not in (select id from copy)");
 		adapter.setUpdateSql("insert into copy values(:id,10)");
 		adapter.setUpdatePerRow(true);
 		adapter.setMaxRowsPerPoll(1);
@@ -227,38 +209,29 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 
-		this.jdbcTemplate.update("insert into item values(1,2)");
-		this.jdbcTemplate.update("insert into item values(2,2)");
+		jdbcTemplate.update("insert into item values(1,2)");
+		jdbcTemplate.update("insert into item values(2,2)");
 
-		logger.debug(adapter.receive());
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
 		List<?> rows = (List<?>) payload;
 		assertEquals("Wrong number of elements", 1, rows.size());
 		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
 		Item item = (Item) rows.get(0);
-		logger.debug(item);
-		assertEquals("Wrong id", 2, item.getId());
+		assertEquals("Wrong id", 1, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
 
-		int countOfStatusTwo = this.jdbcTemplate
-				.queryForObject("select count(*) from item where status = 2", Integer.class);
-		assertEquals(
-				"Status not updated incorect number of rows with status 2", 2,
-				countOfStatusTwo);
+		int countOfStatusTwo = jdbcTemplate.queryForObject("select count(*) from item where status = 2", Integer.class);
+		assertEquals("Status not updated incorrect number of rows with status 2", 2, countOfStatusTwo);
 
-		int countOfStatusTen = this.jdbcTemplate
-				.queryForObject("select count(*) from copy where status = 10", Integer.class);
-		assertEquals(
-				"Status not updated incorect number of rows with status 10", 2,
-				countOfStatusTen);
-
+		int countOfStatusTen = jdbcTemplate.queryForObject("select count(*) from copy where status = 10", Integer.class);
+		assertEquals("Status not updated incorrect number of rows with status 10", 1, countOfStatusTen);
 	}
 
 	@Test
 	public void testSimplePollForListWithRowMapperAndUpdatePerRowWithMaxRows() {
-		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
-				this.embeddedDatabase, "select * from item where status=2");
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
+				"select * from item where status=2");
 		adapter.setUpdateSql("update item set status = 10 where id = :id");
 		adapter.setUpdatePerRow(true);
 		adapter.setMaxRowsPerPoll(1);
@@ -266,8 +239,8 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 
-		this.jdbcTemplate.update("insert into item values(1,2)");
-		this.jdbcTemplate.update("insert into item values(2,2)");
+		jdbcTemplate.update("insert into item values(1,2)");
+		jdbcTemplate.update("insert into item values(2,2)");
 
 		adapter.receive();
 		Message<Object> message = adapter.receive();
@@ -279,27 +252,18 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		assertEquals("Wrong id", 2, item.getId());
 		assertEquals("Wrong status", 2, item.getStatus());
 
-		int countOfStatusTwo = this.jdbcTemplate
-				.queryForObject("select count(*) from item where status = 2", Integer.class);
-		assertEquals(
-				"Status not updated incorect number of rows with status 2", 0,
-				countOfStatusTwo);
+		int countOfStatusTwo = jdbcTemplate.queryForObject("select count(*) from item where status = 2", Integer.class);
+		assertEquals("Status not updated incorrect number of rows with status 2", 0, countOfStatusTwo);
 
-		int countOfStatusTen = this.jdbcTemplate
-				.queryForObject("select count(*) from item where status = 10", Integer.class);
-		assertEquals(
-				"Status not updated incorect number of rows with status 10", 2,
-				countOfStatusTen);
-
+		int countOfStatusTen = jdbcTemplate.queryForObject("select count(*) from item where status = 10", Integer.class);
+		assertEquals("Status not updated incorrect number of rows with status 10", 2, countOfStatusTen);
 	}
 
 	@Test
 	public void testEmptyPoll() {
-		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
-				this.embeddedDatabase, "select * from item");
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase, "select * from item");
 		Message<Object> message = adapter.receive();
 		assertNull("Message received when no rows in table", message);
-
 	}
 
 	private static class Item {
@@ -309,7 +273,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		private int status;
 
 		public int getId() {
-			return id;
+			return this.id;
 		}
 
 		public void setId(int id) {
@@ -317,7 +281,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		}
 
 		public int getStatus() {
-			return status;
+			return this.status;
 		}
 
 		public void setStatus(int status) {
@@ -326,8 +290,9 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 
 		@Override
 		public String toString() {
-			return "Item [id=" + id + ", status=" + status + "]";
+			return "Item [id=" + this.id + ", status=" + this.status + "]";
 		}
+
 	}
 
 	private static class ItemRowMapper implements RowMapper<Item> {

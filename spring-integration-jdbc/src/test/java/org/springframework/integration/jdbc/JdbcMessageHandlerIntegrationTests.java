@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.integration.support.MessageBuilder;
@@ -40,29 +41,35 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class JdbcMessageHandlerIntegrationTests {
 
-	private EmbeddedDatabase embeddedDatabase;
+	private static EmbeddedDatabase embeddedDatabase;
 
-	private JdbcTemplate jdbcTemplate;
+	private static JdbcTemplate jdbcTemplate;
 
-	@Before
-	public void setUp() {
+	@BeforeClass
+	public static void setUp() {
 		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
 		builder.setType(EmbeddedDatabaseType.HSQL).addScript(
 				"classpath:org/springframework/integration/jdbc/messageHandlerIntegrationTest.sql");
-		this.embeddedDatabase = builder.build();
-		this.jdbcTemplate = new JdbcTemplate(this.embeddedDatabase);
+		embeddedDatabase = builder.build();
+		jdbcTemplate = new JdbcTemplate(embeddedDatabase);
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		embeddedDatabase.shutdown();
 	}
 
 	@After
-	public void tearDown() {
-		this.embeddedDatabase.shutdown();
+	public void cleanup() {
+		jdbcTemplate.execute("DELETE FROM FOOS");
 	}
 
 	@Test
 	public void testSimpleStaticInsert() {
-		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (1, 0, 'foo')");
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
+				"insert into foos (id, status, name) values (1, 0, 'foo')");
 		handler.afterPropertiesSet();
-		Message<String> message = new GenericMessage<String>("foo");
+		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
 		assertEquals("Wrong id", "1", map.get("ID"));
@@ -72,9 +79,10 @@ public class JdbcMessageHandlerIntegrationTests {
 
 	@Test
 	public void testSimpleDynamicInsert() {
-		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (1, 0, :payload)");
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
+				"insert into foos (id, status, name) values (1, 0, :payload)");
 		handler.afterPropertiesSet();
-		Message<String> message = new GenericMessage<String>("foo");
+		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
 		assertEquals("Wrong name", "foo", map.get("NAME"));
@@ -82,14 +90,15 @@ public class JdbcMessageHandlerIntegrationTests {
 
 	@Test
 	public void testInsertWithMessagePreparedStatementSetter() {
-		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (1, 0, ?)");
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
+				"insert into foos (id, status, name) values (1, 0, ?)");
 		final AtomicBoolean setterInvoked = new AtomicBoolean();
 		handler.setPreparedStatementSetter((ps, requestMessage) -> {
 			ps.setObject(1, requestMessage.getPayload());
 			setterInvoked.set(true);
 		});
 		handler.afterPropertiesSet();
-		Message<String> message = new GenericMessage<String>("foo");
+		Message<String> message = new GenericMessage<>("foo");
 		handler.handleMessage(message);
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
 		assertEquals("Wrong name", "foo", map.get("NAME"));
@@ -98,9 +107,10 @@ public class JdbcMessageHandlerIntegrationTests {
 
 	@Test
 	public void testIdHeaderDynamicInsert() {
-		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (:headers[idAsString], 0, :payload)");
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
+				"insert into foos (id, status, name) values (:headers[idAsString], 0, :payload)");
 		handler.afterPropertiesSet();
-		Message<String> message = new GenericMessage<String>("foo");
+		Message<String> message = new GenericMessage<>("foo");
 		String id = message.getHeaders().getId().toString();
 		message = MessageBuilder.fromMessage(message)
 				.setHeader("idAsString", message.getHeaders().getId().toString())
@@ -113,7 +123,8 @@ public class JdbcMessageHandlerIntegrationTests {
 
 	@Test
 	public void testDottedHeaderDynamicInsert() {
-		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (:headers[business.id], 0, :payload)");
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
+				"insert into foos (id, status, name) values (:headers[business.id], 0, :payload)");
 		handler.afterPropertiesSet();
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("business.id", "FOO").build();
 		handler.handleMessage(message);

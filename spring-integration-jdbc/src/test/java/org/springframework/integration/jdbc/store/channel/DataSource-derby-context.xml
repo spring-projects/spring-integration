@@ -8,14 +8,7 @@
 
 	<import resource="classpath:org/springframework/integration/jdbc/store/channel/DataSource-common-context.xml" />
 
-	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource"
-		destroy-method="close">
-		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver" />
-		<property name="initialSize" value="10" />
-		<property name="url" value="jdbc:derby:memory:integration;create=true" />
-		<property name="username" value="int" />
-		<property name="password" value="int" />
-	</bean>
+	<jdbc:embedded-database id="dataSource" type="DERBY" />
 
 	<!-- <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource"
 		destroy-method="close"> <property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>

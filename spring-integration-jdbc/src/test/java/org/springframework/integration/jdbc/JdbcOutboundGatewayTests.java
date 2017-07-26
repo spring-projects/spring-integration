@@ -20,7 +20,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -38,6 +40,18 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
  *
  */
 public class JdbcOutboundGatewayTests {
+
+	private static EmbeddedDatabase dataSource;
+
+	@BeforeClass
+	public static void setup() {
+		dataSource = new EmbeddedDatabaseBuilder().build();
+	}
+
+	@AfterClass
+	public static void teardown() {
+		dataSource.shutdown();
+	}
 
 	@Test
 	public void testSetMaxRowsPerPollWithoutSelectQuery() {
@@ -61,7 +75,6 @@ public class JdbcOutboundGatewayTests {
 
 	@Test
 	public void testConstructorWithNullJdbcOperations() {
-
 		JdbcOperations jdbcOperations = null;
 
 		try {
@@ -77,8 +90,6 @@ public class JdbcOutboundGatewayTests {
 
 	@Test
 	public void testConstructorWithEmptyAndNullQueries() {
-		EmbeddedDatabase dataSource = new EmbeddedDatabaseBuilder().build();
-
 		final String selectQuery = "   ";
 		final String updateQuery = null;
 
@@ -90,14 +101,10 @@ public class JdbcOutboundGatewayTests {
 		catch (IllegalArgumentException e) {
 			Assert.assertEquals("The 'updateQuery' and the 'selectQuery' must not both be null or empty.", e.getMessage());
 		}
-
-		dataSource.shutdown();
 	}
 
 	@Test
 	public void testSetMaxRowsPerPoll() {
-		EmbeddedDatabase dataSource = new EmbeddedDatabaseBuilder().build();
-
 		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "select * from DOES_NOT_EXIST");
 
 		try {
@@ -108,8 +115,6 @@ public class JdbcOutboundGatewayTests {
 		catch (IllegalArgumentException e) {
 			assertEquals("MaxRowsPerPoll must not be null.", e.getMessage());
 		}
-
-		dataSource.shutdown();
 	}
 
 }
