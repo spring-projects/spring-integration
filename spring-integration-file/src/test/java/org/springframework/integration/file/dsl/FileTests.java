@@ -47,6 +47,7 @@ import org.junit.runner.RunWith;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,6 +68,7 @@ import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileReadingMessageSource;
@@ -403,13 +405,16 @@ public class FileTests {
 
 
 		@Bean
-		public IntegrationFlow fileSplitterFlow() {
+		public IntegrationFlow fileSplitterFlow(BeanFactory beanFactory) {
+			ExpressionFileListFilter<File> fileExpressionFileListFilter =
+					new ExpressionFileListFilter<>(new FunctionExpression<File>(f -> "foo.tmp".equals(f.getName())));
+			fileExpressionFileListFilter.setBeanFactory(beanFactory);
+
 			return IntegrationFlows
 					.from(Files.inboundAdapter(tmpDir.getRoot())
 									.filter(new ChainFileListFilter<File>()
 											.addFilter(new AcceptOnceFileListFilter<>())
-											.addFilter(new ExpressionFileListFilter<>(
-													new FunctionExpression<File>(f -> "foo.tmp".equals(f.getName()))))),
+											.addFilter(fileExpressionFileListFilter)),
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.split(Files.splitter()
 									.markers()
@@ -440,7 +445,8 @@ public class FileTests {
 		void pollDirectories(File... directories) {
 			for (File directory : directories) {
 				StandardIntegrationFlow integrationFlow = IntegrationFlows
-						.from(Files.inboundAdapter(directory),
+						.from(Files.inboundAdapter(directory)
+										.scanner(new DefaultDirectoryScanner()),
 								e -> e.poller(p -> p.fixedDelay(1000))
 										.id(directory.getName() + ".adapter"))
 						.transform(Files.toStringTransformer(),

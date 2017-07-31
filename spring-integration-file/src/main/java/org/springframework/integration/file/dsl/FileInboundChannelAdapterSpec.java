@@ -57,6 +57,10 @@ public class FileInboundChannelAdapterSpec
 
 	private ExpressionFileListFilter<File> expressionFileListFilter;
 
+	private DirectoryScanner scanner;
+
+	private boolean filtersSet;
+
 	FileInboundChannelAdapterSpec() {
 		this.target = new FileReadingMessageSource();
 	}
@@ -66,11 +70,14 @@ public class FileInboundChannelAdapterSpec
 
 			@Override
 			protected void onInit() {
-				try {
-					setFilter(FileInboundChannelAdapterSpec.this.fileListFilterFactoryBean.getObject());
-				}
-				catch (Exception e) {
-					throw new BeanCreationException("The bean for the [" + this + "] can not be instantiated.", e);
+				if (FileInboundChannelAdapterSpec.this.scanner == null ||
+						FileInboundChannelAdapterSpec.this.filtersSet) {
+					try {
+						setFilter(FileInboundChannelAdapterSpec.this.fileListFilterFactoryBean.getObject());
+					}
+					catch (Exception e) {
+						throw new BeanCreationException("The bean for the [" + this + "] can not be instantiated.", e);
+					}
 				}
 				super.onInit();
 			}
@@ -96,6 +103,7 @@ public class FileInboundChannelAdapterSpec
 	 * @see FileReadingMessageSource#setScanner(DirectoryScanner)
 	 */
 	public FileInboundChannelAdapterSpec scanner(DirectoryScanner scanner) {
+		this.scanner = scanner;
 		this.target.setScanner(scanner);
 		return _this();
 	}
@@ -123,6 +131,7 @@ public class FileInboundChannelAdapterSpec
 	 */
 	public FileInboundChannelAdapterSpec filter(FileListFilter<File> filter) {
 		this.fileListFilterFactoryBean.setFilter(filter);
+		this.filtersSet = true;
 		return _this();
 	}
 
@@ -158,6 +167,7 @@ public class FileInboundChannelAdapterSpec
 	 */
 	public FileInboundChannelAdapterSpec preventDuplicates(boolean preventDuplicates) {
 		this.fileListFilterFactoryBean.setPreventDuplicates(preventDuplicates);
+		this.filtersSet = true;
 		return _this();
 	}
 
@@ -169,6 +179,7 @@ public class FileInboundChannelAdapterSpec
 	 */
 	public FileInboundChannelAdapterSpec ignoreHidden(boolean ignoreHidden) {
 		this.fileListFilterFactoryBean.setIgnoreHidden(ignoreHidden);
+		this.filtersSet = true;
 		return _this();
 	}
 
@@ -181,6 +192,7 @@ public class FileInboundChannelAdapterSpec
 	 */
 	public FileInboundChannelAdapterSpec patternFilter(String pattern) {
 		this.fileListFilterFactoryBean.setFilenamePattern(pattern);
+		this.filtersSet = true;
 		return _this();
 	}
 
@@ -193,6 +205,7 @@ public class FileInboundChannelAdapterSpec
 	 */
 	public FileInboundChannelAdapterSpec regexFilter(String regex) {
 		this.fileListFilterFactoryBean.setFilenameRegex(regex);
+		this.filtersSet = true;
 		return _this();
 	}
 
@@ -208,6 +221,7 @@ public class FileInboundChannelAdapterSpec
 				"The 'locker' (" + this.locker + ") is already configured for the FileReadingMessageSource");
 		this.locker = locker;
 		this.target.setLocker(locker);
+		this.filtersSet = true;
 		return _this();
 	}
 
