@@ -144,7 +144,9 @@ public interface TempConverter {
 </int:chain>
 ````
 <a name="qsdsl"></a>
-And here is the same application (web service part) using the [new Java DSL](https://spring.io/blog/2014/11/24/spring-integration-java-dsl-1-0-ga-released) (and Spring Boot):
+And here is the same application (web service part) using the [Java DSL](https://github.com/spring-projects/spring-integration-java-dsl/wiki/Spring-Integration-Java-DSL-Reference) (and Spring Boot).
+You will need the __spring-boot-starter-integration__ dependency or __spring-integration-java-dsl__  directly if you don't use Spring Boot.
+If you use Spring Integration starting version `5.0`, you don't need any additional dependencies - the Java DSL is included to the core project:
 
 ````java
 @Configuration
