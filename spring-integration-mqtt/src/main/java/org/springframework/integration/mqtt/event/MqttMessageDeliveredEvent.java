@@ -36,7 +36,7 @@ public class MqttMessageDeliveredEvent extends MqttMessageDeliveryEvent {
 
 	@Override
 	public String toString() {
-		return "MqttMessageSentEvent [clientId=" + getClientId()
+		return "MqttMessageDeliveredEvent [clientId=" + getClientId()
 				+ ", clientInstance=" + getClientInstance()
 				+ ", messageId=" + getMessageId()
 				+ "]";
