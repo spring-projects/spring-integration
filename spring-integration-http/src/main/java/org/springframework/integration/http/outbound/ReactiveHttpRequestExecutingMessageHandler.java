@@ -17,10 +17,13 @@
 package org.springframework.integration.http.outbound;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
@@ -32,12 +35,13 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeType;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import reactor.core.publisher.Mono;
 
@@ -129,9 +133,27 @@ public class ReactiveHttpRequestExecutingMessageHandler extends AbstractHttpRequ
 				.doOnNext(response -> {
 					HttpStatus httpStatus = response.statusCode();
 					if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {
-						throw new WebClientException(
-								"ClientResponse has erroneous status code: " + httpStatus.value() +
-										" " + httpStatus.getReasonPhrase());
+						throw new WebClientResponseException(
+								String.format("ClientResponse has erroneous status code: %d %s",
+										response.statusCode().value(),
+										response.statusCode().getReasonPhrase()),
+								httpStatus.value(),
+								httpStatus.getReasonPhrase(),
+								response.headers()
+										.asHttpHeaders(),
+								response.body(BodyExtractors.toDataBuffers())
+										.reduce(DataBuffer::write)
+										.map(dataBuffer -> {
+											byte[] bytes = new byte[dataBuffer.readableByteCount()];
+											dataBuffer.read(bytes);
+											DataBufferUtils.release(dataBuffer);
+											return bytes;
+										})
+										.block(),
+								response.headers()
+										.contentType()
+										.map(MimeType::getCharset)
+										.orElse(StandardCharsets.ISO_8859_1));
 					}
 				});
 
