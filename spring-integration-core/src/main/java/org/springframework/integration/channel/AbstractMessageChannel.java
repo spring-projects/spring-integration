@@ -327,8 +327,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	protected void onInit() throws Exception {
 		super.onInit();
 		if (this.messageConverter == null) {
-			if (this.getBeanFactory() != null) {
-				if (this.getBeanFactory().containsBean(
+			if (getBeanFactory() != null) {
+				if (getBeanFactory().containsBean(
 						IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME)) {
 					this.messageConverter = this.getBeanFactory().getBean(
 							IntegrationContextUtils.INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME,
@@ -339,6 +339,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		if (this.statsEnabled) {
 			this.channelMetrics.setFullStatsEnabled(true);
 		}
+
+		this.fullChannelName = null;
 	}
 
 	/**
@@ -349,8 +351,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	public String getFullChannelName() {
 		if (this.fullChannelName == null) {
-			String contextId = this.getApplicationContextId();
-			String componentName = this.getComponentName();
+			String contextId = getApplicationContextId();
+			String componentName = getComponentName();
 			componentName = (StringUtils.hasText(contextId) ? contextId + "." : "") +
 					(StringUtils.hasText(componentName) ? componentName : "unknown.channel.name");
 			this.fullChannelName = componentName;
