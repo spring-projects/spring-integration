@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
@@ -33,21 +35,21 @@ import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
  * @author Amol Nayak
  * @author Gunnar Hillert
  * @author Artem Bilan
+ *
  * @since 2.2
  */
 public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder jpaPollingChannelAdapterBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(JpaPollingChannelAdapter.class);
 
-		final BeanDefinitionBuilder jpaPollingChannelAdapterBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(JpaPollingChannelAdapter.class);
+		BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 
-		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
-
-		BeanDefinition definition = IntegrationNamespaceUtils
-				.createExpressionDefinitionFromValueOrExpression("max-results", "max-results-expression",
-						parserContext, element, false);
+		BeanDefinition definition =
+				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("max-results",
+						"max-results-expression", parserContext, element, false);
 		if (definition != null) {
 			jpaExecutorBuilder.addPropertyValue("maxResultsExpression", definition);
 		}
@@ -57,11 +59,15 @@ public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "expect-single-result");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(jpaExecutorBuilder, element, "parameter-source");
 
-		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
-		final String channelAdapterId = this.resolveId(element, jpaPollingChannelAdapterBuilder.getRawBeanDefinition(), parserContext);
-		final String jpaExecutorBeanName = channelAdapterId + ".jpaExecutor";
+		BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
+		String channelAdapterId =
+				resolveId(element,
+						new RootBeanDefinition(SourcePollingChannelAdapterFactoryBean.class),
+						parserContext);
+		String jpaExecutorBeanName = channelAdapterId + ".jpaExecutor";
 
-		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition,
+				jpaExecutorBeanName));
 
 		jpaPollingChannelAdapterBuilder.addConstructorArgReference(jpaExecutorBeanName);
 
