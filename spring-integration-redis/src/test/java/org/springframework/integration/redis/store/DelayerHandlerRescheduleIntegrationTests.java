@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Level;
@@ -51,7 +52,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTests {
 
-	public static final String DELAYER_ID = "delayerWithRedisMS";
+	public static final String DELAYER_ID = "delayerWithRedisMS" + UUID.randomUUID();
 
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
