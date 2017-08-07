@@ -146,6 +146,7 @@ public class FileOutboundChannelAdapterParserTests {
 		if (FileUtils.IS_POSIX) {
 			assertThat(TestUtils.getPropertyValue(handler, "permissions", Set.class).size(), equalTo(9));
 		}
+		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("preserveTimestamp"));
 	}
 
 	@Test
