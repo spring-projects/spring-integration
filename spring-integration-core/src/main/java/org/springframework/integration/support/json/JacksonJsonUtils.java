@@ -31,9 +31,7 @@ import org.springframework.messaging.support.GenericMessage;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
@@ -56,7 +54,7 @@ public final class JacksonJsonUtils {
 	}
 
 	/**
-	 * Return an {@link com.fasterxml.jackson.databind.ObjectMapper} if available,
+	 * Return an {@link ObjectMapper} if available,
 	 * supplied with Message specific serializers and deserializers.
 	 * Also configured to store typo info in the {@code @class} property.
 	 * @param trustedPackages the trusted Java packages for deserialization.
@@ -64,11 +62,9 @@ public final class JacksonJsonUtils {
 	 * @throws IllegalStateException if an implementation is not available.
 	 * @since 4.3.10
 	 */
-	public static com.fasterxml.jackson.databind.ObjectMapper messagingAwareMapper(String... trustedPackages) {
+	public static ObjectMapper messagingAwareMapper(String... trustedPackages) {
 		if (JacksonPresent.isJackson2Present()) {
-			ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-			mapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
-			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			ObjectMapper mapper = new Jackson2JsonObjectMapper().getObjectMapper();
 
 			mapper.setDefaultTyping(new WhitelistTypeResolverBuilder(trustedPackages));
 
@@ -84,13 +80,14 @@ public final class JacksonJsonUtils {
 			MutableMessageJacksonDeserializer mutableMessageDeserializer = new MutableMessageJacksonDeserializer();
 			mutableMessageDeserializer.setMapper(mapper);
 
-			mapper.registerModule(new SimpleModule()
+			SimpleModule simpleModule = new SimpleModule()
 					.addSerializer(new MessageHeadersJacksonSerializer())
 					.addDeserializer(GenericMessage.class, genericMessageDeserializer)
 					.addDeserializer(ErrorMessage.class, errorMessageDeserializer)
 					.addDeserializer(AdviceMessage.class, adviceMessageDeserializer)
-					.addDeserializer(MutableMessage.class, mutableMessageDeserializer)
-			);
+					.addDeserializer(MutableMessage.class, mutableMessageDeserializer);
+
+			mapper.registerModule(simpleModule);
 			return mapper;
 		}
 		else {
