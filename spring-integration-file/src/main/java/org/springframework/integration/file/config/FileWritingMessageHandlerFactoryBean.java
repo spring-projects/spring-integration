@@ -41,37 +41,39 @@ import org.springframework.integration.file.support.FileExistsMode;
 public class FileWritingMessageHandlerFactoryBean
 		extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler> {
 
-	private volatile File directory;
+	private File directory;
 
-	private volatile Expression directoryExpression;
+	private Expression directoryExpression;
 
-	private volatile String charset;
+	private String charset;
 
-	private volatile FileNameGenerator fileNameGenerator;
+	private FileNameGenerator fileNameGenerator;
 
-	private volatile Boolean deleteSourceFiles;
+	private Boolean deleteSourceFiles;
 
-	private volatile Boolean autoCreateDirectory;
+	private Boolean autoCreateDirectory;
 
-	private volatile Boolean requiresReply;
+	private Boolean requiresReply;
 
-	private volatile Long sendTimeout;
+	private Long sendTimeout;
 
-	private volatile String temporaryFileSuffix;
+	private String temporaryFileSuffix;
 
-	private volatile FileExistsMode fileExistsMode;
+	private FileExistsMode fileExistsMode;
 
-	private volatile boolean expectReply = true;
+	private boolean expectReply = true;
 
 	private Integer bufferSize;
 
-	private volatile Boolean appendNewLine;
+	private Boolean appendNewLine;
 
-	private volatile Long flushInterval;
+	private Long flushInterval;
 
-	private volatile Boolean flushWhenIdle;
+	private Boolean flushWhenIdle;
 
-	private volatile MessageFlushPredicate flushPredicate;
+	private MessageFlushPredicate flushPredicate;
+
+	private Boolean preserveTimestamp;
 
 	public void setFileExistsMode(String fileExistsModeAsString) {
 		this.fileExistsMode = FileExistsMode.getForString(fileExistsModeAsString);
@@ -137,6 +139,10 @@ public class FileWritingMessageHandlerFactoryBean
 		this.flushPredicate = flushPredicate;
 	}
 
+	public void setPreserveTimestamp(Boolean preserveTimestamp) {
+		this.preserveTimestamp = preserveTimestamp;
+	}
+
 	@Override
 	protected FileWritingMessageHandler createHandler() {
 
@@ -194,6 +200,9 @@ public class FileWritingMessageHandlerFactoryBean
 		}
 		if (this.flushPredicate != null) {
 			handler.setFlushPredicate(this.flushPredicate);
+		}
+		if (this.preserveTimestamp != null) {
+			handler.setPreserveTimestamp(this.preserveTimestamp);
 		}
 
 		return handler;

@@ -140,6 +140,7 @@ public class FileOutboundChannelAdapterParserTests {
 		assertEquals("'foo.txt'", expression.getExpressionString());
 		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
 		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("flushWhenIdle"));
+		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("preserveTimestamp"));
 	}
 
 	@Test
