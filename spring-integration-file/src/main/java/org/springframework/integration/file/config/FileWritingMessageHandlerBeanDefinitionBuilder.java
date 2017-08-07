@@ -76,6 +76,7 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "flush-when-idle");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "flush-predicate");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "chmod");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "preserve-timestamp");
 		String remoteFileNameGenerator = element.getAttribute("filename-generator");
 		String remoteFileNameGeneratorExpression = element.getAttribute("filename-generator-expression");
 		boolean hasRemoteFileNameGenerator = StringUtils.hasText(remoteFileNameGenerator);
