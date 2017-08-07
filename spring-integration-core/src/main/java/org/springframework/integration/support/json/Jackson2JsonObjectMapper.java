@@ -25,18 +25,22 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Jackson 2 JSON-processor (@link https://github.com/FasterXML) {@linkplain JsonObjectMapper} implementation.
+ * Jackson 2 JSON-processor (@link https://github.com/FasterXML)
+ * {@linkplain JsonObjectMapper} implementation.
  * Delegates <code>toJson</code> and <code>fromJson</code>
  * to the {@linkplain com.fasterxml.jackson.databind.ObjectMapper}
  * <p>
@@ -44,13 +48,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <ul>
  * <li>{@link MapperFeature#DEFAULT_VIEW_INCLUSION} is disabled</li>
  * <li>{@link DeserializationFeature#FAIL_ON_UNKNOWN_PROPERTIES} is disabled</li>
- * <li>{@link ObjectMapper#findAndRegisterModules()} is performed</li>
+ * <li>The well-known modules are registered through the classpath scan</li>
  * </ul>
+ *
+ * See {@code org.springframework.http.converter.json.Jackson2ObjectMapperBuilder}
+ * in the spring-web for more information.
  *
  * @author Artem Bilan
  * @author Vikas Prasad
  *
  * @since 3.0
+ *
  */
 public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<JsonNode, JsonParser, JavaType> {
 
@@ -60,12 +68,16 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		this.objectMapper = new ObjectMapper();
 		this.objectMapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
 		this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		this.objectMapper.findAndRegisterModules();
+		registerWellKnownModulesIfAvailable();
 	}
 
 	public Jackson2JsonObjectMapper(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "objectMapper must not be null");
 		this.objectMapper = objectMapper;
+	}
+
+	public ObjectMapper getObjectMapper() {
+		return this.objectMapper;
 	}
 
 	@Override
@@ -136,6 +148,60 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	@Override
 	protected JavaType constructType(Type type) {
 		return this.objectMapper.constructType(type);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void registerWellKnownModulesIfAvailable() {
+		try {
+			Class<? extends Module> jdk7Module = (Class<? extends Module>)
+					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk7.Jdk7Module", getClassLoader());
+			this.objectMapper.registerModule(BeanUtils.instantiateClass(jdk7Module));
+		}
+		catch (ClassNotFoundException ex) {
+			// jackson-datatype-jdk7 not available
+		}
+
+		try {
+			Class<? extends Module> jdk8Module = (Class<? extends Module>)
+					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", getClassLoader());
+			this.objectMapper.registerModule(BeanUtils.instantiateClass(jdk8Module));
+		}
+		catch (ClassNotFoundException ex) {
+			// jackson-datatype-jdk8 not available
+		}
+
+		try {
+			Class<? extends Module> javaTimeModule = (Class<? extends Module>)
+					ClassUtils.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", getClassLoader());
+			this.objectMapper.registerModule(BeanUtils.instantiateClass(javaTimeModule));
+		}
+		catch (ClassNotFoundException ex) {
+			// jackson-datatype-jsr310 not available
+		}
+
+		// Joda-Time present?
+		if (ClassUtils.isPresent("org.joda.time.LocalDate", getClassLoader())) {
+			try {
+				Class<? extends Module> jodaModule = (Class<? extends Module>)
+						ClassUtils.forName("com.fasterxml.jackson.datatype.joda.JodaModule", getClassLoader());
+				this.objectMapper.registerModule(BeanUtils.instantiateClass(jodaModule));
+			}
+			catch (ClassNotFoundException ex) {
+				// jackson-datatype-joda not available
+			}
+		}
+
+		// Kotlin present?
+		if (ClassUtils.isPresent("kotlin.Unit", getClassLoader())) {
+			try {
+				Class<? extends Module> kotlinModule = (Class<? extends Module>)
+						ClassUtils.forName("com.fasterxml.jackson.module.kotlin.KotlinModule", getClassLoader());
+				this.objectMapper.registerModule(BeanUtils.instantiateClass(kotlinModule));
+			}
+			catch (ClassNotFoundException ex) {
+				//jackson-module-kotlin not available
+			}
+		}
 	}
 
 }

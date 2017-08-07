@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.ClassUtils;
  * @param <J> - The expected type of Java Type representation.
  *
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public abstract class AbstractJacksonJsonObjectMapper<N, P, J> extends JsonObjectMapperAdapter<N, P>
@@ -49,6 +50,10 @@ public abstract class AbstractJacksonJsonObjectMapper<N, P, J> extends JsonObjec
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
+	}
+
+	protected ClassLoader getClassLoader() {
+		return this.classLoader;
 	}
 
 	@Override
