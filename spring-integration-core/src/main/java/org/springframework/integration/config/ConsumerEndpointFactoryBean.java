@@ -71,7 +71,7 @@ public class ConsumerEndpointFactoryBean
 
 	private volatile PollerMetadata pollerMetadata;
 
-	private volatile boolean autoStartup = true;
+	private volatile Boolean autoStartup;
 
 	private volatile int phase = 0;
 
@@ -133,7 +133,7 @@ public class ConsumerEndpointFactoryBean
 		this.beanClassLoader = classLoader;
 	}
 
-	public void setAutoStartup(boolean autoStartup) {
+	public void setAutoStartup(Boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
@@ -257,7 +257,9 @@ public class ConsumerEndpointFactoryBean
 				Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
 						+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
 				this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
-				if (this.logger.isWarnEnabled() && !this.autoStartup && channel instanceof FixedSubscriberChannel) {
+				if (this.logger.isWarnEnabled()
+						&& Boolean.FALSE.equals(this.autoStartup)
+						&& channel instanceof FixedSubscriberChannel) {
 					this.logger.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
 				}
 			}
@@ -287,7 +289,9 @@ public class ConsumerEndpointFactoryBean
 			}
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
-			this.endpoint.setAutoStartup(this.autoStartup);
+			if (this.autoStartup != null) {
+				this.endpoint.setAutoStartup(this.autoStartup);
+			}
 			int phase = this.phase;
 			if (!this.isPhaseSet && this.endpoint instanceof PollingConsumer) {
 				phase = Integer.MAX_VALUE / 2;

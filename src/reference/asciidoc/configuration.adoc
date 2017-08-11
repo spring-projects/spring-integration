@@ -206,6 +206,8 @@ spring.integration.channels.maxBroadcastSubscribers=0x7fffffff <3>
 spring.integration.taskScheduler.poolSize=10 <4>
 spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
 spring.integration.messagingAnnotations.require.componentAnnotation=false <6>
+spring.integration.readOnly.headers= <7>
+spring.integration.endpoints.noAutoStartup= <8>
 ----
 
 <1> When true, `input-channel` s will be automatically declared as `DirectChannel` s when not explicitly found in the
@@ -226,6 +228,14 @@ expecting a reply - because the sending thread has timed out, or already receive
 
 <6> When `true`, Messaging Annotation Support (<<annotations>>) requires a declaration of the
 `@MessageEndpoint` (or any other `@Component`) annotation on the class level.
+<7> A comma-separated list of message header names which should not be populated into `Message` s during a header copying operation.
+The list is used by the `DefaultMessageBuilderFactory` bean and propagated to the `IntegrationMessageHeaderAccessor` instances (see <<message-header-accessor>>), used to build messages via `MessageBuilder` (see <<message-builder>>).
+By default only `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are not copied during message building.
+_Since version 4.3.2_
+<8> A comma-separated list of `AbstractEndpoint` bean names patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) which should not be started automatically during application startup.
+These endpoints can be started later manually by their bean name via `Control Bus` (see <<control-bus>>), by their role using the `SmartLifecycleRoleController` (see <<endpoint-roles>>) or via simple `Lifecycle` bean injection.
+The effect of this global property can be explicitly overridden by specifying `auto-startup` XML or `autoStartup` annotation attribute, or via call to the `AbstractEndpoint.setAutoStartup()` in bean definition.
+_Since version 4.3.12_
 
 These properties can be overridden by adding a file `/META-INF/spring.integration.properties` to the classpath.
 It is not necessary to provide all the properties, just those that you want to override.

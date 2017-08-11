@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.util.PatternMatchUtils;
 
 /**
  * The base class for Message Endpoint implementations.
@@ -36,8 +38,11 @@ import org.springframework.scheduling.TaskScheduler;
  * @author Mark Fisher
  * @author Kris Jacyna
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractEndpoint extends IntegrationObjectSupport implements SmartLifecycle {
+
+	private boolean autoStartupSetExplicitly;
 
 	private volatile boolean autoStartup = true;
 
@@ -52,6 +57,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
+		this.autoStartupSetExplicitly = true;
 	}
 
 	public void setPhase(int phase) {
@@ -61,6 +67,23 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+
+		if (!this.autoStartupSetExplicitly) {
+			String[] endpointNamePatterns =
+					getIntegrationProperty(IntegrationProperties.ENDPOINTS_NO_AUTO_STARTUP, String[].class);
+
+			for (String pattern : endpointNamePatterns) {
+				if (PatternMatchUtils.simpleMatch(pattern, getComponentName())) {
+					this.autoStartup = false;
+					break;
+				}
+			}
+		}
 	}
 
 	// SmartLifecycle implementation

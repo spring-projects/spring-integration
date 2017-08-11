@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.context;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
@@ -25,6 +27,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 @ContextConfiguration
@@ -44,7 +48,11 @@ public class IntegrationContextTests {
 
 	@Autowired
 	@Qualifier("fooService")
-	private IntegrationObjectSupport serviceActivator;
+	private AbstractEndpoint serviceActivator;
+
+	@Autowired
+	@Qualifier("fooServiceExplicit")
+	private AbstractEndpoint serviceActivatorExplicit;
 
 	@Autowired
 	private ThreadPoolTaskScheduler taskScheduler;
@@ -55,6 +63,10 @@ public class IntegrationContextTests {
 		assertEquals("20", this.integrationProperties.get(IntegrationProperties.TASK_SCHEDULER_POOL_SIZE));
 		assertEquals(this.integrationProperties, this.serviceActivator.getIntegrationProperties());
 		assertEquals(20, TestUtils.getPropertyValue(this.taskScheduler, "poolSize"));
+		assertFalse(this.serviceActivator.isAutoStartup());
+		assertFalse(this.serviceActivator.isRunning());
+		assertTrue(this.serviceActivatorExplicit.isAutoStartup());
+		assertTrue(this.serviceActivatorExplicit.isRunning());
 	}
 
 }
