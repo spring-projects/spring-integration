@@ -177,8 +177,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				List<Annotation> annotations = entry.getValue();
 				processAnnotationTypeOnMethod(bean, beanName, method, annotationType, annotations);
 			}
-			if(annotationChains.size() == 0)
+			if(annotationChains.size() == 0) {
 				noAnnotationsCache.add(beanClass.getName());
+			}
 		}, ReflectionUtils.USER_DECLARED_METHODS);
 
 		return bean;
