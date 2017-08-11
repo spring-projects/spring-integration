@@ -20,6 +20,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,14 +37,17 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configurers.provisioning.InMemoryUserDetailsManagerConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -54,6 +58,7 @@ import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -93,11 +98,19 @@ public class HttpDslTests {
 
 		this.mockMvc.perform(
 				get("/service")
-						.with(httpBasic("guest", "guest"))
+						.with(httpBasic("admin", "admin"))
 						.param("name", "foo"))
 				.andExpect(
 						content()
 								.string("FOO"));
+
+		this.mockMvc.perform(
+				get("/service")
+						.with(httpBasic("user", "user"))
+						.param("name", "name"))
+				.andExpect(
+						status()
+								.isForbidden());
 	}
 
 	@Configuration
@@ -107,16 +120,21 @@ public class HttpDslTests {
 
 		@Override
 		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-			auth.inMemoryAuthentication()
-					.withUser("guest")
-					.password("guest")
+			InMemoryUserDetailsManagerConfigurer<?> userDetailsManagerConfigurer =
+					auth.inMemoryAuthentication();
+			userDetailsManagerConfigurer.withUser("admin")
+					.password("admin")
 					.roles("ADMIN");
+			userDetailsManagerConfigurer.withUser("user")
+					.password("user")
+					.roles("USER");
 		}
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			http.authorizeRequests()
-					.anyRequest().hasRole("ADMIN")
+					.antMatchers("/service/internal/**").hasRole("ADMIN")
+					.anyRequest().permitAll()
 					.and()
 					.httpBasic()
 					.and()
@@ -145,12 +163,23 @@ public class HttpDslTests {
 		public IntegrationFlow httpProxyFlow() {
 			return IntegrationFlows
 					.from(Http.inboundGateway("/service")
-							.requestMapping(r -> r.params("name")))
+							.requestMapping(r -> r.params("name"))
+							.errorChannel("httpProxyErrorFlow.input"))
 					.handle(Http.<MultiValueMap<String, String>>outboundGateway("/service/internal?{params}")
 									.uriVariable("params", "payload")
 									.expectedResponseType(String.class),
 							e -> e.id("serviceInternalGateway"))
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow httpProxyErrorFlow() {
+			return f -> f
+					.transform(Throwable::getCause)
+					.<HttpClientErrorException>handle((p, h) ->
+							MessageBuilder.withPayload(p.getResponseBodyAsString())
+									.setHeader(HttpHeaders.STATUS_CODE, p.getStatusCode())
+									.build());
 		}
 
 		@Bean
