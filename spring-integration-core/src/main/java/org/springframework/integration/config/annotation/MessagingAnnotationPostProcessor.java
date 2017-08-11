@@ -86,8 +86,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	private final Set<Class> noAnnotationsCache =
-			Collections.newSetFromMap(new ConcurrentHashMap<Class, Boolean>(256));
+	private final Set<Class<?>> noAnnotationsCache =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(256));
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
