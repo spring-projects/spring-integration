@@ -156,7 +156,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		Class<?> beanClass = AopUtils.getTargetClass(bean);
 
 		// the set will hold records of prior class scans and indicate if no messaging annotations were found
-		if(this.noAnnotationsCache.contains(beanClass.getName())) {
+		if (this.noAnnotationsCache.contains(beanClass.getName())) {
 			return bean;
 		}
 
@@ -177,7 +177,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				List<Annotation> annotations = entry.getValue();
 				processAnnotationTypeOnMethod(bean, beanName, method, annotationType, annotations);
 			}
-			if(annotationChains.size() == 0) {
+			if (annotationChains.size() == 0) {
 				noAnnotationsCache.add(beanClass.getName());
 			}
 		}, ReflectionUtils.USER_DECLARED_METHODS);
