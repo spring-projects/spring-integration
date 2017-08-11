@@ -16,6 +16,10 @@
 
 package org.springframework.integration.aop;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyConfig;
 import org.springframework.aop.framework.ProxyFactory;
@@ -29,10 +33,6 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.util.ClassUtils;
-
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Post-processes beans that contain the method-level @{@link Publisher} annotation.
@@ -111,7 +111,7 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 
 		// the set will hold records of prior class scans and will contain the bean classes that can not
 		// be assigned to the Advisor interface and therefore can be short circuited
-		if(this.nonApplicableCache.contains(targetClass.getName())) {
+		if (this.nonApplicableCache.contains(targetClass.getName())) {
 			return bean;
 		}
 		if (AopUtils.canApply(this.advisor, targetClass)) {
