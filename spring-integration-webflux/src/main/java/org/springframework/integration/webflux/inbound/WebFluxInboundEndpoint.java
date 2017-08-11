@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http.inbound;
+package org.springframework.integration.webflux.inbound;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +43,7 @@ import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -70,7 +71,7 @@ import reactor.core.publisher.Mono;
  * @see org.springframework.web.reactive.result.HandlerResultHandlerSupport
  * @see org.springframework.web.reactive.config.EnableWebFlux
  */
-public class ReactiveHttpInboundEndpoint extends BaseHttpInboundEndpoint implements WebHandler {
+public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements WebHandler {
 
 	private static final MediaType MEDIA_TYPE_APPLICATION_ALL = new MediaType("application");
 
@@ -80,11 +81,11 @@ public class ReactiveHttpInboundEndpoint extends BaseHttpInboundEndpoint impleme
 
 	private ReactiveAdapterRegistry adapterRegistry = new ReactiveAdapterRegistry();
 
-	public ReactiveHttpInboundEndpoint() {
+	public WebFluxInboundEndpoint() {
 		this(true);
 	}
 
-	public ReactiveHttpInboundEndpoint(boolean expectReply) {
+	public WebFluxInboundEndpoint(boolean expectReply) {
 		super(expectReply);
 	}
 
@@ -119,7 +120,7 @@ public class ReactiveHttpInboundEndpoint extends BaseHttpInboundEndpoint impleme
 
 	@Override
 	public String getComponentType() {
-		return super.getComponentType().replaceFirst("(http:)", "$1reactive-");
+		return super.getComponentType().replaceFirst("(http:)", "$1webflux-");
 	}
 
 	@Override

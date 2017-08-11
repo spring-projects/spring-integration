@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns="http://www.springframework.org/schema/integration/ip"
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/syslog"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:tool="http://www.springframework.org/schema/tool"
 	xmlns:integration="http://www.springframework.org/schema/integration"

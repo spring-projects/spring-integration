@@ -19,7 +19,6 @@ package org.springframework.integration.http.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -58,7 +57,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author Mark Fisher
@@ -80,14 +78,6 @@ public class HttpOutboundGatewayParserTests {
 	private AbstractEndpoint fullConfigEndpoint;
 
 	@Autowired
-	@Qualifier("reactiveMinimalConfig")
-	private AbstractEndpoint reactiveMinimalConfigEndpoint;
-
-	@Autowired
-	@Qualifier("reactiveFullConfig")
-	private AbstractEndpoint reactiveFullConfigEndpoint;
-
-	@Autowired
 	@Qualifier("withUrlExpression")
 	private AbstractEndpoint withUrlExpressionEndpoint;
 
@@ -98,9 +88,6 @@ public class HttpOutboundGatewayParserTests {
 	@Autowired
 	@Qualifier("withPoller1")
 	private AbstractEndpoint withPoller1;
-
-	@Autowired
-	private WebClient webClient;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -160,66 +147,6 @@ public class HttpOutboundGatewayParserTests {
 		assertEquals(requestFactoryBean, requestFactory);
 		Object errorHandlerBean = this.applicationContext.getBean("testErrorHandler");
 		assertEquals(errorHandlerBean, templateAccessor.getPropertyValue("errorHandler"));
-		Object sendTimeout = new DirectFieldAccessor(
-				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
-		assertEquals(new Long("1234"), sendTimeout);
-		Map<String, Expression> uriVariableExpressions =
-				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
-		assertEquals(1, uriVariableExpressions.size());
-		assertEquals("headers.bar", uriVariableExpressions.get("foo").getExpressionString());
-		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("headerMapper"));
-		String[] mappedRequestHeaders = (String[]) mapperAccessor.getPropertyValue("outboundHeaderNames");
-		String[] mappedResponseHeaders = (String[]) mapperAccessor.getPropertyValue("inboundHeaderNames");
-		assertEquals(2, mappedRequestHeaders.length);
-		assertEquals(1, mappedResponseHeaders.length);
-		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1"));
-		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
-		assertEquals("responseHeader", mappedResponseHeaders[0]);
-		assertEquals(true, handlerAccessor.getPropertyValue("transferCookies"));
-	}
-
-	@Test
-	public void reactiveMinimalConfig() {
-		Object handler = new DirectFieldAccessor(this.reactiveMinimalConfigEndpoint).getPropertyValue("handler");
-		Object requestChannel = new DirectFieldAccessor(this.reactiveMinimalConfigEndpoint)
-				.getPropertyValue("inputChannel");
-		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
-		assertNull(replyChannel);
-		assertSame(this.webClient, handlerAccessor.getPropertyValue("webClient"));
-		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
-		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST.name(),
-				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
-		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void reactiveFullConfig() {
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveFullConfigEndpoint);
-		Object handler = endpointAccessor.getPropertyValue("handler");
-		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
-				this.reactiveFullConfigEndpoint).getPropertyValue("inputChannel");
-		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(77, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, endpointAccessor.getPropertyValue("autoStartup"));
-		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
-		assertNotNull(replyChannel);
-		assertEquals(this.applicationContext.getBean("replies"), replyChannel);
-
-		assertEquals(String.class.getName(),
-				TestUtils.getPropertyValue(handler, "expectedResponseTypeExpression", Expression.class).getValue());
-		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
-		assertEquals("http://localhost/test2", uriExpression.getValue());
-		assertEquals(HttpMethod.PUT.name(),
-				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
 		assertEquals(new Long("1234"), sendTimeout);

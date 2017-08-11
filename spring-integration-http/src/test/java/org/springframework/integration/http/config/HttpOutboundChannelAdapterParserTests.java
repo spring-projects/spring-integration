@@ -58,7 +58,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author Mark Fisher
@@ -86,19 +85,8 @@ public class HttpOutboundChannelAdapterParserTests {
 	private AbstractEndpoint restTemplateConfig;
 
 	@Autowired
-	@Qualifier("reactiveMinimalConfig")
-	private AbstractEndpoint reactiveMinimalConfig;
-
-	@Autowired
-	@Qualifier("reactiveWebClientConfig")
-	private AbstractEndpoint reactiveWebClientConfig;
-
-	@Autowired
 	@Qualifier("customRestTemplate")
 	private RestTemplate customRestTemplate;
-
-	@Autowired
-	private WebClient webClient;
 
 	@Autowired
 	@Qualifier("withUrlAndTemplate")
@@ -188,34 +176,10 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void reactiveMinimalConfig() {
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.reactiveMinimalConfig);
-		WebClient webClient =
-				TestUtils.getPropertyValue(this.reactiveMinimalConfig, "handler.webClient", WebClient.class);
-		assertNotSame(this.webClient, webClient);
-		Object handler = endpointAccessor.getPropertyValue("handler");
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
-		assertEquals(this.applicationContext.getBean("requests"), endpointAccessor.getPropertyValue("inputChannel"));
-		assertNull(handlerAccessor.getPropertyValue("outputChannel"));
-		Expression uriExpression = (Expression) handlerAccessor.getPropertyValue("uriExpression");
-		assertEquals("http://localhost/test1", uriExpression.getValue());
-		assertEquals(HttpMethod.POST.name(),
-				TestUtils.getPropertyValue(handler, "httpMethodExpression", Expression.class).getExpressionString());
-		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
-		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
-	}
-
-	@Test
 	public void restTemplateConfig() {
 		RestTemplate restTemplate =
 				TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate", RestTemplate.class);
 		assertEquals(customRestTemplate, restTemplate);
-	}
-
-	@Test
-	public void reactiveWebClientConfig() {
-		assertSame(this.webClient, TestUtils.getPropertyValue(this.reactiveWebClientConfig, "handler.webClient"));
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)

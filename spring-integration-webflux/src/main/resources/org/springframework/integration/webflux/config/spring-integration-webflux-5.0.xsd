@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/webflux"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			xmlns:int-http="http://www.springframework.org/schema/integration/http"
+			targetNamespace="http://www.springframework.org/schema/integration/webflux" elementFormDefault="qualified"
+			attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-5.0.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration/http"
+				schemaLocation="http://www.springframework.org/schema/integration/http/spring-integration-http-5.0.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's WebFlux adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler'
+				with 'expectReply = false' that sends HTTP requests based on incoming messages reactive manner.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="3">
+				<xsd:element name="uri-variable" type="int-http:uriVariableType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specify an expression for URI variable placeholder within 'url'.
+							This element is mutually exclusive with 'uri-variables-expression' attribute.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+							 minOccurs="0"/>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:choice>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			<xsd:attributeGroup ref="int-http:httpOutboundCommonAttributes"/>
+			<xsd:attribute name="web-client" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.web.reactive.function.client.WebClient"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						A reference to an org.springframework.web.reactive.function.client.WebClient bean
+						which is used to send to send the HTTP Requests reactive manner.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether the outbound message's payload should be extracted
+						when preparing the request body. Otherwise the Message instance itself
+						will be serialized.
+						The default value is 'true'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures a Consumer Endpoint for the
+				'org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler'
+				that sends HTTP requests based on incoming messages and expects HTTP responses.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="int-http:gatewayType">
+					<xsd:choice minOccurs="0" maxOccurs="3">
+						<xsd:element name="uri-variable" type="int-http:uriVariableType" minOccurs="0" maxOccurs="unbounded">
+							<xsd:annotation>
+								<xsd:documentation>
+									Specify an expression for URI variable placeholder within 'url'.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="transactional" type="integration:transactionalType" minOccurs="0"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0"/>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
+					</xsd:choice>
+					<xsd:attribute name="request-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								The receiving Message Channel of this endpoint.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mapped-response-headers" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Comma-separated list of names of HttpHeaders to be mapped from the HTTP response into the MessageHeaders.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+	The String "HTTP_RESPONSE_HEADERS" will match against any of the standard HTTP Response headers.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="extract-request-payload" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies whether the outbound message's payload should be extracted
+								when preparing the request body. Otherwise the Message instance itself
+								will be serialized.
+								The default value is 'true'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="transfer-cookies" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	When set to "true", if a response contains a 'Set-Cookie' header, it will be mapped to a 'Cookie' header.
+	This enables simple cookie handling where subsequent HTTP interactions in the same message flow can use a cookie
+	supplied by the server. Default is "false".
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Allows you to specify how long this gateway will wait for
+								the reply message to be sent successfully to the reply channel
+								before throwing an exception. This attribute only applies when the
+								channel might block, for example when using a bounded queue channel that
+								is currently full.
+
+								Also, keep in mind that when sending to a DirectChannel, the
+								invocation will occur in the sender's thread. Therefore,
+								the failing of the send operation may be caused by other
+								components further downstream.
+
+								The "reply-timeout" attribute maps to the "sendTimeout" property of the
+								underlying 'MessagingTemplate' instance (org.springframework.integration.core.MessagingTemplate).
+
+								The attribute will default, if not specified, to '-1', meaning that
+								by default, the Gateway will wait indefinitely. The value is
+								specified in milliseconds.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="int-http:httpOutboundCommonAttributes"/>
+					<xsd:attribute name="web-client" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.web.reactive.function.client.WebClient"/>
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								A reference to an org.springframework.web.reactive.function.client.WebClient bean
+								which is used to send to send the HTTP Requests reactive manner.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

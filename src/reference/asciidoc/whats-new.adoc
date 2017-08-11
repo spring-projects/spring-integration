@@ -29,11 +29,11 @@ The new `MongoDbOutboundGateway` allows you to make queries to the database on d
 
 See <<mongodb-outbound-gateway>> for more information.
 
-==== HTTP Reactive Inbound and Outbound Gateways and Channel Adapters
+==== WebFlux Gateways and Channel Adapters
 
-The new `ReactiveHttpInboundEndpoint` and `ReactiveHttpRequestExecutingMessageHandler` add support for Spring WebFlux Framework gateways and channel adapters.
+The new WebFlux support module has been introduced for Spring WebFlux Framework gateways and channel adapters.
 
-See <<http>> for more information.
+See <<webflux>> for more information.
 
 ==== Content Type Conversion
 

@@ -17,15 +17,7 @@
 	<outbound-channel-adapter id="restTemplateConfig" url="http://localhost/test1" channel="requests"
 							  rest-template="customRestTemplate"/>
 
-	<outbound-reactive-channel-adapter id="reactiveMinimalConfig" url="http://localhost/test1" channel="requests"/>
-
-	<outbound-reactive-channel-adapter id="reactiveWebClientConfig" url="http://localhost/test1" channel="requests"
-									   web-client="webClient"/>
-
 	<beans:bean id="customRestTemplate" class="org.springframework.web.client.RestTemplate"/>
-
-	<beans:bean id="webClient" class="org.springframework.web.reactive.function.client.WebClient"
-				factory-method="create"/>
 
 	<outbound-channel-adapter id="fullConfig"
 							  url="http://localhost/test2/{foo}"

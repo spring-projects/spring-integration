@@ -49,25 +49,10 @@ public final class HttpContextUtils {
 					HttpContextUtils.class.getClassLoader());
 
 	/**
-	 * The {@code boolean} flag to indicate if the
-	 * {@code org.springframework.web.reactive.result.method.RequestMappingInfo}
-	 * is present in the CLASSPATH to allow to register the Integration server reactive components.
-	 */
-	public static final boolean WEB_FLUX_PRESENT =
-			ClassUtils.isPresent("org.springframework.web.reactive.result.method.RequestMappingInfo",
-					HttpContextUtils.class.getClassLoader());
-
-	/**
 	 * The name for the infrastructure
 	 * {@link org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping} bean.
 	 */
 	public static final String HANDLER_MAPPING_BEAN_NAME = "integrationRequestMappingHandlerMapping";
-
-	/**
-	 * The name for the infrastructure
-	 * {@link org.springframework.integration.http.inbound.ReactiveIntegrationRequestMappingHandlerMapping} bean.
-	 */
-	public static final String REACTIVE_HANDLER_MAPPING_BEAN_NAME = "reactiveIntegrationRequestMappingHandlerMapping";
 
 	/**
 	 * Represents the environment property for the {@code IntegrationGraphController} request mapping path.
