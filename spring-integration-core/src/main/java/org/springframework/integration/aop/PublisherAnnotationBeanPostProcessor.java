@@ -58,8 +58,8 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	private final Set<String> nonApplicableCache =
-			Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>(256));
+	private final Set<Class> nonApplicableCache =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class, Boolean>(256));
 
 	/**
 	 * Set the default channel where Messages should be sent if the annotation
@@ -111,7 +111,7 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 
 		// the set will hold records of prior class scans and will contain the bean classes that can not
 		// be assigned to the Advisor interface and therefore can be short circuited
-		if (this.nonApplicableCache.contains(targetClass.getName())) {
+		if (this.nonApplicableCache.contains(targetClass)) {
 			return bean;
 		}
 		if (AopUtils.canApply(this.advisor, targetClass)) {
@@ -129,7 +129,7 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		}
 		else {
 			// cannot apply advisor
-			nonApplicableCache.add(targetClass.getName());
+			nonApplicableCache.add(targetClass);
 			return bean;
 		}
 	}

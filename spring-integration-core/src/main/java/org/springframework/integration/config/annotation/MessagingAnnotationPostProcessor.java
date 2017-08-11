@@ -86,8 +86,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	private final Set<String> noAnnotationsCache =
-			Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>(256));
+	private final Set<Class> noAnnotationsCache =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class, Boolean>(256));
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -156,7 +156,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		Class<?> beanClass = AopUtils.getTargetClass(bean);
 
 		// the set will hold records of prior class scans and indicate if no messaging annotations were found
-		if (this.noAnnotationsCache.contains(beanClass.getName())) {
+		if (this.noAnnotationsCache.contains(beanClass)) {
 			return bean;
 		}
 
@@ -178,7 +178,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				processAnnotationTypeOnMethod(bean, beanName, method, annotationType, annotations);
 			}
 			if (annotationChains.size() == 0) {
-				noAnnotationsCache.add(beanClass.getName());
+				noAnnotationsCache.add(beanClass);
 			}
 		}, ReflectionUtils.USER_DECLARED_METHODS);
 
