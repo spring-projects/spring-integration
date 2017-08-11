@@ -638,7 +638,6 @@ project('spring-integration-twitter') {
 			exclude group: 'org.springframework', module: 'spring-expression'
 			exclude group: 'org.springframework', module: 'spring-web'
 			exclude group: 'org.springframework', module: 'spring-webmvc'
-
 		}
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-redis")
@@ -650,10 +649,13 @@ project('spring-integration-twitter') {
 project('spring-integration-webflux') {
 	description = 'Spring Integration HTTP Support'
 	dependencies {
-		compile project(":spring-integration-http")
+		compile (project(":spring-integration-http")) {
+			exclude group: 'org.springframework', module: 'spring-webmvc'
+		}
 		compile "org.springframework:spring-webflux:$springVersion"
 		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
 
+		testCompile "org.springframework:spring-webmvc:$springVersion"
 		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
 		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"

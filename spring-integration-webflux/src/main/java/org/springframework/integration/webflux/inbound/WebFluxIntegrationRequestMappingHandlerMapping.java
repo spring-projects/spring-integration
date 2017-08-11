@@ -37,8 +37,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 
 /**
- * The {@link org.springframework.web.servlet.HandlerMapping} implementation that
- * detects and registers {@link org.springframework.web.servlet.mvc.method.RequestMappingInfo}s for
+ * The {@link org.springframework.web.reactive.HandlerMapping} implementation that
+ * detects and registers {@link org.springframework.web.reactive.result.method.RequestMappingInfo}s for
  * {@link org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport}
  * from a Spring Integration HTTP configuration
  * of {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
@@ -158,7 +158,7 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 	 * {@link org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport}s
 	 * may depend on auto-created {@code requestChannel}s, so MVC Handlers detection should be postponed
 	 * as late as possible.
-	 * @see org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping#afterPropertiesSet()
+	 * @see RequestMappingHandlerMapping#afterPropertiesSet()
 	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
