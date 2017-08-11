@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http.outbound;
+package org.springframework.integration.webflux.outbound;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -48,14 +48,13 @@ import reactor.test.StepVerifier;
  *
  * @since 5.0
  */
-public class ReactiveHttpRequestExecutingMessageHandlerTests {
+public class WebFluxRequestExecutingMessageHandlerTests {
 
 	@Test
 	public void testReactiveReturn() throws Throwable {
 		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
 			response.setStatusCode(HttpStatus.OK);
-			return Mono.empty()
-					.then(Mono.defer(response::setComplete));
+			return Mono.defer(response::setComplete);
 		});
 
 		WebClient webClient = WebClient.builder()
@@ -63,8 +62,8 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 				.build();
 
 		String destinationUri = "http://www.springsource.org/spring-integration";
-		ReactiveHttpRequestExecutingMessageHandler reactiveHandler =
-				new ReactiveHttpRequestExecutingMessageHandler(destinationUri, webClient);
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 
 		FluxMessageChannel ackChannel = new FluxMessageChannel();
 		reactiveHandler.setOutputChannel(ackChannel);
@@ -84,8 +83,7 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 	public void testReactiveErrorOneWay() throws Throwable {
 		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
 			response.setStatusCode(HttpStatus.UNAUTHORIZED);
-			return Mono.empty()
-					.then(Mono.defer(response::setComplete));
+			return Mono.defer(response::setComplete);
 		});
 
 		WebClient webClient = WebClient.builder()
@@ -93,8 +91,8 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 				.build();
 
 		String destinationUri = "http://www.springsource.org/spring-integration";
-		ReactiveHttpRequestExecutingMessageHandler reactiveHandler =
-				new ReactiveHttpRequestExecutingMessageHandler(destinationUri, webClient);
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 		reactiveHandler.setExpectReply(false);
 
 		QueueChannel errorChannel = new QueueChannel();
@@ -121,8 +119,8 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 				.build();
 
 		String destinationUri = "http://www.springsource.org/spring-integration";
-		ReactiveHttpRequestExecutingMessageHandler reactiveHandler =
-				new ReactiveHttpRequestExecutingMessageHandler(destinationUri, webClient);
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
 		reactiveHandler.setExpectReply(false);
 
 		QueueChannel errorChannel = new QueueChannel();
@@ -137,6 +135,5 @@ public class ReactiveHttpRequestExecutingMessageHandlerTests {
 		Throwable throwable = (Throwable) errorMessage.getPayload();
 		assertThat(throwable.getMessage(), containsString("Intentional connection error"));
 	}
-
 
 }

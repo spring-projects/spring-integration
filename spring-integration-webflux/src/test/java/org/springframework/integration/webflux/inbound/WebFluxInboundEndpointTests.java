@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http.inbound;
+package org.springframework.integration.webflux.inbound;
 
 import java.util.Objects;
 
@@ -30,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -47,13 +48,13 @@ import reactor.core.publisher.Flux;
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-public class ReactiveHttpInboundEndpointTests {
+public class WebFluxInboundEndpointTests {
 
 	@Autowired
 	private WebTestClient webTestClient;
 
 	@Autowired
-	private ReactiveHttpInboundEndpoint simpleInboundEndpoint;
+	private WebFluxInboundEndpoint simpleInboundEndpoint;
 
 	@Test
 	public void testSimpleGet() {
@@ -93,8 +94,8 @@ public class ReactiveHttpInboundEndpointTests {
 		}
 
 		@Bean
-		public ReactiveHttpInboundEndpoint simpleInboundEndpoint() {
-			ReactiveHttpInboundEndpoint endpoint = new ReactiveHttpInboundEndpoint();
+		public WebFluxInboundEndpoint simpleInboundEndpoint() {
+			WebFluxInboundEndpoint endpoint = new WebFluxInboundEndpoint();
 			RequestMapping requestMapping = new RequestMapping();
 			requestMapping.setPathPatterns("/test");
 			endpoint.setRequestMapping(requestMapping);
@@ -108,8 +109,8 @@ public class ReactiveHttpInboundEndpointTests {
 		}
 
 		@Bean
-		public ReactiveHttpInboundEndpoint jsonInboundEndpoint() {
-			ReactiveHttpInboundEndpoint endpoint = new ReactiveHttpInboundEndpoint();
+		public WebFluxInboundEndpoint jsonInboundEndpoint() {
+			WebFluxInboundEndpoint endpoint = new WebFluxInboundEndpoint();
 			RequestMapping requestMapping = new RequestMapping();
 			requestMapping.setPathPatterns("/persons");
 			endpoint.setRequestMapping(requestMapping);

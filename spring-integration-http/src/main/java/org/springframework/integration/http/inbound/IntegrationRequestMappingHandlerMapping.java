@@ -50,7 +50,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * elements, if there is none registered, yet. However it can be configured as a regular
  * bean with appropriate configuration for {@link RequestMappingHandlerMapping}.
  * It is recommended to have only one similar bean in the application context using the 'id'
- * {@link org.springframework.integration.http.support.HttpContextUtils#REACTIVE_HANDLER_MAPPING_BEAN_NAME}.
+ * {@link org.springframework.integration.http.support.HttpContextUtils#HANDLER_MAPPING_BEAN_NAME}.
  * <p>
  * In most cases, Spring MVC offers to configure Request Mapping via
  * {@code org.springframework.stereotype.Controller} and

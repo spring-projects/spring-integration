@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/webflux=org.springframework.integration.webflux.config.WebFluxNamespaceHandler

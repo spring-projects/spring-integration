@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http.inbound;
+package org.springframework.integration.webflux.inbound;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
+import org.springframework.integration.http.inbound.CrossOrigin;
+import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.integration.http.support.HttpContextUtils;
+import org.springframework.integration.webflux.support.WebFluxContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,18 +37,19 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 
 /**
- * The {@link org.springframework.web.servlet.HandlerMapping} implementation that
- * detects and registers {@link org.springframework.web.servlet.mvc.method.RequestMappingInfo}s for
- * {@link HttpRequestHandlingEndpointSupport} from a Spring Integration HTTP configuration
+ * The {@link org.springframework.web.reactive.HandlerMapping} implementation that
+ * detects and registers {@link org.springframework.web.reactive.result.method.RequestMappingInfo}s for
+ * {@link org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport}
+ * from a Spring Integration HTTP configuration
  * of {@code <inbound-channel-adapter/>} and {@code <inbound-gateway/>} elements.
  * <p>
  * This class is automatically configured as a bean in the application context during the
- * parsing phase of the {@code <reactive-inbound-gateway/>}
+ * parsing phase of the {@code <inbound-gateway/>}
  * elements, if there is none registered, yet. However it can be configured as a regular
  * bean with appropriate configuration for
  * {@link org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping}.
  * It is recommended to have only one similar bean in the application context using the 'id'
- * {@link org.springframework.integration.http.support.HttpContextUtils#REACTIVE_HANDLER_MAPPING_BEAN_NAME}.
+ * {@link WebFluxContextUtils#HANDLER_MAPPING_BEAN_NAME}.
  * <p>
  * In most cases, Spring MVC offers to configure Request Mapping via
  * {@code org.springframework.stereotype.Controller} and
@@ -54,10 +59,10 @@ import org.springframework.web.server.WebHandler;
  * {@code org.springframework.stereotype.Controller} user-class may have their own
  * {@link org.springframework.web.bind.annotation.RequestMapping}.
  * On the other side, all Spring Integration HTTP Inbound Endpoints are configured on
- * the basis of the same {@link HttpRequestHandlingEndpointSupport} class and there is no
- * single {@link org.springframework.web.reactive.result.method.RequestMappingInfo} configuration without
- * {@link org.springframework.web.method.HandlerMethod} in Spring MVC.
- * Accordingly {@link ReactiveIntegrationRequestMappingHandlerMapping} is a
+ * the basis of the same {@link org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport}
+ * class and there is no single {@link org.springframework.web.reactive.result.method.RequestMappingInfo}
+ * configuration without {@link org.springframework.web.method.HandlerMethod} in Spring MVC.
+ * Accordingly {@link WebFluxIntegrationRequestMappingHandlerMapping} is a
  * {@link org.springframework.web.reactive.HandlerMapping}
  * compromise implementation between method-level annotations and component-level
  * (e.g. Spring Integration XML) configurations.
@@ -69,7 +74,7 @@ import org.springframework.web.server.WebHandler;
  * @see RequestMapping
  * @see RequestMappingHandlerMapping
  */
-public class ReactiveIntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
+public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
 		implements ApplicationListener<ContextRefreshedEvent> {
 
 	private static final Method HANDLER_METHOD = ReflectionUtils.findMethod(WebHandler.class,
@@ -79,7 +84,7 @@ public class ReactiveIntegrationRequestMappingHandlerMapping extends RequestMapp
 
 	@Override
 	protected boolean isHandler(Class<?> beanType) {
-		return ReactiveHttpInboundEndpoint.class.isAssignableFrom(beanType);
+		return WebFluxInboundEndpoint.class.isAssignableFrom(beanType);
 	}
 
 	@Override
@@ -87,7 +92,7 @@ public class ReactiveIntegrationRequestMappingHandlerMapping extends RequestMapp
 		if (handler instanceof String) {
 			handler = getApplicationContext().getBean((String) handler);
 		}
-		RequestMappingInfo mapping = getMappingForEndpoint((ReactiveHttpInboundEndpoint) handler);
+		RequestMappingInfo mapping = getMappingForEndpoint((WebFluxInboundEndpoint) handler);
 		if (mapping != null) {
 			registerMapping(mapping, handler, HANDLER_METHOD);
 		}
@@ -98,7 +103,7 @@ public class ReactiveIntegrationRequestMappingHandlerMapping extends RequestMapp
 	 * a Spring Integration Reactive HTTP Inbound Endpoint {@link RequestMapping}.
 	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
-	private RequestMappingInfo getMappingForEndpoint(ReactiveHttpInboundEndpoint endpoint) {
+	private RequestMappingInfo getMappingForEndpoint(WebFluxInboundEndpoint endpoint) {
 		org.springframework.web.bind.annotation.RequestMapping requestMappingAnnotation =
 				HttpContextUtils.convertRequestMappingToAnnotation(endpoint.getRequestMapping());
 		if (requestMappingAnnotation != null) {
@@ -149,22 +154,22 @@ public class ReactiveIntegrationRequestMappingHandlerMapping extends RequestMapp
 		return null;
 	}
 
-	@Override
-	public void afterPropertiesSet() {
-		// No-op in favor of onApplicationEvent
-	}
-
 	/**
-	 * {@link HttpRequestHandlingEndpointSupport}s may depend on auto-created
-	 * {@code requestChannel}s, so MVC Handlers detection should be postponed
+	 * {@link org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport}s
+	 * may depend on auto-created {@code requestChannel}s, so MVC Handlers detection should be postponed
 	 * as late as possible.
-	 * @see org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping#afterPropertiesSet()
+	 * @see RequestMappingHandlerMapping#afterPropertiesSet()
 	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		if (!this.initialized.getAndSet(true)) {
 			super.afterPropertiesSet();
 		}
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		// No-op in favor of onApplicationEvent
 	}
 
 }

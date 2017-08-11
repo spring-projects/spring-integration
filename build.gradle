@@ -396,17 +396,13 @@ project('spring-integration-http') {
 	description = 'Spring Integration HTTP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-web:$springVersion"
-		compile ("org.springframework:spring-webmvc:$springVersion", optional)
-		compile ("org.springframework:spring-webflux:$springVersion", optional)
+		compile "org.springframework:spring-webmvc:$springVersion"
 		compile ("javax.servlet:javax.servlet-api:$servletApiVersion", provided)
 		compile ("com.rometools:rome:$romeToolsVersion", optional)
-		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile project(":spring-integration-security")
 		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
 		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
-		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
 
@@ -642,12 +638,27 @@ project('spring-integration-twitter') {
 			exclude group: 'org.springframework', module: 'spring-expression'
 			exclude group: 'org.springframework', module: 'spring-web'
 			exclude group: 'org.springframework', module: 'spring-webmvc'
-
 		}
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
 		testCompile "redis.clients:jedis:$jedisVersion"
+	}
+}
+
+project('spring-integration-webflux') {
+	description = 'Spring Integration HTTP Support'
+	dependencies {
+		compile (project(":spring-integration-http")) {
+			exclude group: 'org.springframework', module: 'spring-webmvc'
+		}
+		compile "org.springframework:spring-webflux:$springVersion"
+		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
+
+		testCompile "org.springframework:spring-webmvc:$springVersion"
+		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
+		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
+		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
 

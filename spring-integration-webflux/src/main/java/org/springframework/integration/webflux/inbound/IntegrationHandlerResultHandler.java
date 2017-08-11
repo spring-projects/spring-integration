@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http.inbound;
+package org.springframework.integration.webflux.inbound;
 
 import org.springframework.core.Ordered;
 import org.springframework.web.method.HandlerMethod;
@@ -26,14 +26,14 @@ import reactor.core.publisher.Mono;
 
 /**
  * A {@link HandlerResultHandler} implementation to handle the result of the
- * {@link ReactiveHttpInboundEndpoint} execution. Actually just return the
+ * {@link WebFluxInboundEndpoint} execution. Actually just return the
  * {@code result.getReturnValue()} which essentially is expected {@code Mono<Void>}.
  *
  * @author Artem Bilan
  *
  * @since 5.0
  *
- * @see ReactiveHttpInboundEndpoint
+ * @see WebFluxInboundEndpoint
  */
 public class IntegrationHandlerResultHandler implements HandlerResultHandler, Ordered {
 
@@ -41,7 +41,7 @@ public class IntegrationHandlerResultHandler implements HandlerResultHandler, Or
 	public boolean supports(HandlerResult result) {
 		Object handler = result.getHandler();
 		return handler instanceof HandlerMethod
-				&& ReactiveHttpInboundEndpoint.class.isAssignableFrom(((HandlerMethod) handler).getBeanType());
+				&& WebFluxInboundEndpoint.class.isAssignableFrom(((HandlerMethod) handler).getBeanType());
 	}
 
 	@Override
