@@ -11,4 +11,7 @@
 
 	<service-activator id="fooService" input-channel="foo" output-channel="nullChannel" expression="'foo'"/>
 
+	<service-activator id="fooServiceExplicit" input-channel="foo" output-channel="nullChannel" expression="'foo'"
+					   auto-startup="true"/>
+
 </beans:beans>
