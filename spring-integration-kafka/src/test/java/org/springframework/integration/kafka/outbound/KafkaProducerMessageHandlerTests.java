@@ -23,6 +23,9 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
 import static org.springframework.kafka.test.assertj.KafkaConditions.timestamp;
 import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.BeforeClass;
@@ -39,6 +42,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
@@ -138,6 +142,7 @@ public class KafkaProducerMessageHandlerTests {
 				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
 				.setHeader(KafkaHeaders.PARTITION_ID, 1)
 				.setHeader(KafkaHeaders.TIMESTAMP, 1487694048607L)
+				.setHeader("baz", "qux")
 				.build();
 		handler.handleMessage(message);
 
@@ -146,6 +151,10 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(record).has(partition(1));
 		assertThat(record).has(value("foo"));
 		assertThat(record).has(timestamp(1487694048607L));
+		Map<String, Object> headers = new HashMap<>();
+		new DefaultKafkaHeaderMapper().toHeaders(record.headers(), headers);
+		assertThat(headers.size()).isEqualTo(1);
+		assertThat(headers.get("baz")).isEqualTo("qux");
 	}
 
 	@Test
