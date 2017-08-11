@@ -14,40 +14,41 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http.dsl;
+package org.springframework.integration.webflux.dsl;
 
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.integration.http.inbound.ReactiveHttpInboundEndpoint;
+import org.springframework.integration.http.dsl.HttpInboundEndpointSupportSpec;
+import org.springframework.integration.webflux.inbound.WebFluxInboundEndpoint;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
 
 /**
- * The {@link HttpInboundEndpointSupportSpec} implementation for the {@link ReactiveHttpInboundEndpoint}.
+ * The {@link HttpInboundEndpointSupportSpec} implementation for the {@link WebFluxInboundEndpoint}.
  *
  * @author Artem Bilan
  *
  * @since 5.0
  */
-public class ReactiveHttpInboundEndpointSpec
-		extends HttpInboundEndpointSupportSpec<ReactiveHttpInboundEndpointSpec, ReactiveHttpInboundEndpoint> {
+public class WebFluxInboundEndpointSpec
+		extends HttpInboundEndpointSupportSpec<WebFluxInboundEndpointSpec, WebFluxInboundEndpoint> {
 
-	ReactiveHttpInboundEndpointSpec(ReactiveHttpInboundEndpoint gateway, String... path) {
+	WebFluxInboundEndpointSpec(WebFluxInboundEndpoint gateway, String... path) {
 		super(gateway, path);
 	}
 
-	public ReactiveHttpInboundEndpointSpec codecConfigurer(ServerCodecConfigurer codecConfigurer) {
+	public WebFluxInboundEndpointSpec codecConfigurer(ServerCodecConfigurer codecConfigurer) {
 		this.target.setCodecConfigurer(codecConfigurer);
 		return this;
 	}
 
-	public ReactiveHttpInboundEndpointSpec requestedContentTypeResolver(
+	public WebFluxInboundEndpointSpec requestedContentTypeResolver(
 			RequestedContentTypeResolver requestedContentTypeResolver) {
 
 		this.target.setRequestedContentTypeResolver(requestedContentTypeResolver);
 		return this;
 	}
 
-	public ReactiveHttpInboundEndpointSpec reactiveAdapterRegistry(ReactiveAdapterRegistry adapterRegistry) {
+	public WebFluxInboundEndpointSpec reactiveAdapterRegistry(ReactiveAdapterRegistry adapterRegistry) {
 		this.target.setReactiveAdapterRegistry(adapterRegistry);
 		return this;
 	}

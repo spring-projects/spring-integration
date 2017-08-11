@@ -92,16 +92,12 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 
 	/**
 	 * The maximum number of rows to pull out of the query results per poll (if
-	 * greater than zero, otherwise all rows will be packed into the outgoing
-	 * message).
-	 *
+	 * greater than zero, otherwise all rows will be packed into the outgoing message).
 	 * The value is ultimately set on the underlying {@link JdbcPollingChannelAdapter}.
-	 * If not specified this value will default to <code>zero</code>.
-	 *
+	 * If not specified this value will default to {@code 1}.
 	 * This parameter is only applicable if a selectQuery was provided. Null values
 	 * are not permitted.
-	 *
-	 * @param maxRowsPerPoll Must not be null.
+	 * @param maxRowsPerPoll the number of rows to select. Must not be null.
 	 */
 	public void setMaxRowsPerPoll(Integer maxRowsPerPoll) {
 		Assert.notNull(maxRowsPerPoll, "MaxRowsPerPoll must not be null.");

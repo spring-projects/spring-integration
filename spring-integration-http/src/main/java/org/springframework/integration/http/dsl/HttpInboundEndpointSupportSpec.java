@@ -57,7 +57,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 
 	private HeaderMapper<HttpHeaders> explicitHeaderMapper;
 
-	HttpInboundEndpointSupportSpec(E gateway, String... path) {
+	protected HttpInboundEndpointSupportSpec(E gateway, String... path) {
 		super(gateway);
 		this.requestMapping.setPathPatterns(path);
 		this.target.setRequestMapping(this.requestMapping);

@@ -18,13 +18,13 @@ package org.springframework.integration.http.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
-import org.springframework.integration.http.outbound.ReactiveHttpRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -42,40 +42,12 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder;
-		boolean reactive = element.getLocalName().contains("reactive");
-		if (reactive) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(ReactiveHttpRequestExecutingMessageHandler.class);
-		}
-		else {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
-		}
+		BeanDefinitionBuilder builder = getBuilder(element, parserContext);
 
 		builder.addPropertyValue("expectReply", false);
 		HttpAdapterParsingUtils.configureUrlConstructorArg(element, parserContext, builder);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encode-uri");
 		HttpAdapterParsingUtils.setHttpMethodOrExpression(element, parserContext, builder);
-
-		if (reactive) {
-			String webClientRef = element.getAttribute("web-client");
-
-			if (StringUtils.hasText(webClientRef)) {
-				builder.addConstructorArgReference(webClientRef);
-			}
-		}
-		else {
-			String restTemplateRef = element.getAttribute("rest-template");
-
-			if (StringUtils.hasText(restTemplateRef)) {
-				HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
-				builder.addConstructorArgReference(restTemplateRef);
-			}
-			else {
-				for (String referenceAttributeName : HttpAdapterParsingUtils.SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
-					IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
-				}
-			}
-		}
 
 		String headerMapper = element.getAttribute("header-mapper");
 		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
@@ -99,6 +71,26 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		HttpAdapterParsingUtils.setExpectedResponseOrExpression(element, parserContext, builder);
 		HttpAdapterParsingUtils.configureUriVariableExpressions(builder, parserContext, element);
 		return builder.getBeanDefinition();
+	}
+
+	protected BeanDefinitionBuilder getBuilder(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(HttpRequestExecutingMessageHandler.class);
+
+		String restTemplateRef = element.getAttribute("rest-template");
+
+		if (StringUtils.hasText(restTemplateRef)) {
+			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
+			builder.getBeanDefinition()
+					.getConstructorArgumentValues()
+					.addIndexedArgumentValue(1, new RuntimeBeanReference(restTemplateRef));
+		}
+		else {
+			for (String referenceAttributeName : HttpAdapterParsingUtils.SYNC_REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+			}
+		}
+		return builder;
 	}
 
 }

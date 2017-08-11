@@ -61,7 +61,7 @@ public abstract class BaseHttpMessageHandlerSpec<S extends BaseHttpMessageHandle
 		this.target.setHeaderMapper(this.headerMapper);
 	}
 
-	S expectReply(boolean expectReply) {
+	protected S expectReply(boolean expectReply) {
 		this.target.setExpectReply(expectReply);
 		return _this();
 	}

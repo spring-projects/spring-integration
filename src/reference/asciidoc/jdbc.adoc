@@ -274,6 +274,12 @@ The reply message is then generated from the result, like the inbound adapter, a
     data-source="dataSource"/>
 ----
 
+[IMPORTANT]
+=====
+By default the component for the SELECT query returns only one, first row from the cursor.
+This can be adjusted with the `max-rows-per-poll` option.
+Consider to specify `max-rows-per-poll="0"` if you need to return all the rows from the SELECT.
+
 As with the channel adapters, there is also the option to provide `SqlParameterSourceFactory` instances for request and reply.
 The default is the same as for the outbound adapter, so the request message is available as the root of an expression.
 If `keys-generated="true"` then the root of the expression is the generated keys (a map if there is only one or a list of maps if multi-valued).
