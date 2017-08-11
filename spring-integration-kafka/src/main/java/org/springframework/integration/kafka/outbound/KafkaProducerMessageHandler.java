@@ -19,6 +19,10 @@ package org.springframework.integration.kafka.outbound;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
+
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageTimeoutException;
@@ -26,6 +30,9 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.JacksonPresent;
+import org.springframework.kafka.support.KafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.messaging.Message;
@@ -67,9 +74,14 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 
 	private Expression sendTimeoutExpression = new ValueExpression<>(DEFAULT_SEND_TIMEOUT);
 
+	private KafkaHeaderMapper headerMapper;
+
 	public KafkaProducerMessageHandler(final KafkaTemplate<K, V> kafkaTemplate) {
 		Assert.notNull(kafkaTemplate, "kafkaTemplate cannot be null");
 		this.kafkaTemplate = kafkaTemplate;
+		if (JacksonPresent.isJackson2Present()) {
+			this.headerMapper = new DefaultKafkaHeaderMapper();
+		}
 	}
 
 	public void setTopicExpression(Expression topicExpression) {
@@ -90,10 +102,19 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 	 *
 	 * @param timestampExpression the {@link Expression} for timestamp to wait for result
 	 * fo send operation.
-	 * @since 3.0.0
+	 * @since 2.3
 	 */
 	public void setTimestampExpression(Expression timestampExpression) {
 		this.timestampExpression = timestampExpression;
+	}
+
+	/**
+	 * Set the header mapper to use.
+	 * @param headerMapper the mapper; can be null to disable header mapping.
+	 * @since 2.3
+	 */
+	public void setHeaderMapper(KafkaHeaderMapper headerMapper) {
+		this.headerMapper = headerMapper;
 	}
 
 	public KafkaTemplate<?, ?> getKafkaTemplate() {
@@ -167,7 +188,14 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractMessageHandler {
 			payload = null;
 		}
 
-		ListenableFuture<?> future = this.kafkaTemplate.send(topic, partitionId, timestamp, (K) messageKey, payload);
+		Headers headers = null;
+		if (this.headerMapper != null) {
+			headers = new RecordHeaders();
+			this.headerMapper.fromHeaders(message.getHeaders(), headers);
+		}
+		ProducerRecord<K, V> producerRecord = new ProducerRecord<K, V>(topic, partitionId, timestamp, (K) messageKey,
+				payload, headers);
+		ListenableFuture<?> future = this.kafkaTemplate.send(producerRecord);
 
 		if (this.sync) {
 			Long sendTimeout = this.sendTimeoutExpression.getValue(this.evaluationContext, message, Long.class);

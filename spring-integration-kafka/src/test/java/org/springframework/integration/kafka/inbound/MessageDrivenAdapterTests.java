@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,8 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -43,6 +46,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
@@ -366,7 +370,10 @@ public class MessageDrivenAdapterTests {
 		ProducerFactory<Integer, String> pf = new DefaultKafkaProducerFactory<Integer, String>(senderProps);
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(pf);
 		template.setDefaultTopic(topic3);
-		template.sendDefault(0, 1487694048607L, 1, "{\"bar\":\"baz\"}");
+		Headers kHeaders = new RecordHeaders();
+		MessageHeaders siHeaders = new MessageHeaders(Collections.singletonMap("foo", "bar"));
+		new DefaultKafkaHeaderMapper().fromHeaders(siHeaders, kHeaders);
+		template.send(new ProducerRecord<>(topic3, 0, 1487694048607L, 1, "{\"bar\":\"baz\"}", kHeaders));
 
 		Message<?> received = out.receive(10000);
 		assertThat(received).isNotNull();
@@ -379,6 +386,7 @@ public class MessageDrivenAdapterTests {
 
 		assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048607L);
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
+		assertThat(headers.get("foo")).isEqualTo("bar");
 		assertThat(received.getPayload()).isInstanceOf(Map.class);
 
 		adapter.setPayloadType(Foo.class);
