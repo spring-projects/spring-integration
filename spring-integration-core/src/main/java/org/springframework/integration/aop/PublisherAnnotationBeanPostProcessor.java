@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
  */
 
 package org.springframework.integration.aop;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyConfig;
@@ -37,6 +41,8 @@ import org.springframework.util.ClassUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Rick Hogge
+ *
  * @since 2.0
  */
 @SuppressWarnings("serial")
@@ -52,6 +58,9 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	private volatile BeanFactory beanFactory;
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+	private final Set<Class<?>> nonApplicableCache =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(256));
 
 	/**
 	 * Set the default channel where Messages should be sent if the annotation
@@ -101,6 +110,12 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 			return bean;
 		}
 
+		// the set will hold records of prior class scans and will contain the bean classes that can not
+		// be assigned to the Advisor interface and therefore can be short circuited
+		if (this.nonApplicableCache.contains(targetClass)) {
+			return bean;
+		}
+
 		if (AopUtils.canApply(this.advisor, targetClass)) {
 			if (bean instanceof Advised) {
 				((Advised) bean).addAdvisor(this.advisor);
@@ -116,6 +131,7 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		}
 		else {
 			// cannot apply advisor
+			nonApplicableCache.add(targetClass);
 			return bean;
 		}
 	}
