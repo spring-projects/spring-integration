@@ -34,6 +34,7 @@ import org.springframework.retry.RetryContext;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Oleg Zhurakousky
  *
  * @since 2.2
  *
@@ -43,6 +44,7 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	/**
 	 * Construct instance with the default {@code errorChannel}
 	 * to publish recovery error message.
+	 * The {@link DefaultErrorMessageStrategy} is used for building error message to publish.
 	 * @since 4.3.10
 	 */
 	public ErrorMessageSendingRecoverer() {
@@ -55,19 +57,25 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 	 * @param channel the message channel to publish error messages on recovery action.
 	 */
 	public ErrorMessageSendingRecoverer(MessageChannel channel) {
-		this(channel, new DefaultErrorMessageStrategy());
+		this(channel, null);
 	}
 
 	/**
 	 * Construct instance based on the provided message channel and {@link ErrorMessageStrategy}.
+	 * In the event provided {@link ErrorMessageStrategy} is null, the {@link DefaultErrorMessageStrategy}
+	 * will be used.
 	 * @param channel the message channel to publish error messages on recovery action.
 	 * @param errorMessageStrategy the {@link ErrorMessageStrategy}
-	 * to build error message for publishing.
+	 * to build error message for publishing. Can be null at which point the
+	 * {@link DefaultErrorMessageStrategy} is used.
 	 * @since 4.3.10
 	 */
 	public ErrorMessageSendingRecoverer(MessageChannel channel, ErrorMessageStrategy errorMessageStrategy) {
 		setChannel(channel);
-		setErrorMessageStrategy(errorMessageStrategy);
+		setErrorMessageStrategy(
+				errorMessageStrategy == null
+						? new DefaultErrorMessageStrategy()
+						: errorMessageStrategy);
 	}
 
 	@Override
