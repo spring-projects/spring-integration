@@ -289,7 +289,7 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 
 		@Override
 		public Map<Object, String> getComponentsToRegister() {
-			return Collections.singletonMap(this.kafkaTemplateSpec.get(), kafkaTemplateSpec.getId());
+			return Collections.singletonMap(this.kafkaTemplateSpec.get(), this.kafkaTemplateSpec.getId());
 		}
 
 	}

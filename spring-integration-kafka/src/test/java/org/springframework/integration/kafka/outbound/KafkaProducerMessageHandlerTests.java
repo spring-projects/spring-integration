@@ -28,14 +28,18 @@ import java.util.Map;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
+import org.springframework.integration.kafka.support.KafkaSendFailureException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -45,9 +49,15 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * @author Gary Russell
@@ -63,6 +73,7 @@ public class KafkaProducerMessageHandlerTests {
 
 	@ClassRule
 	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topic1, topic2);
+
 
 	private static Consumer<Integer, String> consumer;
 
@@ -192,6 +203,65 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(record2).has(partition(1));
 		assertThat(record2).has(value("foo"));
 		assertThat(record2.timestamp()).isGreaterThanOrEqualTo(currentTimeMarker);
+	}
+
+	@Test
+	public void testOutboundWithAsyncResults() {
+		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+				KafkaTestUtils.producerProps(embeddedKafka));
+		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
+		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		PollableChannel successes = new QueueChannel();
+		handler.setOutputChannel(successes);
+		handler.afterPropertiesSet();
+
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(KafkaHeaders.TOPIC, topic1)
+				.setHeader(KafkaHeaders.MESSAGE_KEY, 2)
+				.setHeader(KafkaHeaders.PARTITION_ID, 1)
+				.build();
+		handler.handleMessage(message);
+
+		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic1);
+		assertThat(record).has(key(2));
+		assertThat(record).has(partition(1));
+		assertThat(record).has(value("foo"));
+		Message<?> received = successes.receive(10000);
+		assertThat(received).isNotNull();
+		assertThat(received.getPayload()).isEqualTo("foo");
+		// TODO: Change to constant when available
+		assertThat(received.getHeaders().get("kafka_recordMetadata")).isInstanceOf(RecordMetadata.class);
+
+		final RuntimeException fooException = new RuntimeException("foo");
+
+		handler = new KafkaProducerMessageHandler<>(new KafkaTemplate<Integer, String>(producerFactory) {
+
+			@Override
+			protected ListenableFuture<SendResult<Integer, String>> doSend(
+					ProducerRecord<Integer, String> producerRecord) {
+				SettableListenableFuture<SendResult<Integer, String>> future = new SettableListenableFuture<>();
+				future.setException(fooException);
+				return future;
+			}
+
+		});
+		PollableChannel failures = new QueueChannel();
+		handler.setSendFailureChannel(failures);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		message = MessageBuilder.withPayload("bar")
+				.setHeader(KafkaHeaders.TOPIC, "foo")
+				.setHeader(KafkaHeaders.PARTITION_ID, 0)
+				.build();
+		handler.handleMessage(message);
+
+		received = failures.receive(10000);
+		assertThat(received).isNotNull();
+		assertThat(received).isInstanceOf(ErrorMessage.class);
+		assertThat(((MessagingException) received.getPayload()).getFailedMessage()).isSameAs(message);
+		assertThat(((MessagingException) received.getPayload()).getCause()).isSameAs(fooException);
+		assertThat(((KafkaSendFailureException) received.getPayload()).getRecord()).isNotNull();
 	}
 
 }
