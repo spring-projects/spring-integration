@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 				TestUtils.getPropertyValue(this.kafkaListener, "messageListenerContainer",
 						KafkaMessageListenerContainer.class);
 		assertThat(container).isNotNull();
-		assertThat(TestUtils.getPropertyValue(kafkaListener, "mode", ListenerMode.class))
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "mode", ListenerMode.class))
 				.isEqualTo(ListenerMode.record);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recordListener.fallbackType"))
 				.isEqualTo(String.class);
@@ -91,7 +91,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 				TestUtils.getPropertyValue(this.kafkaBatchListener, "messageListenerContainer",
 						KafkaMessageListenerContainer.class);
 		assertThat(container).isNotNull();
-		assertThat(TestUtils.getPropertyValue(kafkaBatchListener, "mode", ListenerMode.class))
+		assertThat(TestUtils.getPropertyValue(this.kafkaBatchListener, "mode", ListenerMode.class))
 				.isEqualTo(ListenerMode.batch);
 	}
 
