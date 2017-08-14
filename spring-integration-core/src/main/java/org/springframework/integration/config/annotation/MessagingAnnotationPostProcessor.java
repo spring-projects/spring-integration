@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -72,6 +73,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Rick Hogge
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
 		InitializingBean, SmartInitializingSingleton {
@@ -82,6 +84,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
 
 	private final MultiValueMap<String, String> lazyLifecycleRoles = new LinkedMultiValueMap<String, String>();
+
+	private final Set<Class<?>> noAnnotationsCache =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(256));
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -167,6 +172,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			return bean;
 		}
 
+		// the set will hold records of prior class scans and indicate if no messaging annotations were found
+		if (this.noAnnotationsCache.contains(beanClass)) {
+			return bean;
+		}
+
 		ReflectionUtils.doWithMethods(beanClass,
 				new ReflectionUtils.MethodCallback() {
 
@@ -188,6 +198,10 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 							Class<? extends Annotation> annotationType = entry.getKey();
 							List<Annotation> annotations = entry.getValue();
 							processAnnotationTypeOnMethod(bean, beanName, method, annotationType, annotations);
+						}
+
+						if (annotationChains.size() == 0) {
+							MessagingAnnotationPostProcessor.this.noAnnotationsCache.add(beanClass);
 						}
 					}
 				}, ReflectionUtils.USER_DECLARED_METHODS);
