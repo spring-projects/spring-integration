@@ -51,7 +51,10 @@
 								   auto-startup="false"
 								   amqp-template="amqpTemplateConfirms"
 								   confirm-correlation-expression="headers['amqp_confirmCorrelationData']"
-								   confirm-ack-channel="ackChannel"/>
+								   confirm-ack-channel="ackChannel"
+								   error-message-strategy="ems"/>
+
+	<bean id="ems" class="org.springframework.integration.support.DefaultErrorMessageStrategy" />
 
 	<int:channel id="pcRequestChannel"/>
 
