@@ -106,9 +106,6 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		Class<?> targetClass = AopUtils.getTargetClass(bean);
-		if (targetClass == null) {
-			return bean;
-		}
 
 		// the set will hold records of prior class scans and will contain the bean classes that can not
 		// be assigned to the Advisor interface and therefore can be short circuited
@@ -131,7 +128,7 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		}
 		else {
 			// cannot apply advisor
-			nonApplicableCache.add(targetClass);
+			this.nonApplicableCache.add(targetClass);
 			return bean;
 		}
 	}

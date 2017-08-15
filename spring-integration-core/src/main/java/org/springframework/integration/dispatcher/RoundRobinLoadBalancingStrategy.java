@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import org.springframework.messaging.MessageHandler;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
 public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
@@ -43,7 +45,7 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 	 * iteration, so it guarantees all handlers are returned once on subsequent
 	 * <code>next()</code> invocations.
 	 */
-	public final Iterator<MessageHandler> getHandlerIterator(final Message<?> message, final Collection<MessageHandler> handlers) {
+	public final Iterator<MessageHandler> getHandlerIterator(Message<?> message, Collection<MessageHandler> handlers) {
 		int size = handlers.size();
 		if (size < 2) {
 			this.getNextHandlerStartIndex(size);
@@ -54,28 +56,29 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 	}
 
 	private Iterator<MessageHandler> buildHandlerIterator(int size, final MessageHandler[] handlers) {
-
 		int nextHandlerStartIndex = getNextHandlerStartIndex(size);
 
-		final MessageHandler[] reorderedHandlers = new MessageHandler[size];
+		MessageHandler[] reorderedHandlers = new MessageHandler[size];
 
 		System.arraycopy(handlers, nextHandlerStartIndex, reorderedHandlers, 0, size - nextHandlerStartIndex);
-		System.arraycopy(handlers, 0, reorderedHandlers, size - nextHandlerStartIndex, 0 + nextHandlerStartIndex);
+		System.arraycopy(handlers, 0, reorderedHandlers, size - nextHandlerStartIndex, nextHandlerStartIndex);
 
 		return new Iterator<MessageHandler>() {
+
 			int currentIndex = 0;
 
 			public boolean hasNext() {
-				return currentIndex < reorderedHandlers.length;
+				return this.currentIndex < reorderedHandlers.length;
 			}
 
 			public MessageHandler next() {
-				return reorderedHandlers[currentIndex++];
+				return reorderedHandlers[this.currentIndex++];
 			}
 
 			public void remove() {
 				throw new UnsupportedOperationException("Remove is not supported by this Iterator");
 			}
+
 		};
 	}
 
@@ -93,4 +96,5 @@ public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 			return size;
 		}
 	}
+
 }

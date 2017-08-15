@@ -31,9 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -43,6 +41,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -57,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Marcin Pilaczynski
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class UnicastSendingMessageHandler extends
@@ -231,21 +231,11 @@ public class UnicastSendingMessageHandler extends
 	public void doStart() {
 		if (this.acknowledge) {
 			if (this.taskExecutor == null) {
-				Executor executor = Executors
-						.newSingleThreadExecutor(new ThreadFactory() {
 
-							private final AtomicInteger n = new AtomicInteger();
+				CustomizableThreadFactory threadFactory = new CustomizableThreadFactory("UDP-Ack-Handler-");
+				threadFactory.setDaemon(true);
 
-							@Override
-							public Thread newThread(Runnable runner) {
-								Thread thread = new Thread(runner);
-								thread.setName("UDP-Ack-Handler-" + n.getAndIncrement());
-								thread.setDaemon(true);
-								return thread;
-							}
-
-						});
-				this.taskExecutor = executor;
+				this.taskExecutor = Executors.newSingleThreadExecutor(threadFactory);
 			}
 			startAckThread();
 		}

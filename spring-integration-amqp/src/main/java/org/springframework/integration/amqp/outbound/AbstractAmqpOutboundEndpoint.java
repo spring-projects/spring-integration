@@ -333,14 +333,14 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	protected MessageChannel getConfirmAckChannel() {
 		if (this.confirmAckChannel == null && this.confirmAckChannelName != null) {
-			this.confirmAckChannel = getChannelResolver().resolveDestination(confirmAckChannelName);
+			this.confirmAckChannel = getChannelResolver().resolveDestination(this.confirmAckChannelName);
 		}
 		return this.confirmAckChannel;
 	}
 
 	protected MessageChannel getConfirmNackChannel() {
 		if (this.confirmNackChannel == null && this.confirmNackChannelName != null) {
-			this.confirmNackChannel = getChannelResolver().resolveDestination(confirmNackChannelName);
+			this.confirmNackChannel = getChannelResolver().resolveDestination(this.confirmNackChannelName);
 		}
 		return this.confirmNackChannel;
 	}

@@ -248,7 +248,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 			boolean markers = FileSplitter.this.markers;
 
-			boolean sof = markers;
+			boolean sof = this.markers;
 
 			boolean eof;
 

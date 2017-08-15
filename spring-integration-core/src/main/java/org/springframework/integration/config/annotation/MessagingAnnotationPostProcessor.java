@@ -163,7 +163,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		ReflectionUtils.doWithMethods(beanClass, method -> {
 			Map<Class<? extends Annotation>, List<Annotation>> annotationChains = new HashMap<>();
 			for (Class<? extends Annotation> annotationType :
-					MessagingAnnotationPostProcessor.this.postProcessors.keySet()) {
+					this.postProcessors.keySet()) {
 				if (AnnotatedElementUtils.isAnnotated(method, annotationType.getName())) {
 					List<Annotation> annotationChain = getAnnotationChain(method, annotationType);
 					if (annotationChain.size() > 0) {
@@ -179,7 +179,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			}
 
 			if (annotationChains.size() == 0) {
-				noAnnotationsCache.add(beanClass);
+				this.noAnnotationsCache.add(beanClass);
 			}
 		}, ReflectionUtils.USER_DECLARED_METHODS);
 
