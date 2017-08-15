@@ -16,9 +16,11 @@
 
 package org.springframework.integration.amqp.outbound;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,12 +31,16 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.amqp.rule.BrokerRunning;
+import org.springframework.integration.amqp.support.ReturnedAmqpMessageException;
 import org.springframework.integration.mapping.support.JsonHeaders;
+import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -86,6 +92,10 @@ public class AmqpOutboundEndpointTests {
 
 	@Autowired
 	private ConnectionFactory connectionFactory;
+
+	@Autowired
+	@Qualifier("withReturns.handler")
+	private AmqpOutboundEndpoint withReturns;
 
 	@Test
 	public void testGatewayPublisherConfirms() throws Exception {
@@ -142,6 +152,19 @@ public class AmqpOutboundEndpointTests {
 		Message<?> returned = returnChannel.receive(10000);
 		assertNotNull(returned);
 		assertEquals(message.getPayload(), returned.getPayload());
+	}
+
+	@Test
+	public void adapterWithReturnsAndErrorMessageStrategy() throws Exception {
+		this.withReturns.setErrorMessageStrategy(new DefaultErrorMessageStrategy());
+		Message<?> message = MessageBuilder.withPayload("hello").build();
+		this.returnRequestChannel.send(message);
+		Message<?> returned = this.returnChannel.receive(10000);
+		assertNotNull(returned);
+		assertThat(returned, instanceOf(ErrorMessage.class));
+		assertThat(returned.getPayload(), instanceOf(ReturnedAmqpMessageException.class));
+		ReturnedAmqpMessageException payload = (ReturnedAmqpMessageException) returned.getPayload();
+		assertEquals(message.getPayload(), payload.getFailedMessage().getPayload());
 	}
 
 	@Test

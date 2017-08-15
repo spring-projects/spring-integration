@@ -18,9 +18,12 @@
 		delay-expression="42"
 		auto-startup="false"
 		order="5"
-		return-channel="returnChannel">
+		return-channel="returnChannel"
+		error-message-strategy="ems">
 		<int:poller fixed-delay="100"/>
 	</amqp:outbound-gateway>
+
+	<bean id="ems" class="org.springframework.integration.support.DefaultErrorMessageStrategy" />
 
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
 

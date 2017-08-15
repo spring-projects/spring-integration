@@ -501,9 +501,10 @@ A configuration sample for an AMQP Outbound Channel Adapter is shown below.
                                confirm-ack-channel="" <11>
                                confirm-nack-channel="" <12>
                                return-channel="" <13>
-                               header-mapper="" <14>
-                               mapped-request-headers="" <15>
-                               lazy-connect="true" /> <16>
+                               error-message-strategy="" <14>
+                               header-mapper="" <15>
+                               mapped-request-headers="" <16>
+                               lazy-connect="true" /> <17>
 
 ----
 
@@ -570,21 +571,25 @@ Previously, a new message was created with the correlation data as its payload, 
 _Optional_.
 
 <11> The channel to which positive (ack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
+If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `true`.
 _Optional, default=nullChannel_.
 
 
-<12> The channel to which negative (nack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
+<12> The channel to which negative (nack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_ (if there is no `ErrorMessageStrategy` configured).
+If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `false`.
+When there is an `ErrorMessageStrategy`, the message will be an `ErrorMessage` with a `NackedAmqpMessageException` payload.
 _Optional, default=nullChannel_.
 
 
 <13> The channel to which returned messages are sent.
 When provided, the underlying amqp template is configured to return undeliverable messages to the adapter.
-The message will be constructed from the data received from amqp, with the following additional headers: _amqp_returnReplyCode,
-                amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey_.
+When there is no `ErrorMessageStrategy` configured, the message will be constructed from the data received from amqp, with the following additional headers: _amqp_returnReplyCode, amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey_.
+When there is an `ErrorMessageStrategy`, the message will be an `ErrorMessage` with a `ReturnedAmqpMessageException` payload.
 _Optional_.
 
+<14> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` s when sending returned or negatively acknowedged messages.
 
-<14> A reference to an `AmqpHeaderMapper` to use when sending AMQP Messages.
+<15> A reference to an `AmqpHeaderMapper` to use when sending AMQP Messages.
 By default only standard AMQP properties (e.g.
 `contentType`) will be copied to the Spring Integration `MessageHeaders`.
 Any user-defined headers will NOT be copied to the Message by the default`DefaultAmqpHeaderMapper`.
@@ -592,13 +597,13 @@ Not allowed if 'request-header-names' is provided.
 _Optional_.
 
 
-<15> Comma-separated list of names of AMQP Headers to be mapped from the `MessageHeaders` to the AMQP Message.
+<16> Comma-separated list of names of AMQP Headers to be mapped from the `MessageHeaders` to the AMQP Message.
 Not allowed if the 'header-mapper' reference is provided.
 The values in this list can also be simple patterns to be matched against the header names (e.g.
 "\*" or "foo*, bar" or "*foo").
 
 
-<16> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.
+<17> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.
 This allows "fail fast" detection of bad configuration, but will also cause initialization to fail if the broker is down.
 When true (default), the connection is established (if it doesn't already exist because some other component established it) when the first message is sent.
 
@@ -715,7 +720,8 @@ Configuration for an AMQP Outbound Gateway is shown below.
                            confirm-ack-channel="" <14>
                            confirm-nack-channel="" <15>
                            return-channel="" <16>
-                           lazy-connect="true" /> <17>
+                           error-message-strategy="" <17>
+                           lazy-connect="true" /> <18>
 
 ----
 
@@ -792,20 +798,24 @@ emitted on the ack/nack channel is based on that message, with the additional he
 Previously, a new message was created with the correlation data as its payload, regardless of type.
 _Optional_.
 
-<14> Since _version 4.2_. The channel to which positive (ack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
+<14> The channel to which positive (ack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
+If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `true`.
 _Optional, default=nullChannel_.
 
-<15> Since _version 4.2_. The channel to which negative (nack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_.
+<15> The channel to which negative (nack) publisher confirms are sent; payload is the correlation data defined by the _confirm-correlation-expression_ (if there is no `ErrorMessageStrategy` configured).
+If the expression is `#root` or `#this`, the message is built from the original message, with the `amqp_publishConfirm` header set to `false`.
+When there is an `ErrorMessageStrategy`, the message will be an `ErrorMessage` with a `NackedAmqpMessageException` payload.
 _Optional, default=nullChannel_.
 
 <16> The channel to which returned messages are sent.
-When provided, the underlying amqp template is configured to return undeliverable messages to the gateway.
-The message will be constructed from the data received from amqp, with the following additional headers: _amqp_returnReplyCode,
-                amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey_.
+When provided, the underlying amqp template is configured to return undeliverable messages to the adapter.
+When there is no `ErrorMessageStrategy` configured, the message will be constructed from the data received from amqp, with the following additional headers: _amqp_returnReplyCode, amqp_returnReplyText, amqp_returnExchange, amqp_returnRoutingKey_.
+When there is an `ErrorMessageStrategy`, the message will be an `ErrorMessage` with a `ReturnedAmqpMessageException` payload.
 _Optional_.
 
+<17> A reference to an `ErrorMessageStrategy` implementation used to build `ErrorMessage` s when sending returned or negatively acknowedged messages.
 
-<17> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.
+<18> When set to `false`, the endpoint will attempt to connect to the broker during application context initialization.
 This allows "fail fast" detection of bad configuration, by logging an error message if the broker is down.
 When true (default), the connection is established (if it doesn't already exist because some other component established it) when the first message is sent.
 

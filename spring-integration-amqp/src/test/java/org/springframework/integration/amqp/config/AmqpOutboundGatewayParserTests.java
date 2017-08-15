@@ -80,6 +80,7 @@ public class AmqpOutboundGatewayParserTests {
 		assertEquals("amqp:outbound-async-gateway", async.getComponentType());
 		checkGWProps(context, async);
 		assertSame(context.getBean("asyncTemplate"), TestUtils.getPropertyValue(async, "template"));
+		assertSame(context.getBean("ems"), TestUtils.getPropertyValue(gateway, "errorMessageStrategy"));
 
 		context.close();
 	}
