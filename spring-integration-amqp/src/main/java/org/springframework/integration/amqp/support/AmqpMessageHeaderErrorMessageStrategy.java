@@ -43,15 +43,18 @@ public class AmqpMessageHeaderErrorMessageStrategy implements ErrorMessageStrate
 	public static final String AMQP_RAW_MESSAGE = AmqpHeaders.PREFIX + "raw_message";
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor context) {
-		Object inputMessage =  context == null ? null
+		Object inputMessage = context == null
+				? null
 				: context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
-		Map<String, Object> headers = Collections.singletonMap(
-				AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE,
-				context.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
+		Map<String, Object> headers = context == null
+				? new HashMap<String, Object>()
+				: Collections.singletonMap(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE,
+						context.getAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
+
 		return inputMessage instanceof Message
-				? new org.springframework.integration.message.EnhancedErrorMessage(throwable, headers,
-						(Message<?>) inputMessage)
+				? new org.springframework.integration.message.EnhancedErrorMessage(throwable, headers, (Message<?>) inputMessage)
 				: new ErrorMessage(throwable, headers);
 	}
 
