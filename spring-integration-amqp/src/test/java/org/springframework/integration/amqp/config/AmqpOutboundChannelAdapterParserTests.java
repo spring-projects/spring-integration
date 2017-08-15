@@ -179,6 +179,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		MessageChannel ackChannel = context.getBean("ackChannel", MessageChannel.class);
 		assertSame(ackChannel, TestUtils.getPropertyValue(endpoint, "confirmAckChannel"));
 		assertSame(nullChannel, TestUtils.getPropertyValue(endpoint, "confirmNackChannel"));
+		assertSame(context.getBean("ems"), TestUtils.getPropertyValue(endpoint, "errorMessageStrategy"));
 	}
 
 	@SuppressWarnings("rawtypes")

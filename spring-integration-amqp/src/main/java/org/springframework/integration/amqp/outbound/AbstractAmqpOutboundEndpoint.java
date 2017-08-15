@@ -30,11 +30,15 @@ import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
+import org.springframework.integration.amqp.support.NackedAmqpMessageException;
+import org.springframework.integration.amqp.support.ReturnedAmqpMessageException;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.DefaultErrorMessageStrategy;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -50,41 +54,47 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 	implements Lifecycle {
 
-	private volatile String exchangeName;
+	private String exchangeName;
 
-	private volatile String routingKey;
+	private String routingKey;
 
-	private volatile Expression exchangeNameExpression;
+	private Expression exchangeNameExpression;
 
-	private volatile Expression routingKeyExpression;
+	private Expression routingKeyExpression;
 
-	private volatile ExpressionEvaluatingMessageProcessor<String> routingKeyGenerator;
+	private ExpressionEvaluatingMessageProcessor<String> routingKeyGenerator;
 
-	private volatile ExpressionEvaluatingMessageProcessor<String> exchangeNameGenerator;
+	private ExpressionEvaluatingMessageProcessor<String> exchangeNameGenerator;
 
-	private volatile AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
+	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
 
-	private volatile Expression confirmCorrelationExpression;
+	private Expression confirmCorrelationExpression;
 
-	private volatile ExpressionEvaluatingMessageProcessor<Object> correlationDataGenerator;
+	private ExpressionEvaluatingMessageProcessor<Object> correlationDataGenerator;
 
-	private volatile MessageChannel confirmAckChannel;
+	private MessageChannel confirmAckChannel;
 
-	private volatile MessageChannel confirmNackChannel;
+	private String confirmAckChannelName;
 
-	private volatile MessageChannel returnChannel;
+	private MessageChannel confirmNackChannel;
 
-	private volatile MessageDeliveryMode defaultDeliveryMode;
+	private String confirmNackChannelName;
 
-	private volatile boolean lazyConnect = true;
+	private MessageChannel returnChannel;
 
-	private volatile ConnectionFactory connectionFactory;
+	private MessageDeliveryMode defaultDeliveryMode;
 
-	private volatile Expression delayExpression;
+	private boolean lazyConnect = true;
 
-	private volatile ExpressionEvaluatingMessageProcessor<Integer> delayGenerator;
+	private ConnectionFactory connectionFactory;
+
+	private Expression delayExpression;
+
+	private ExpressionEvaluatingMessageProcessor<Integer> delayGenerator;
 
 	private boolean headersMappedLast;
+
+	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
 	private volatile boolean running;
 
@@ -181,11 +191,29 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	/**
+	 * Set the channel name to which acks are send (publisher confirms).
+	 * @param ackChannelName the channel name.
+	 * @since 4.3.12
+	 */
+	public void setConfirmAckChannelName(String ackChannelName) {
+		this.confirmAckChannelName = ackChannelName;
+	}
+
+	/**
 	 * Set the channel to which nacks are send (publisher confirms).
 	 * @param nackChannel the channel.
 	 */
 	public void setConfirmNackChannel(MessageChannel nackChannel) {
 		this.confirmNackChannel = nackChannel;
+	}
+
+	/**
+	 * Set the channel name to which nacks are send (publisher confirms).
+	 * @param nackChannelName the channel name.
+	 * @since 4.3.12
+	 */
+	public void setConfirmNackChannelName(String nackChannelName) {
+		this.confirmNackChannelName = nackChannelName;
 	}
 
 	/**
@@ -253,6 +281,16 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 	}
 
+	/**
+	 * Set the error message strategy to use for returned (or negatively confirmed)
+	 * messages.
+	 * @param errorMessageStrategy the strategy.
+	 * @since 4.3.12
+	 */
+	public void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		this.errorMessageStrategy = errorMessageStrategy;
+	}
+
 	protected final void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
@@ -294,10 +332,16 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	protected MessageChannel getConfirmAckChannel() {
+		if (this.confirmAckChannel == null && this.confirmAckChannelName != null) {
+			this.confirmAckChannel = getChannelResolver().resolveDestination(confirmAckChannelName);
+		}
 		return this.confirmAckChannel;
 	}
 
 	protected MessageChannel getConfirmNackChannel() {
+		if (this.confirmNackChannel == null && this.confirmNackChannelName != null) {
+			this.confirmNackChannel = getChannelResolver().resolveDestination(confirmNackChannelName);
+		}
 		return this.confirmNackChannel;
 	}
 
@@ -347,10 +391,11 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		}
 		else {
 			NullChannel nullChannel = extractTypeIfPossible(this.confirmAckChannel, NullChannel.class);
-			Assert.state(this.confirmAckChannel == null || nullChannel != null,
+			Assert.state((this.confirmAckChannel == null || nullChannel != null) && this.confirmAckChannelName == null,
 					"A 'confirmCorrelationExpression' is required when specifying a 'confirmAckChannel'");
 			nullChannel = extractTypeIfPossible(this.confirmNackChannel, NullChannel.class);
-			Assert.state(this.confirmNackChannel == null || nullChannel != null,
+			Assert.state(
+					(this.confirmNackChannel == null || nullChannel != null) && this.confirmNackChannelName == null,
 					"A 'confirmCorrelationExpression' is required when specifying a 'confirmNackChannel'");
 		}
 		if (this.delayExpression != null) {
@@ -411,16 +456,8 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	protected CorrelationData generateCorrelationData(Message<?> requestMessage) {
 		CorrelationData correlationData = null;
 		if (this.correlationDataGenerator != null) {
-			Object userCorrelationData = this.correlationDataGenerator.processMessage(requestMessage);
-			if (userCorrelationData != null) {
-				if (userCorrelationData instanceof CorrelationData) {
-					correlationData = (CorrelationData) userCorrelationData;
-				}
-				else {
-					correlationData = new CorrelationDataWrapper(requestMessage
-							.getHeaders().getId().toString(), userCorrelationData);
-				}
-			}
+			correlationData = new CorrelationDataWrapper(requestMessage.getHeaders().getId().toString(),
+					this.correlationDataGenerator.processMessage(requestMessage), requestMessage);
 		}
 		return correlationData;
 	}
@@ -465,44 +502,55 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 				? this.getMessageBuilderFactory().fromMessage((Message<?>) returnedObject)
 				: this.getMessageBuilderFactory().withPayload(returnedObject);
 		Map<String, ?> headers = getHeaderMapper().toHeadersFromReply(message.getMessageProperties());
-		builder.copyHeadersIfAbsent(headers)
-				.setHeader(AmqpHeaders.RETURN_REPLY_CODE, replyCode)
-				.setHeader(AmqpHeaders.RETURN_REPLY_TEXT, replyText)
-				.setHeader(AmqpHeaders.RETURN_EXCHANGE, exchange)
-				.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, routingKey);
-		return builder.build();
+		if (this.errorMessageStrategy == null) {
+			builder.copyHeadersIfAbsent(headers)
+					.setHeader(AmqpHeaders.RETURN_REPLY_CODE, replyCode)
+					.setHeader(AmqpHeaders.RETURN_REPLY_TEXT, replyText)
+					.setHeader(AmqpHeaders.RETURN_EXCHANGE, exchange)
+					.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, routingKey);
+		}
+		Message<?> returnedMessage = builder.build();
+		if (this.errorMessageStrategy != null) {
+			returnedMessage = this.errorMessageStrategy.buildErrorMessage(new ReturnedAmqpMessageException(
+					returnedMessage, message, replyCode, replyText, exchange, routingKey), null);
+		}
+		return returnedMessage;
 	}
 
 	protected void handleConfirm(CorrelationData correlationData, boolean ack, String cause) {
-		Object userCorrelationData = correlationData;
+		CorrelationDataWrapper wrapper = (CorrelationDataWrapper) correlationData;
 		if (correlationData == null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("No correlation data provided for ack: " + ack + " cause:" + cause);
 			}
 			return;
 		}
-		if (correlationData instanceof CorrelationDataWrapper) {
-			userCorrelationData = ((CorrelationDataWrapper) correlationData).getUserData();
-		}
+		Object userCorrelationData = wrapper.getUserData();
+		Message<?> confirmMessage;
+		if (this.errorMessageStrategy == null || ack) {
+			Map<String, Object> headers = new HashMap<String, Object>();
+			headers.put(AmqpHeaders.PUBLISH_CONFIRM, ack);
+			if (!ack && StringUtils.hasText(cause)) {
+				headers.put(AmqpHeaders.PUBLISH_CONFIRM_NACK_CAUSE, cause);
+			}
 
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put(AmqpHeaders.PUBLISH_CONFIRM, ack);
-		if (!ack && StringUtils.hasText(cause)) {
-			headers.put(AmqpHeaders.PUBLISH_CONFIRM_NACK_CAUSE, cause);
-		}
+			AbstractIntegrationMessageBuilder<?> builder = userCorrelationData instanceof Message
+					? this.getMessageBuilderFactory().fromMessage((Message<?>) userCorrelationData)
+					: this.getMessageBuilderFactory().withPayload(userCorrelationData);
 
-		AbstractIntegrationMessageBuilder<?> builder = userCorrelationData instanceof Message
-				? this.getMessageBuilderFactory().fromMessage((Message<?>) userCorrelationData)
-				: this.getMessageBuilderFactory().withPayload(userCorrelationData);
-
-		Message<?> confirmMessage = builder
-				.copyHeaders(headers)
-				.build();
-		if (ack && this.confirmAckChannel != null) {
-			sendOutput(confirmMessage, this.confirmAckChannel, true);
+			confirmMessage = builder
+					.copyHeaders(headers)
+					.build();
 		}
-		else if (!ack && this.confirmNackChannel != null) {
-			sendOutput(confirmMessage, this.confirmNackChannel, true);
+		else {
+			confirmMessage = this.errorMessageStrategy.buildErrorMessage(
+					new NackedAmqpMessageException(wrapper.getMessage(), wrapper.getUserData(), cause), null);
+		}
+		if (ack && getConfirmAckChannel() != null) {
+			sendOutput(confirmMessage, getConfirmAckChannel(), true);
+		}
+		else if (!ack && getConfirmNackChannel() != null) {
+			sendOutput(confirmMessage, getConfirmNackChannel(), true);
 		}
 		else {
 			if (logger.isInfoEnabled()) {
@@ -517,13 +565,20 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 		private final Object userData;
 
-		private CorrelationDataWrapper(String id, Object userData) {
+		private final Message<?> message;
+
+		CorrelationDataWrapper(String id, Object userData, Message<?> message) {
 			super(id);
 			this.userData = userData;
+			this.message = message;
 		}
 
 		public Object getUserData() {
 			return this.userData;
+		}
+
+		public Message<?> getMessage() {
+			return this.message;
 		}
 
 	}

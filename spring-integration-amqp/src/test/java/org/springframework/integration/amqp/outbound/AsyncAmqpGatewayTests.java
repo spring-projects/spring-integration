@@ -54,6 +54,8 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.amqp.support.NackedAmqpMessageException;
+import org.springframework.integration.amqp.support.ReturnedAmqpMessageException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
@@ -202,7 +204,10 @@ public class AsyncAmqpGatewayTests {
 		gateway.handleMessage(message);
 		Message<?> returned = returnChannel.receive(10000);
 		assertNotNull(returned);
-		assertEquals("fiz", returned.getPayload());
+		assertThat(returned, instanceOf(ErrorMessage.class));
+		assertThat(returned.getPayload(), instanceOf(ReturnedAmqpMessageException.class));
+		ReturnedAmqpMessageException payload = (ReturnedAmqpMessageException) returned.getPayload();
+		assertEquals("fiz", payload.getFailedMessage().getPayload());
 		ackChannel.receive(10000);
 		ackChannel.purge(null);
 
@@ -222,9 +227,11 @@ public class AsyncAmqpGatewayTests {
 
 		ack = ackChannel.receive(10000);
 		assertNotNull(ack);
-		assertEquals("buz", ack.getPayload());
-		assertEquals("nacknack", ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM_NACK_CAUSE));
-		assertEquals(false, ack.getHeaders().get(AmqpHeaders.PUBLISH_CONFIRM));
+		assertThat(returned, instanceOf(ErrorMessage.class));
+		assertThat(returned.getPayload(), instanceOf(ReturnedAmqpMessageException.class));
+		NackedAmqpMessageException nack = (NackedAmqpMessageException) ack.getPayload();
+		assertEquals("buz", nack.getFailedMessage().getPayload());
+		assertEquals("nacknack", nack.getNackReason());
 
 		asyncTemplate.stop();
 		receiver.stop();

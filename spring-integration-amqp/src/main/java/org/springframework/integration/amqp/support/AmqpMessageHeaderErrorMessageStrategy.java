@@ -17,6 +17,7 @@
 package org.springframework.integration.amqp.support;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.amqp.support.AmqpHeaders;
@@ -43,11 +44,11 @@ public class AmqpMessageHeaderErrorMessageStrategy implements ErrorMessageStrate
 	 */
 	public static final String AMQP_RAW_MESSAGE = AmqpHeaders.PREFIX + "raw_message";
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor context) {
-		Object inputMessage = context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
-		Map<String, Object> headers =
+		Object inputMessage = context == null ? null
+				: context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
+		Map<String, Object> headers = context == null ? new HashMap<String, Object>() :
 				Collections.singletonMap(AMQP_RAW_MESSAGE, context.getAttribute(AMQP_RAW_MESSAGE));
 		return new ErrorMessage(throwable, headers, inputMessage instanceof Message ? (Message<?>) inputMessage : null);
 	}
