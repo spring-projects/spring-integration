@@ -569,6 +569,26 @@ public class MyFlowConfiguration {
 }
 ----
 
+Starting with _version 5.0_, support is also provided for `@Bean` annotated `InboundChannelAdapter`s that return `java.util.function.Supplier` which can produce either a POJO or a `Message`:
+[source,java]
+----
+@Configuration
+@EnableIntegration
+public class MyFlowConfiguration {
+
+    @Bean
+    @InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
+    public Supplier<String> pojoSupplier() {
+        return () -> "foo";
+    }
+	
+    @Bean
+    @InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
+    public Supplier<Message<String>> messageSupplier() {
+        return () -> new GenericMessage<>("foo");
+    }
+----
+
 The meta-annotation rules work on `@Bean` methods as well (`@MyServiceActivator` above can be applied to a `@Bean` definition).
 
 NOTE: When using these annotations on consumer `@Bean` definitions, if the bean definition returns an appropriate

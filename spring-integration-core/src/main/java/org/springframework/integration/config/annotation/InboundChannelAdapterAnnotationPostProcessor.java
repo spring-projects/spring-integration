@@ -19,6 +19,7 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -33,12 +34,14 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Post-processor for Methods annotated with {@link InboundChannelAdapter @InboundChannelAdapter}.
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 4.0
  */
 public class InboundChannelAdapterAnnotationPostProcessor extends
@@ -80,20 +83,28 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 	}
 
 	private MessageSource<?> createMessageSource(Object bean, String beanName, Method method) {
+		MessageSource<?> messageSource = null;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
 			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			Assert.isInstanceOf(MessageSource.class, target, "The '" + this.annotationType + "' on @Bean method " +
-					"level is allowed only for: " + MessageSource.class.getName() + "beans");
-			return (MessageSource<?>) target;
+			Assert.isTrue(target instanceof MessageSource || target instanceof Supplier, "The '" + this.annotationType + "' on @Bean method " +
+					"level is allowed only for: " + MessageSource.class.getName() + " or " + Supplier.class.getName() + " beans");
+			if (target instanceof MessageSource<?>) {
+				messageSource = (MessageSource<?>) target;
+			}
+			else {
+				method = ReflectionUtils.findMethod(Supplier.class, "get");
+				bean = target;
+			}
 		}
-		else {
-			MethodInvokingMessageSource messageSource = new MethodInvokingMessageSource();
-			messageSource.setObject(bean);
-			messageSource.setMethod(method);
+		if (messageSource == null) {
+			MethodInvokingMessageSource methodInvokingMessageSource = new MethodInvokingMessageSource();
+			methodInvokingMessageSource.setObject(bean);
+			methodInvokingMessageSource.setMethod(method);
 			String messageSourceBeanName = this.generateHandlerBeanName(beanName, method);
-			this.beanFactory.registerSingleton(messageSourceBeanName, messageSource);
-			return  (MessageSource<?>) this.beanFactory.initializeBean(messageSource, messageSourceBeanName);
+			this.beanFactory.registerSingleton(messageSourceBeanName, methodInvokingMessageSource);
+			messageSource =  (MessageSource<?>) this.beanFactory.initializeBean(methodInvokingMessageSource, messageSourceBeanName);
 		}
+		return messageSource;
 	}
 
 	@Override
