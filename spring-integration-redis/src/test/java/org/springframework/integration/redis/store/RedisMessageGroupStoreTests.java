@@ -42,6 +42,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -53,6 +54,8 @@ import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.MessageGroupStoreReaper;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessage;
@@ -72,6 +75,11 @@ import junit.framework.AssertionFailedError;
  * @author Gary Russell
  */
 public class RedisMessageGroupStoreTests extends RedisAvailableTests {
+
+	@Bean
+	public RedisConnectionFactory redisConnectionFactory() {
+		return getConnectionFactoryForTest();
+	}
 
 	@Before
 	@After
@@ -393,9 +401,9 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 				.build();
 
 		input.send(m1);
-		assertNull(output.receive(1000));
+		assertNull(output.receive(10));
 		input.send(m2);
-		assertNull(output.receive(1000));
+		assertNull(output.receive(10));
 
 		context.close();
 
@@ -411,6 +419,13 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		input.send(m3);
 		assertNotNull(output.receive(1000));
+
+		MessageGroupStoreReaper messageGroupStoreReaper = context.getBean(MessageGroupStoreReaper.class);
+		messageGroupStoreReaper.run();
+
+		MessageGroupStore messageGroupStore = context.getBean(MessageGroupStore.class);
+		assertEquals(0, messageGroupStore.getMessageGroupCount());
+
 		context.close();
 	}
 

@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:annotation-config/>
+
+	<bean class="org.springframework.integration.redis.store.RedisMessageGroupStoreTests"/>
 
 	<int:aggregator input-channel="inputChannel" output-channel="outputChannel" message-store="redisStore"/>
 
@@ -13,10 +19,16 @@
 
 	<bean id="redisStore" class="org.springframework.integration.redis.store.RedisMessageStore">
 		<constructor-arg ref="redisConnectionFactory"/>
+		<property name="valueSerializer">
+			<bean class="org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer">
+				<constructor-arg value="#{T (org.springframework.integration.support.json.JacksonJsonUtils).messagingAwareMapper()}"/>
+			</bean>
+		</property>
 	</bean>
 
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+	<bean id="messageGroupStoreReaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
+		<constructor-arg ref="redisStore"/>
+		<property name="timeout" value="0"/>
 	</bean>
 
 </beans>

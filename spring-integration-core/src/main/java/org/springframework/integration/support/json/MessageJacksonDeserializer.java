@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -71,7 +72,10 @@ public abstract class MessageJacksonDeserializer<T extends Message<?>> extends S
 		Map<String, Object> headers = this.mapper.readValue(root.get("headers").traverse(),
 				TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, Object.class));
 		Object payload = this.mapper.readValue(root.get("payload").traverse(), this.payloadType);
-		return buildMessage(new MutableMessageHeaders(headers), payload, root, ctxt);
+		MutableMessageHeaders messageHeaders = new MutableMessageHeaders(headers);
+		messageHeaders.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
+		messageHeaders.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+		return buildMessage(messageHeaders, payload, root, ctxt);
 	}
 
 	protected abstract T buildMessage(MutableMessageHeaders headers, Object payload, JsonNode root,
