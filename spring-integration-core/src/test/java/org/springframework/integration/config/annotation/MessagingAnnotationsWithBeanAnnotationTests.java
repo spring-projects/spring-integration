@@ -28,13 +28,14 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -84,6 +85,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 4.0
  */
 @ContextConfiguration(classes = MessagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.class)
@@ -92,7 +94,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class MessagingAnnotationsWithBeanAnnotationTests {
 
 	@Autowired
-	private SourcePollingChannelAdapter sourcePollingChannelAdapter;
+	private SourcePollingChannelAdapter[] sourcePollingChannelAdapters;
 
 	@Autowired
 	private PollableChannel discardChannel;
@@ -125,7 +127,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 	@Test
 	public void testMessagingAnnotationsFlow() {
-		this.sourcePollingChannelAdapter.start();
+		Stream.of(this.sourcePollingChannelAdapters).forEach(a -> a.start());
+		//this.sourcePollingChannelAdapter.start();
 		for (int i = 0; i < 10; i++) {
 			Message<?> receive = this.discardChannel.receive(10000);
 			assertNotNull(receive);
@@ -192,6 +195,13 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 				poller = @Poller(fixedRate = "10", maxMessagesPerPoll = "1", errorChannel = "counterErrorChannel"))
 		public MessageSource<Integer> counterMessageSource(final AtomicInteger counter) {
 			return () -> new GenericMessage<>(counter.incrementAndGet());
+		}
+
+		@Bean
+		@InboundChannelAdapter(value = "routerChannel", autoStartup = "false",
+				poller = @Poller(fixedRate = "10", maxMessagesPerPoll = "1", errorChannel = "counterErrorChannel"))
+		public Supplier<Integer> counterMessageSupplier(final AtomicInteger counter) {
+			return () -> counter.incrementAndGet();
 		}
 
 		@Bean
