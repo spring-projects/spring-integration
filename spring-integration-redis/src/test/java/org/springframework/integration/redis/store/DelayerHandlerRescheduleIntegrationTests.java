@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Level;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,6 +35,7 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -51,6 +53,10 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
+
+	@Rule
+	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.DEBUG, "org.springframework.integration",
+			"org.springframework.data.redis");
 
 	@Test
 	@RedisAvailable
@@ -75,7 +81,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
-		context.destroy();
+		context.close();
 
 		try {
 			context.getBean("input", MessageChannel.class);
@@ -114,13 +120,13 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 
 		assertEquals(1, messageStore.getMessageGroupCount());
 		int n = 0;
-		while (n++ < 100 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
+		while (n++ < 200 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
 			Thread.sleep(100);
 		}
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 
 		messageStore.removeMessageGroup(delayerMessageGroupId);
-		context.destroy();
+		context.close();
 	}
 
 }
