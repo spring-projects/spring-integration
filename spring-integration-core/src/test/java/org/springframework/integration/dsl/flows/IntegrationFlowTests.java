@@ -95,6 +95,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @author Artem Bilan
  * @author Tim Ysewyn
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  *
  * @since 5.0
  */
@@ -123,6 +124,14 @@ public class IntegrationFlowTests {
 	@Autowired
 	@Qualifier("successChannel")
 	private PollableChannel successChannel;
+
+	@Autowired
+	@Qualifier("suppliedChannel")
+	private PollableChannel suppliedChannel;
+
+	@Autowired
+	@Qualifier("suppliedChannel2")
+	private PollableChannel suppliedChannel2;
 
 	@Autowired
 	@Qualifier("bridgeFlowInput")
@@ -166,6 +175,17 @@ public class IntegrationFlowTests {
 	@Autowired
 	@Qualifier("gatewayError")
 	private PollableChannel gatewayError;
+
+	@Test
+	public void testWithSupplierMessageSourceImpliedPoller() {
+		assertEquals("FOO", this.suppliedChannel.receive(1000).getPayload());
+	}
+
+	@Test
+	public void testWithSupplierMessageSourceProvidedPoller() {
+		assertNull(this.suppliedChannel2.receive(100));
+		assertEquals("FOO", this.suppliedChannel2.receive(2000).getPayload());
+	}
 
 	@Test
 	public void testDirectFlow() {
@@ -457,6 +477,53 @@ public class IntegrationFlowTests {
 	public interface ControlBusGateway {
 
 		void send(String command);
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class SupplierContextConfiguration1 {
+		@Bean
+		public IntegrationFlow supplierFlow() {
+			return IntegrationFlows.from(() -> "foo")
+					.<String, String>transform(p -> p.toUpperCase())
+					.channel("suppliedChannel")
+					.get();
+		}
+
+		@Bean(name = PollerMetadata.DEFAULT_POLLER)
+		public PollerMetadata poller() {
+			return Pollers.fixedRate(100).get();
+		}
+
+		@Bean(name = IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)
+		public TaskScheduler taskScheduler() {
+			ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+			threadPoolTaskScheduler.setPoolSize(100);
+			return threadPoolTaskScheduler;
+		}
+
+
+		@Bean
+		public MessageChannel suppliedChannel() {
+			return MessageChannels.queue(10).get();
+		}
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class SupplierContextConfiguration2 {
+		@Bean
+		public IntegrationFlow supplierFlow2() {
+			return IntegrationFlows.from(() -> "foo", c -> c.poller(Pollers.fixedDelay(400, 300).maxMessagesPerPoll(1)))
+					.<String, String>transform(p -> p.toUpperCase())
+					.channel("suppliedChannel2")
+					.get();
+		}
+
+		@Bean
+		public MessageChannel suppliedChannel2() {
+			return MessageChannels.queue(10).get();
+		}
 	}
 
 	@Configuration
