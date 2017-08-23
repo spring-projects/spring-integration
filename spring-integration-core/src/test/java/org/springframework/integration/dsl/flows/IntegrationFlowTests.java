@@ -183,7 +183,6 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testWithSupplierMessageSourceProvidedPoller() {
-		assertNull(this.suppliedChannel2.receive(100));
 		assertEquals("FOO", this.suppliedChannel2.receive(2000).getPayload());
 	}
 
@@ -514,7 +513,7 @@ public class IntegrationFlowTests {
 	public static class SupplierContextConfiguration2 {
 		@Bean
 		public IntegrationFlow supplierFlow2() {
-			return IntegrationFlows.from(() -> "foo", c -> c.poller(Pollers.fixedDelay(400, 300).maxMessagesPerPoll(1)))
+			return IntegrationFlows.from(() -> "foo", c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
 					.<String, String>transform(p -> p.toUpperCase())
 					.channel("suppliedChannel2")
 					.get();
