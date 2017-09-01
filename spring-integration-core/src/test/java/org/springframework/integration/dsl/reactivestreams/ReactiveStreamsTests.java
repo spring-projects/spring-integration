@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
@@ -105,7 +104,6 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	@Ignore
 	public void testPollableReactiveFlow() throws Exception {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 
@@ -124,7 +122,7 @@ public class ReactiveStreamsTests {
 								.map(v -> v.split(","))
 								.flatMapIterable(Arrays::asList)
 								.map(Integer::parseInt)
-								.<Message<Integer>>map(GenericMessage<Integer>::new)
+								.<Message<Integer>>map(GenericMessage::new)
 								.concatWith(this.pollablePublisher)
 								.take(7)
 								.map(Message::getPayload)
@@ -149,7 +147,7 @@ public class ReactiveStreamsTests {
 				.flatMapIterable(Arrays::asList)
 				.map(Integer::parseInt)
 				.log("org.springframework.integration.flux")
-				.map(GenericMessage<Integer>::new);
+				.map(GenericMessage::new);
 
 		QueueChannel resultChannel = new QueueChannel();
 
