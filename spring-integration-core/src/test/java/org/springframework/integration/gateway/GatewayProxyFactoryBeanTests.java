@@ -28,6 +28,7 @@ import static org.mockito.Mockito.spy;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -462,6 +463,13 @@ public class GatewayProxyFactoryBeanTests {
 		new ClassPathXmlApplicationContext("gatewayAutowiring.xml", GatewayProxyFactoryBeanTests.class).close();
 	}
 
+	@Test
+	public void testOverriddenMethod() {
+		GatewayProxyFactoryBean gpfb = new GatewayProxyFactoryBean(InheritChild.class);
+		gpfb.afterPropertiesSet();
+		Map<Method, MessagingGatewaySupport> gateways = gpfb.getGateways();
+		assertThat(gateways.size(), equalTo(2));
+	}
 
 	public static void throwTestException() throws TestException {
 		throw new TestException();
@@ -491,6 +499,20 @@ public class GatewayProxyFactoryBeanTests {
 		String throwCheckedException(String s) throws TestException;
 	}
 
+	interface InheritSuper {
+
+		String overridden(String in);
+
+		String NotOverridden(String in);
+
+	}
+
+	interface InheritChild extends InheritSuper {
+
+		@Override
+		String overridden(String in);
+
+	}
 
 	@SuppressWarnings("serial")
 	static class TestException extends Exception {

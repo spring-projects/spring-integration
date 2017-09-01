@@ -277,21 +277,24 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 		private MessageGatewayNode gatewayNode(String name, MessagingGatewaySupport gateway) {
 			String errorChannel = gateway.getErrorChannel() != null ? gateway.getErrorChannel().toString() : null;
+			String requestChannel = gateway.getRequestChannel() != null ? gateway.getRequestChannel().toString() : null;
 			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway,
-					gateway.getRequestChannel().toString(), errorChannel);
+					requestChannel, errorChannel);
 		}
 
 		private MessageProducerNode producerNode(String name, MessageProducerSupport producer) {
 			String errorChannel = producer.getErrorChannel() != null ? producer.getErrorChannel().toString() : null;
+			String outputChannel = producer.getOutputChannel() != null ? producer.getOutputChannel().toString() : null;
 			return new MessageProducerNode(this.nodeId.incrementAndGet(), name, producer,
-					producer.getOutputChannel().toString(), errorChannel);
+					outputChannel, errorChannel);
 		}
 
 		private MessageSourceNode sourceNode(String name, SourcePollingChannelAdapter adapter) {
 			String errorChannel = adapter.getDefaultErrorChannel() != null
 					? adapter.getDefaultErrorChannel().toString() : null;
+			String outputChannel = adapter.getOutputChannel() != null ? adapter.getOutputChannel().toString() : null;
 			return new MessageSourceNode(this.nodeId.incrementAndGet(), name, adapter.getMessageSource(),
-					adapter.getOutputChannel().toString(), errorChannel);
+					outputChannel, errorChannel);
 		}
 
 		private MessageHandlerNode handlerNode(String name, IntegrationConsumer consumer) {
@@ -315,8 +318,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 							outputChannelName, null, false);
 			}
 			else {
+				String inputChannel = consumer.getInputChannel() != null ? consumer.getInputChannel().toString() : null;
 				return new MessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-							consumer.getInputChannel().toString(), outputChannelName);
+							inputChannel, outputChannelName);
 			}
 		}
 
@@ -343,8 +347,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 							outputChannelName, errorChannel, true);
 			}
 			else {
+				String inputChannel = consumer.getInputChannel() != null ? consumer.getInputChannel().toString() : null;
 				return new ErrorCapableMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-							consumer.getInputChannel().toString(), outputChannelName, errorChannel);
+							inputChannel, outputChannelName, errorChannel);
 			}
 		}
 
@@ -360,21 +365,23 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 							named.getComponentType()));
 				}
 			}
+			String inputChannel = consumer.getInputChannel() != null ? consumer.getInputChannel().toString() : null;
 			return polled
 					? new ErrorCapableCompositeMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, errors, innerHandlers)
+						inputChannel, output, errors, innerHandlers)
 					: new CompositeMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, innerHandlers);
+						inputChannel, output, innerHandlers);
 		}
 
 		private MessageHandlerNode discardingHandler(String name, IntegrationConsumer consumer,
 				DiscardingMessageHandler handler, String output, String errors, boolean polled) {
 			String discards = handler.getDiscardChannel() != null ? handler.getDiscardChannel().toString() : null;
+			String inputChannel = consumer.getInputChannel() != null ? consumer.getInputChannel().toString() : null;
 			return polled
 					? new ErrorCapableDiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, discards, errors)
+						inputChannel, output, discards, errors)
 					: new DiscardingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, discards);
+						inputChannel, output, discards);
 		}
 
 		private MessageHandlerNode routingHandler(String name, IntegrationConsumer consumer, MessageHandler handler,
@@ -385,11 +392,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 				routes = new ArrayList<String>(routes);
 				routes.addAll(dynamicChannelNames);
 			}
+			String inputChannel = consumer.getInputChannel() != null ? consumer.getInputChannel().toString() : null;
 			return polled
 					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, errors, routes)
+						inputChannel, output, errors, routes)
 					: new RoutingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, routes);
+						inputChannel, output, routes);
 		}
 
 		private MessageHandlerNode recipientListRoutingHandler(String name, IntegrationConsumer consumer,
@@ -400,11 +408,12 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			for (Object recipient : recipients) {
 				routes.add(((Recipient) recipient).getChannel().toString());
 			}
+			String inputChannel = consumer.getInputChannel() != null ? consumer.getInputChannel().toString() : null;
 			return polled
 					? new ErrorCapableRoutingNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, errors, routes)
+						inputChannel, output, errors, routes)
 					: new RoutingMessageHandlerNode(this.nodeId.incrementAndGet(), name, handler,
-						consumer.getInputChannel().toString(), output, routes);
+						inputChannel, output, routes);
 		}
 
 		private void reset() {
