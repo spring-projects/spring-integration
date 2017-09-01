@@ -344,7 +344,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 				this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 			}
 			Class<?> proxyInterface = this.determineServiceInterface();
-			Method[] methods = ReflectionUtils.getAllDeclaredMethods(proxyInterface);
+			Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(proxyInterface);
 			for (Method method : methods) {
 				MethodInvocationGateway gateway = this.createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
