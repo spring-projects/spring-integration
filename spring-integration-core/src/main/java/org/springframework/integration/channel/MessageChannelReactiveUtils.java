@@ -106,7 +106,7 @@ public final class MessageChannelReactiveUtils {
 					.<Message<T>>create(sink ->
 									sink.onRequest(n -> {
 										Message<?> m;
-										while (n-- > 0 && (m = this.channel.receive()) != null) {
+										while (!sink.isCancelled() && n-- > 0 && (m = this.channel.receive()) != null) {
 											sink.next((Message<T>) m);
 										}
 									}),

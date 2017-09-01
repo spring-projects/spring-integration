@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Publisher;
@@ -105,7 +104,6 @@ public class ReactiveStreamsTests {
 	}
 
 	@Test
-	@Ignore
 	public void testPollableReactiveFlow() throws Exception {
 		this.inputChannel.send(new GenericMessage<>("1,2,3,4,5"));
 

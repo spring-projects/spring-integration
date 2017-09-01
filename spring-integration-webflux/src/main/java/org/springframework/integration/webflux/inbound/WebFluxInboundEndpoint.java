@@ -156,7 +156,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 						return setStatusCode(exchange);
 					}
 				})
-				.doOnTerminate((e, t) -> this.activeCount.decrementAndGet());
+				.doOnTerminate(this.activeCount::decrementAndGet);
 
 	}
 
