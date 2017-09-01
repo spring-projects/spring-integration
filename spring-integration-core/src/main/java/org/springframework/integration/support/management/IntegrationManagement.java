@@ -43,4 +43,30 @@ public interface IntegrationManagement {
 	@ManagedAttribute
 	boolean isCountsEnabled();
 
+	/**
+	 * Return the overrides.
+	 * @return the overrides.
+	 * @since 5.0
+	 */
+	ManagementOverrides getOverrides();
+
+	/**
+	 * Toggles to inform the management configurer to not set these properties since
+	 * the user has manually configured them in a bean definition. If true, the
+	 * corresponding property will not be set by the configurer.
+	 *
+	 * @since 5.0
+	 */
+	class ManagementOverrides {
+
+		public boolean loggingConfigured;
+
+		public boolean countsConfigured;
+
+		public boolean statsConfigured;
+
+		public boolean metricsConfigured;
+
+	}
+
 }

@@ -45,7 +45,9 @@ import org.springframework.util.StringUtils;
 public class NullChannel implements PollableChannel, MessageChannelMetrics,
 		ConfigurableMetricsAware<AbstractMessageChannelMetrics>, BeanNameAware, NamedComponent {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
+
+	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
 	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics("nullChannel");
 
@@ -71,6 +73,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	@Override
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
+		this.managementOverrides.loggingConfigured = true;
 	}
 
 	@Override
@@ -87,6 +90,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	public void configureMetrics(AbstractMessageChannelMetrics metrics) {
 		Assert.notNull(metrics, "'metrics' must not be null");
 		this.channelMetrics = metrics;
+		this.managementOverrides.metricsConfigured = true;
 	}
 
 	@Override
@@ -97,8 +101,10 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
+		this.managementOverrides.countsConfigured = true;
 		if (!countsEnabled) {
 			this.statsEnabled = false;
+			this.managementOverrides.statsConfigured = true;
 		}
 	}
 
@@ -111,9 +117,11 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	public void setStatsEnabled(boolean statsEnabled) {
 		if (statsEnabled) {
 			this.countsEnabled = true;
+			this.managementOverrides.countsConfigured = true;
 		}
 		this.statsEnabled = statsEnabled;
 		this.channelMetrics.setFullStatsEnabled(statsEnabled);
+		this.managementOverrides.statsConfigured = true;
 	}
 
 	@Override
@@ -194,6 +202,11 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	@Override
 	public Statistics getErrorRate() {
 		return this.channelMetrics.getErrorRate();
+	}
+
+	@Override
+	public ManagementOverrides getOverrides() {
+		return this.managementOverrides;
 	}
 
 	@Override

@@ -68,6 +68,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private final Comparator<Object> orderComparator = new OrderComparator();
 
+	private final ManagementOverrides managementOverrides = new ManagementOverrides();
+
 	private volatile boolean shouldTrack = false;
 
 	private volatile Class<?>[] datatypes = new Class<?>[0];
@@ -101,8 +103,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
+		this.managementOverrides.countsConfigured = true;
 		if (!countsEnabled) {
 			this.statsEnabled = false;
+			this.managementOverrides.statsConfigured = true;
 		}
 	}
 
@@ -115,9 +119,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	public void setStatsEnabled(boolean statsEnabled) {
 		if (statsEnabled) {
 			this.countsEnabled = true;
+			this.managementOverrides.countsConfigured = true;
 		}
 		this.statsEnabled = statsEnabled;
 		this.channelMetrics.setFullStatsEnabled(statsEnabled);
+		this.managementOverrides.statsConfigured = true;
 	}
 
 	@Override
@@ -133,6 +139,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
+		this.managementOverrides.loggingConfigured = true;
 	}
 
 	protected AbstractMessageChannelMetrics getMetrics() {
@@ -143,6 +150,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	public void configureMetrics(AbstractMessageChannelMetrics metrics) {
 		Assert.notNull(metrics, "'metrics' must not be null");
 		this.channelMetrics = metrics;
+		this.managementOverrides.metricsConfigured = true;
 	}
 
 	/**
@@ -321,6 +329,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public Statistics getErrorRate() {
 		return this.channelMetrics.getErrorRate();
+	}
+
+	@Override
+	public ManagementOverrides getOverrides() {
+		return this.managementOverrides;
 	}
 
 	@Override

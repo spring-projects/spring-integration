@@ -45,6 +45,8 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private final AtomicLong messageCount = new AtomicLong();
 
+	private final ManagementOverrides managementOverrides = new ManagementOverrides();
+
 	private volatile Map<String, Expression> headerExpressions = Collections.emptyMap();
 
 	private volatile String beanName;
@@ -100,6 +102,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
+		this.managementOverrides.countsConfigured = true;
 	}
 
 	@Override
@@ -110,6 +113,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	@Override
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
+		this.managementOverrides.loggingConfigured = true;
 	}
 
 	@Override
@@ -125,6 +129,11 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	@Override
 	public long getMessageCountLong() {
 		return this.messageCount.get();
+	}
+
+	@Override
+	public ManagementOverrides getOverrides() {
+		return this.managementOverrides;
 	}
 
 	@Override
