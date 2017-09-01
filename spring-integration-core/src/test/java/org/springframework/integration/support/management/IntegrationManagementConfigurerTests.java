@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ import org.springframework.messaging.MessageChannel;
 public class IntegrationManagementConfigurerTests {
 
 	@Test
-	public void testLogging() {
+	public void testDefaults() {
 		DirectChannel channel = new DirectChannel();
 		AbstractMessageHandler handler = new RecipientListRouter();
 		AbstractMessageSource<?> source = new AbstractMessageSource<Object>() {
@@ -68,6 +68,8 @@ public class IntegrationManagementConfigurerTests {
 		assertTrue(channel.isLoggingEnabled());
 		assertTrue(handler.isLoggingEnabled());
 		assertTrue(source.isLoggingEnabled());
+		channel.setCountsEnabled(true);
+		channel.setStatsEnabled(true);
 		ApplicationContext ctx = mock(ApplicationContext.class);
 		Map<String, IntegrationManagement> beans = new HashMap<String, IntegrationManagement>();
 		beans.put("foo", channel);
@@ -82,6 +84,8 @@ public class IntegrationManagementConfigurerTests {
 		assertFalse(channel.isLoggingEnabled());
 		assertFalse(handler.isLoggingEnabled());
 		assertFalse(source.isLoggingEnabled());
+		assertTrue(channel.isCountsEnabled());
+		assertTrue(channel.isStatsEnabled());
 	}
 
 	@Test
@@ -93,6 +97,8 @@ public class IntegrationManagementConfigurerTests {
 		assertTrue(channel.isStatsEnabled());
 		assertThat(TestUtils.getPropertyValue(channel, "channelMetrics"),
 				instanceOf(DefaultMessageChannelMetrics.class));
+		channel = ctx.getBean("loggingOffChannel", AbstractMessageChannel.class);
+		assertFalse(channel.isLoggingEnabled());
 		ctx.close();
 	}
 
@@ -106,6 +112,12 @@ public class IntegrationManagementConfigurerTests {
 			return new DirectChannel();
 		}
 
+		@Bean
+		public MessageChannel loggingOffChannel() {
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.setLoggingEnabled(false);
+			return directChannel;
+		}
 	}
 
 }

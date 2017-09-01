@@ -15,6 +15,7 @@ See <<mgmt-channel-features>> and <<mgmt-handler-features>> below.
 This causes the automatic registration of the `IntegrationManagementConfigurer` bean in the application context.
 Only one such bean can exist in the context and it must have the bean name `integrationManagementConfigurer`
 if registered manually via a `<bean/>` definition.
+This bean applies it's configuration to beans after all beans in the context have been instantiated.
 
 In addition to metrics, you can control *debug* logging in the main message flow.
 It has been found that in very high volume applications, even calls to `isDebugEnabled()` can be quite expensive with
@@ -27,7 +28,7 @@ A number of options are available:
 [source, xml]
 ----
 <int:management
-    default-logging-enabled="false" <1>
+    default-logging-enabled="true" <1>
     default-counts-enabled="false" <2>
     default-stats-enabled="false" <3>
     counts-enabled-patterns="foo, !baz, ba*" <4>
@@ -40,7 +41,7 @@ A number of options are available:
 @Configuration
 @EnableIntegration
 @EnableIntegrationManagement(
-    defaultLoggingEnabled = "false", <1>
+    defaultLoggingEnabled = "true", <1>
     defaultCountsEnabled = "false", <2>
     defaultStatsEnabled = "false", <3>
     countsEnabled = { "foo", "${count.patterns}" }, <4>
@@ -53,10 +54,16 @@ public static class ContextConfiguration {
 
 <1> Set to `false` to disable all logging in the main message flow, regardless of the log system category settings.
 Set to 'true' to enable debug logging (if also enabled by the logging subsystem).
+Only applied if you have not explicitly configured the setting in a bean definition.
+Default `true`.
 
 <2> Enable or disable count metrics for components not matching one of the patterns in <4>.
+Only applied if you have not explicitly configured the setting in a bean definition.
+Default `false`.
 
 <3> Enable or disable statistical metrics for components not matching one of the patterns in <5>.
+Only applied if you have not explicitly configured the setting in a bean definition.
+Default 'false'.
 
 <4> A comma-delimited list of patterns for beans for which counts should be enabled; negate the pattern with `!`.
 First match wins (positive or negative).
@@ -80,6 +87,11 @@ At runtime, counts and statistics can be obtained by calling `IntegrationManagem
 See the javadocs for complete information about these classes.
 
 When JMX is enabled (see <<jmx>>), these metrics are also exposed by the `IntegrationMBeanExporter`.
+
+[IMPORTANT]
+====
+`defaultLoggingEnabled`, `defaultCountsEnabled`, and `defaultStatsEnabled` are only applied if you have not explicitly configured the corresponding setting in a bean definition.
+====
 
 [[mgmt-channel-features]]
 ==== MessageChannel Metric Features

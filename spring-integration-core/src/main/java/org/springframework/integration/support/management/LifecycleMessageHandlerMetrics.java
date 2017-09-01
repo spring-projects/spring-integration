@@ -182,4 +182,9 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		this.delegate.setManagedType(source);
 	}
 
+	@Override
+	public ManagementOverrides getOverrides() {
+		return this.delegate.getOverrides();
+	}
+
 }

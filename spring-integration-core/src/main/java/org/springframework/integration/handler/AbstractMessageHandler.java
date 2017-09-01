@@ -53,6 +53,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		MessageHandlerMetrics, ConfigurableMetricsAware<AbstractMessageHandlerMetrics>, TrackableComponent, Orderable,
 		CoreSubscriber<Message<?>> {
 
+	private final ManagementOverrides managementOverrides = new ManagementOverrides();
+
 	private volatile boolean shouldTrack = false;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
@@ -77,6 +79,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	@Override
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
+		this.managementOverrides.loggingConfigured = true;
 	}
 
 	@Override
@@ -103,6 +106,12 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	public void configureMetrics(AbstractMessageHandlerMetrics metrics) {
 		Assert.notNull(metrics, "'metrics' must not be null");
 		this.handlerMetrics = metrics;
+		this.managementOverrides.metricsConfigured = true;
+	}
+
+	@Override
+	public ManagementOverrides getOverrides() {
+		return this.managementOverrides;
 	}
 
 	@Override
@@ -232,11 +241,13 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	public void setStatsEnabled(boolean statsEnabled) {
 		if (statsEnabled) {
 			this.countsEnabled = true;
+			this.managementOverrides.countsConfigured = true;
 		}
 		this.statsEnabled = statsEnabled;
 		if (this.handlerMetrics != null) {
 			this.handlerMetrics.setFullStatsEnabled(statsEnabled);
 		}
+		this.managementOverrides.statsConfigured = true;
 	}
 
 	@Override
@@ -247,8 +258,10 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
+		this.managementOverrides.countsConfigured = true;
 		if (!countsEnabled) {
 			this.statsEnabled = false;
+			this.managementOverrides.statsConfigured = true;
 		}
 	}
 

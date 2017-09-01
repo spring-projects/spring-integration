@@ -153,6 +153,7 @@ public final class IntegrationFlows {
 	 * Provides {@link Supplier} as source of messages to the integration flow which will
 	 * be triggered by the application context's default poller (which must be declared).
 	 * @param messageSource the {@link Supplier} to populate.
+	 * @param <T> the supplier type.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @see Supplier
 	 */
@@ -166,10 +167,12 @@ public final class IntegrationFlows {
 	 * @param messageSource the {@link Supplier} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
+	 * @param <T> the supplier type.
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @see Supplier
 	 */
-	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource, Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
+			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		return from(messageSource, "get", endpointConfigurer);
 	}
 

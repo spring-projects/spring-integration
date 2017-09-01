@@ -87,6 +87,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 
 	private final AtomicLong messageCount = new AtomicLong();
 
+	private final ManagementOverrides managementOverrides = new ManagementOverrides();
+
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
 	private volatile MessageChannel requestChannel;
@@ -291,6 +293,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	@Override
 	public void setLoggingEnabled(boolean enabled) {
 		this.loggingEnabled = enabled;
+		this.managementOverrides.loggingConfigured = true;
 	}
 
 	@Override
@@ -301,6 +304,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	@Override
 	public void setCountsEnabled(boolean countsEnabled) {
 		this.countsEnabled = countsEnabled;
+		this.managementOverrides.countsConfigured = true;
 	}
 
 	@Override
@@ -317,6 +321,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	public final void setErrorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
 		Assert.notNull(errorMessageStrategy, "'errorMessageStrategy' cannot be null");
 		this.errorMessageStrategy = errorMessageStrategy;
+	}
+
+	@Override
+	public ManagementOverrides getOverrides() {
+		return this.managementOverrides;
 	}
 
 	@Override

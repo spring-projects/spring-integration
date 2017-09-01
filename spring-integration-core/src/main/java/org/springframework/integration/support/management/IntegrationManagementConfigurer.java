@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
@@ -206,7 +207,9 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
-			bean.setLoggingEnabled(this.defaultLoggingEnabled);
+			if (!bean.getOverrides().loggingConfigured) {
+				bean.setLoggingEnabled(this.defaultLoggingEnabled);
+			}
 			if (bean instanceof MessageChannelMetrics) {
 				configureChannelMetrics(entry.getKey(), (MessageChannelMetrics) bean);
 			}
@@ -223,12 +226,15 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	private void configureChannelMetrics(String name, MessageChannelMetrics bean) {
 		AbstractMessageChannelMetrics metrics = this.metricsFactory.createChannelMetrics(name);
 		Assert.state(metrics != null, "'metrics' must not be null");
+		ManagementOverrides overrides = bean.getOverrides();
 		Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
 		if (enabled != null) {
 			bean.setCountsEnabled(enabled);
 		}
 		else {
-			bean.setCountsEnabled(this.defaultCountsEnabled);
+			if (!overrides.countsConfigured) {
+				bean.setCountsEnabled(this.defaultCountsEnabled);
+			}
 		}
 		enabled = smartMatch(this.enabledStatsPatterns, name);
 		if (enabled != null) {
@@ -236,10 +242,12 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 			metrics.setFullStatsEnabled(enabled);
 		}
 		else {
-			bean.setStatsEnabled(this.defaultStatsEnabled);
-			metrics.setFullStatsEnabled(this.defaultStatsEnabled);
+			if (!overrides.statsConfigured) {
+				bean.setStatsEnabled(this.defaultStatsEnabled);
+				metrics.setFullStatsEnabled(this.defaultStatsEnabled);
+			}
 		}
-		if (bean instanceof ConfigurableMetricsAware) {
+		if (bean instanceof ConfigurableMetricsAware && !overrides.metricsConfigured) {
 			((ConfigurableMetricsAware<AbstractMessageChannelMetrics>) bean).configureMetrics(metrics);
 		}
 		this.channelsByName.put(name, bean);
@@ -249,12 +257,15 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	private void configureHandlerMetrics(String name, MessageHandlerMetrics bean) {
 		AbstractMessageHandlerMetrics metrics = this.metricsFactory.createHandlerMetrics(name);
 		Assert.state(metrics != null, "'metrics' must not be null");
+		ManagementOverrides overrides = bean.getOverrides();
 		Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
 		if (enabled != null) {
 			bean.setCountsEnabled(enabled);
 		}
 		else {
-			bean.setCountsEnabled(this.defaultCountsEnabled);
+			if (!overrides.countsConfigured) {
+				bean.setCountsEnabled(this.defaultCountsEnabled);
+			}
 		}
 		enabled = smartMatch(this.enabledStatsPatterns, name);
 		if (enabled != null) {
@@ -262,10 +273,12 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 			metrics.setFullStatsEnabled(enabled);
 		}
 		else {
-			bean.setStatsEnabled(this.defaultStatsEnabled);
-			metrics.setFullStatsEnabled(this.defaultStatsEnabled);
+			if (!overrides.statsConfigured) {
+				bean.setStatsEnabled(this.defaultStatsEnabled);
+				metrics.setFullStatsEnabled(this.defaultStatsEnabled);
+			}
 		}
-		if (bean instanceof ConfigurableMetricsAware) {
+		if (bean instanceof ConfigurableMetricsAware && !overrides.metricsConfigured) {
 			((ConfigurableMetricsAware<AbstractMessageHandlerMetrics>) bean).configureMetrics(metrics);
 		}
 
@@ -278,7 +291,9 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 			bean.setCountsEnabled(enabled);
 		}
 		else {
-			bean.setCountsEnabled(this.defaultCountsEnabled);
+			if (!bean.getOverrides().countsConfigured) {
+				bean.setCountsEnabled(this.defaultCountsEnabled);
+			}
 		}
 		this.sourcesByName.put(bean.getManagedName() != null ? bean.getManagedName() : name, bean);
 	}

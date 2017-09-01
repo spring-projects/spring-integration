@@ -119,4 +119,9 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 		this.delegate.setManagedType(source);
 	}
 
+	@Override
+	public ManagementOverrides getOverrides() {
+		return this.delegate.getOverrides();
+	}
+
 }
