@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -53,7 +54,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 	@After
 	public void setUpTearDown() {
 		StringRedisTemplate template = this.createStringRedisTemplate(this.getConnectionFactoryForTest());
-		template.delete(template.keys("MESSAGE_*"));
+		template.delete(template.keys("*MESSAGE_*"));
 	}
 
 	@Test
@@ -120,6 +121,24 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		Message<String> retrievedMessage = (Message<String>) store.getMessage(stringMessage.getHeaders().getId());
 		assertNotNull(retrievedMessage);
 		assertEquals("Hello Redis", retrievedMessage.getPayload());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	@RedisAvailable
+	public void testAddAndGetWithPrefix() {
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf, "foo");
+		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
+		store.addMessage(stringMessage);
+		Message<String> retrievedMessage = (Message<String>) store.getMessage(stringMessage.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertEquals("Hello Redis", retrievedMessage.getPayload());
+
+		StringRedisTemplate template = createStringRedisTemplate(getConnectionFactoryForTest());
+		BoundValueOperations<String, String> ops =
+				template.boundValueOps("foo" + "MESSAGE_" + stringMessage.getHeaders().getId());
+		assertNotNull(ops.get());
 	}
 
 	@SuppressWarnings("unchecked")

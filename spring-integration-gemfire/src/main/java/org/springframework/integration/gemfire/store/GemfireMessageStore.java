@@ -20,12 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.Region;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.data.gemfire.RegionAttributesFactoryBean;
-import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -39,17 +35,13 @@ import org.springframework.util.PatternMatchUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
-public class GemfireMessageStore extends AbstractKeyValueMessageStore implements InitializingBean {
+public class GemfireMessageStore extends AbstractKeyValueMessageStore {
 
-	private static final String MESSAGE_STORE_REGION_NAME = "messageStoreRegion";
-
-	private volatile Region<Object, Object> messageStoreRegion;
-
-	private final Cache cache;
-
-	private volatile boolean ignoreJta = true;
+	private final Region<Object, Object> messageStoreRegion;
 
 	/**
 	 * Provides the region to be used for the message store. This is useful when
@@ -58,41 +50,38 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 * @param messageStoreRegion The region.
 	 */
 	public GemfireMessageStore(Region<Object, Object> messageStoreRegion) {
-		this.cache = null;
+		this(messageStoreRegion, "");
+	}
+
+	/**
+	 * Construct a {@link GemfireMessageStore} instance based on the provided
+	 * @param messageStoreRegion the region to use.
+	 * @param prefix the key prefix to use, allowing the same region to be used for
+	 * multiple stores.
+	 * @since 4.3.12
+	 */
+	public GemfireMessageStore(Region<Object, Object> messageStoreRegion, String prefix) {
+		super(prefix);
+		Assert.notNull(messageStoreRegion, "'messageStoreRegion' must not be null");
 		this.messageStoreRegion = messageStoreRegion;
 	}
 
+	/**
+	 * The boolean flag to ignore JTA on the Gemfire Region.
+	 * @param ignoreJta boolean flag to ignore JTA on the Gemfire Region.
+	 * @deprecated with no-op, in favor of externally configured region.
+	 */
+	@Deprecated
 	public void setIgnoreJta(boolean ignoreJta) {
-		this.ignoreJta = ignoreJta;
+
 	}
 
-	@Override
-	@SuppressWarnings("unchecked")
+	/**
+	 * @deprecated in favor of constructor initialization.
+	 */
+	@Deprecated
 	public void afterPropertiesSet() {
-		if (this.messageStoreRegion != null) {
-			return;
-		}
 
-		try {
-			if (logger.isDebugEnabled()) {
-				logger.debug("creating message store region as '" + MESSAGE_STORE_REGION_NAME + "'");
-			}
-
-			RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
-			attributesFactoryBean.setIgnoreJTA(this.ignoreJta);
-			attributesFactoryBean.afterPropertiesSet();
-			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>() {
-
-			};
-			messageRegionFactoryBean.setBeanName(MESSAGE_STORE_REGION_NAME);
-			messageRegionFactoryBean.setAttributes(attributesFactoryBean.getObject());
-			messageRegionFactoryBean.setCache(this.cache);
-			messageRegionFactoryBean.afterPropertiesSet();
-			this.messageStoreRegion = messageRegionFactoryBean.getObject();
-		}
-		catch (Exception e) {
-			throw new IllegalArgumentException("Failed to initialize Gemfire Region", e);
-		}
 	}
 
 	@Override
