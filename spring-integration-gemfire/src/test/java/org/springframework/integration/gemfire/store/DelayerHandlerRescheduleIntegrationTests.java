@@ -44,6 +44,9 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import com.gemstone.gemfire.cache.Cache;
+import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.Scope;
 
 /**
  * @author Artem Bilan
@@ -54,6 +57,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class DelayerHandlerRescheduleIntegrationTests {
 
 	public static final String DELAYER_ID = "delayerWithGemfireMS";
+
+	public static Region<Object, Object> region;
 
 	public static CacheFactoryBean cacheFactoryBean;
 
@@ -67,10 +72,15 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		gemfireProperties.setProperty("mcast-port", "0");
 		cacheFactoryBean.setProperties(gemfireProperties);
 		cacheFactoryBean.afterPropertiesSet();
+		Cache cache = cacheFactoryBean.getObject();
+		region = cache.createRegionFactory().setScope(Scope.LOCAL).create("sig-tests");
 	}
 
 	@AfterClass
 	public static void cleanUp() throws Exception {
+		if (region != null) {
+			region.close();
+		}
 		if (cacheFactoryBean != null) {
 			cacheFactoryBean.destroy();
 		}
@@ -95,7 +105,7 @@ public class DelayerHandlerRescheduleIntegrationTests {
 				(ThreadPoolTaskScheduler) IntegrationContextUtils.getTaskScheduler(context);
 		taskScheduler.shutdown();
 		taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS);
-		context.destroy();
+		context.close();
 
 		try {
 			context.getBean("input", MessageChannel.class);
@@ -135,11 +145,11 @@ public class DelayerHandlerRescheduleIntegrationTests {
 		assertEquals(1, messageStore.getMessageGroupCount());
 		int n = 0;
 		while (n++ < 200 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
-			Thread.sleep(50);
+			Thread.sleep(100);
 		}
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));
 
-		context.destroy();
+		context.close();
 	}
 
 }

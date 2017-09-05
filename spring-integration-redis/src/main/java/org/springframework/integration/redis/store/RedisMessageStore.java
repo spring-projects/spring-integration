@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,34 @@ import org.springframework.util.Assert;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class RedisMessageStore extends AbstractKeyValueMessageStore {
 
 	private final RedisTemplate<Object, Object> redisTemplate;
 
+	/**
+	 * Construct {@link RedisMessageStore} based on the provided
+	 * {@link RedisConnectionFactory} and default empty prefix.
+	 * @param connectionFactory the RedisConnectionFactory to use
+	 */
 	public RedisMessageStore(RedisConnectionFactory connectionFactory) {
+		this(connectionFactory, "");
+	}
+
+	/**
+	 * Construct {@link RedisMessageStore} based on the provided
+	 * {@link RedisConnectionFactory} and prefix.
+	 * @param connectionFactory the RedisConnectionFactory to use
+	 * @param prefix the key prefix to use, allowing the same broker to be used for
+	 * multiple stores.
+	 * @since 4.3.12
+	 * @see AbstractKeyValueMessageStore#AbstractKeyValueMessageStore(String)
+	 */
+	public RedisMessageStore(RedisConnectionFactory connectionFactory, String prefix) {
+		super(prefix);
 		this.redisTemplate = new RedisTemplate<Object, Object>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -89,11 +110,18 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 		return removedObject;
 	}
 
-
 	@Override
 	protected Collection<?> doListKeys(String keyPattern) {
 		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
 		Set<Object> keys = this.redisTemplate.keys(keyPattern);
 		return keys;
 	}
+
+	private void rethrowAsIllegalArgumentException(SerializationException e) {
+		throw new IllegalArgumentException("If relying on the default RedisSerializer " +
+				"(JdkSerializationRedisSerializer) the Object must be Serializable. " +
+				"Either make it Serializable or provide your own implementation of " +
+				"RedisSerializer via 'setValueSerializer(..)'", e);
+	}
+
 }

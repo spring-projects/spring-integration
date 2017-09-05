@@ -12,8 +12,7 @@
 	</int:channel>
 
 	<bean id="gemfireStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
-		<constructor-arg
-				value="#{T (org.springframework.integration.gemfire.store.GemfireGroupStoreTests).cacheFactoryBean.object}"/>
+		<constructor-arg value="#{T (org.springframework.integration.gemfire.store.GemfireGroupStoreTests).region}"/>
 	</bean>
 
 </beans>

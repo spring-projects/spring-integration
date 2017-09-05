@@ -39,15 +39,17 @@ import com.gemstone.gemfire.cache.Region;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class GemfireMessageStore extends AbstractKeyValueMessageStore implements InitializingBean {
 
 	private static final String MESSAGE_STORE_REGION_NAME = "messageStoreRegion";
 
-	private volatile Region<Object, Object> messageStoreRegion;
-
 	private final Cache cache;
+
+	private volatile Region<Object, Object> messageStoreRegion;
 
 	private volatile boolean ignoreJta = true;
 
@@ -58,6 +60,19 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 * @param messageStoreRegion The region.
 	 */
 	public GemfireMessageStore(Region<Object, Object> messageStoreRegion) {
+		this(messageStoreRegion, "");
+	}
+
+	/**
+	 * Construct a {@link GemfireMessageStore} instance based on the provided
+	 * @param messageStoreRegion the region to use.
+	 * @param prefix the key prefix to use, allowing the same region to be used for
+	 * multiple stores.
+	 * @since 4.3.12
+	 */
+	public GemfireMessageStore(Region<Object, Object> messageStoreRegion, String prefix) {
+		super(prefix);
+		Assert.notNull(messageStoreRegion, "'messageStoreRegion' must not be null");
 		this.cache = null;
 		this.messageStoreRegion = messageStoreRegion;
 	}
@@ -66,7 +81,6 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 	 * Provides a cache reference used to create a message store region named
 	 * 'messageStoreRegion'
 	 * @param cache The cache.
-	 *
 	 * @deprecated - use the other constructor and provide a region directly.
 	 */
 	@Deprecated
@@ -75,12 +89,19 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 		this.cache = cache;
 	}
 
+	/**
+	 * The boolean flag to ignore JTA on the Gemfire Region.
+	 * @param ignoreJta boolean flag to ignore JTA on the Gemfire Region.
+	 * @deprecated with no-op, in favor of externally configured region.
+	 */
+	@Deprecated
 	public void setIgnoreJta(boolean ignoreJta) {
 		this.ignoreJta = ignoreJta;
 	}
 
 	@Override
 	@SuppressWarnings({ "unchecked", "deprecation" })
+	@Deprecated
 	public void afterPropertiesSet() {
 		if (this.messageStoreRegion != null) {
 			return;

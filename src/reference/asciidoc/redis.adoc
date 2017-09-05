@@ -354,6 +354,8 @@ RedisSerializer<Object> serializer = new GenericJackson2JsonRedisSerializer(mapp
 store.setValueSerializer(serializer);
 ----
 
+Starting with version _4.3.12_, the `RedisMessageStore` supports the key `prefix` option to allow distinguishing between instances of the store on the same Redis server.
+
 [[redis-cms]]
 ==== Redis Channel Message Stores
 
