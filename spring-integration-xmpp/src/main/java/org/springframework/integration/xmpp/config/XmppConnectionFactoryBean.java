@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Florian Schmaus
  * @author Artem Bilan
+ * @author Philipp Etschel
  *
  * @see XMPPTCPConnection
  * @since 2.0
@@ -162,8 +163,16 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 			connectionConfiguration = builder.build();
 		}
-		this.connection = new XMPPTCPConnection(connectionConfiguration);
-		return this.connection;
+		return new XMPPTCPConnection(connectionConfiguration);
+	}
+
+	protected XMPPTCPConnection getConnection() {
+		try {
+			return (XMPPTCPConnection) getObject();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Cannot obtain connection instance", e);
+		}
 	}
 
 	@Override
@@ -172,19 +181,23 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 			if (this.running) {
 				return;
 			}
+			XMPPTCPConnection connection = getConnection();
 			try {
-				this.connection.connect();
-				this.connection.addConnectionListener(new LoggingConnectionListener());
-				this.connection.login();
+				connection.connect();
+				connection.addConnectionListener(new LoggingConnectionListener());
+				Roster roster = Roster.getInstanceFor(connection);
 				if (this.subscriptionMode != null) {
-					Roster.getInstanceFor(this.connection)
-							.setSubscriptionMode(this.subscriptionMode);
+					roster.setSubscriptionMode(this.subscriptionMode);
 				}
+				else {
+					roster.setRosterLoadedAtLogin(false);
+				}
+				connection.login();
 				this.running = true;
 			}
 			catch (Exception e) {
 				throw new BeanInitializationException("failed to connect to XMPP service for "
-						+ this.connection.getServiceName(), e);
+						+ connection.getServiceName(), e);
 			}
 		}
 	}
@@ -193,7 +206,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
-				this.connection.disconnect();
+				getConnection().disconnect();
 				this.running = false;
 			}
 		}
