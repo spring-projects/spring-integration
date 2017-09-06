@@ -22,7 +22,6 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jxmpp.util.XmppStringUtils;
-
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
@@ -67,7 +66,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private volatile boolean running;
 
-	private volatile XMPPTCPConnection connection;
+	protected volatile XMPPTCPConnection connection;
 
 
 	public XmppConnectionFactoryBean() {
@@ -164,11 +163,13 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 			try {
 				this.connection.connect();
 				this.connection.addConnectionListener(new LoggingConnectionListener());
-				this.connection.login();
+				Roster roster = Roster.getInstanceFor(this.connection);
 				if (this.subscriptionMode != null) {
-					Roster.getInstanceFor(this.connection)
-							.setSubscriptionMode(this.subscriptionMode);
+					roster.setSubscriptionMode(this.subscriptionMode);
+				} else {
+					roster.setRosterLoadedAtLogin(false);
 				}
+				this.connection.login();
 				this.running = true;
 			}
 			catch (Exception e) {
