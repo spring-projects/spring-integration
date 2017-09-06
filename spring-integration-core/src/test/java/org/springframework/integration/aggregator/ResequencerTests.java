@@ -262,8 +262,9 @@ public class ResequencerTests {
 		assertNotNull(reply1);
 		assertNotNull(reply2);
 		assertNull(reply3);
-		ArrayList<Integer> sequence = new ArrayList<Integer>(Arrays.asList(new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber(),
-				new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber()));
+		ArrayList<Integer> sequence = new ArrayList<>(
+				Arrays.asList(new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber(),
+						new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber()));
 		Collections.sort(sequence);
 		assertEquals("[1, 2]", sequence.toString());
 		// Once a group is expired, late messages are discarded immediately by default
@@ -363,7 +364,7 @@ public class ResequencerTests {
 		this.resequencer.handleMessage(message2);
 		Message<?> out1 = replyChannel.receive(10);
 		assertNull(out1);
-		out1 = discardChannel.receive(1000);
+		out1 = discardChannel.receive(10000);
 		assertNotNull(out1);
 		Message<?> out2 = discardChannel.receive(10);
 		assertNotNull(out2);
