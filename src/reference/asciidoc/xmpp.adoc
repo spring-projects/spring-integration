@@ -54,10 +54,9 @@ We also register a `ConnectionListener` which will log connection events if the 
 
 The `subscription-mode` initiates the Roster listener to deal with incoming subscriptions from other users.
 This functionality isn't always available for the target XMPP servers.
-For example GCM fully disables it.
-To switch off the Roster listener for subscriptions you should configure it with an empty string when using XML
-configuration: `subscription-mode=""`, or with `XmppConnectionFactoryBean.setSubscriptionMode(null)`
-when using Java Configuration.
+For example GCM/FCM fully disables it.
+To switch off the Roster listener for subscriptions you should configure it with an empty string when using XML configuration: `subscription-mode=""`, or with `XmppConnectionFactoryBean.setSubscriptionMode(null)` when using Java Configuration. Doing so will disable Roster at the login phase as well.
+See `Roster.setRosterLoadedAtLogin(Boolean)` for more information.
 
 [[xmpp-messages]]
 === XMPP Messages
@@ -240,6 +239,7 @@ Here's an example:
         </bean>
     </constructor-arg>
 </bean>
+
 <int:channel id="outboundEventChannel"/>
 
 <int-xmpp:outbound-channel-adapter id="outboundEventAdapter"
