@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Rainer Frey
+ * @author Matthias Jeschke
+ *
  * @since 3.0
  */
 @ManagedResource
@@ -132,7 +134,7 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
-		Assert.isTrue(receiveTimeout > 0, "'receiveTimeout' must be > 0.");
+		Assert.isTrue(receiveTimeout >= 0, "'receiveTimeout' must be >= 0.");
 		this.receiveTimeout = receiveTimeout;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+
 /**
  * @author Artem Bilan
  * @author Gary Russell
  * @author Rainer Frey
+ * @author Matthias Jeschke
+ *
  * @since 3.0
  */
 @ContextConfiguration
@@ -73,6 +76,10 @@ public class RedisQueueInboundChannelAdapterParserTests {
 	private RedisQueueMessageDrivenEndpoint customAdapter;
 
 	@Autowired
+	@Qualifier("zeroReceiveTimeoutAdapter")
+	private RedisQueueMessageDrivenEndpoint zeroReceiveTimeoutAdapter;
+
+	@Autowired
 	@Qualifier("errorChannel")
 	private MessageChannel errorChannel;
 
@@ -88,11 +95,13 @@ public class RedisQueueInboundChannelAdapterParserTests {
 	@Autowired
 	private RedisSerializer<?> serializer;
 
+
 	@Test
 	public void testInt3017DefaultConfig() {
 		assertSame(this.connectionFactory,
 				TestUtils.getPropertyValue(this.defaultAdapter, "boundListOperations.ops.template.connectionFactory"));
-		assertEquals("si.test.Int3017.Inbound1", TestUtils.getPropertyValue(this.defaultAdapter, "boundListOperations.key"));
+		assertEquals("si.test.Int3017.Inbound1",
+				TestUtils.getPropertyValue(this.defaultAdapter, "boundListOperations.key"));
 		assertFalse(TestUtils.getPropertyValue(this.defaultAdapter, "expectMessage", Boolean.class));
 		assertEquals(1000L, TestUtils.getPropertyValue(this.defaultAdapter, "receiveTimeout"));
 		assertEquals(5000L, TestUtils.getPropertyValue(this.defaultAdapter, "recoveryInterval"));
@@ -107,11 +116,13 @@ public class RedisQueueInboundChannelAdapterParserTests {
 		assertTrue(TestUtils.getPropertyValue(this.defaultAdapter, "rightPop", Boolean.class));
 	}
 
+
 	@Test
 	public void testInt3017CustomConfig() {
 		assertSame(this.customRedisConnectionFactory,
 				TestUtils.getPropertyValue(this.customAdapter, "boundListOperations.ops.template.connectionFactory"));
-		assertEquals("si.test.Int3017.Inbound2", TestUtils.getPropertyValue(this.customAdapter, "boundListOperations.key"));
+		assertEquals("si.test.Int3017.Inbound2",
+				TestUtils.getPropertyValue(this.customAdapter, "boundListOperations.key"));
 		assertTrue(TestUtils.getPropertyValue(this.customAdapter, "expectMessage", Boolean.class));
 		assertEquals(2000L, TestUtils.getPropertyValue(this.customAdapter, "receiveTimeout"));
 		assertEquals(3000L, TestUtils.getPropertyValue(this.customAdapter, "recoveryInterval"));
@@ -122,6 +133,12 @@ public class RedisQueueInboundChannelAdapterParserTests {
 		assertEquals(100, TestUtils.getPropertyValue(this.customAdapter, "phase"));
 		assertSame(this.sendChannel, TestUtils.getPropertyValue(this.customAdapter, "outputChannel"));
 		assertFalse(TestUtils.getPropertyValue(this.customAdapter, "rightPop", Boolean.class));
+	}
+
+
+	@Test
+	public void testInt4341ZeroReceiveTimeoutConfig() {
+		assertEquals(0L, TestUtils.getPropertyValue(this.zeroReceiveTimeoutAdapter, "receiveTimeout"));
 	}
 
 }
