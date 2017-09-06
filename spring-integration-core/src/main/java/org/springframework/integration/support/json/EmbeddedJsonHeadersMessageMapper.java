@@ -16,22 +16,20 @@
 
 package org.springframework.integration.support.json;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,25 +45,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * By default, all headers are included; you can provide regular expressions to specify a
  * subset of headers.
  * <p>
- * For inbound messages, in addition to pure JSON and the above format, the Spring Cloud
- * Stream {@code EmbeddedHeadersMessageConverter} format is also supported:
- * {@code 0xff, n(1), [ [lenHdr(1), hdr, lenValue(4), value] ... ]}. The 0xff indicates
- * this format; n is the number of headers (max 255); for each header, the name length (1
- * byte) is followed by the name, followed by the value length (int) followed by the value
- * (json).
- * <p>
- * If neither special format is detected, or an error occurs during conversion, the
+ * If neither expected format is detected, or an error occurs during conversion, the
  * payload of the message is the original {@code byte[]}.
  * <p>
  * <b>IMPORTANT</b>
  * <p>
- * The default object mapper uses default typing. From the Jacskson Javadocs:
+ * The default object mapper will only deserialize classes in certain packages.
+ *
+ * <pre class=code>
+ *	"java.util",
+ *	"java.lang",
+ *	"org.springframework.messaging.support",
+ *	"org.springframework.integration.support",
+ *	"org.springframework.integration.message",
+ *	"org.springframework.integration.store"
+ * </pre>
  * <p>
- * NOTE: use of Default Typing can be a potential security risk if incoming content comes
- * from untrusted sources, and it is recommended that this is either not done, or, if
- * enabled, use {@link ObjectMapper#setDefaultTyping} passing a custom
- * {@link com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder} implementation that
- * white-lists legal types to use.
+ * To add more packages, create an object mapper using
+ * {@link JacksonJsonUtils#messagingAwareMapper(String...)}.
  * <p>
  * A constructor is provided allowing the provision of such a configured object mapper.
  *
@@ -88,7 +85,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	 * JSON Object mapper.
 	 */
 	public EmbeddedJsonHeadersMessageMapper() {
-		this(Collections.singleton(Pattern.compile(".*")));
+		this(Pattern.compile(".*"));
 	}
 
 	/**
@@ -96,8 +93,17 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	 * the default JSON object mapper.
 	 * @param headerPatterns the patterns.
 	 */
-	public EmbeddedJsonHeadersMessageMapper(Collection<Pattern> headerPatterns) {
+	public EmbeddedJsonHeadersMessageMapper(Pattern... headerPatterns) {
 		this(JacksonJsonUtils.messagingAwareMapper(), headerPatterns);
+	}
+
+	/**
+	 * Construct an instance that embeds all headers, using the
+	 * supplied JSON object mapper.
+	 * @param objectMapper the object mapper.
+	 */
+	public EmbeddedJsonHeadersMessageMapper(ObjectMapper objectMapper) {
+		this(objectMapper, Pattern.compile(".*"));
 	}
 
 	/**
@@ -106,9 +112,9 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	 * @param objectMapper the object mapper.
 	 * @param headerPatterns the patterns.
 	 */
-	public EmbeddedJsonHeadersMessageMapper(ObjectMapper objectMapper, Collection<Pattern> headerPatterns) {
+	public EmbeddedJsonHeadersMessageMapper(ObjectMapper objectMapper, Pattern... headerPatterns) {
 		this.objectMapper = objectMapper;
-		this.headerPatterns = new ArrayList<>(headerPatterns);
+		this.headerPatterns = Arrays.asList(headerPatterns);
 		this.allHeaders = this.headerPatterns.size() == 1 && this.headerPatterns.get(0).pattern().equals(".*");
 	}
 
@@ -138,16 +144,14 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	}
 
 	private Message<?> pruneHeaders(Message<?> message) {
-		Map<String, Object> headersToEmbed = new HashMap<>();
-		message.getHeaders().forEach((k, v) -> {
-			if (this.headerPatterns.stream().anyMatch(p -> p.matcher(k).matches())) {
-				headersToEmbed.put(k, v);
-			}
-		});
+		Map<String, Object> headersToEmbed =
+		message.getHeaders().entrySet().stream()
+			.filter(e -> this.headerPatterns.stream().anyMatch(p -> p.matcher(e.getKey()).matches()))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		return new MutableMessage<>(message.getPayload(), headersToEmbed);
 	}
 
-	private byte[] fromBytesPayload(Message<byte[]> message) throws UnsupportedEncodingException, Exception {
+	private byte[] fromBytesPayload(Message<byte[]> message) throws Exception {
 		byte[] headers = this.objectMapper.writeValueAsBytes(message.getHeaders());
 		byte[] payload = message.getPayload();
 		ByteBuffer buffer = ByteBuffer.wrap(new byte[8 + headers.length + payload.length]);
@@ -166,14 +170,6 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		}
 		catch (Exception e) {
 			// empty
-		}
-		if (message == null) {
-			try {
-				message = decodeSCStFormat(bytes);
-			}
-			catch (Exception e) {
-				// empty
-			}
 		}
 		if (message == null) {
 			try {
@@ -199,7 +195,6 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 				buffer.position(headersLen + 4);
 				int payloadLen = buffer.getInt();
 				if (payloadLen != buffer.remaining()) {
-					buffer.position(0);
 					return null;
 				}
 				else {
@@ -217,39 +212,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 				}
 			}
 		}
-		buffer.position(0);
 		return null;
-	}
-
-	private Message<?> decodeSCStFormat(byte[] bytes) throws Exception {
-		ByteBuffer buffer = ByteBuffer.wrap(bytes);
-		int headerCount = buffer.get() & 0xff;
-		if (headerCount != 255) {
-			return null;
-		}
-		else {
-			headerCount = buffer.get() & 0xff;
-			Map<String, Object> headers = new HashMap<String, Object>();
-			for (int i = 0; i < headerCount; i++) {
-				int len = buffer.get() & 0xff;
-				String headerName = new String(bytes, buffer.position(), len, "UTF-8");
-				buffer.position(buffer.position() + len);
-				len = buffer.getInt();
-				Object headerContent = this.objectMapper.readValue(bytes, buffer.position(), len, Object.class);
-				headers.put(headerName, headerContent);
-				buffer.position(buffer.position() + len);
-			}
-			byte[] newPayload = new byte[buffer.remaining()];
-			buffer.get(newPayload);
-			fixIdIfPresent(headers);
-			return new GenericMessage<>(newPayload, new MutableMessageHeaders(headers));
-		}
-	}
-
-	private void fixIdIfPresent(Map<String, Object> headers) {
-		if (headers.containsKey(MessageHeaders.ID) && headers.get(MessageHeaders.ID) instanceof String) {
-			headers.put(MessageHeaders.ID, UUID.fromString((String) headers.get(MessageHeaders.ID)));
-		}
 	}
 
 }
