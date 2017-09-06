@@ -35,6 +35,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+
 /**
  * @author David Liu
  * @author Artem Bilan
@@ -50,6 +51,10 @@ public class RedisQueueInboundGatewayParserTests {
 	private RedisQueueInboundGateway defaultGateway;
 
 	@Autowired
+	@Qualifier("zeroReceiveTimeoutGateway")
+	private RedisQueueInboundGateway zeroReceiveTimeoutGateway;
+
+	@Autowired
 	@Qualifier("receiveChannel")
 	private MessageChannel receiveChannel;
 
@@ -59,6 +64,7 @@ public class RedisQueueInboundGatewayParserTests {
 
 	@Autowired
 	private RedisSerializer<?> serializer;
+
 
 	@Test
 	public void testDefaultConfig() throws Exception {
@@ -71,6 +77,11 @@ public class RedisQueueInboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(this.defaultGateway, "taskExecutor"));
 		assertFalse(TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class));
 		assertEquals(3, TestUtils.getPropertyValue(this.defaultGateway, "phase"));
+	}
+
+	@Test
+	public void testZeroReceiveTimeoutConfig() throws Exception {
+		assertEquals(0L, TestUtils.getPropertyValue(this.zeroReceiveTimeoutGateway, "receiveTimeout"));
 	}
 
 }
