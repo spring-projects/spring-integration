@@ -11,7 +11,8 @@
 
 	<bean id="redisConnectionFactory"
 		  class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+		<property name="port"
+				  value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
 	</bean>
 
 	<bean id="customRedisConnectionFactory" parent="redisConnectionFactory"/>
@@ -21,22 +22,29 @@
 	<int:channel id="sendChannel"/>
 
 	<int-redis:queue-inbound-channel-adapter id="customAdapter"
-											  queue="si.test.Int3017.Inbound2"
-											  channel="sendChannel"
-											  connection-factory="customRedisConnectionFactory"
-											  expect-message="true"
-											  serializer="serializer"
-											  error-channel="errorChannel"
-											  receive-timeout="2000"
-											  recovery-interval="3000"
-											  task-executor="executor"
-											  auto-startup="false"
-											  phase="100"
-											  right-pop="false"/>
+											 queue="si.test.Int3017.Inbound2"
+											 channel="sendChannel"
+											 connection-factory="customRedisConnectionFactory"
+											 expect-message="true"
+											 serializer="serializer"
+											 error-channel="errorChannel"
+											 receive-timeout="2000"
+											 recovery-interval="3000"
+											 task-executor="executor"
+											 auto-startup="false"
+											 phase="100"
+											 right-pop="false"/>
+
+	<int-redis:queue-inbound-channel-adapter id="zeroReceiveTimeoutAdapter"
+											 queue="si.test.Int3017.Inbound2"
+											 channel="sendChannel"
+											 connection-factory="customRedisConnectionFactory"
+											 receive-timeout="0"/>
 
 	<bean id="executor" class="org.springframework.integration.util.ErrorHandlingTaskExecutor">
 		<constructor-arg ref="threadPoolTaskExecutor"/>
-		<constructor-arg value="#{T(org.springframework.scheduling.support.TaskUtils).LOG_AND_SUPPRESS_ERROR_HANDLER}"/>
+		<constructor-arg
+				value="#{T(org.springframework.scheduling.support.TaskUtils).LOG_AND_SUPPRESS_ERROR_HANDLER}"/>
 	</bean>
 
 	<task:executor id="threadPoolTaskExecutor" pool-size="5"/>

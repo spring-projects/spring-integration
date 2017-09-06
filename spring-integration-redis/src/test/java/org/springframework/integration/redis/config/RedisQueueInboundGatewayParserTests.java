@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+
 /**
  * @author David Liu
  * @author Artem Bilan
+ * @author Matthias Jeschke
+ *
  * since 4.1
  */
 @ContextConfiguration
@@ -50,6 +53,10 @@ public class RedisQueueInboundGatewayParserTests {
 	private RedisQueueInboundGateway defaultGateway;
 
 	@Autowired
+	@Qualifier("zeroReceiveTimeoutGateway")
+	private RedisQueueInboundGateway zeroReceiveTimeoutGateway;
+
+	@Autowired
 	@Qualifier("receiveChannel")
 	private MessageChannel receiveChannel;
 
@@ -59,6 +66,7 @@ public class RedisQueueInboundGatewayParserTests {
 
 	@Autowired
 	private RedisSerializer<?> serializer;
+
 
 	@Test
 	public void testDefaultConfig() throws Exception {
@@ -71,6 +79,11 @@ public class RedisQueueInboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(this.defaultGateway, "taskExecutor"));
 		assertFalse(TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class));
 		assertEquals(3, TestUtils.getPropertyValue(this.defaultGateway, "phase"));
+	}
+
+	@Test
+	public void testZeroReceiveTimeoutConfig() throws Exception {
+		assertEquals(0L, TestUtils.getPropertyValue(this.zeroReceiveTimeoutGateway, "receiveTimeout"));
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ import org.springframework.util.Assert;
  * @author David Liu
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Matthias Jeschke
+ *
  * @since 4.1
  */
 @ManagedResource
@@ -126,7 +128,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
-		Assert.isTrue(receiveTimeout > 0, "'receiveTimeout' must be > 0.");
+		Assert.isTrue(receiveTimeout >= 0, "'receiveTimeout' must be >= 0.");
 		this.receiveTimeout = receiveTimeout;
 	}
 
