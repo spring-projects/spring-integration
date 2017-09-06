@@ -126,7 +126,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	 * @param receiveTimeout Must be non-negative. Specified in milliseconds.
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
-		Assert.isTrue(receiveTimeout > 0, "'receiveTimeout' must be > 0.");
+		Assert.isTrue(receiveTimeout >= 0, "'receiveTimeout' must be >= 0.");
 		this.receiveTimeout = receiveTimeout;
 	}
 
