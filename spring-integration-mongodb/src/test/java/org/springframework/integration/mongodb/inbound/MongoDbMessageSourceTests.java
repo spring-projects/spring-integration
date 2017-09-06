@@ -42,13 +42,14 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 
-import com.mongodb.util.JSON;
+import com.mongodb.BasicDBObject;
 
 /**
  * @author Amol Nayak
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Yaron Yamin
+ * @author Artem Bilan
  *
  * @since 2.2
  *
@@ -280,7 +281,7 @@ public class MongoDbMessageSourceTests extends MongoDbAvailableTests {
 
 		MongoTemplate template = new MongoTemplate(mongoDbFactory);
 
-		template.save(JSON.parse("{'name' : 'Manny', 'id' : 1}"), "data");
+		template.save(BasicDBObject.parse("{'name' : 'Manny', 'id' : 1}"), "data");
 
 		Expression queryExpression = new LiteralExpression("{'name' : 'Manny'}");
 		MongoDbMessageSource messageSource = new MongoDbMessageSource(mongoDbFactory, queryExpression);

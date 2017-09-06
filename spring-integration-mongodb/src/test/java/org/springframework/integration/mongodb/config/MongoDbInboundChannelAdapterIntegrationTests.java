@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
@@ -46,12 +45,11 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.mongodb.util.JSON;
-
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Yaron Yamin
+ *
  * @since 2.2
  */
 @ContextConfiguration
@@ -168,6 +166,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		this.mongoInboundAdapterWithNamedCollection.stop();
 		this.replyChannel.purge(null);
 	}
+
 	@Test
 	@MongoDbAvailable
 	public void testWithQueryExpression() throws Exception {
@@ -181,6 +180,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 		assertEquals("Bob", message.getPayload().get(0).getName());
 		this.mongoInboundAdapterWithQueryExpression.stop();
 	}
+
 	@Test
 	@MongoDbAvailable
 	public void testWithStringQueryExpression() throws Exception {
@@ -273,7 +273,7 @@ public class MongoDbInboundChannelAdapterIntegrationTests extends MongoDbAvailab
 			if (target instanceof List<?>) {
 				List<?> documents = (List<?>) target;
 				for (Object document : documents) {
-					mongoOperations.remove(new BasicQuery(JSON.serialize(document)), collectionName);
+					mongoOperations.remove(document, collectionName);
 				}
 			}
 		}

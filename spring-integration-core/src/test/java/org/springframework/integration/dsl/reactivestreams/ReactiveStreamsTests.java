@@ -122,7 +122,7 @@ public class ReactiveStreamsTests {
 								.map(v -> v.split(","))
 								.flatMapIterable(Arrays::asList)
 								.map(Integer::parseInt)
-								.<Message<Integer>>map(GenericMessage::new)
+								.<Message<Integer>>map(GenericMessage<Integer>::new)
 								.concatWith(this.pollablePublisher)
 								.take(7)
 								.map(Message::getPayload)
@@ -147,7 +147,7 @@ public class ReactiveStreamsTests {
 				.flatMapIterable(Arrays::asList)
 				.map(Integer::parseInt)
 				.log("org.springframework.integration.flux")
-				.map(GenericMessage::new);
+				.map(GenericMessage<Integer>::new);
 
 		QueueChannel resultChannel = new QueueChannel();
 
