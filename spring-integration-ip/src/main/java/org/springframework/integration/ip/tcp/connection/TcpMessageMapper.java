@@ -92,7 +92,9 @@ public class TcpMessageMapper implements
 	/**
 	 * Sets whether outbound String payloads are to be converted
 	 * to byte[]. Default is true.
+	 * Ignored if a {@link BytesMessageMapper} is provided.
 	 * @param stringToBytes The stringToBytes to set.
+	 * @see #setBytesMessageMapper(BytesMessageMapper)
 	 */
 	public void setStringToBytes(boolean stringToBytes) {
 		this.stringToBytes = stringToBytes;
@@ -143,8 +145,11 @@ public class TcpMessageMapper implements
 
 	/**
 	 * Set a {@link BytesMessageMapper} to use when mapping byte[].
+	 * {@link #setStringToBytes(boolean)} is ignored when a {@link BytesMessageMapper}
+	 * is provided.
 	 * @param bytesMessageMapper the mapper.
 	 * @since 5.0
+	 * @see #setStringToBytes(boolean)
 	 */
 	public void setBytesMessageMapper(BytesMessageMapper bytesMessageMapper) {
 		this.bytesMessageMapper = bytesMessageMapper;

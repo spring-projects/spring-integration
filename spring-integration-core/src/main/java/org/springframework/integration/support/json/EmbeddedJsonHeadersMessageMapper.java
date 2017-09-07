@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
@@ -71,6 +74,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
+
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final ObjectMapper objectMapper;
 
@@ -119,8 +124,11 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	}
 
 	/**
-	 * Set to false to encode byte[] payloads as base64 in JSON. When true,
-	 * byte[] payloads are rendered as discussed in the class description.
+	 * For messages with {@code byte[]} payloads, if rendered as JSON, Jackson performs
+	 * Base64 conversion on the bytes. If this property is true (default), the result has
+	 * the form &lt;headersLen&gt;&lt;headers&gt;&lt;payloadLen&gt;&lt;payload&gt;; with
+	 * the headers rendered in JSON and the payload unchanged. Set to false to render
+	 * the bytes as base64.
 	 * @param rawBytes false to encode as base64.
 	 */
 	public void setRawBytes(boolean rawBytes) {
@@ -176,7 +184,9 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 				message = (Message<?>) this.objectMapper.readValue(bytes, Object.class);
 			}
 			catch (Exception e) {
-				// empty
+				if (this.logger.isDebugEnabled()) {
+					this.logger.debug("Failed to decode JSON", e);
+				}
 			}
 		}
 		if (message != null) {

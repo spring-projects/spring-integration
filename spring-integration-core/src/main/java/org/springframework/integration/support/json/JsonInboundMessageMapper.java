@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import org.springframework.util.Assert;
 /**
  * {@link org.springframework.integration.mapping.InboundMessageMapper} implementation that maps incoming JSON messages
  * to a {@link Message} with the specified payload type.
+ * <p>
+ * Consider using the {@link EmbeddedJsonHeadersMessageMapper} instead.
  *
  * @author Jeremy Grelle
  * @author Oleg Zhurakousky
@@ -60,6 +62,7 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 		return headerTypes;
 	}
 
+	@Override
 	public Message<?> toMessage(String jsonMessage) throws Exception {
 		return this.messageParser.doInParser(this, jsonMessage);
 	}
