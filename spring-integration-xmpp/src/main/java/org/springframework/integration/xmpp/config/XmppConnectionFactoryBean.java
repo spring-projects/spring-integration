@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Florian Schmaus
  * @author Artem Bilan
+ * @author Philipp Etschel
  *
  * @see XMPPTCPConnection
  * @since 2.0
@@ -66,7 +67,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private volatile boolean running;
 
-	protected volatile XMPPTCPConnection connection;
+	private volatile XMPPTCPConnection connection;
 
 
 	public XmppConnectionFactoryBean() {
@@ -166,7 +167,8 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 				Roster roster = Roster.getInstanceFor(this.connection);
 				if (this.subscriptionMode != null) {
 					roster.setSubscriptionMode(this.subscriptionMode);
-				} else {
+				}
+				else {
 					roster.setRosterLoadedAtLogin(false);
 				}
 				this.connection.login();
