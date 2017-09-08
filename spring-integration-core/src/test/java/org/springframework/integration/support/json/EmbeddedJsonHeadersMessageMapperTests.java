@@ -23,7 +23,6 @@ import static org.junit.Assert.assertThat;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -47,7 +46,7 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 
 	@Test
 	public void testEmbedSome() throws Exception {
-		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper(Pattern.compile("id"));
+		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper("id");
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));
 		assertThat(decoded.getPayload(), equalTo(message.getPayload()));
@@ -76,7 +75,7 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 
 	@Test
 	public void testBytesEmbedSome() throws Exception {
-		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper(Pattern.compile("id"));
+		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper("I*");
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes(), Collections.singletonMap("bar", "baz"));
 		byte[] bytes = mapper.fromMessage(message);
 		ByteBuffer bb = ByteBuffer.wrap(bytes);

@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -34,6 +33,7 @@ import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.PatternMatchUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -45,7 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * &lt;headersLen&gt;&lt;headers&gt;&lt;payloadLen&gt;&lt;payload&gt;; with the headers
  * rendered in JSON and the payload unchanged.
  * <p>
- * By default, all headers are included; you can provide regular expressions to specify a
+ * By default, all headers are included; you can provide simple patterns to specify a
  * subset of headers.
  * <p>
  * If neither expected format is detected, or an error occurs during conversion, the
@@ -79,26 +79,29 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 
 	private final ObjectMapper objectMapper;
 
-	private final List<Pattern> headerPatterns;
+	private final List<String> headerPatterns;
 
 	private final boolean allHeaders;
 
 	private boolean rawBytes = true;
+
+	private boolean caseSensitive;
 
 	/**
 	 * Construct an instance that embeds all headers, using the default
 	 * JSON Object mapper.
 	 */
 	public EmbeddedJsonHeadersMessageMapper() {
-		this(Pattern.compile(".*"));
+		this("*");
 	}
 
 	/**
 	 * Construct an instance that embeds headers matching the supplied patterns, using
 	 * the default JSON object mapper.
 	 * @param headerPatterns the patterns.
+	 * @see PatternMatchUtils#simpleMatch(String, String)
 	 */
-	public EmbeddedJsonHeadersMessageMapper(Pattern... headerPatterns) {
+	public EmbeddedJsonHeadersMessageMapper(String... headerPatterns) {
 		this(JacksonJsonUtils.messagingAwareMapper(), headerPatterns);
 	}
 
@@ -108,7 +111,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	 * @param objectMapper the object mapper.
 	 */
 	public EmbeddedJsonHeadersMessageMapper(ObjectMapper objectMapper) {
-		this(objectMapper, Pattern.compile(".*"));
+		this(objectMapper, "*");
 	}
 
 	/**
@@ -117,10 +120,10 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	 * @param objectMapper the object mapper.
 	 * @param headerPatterns the patterns.
 	 */
-	public EmbeddedJsonHeadersMessageMapper(ObjectMapper objectMapper, Pattern... headerPatterns) {
+	public EmbeddedJsonHeadersMessageMapper(ObjectMapper objectMapper, String... headerPatterns) {
 		this.objectMapper = objectMapper;
 		this.headerPatterns = Arrays.asList(headerPatterns);
-		this.allHeaders = this.headerPatterns.size() == 1 && this.headerPatterns.get(0).pattern().equals(".*");
+		this.allHeaders = this.headerPatterns.size() == 1 && this.headerPatterns.get(0).equals("*");
 	}
 
 	/**
@@ -135,7 +138,16 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		this.rawBytes = rawBytes;
 	}
 
-	public Collection<Pattern> getHeaderPatterns() {
+	/**
+	 * Set to true to make the header name pattern match case sensitive.
+	 * Default false.
+	 * @param caseInsensitive true to make case sensitive.
+	 */
+	public void setCaseSensitive(boolean caseSensitive) {
+		this.caseSensitive = caseSensitive;
+	}
+
+	public Collection<String> getHeaderPatterns() {
 		return Collections.unmodifiableCollection(this.headerPatterns);
 	}
 
@@ -154,7 +166,10 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	private Message<?> pruneHeaders(Message<?> message) {
 		Map<String, Object> headersToEmbed =
 		message.getHeaders().entrySet().stream()
-			.filter(e -> this.headerPatterns.stream().anyMatch(p -> p.matcher(e.getKey()).matches()))
+			.filter(e -> this.headerPatterns.stream().anyMatch(p ->
+				this.caseSensitive
+					? PatternMatchUtils.simpleMatch(p, e.getKey())
+					: PatternMatchUtils.simpleMatch(p.toLowerCase(), e.getKey().toLowerCase())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		return new MutableMessage<>(message.getPayload(), headersToEmbed);
 	}
