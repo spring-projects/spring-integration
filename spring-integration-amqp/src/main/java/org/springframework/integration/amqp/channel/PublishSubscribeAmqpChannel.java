@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,6 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.connection.Connection;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.connection.ConnectionListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
@@ -35,17 +31,17 @@ import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
-public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel implements ConnectionListener {
+public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel {
 
 	private volatile FanoutExchange exchange;
 
 	private final Queue queue = new AnonymousQueue();
 
 	private volatile Binding binding;
-
-	private volatile boolean initialized;
 
 	/**
 	 * Construct an instance with the supplied name, container and template; default header
@@ -89,37 +85,20 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	}
 
 	@Override
-	protected String obtainQueueName(AmqpAdmin admin, String channelName) {
+	protected String getExchangeName() {
+		return (this.exchange != null) ? this.exchange.getName() : "";
+	}
+
+	@Override
+	protected String obtainQueueName(String channelName) {
 		if (this.exchange == null) {
 			String exchangeName = "si.fanout." + channelName;
 			this.exchange = new FanoutExchange(exchangeName);
 		}
-		admin.declareExchange(this.exchange);
-		admin.declareQueue(this.queue);
-		this.binding = BindingBuilder.bind(this.queue).to(this.exchange);
-		admin.declareBinding(this.binding);
-		if (!this.initialized && this.getAmqpTemplate() instanceof RabbitTemplate) {
-			ConnectionFactory connectionFactory = this.getConnectionFactory();
-			if (connectionFactory != null) {
-				connectionFactory.addConnectionListener(this);
-			}
-		}
-		this.initialized = true;
-		return this.queue.getName();
-	}
 
-	private void doDeclares() {
-		if (this.isRunning()) {
-			AmqpAdmin admin = this.getAdmin();
-			if (admin != null) {
-				if (this.queue != null) {
-					admin.declareQueue(this.queue);
-				}
-				if (this.binding != null) {
-					admin.declareBinding(this.binding);
-				}
-			}
-		}
+		this.binding = BindingBuilder.bind(this.queue).to(this.exchange);
+
+		return this.queue.getName();
 	}
 
 	@Override
@@ -130,32 +109,19 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	}
 
 	@Override
-	protected String getExchangeName() {
-		return (this.exchange != null) ? this.exchange.getName() : "";
-	}
-
-	@Override
-	public void destroy() throws Exception {
-		super.destroy();
-		if (this.getConnectionFactory() != null) {
-			this.getConnectionFactory().removeConnectionListener(this);
-			this.initialized = false;
+	protected void doDeclares() {
+		AmqpAdmin admin = getAdmin();
+		if (admin != null) {
+			if (admin.getQueueProperties(this.queue.getName()) == null) {
+				admin.declareQueue(this.queue);
+			}
+			if (this.exchange != null) {
+				admin.declareExchange(this.exchange);
+			}
+			if (this.binding != null) {
+				admin.declareBinding(this.binding);
+			}
 		}
-	}
-
-	@Override
-	public void start() {
-		this.doDeclares(); // connection may have been lost while we were stopped
-		super.start();
-	}
-
-	@Override
-	public void onCreate(Connection connection) {
-		doDeclares();
-	}
-
-	@Override
-	public void onClose(Connection connection) {
 	}
 
 }
