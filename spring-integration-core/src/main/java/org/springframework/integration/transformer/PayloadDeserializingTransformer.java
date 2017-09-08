@@ -40,12 +40,12 @@ public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransf
 		doSetConverter(new WhiteListDeserializingConverter());
 	}
 
-	public void setDeserializer(Deserializer<Object> deserializer) {
-		doSetConverter(new WhiteListDeserializingConverter(deserializer));
+	private void doSetConverter(Converter<byte[], Object> converter) {
+		this.converter = converter;
 	}
 
-	private void doSetConverter(Converter<byte[], Object> converter) {
-		setConverter(converter);
+	public void setDeserializer(Deserializer<Object> deserializer) {
+		setConverter(new WhiteListDeserializingConverter(deserializer));
 	}
 
 	/**
