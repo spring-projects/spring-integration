@@ -116,8 +116,12 @@ These will use standard Java serialization by default, but you can provide an im
 ----
 <int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
 
-<int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>
+<int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"
+    white-list="com.mycom.*,com.yourcom.*"/>
 ----
+
+IMPORTANT: When deserializing data from untrusted sources, you should consider adding a `white-list` of package/class patterns.
+By default, all classes will be deserialized.
 
 ====== Object-to-Map and Map-to-Object Transformers
 

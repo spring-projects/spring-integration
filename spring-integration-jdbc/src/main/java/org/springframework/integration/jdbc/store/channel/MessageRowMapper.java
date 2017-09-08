@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.jdbc.store.channel;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.springframework.core.serializer.support.DeserializingConverter;
+import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
 import org.springframework.messaging.Message;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.lob.LobHandler;
@@ -30,19 +30,21 @@ import org.springframework.jdbc.support.lob.LobHandler;
  * that select clause ordering is unimportant.
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
 public class MessageRowMapper implements RowMapper<Message<?>> {
 
-	private final DeserializingConverter deserializer;
+	private final WhiteListDeserializingConverter deserializer;
 	private final LobHandler lobHandler;
 
-	public MessageRowMapper(DeserializingConverter deserializer, LobHandler lobHandler) {
+	public MessageRowMapper(WhiteListDeserializingConverter deserializer, LobHandler lobHandler) {
 		this.deserializer = deserializer;
 		this.lobHandler = lobHandler;
 	}
 
+	@Override
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 		return (Message<?>) this.deserializer.convert(this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
 	}
