@@ -16,8 +16,10 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -26,15 +28,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.serializer.Deserializer;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
@@ -60,6 +66,10 @@ public class PayloadDeserializingTransformerParserTests {
 	@Autowired
 	private PollableChannel output;
 
+	@Autowired
+	@Qualifier("direct.handler")
+	private MessageHandler handler;
+
 
 	@Test
 	public void directChannelWithSerializedStringMessage() throws Exception {
@@ -69,6 +79,10 @@ public class PayloadDeserializingTransformerParserTests {
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof String);
 		assertEquals("foo", result.getPayload());
+		Set<?> patterns = TestUtils.getPropertyValue(this.handler, "transformer.converter.whiteListPatterns",
+				Set.class);
+		assertThat(patterns.size(), equalTo(1));
+		assertThat(patterns.iterator().next(), equalTo("*"));
 	}
 
 	@Test

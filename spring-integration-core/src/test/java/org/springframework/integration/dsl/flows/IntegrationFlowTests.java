@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +62,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.GenericHandler;
@@ -72,7 +74,6 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
-import org.springframework.integration.transformer.PayloadDeserializingTransformer;
 import org.springframework.integration.transformer.PayloadSerializingTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -592,10 +593,12 @@ public class IntegrationFlowTests {
 					.channel("foo")
 					.fixedSubscriberChannel()
 					.<String, Integer>transform(Integer::parseInt)
+					.<Integer, Foo>transform(i -> new Foo(i))
 					.transform(new PayloadSerializingTransformer(),
 							c -> c.autoStartup(false).id("payloadSerializingTransformer"))
 					.channel(MessageChannels.queue(new SimpleMessageStore(), "fooQueue"))
-					.transform(new PayloadDeserializingTransformer())
+					.transform(Transformers.deserializer(Foo.class.getName()))
+					.<Foo, Integer>transform(f -> f.value)
 					.filter("true", e -> e.id("expressionFilter"))
 					.channel(publishSubscribeChannel())
 					.transform((Integer p) -> p * 2, c -> c.advice(this.expressionAdvice()))
@@ -859,6 +862,17 @@ public class IntegrationFlowTests {
 			return IntegrationFlows.from(MessageChannels.direct())
 					.fixedSubscriberChannel()
 					.get();
+		}
+
+	}
+
+	@SuppressWarnings("serial")
+	public static class Foo implements Serializable {
+
+		private final Integer value;
+
+		public Foo(Integer value) {
+			this.value = value;
 		}
 
 	}

@@ -16,8 +16,12 @@
 
 package org.springframework.integration.transformer;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -56,6 +60,31 @@ public class PayloadDeserializingTransformerTests {
 		objectStream.writeObject(testBean);
 		byte[] serialized = byteStream.toByteArray();
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
+		Message<?> result = transformer.transform(new GenericMessage<byte[]>(serialized));
+		Object payload = result.getPayload();
+		assertNotNull(payload);
+		assertEquals(TestBean.class, payload.getClass());
+		assertEquals(testBean.name, ((TestBean) payload).name);
+	}
+
+	@Test
+	public void deserializeObjectWhiteList() throws Exception {
+		TestBean testBean = new TestBean("test");
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+		objectStream.writeObject(testBean);
+		byte[] serialized = byteStream.toByteArray();
+		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
+		transformer.setWhiteListPatterns("com.*");
+		try {
+			transformer.transform(new GenericMessage<byte[]>(serialized));
+			fail("expected security exception");
+		}
+		catch (MessageTransformationException e) {
+			assertThat(e.getCause().getCause(), instanceOf(SecurityException.class));
+			assertThat(e.getCause().getCause().getMessage(), startsWith("Attempt to deserialize unauthorized"));
+		}
+		transformer.setWhiteListPatterns("org.*");
 		Message<?> result = transformer.transform(new GenericMessage<byte[]>(serialized));
 		Object payload = result.getPayload();
 		assertNotNull(payload);
