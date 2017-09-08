@@ -24,10 +24,10 @@ import org.bson.types.Binary;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
+import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
 import org.springframework.messaging.Message;
 
 /**
@@ -36,6 +36,7 @@ import org.springframework.messaging.Message;
  * And vice versa - to convert {@link byte[]} from the MongoDB to the {@link Message}.
 
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.2.10
  * @deprecated since 5.0 in favor of {@link MessageToBinaryConverter} and {@link BinaryToMessageConverter}
  */
@@ -46,7 +47,7 @@ public class MongoDbMessageBytesConverter implements GenericConverter {
 
 	private final Converter<Object, byte[]> serializingConverter = new SerializingConverter();
 
-	private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
+	private final WhiteListDeserializingConverter deserializingConverter = new WhiteListDeserializingConverter();
 
 	@Override
 	public Set<ConvertiblePair> getConvertibleTypes() {
@@ -64,6 +65,16 @@ public class MongoDbMessageBytesConverter implements GenericConverter {
 		else {
 			return this.deserializingConverter.convert(((Binary) source).getData());
 		}
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * @param patterns the patterns.
+	 */
+	public void addWhiteListPatterns(String... patterns) {
+		this.deserializingConverter.addWhiteListPatterns(patterns);
 	}
 
 }

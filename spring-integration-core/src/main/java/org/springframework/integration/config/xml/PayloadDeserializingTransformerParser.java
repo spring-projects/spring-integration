@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.integration.transformer.PayloadDeserializingTransform
  * Parser for the 'payload-deserializing-transformer' element.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class PayloadDeserializingTransformerParser extends AbstractTransformerParser {
 
@@ -37,6 +38,7 @@ public class PayloadDeserializingTransformerParser extends AbstractTransformerPa
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserializer");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "white-list", "whiteListPatterns");
 	}
 
 }

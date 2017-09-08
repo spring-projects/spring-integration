@@ -38,7 +38,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
@@ -71,6 +70,7 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
+import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -144,6 +144,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private ApplicationContext applicationContext;
 
+	private String[] whiteListPatterns;
+
 
 	/**
 	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory}.and the default collection name.
@@ -175,6 +177,16 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * @param patterns the patterns.
+	 */
+	public void addWhiteListPatterns(String... patterns) {
+		this.whiteListPatterns = patterns;
 	}
 
 	@Override
@@ -504,7 +516,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 			customConverters.add(new MessageHistoryToDocumentConverter());
 			customConverters.add(new DocumentToGenericMessageConverter());
 			customConverters.add(new DocumentToMutableMessageConverter());
-			customConverters.add(new DocumentToErrorMessageConverter());
+			DocumentToErrorMessageConverter docToErrorMessageConverter = new DocumentToErrorMessageConverter();
+			if (MongoDbMessageStore.this.whiteListPatterns != null) {
+				docToErrorMessageConverter.deserializingConverter
+						.addWhiteListPatterns(MongoDbMessageStore.this.whiteListPatterns);
+			}
+			customConverters.add(docToErrorMessageConverter);
 			customConverters.add(new DocumentToAdviceMessageConverter());
 			customConverters.add(new ThrowableToBytesConverter());
 			this.setCustomConversions(new MongoCustomConversions(customConverters));
@@ -730,7 +747,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@ReadingConverter
 	private class DocumentToErrorMessageConverter implements Converter<Document, ErrorMessage> {
 
-		private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
+		private final WhiteListDeserializingConverter deserializingConverter = new WhiteListDeserializingConverter();
 
 		DocumentToErrorMessageConverter() {
 			super();

@@ -19,14 +19,17 @@
 		<queue capacity="1"/>
 	</channel>
 
-	<payload-deserializing-transformer input-channel="directInput" output-channel="output"/>
+	<payload-deserializing-transformer id="direct" input-channel="directInput" output-channel="output"
+		white-list="*" />
 
 	<payload-deserializing-transformer input-channel="queueInput" output-channel="output">
 		<poller fixed-delay="10000"/>
 	</payload-deserializing-transformer>
 
-	<payload-deserializing-transformer input-channel="customDeserializerInput" output-channel="output" deserializer="customDeserializer"/>
+	<payload-deserializing-transformer input-channel="customDeserializerInput" output-channel="output"
+		deserializer="customDeserializer"/>
 
-	<beans:bean id="customDeserializer" class="org.springframework.integration.config.xml.PayloadDeserializingTransformerParserTests$TestDeserializer"/>
+	<beans:bean id="customDeserializer"
+		class="org.springframework.integration.config.xml.PayloadDeserializingTransformerParserTests$TestDeserializer"/>
 
 </beans:beans>

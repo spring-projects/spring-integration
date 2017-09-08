@@ -165,12 +165,14 @@ public abstract class Transformers {
 		return transformer;
 	}
 
-	public static PayloadDeserializingTransformer deserializer() {
-		return deserializer(null);
+	public static PayloadDeserializingTransformer deserializer(String... whiteListPatterns) {
+		return deserializer(null, whiteListPatterns);
 	}
 
-	public static PayloadDeserializingTransformer deserializer(Deserializer<Object> deserializer) {
+	public static PayloadDeserializingTransformer deserializer(Deserializer<Object> deserializer,
+			String... whiteListPatterns) {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
+		transformer.setWhiteListPatterns(whiteListPatterns);
 		if (deserializer != null) {
 			transformer.setDeserializer(deserializer);
 		}
