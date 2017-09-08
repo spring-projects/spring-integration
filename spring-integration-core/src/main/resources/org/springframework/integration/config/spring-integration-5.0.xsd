@@ -2710,6 +2710,20 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="white-list" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					When using the default Deserializer, a list of package/class patterns indicating
+					classes that are allowed to be deserialized. Consider providing this if you receive
+					data from untrusted sources. Example: "com.mycom.*, com.yourcom.*".
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.core.serializer.Deserializer" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="id" type="xsd:string" />
 	</xsd:complexType>
 

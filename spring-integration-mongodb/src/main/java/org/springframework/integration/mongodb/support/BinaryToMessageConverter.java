@@ -19,22 +19,33 @@ package org.springframework.integration.mongodb.support;
 import org.bson.types.Binary;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.data.convert.ReadingConverter;
+import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
 import org.springframework.messaging.Message;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 5.0
  */
 @ReadingConverter
 public class BinaryToMessageConverter implements Converter<Binary, Message<?>> {
 
-	private final Converter<byte[], Object> deserializingConverter = new DeserializingConverter();
+	private final WhiteListDeserializingConverter deserializingConverter = new WhiteListDeserializingConverter();
 
 	@Override
 	public Message<?> convert(Binary source) {
 		return (Message<?>) this.deserializingConverter.convert(source.getData());
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * @param patterns the patterns.
+	 */
+	public void addWhiteListPatterns(String... patterns) {
+		this.deserializingConverter.addWhiteListPatterns(patterns);
 	}
 
 }

@@ -38,7 +38,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -51,6 +50,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroupFactory;
+import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -137,7 +137,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private volatile JdbcTemplate jdbcTemplate;
 
-	private volatile DeserializingConverter deserializer;
+	private volatile WhiteListDeserializingConverter deserializer;
 
 	private volatile SerializingConverter serializer;
 
@@ -159,7 +159,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Convenient constructor for configuration use.
 	 */
 	public JdbcChannelMessageStore() {
-		this.deserializer = new DeserializingConverter();
+		this.deserializer = new WhiteListDeserializingConverter();
 		this.serializer = new SerializingConverter();
 	}
 
@@ -202,7 +202,18 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
+		this.deserializer = new WhiteListDeserializingConverter((Deserializer) deserializer);
+	}
+
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * @param patterns the patterns.
+	 * @since 4.2.13
+	 */
+	public void addWhiteListPatterns(String... patterns) {
+		this.deserializer.addWhiteListPatterns(patterns);
 	}
 
 	/**
