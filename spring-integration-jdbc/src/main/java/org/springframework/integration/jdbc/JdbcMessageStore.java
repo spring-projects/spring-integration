@@ -37,7 +37,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
@@ -45,6 +44,7 @@ import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -188,7 +188,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private volatile JdbcOperations jdbcTemplate;
 
-	private volatile DeserializingConverter deserializer;
+	private volatile WhiteListDeserializingConverter deserializer;
 
 	private volatile SerializingConverter serializer;
 
@@ -202,8 +202,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * Convenient constructor for configuration use.
 	 */
 	public JdbcMessageStore() {
-		deserializer = new DeserializingConverter();
-		serializer = new SerializingConverter();
+		this.deserializer = new WhiteListDeserializingConverter();
+		this.serializer = new SerializingConverter();
 	}
 
 	/**
@@ -284,9 +284,21 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
+		this.deserializer = new WhiteListDeserializingConverter((Deserializer) deserializer);
 	}
 
+	/**
+	 * Add patterns for packages/classes that are allowed to be deserialized. A class can
+	 * be fully qualified or a wildcard '*' is allowed at the beginning or end of the
+	 * class name. Examples: {@code com.foo.*}, {@code *.MyClass}.
+	 * @param patterns the patterns.
+	 * @since 4.2.13
+	 */
+	public void addWhiteListPatterns(String... patterns) {
+		this.deserializer.addWhiteListPatterns(patterns);
+	}
+
+	
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.state(jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");

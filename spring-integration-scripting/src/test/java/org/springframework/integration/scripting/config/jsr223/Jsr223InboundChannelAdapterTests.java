@@ -18,7 +18,6 @@ package org.springframework.integration.scripting.config.jsr223;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -58,9 +57,6 @@ public class Jsr223InboundChannelAdapterTests {
 
 		message = this.inboundChannelAdapterChannel.receive(20000);
 		assertNotNull(message);
-
-		message = this.inboundChannelAdapterChannel.receive(1);
-		assertNull(message);
 	}
 
 }
