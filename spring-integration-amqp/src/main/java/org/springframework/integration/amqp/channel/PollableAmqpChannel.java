@@ -24,6 +24,7 @@ import java.util.Map;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
@@ -51,11 +52,11 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 
 	private final String channelName;
 
-	private volatile String queueName;
-
-	private volatile AmqpAdmin amqpAdmin;
+	private volatile Queue queue;
 
 	private volatile int executorInterceptorsSize;
+
+	private volatile boolean declared;
 
 	/**
 	 * Construct an instance with the supplied name, template and default header mappers
@@ -91,22 +92,20 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	 * Provide an explicitly configured queue name. If this is not provided, then a Queue will be created
 	 * implicitly with the channelName as its name. The implicit creation will require that either an AmqpAdmin
 	 * instance has been provided or that the configured AmqpTemplate is an instance of RabbitTemplate.
-	 *
 	 * @param queueName The queue name.
 	 */
 	public void setQueueName(String queueName) {
-		this.queueName = queueName;
+		this.queue = new Queue(queueName);
 	}
 
 	/**
 	 * Provide an instance of AmqpAdmin for implicitly declaring Queues if the queueName is not provided.
 	 * When providing a RabbitTemplate implementation, this is not strictly necessary since a RabbitAdmin
 	 * instance can be created from the template's ConnectionFactory reference.
-	 *
 	 * @param amqpAdmin The amqp admin.
 	 */
 	public void setAmqpAdmin(AmqpAdmin amqpAdmin) {
-		this.amqpAdmin = amqpAdmin;
+		setAdmin(amqpAdmin);
 	}
 
 	@Override
@@ -131,22 +130,33 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 
 	@Override
 	protected String getRoutingKey() {
-		return this.queueName;
+		return this.queue != null ? this.queue.getName() : super.getRoutingKey();
 	}
 
 	@Override
 	protected void onInit() throws Exception {
-		super.onInit();
-		AmqpTemplate amqpTemplate = this.getAmqpTemplate();
-		if (this.queueName == null) {
-			if (this.amqpAdmin == null && amqpTemplate instanceof RabbitTemplate) {
-				this.amqpAdmin = new RabbitAdmin(((RabbitTemplate) amqpTemplate).getConnectionFactory());
+		AmqpTemplate amqpTemplate = getAmqpTemplate();
+		if (this.queue == null) {
+			if (getAdmin() == null && amqpTemplate instanceof RabbitTemplate) {
+				ConnectionFactory connectionFactory = ((RabbitTemplate) amqpTemplate).getConnectionFactory();
+				setAdmin(new RabbitAdmin(connectionFactory));
+				setConnectionFactory(connectionFactory);
 			}
-			Assert.notNull(this.amqpAdmin,
+
+			Assert.notNull(getAdmin(),
 					"If no queueName is configured explicitly, an AmqpAdmin instance must be provided, " +
 							"or the AmqpTemplate must be a RabbitTemplate since the Queue needs to be declared.");
-			this.queueName = this.channelName;
-			this.amqpAdmin.declareQueue(new Queue(this.queueName));
+
+			this.queue = new Queue(this.channelName);
+		}
+		super.onInit();
+	}
+
+	@Override
+	protected void doDeclares() {
+		AmqpAdmin admin = getAdmin();
+		if (admin != null && admin.getQueueProperties(this.queue.getName()) == null) {
+			admin.declareQueue(this.queue);
 		}
 	}
 
@@ -218,22 +228,27 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	protected Object performReceive(Long timeout) {
+		if (!this.declared) {
+			doDeclares();
+			this.declared = true;
+		}
+
 		if (!isExtractPayload()) {
 			if (timeout == null) {
-				return getAmqpTemplate().receiveAndConvert(this.queueName);
+				return getAmqpTemplate().receiveAndConvert(this.queue.getName());
 			}
 			else {
-				return getAmqpTemplate().receiveAndConvert(this.queueName, timeout);
+				return getAmqpTemplate().receiveAndConvert(this.queue.getName(), timeout);
 			}
 		}
 		else {
 			RabbitTemplate rabbitTemplate = getRabbitTemplate();
 			org.springframework.amqp.core.Message message;
 			if (timeout == null) {
-				message = rabbitTemplate.receive(this.queueName);
+				message = rabbitTemplate.receive(this.queue.getName());
 			}
 			else {
-				message = rabbitTemplate.receive(this.queueName, timeout);
+				message = rabbitTemplate.receive(this.queue.getName(), timeout);
 			}
 
 			if (message != null) {

@@ -100,7 +100,7 @@ public class ChannelTests {
 	private PollableChannel out;
 
 	@Autowired
-	private CachingConnectionFactory factory;
+	private CachingConnectionFactory connectionFactory;
 
 	@Autowired
 	private AmqpHeaderMapper mapperIn;
@@ -115,7 +115,6 @@ public class ChannelTests {
 	}
 
 	@Test
-	@DirtiesContext
 	public void pubSubLostConnectionTest() throws Exception {
 		final CyclicBarrier latch = new CyclicBarrier(2);
 		channel.subscribe(message -> {
@@ -130,13 +129,15 @@ public class ChannelTests {
 		latch.reset();
 		BlockingQueueConsumer consumer = (BlockingQueueConsumer) TestUtils.getPropertyValue(this.channel,
 				"container.consumers", Set.class).iterator().next();
-		factory.destroy();
+		connectionFactory.destroy();
 		waitForNewConsumer(this.channel, consumer);
 		this.channel.send(new GenericMessage<String>("bar"));
 		latch.await(10, TimeUnit.SECONDS);
 		this.channel.destroy();
 		this.pubSubWithEP.destroy();
-		assertEquals(0, TestUtils.getPropertyValue(factory, "connectionListener.delegates", Collection.class).size());
+		this.withEP.destroy();
+		this.pollableWithEP.destroy();
+		assertEquals(0, TestUtils.getPropertyValue(connectionFactory, "connectionListener.delegates", Collection.class).size());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -166,25 +167,31 @@ public class ChannelTests {
 	 */
 	@Test
 	public void channelDeclarationTests() {
-		RabbitAdmin admin = new RabbitAdmin(this.factory);
+		RabbitAdmin admin = new RabbitAdmin(this.connectionFactory);
 		admin.deleteQueue("implicit");
-		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(this.factory);
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(this.connectionFactory);
+		container.setAutoStartup(false);
 		AmqpTemplate amqpTemplate = mock(AmqpTemplate.class);
 		PointToPointSubscribableAmqpChannel channel = new PointToPointSubscribableAmqpChannel("implicit", container,
 				amqpTemplate);
 		channel.setBeanFactory(mock(BeanFactory.class));
 		channel.afterPropertiesSet();
+		channel.onCreate(null);
+
 		assertNotNull(admin.getQueueProperties("implicit"));
-		admin.deleteQueue("implicit");
 
 		admin.deleteQueue("explicit");
 		channel.setQueueName("explicit");
 		channel.afterPropertiesSet();
+		channel.onCreate(null);
+
 		assertNotNull(admin.getQueueProperties("explicit"));
 
 		admin.deleteQueue("explicit");
 		admin.declareQueue(new Queue("explicit", false)); // verify no declaration if exists with non-standard props
 		channel.afterPropertiesSet();
+		channel.onCreate(null);
+
 		assertNotNull(admin.getQueueProperties("explicit"));
 		admin.deleteQueue("explicit");
 	}
@@ -193,7 +200,7 @@ public class ChannelTests {
 	public void testAmqpChannelFactoryBean() throws Exception {
 		AmqpChannelFactoryBean channelFactoryBean = new AmqpChannelFactoryBean();
 		channelFactoryBean.setBeanFactory(mock(BeanFactory.class));
-		channelFactoryBean.setConnectionFactory(this.factory);
+		channelFactoryBean.setConnectionFactory(this.connectionFactory);
 		channelFactoryBean.setBeanName("testChannel");
 		channelFactoryBean.afterPropertiesSet();
 		AbstractAmqpChannel channel = channelFactoryBean.getObject();
@@ -201,14 +208,14 @@ public class ChannelTests {
 
 		channelFactoryBean = new AmqpChannelFactoryBean();
 		channelFactoryBean.setBeanFactory(mock(BeanFactory.class));
-		channelFactoryBean.setConnectionFactory(this.factory);
+		channelFactoryBean.setConnectionFactory(this.connectionFactory);
 		channelFactoryBean.setBeanName("testChannel");
 		channelFactoryBean.setPubSub(true);
 		channelFactoryBean.afterPropertiesSet();
 		channel = channelFactoryBean.getObject();
 		assertThat(channel, instanceOf(PublishSubscribeAmqpChannel.class));
 
-		RabbitAdmin rabbitAdmin = new RabbitAdmin(this.factory);
+		RabbitAdmin rabbitAdmin = new RabbitAdmin(this.connectionFactory);
 		rabbitAdmin.deleteQueue("testChannel");
 		rabbitAdmin.deleteExchange("si.fanout.testChannel");
 	}
@@ -241,11 +248,11 @@ public class ChannelTests {
 
 	@Test
 	public void messageConversionTests() throws Exception {
-		RabbitTemplate amqpTemplate = new RabbitTemplate(this.factory);
+		RabbitTemplate amqpTemplate = new RabbitTemplate(this.connectionFactory);
 		MessageConverter messageConverter = mock(MessageConverter.class);
 		amqpTemplate.setMessageConverter(messageConverter);
 		PointToPointSubscribableAmqpChannel channel = new PointToPointSubscribableAmqpChannel("testConvertFail",
-				new SimpleMessageListenerContainer(this.factory), amqpTemplate);
+				new SimpleMessageListenerContainer(this.connectionFactory), amqpTemplate);
 		channel.afterPropertiesSet();
 		MessageListener listener = TestUtils.getPropertyValue(channel, "container.messageListener",
 				MessageListener.class);

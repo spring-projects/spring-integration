@@ -16,10 +16,15 @@
 
 package org.springframework.integration.amqp.channel;
 
+import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.connection.Connection;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.amqp.support.MappingUtils;
@@ -29,9 +34,12 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
-public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
+public abstract class AbstractAmqpChannel extends AbstractMessageChannel
+		implements DisposableBean, ConnectionListener {
 
 	private final AmqpTemplate amqpTemplate;
 
@@ -41,13 +49,19 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 
 	private final AmqpHeaderMapper inboundHeaderMapper;
 
-	private volatile boolean extractPayload;
+	private AmqpAdmin admin;
 
-	private volatile boolean loggingEnabled = true;
+	private ConnectionFactory connectionFactory;
+
+	private boolean extractPayload;
+
+	private boolean loggingEnabled = true;
 
 	private MessageDeliveryMode defaultDeliveryMode;
 
 	private boolean headersMappedLast;
+
+	private volatile boolean initialized;
 
 	/**
 	 * Construct an instance with the supplied template and default header mappers
@@ -149,7 +163,6 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 	/**
 	 * Subclasses may override this method to return an Exchange name.
 	 * By default, Messages will be sent to the no-name Direct Exchange.
-	 *
 	 * @return The exchange name.
 	 */
 	protected String getExchangeName() {
@@ -159,7 +172,6 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 	/**
 	 * Subclasses may override this method to return a routing key.
 	 * By default, there will be no routing key (empty string).
-	 *
 	 * @return The routing key.
 	 */
 	protected String getRoutingKey() {
@@ -178,6 +190,41 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 		return this.rabbitTemplate;
 	}
 
+	protected final void setAdmin(AmqpAdmin admin) {
+		this.admin = admin;
+	}
+
+	protected final void setConnectionFactory(ConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
+
+	protected AmqpAdmin getAdmin() {
+		return this.admin;
+	}
+
+	protected ConnectionFactory getConnectionFactory() {
+		return this.connectionFactory;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (!this.initialized && this.rabbitTemplate != null) {
+			if (this.connectionFactory != null) {
+				this.connectionFactory.addConnectionListener(this);
+			}
+		}
+		this.initialized = true;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (this.connectionFactory != null) {
+			this.connectionFactory.removeConnectionListener(this);
+			this.initialized = false;
+		}
+	}
+
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (this.extractPayload) {
@@ -190,5 +237,16 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 		}
 		return true;
 	}
+
+	@Override
+	public void onCreate(Connection connection) {
+		doDeclares();
+	}
+
+	@Override
+	public void onClose(Connection connection) {
+	}
+
+	protected abstract void  doDeclares();
 
 }

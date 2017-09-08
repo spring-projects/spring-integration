@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,18 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessageListener;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
@@ -49,10 +48,11 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
-		implements SubscribableChannel, SmartLifecycle, DisposableBean {
+		implements SubscribableChannel, SmartLifecycle {
 
 	private final String channelName;
 
@@ -64,9 +64,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	private volatile Integer maxSubscribers;
 
-	private final AmqpAdmin admin;
-
-	private final ConnectionFactory connectionFactory;
+	private volatile boolean declared;
 
 	/**
 	 * Construct an instance with the supplied name, container and template; default header
@@ -109,14 +107,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	protected AbstractSubscribableAmqpChannel(String channelName,
 			AbstractMessageListenerContainer container,
 			AmqpTemplate amqpTemplate, boolean isPubSub) {
-		super(amqpTemplate);
-		Assert.notNull(container, "container must not be null");
-		Assert.hasText(channelName, "channel name must not be empty");
-		this.channelName = channelName;
-		this.container = container;
-		this.isPubSub = isPubSub;
-		this.connectionFactory = container.getConnectionFactory();
-		this.admin = new RabbitAdmin(this.connectionFactory);
+		this(channelName, container, amqpTemplate, isPubSub,
+				DefaultAmqpHeaderMapper.outboundMapper(), DefaultAmqpHeaderMapper.inboundMapper());
 	}
 
 	/**
@@ -141,8 +133,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 		this.channelName = channelName;
 		this.container = container;
 		this.isPubSub = isPubSub;
-		this.connectionFactory = container.getConnectionFactory();
-		this.admin = new RabbitAdmin(this.connectionFactory);
+		setConnectionFactory(container.getConnectionFactory());
+		setAdmin(new RabbitAdmin(getConnectionFactory()));
 	}
 
 	/**
@@ -155,14 +147,6 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 		if (this.dispatcher != null) {
 			this.dispatcher.setMaxSubscribers(this.maxSubscribers);
 		}
-	}
-
-	protected AmqpAdmin getAdmin() {
-		return this.admin;
-	}
-
-	protected ConnectionFactory getConnectionFactory() {
-		return this.connectionFactory;
 	}
 
 	@Override
@@ -181,12 +165,12 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 		this.dispatcher = this.createDispatcher();
 		if (this.maxSubscribers == null) {
 			this.maxSubscribers = this.getIntegrationProperty(this.isPubSub ?
-					IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS :
-					IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
+							IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS :
+							IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
 					Integer.class);
 		}
 		setMaxSubscribers(this.maxSubscribers);
-		String queue = this.obtainQueueName(this.admin, this.channelName);
+		String queue = obtainQueueName(this.channelName);
 		this.container.setQueueNames(queue);
 		MessageConverter converter = (this.getAmqpTemplate() instanceof RabbitTemplate)
 				? ((RabbitTemplate) this.getAmqpTemplate()).getMessageConverter()
@@ -221,6 +205,16 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 
 	@Override
 	public void start() {
+		if (!this.declared) {
+			try {
+				doDeclares();
+				this.declared = true;
+			}
+			catch (AmqpConnectException e) {
+				logger.info("Broker not available; cannot check queue declarations. " +
+						"Postponed to the next connection create...");
+			}
+		}
 		if (this.container != null) {
 			this.container.start();
 		}
@@ -230,6 +224,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	public void stop() {
 		if (this.container != null) {
 			this.container.stop();
+			this.declared = false;
 		}
 	}
 
@@ -237,19 +232,22 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	public void stop(Runnable callback) {
 		if (this.container != null) {
 			this.container.stop(callback);
+			this.declared = false;
 		}
 	}
 
 	@Override
 	public void destroy() throws Exception {
+		super.destroy();
 		if (this.container != null) {
 			this.container.destroy();
+			this.declared = false;
 		}
 	}
 
 	protected abstract AbstractDispatcher createDispatcher();
 
-	protected abstract String obtainQueueName(AmqpAdmin admin, String channelName);
+	protected abstract String obtainQueueName(String channelName);
 
 
 	private static final class DispatchingMessageListener implements MessageListener {

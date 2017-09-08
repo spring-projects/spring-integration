@@ -35,11 +35,9 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.junit.Test;
 
-import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
-import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -55,6 +53,7 @@ import com.rabbitmq.client.Channel;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
@@ -103,15 +102,8 @@ public class DispatcherHasNoSubscribersTests {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
 		AmqpTemplate amqpTemplate = mock(AmqpTemplate.class);
-		final Queue queue = new Queue("noSubscribersQueue");
 		PublishSubscribeAmqpChannel amqpChannel = new PublishSubscribeAmqpChannel("noSubscribersChannel",
-				container, amqpTemplate) {
-			@Override
-			protected String obtainQueueName(AmqpAdmin admin,
-					String channelName) {
-				return queue.getName();
-			}
-		};
+				container, amqpTemplate);
 		amqpChannel.setBeanName("noSubscribersChannel");
 		amqpChannel.setBeanFactory(mock(BeanFactory.class));
 		amqpChannel.afterPropertiesSet();
