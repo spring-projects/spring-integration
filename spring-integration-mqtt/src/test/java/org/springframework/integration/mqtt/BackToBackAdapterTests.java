@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -45,8 +46,11 @@ import org.springframework.integration.mqtt.event.MqttMessageDeliveredEvent;
 import org.springframework.integration.mqtt.event.MqttMessageSentEvent;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
+import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
+import org.springframework.integration.support.json.JacksonJsonUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -102,6 +106,39 @@ public class BackToBackAdapterTests {
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+	}
+
+	@Test
+	public void testJson() {
+		MqttPahoMessageHandler adapter = new MqttPahoMessageHandler("tcp://localhost:1883", "si-test-out");
+		adapter.setDefaultTopic("mqtt-foo");
+		adapter.setBeanFactory(mock(BeanFactory.class));
+		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper(
+				JacksonJsonUtils.messagingAwareMapper("org.springframework"));
+		DefaultPahoMessageConverter converter = new DefaultPahoMessageConverter();
+		converter.setBytesMessageMapper(mapper);
+		adapter.setConverter(converter);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		MqttPahoMessageDrivenChannelAdapter inbound = new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
+				"si-test-in", "mqtt-foo");
+		QueueChannel outputChannel = new QueueChannel();
+		inbound.setOutputChannel(outputChannel);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		inbound.setTaskScheduler(taskScheduler);
+		inbound.setBeanFactory(mock(BeanFactory.class));
+		inbound.setConverter(converter);
+		inbound.afterPropertiesSet();
+		inbound.start();
+		adapter.handleMessage(new GenericMessage<Foo>(new Foo("bar"), Collections.singletonMap("baz", "qux")));
+		adapter.stop();
+		Message<?> out = outputChannel.receive(10000);
+		assertNotNull(out);
+		inbound.stop();
+		assertEquals(new Foo("bar"), out.getPayload());
+		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+		assertEquals("qux", out.getHeaders().get("baz"));
 	}
 
 	@Test
@@ -351,6 +388,59 @@ public class BackToBackAdapterTests {
 		@Override
 		public void publishEvent(Object event) {
 
+		}
+
+	}
+
+	public static class Foo {
+
+		private String bar;
+
+		public Foo() {
+			super();
+		}
+
+		public Foo(String bar) {
+			this.bar = bar;
+		}
+
+		public String getBar() {
+			return this.bar;
+		}
+
+		public void setBar(String bar) {
+			this.bar = bar;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((this.bar == null) ? 0 : this.bar.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			Foo other = (Foo) obj;
+			if (this.bar == null) {
+				if (other.bar != null) {
+					return false;
+				}
+			}
+			else if (!this.bar.equals(other.bar)) {
+				return false;
+			}
+			return true;
 		}
 
 	}

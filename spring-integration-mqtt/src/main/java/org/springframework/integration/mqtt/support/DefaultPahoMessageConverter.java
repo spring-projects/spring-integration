@@ -21,11 +21,13 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
@@ -50,6 +52,8 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	private final boolean defaultRetained;
 
 	private final MessageProcessor<Boolean> retainedProcessor;
+
+	private BytesMessageMapper bytesMessageMapper;
 
 	private volatile boolean payloadAsBytes = false;
 
@@ -164,8 +168,10 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	/**
 	 * True if the converter should not convert the message payload to a String.
+	 * Ignored if a {@link BytesMessageMapper} is provided.
 	 *
 	 * @param payloadAsBytes The payloadAsBytes to set.
+	 * @see #setBytesMessageMapper(BytesMessageMapper)
 	 */
 	public void setPayloadAsBytes(boolean payloadAsBytes) {
 		this.payloadAsBytes = payloadAsBytes;
@@ -173,6 +179,18 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 
 	public boolean isPayloadAsBytes() {
 		return this.payloadAsBytes;
+	}
+
+	/**
+	 * Set a {@link BytesMessageMapper} to use when mapping byte[].
+	 * {@link #setPayloadAsBytes(boolean)} is ignored when a {@link BytesMessageMapper}
+	 * is provided.
+	 * @param bytesMessageMapper the mapper.
+	 * @since 5.0
+	 * @see #setPayloadAsBytes(boolean)
+	 */
+	public void setBytesMessageMapper(BytesMessageMapper bytesMessageMapper) {
+		this.bytesMessageMapper = bytesMessageMapper;
 	}
 
 	@Override
@@ -183,11 +201,20 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 		return toMessage(null, (MqttMessage) mqttMessage);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
 		try {
-			AbstractIntegrationMessageBuilder<Object> messageBuilder = getMessageBuilderFactory()
-					.withPayload(mqttBytesToPayload(mqttMessage))
+			AbstractIntegrationMessageBuilder<Object> messageBuilder;
+			if (this.bytesMessageMapper != null) {
+				messageBuilder = (AbstractIntegrationMessageBuilder<Object>) getMessageBuilderFactory()
+						.fromMessage(this.bytesMessageMapper.toMessage(mqttMessage.getPayload()));
+			}
+			else {
+				messageBuilder = getMessageBuilderFactory()
+					.withPayload(mqttBytesToPayload(mqttMessage));
+			}
+			messageBuilder
 					.setHeader(MqttHeaders.RECEIVED_QOS, mqttMessage.getQos())
 					.setHeader(MqttHeaders.DUPLICATE, mqttMessage.isDuplicate())
 					.setHeader(MqttHeaders.RECEIVED_RETAINED, mqttMessage.isRetained());
@@ -232,29 +259,42 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	/**
 	 * Subclasses can override this method to convert the payload to a byte[].
 	 * The default implementation accepts a byte[] or String payload.
+	 * If a {@link BytesMessageMapper} is provided, conversion to byte[]
+	 * is delegated to it, so any payload that it can handle is supported.
 	 *
 	 * @param message The outbound Message.
 	 * @return The byte[] which will become the payload of the MQTT Message.
 	 */
 	protected byte[] messageToMqttBytes(Message<?> message) {
-		Object payload = message.getPayload();
-		Assert.isTrue(payload instanceof byte[] || payload instanceof String,
-				() -> "This default converter can only handle 'byte[]' or 'String' payloads; consider adding a "
-						+ "transformer to your flow definition, or subclass this converter for "
-						+ payload.getClass().getName() + " payloads");
-		byte[] payloadBytes;
-		if (payload instanceof String) {
+		if (this.bytesMessageMapper != null) {
 			try {
-				payloadBytes = ((String) payload).getBytes(this.charset);
+				return this.bytesMessageMapper.fromMessage(message);
 			}
 			catch (Exception e) {
-				throw new MessageConversionException("failed to convert Message to object", e);
+				throw new MessageHandlingException(message, "Failed to map outbound message", e);
 			}
 		}
 		else {
-			payloadBytes = (byte[]) payload;
+			Object payload = message.getPayload();
+			Assert.isTrue(payload instanceof byte[] || payload instanceof String,
+					() -> "This default converter can only handle 'byte[]' or 'String' payloads; consider adding a "
+							+ "transformer to your flow definition, or provide a BytesMessageMapper, "
+							+ "or subclass this converter for "
+							+ payload.getClass().getName() + " payloads");
+			byte[] payloadBytes;
+			if (payload instanceof String) {
+				try {
+					payloadBytes = ((String) payload).getBytes(this.charset);
+				}
+				catch (Exception e) {
+					throw new MessageConversionException("failed to convert Message to object", e);
+				}
+			}
+			else {
+				payloadBytes = (byte[]) payload;
+			}
+			return payloadBytes;
 		}
-		return payloadBytes;
 	}
 
 }

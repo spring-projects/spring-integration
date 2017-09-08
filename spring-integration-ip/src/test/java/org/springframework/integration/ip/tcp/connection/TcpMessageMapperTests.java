@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
+import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -420,6 +421,30 @@ public class TcpMessageMapperTests {
 				.build();
 		MessageConverter converter = new CodecMessageConverter(this.codec);
 		MessageConvertingTcpMessageMapper mapper = new MessageConvertingTcpMessageMapper(converter);
+		byte[] bytes = (byte[]) mapper.fromMessage(outMessage);
+
+		TcpConnection connection = mock(TcpConnection.class);
+		when(connection.getPayload()).thenReturn(bytes);
+		when(connection.getHostName()).thenReturn("someHost");
+		when(connection.getHostAddress()).thenReturn("1.1.1.1");
+		when(connection.getPort()).thenReturn(1234);
+		when(connection.getConnectionId()).thenReturn("someId");
+		Message<?> message = mapper.toMessage(connection);
+		assertEquals("foo", message.getPayload());
+		assertEquals("baz", message.getHeaders().get("bar"));
+		assertEquals("someHost", message.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertEquals("someId", message.getHeaders().get(IpHeaders.CONNECTION_ID));
+	}
+
+	@Test
+	public void testWithBytesMapper() throws Exception {
+		Message<String> outMessage = MessageBuilder.withPayload("foo")
+				.setHeader("bar", "baz")
+				.build();
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setBytesMessageMapper(new EmbeddedJsonHeadersMessageMapper());
 		byte[] bytes = (byte[]) mapper.fromMessage(outMessage);
 
 		TcpConnection connection = mock(TcpConnection.class);
