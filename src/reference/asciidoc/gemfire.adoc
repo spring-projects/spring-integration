@@ -135,10 +135,13 @@ Spring Integration's Gemfire module provides the `GemfireMessageStore` which is 
 [source,xml]
 ----
 <bean id="gemfireMessageStore" class="o.s.i.gemfire.store.GemfireMessageStore">
-    <constructor-arg ref="myCache"/>
+    <constructor-arg ref="myRegion"/>
 </bean>
 
-<bean id="myCache" class="org.springframework.data.gemfire.CacheFactoryBean"/>
+<gfe:cache/>
+
+<gfe:replicated-region id="myRegion"/>
+
 
 <int:channel id="somePersistentQueueChannel">
     <int:queue message-store="gemfireMessageStore"/>
@@ -148,23 +151,7 @@ Spring Integration's Gemfire module provides the `GemfireMessageStore` which is 
     message-store="gemfireMessageStore"/>
 ----
 
-Above is a sample `GemfireMessageStore` configuration that shows its usage by a _QueueChannel_ and an _Aggregator_.
-As you can see it is a normal Spring bean configuration.
-The simplest configuration requires a reference to a `GemFireCache` (created by `CacheFactoryBean`) as a constructor argument.
-If the cache is standalone, i.e., embedded in the same JVM, the MessageStore will create a message store region named "messageStoreRegion".
-If your application requires customization of the messageStore region, for example, multiple Gemfire message stores each with its own region, you can configure a region for each message store instance and use the `Region` as the constructor argument:
-[source,xml]
-----
-<bean id="gemfireMessageStore" class="o.s.i.gemfire.store.GemfireMessageStore">
-    <constructor-arg ref="myRegion"/>
-</bean>
-
-<gfe:cache/>
-
-<gfe:replicated-region id="myRegion"/>
-----
-
-In the above examle, the cache and region are configured using the spring-gemfire namespace (not to be confused with the spring-integration-gemfire namespace).
+In the above example, the cache and region are configured using the spring-gemfire namespace (not to be confused with the spring-integration-gemfire namespace).
 Often it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration (See the http://www.vmware.com/support/pubs/vfabric-gemfire.html[GemFire product documentation] for more details).
 In this case, you configure a client cache, client region, and client pool and inject the region into the MessageStore.
 Here is an example:
@@ -187,6 +174,8 @@ Here is an example:
 Note the _pool_ element is configured with the address of a cache server (a locator may be substituted here).
 The region is configured as a 'PROXY' so that no data will be stored locally.
 The region's id corresponds to a region with the same name configured in the cache server.
+
+Starting with version _4.3.12_, the `GemfireMessageStore` supports `prefix` option to allow to distinguish non-shared instances of the store on the same Gemfire region.
 
 [[gemfire-lock-registry]]
 === Gemfire Lock Registry

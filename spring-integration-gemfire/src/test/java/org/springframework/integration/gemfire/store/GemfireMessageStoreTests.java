@@ -37,6 +37,7 @@ import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -58,8 +59,6 @@ public class GemfireMessageStoreTests {
 	@Test
 	public void addAndGetMessage() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
-
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		store.addMessage(message);
 		Message<?> retrieved = store.getMessage(message.getHeaders().getId());
@@ -76,7 +75,6 @@ public class GemfireMessageStoreTests {
 		region.afterPropertiesSet();
 
 		GemfireMessageStore store = new GemfireMessageStore(region.getObject());
-		store.afterPropertiesSet();
 		assertSame(region.getObject(), TestUtils.getPropertyValue(store, "messageStoreRegion"));
 
 		region.destroy();
@@ -85,7 +83,6 @@ public class GemfireMessageStoreTests {
 	@Test
 	public void testWithMessageHistory() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 
 		Message<?> message = new GenericMessage<String>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
@@ -108,7 +105,6 @@ public class GemfireMessageStoreTests {
 	@Test
 	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
 		GemfireMessageStore messageStore = new GemfireMessageStore(region);
-		messageStore.afterPropertiesSet();
 
 		String groupId = "X";
 		List<Message<?>> messages = new ArrayList<Message<?>>();
@@ -121,6 +117,29 @@ public class GemfireMessageStoreTests {
 		assertEquals(25, group.size());
 		messageStore.removeMessagesFromGroup(groupId, messages);
 		group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
+	}
+
+	@Test
+	public void testAddAndRemoveMessagesFromMessageGroupWithPrefix() throws Exception {
+		GemfireMessageStore messageStore = new GemfireMessageStore(region, "foo_");
+
+		String groupId = "X";
+		List<Message<?>> messages = new ArrayList<Message<?>>();
+		for (int i = 0; i < 25; i++) {
+			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+			messageStore.addMessagesToGroup(groupId, message);
+			messages.add(message);
+		}
+
+		MessageGroupMetadata messageGroupMetadata =
+				(MessageGroupMetadata) region.get("foo_" + "MESSAGE_GROUP_" + groupId);
+
+		assertNotNull(messageGroupMetadata);
+		assertEquals(25, messageGroupMetadata.size());
+
+		messageStore.removeMessagesFromGroup(groupId, messages);
+		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 

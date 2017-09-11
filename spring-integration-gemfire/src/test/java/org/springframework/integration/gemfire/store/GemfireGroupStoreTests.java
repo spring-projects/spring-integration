@@ -69,7 +69,6 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testNonExistingEmptyMessageGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		assertNotNull(messageGroup);
 		assertTrue(messageGroup instanceof SimpleMessageGroup);
@@ -79,7 +78,6 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testMessageGroupWithAddedMessage() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(1, message);
@@ -87,7 +85,6 @@ public class GemfireGroupStoreTests {
 
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(1, messageGroup.size());
@@ -96,7 +93,6 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testRemoveMessageFromTheGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("2");
 
@@ -121,7 +117,6 @@ public class GemfireGroupStoreTests {
 
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
@@ -131,7 +126,6 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testRemoveMessageGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
@@ -145,7 +139,6 @@ public class GemfireGroupStoreTests {
 
 		// make sure the store is properly rebuild from Gemfire
 		store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 
 		messageGroup = store.getMessageGroup(1);
 
@@ -156,7 +149,6 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testRemoveNonExistingMessageFromTheGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		store.addMessagesToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
 		store.removeMessagesFromGroup(1, new GenericMessage<String>("2"));
@@ -165,14 +157,12 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 		store.removeMessagesFromGroup(1, new GenericMessage<String>("2"));
 	}
 
 	@Test
 	public void testCompleteMessageGroup() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageToMark = new GenericMessage<String>("1");
 		store.addMessagesToGroup(messageGroup.getGroupId(), messageToMark);
@@ -184,7 +174,6 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testLastReleasedSequenceNumber() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageToMark = new GenericMessage<String>("1");
 		store.addMessagesToGroup(messageGroup.getGroupId(), messageToMark);
@@ -196,10 +185,8 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testMultipleInstancesOfGroupStore() throws Exception {
 		GemfireMessageStore store1 = new GemfireMessageStore(region);
-		store1.afterPropertiesSet();
 
 		GemfireMessageStore store2 = new GemfireMessageStore(region);
-		store2.afterPropertiesSet();
 
 		Message<?> message = new GenericMessage<String>("1");
 		store1.addMessagesToGroup(1, message);
@@ -208,7 +195,6 @@ public class GemfireGroupStoreTests {
 		assertEquals(2, messageGroup.getMessages().size());
 
 		GemfireMessageStore store3 = new GemfireMessageStore(region);
-		store3.afterPropertiesSet();
 
 		store3.removeMessagesFromGroup(1, message);
 		messageGroup = store3.getMessageGroup(1);
@@ -219,7 +205,6 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testWithMessageHistory() throws Exception {
 		GemfireMessageStore store = new GemfireMessageStore(region);
-		store.afterPropertiesSet();
 
 		store.getMessageGroup(1);
 
@@ -246,9 +231,7 @@ public class GemfireGroupStoreTests {
 	@Test
 	public void testIteratorOfMessageGroups() throws Exception {
 		GemfireMessageStore store1 = new GemfireMessageStore(region);
-		store1.afterPropertiesSet();
 		GemfireMessageStore store2 = new GemfireMessageStore(region);
-		store2.afterPropertiesSet();
 
 		store1.addMessagesToGroup(1, new GenericMessage<String>("1"));
 		store2.addMessagesToGroup(2, new GenericMessage<String>("2"));
@@ -278,9 +261,7 @@ public class GemfireGroupStoreTests {
 	public void testConcurrentModifications() throws Exception {
 
 		final GemfireMessageStore store1 = new GemfireMessageStore(region);
-		store1.afterPropertiesSet();
 		final GemfireMessageStore store2 = new GemfireMessageStore(region);
-		store2.afterPropertiesSet();
 
 		final Message<?> message = new GenericMessage<String>("1");
 
