@@ -17,7 +17,12 @@
 package org.springframework.integration.dispatcher;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +35,7 @@ import org.mockito.Mockito;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -41,6 +47,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
  */
 public class BroadcastingDispatcherTests {
 
@@ -69,7 +76,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher = new BroadcastingDispatcher();
 		dispatcher.addHandler(targetMock1);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -77,7 +84,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -87,9 +94,9 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1).handleMessage(eq(messageMock));
+		verify(targetMock2).handleMessage(eq(messageMock));
+		verify(targetMock3).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -99,9 +106,9 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1).handleMessage(eq(messageMock));
+		verify(targetMock2).handleMessage(eq(messageMock));
+		verify(targetMock3).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -112,9 +119,9 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(false, true, true);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1, Mockito.never()).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1, Mockito.never()).handleMessage(eq(messageMock));
+		verify(targetMock2).handleMessage(eq(messageMock));
+		verify(targetMock3).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -125,9 +132,9 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(true, false, true);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock2, Mockito.never()).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1).handleMessage(eq(messageMock));
+		verify(targetMock2, Mockito.never()).handleMessage(eq(messageMock));
+		verify(targetMock3).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -138,9 +145,9 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(true, true, false);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock3, Mockito.never()).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1).handleMessage(eq(messageMock));
+		verify(targetMock2).handleMessage(eq(messageMock));
+		verify(targetMock3, Mockito.never()).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -151,9 +158,9 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(false, false, false);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1, Mockito.never()).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock2, Mockito.never()).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock3, Mockito.never()).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1, Mockito.never()).handleMessage(eq(messageMock));
+		verify(targetMock2, Mockito.never()).handleMessage(eq(messageMock));
+		verify(targetMock3, Mockito.never()).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -163,7 +170,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -174,9 +181,9 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock3);
 		dispatcher.removeHandler(targetMock2);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock2, Mockito.never()).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock3).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1).handleMessage(eq(messageMock));
+		verify(targetMock2, Mockito.never()).handleMessage(eq(messageMock));
+		verify(targetMock3).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -188,9 +195,9 @@ public class BroadcastingDispatcherTests {
 		dispatcher.dispatch(messageMock);
 		dispatcher.removeHandler(targetMock2);
 		dispatcher.dispatch(messageMock);
-		Mockito.verify(targetMock1, Mockito.times(2)).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock2).handleMessage(Mockito.eq(messageMock));
-		Mockito.verify(targetMock3, Mockito.times(2)).handleMessage(Mockito.eq(messageMock));
+		verify(targetMock1, Mockito.times(2)).handleMessage(eq(messageMock));
+		verify(targetMock2).handleMessage(eq(messageMock));
+		verify(targetMock3, Mockito.times(2)).handleMessage(eq(messageMock));
 	}
 
 	@Test
@@ -243,7 +250,8 @@ public class BroadcastingDispatcherTests {
 	public void testExceptionEnhancement() {
 		dispatcher = new BroadcastingDispatcher();
 		dispatcher.addHandler(targetMock1);
-		Mockito.doThrow(new MessagingException("Mock Exception")).when(targetMock1).handleMessage(Mockito.eq(messageMock));
+		doThrow(new MessagingException("Mock Exception"))
+				.when(targetMock1).handleMessage(eq(messageMock));
 		try {
 			dispatcher.dispatch(messageMock);
 			fail("Expected Exception");
@@ -263,8 +271,8 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(targetMock1);
 		targetMock1.handleMessage(messageMock);
 		Message<String> dontReplaceThisMessage = MessageBuilder.withPayload("x").build();
-		Mockito.doThrow(new MessagingException(dontReplaceThisMessage, "Mock Exception"))
-				.when(targetMock1).handleMessage(Mockito.eq(messageMock));
+		doThrow(new MessagingException(dontReplaceThisMessage, "Mock Exception"))
+				.when(targetMock1).handleMessage(eq(messageMock));
 		try {
 			dispatcher.dispatch(messageMock);
 			fail("Expected Exception");
@@ -274,8 +282,58 @@ public class BroadcastingDispatcherTests {
 		}
 	}
 
+	/**
+	 * Verifies behavior when no handler is subscribed to the dispatcher. 
+	 */
+	@Test
+	public void testNoHandler() {
+		dispatcher = new BroadcastingDispatcher();
+		assertTrue(dispatcher.dispatch(messageMock));
+	}
+
+	/**
+	 * Verifies behavior when no handler is subscribed to the dispatcher with executor. 
+	 */
+	@Test
+	public void testNoHandlerWithExecutor() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
+		assertTrue(dispatcher.dispatch(messageMock));
+	}
+
+	/**
+	 * Verifies behavior when dispatcher throws exception if no handler is subscribed 
+	 * and requireSubscribers set to true. 
+	 */
+	@Test
+	public void testNoHandlerWithRequiredSubscriber() {
+		dispatcher = new BroadcastingDispatcher(true);
+		try {
+			dispatcher.dispatch(messageMock);
+			fail("Expected Exception");
+		}
+		catch (MessageDispatchingException exception) {
+			assertEquals(messageMock, exception.getFailedMessage());
+		}
+	}
+
+	/**
+	 * Verifies behavior when dispatcher with executors throws exception if no handler is subscribed 
+	 * and requireSubscribers set to true. 
+	 */
+	@Test
+	public void testNoHandlerWithExecutorWithRequiredSubscriber() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock, true);
+		try {
+			dispatcher.dispatch(messageMock);
+			fail("Expected Exception");
+		}
+		catch (MessageDispatchingException exception) {
+			assertEquals(messageMock, exception.getFailedMessage());
+		}
+	}
+
 	private void defaultTaskExecutorMock() {
-		Mockito.doAnswer(invocation -> {
+		doAnswer(invocation -> {
 			((Runnable) invocation.getArgument(0)).run();
 			return null;
 		}).when(taskExecutorMock).execute(Mockito.any(Runnable.class));
@@ -286,7 +344,7 @@ public class BroadcastingDispatcherTests {
 	 */
 	private void partialFailingExecutorMock(final boolean... passes) {
 		final AtomicInteger count = new AtomicInteger();
-		Mockito.doAnswer(invocation -> {
+		doAnswer(invocation -> {
 			if (passes[count.getAndIncrement()]) {
 				((Runnable) invocation.getArgument(0)).run();
 			}

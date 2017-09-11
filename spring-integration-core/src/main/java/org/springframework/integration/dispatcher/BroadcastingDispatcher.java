@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,9 @@ import org.springframework.util.Assert;
  * If the 'ignoreFailures' flag is set to <code>true</code> on the other hand, it will make a best effort to send the
  * message to each of its handlers. In other words, when 'ignoreFailures' is <code>true</code>, if it fails to send to
  * any one handler, it will simply log a warn-level message but continue to send the Message to any other handlers.
+ * <p>
+ * If the 'requireSubscribers' flag is set to <code>true</code>, the sent message is considered as non-dispatched
+ * and rejected to the caller with the {@code "Dispatcher has no subscribers"} {@link MessageDispatchingException}.
  *
  * @author Mark Fisher
  * @author Iwein Fuld
