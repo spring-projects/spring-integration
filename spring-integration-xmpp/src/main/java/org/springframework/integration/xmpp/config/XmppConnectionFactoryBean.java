@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Florian Schmaus
  * @author Artem Bilan
+ * @author Philipp Etschel
  *
  * @see XMPPTCPConnection
  * @since 2.0
@@ -164,11 +165,14 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 			try {
 				this.connection.connect();
 				this.connection.addConnectionListener(new LoggingConnectionListener());
-				this.connection.login();
+				Roster roster = Roster.getInstanceFor(this.connection);
 				if (this.subscriptionMode != null) {
-					Roster.getInstanceFor(this.connection)
-							.setSubscriptionMode(this.subscriptionMode);
+					roster.setSubscriptionMode(this.subscriptionMode);
 				}
+				else {
+					roster.setRosterLoadedAtLogin(false);
+				}
+				this.connection.login();
 				this.running = true;
 			}
 			catch (Exception e) {

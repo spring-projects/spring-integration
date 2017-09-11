@@ -53,6 +53,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Philipp Etschel
  */
 public abstract class TestUtils {
 
@@ -104,6 +105,19 @@ public abstract class TestUtils {
 			Assert.isAssignable(type, value.getClass());
 		}
 		return (T) value;
+	}
+
+	/**
+	 * Sets a value for the property from the provided object.
+	 * Supports nested properties via period delimiter.
+	 * @param root the object to set the property value
+	 * @param propertyPath the property name to set a value.
+	 * Can be nested path defined by the period.
+	 * @see DirectFieldAccessor
+	 */
+	public static void setPropertyValue(Object root, String propertyPath, Object value) {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(root);
+		accessor.setPropertyValue(propertyPath, value);
 	}
 
 	/**
