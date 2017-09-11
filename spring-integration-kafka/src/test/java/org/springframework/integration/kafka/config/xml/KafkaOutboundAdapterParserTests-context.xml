@@ -20,6 +20,9 @@
 										partition-id-expression="'2'"
 										send-timeout-expression="1000"
 										timestamp-expression="T(System).currentTimeMillis()"
+										error-message-strategy="ems"
+										send-failure-channel="failures"
+										send-success-channel="successes"
 	>
 		<int-kafka:request-handler-advice-chain>
 			<bean class="org.springframework.integration.handler.advice.RequestHandlerCircuitBreakerAdvice" />
@@ -44,5 +47,11 @@
 										channel="inputToKafka"
 										partition-id="#{0}"
 										send-timeout="500" />
+
+	<bean id="ems" class="org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy" />
+
+	<int:channel id="failures" />
+
+	<int:channel id="successes" />
 
 </beans>
