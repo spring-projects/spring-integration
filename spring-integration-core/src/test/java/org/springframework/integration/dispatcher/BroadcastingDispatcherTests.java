@@ -283,7 +283,7 @@ public class BroadcastingDispatcherTests {
 	}
 
 	/**
-	 * Verifies behavior when no handler is subscribed to the dispatcher. 
+	 * Verifies behavior when no handler is subscribed to the dispatcher.
 	 */
 	@Test
 	public void testNoHandler() {
@@ -292,7 +292,7 @@ public class BroadcastingDispatcherTests {
 	}
 
 	/**
-	 * Verifies behavior when no handler is subscribed to the dispatcher with executor. 
+	 * Verifies behavior when no handler is subscribed to the dispatcher with executor.
 	 */
 	@Test
 	public void testNoHandlerWithExecutor() {
@@ -301,8 +301,8 @@ public class BroadcastingDispatcherTests {
 	}
 
 	/**
-	 * Verifies behavior when dispatcher throws exception if no handler is subscribed 
-	 * and requireSubscribers set to true. 
+	 * Verifies behavior when dispatcher throws exception if no handler is subscribed
+	 * and requireSubscribers set to true.
 	 */
 	@Test
 	public void testNoHandlerWithRequiredSubscriber() {
@@ -317,8 +317,8 @@ public class BroadcastingDispatcherTests {
 	}
 
 	/**
-	 * Verifies behavior when dispatcher with executors throws exception if no handler is subscribed 
-	 * and requireSubscribers set to true. 
+	 * Verifies behavior when dispatcher with executors throws exception if no handler is subscribed
+	 * and requireSubscribers set to true.
 	 */
 	@Test
 	public void testNoHandlerWithExecutorWithRequiredSubscriber() {
