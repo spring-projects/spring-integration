@@ -66,24 +66,6 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore {
 		this.messageStoreRegion = messageStoreRegion;
 	}
 
-	/**
-	 * The boolean flag to ignore JTA on the Gemfire Region.
-	 * @param ignoreJta boolean flag to ignore JTA on the Gemfire Region.
-	 * @deprecated with no-op, in favor of externally configured region.
-	 */
-	@Deprecated
-	public void setIgnoreJta(boolean ignoreJta) {
-
-	}
-
-	/**
-	 * @deprecated in favor of constructor initialization.
-	 */
-	@Deprecated
-	public void afterPropertiesSet() {
-
-	}
-
 	@Override
 	protected Object doRetrieve(Object id) {
 		Assert.notNull(id, "'id' must not be null");
