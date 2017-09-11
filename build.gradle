@@ -123,8 +123,8 @@ subprojects { subproject ->
 		mysqlVersion = '6.0.6'
 		pahoMqttClientVersion = '1.1.1'
 		postgresVersion = '42.0.0'
-		reactorNettyVersion = '0.7.0.BUILD-SNAPSHOT'
-		reactorVersion = '3.1.0.BUILD-SNAPSHOT'
+		reactorNettyVersion = '0.7.0.M2'
+		reactorVersion = '3.1.0.RC1'
 		romeToolsVersion = '1.7.4'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"
@@ -135,9 +135,9 @@ subprojects { subproject ->
 		springDataRedisVersion = '2.0.0.BUILD-SNAPSHOT'
 		springGemfireVersion = '2.0.0.BUILD-SNAPSHOT'
 		springSecurityVersion = '5.0.0.BUILD-SNAPSHOT'
-		springSocialTwitterVersion = '2.0.0.BUILD-SNAPSHOT'
+		springSocialTwitterVersion = '2.0.0.M4'
 		springRetryVersion = '1.2.0.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.RC4'
 		springWsVersion = '2.4.0.RELEASE'
 		tomcatVersion = "8.5.20"
 		xmlUnitVersion = '1.6'
