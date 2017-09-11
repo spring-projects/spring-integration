@@ -149,6 +149,33 @@
 					<xsd:union memberTypes="xsd:int xsd:string"/>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="send-failure-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Specifies the channel to which an ErrorMessage for a failed send will be sent.
+					]]></xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-success-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Specifies the channel to which message with a payload of type
+						'org.apache.kafka.clients.producer.RecordMetadata' will be sent
+						after a successful send.
+					]]></xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="errorMessageStrategyGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -226,6 +253,35 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="retry-template" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A retry template for retrying deliveries; an 'error-channel' is not allowed
+						when a retry template is provided; configure a 'recovery-callback' such as an
+						'ErrorMessageSendingRecoverer' when using a retry template.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.retry.support.RetryTemplate" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="recovery-callback" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Used in conjunction with a 'retry-template'; in most cases this will be
+						an 'ErrorMessageSendingRecoverer'. Omitting this element will cause an
+						exception to be thrown to the listener container after retries are exhausted.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.retry.RecoveryCallback" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="errorMessageStrategyGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -235,5 +291,20 @@
 			<xsd:enumeration value="batch" />
 		</xsd:restriction>
 	</xsd:simpleType>
+
+	<xsd:attributeGroup name="errorMessageStrategyGroup">
+		<xsd:attribute name="error-message-strategy" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Specifies the Strategy for building an ErrorMessage.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.support.ErrorMessageStrategy" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 
 </xsd:schema>

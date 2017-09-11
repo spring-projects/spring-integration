@@ -30,6 +30,7 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
@@ -37,6 +38,7 @@ import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapte
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
 import org.springframework.kafka.listener.config.ContainerProperties;
+import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -61,13 +63,21 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 	@Autowired
 	private KafkaMessageDrivenChannelAdapter<?, ?> kafkaBatchListener;
 
+	@Autowired
+	private ErrorMessageStrategy ems;
+
+	@Autowired
+	private RetryTemplate retryTemplate;
+
+	@Autowired
+	private RecoveryCallback<?> recoveryCallback;
+
 	@Test
 	public void testKafkaMessageDrivenChannelAdapterParser() throws Exception {
 		assertThat(this.kafkaListener.isAutoStartup()).isFalse();
 		assertThat(this.kafkaListener.isRunning()).isFalse();
 		assertThat(this.kafkaListener.getPhase()).isEqualTo(100);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "outputChannel")).isSameAs(this.nullChannel);
-		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "errorChannel")).isSameAs(this.errorChannel);
 		KafkaMessageListenerContainer<?, ?> container =
 				TestUtils.getPropertyValue(this.kafkaListener, "messageListenerContainer",
 						KafkaMessageListenerContainer.class);
@@ -78,6 +88,9 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 				.isEqualTo(String.class);
 		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "batchListener.fallbackType"))
 				.isEqualTo(String.class);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "errorMessageStrategy")).isSameAs(this.ems);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "retryTemplate")).isSameAs(this.retryTemplate);
+		assertThat(TestUtils.getPropertyValue(this.kafkaListener, "recoveryCallback")).isSameAs(this.recoveryCallback);
 	}
 
 	@Test

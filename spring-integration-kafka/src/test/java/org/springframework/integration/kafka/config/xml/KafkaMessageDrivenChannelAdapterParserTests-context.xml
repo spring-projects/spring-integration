@@ -22,7 +22,9 @@
 			channel="nullChannel"
 			message-converter="messageConverter"
 			payload-type="java.lang.String"
-			error-channel="errorChannel" />
+			error-message-strategy="ems"
+			retry-template="retryTemplate"
+			recovery-callback="recoveryCallback" />
 
 	<int-kafka:message-driven-channel-adapter
 			id="kafkaBatchListener"
@@ -70,5 +72,11 @@
 			</bean>
 		</constructor-arg>
 	</bean>
+
+	<bean id="ems" class="org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy" />
+
+	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate" />
+
+	<bean id="recoveryCallback" class="org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer" />
 
 </beans>

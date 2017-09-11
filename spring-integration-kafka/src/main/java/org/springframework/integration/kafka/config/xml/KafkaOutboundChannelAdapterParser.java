@@ -40,50 +40,55 @@ public class KafkaOutboundChannelAdapterParser extends AbstractOutboundChannelAd
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(final Element element, final ParserContext parserContext) {
-		final BeanDefinitionBuilder kafkaProducerMessageHandlerBuilder =
+		final BeanDefinitionBuilder builder =
 								BeanDefinitionBuilder.genericBeanDefinition(KafkaProducerMessageHandler.class);
 
 		final String kafkaTemplateBeanName = element.getAttribute("kafka-template");
 
-		kafkaProducerMessageHandlerBuilder.addConstructorArgReference(kafkaTemplateBeanName);
+		builder.addConstructorArgReference(kafkaTemplateBeanName);
 
 		BeanDefinition topicExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("topic", "topic-expression",
 						parserContext, element, false);
 		if (topicExpressionDef != null) {
-			kafkaProducerMessageHandlerBuilder.addPropertyValue("topicExpression", topicExpressionDef);
+			builder.addPropertyValue("topicExpression", topicExpressionDef);
 		}
 
 		BeanDefinition messageKeyExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("message-key",
 						"message-key-expression", parserContext, element, false);
 		if (messageKeyExpressionDef != null) {
-			kafkaProducerMessageHandlerBuilder.addPropertyValue("messageKeyExpression", messageKeyExpressionDef);
+			builder.addPropertyValue("messageKeyExpression", messageKeyExpressionDef);
 		}
 
 		BeanDefinition partitionIdExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("partition-id",
 						"partition-id-expression", parserContext, element, false);
 		if (partitionIdExpressionDef != null) {
-			kafkaProducerMessageHandlerBuilder.addPropertyValue("partitionIdExpression", partitionIdExpressionDef);
+			builder.addPropertyValue("partitionIdExpression", partitionIdExpressionDef);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(kafkaProducerMessageHandlerBuilder, element, "sync");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "sync");
 
 		BeanDefinition sendTimeoutExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("send-timeout",
 						"send-timeout-expression", parserContext, element, false);
 		if (sendTimeoutExpressionDef != null) {
-			kafkaProducerMessageHandlerBuilder.addPropertyValue("sendTimeoutExpression", sendTimeoutExpressionDef);
+			builder.addPropertyValue("sendTimeoutExpression", sendTimeoutExpressionDef);
 		}
 
 		BeanDefinition timestampExpressionDef =
 				IntegrationNamespaceUtils.createExpressionDefIfAttributeDefined("timestamp-expression", element);
 
 		if (timestampExpressionDef != null) {
-			kafkaProducerMessageHandlerBuilder.addPropertyValue("timestampExpression", timestampExpressionDef);
+			builder.addPropertyValue("timestampExpression", timestampExpressionDef);
 		}
 
-		return kafkaProducerMessageHandlerBuilder.getBeanDefinition();
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-message-strategy");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "send-failure-channel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "send-success-channel",
+				"outputChannel");
+
+		return builder.getBeanDefinition();
 	}
 
 }
