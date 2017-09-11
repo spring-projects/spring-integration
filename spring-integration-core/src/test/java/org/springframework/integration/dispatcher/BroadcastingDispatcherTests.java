@@ -17,6 +17,7 @@
 package org.springframework.integration.dispatcher;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import org.mockito.Mockito;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -41,6 +43,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
  */
 public class BroadcastingDispatcherTests {
 
@@ -271,6 +274,54 @@ public class BroadcastingDispatcherTests {
 		}
 		catch (MessagingException e) {
 			assertEquals(dontReplaceThisMessage, e.getFailedMessage());
+		}
+	}
+
+	/**
+	 * Verifies behavior when no handler is subscribed to the dispatcher. 
+	 */
+	@Test
+	public void testNoHandler() {
+		dispatcher = new BroadcastingDispatcher();
+		assertTrue(dispatcher.dispatch(messageMock));
+	}
+
+	/**
+	 * Verifies behavior when no handler is subscribed to the dispatcher with executor. 
+	 */
+	@Test
+	public void testNoHandlerWithExecutor() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
+		assertTrue(dispatcher.dispatch(messageMock));
+	}
+
+	/**
+	 * Verifies behavior when dispatcher throws exception if no handler is subscribed 
+	 * and requireSubscribers set to true. 
+	 */
+	@Test
+	public void testNoHandlerWithRequiredSubscriber() {
+		dispatcher = new BroadcastingDispatcher(true);
+		try {
+			dispatcher.dispatch(messageMock);
+			fail("Expected Exception");
+		} catch(MessageDispatchingException exception) {
+			assertEquals(messageMock, exception.getFailedMessage());
+		}
+	}
+
+	/**
+	 * Verifies behavior when dispatcher with executors throws exception if no handler is subscribed 
+	 * and requireSubscribers set to true. 
+	 */
+	@Test
+	public void testNoHandlerWithExecutorWithRequiredSubscriber() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock, true);
+		try {
+			dispatcher.dispatch(messageMock);
+			fail("Expected Exception");
+		} catch(MessageDispatchingException exception) {
+			assertEquals(messageMock, exception.getFailedMessage());
 		}
 	}
 
