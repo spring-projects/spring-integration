@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
 import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
+import org.springframework.integration.util.PatternMatchUtils;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -50,6 +50,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Meherzad Lahewala
+ *
  * @since 2.0
  */
 final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, SmartInitializingSingleton {
@@ -59,11 +61,9 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 
 	private final OrderComparator comparator = new OrderComparator();
 
-	private final Set<GlobalChannelInterceptorWrapper> positiveOrderInterceptors =
-			new LinkedHashSet<GlobalChannelInterceptorWrapper>();
+	private final Set<GlobalChannelInterceptorWrapper> positiveOrderInterceptors = new LinkedHashSet<>();
 
-	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors =
-			new LinkedHashSet<GlobalChannelInterceptorWrapper>();
+	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors = new LinkedHashSet<>();
 
 	private ListableBeanFactory beanFactory;
 
@@ -89,6 +89,7 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 					this.negativeOrderInterceptors.add(channelInterceptor);
 				}
 			}
+
 			Map<String, ChannelInterceptorAware> channels =
 					this.beanFactory.getBeansOfType(ChannelInterceptorAware.class);
 			for (Entry<String, ChannelInterceptorAware> entry : channels.entrySet()) {
@@ -104,15 +105,18 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 		if (logger.isDebugEnabled()) {
 			logger.debug("Applying global interceptors on channel '" + beanName + "'");
 		}
-		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
+
+		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<>();
 		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.positiveOrderInterceptors) {
 			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
 			patterns = StringUtils.trimArrayElements(patterns);
-			if (PatternMatchUtils.simpleMatch(patterns, beanName)) {
+			if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
 				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}
+
 		Collections.sort(tempInterceptors, this.comparator);
+
 		for (GlobalChannelInterceptorWrapper next : tempInterceptors) {
 			ChannelInterceptor channelInterceptor = next.getChannelInterceptor();
 			if (!(channelInterceptor instanceof VetoCapableInterceptor)
@@ -122,14 +126,17 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 		}
 
 		tempInterceptors.clear();
+
 		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.negativeOrderInterceptors) {
 			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
 			patterns = StringUtils.trimArrayElements(patterns);
-			if (PatternMatchUtils.simpleMatch(patterns, beanName)) {
+			if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
 				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}
+
 		Collections.sort(tempInterceptors, this.comparator);
+
 		if (!tempInterceptors.isEmpty()) {
 			for (int i = tempInterceptors.size() - 1; i >= 0; i--) {
 				ChannelInterceptor channelInterceptor = tempInterceptors.get(i).getChannelInterceptor();

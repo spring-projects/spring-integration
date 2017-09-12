@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
+import org.springframework.integration.util.PatternMatchUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 
@@ -41,6 +41,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
+ *
  * @since 4.2
  *
  */
@@ -71,9 +73,9 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 
 	private String metricsFactoryBeanName;
 
-	private String[] enabledCountsPatterns = {  };
+	private String[] enabledCountsPatterns = { };
 
-	private String[] enabledStatsPatterns = {  };
+	private String[] enabledStatsPatterns = { };
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -227,7 +229,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		AbstractMessageChannelMetrics metrics = this.metricsFactory.createChannelMetrics(name);
 		Assert.state(metrics != null, "'metrics' must not be null");
 		ManagementOverrides overrides = bean.getOverrides();
-		Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+		Boolean enabled = PatternMatchUtils.smartMatch(name, this.enabledCountsPatterns);
 		if (enabled != null) {
 			bean.setCountsEnabled(enabled);
 		}
@@ -236,7 +238,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 				bean.setCountsEnabled(this.defaultCountsEnabled);
 			}
 		}
-		enabled = smartMatch(this.enabledStatsPatterns, name);
+		enabled = PatternMatchUtils.smartMatch(name, this.enabledStatsPatterns);
 		if (enabled != null) {
 			bean.setStatsEnabled(enabled);
 			metrics.setFullStatsEnabled(enabled);
@@ -258,7 +260,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		AbstractMessageHandlerMetrics metrics = this.metricsFactory.createHandlerMetrics(name);
 		Assert.state(metrics != null, "'metrics' must not be null");
 		ManagementOverrides overrides = bean.getOverrides();
-		Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+		Boolean enabled = PatternMatchUtils.smartMatch(name, this.enabledCountsPatterns);
 		if (enabled != null) {
 			bean.setCountsEnabled(enabled);
 		}
@@ -267,7 +269,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 				bean.setCountsEnabled(this.defaultCountsEnabled);
 			}
 		}
-		enabled = smartMatch(this.enabledStatsPatterns, name);
+		enabled = PatternMatchUtils.smartMatch(name, this.enabledStatsPatterns);
 		if (enabled != null) {
 			bean.setStatsEnabled(enabled);
 			metrics.setFullStatsEnabled(enabled);
@@ -286,7 +288,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	}
 
 	private void configureSourceMetrics(String name, MessageSourceMetrics bean) {
-		Boolean enabled = smartMatch(this.enabledCountsPatterns, name);
+		Boolean enabled = PatternMatchUtils.smartMatch(name, this.enabledCountsPatterns);
 		if (enabled != null) {
 			bean.setCountsEnabled(enabled);
 		}
@@ -296,33 +298,6 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 			}
 		}
 		this.sourcesByName.put(bean.getManagedName() != null ? bean.getManagedName() : name, bean);
-	}
-
-	/**
-	 * Simple pattern match against the supplied patterns; also supports negated ('!')
-	 * patterns. First match wins (positive or negative).
-	 * @param patterns the patterns.
-	 * @param name the name to match.
-	 * @return null if no match; true for positive match; false for negative match.
-	 */
-	private Boolean smartMatch(String[] patterns, String name) {
-		if (patterns != null) {
-			for (String pattern : patterns) {
-				boolean reverse = false;
-				String patternToUse = pattern;
-				if (pattern.startsWith("!")) {
-					reverse = true;
-					patternToUse = pattern.substring(1);
-				}
-				else if (pattern.startsWith("\\")) {
-					patternToUse = pattern.substring(1);
-				}
-				if (PatternMatchUtils.simpleMatch(patternToUse, name)) {
-					return !reverse;
-				}
-			}
-		}
-		return null; //NOSONAR - intentional null return
 	}
 
 	public String[] getChannelNames() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,15 @@ import java.lang.annotation.Target;
  * annotation will be applied as global channel interceptors
  * using the provided {@code patterns} to match channel names.
  * <p>
- * This annotation can be used at the {@code class} level for {@link org.springframework.stereotype.Component} beans
+ * This annotation can be used at the {@code class} level
+ * for {@link org.springframework.stereotype.Component} beans
  * and on methods with {@link org.springframework.context.annotation.Bean}.
  * <p>
  * This annotation is an analogue of {@code <int:channel-interceptor/>}.
  *
  * @author Artem Bilan
+ * @author Meherzad Lahewala
+ *
  * @since 4.0
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
@@ -41,9 +44,12 @@ import java.lang.annotation.Target;
 public @interface GlobalChannelInterceptor {
 
 	/**
-	 * An array of simple patterns against which channel names will be matched. Default is "*"
-	 * (all channels). See {@link org.springframework.util.PatternMatchUtils#simpleMatch(String, String)}.
+	 * An array of patterns against which channel names will be matched.
+	 * Since version 5.0 negative patterns are also supported.
+	 * A leading '!' negates the pattern match.
+	 * Default is "*" (all channels).
 	 * @return The pattern.
+	 * @see org.springframework.integration.util.PatternMatchUtils#smartMatch(String, String...)
 	 */
 	String[] patterns() default "*";
 

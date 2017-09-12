@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ import org.springframework.integration.support.management.RouterMetrics;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.management.TrackableRouterMetrics;
+import org.springframework.integration.util.PatternMatchUtils;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.UnableToRegisterMBeanException;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -79,7 +80,6 @@ import org.springframework.jmx.support.MetricType;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringValueResolver;
 
@@ -109,6 +109,7 @@ import org.springframework.util.StringValueResolver;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
  */
 @org.springframework.jmx.export.annotation.ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements ApplicationContextAware,
@@ -721,35 +722,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	 * @return true if positive match, false if no match or negative match.
 	 */
 	private boolean matches(String[] patterns, String name) {
-		Boolean match = smartMatch(patterns, name);
+		Boolean match = PatternMatchUtils.smartMatch(name, patterns);
 		return match == null ? false : match;
-	}
-
-	/**
-	 * Simple pattern match against the supplied patterns; also supports negated ('!')
-	 * patterns. First match wins (positive or negative).
-	 * @param patterns the patterns.
-	 * @param name the name to match.
-	 * @return null if no match; true for positive match; false for negative match.
-	 */
-	private Boolean smartMatch(String[] patterns, String name) {
-		if (patterns != null) {
-			for (String pattern : patterns) {
-				boolean reverse = false;
-				String patternToUse = pattern;
-				if (pattern.startsWith("!")) {
-					reverse = true;
-					patternToUse = pattern.substring(1);
-				}
-				else if (pattern.startsWith("\\")) {
-					patternToUse = pattern.substring(1);
-				}
-				if (PatternMatchUtils.simpleMatch(patternToUse, name)) {
-					return !reverse;
-				}
-			}
-		}
-		return null; //NOSONAR - intentional null return
 	}
 
 	private Object extractTarget(Object bean) {

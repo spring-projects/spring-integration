@@ -691,7 +691,7 @@ To avoid repeated configuration while also enabling interceptors to apply to mul
 Look at the example below:
 [source,xml]
 ----
-<int:channel-interceptor pattern="input*, bar*, foo" order="3">
+<int:channel-interceptor pattern="input*, bar*, foo, !baz*" order="3">
     <bean class="foo.barSampleInterceptor"/>
 </int:channel-interceptor>
 ----
@@ -700,13 +700,19 @@ or
 
 [source,xml]
 ----
-<int:channel-interceptor ref="myInterceptor" pattern="input*, bar*, foo" order="3"/>
+<int:channel-interceptor ref="myInterceptor" pattern="input*, bar*, foo, !baz*" order="3"/>
 
 <bean id="myInterceptor" class="foo.barSampleInterceptor"/>
 ----
 
 Each `<channel-interceptor/>` element allows you to define a global interceptor which will be applied on all channels that match any patterns defined via the `pattern` attribute.
-In the above case the global interceptor will be applied on the 'foo' channel and all other channels that begin with 'bar' or 'input'.
+In the above case the global interceptor will be applied on the 'foo' channel and all other channels that begin with 'bar' or 'input' and not to channel starting with 'baz' (starting with _version 5.0_).
+
+WARNING: The addition of this syntax to the pattern causes one possible (although perhaps unlikely) problem.
+If you have a bean `"!foo"`*and* you included a pattern `"!foo"` in your channel-interceptor's  `pattern` patterns; it will no long match; the pattern will now match all beans *not* named `foo`.
+In this case, you can escape the `!` in the pattern with `\`.
+The pattern `"\!foo"` means match a bean named `"!foo"`.
+
 The _order_ attribute allows you to manage where this interceptor will be injected if there are multiple interceptors on a given channel.
 For example, channel 'inputChannel' could have individual interceptors configured locally (see below):
 [source,xml]
@@ -718,7 +724,8 @@ For example, channel 'inputChannel' could have individual interceptors configure
 </int:channel>
 ----
 
-A reasonable question is how will a global interceptor be injected in relation to other interceptors configured locally or through other global interceptor definitions? The current implementation provides a very simple mechanism for defining the order of interceptor execution.
+A reasonable question is how will a global interceptor be injected in relation to other interceptors configured locally or through other global interceptor definitions?
+The current implementation provides a very simple mechanism for defining the order of interceptor execution.
 A positive number in the `order` attribute will ensure interceptor injection after any existing interceptors and a negative number will ensure that the interceptor is injected before existing interceptors.
 This means that in the above example, the global interceptor will be injected _AFTER_ (since its order is greater than 0) the 'wire-tap' interceptor configured locally.
 If there were another global interceptor with a matching `pattern`, its order would be determined by comparing the values of the `order` attribute.

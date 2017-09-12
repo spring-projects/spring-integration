@@ -387,7 +387,7 @@ i.e.
 `"!foo*, foox"` will match all beans that don't start with `foo`, except `foox`.
 Patterns are evaluated left to right and the first match (positive or negative) wins and no further patterns are applied.
 
-WARNING: The addition of this syntax to the pattern causes one possible (although perhaps unlikey) problem.
+WARNING: The addition of this syntax to the pattern causes one possible (although perhaps unlikely) problem.
 If you have a bean `"!foo"`*and* you included a pattern `"!foo"` in your MBean exporter's `managed-components` patterns; it will no long match; the pattern will now match all beans *not* named `foo`.
 In this case, you can escape the `!` in the pattern with `\`.
 The pattern `"\!foo"` means match a bean named `"!foo"`.
