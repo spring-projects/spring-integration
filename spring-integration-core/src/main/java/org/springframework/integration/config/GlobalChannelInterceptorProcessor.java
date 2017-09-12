@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
 import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
+import org.springframework.integration.util.PatternMatchUtils;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Meherzad Lahewala
  * @since 2.0
  */
 final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, SmartInitializingSingleton {
@@ -108,7 +109,7 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.positiveOrderInterceptors) {
 			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
 			patterns = StringUtils.trimArrayElements(patterns);
-			if (PatternMatchUtils.simpleMatch(patterns, beanName)) {
+			if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
 				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}
@@ -125,7 +126,7 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.negativeOrderInterceptors) {
 			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
 			patterns = StringUtils.trimArrayElements(patterns);
-			if (PatternMatchUtils.simpleMatch(patterns, beanName)) {
+			if (beanName != null && Boolean.TRUE.equals(PatternMatchUtils.smartMatch(beanName, patterns))) {
 				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}

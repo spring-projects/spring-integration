@@ -691,7 +691,7 @@ To avoid repeated configuration while also enabling interceptors to apply to mul
 Look at the example below:
 [source,xml]
 ----
-<int:channel-interceptor pattern="input*, bar*, foo" order="3">
+<int:channel-interceptor pattern="input*, bar*, foo, !baz*" order="3">
     <bean class="foo.barSampleInterceptor"/>
 </int:channel-interceptor>
 ----
@@ -700,13 +700,14 @@ or
 
 [source,xml]
 ----
-<int:channel-interceptor ref="myInterceptor" pattern="input*, bar*, foo" order="3"/>
+<int:channel-interceptor ref="myInterceptor" pattern="input*, bar*, foo, !baz*" order="3"/>
 
 <bean id="myInterceptor" class="foo.barSampleInterceptor"/>
 ----
 
 Each `<channel-interceptor/>` element allows you to define a global interceptor which will be applied on all channels that match any patterns defined via the `pattern` attribute.
-In the above case the global interceptor will be applied on the 'foo' channel and all other channels that begin with 'bar' or 'input'.
+In the above case the global interceptor will be applied on the 'foo' channel and all other channels that begin with 'bar' or 'input' and 
+not to channel starting with 'baz'.
 The _order_ attribute allows you to manage where this interceptor will be injected if there are multiple interceptors on a given channel.
 For example, channel 'inputChannel' could have individual interceptors configured locally (see below):
 [source,xml]
