@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -75,6 +76,7 @@ import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * @author Artem Bilan
@@ -408,7 +410,9 @@ public class JmsTests {
 					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory())
 							.errorChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)
 							.destination("jmsMessageDrivenRedelivery")
-							.configureListenerContainer(c -> c.id("jmsMessageDrivenRedeliveryFlowContainer")))
+							.configureListenerContainer(c -> c
+									.transactionManager(mock(PlatformTransactionManager.class))
+									.id("jmsMessageDrivenRedeliveryFlowContainer")))
 					.<String, String>transform(p -> {
 						throw new RuntimeException("intentional");
 					})

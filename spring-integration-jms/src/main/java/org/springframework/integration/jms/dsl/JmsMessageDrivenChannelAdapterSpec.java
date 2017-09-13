@@ -84,13 +84,13 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 	 * @param <C> the target {@link AbstractMessageListenerContainer} implementation type.
 	 */
 	public static class
-			JmsMessageDrivenChannelAdapterListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
+	JmsMessageDrivenChannelAdapterListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
 			extends JmsMessageDrivenChannelAdapterSpec<JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C>>
 			implements ComponentsRegistration {
 
-		private final JmsListenerContainerSpec<S, C> spec;
+		private final S spec;
 
-		JmsMessageDrivenChannelAdapterListenerContainerSpec(JmsListenerContainerSpec<S, C> spec) {
+		JmsMessageDrivenChannelAdapterListenerContainerSpec(S spec) {
 			super(spec.get());
 			this.spec = spec;
 			this.spec.get().setAutoStartup(false);
@@ -125,7 +125,7 @@ public class JmsMessageDrivenChannelAdapterSpec<S extends JmsMessageDrivenChanne
 		 * @return the spec.
 		 */
 		public JmsMessageDrivenChannelAdapterListenerContainerSpec<S, C> configureListenerContainer(
-				Consumer<JmsListenerContainerSpec<S, C>> configurer) {
+				Consumer<S> configurer) {
 			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.spec);
 			return _this();
