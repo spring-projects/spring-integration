@@ -31,11 +31,13 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -66,6 +68,7 @@ import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.GenericMessage;
@@ -867,6 +870,18 @@ public class MethodInvokingMessageProcessorTests {
 				TestUtils.getPropertyValue(helper, "handlerMethod.expression.configuration.compilerMode"));
 	}
 
+	@Test
+	public void testSingleMethodJson() throws Exception {
+		SingleMethodJsonWithSpELBean bean = new SingleMethodJsonWithSpELBean();
+		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+				SingleMethodJsonWithSpELBean.class.getDeclaredMethod("foo", SingleMethodJsonWithSpELBean.Foo.class),
+				false);
+		Message<?> message = new GenericMessage<>("{\"bar\":\"bar\"}",
+				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
+		helper.process(message);
+		assertThat(bean.foo.bar, equalTo("bar"));
+	}
+
 	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
 		// Update the parser configuration compiler mode
 		SpelParserConfiguration config = TestUtils.getPropertyValue(processor,
@@ -1143,6 +1158,40 @@ public class MethodInvokingMessageProcessorTests {
 		@UseSpelInvoker("#{new Object()}")
 		public void buz(String buz) {
 			// empty
+		}
+
+	}
+
+	public static class SingleMethodJsonWithSpELBean {
+
+		private Foo foo;
+
+		private final CountDownLatch latch = new CountDownLatch(1);
+
+		@ServiceActivator(inputChannel = "foo")
+		@UseSpelInvoker
+		public void foo(Foo foo) {
+			this.foo = foo;
+			this.latch.countDown();
+		}
+
+		public static class Foo {
+
+			private String bar;
+
+			public String getBar() {
+				return this.bar;
+			}
+
+			public void setBar(String bar) {
+				this.bar = bar;
+			}
+
+			@Override
+			public String toString() {
+				return "Foo [bar=" + this.bar + "]";
+			}
+
 		}
 
 	}
