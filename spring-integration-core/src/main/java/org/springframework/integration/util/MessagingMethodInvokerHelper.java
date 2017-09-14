@@ -75,8 +75,11 @@ import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.support.MutableMessage;
+import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.Header;
@@ -160,6 +163,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private final Object targetObject;
 
+	private final JsonObjectMapper<?, ?> jsonObjectMapper;
+
 	private volatile String displayString;
 
 	private volatile boolean requiresReply;
@@ -191,7 +196,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private BeanExpressionResolver resolver = new StandardBeanExpressionResolver();
 
 	private BeanExpressionContext expressionContext;
-
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
@@ -253,9 +257,34 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public T process(Message<?> message) throws Exception {
-		ParametersWrapper parameters = new ParametersWrapper(message);
+		Message<?> messageToProcess = message;
+		/*
+		 * If there's a single method, the content is JSON, the payload is a
+		 * String or byte[], the parameter doesn't match the payload,
+		 * and there is a Json Object Mapper on the CP,
+		 * convert.
+		 */
+		if (this.handlerMethod != null && this.handlerMethod.getTargetParameterType() != null &&
+				this.jsonObjectMapper != null) {
+			Class<?> type = this.handlerMethod.getTargetParameterType();
+			if ((message.getPayload() instanceof String && !type.equals(String.class)
+					|| message.getPayload() instanceof byte[] && !type.equals(byte[].class))
+							&& contentTypeIsJson(message)) {
+				messageToProcess = getMessageBuilderFactory()
+						.withPayload(this.jsonObjectMapper.fromJson(message.getPayload(), type))
+						.copyHeaders(message.getHeaders())
+						.build();
+			}
+		}
+		ParametersWrapper parameters = new ParametersWrapper(messageToProcess);
 		return processInternal(parameters);
+	}
+
+	private boolean contentTypeIsJson(Message<?> message) {
+		Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		return contentType != null ? contentType.toString().contains("json") : false;
 	}
 
 	public T process(Collection<Message<?>> messages, Map<String, Object> headers) throws Exception {
@@ -323,6 +352,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.handlerMessageMethods = null;
 		this.handlerMethodsList = null;
 		this.setDisplayString(targetObject, method);
+		JsonObjectMapper<?, ?> mapper;
+		try {
+			mapper = JsonObjectMapperProvider.newInstance();
+		}
+		catch (IllegalStateException e) {
+			mapper = null;
+		}
+		this.jsonObjectMapper = mapper;
 	}
 
 	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
@@ -365,6 +402,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			this.handlerMethodsList.add(this.handlerMessageMethods);
 		}
 		setDisplayString(targetObject, methodName);
+		JsonObjectMapper<?, ?> mapper;
+		try {
+			mapper = JsonObjectMapperProvider.newInstance();
+		}
+		catch (IllegalStateException e) {
+			mapper = null;
+		}
+		this.jsonObjectMapper = mapper;
 	}
 
 	private void setDisplayString(Object targetObject, Object targetMethod) {
