@@ -19,6 +19,7 @@ package org.springframework.integration.support;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 
 
@@ -36,14 +37,18 @@ public class MutableMessageHeaders extends MessageHeaders {
 
 	private static final long serialVersionUID = 3084692953798643018L;
 
-	public MutableMessageHeaders(Map<String, Object> headers) {
-		super(headers,
+	public MutableMessageHeaders(@Nullable Map<String, Object> headers) {
+		this(headers,
 				(headers != null ?
 						(UUID) headers.get(MessageHeaders.ID)
 						: null),
 				(headers != null ?
 						(Long) headers.get(MessageHeaders.TIMESTAMP)
 						: null));
+	}
+
+	protected MutableMessageHeaders(@Nullable Map<String, Object> headers, @Nullable UUID id, @Nullable Long timestamp) {
+		super(headers, id, timestamp);
 	}
 
 	@Override
