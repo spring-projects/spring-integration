@@ -272,3 +272,12 @@ You can now configure the TCP connection factories to support `PushbackInputStre
 A `ByteArrayElasticRawDeserializer` has been added without `maxMessageSize` control and buffer incoming data as needed.
 
 See <<ip>> for more information.
+
+==== GlobalChannelInterceptor changes
+
+The `GlobalChannelInterceptor` annotation's `pattern` attribute now supports negative patterns.
+
+You can now pass negative patterns a leading `!` to negate a pattern(`'!foo*'` means don't export components
+where the name matches the pattern `'foo*'`).
+
+See <<channel>> for more information.

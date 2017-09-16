@@ -32,6 +32,11 @@
 
 	<int:channel id="baz"/>
 
+	<int:channel id="test"/>
+
+	<int:channel-interceptor pattern="!tes*" order="8">
+		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="twelve"/>
+	</int:channel-interceptor>
 	<int:channel-interceptor pattern="input*, foo" order="3">
 		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="one"/>
 	</int:channel-interceptor>

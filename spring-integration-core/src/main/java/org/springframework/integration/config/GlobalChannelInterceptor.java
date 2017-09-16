@@ -41,9 +41,11 @@ import java.lang.annotation.Target;
 public @interface GlobalChannelInterceptor {
 
 	/**
-	 * An array of simple patterns against which channel names will be matched. Default is "*"
-	 * (all channels). See {@link org.springframework.util.PatternMatchUtils#simpleMatch(String, String)}.
+	 * An array of patterns against which channel names will be matched.
+	 * Since version 5.0 negative patterns are also supported. A leading '!' negates the pattern match.
+	 * Default is "*" (all channels).
 	 * @return The pattern.
+	 * @see org.springframework.integration.util.PatternMatchUtils#smartMatch(String, String...)
 	 */
 	String[] patterns() default "*";
 

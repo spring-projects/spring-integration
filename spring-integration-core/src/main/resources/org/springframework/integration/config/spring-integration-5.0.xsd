@@ -4350,9 +4350,10 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						[REQUIRED] Channel name(s) or patterns. To specify more than one channel use
-						',' 
+						','. Since version 5.0, a leading '!' negates the pattern match ('!foo*' means don't add
+						interceptor where the name matches the pattern 'foo*').
 						(e.g.,
-						channel-name-pattern="input*, foo, bar")
+						channel-name-pattern="input*, foo, bar, !Foo*")
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
