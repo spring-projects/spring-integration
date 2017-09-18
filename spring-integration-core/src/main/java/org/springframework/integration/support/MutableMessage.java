@@ -50,7 +50,7 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 	private final MutableMessageHeaders headers;
 
 	public MutableMessage(T payload) {
-		this(payload, null);
+		this(payload, (Map<String, Object>) null);
 	}
 
 	public MutableMessage(T payload, Map<String, Object> headers) {
