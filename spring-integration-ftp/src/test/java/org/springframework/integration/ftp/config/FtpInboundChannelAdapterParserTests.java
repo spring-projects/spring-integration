@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -66,6 +67,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Venil Noronha
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -88,20 +90,26 @@ public class FtpInboundChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private DirectoryScanner dirScanner;
+
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception {
 		assertFalse(TestUtils.getPropertyValue(ftpInbound, "autoStartup", Boolean.class));
-		PriorityBlockingQueue<?> blockingQueue = TestUtils.getPropertyValue(ftpInbound, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
+		PriorityBlockingQueue<?> blockingQueue =
+				TestUtils.getPropertyValue(ftpInbound, "source.fileSource.toBeReceived", PriorityBlockingQueue.class);
 		Comparator<?> comparator = blockingQueue.comparator();
 		assertNotNull(comparator);
 		assertEquals("ftpInbound", ftpInbound.getComponentName());
 		assertEquals("ftp:inbound-channel-adapter", ftpInbound.getComponentType());
 		assertEquals(context.getBean("ftpChannel"), TestUtils.getPropertyValue(ftpInbound, "outputChannel"));
 		FtpInboundFileSynchronizingMessageSource inbound =
-			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(ftpInbound, "source");
+				(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(ftpInbound, "source");
+
+		assertSame(dirScanner, TestUtils.getPropertyValue(inbound, "fileSource.scanner"));
 
 		FtpInboundFileSynchronizer fisync =
-			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
+				(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
 		assertEquals("'foo/bar'", TestUtils.getPropertyValue(fisync, "remoteDirectoryExpression", Expression.class)
 				.getExpressionString());
 		assertNotNull(TestUtils.getPropertyValue(fisync, "localFilenameGeneratorExpression"));
@@ -123,7 +131,8 @@ public class FtpInboundChannelAdapterParserTests {
 		Object sessionFactory = TestUtils.getPropertyValue(fisync, "remoteFileTemplate.sessionFactory");
 		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
 		FileListFilter<?> acceptAllFilter = context.getBean("acceptAllFilter", FileListFilter.class);
-		assertTrue(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class).contains(acceptAllFilter));
+		assertTrue(TestUtils.getPropertyValue(inbound, "fileSource.scanner.filter.fileFilters", Collection.class)
+				.contains(acceptAllFilter));
 		final AtomicReference<Method> genMethod = new AtomicReference<Method>();
 		ReflectionUtils.doWithMethods(AbstractInboundFileSynchronizer.class, method -> {
 			method.setAccessible(true);
@@ -135,16 +144,19 @@ public class FtpInboundChannelAdapterParserTests {
 
 	@Test
 	public void cachingSessionFactory() throws Exception {
-		Object sessionFactory = TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.synchronizer.remoteFileTemplate.sessionFactory");
+		Object sessionFactory = TestUtils.getPropertyValue(simpleAdapterWithCachedSessions,
+				"source.synchronizer.remoteFileTemplate.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
 		FtpInboundFileSynchronizer fisync =
-			TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.synchronizer", FtpInboundFileSynchronizer.class);
+				TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.synchronizer",
+						FtpInboundFileSynchronizer.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals("/", remoteFileSeparator);
 		assertEquals("foo/bar", TestUtils.getPropertyValue(fisync, "remoteDirectoryExpression", Expression.class)
 				.getExpressionString());
-		assertEquals(Integer.MIN_VALUE, TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.maxFetchSize"));
+		assertEquals(Integer.MIN_VALUE,
+				TestUtils.getPropertyValue(simpleAdapterWithCachedSessions, "source.maxFetchSize"));
 	}
 
 	@Test
@@ -171,6 +183,7 @@ public class FtpInboundChannelAdapterParserTests {
 		public boolean isSingleton() {
 			return true;
 		}
+
 	}
 
 }

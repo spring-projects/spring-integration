@@ -163,6 +163,19 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="scanner" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.file.DirectoryScanner" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Reference to a custom DirectoryScanner implementation.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attributeGroup ref="tempSuffixGroup" />
 				</xsd:extension>
 			</xsd:complexContent>

@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Venil Noronha
  *
  * @since 2.0
  */
@@ -75,6 +76,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 			messageSourceBuilder.addConstructorArgReference(comparator);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(messageSourceBuilder, element, "local-filter");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(messageSourceBuilder, element, "scanner");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element,
 				"auto-create-local-directory");

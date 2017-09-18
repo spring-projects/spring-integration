@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.file.HeadDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -41,6 +42,7 @@ import org.springframework.messaging.MessagingException;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Venil Noronha
  *
  * @since 4.0.4
  *
@@ -116,21 +118,7 @@ public class AbstractRemoteFileSynchronizerTests {
 	public void testMaxFetchSizeSource() throws Exception {
 		final AtomicInteger count = new AtomicInteger();
 		AbstractInboundFileSynchronizer<String> sync = createLimitingSynchronizer(count);
-
-		AbstractInboundFileSynchronizingMessageSource<String> source =
-				new AbstractInboundFileSynchronizingMessageSource<String>(sync) {
-
-			@Override
-			public String getComponentType() {
-				return "foo";
-			}
-
-		};
-		source.setLocalDirectory(new File(System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID()));
-		source.setAutoCreateLocalDirectory(true);
-		source.setBeanFactory(mock(BeanFactory.class));
-		source.setMaxFetchSize(1);
-		source.setBeanName("maxFetchSizeSource");
+		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(sync);
 		source.afterPropertiesSet();
 		source.start();
 
@@ -141,6 +129,60 @@ public class AbstractRemoteFileSynchronizerTests {
 		sync.synchronizeToLocalDirectory(mock(File.class), 1);
 		source.receive();
 		source.stop();
+	}
+
+	@Test
+	public void testExclusiveScanner() throws Exception {
+		final AtomicInteger count = new AtomicInteger();
+		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
+		source.setScanner(new HeadDirectoryScanner(1));
+		source.afterPropertiesSet();
+		source.start();
+		source.receive();
+		assertEquals(1, count.get());
+	}
+
+	@Test
+	public void testExclusiveWatchService() throws Exception {
+		final AtomicInteger count = new AtomicInteger();
+		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
+		source.setUseWatchService(true);
+		source.afterPropertiesSet();
+		source.start();
+		source.receive();
+		assertEquals(1, count.get());
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testScannerAndWatchServiceConflict() throws Exception {
+		final AtomicInteger count = new AtomicInteger();
+		AbstractInboundFileSynchronizingMessageSource<String> source = createSource(count);
+		source.setUseWatchService(true);
+		source.setScanner(new HeadDirectoryScanner(1));
+		source.afterPropertiesSet();
+	}
+
+	private AbstractInboundFileSynchronizingMessageSource<String> createSource(AtomicInteger count) {
+		return createSource(createLimitingSynchronizer(count));
+	}
+
+	private AbstractInboundFileSynchronizingMessageSource<String> createSource(
+			AbstractInboundFileSynchronizer<String> sync) {
+		AbstractInboundFileSynchronizingMessageSource<String> source =
+				new AbstractInboundFileSynchronizingMessageSource<String>(sync) {
+
+					@Override
+					public String getComponentType() {
+						return "foo";
+					}
+
+				};
+		source.setMaxFetchSize(1);
+		source.setLocalDirectory(new File(System.getProperty("java.io.tmpdir") + File.separator + UUID.randomUUID()));
+		source.setAutoCreateLocalDirectory(true);
+		source.setBeanFactory(mock(BeanFactory.class));
+		source.setBeanName("fooSource");
+		return source;
 	}
 
 	private AbstractInboundFileSynchronizer<String> createLimitingSynchronizer(final AtomicInteger count) {
@@ -194,7 +236,7 @@ public class AbstractRemoteFileSynchronizerTests {
 
 		@Override
 		public String[] list(String path) throws IOException {
-			return new String[] {"foo", "bar", "baz"};
+			return new String[] { "foo", "bar", "baz" };
 		}
 
 		@Override
