@@ -9,7 +9,14 @@
 	<int-redis:inbound-channel-adapter
 		id="adapter" topics="foo" topic-patterns="f*, b*" channel="receiveChannel" error-channel="testErrorChannel"
 		message-converter="testConverter"
-		serializer="serializer"/>
+		serializer="serializer"
+		task-executor="executor" />
+
+	<bean id="executor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="5" />
+		<property name="maxPoolSize" value="10" />
+		<property name="queueCapacity" value="25" />
+	</bean>
 
 	<int:channel id="receiveChannel">
 		<int:queue />

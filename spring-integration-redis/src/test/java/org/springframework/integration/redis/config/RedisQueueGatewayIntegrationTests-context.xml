@@ -26,16 +26,15 @@
 	<int-redis:queue-outbound-gateway id="outboundGateway"
 									  request-channel="sendChannel"
 									  queue="#{redisQueue.toString()}"
-									  reply-timeout="10000"
-									  requires-reply="true"
+									  reply-timeout="500"
 									  reply-channel="outputChannel"/>
 
 	<int-redis:queue-inbound-gateway id="inboundGateway"
 									 queue="#{redisQueue.toString()}"
 									 request-channel="requestChannel"
-									 reply-timeout="20001"
+									 reply-timeout="200"
 									 receive-timeout="100"
-									 request-timeout="20000"/>
+									 request-timeout="200"/>
 
 	<int:service-activator input-channel="requestChannel" expression="payload + 1"/>
 

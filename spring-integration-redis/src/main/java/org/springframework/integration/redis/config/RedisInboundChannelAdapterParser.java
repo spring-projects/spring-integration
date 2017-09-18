@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Venil Noronha
+ *
  * @since 2.1
  */
 public class RedisInboundChannelAdapterParser extends AbstractChannelAdapterParser {
@@ -49,6 +51,7 @@ public class RedisInboundChannelAdapterParser extends AbstractChannelAdapterPars
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer", true);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 
 		return builder.getBeanDefinition();
 	}

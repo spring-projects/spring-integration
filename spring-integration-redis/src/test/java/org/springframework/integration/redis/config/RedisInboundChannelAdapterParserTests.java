@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 
+import java.util.concurrent.Executor;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Venil Noronha
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -61,8 +64,12 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 	@Autowired
 	private MessageChannel autoChannel;
 
-	@Autowired @Qualifier("autoChannel.adapter")
+	@Autowired
+	@Qualifier("autoChannel.adapter")
 	private RedisInboundChannelAdapter autoChannelAdapter;
+
+	@Autowired
+	private Executor executor;
 
 	@Test
 	public void validateConfiguration() {
@@ -75,6 +82,10 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
+
+		Object container = accessor.getPropertyValue("container");
+		DirectFieldAccessor containerAccessor = new DirectFieldAccessor(container);
+		assertSame(this.executor, containerAccessor.getPropertyValue("taskExecutor"));
 
 		Object bean = context.getBean("withoutSerializer.adapter");
 		assertNotNull(bean);
@@ -109,6 +120,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 
 	@SuppressWarnings("unused")
 	private static class TestMessageConverter extends SimpleMessageConverter {
+
 	}
 
 }
