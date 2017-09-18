@@ -192,7 +192,7 @@ Another constructor requires `Cache` and the `Region` will be created with `GLOB
 [[gemfire-metadata-store]]
 === Gemfire Metadata Store
 
-As of _Spring Integration 4.0_, a new Gemfire-based `MetadataStore` (<<metadata-store>>) implementation is available.
+As of _version 4.0_, a new Gemfire-based `MetadataStore` (<<metadata-store>>) implementation is available.
 The `GemfireMetadataStore` can be used to maintain metadata state across application restarts.
 This new `MetadataStore` implementation can be used with adapters such as:
 
@@ -202,11 +202,24 @@ This new `MetadataStore` implementation can be used with adapters such as:
 * <<ftp-inbound>>
 * <<sftp-inbound>>
 
-
-
 In order to instruct these adapters to use the new `GemfireMetadataStore`, simply declare a Spring bean using the bean name *metadataStore*.
 The _Twitter Inbound Channel Adapter_ and the _Feed Inbound Channel Adapter_ will both automatically pick up and use the declared `GemfireMetadataStore`.
 
 NOTE: The `GemfireMetadataStore` also implements `ConcurrentMetadataStore`, allowing it to be reliably shared across multiple application instances where only one instance will be allowed to store or modify a key's value.
 These methods give various levels of concurrency guarantees based on the scope and data policy of the region.
 They are implemented in the peer cache and client/server cache but are disallowed in peer Regions having NORMAL or EMPTY data policies.
+
+NOTE: Since _version 5.0_, the `GemfireMetadataStore` also implements `ListenableMetadataStore`, allowing users to listen to cache events by providing `MetadataStoreListener` instances to the store:
+
+[source,java]
+----
+GemfireMetadataStore metadataStore = new GemfireMetadataStore(cache);
+metadataStore.addListener(new MetadataStoreListenerAdapter() {
+
+    @Override
+    public void onAdd(String key, String value) {
+         ...
+    }
+
+});
+----

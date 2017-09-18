@@ -16,11 +16,19 @@
 
 package org.springframework.integration.gemfire.metadata;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.EntryEvent;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.Scope;
+import org.apache.geode.cache.util.CacheListenerAdapter;
 
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
+import org.springframework.integration.metadata.ListenableMetadataStore;
+import org.springframework.integration.metadata.MetadataStoreListener;
 import org.springframework.util.Assert;
 
 /**
@@ -30,22 +38,30 @@ import org.springframework.util.Assert;
  * restarts.
  *
  * @author Artem Bilan
+ * @author Venil Noronha
+ *
  * @since 4.0
  */
-public class GemfireMetadataStore implements ConcurrentMetadataStore {
+public class GemfireMetadataStore implements ListenableMetadataStore {
 
 	public static final String KEY = "MetaData";
+
+	private final GemfireCacheListener cacheListener = new GemfireCacheListener();
 
 	private final Region<String, String> region;
 
 	public GemfireMetadataStore(Cache cache) {
-		Assert.notNull(cache, "'cache' must not be null");
-		this.region = cache.<String, String>createRegionFactory().setScope(Scope.LOCAL).create(KEY);
+		this(Objects.requireNonNull(cache, "'cache' must not be null")
+				.<String, String>createRegionFactory()
+				.setScope(Scope.LOCAL)
+				.create(KEY));
 	}
 
 	public GemfireMetadataStore(Region<String, String> region) {
 		Assert.notNull(region, "'region' must not be null");
 		this.region = region;
+		this.region.getAttributesMutator()
+				.addCacheListener(this.cacheListener);
 	}
 
 	@Override
@@ -80,6 +96,42 @@ public class GemfireMetadataStore implements ConcurrentMetadataStore {
 	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
 		return this.region.remove(key);
+	}
+
+	@Override
+	public void addListener(MetadataStoreListener listener) {
+		Assert.notNull(listener, "'listener' must not be null");
+		this.cacheListener.listeners.add(listener);
+	}
+
+	@Override
+	public void removeListener(MetadataStoreListener listener) {
+		this.cacheListener.listeners.remove(listener);
+	}
+
+	private static class GemfireCacheListener extends CacheListenerAdapter<String, String> {
+
+		private final List<MetadataStoreListener> listeners = new CopyOnWriteArrayList<>();
+
+		GemfireCacheListener() {
+			super();
+		}
+
+		@Override
+		public void afterCreate(EntryEvent<String, String> event) {
+			this.listeners.forEach(listener -> listener.onAdd(event.getKey(), event.getNewValue()));
+		}
+
+		@Override
+		public void afterUpdate(EntryEvent<String, String> event) {
+			this.listeners.forEach(listener -> listener.onUpdate(event.getKey(), event.getNewValue()));
+		}
+
+		@Override
+		public void afterDestroy(EntryEvent<String, String> event) {
+			this.listeners.forEach(listener -> listener.onRemove(event.getKey(), event.getOldValue()));
+		}
+
 	}
 
 }

@@ -95,6 +95,10 @@ The `ObjectToMapTransformer` can now be supplied with a customised `JsonObjectMa
 
 See <<aggregator-spel>> for more information.
 
+The `@GlobalChannelInterceptor` annotation and `<int:channel-interceptor>` now support negative patterns (via `!` prepending) for component names matching.
+
+See <<global-channel-configuration-interceptors>> for more information.
+
 ==== Gateway Changes
 
 The gateway now correctly sets the `errorChannel` header when the gateway method has a `void` return type and an error channel is provided.
@@ -273,8 +277,8 @@ A `ByteArrayElasticRawDeserializer` has been added without `maxMessageSize` cont
 
 See <<ip>> for more information.
 
-==== GlobalChannelInterceptor changes
+==== Gemfire Changes
 
-The `@GlobalChannelInterceptor` annotation and `<int:channel-interceptor>` now support negative patterns (via `!` prepending) for component names matching.
+The `GemfireMetadataStore` now implements `ListenableMetadataStore`, allowing users to listen to cache events by providing `MetadataStoreListener` instances to the store.
 
-See <<global-channel-configuration-interceptors>> for more information.
+See <<gemfire>> for more information.
