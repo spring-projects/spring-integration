@@ -40,6 +40,7 @@ import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -49,6 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Venil Noronha
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -75,6 +77,16 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 		assertEquals(context.getBean("serializer"), accessor.getPropertyValue("serializer"));
+
+		Object container = accessor.getPropertyValue("container");
+		DirectFieldAccessor containerAccessor = new DirectFieldAccessor(container);
+		Object taskExecutorObj = containerAccessor.getPropertyValue("taskExecutor");
+		assertEquals(ThreadPoolTaskExecutor.class, taskExecutorObj.getClass());
+		ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) taskExecutorObj;
+		assertEquals(5, taskExecutor.getCorePoolSize());
+		assertEquals(10, taskExecutor.getMaxPoolSize());
+		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(taskExecutor);
+		assertEquals(25, executorAccessor.getPropertyValue("queueCapacity"));
 
 		Object bean = context.getBean("withoutSerializer.adapter");
 		assertNotNull(bean);

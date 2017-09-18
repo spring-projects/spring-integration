@@ -265,6 +265,9 @@ The `RedisStoreWritingMessageHandler` is supplied now with additional String-bas
 The `zsetIncrementExpression` can now be configured on the `RedisStoreWritingMessageHandler`, as well.
 In addition this property has been changed from `true` to `false` since `INCR` option on `ZADD` Redis command is optional.
 
+The `RedisInboundChannelAdapter` can now be provided with an `Executor` for executing Redis listener invokers.
+The `Executor` instance can be provided by setting the `task-executor` attribute of the `<int-redis:inbound-channel-adapter>`.
+
 See <<redis>> for more information.
 
 ==== TCP Changes
