@@ -44,7 +44,7 @@ public class GemfireMetadataStore implements ConcurrentMetadataStore, Listenable
 
 	public static final String KEY = "MetaData";
 
-	private GemfireCacheListener cacheListener = new GemfireCacheListener();
+	private final GemfireCacheListener cacheListener = new GemfireCacheListener();
 
 	private final Region<String, String> region;
 
@@ -124,13 +124,6 @@ public class GemfireMetadataStore implements ConcurrentMetadataStore, Listenable
 		public void afterUpdate(EntryEvent<String, String> event) {
 			for (MetadataStoreListener listener : this.listeners) {
 				listener.onUpdate(event.getKey(), event.getNewValue());
-			}
-		}
-
-		@Override
-		public void afterInvalidate(EntryEvent<String, String> event) {
-			for (MetadataStoreListener listener : this.listeners) {
-				listener.onRemove(event.getKey(), event.getOldValue());
 			}
 		}
 

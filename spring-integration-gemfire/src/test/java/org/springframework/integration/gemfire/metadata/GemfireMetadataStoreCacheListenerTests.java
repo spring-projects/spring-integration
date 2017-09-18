@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.CacheFactory;
@@ -79,13 +80,13 @@ public class GemfireMetadataStoreCacheListenerTests {
 		String testValue = "value";
 
 		CountDownLatch latch = new CountDownLatch(1);
-		StringBuilder actualKey = new StringBuilder();
-		StringBuilder actualValue = new StringBuilder();
+		AtomicReference<String> actualKey = new AtomicReference<String>();
+		AtomicReference<String> actualValue = new AtomicReference<String>();
 		metadataStore.addListener(new MetadataStoreListenerAdapter() {
 			@Override
 			public void onAdd(String key, String value) {
-				actualKey.append(key);
-				actualValue.append(value);
+				actualKey.set(key);
+				actualValue.set(value);
 				latch.countDown();
 			}
 		});
@@ -94,8 +95,8 @@ public class GemfireMetadataStoreCacheListenerTests {
 		latch.await(2, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
-		assertEquals(testKey, actualKey.toString());
-		assertEquals(testValue, actualValue.toString());
+		assertEquals(testKey, actualKey.get());
+		assertEquals(testValue, actualValue.get());
 	}
 
 	@Test
@@ -104,13 +105,13 @@ public class GemfireMetadataStoreCacheListenerTests {
 		String testValue = "value";
 
 		CountDownLatch latch = new CountDownLatch(1);
-		StringBuilder actualKey = new StringBuilder();
-		StringBuilder actualValue = new StringBuilder();
+		AtomicReference<String> actualKey = new AtomicReference<String>();
+		AtomicReference<String> actualValue = new AtomicReference<String>();
 		metadataStore.addListener(new MetadataStoreListenerAdapter() {
 			@Override
 			public void onRemove(String key, String oldValue) {
-				actualKey.append(key);
-				actualValue.append(oldValue);
+				actualKey.set(key);
+				actualValue.set(oldValue);
 				latch.countDown();
 			}
 		});
@@ -120,8 +121,8 @@ public class GemfireMetadataStoreCacheListenerTests {
 		latch.await(2, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
-		assertEquals(testKey, actualKey.toString());
-		assertEquals(testValue, actualValue.toString());
+		assertEquals(testKey, actualKey.get());
+		assertEquals(testValue, actualValue.get());
 	}
 
 	@Test
@@ -131,13 +132,13 @@ public class GemfireMetadataStoreCacheListenerTests {
 		String testNewValue = "new-value";
 
 		CountDownLatch latch = new CountDownLatch(1);
-		StringBuilder actualKey = new StringBuilder();
-		StringBuilder actualValue = new StringBuilder();
+		AtomicReference<String> actualKey = new AtomicReference<String>();
+		AtomicReference<String> actualValue = new AtomicReference<String>();
 		metadataStore.addListener(new MetadataStoreListenerAdapter() {
 			@Override
 			public void onUpdate(String key, String newValue) {
-				actualKey.append(key);
-				actualValue.append(newValue);
+				actualKey.set(key);
+				actualValue.set(newValue);
 				latch.countDown();
 			}
 		});
@@ -147,8 +148,8 @@ public class GemfireMetadataStoreCacheListenerTests {
 		latch.await(2, TimeUnit.SECONDS);
 
 		assertEquals(0, latch.getCount());
-		assertEquals(testKey, actualKey.toString());
-		assertEquals(testNewValue, actualValue.toString());
+		assertEquals(testKey, actualKey.get());
+		assertEquals(testNewValue, actualValue.get());
 	}
 
 }

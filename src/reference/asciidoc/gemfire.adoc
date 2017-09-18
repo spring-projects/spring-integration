@@ -211,4 +211,4 @@ NOTE: The `GemfireMetadataStore` also implements `ConcurrentMetadataStore`, allo
 These methods give various levels of concurrency guarantees based on the scope and data policy of the region.
 They are implemented in the peer cache and client/server cache but are disallowed in peer Regions having NORMAL or EMPTY data policies.
 
-NOTE: Since _Spring Integration 5.0_, the `GemfireMetadataStore` also implements `ListenableMetadataStore`, allowing users to listen to cache events by providing `MetadataStoreListener` instances to the store.
+NOTE: Since _version 5.0_, the `GemfireMetadataStore` also implements `ListenableMetadataStore`, allowing users to listen to cache events by providing `MetadataStoreListener` instances to the store.
