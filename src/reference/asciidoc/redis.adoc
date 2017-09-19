@@ -132,13 +132,15 @@ The default is a `SimpleMessageConverter`.
 
 Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the `topics` attribute.
 
-Since _Spring Integration 3.0_, the Inbound Adapter, in addition to the existing `topics` attribute, now has the `topic-patterns` attribute.
+Since _version 3.0_, the Inbound Adapter, in addition to the existing `topics` attribute, now has the `topic-patterns` attribute.
 This attribute contains a comma-delimited set of Redis topic patterns.
 For more information regarding Redis publish/subscribe, see http://redis.io/topics/pubsub[Redis Pub/Sub].
 
 Inbound adapters can use a `RedisSerializer` to deserialize the body of Redis Messages.
 The `serializer` attribute of the `<int-redis:inbound-channel-adapter>` can be set to an empty string, which results in a `null` value for the `RedisSerializer` property.
 In this case the raw `byte[]` bodies of Redis Messages are provided as the message payloads.
+
+Since _version 5.0_, a `Executor` instance can be provided to the Inbound Adapter via the `task-executor` attribute of the `<int-redis:inbound-channel-adapter>`. 
 
 [[redis-outbound-channel-adapter]]
 ==== Redis Outbound Channel Adapter
