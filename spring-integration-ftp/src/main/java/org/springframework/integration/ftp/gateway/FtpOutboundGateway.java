@@ -102,8 +102,8 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	}
 
 	/**
-	 * Construct an instance with the supplied session factory, a command ('ls', 'get'
-	 * etc).
+	 * Construct an instance with the supplied session factory
+	 * and command ('ls', 'nlst', 'put' or 'mput').
 	 * <p> The {@code remoteDirectory} expression is {@code null} assuming to use
 	 * the {@code workingDirectory} from the FTP Client.
 	 * @param sessionFactory the session factory.
@@ -115,8 +115,8 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	}
 
 	/**
-	 * Construct an instance with the supplied remote file template, a command ('ls',
-	 * 'get' etc).
+	 * Construct an instance with the supplied remote file template
+	 * and command ('ls', 'nlst', 'put' or 'mput').
 	 * <p> The {@code remoteDirectory} expression is {@code null} assuming to use
 	 * the {@code workingDirectory} from the FTP Client.
 	 * @param remoteFileTemplate the remote file template.
