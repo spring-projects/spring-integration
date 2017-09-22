@@ -185,8 +185,11 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 						new SimpleMetadataStore(), getComponentName());
 			}
 			FileListFilter<File> filter = buildFilter();
-			if (this.fileSource.isUseWatchService() && this.scannerExplicitlySet) {
-				throw new IllegalStateException("Cannot set useWatchService and scanner at the same time");
+			if (this.scannerExplicitlySet) {
+				if (this.fileSource.isUseWatchService()) {
+					throw new IllegalStateException("Cannot set useWatchService and scanner at the same time");
+				}
+				this.fileSource.getScanner().setFilter(filter);
 			}
 			else if (!this.fileSource.isUseWatchService()) {
 				RecursiveDirectoryScanner directoryScanner = new RecursiveDirectoryScanner();

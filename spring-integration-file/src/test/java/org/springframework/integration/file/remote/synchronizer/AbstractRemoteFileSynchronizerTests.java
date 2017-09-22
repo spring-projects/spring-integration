@@ -162,7 +162,7 @@ public class AbstractRemoteFileSynchronizerTests {
 		source.afterPropertiesSet();
 	}
 
-	private AbstractInboundFileSynchronizingMessageSource<String> createSource(final AtomicInteger count) {
+	private AbstractInboundFileSynchronizingMessageSource<String> createSource(AtomicInteger count) {
 		return createSource(createLimitingSynchronizer(count));
 	}
 

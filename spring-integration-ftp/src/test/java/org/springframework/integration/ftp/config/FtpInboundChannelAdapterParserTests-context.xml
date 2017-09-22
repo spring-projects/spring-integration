@@ -17,6 +17,7 @@
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
 				channel="ftpChannel"
 				session-factory="ftpSessionFactory"
+				scanner="dirScanner"
 				auto-create-local-directory="true"
 				auto-startup="false"
 				delete-remote-files="true"
@@ -34,6 +35,10 @@
 				<int:transactional synchronization-factory="syncFactory"/>
 			</int:poller>
 	</int-ftp:inbound-channel-adapter>
+
+	<bean id="dirScanner" class="org.springframework.integration.file.HeadDirectoryScanner">
+		<constructor-arg value="1" />
+	</bean>
 
 	<bean id="fooString" class="java.lang.String">
 		<constructor-arg value="foo" />

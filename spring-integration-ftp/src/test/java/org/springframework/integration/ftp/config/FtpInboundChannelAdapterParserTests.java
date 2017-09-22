@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -66,6 +67,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Gary Russell
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Venil Noronha
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -99,6 +101,9 @@ public class FtpInboundChannelAdapterParserTests {
 		assertEquals(context.getBean("ftpChannel"), TestUtils.getPropertyValue(ftpInbound, "outputChannel"));
 		FtpInboundFileSynchronizingMessageSource inbound =
 			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(ftpInbound, "source");
+
+		FileReadingMessageSource fileSource = (FileReadingMessageSource) TestUtils.getPropertyValue(inbound, "fileSource");
+		assertEquals(context.getBean("dirScanner"), fileSource.getScanner());
 
 		FtpInboundFileSynchronizer fisync =
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");

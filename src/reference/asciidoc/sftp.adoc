@@ -311,6 +311,7 @@ The _SFTP Inbound Channel Adapter_ is a special listener that will connect to th
             local-directory="file:target/foo"
             auto-create-local-directory="true"
             local-filename-generator-expression="#this.toUpperCase() + '.a'"
+            scanner="myDirScanner"
             local-filter="myFilter"
             temporary-file-suffix=".writing"
             max-fetch-size="-1"
@@ -330,6 +331,7 @@ The inbound channel adapter first retrieves the file to a local directory and th
 Starting with _version 5.0_ you can now limit the number of files fetched from the FTP server when new file retrievals are needed.
 This can be beneficial when the target files are very large and/or when running in a clustered system with a persistent file list filter discussed below.
 Use `max-fetch-size` for this purpose; a negative value (default) means no limit and all matching files will be retrieved; see <<sftp-max-fetch>> for more information.
+You can also provide a custom `DirectoryScanner` implementation to the `inbound-channel-adapter` via the `scanner` attribute.
 
 Starting with _Spring Integration 3.0_, you can specify the `preserve-timestamp` attribute (default `false`); when `true`, the local file's modified timestamp will be set to the value retrieved from the server; otherwise it will be set to the current time.
 
