@@ -402,10 +402,20 @@ project('spring-integration-http') {
 
 		testCompile project(":spring-integration-security")
 		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: "spring-aop"
+			exclude group: 'org.springframework', module: "spring-beans"
+			exclude group: 'org.springframework', module: "spring-context"
+			exclude group: 'org.springframework', module: "spring-core"
+			exclude group: 'org.springframework', module: "spring-expression"
 		}
 		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: "spring-aop"
+			exclude group: 'org.springframework', module: "spring-beans"
+			exclude group: 'org.springframework', module: "spring-context"
+			exclude group: 'org.springframework', module: "spring-core"
+			exclude group: 'org.springframework', module: "spring-expression"
+			exclude group: 'org.springframework', module: "spring-test"
+			exclude group: 'org.springframework', module: "spring-web"
 		}
 	}
 }
@@ -571,11 +581,19 @@ project('spring-integration-security') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: "spring-aop"
+			exclude group: 'org.springframework', module: "spring-beans"
+			exclude group: 'org.springframework', module: "spring-context"
+			exclude group: 'org.springframework', module: "spring-core"
+			exclude group: 'org.springframework', module: "spring-expression"
 		}
 
 		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: "spring-aop"
+			exclude group: 'org.springframework', module: "spring-beans"
+			exclude group: 'org.springframework', module: "spring-context"
+			exclude group: 'org.springframework', module: "spring-core"
+			exclude group: 'org.springframework', module: "spring-expression"
 		}
 	}
 }
@@ -663,10 +681,20 @@ project('spring-integration-webflux') {
 
 		testCompile "org.springframework:spring-webmvc:$springVersion"
 		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: "spring-aop"
+			exclude group: 'org.springframework', module: "spring-beans"
+			exclude group: 'org.springframework', module: "spring-context"
+			exclude group: 'org.springframework', module: "spring-core"
+			exclude group: 'org.springframework', module: "spring-expression"
 		}
 		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion") {
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework', module: "spring-aop"
+			exclude group: 'org.springframework', module: "spring-beans"
+			exclude group: 'org.springframework', module: "spring-context"
+			exclude group: 'org.springframework', module: "spring-core"
+			exclude group: 'org.springframework', module: "spring-expression"
+			exclude group: 'org.springframework', module: "spring-test"
+			exclude group: 'org.springframework', module: "spring-web"
 		}
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
