@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -90,6 +90,9 @@ public class FtpInboundChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private DirectoryScanner dirScanner;
+
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception {
 		assertFalse(TestUtils.getPropertyValue(ftpInbound, "autoStartup", Boolean.class));
@@ -102,8 +105,7 @@ public class FtpInboundChannelAdapterParserTests {
 		FtpInboundFileSynchronizingMessageSource inbound =
 			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(ftpInbound, "source");
 
-		FileReadingMessageSource fileSource = (FileReadingMessageSource) TestUtils.getPropertyValue(inbound, "fileSource");
-		assertEquals(context.getBean("dirScanner"), fileSource.getScanner());
+		assertSame(dirScanner, TestUtils.getPropertyValue(inbound, "fileSource.scanner"));
 
 		FtpInboundFileSynchronizer fisync =
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");

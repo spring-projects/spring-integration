@@ -158,7 +158,6 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	 * @since 5.0
 	 */
 	public void setScanner(DirectoryScanner scanner) {
-		Assert.notNull(scanner, "scanner must not be null");
 		this.fileSource.setScanner(scanner);
 		this.scannerExplicitlySet = true;
 	}
@@ -186,9 +185,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			}
 			FileListFilter<File> filter = buildFilter();
 			if (this.scannerExplicitlySet) {
-				if (this.fileSource.isUseWatchService()) {
-					throw new IllegalStateException("Cannot set useWatchService and scanner at the same time");
-				}
+				Assert.state(!this.fileSource.isUseWatchService(),
+						"'useWatchService' and 'scanner' are mutually exclusive.");
 				this.fileSource.getScanner().setFilter(filter);
 			}
 			else if (!this.fileSource.isUseWatchService()) {
