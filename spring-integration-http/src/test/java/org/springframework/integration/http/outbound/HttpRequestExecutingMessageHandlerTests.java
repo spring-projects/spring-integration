@@ -848,7 +848,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		when(requestFactory.createRequest(any(URI.class), any(HttpMethod.class))).thenReturn(clientRequest);
 
 		ClientHttpResponse response = mock(ClientHttpResponse.class);
-		when(response.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
+		when(response.getRawStatusCode()).thenReturn(HttpStatus.NOT_FOUND.value());
 		when(response.getStatusText()).thenReturn("Not Found");
 		when(response.getBody()).thenReturn(new ByteArrayInputStream(new byte[0]));
 

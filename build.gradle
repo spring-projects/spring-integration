@@ -137,7 +137,7 @@ subprojects { subproject ->
 		springSecurityVersion = '5.0.0.M4'
 		springSocialTwitterVersion = '2.0.0.M4'
 		springRetryVersion = '1.2.1.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.RC4'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.BUILD-SNAPSHOT'
 		springWsVersion = '2.4.0.RELEASE'
 		tomcatVersion = "8.5.20"
 		xmlUnitVersion = '1.6'
@@ -401,8 +401,12 @@ project('spring-integration-http') {
 		compile ("com.rometools:rome:$romeToolsVersion", optional)
 
 		testCompile project(":spring-integration-security")
-		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
-		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
+		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
+		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
 	}
 }
 
@@ -567,10 +571,12 @@ project('spring-integration-security') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
-			exclude group: 'org.springframework', module: 'spring-support'
+			exclude group: 'org.springframework'
 		}
 
-		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
+		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
 	}
 }
 
@@ -656,8 +662,12 @@ project('spring-integration-webflux') {
 		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile "org.springframework:spring-webmvc:$springVersion"
-		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
-		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
+		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
+		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
