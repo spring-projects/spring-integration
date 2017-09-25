@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
+import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
@@ -59,6 +60,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Venil Noronha
  */
 public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		extends AbstractFetchLimitingMessageSource<File> implements Lifecycle {
@@ -88,6 +90,10 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 
 	private volatile FileListFilter<File> localFileListFilter;
 
+	/**
+	 * Whether the {@link DirectoryScanner} was explicitly set.
+	 */
+	private volatile boolean scannerExplicitlySet = false;
 
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer) {
 		this(synchronizer, null);
@@ -145,6 +151,17 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		}
 	}
 
+	/**
+	 * Switch the local {@link FileReadingMessageSource} to use a custom
+	 * {@link DirectoryScanner}.
+	 * @param scanner the {@link DirectoryScanner} to use.
+	 * @since 5.0
+	 */
+	public void setScanner(DirectoryScanner scanner) {
+		this.fileSource.setScanner(scanner);
+		this.scannerExplicitlySet = true;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
@@ -167,7 +184,12 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 						new SimpleMetadataStore(), getComponentName());
 			}
 			FileListFilter<File> filter = buildFilter();
-			if (!this.fileSource.isUseWatchService()) {
+			if (this.scannerExplicitlySet) {
+				Assert.state(!this.fileSource.isUseWatchService(),
+						"'useWatchService' and 'scanner' are mutually exclusive.");
+				this.fileSource.getScanner().setFilter(filter);
+			}
+			else if (!this.fileSource.isUseWatchService()) {
 				RecursiveDirectoryScanner directoryScanner = new RecursiveDirectoryScanner();
 				directoryScanner.setFilter(filter);
 				this.fileSource.setScanner(directoryScanner);

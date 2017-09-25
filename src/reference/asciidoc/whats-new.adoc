@@ -168,8 +168,9 @@ See <<files>> for more information.
 
 ==== (S)FTP Changes
 
-The inbound channel adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
+The Inbound Channel Adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
 They also are configured with a `FileSystemPersistentAcceptOnceFileListFilter` in the `local-filter` by default.
+You can also provide a custom `DirectoryScanner` implementation to Inbound Channel Adapters via the newly introduced `scanner` attribute.
 
 The regex and pattern filters can now be configured to always pass directories.
 This can be useful when using recursion in the outbound gateways.
