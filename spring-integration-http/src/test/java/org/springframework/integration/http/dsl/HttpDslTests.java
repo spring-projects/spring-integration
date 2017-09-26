@@ -33,16 +33,15 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseEntity;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
@@ -177,9 +176,7 @@ public class HttpDslTests {
 			return f -> f
 					.transform(Throwable::getCause)
 					.<HttpClientErrorException>handle((p, h) ->
-							MessageBuilder.withPayload(p.getResponseBodyAsString())
-									.setHeader(HttpHeaders.STATUS_CODE, p.getStatusCode())
-									.build());
+							new ResponseEntity<>(p.getResponseBodyAsString(), p.getStatusCode()));
 		}
 
 		@Bean

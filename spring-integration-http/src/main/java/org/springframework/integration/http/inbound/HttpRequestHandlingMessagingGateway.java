@@ -24,8 +24,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
@@ -114,7 +116,27 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 				response.setStatusCode((HttpStatus) responseContent);
 			}
 			else {
-				this.writeResponse(responseContent, response, request.getHeaders().getAccept());
+				if (responseContent instanceof ResponseEntity) {
+					ResponseEntity<?> responseEntity = (ResponseEntity<?>) responseContent;
+					responseContent = responseEntity.getBody();
+					response.setStatusCode(responseEntity.getStatusCode());
+
+					HttpHeaders outputHeaders = response.getHeaders();
+					HttpHeaders entityHeaders = responseEntity.getHeaders();
+
+					if (!entityHeaders.isEmpty()) {
+						entityHeaders.entrySet().stream()
+								.filter(entry -> !outputHeaders.containsKey(entry.getKey()))
+								.forEach(entry -> outputHeaders.put(entry.getKey(), entry.getValue()));
+					}
+				}
+
+				if (responseContent != null) {
+					writeResponse(responseContent, response, request.getHeaders().getAccept());
+				}
+				else {
+					response.flush();
+				}
 			}
 		}
 		else {
