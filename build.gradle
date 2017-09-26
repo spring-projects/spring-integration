@@ -253,6 +253,7 @@ subprojects { subproject ->
 					'Implementation-Vendor-Id': subproject.group,
 					'Implementation-Vendor': 'Pivotal Software, Inc.',
 					'Implementation-URL': linkHomepage,
+					'Automatic-Module-Name': subproject.name.replace('-', '.')  // for Jigsaw
 			)
 		}
 	}
