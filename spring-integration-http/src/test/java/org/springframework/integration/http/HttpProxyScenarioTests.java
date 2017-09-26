@@ -19,7 +19,6 @@ package org.springframework.integration.http;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.isNull;
 
@@ -144,8 +143,8 @@ public class HttpProxyScenarioTests {
 
 		this.handlerAdapter.handle(request, response, handler);
 
-		assertNull(response.getHeaderValue("If-Modified-Since"));
-		assertNull(response.getHeaderValue("If-Unmodified-Since"));
+		assertEquals(ifModifiedSinceValue, response.getHeaderValue("If-Modified-Since"));
+		assertEquals(ifUnmodifiedSinceValue, response.getHeaderValue("If-Unmodified-Since"));
 		assertEquals("close", response.getHeaderValue("Connection"));
 		assertEquals(contentDispositionValue, response.getHeader("Content-Disposition"));
 		assertEquals("text/plain", response.getContentType());
