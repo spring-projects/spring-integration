@@ -18,6 +18,8 @@ package org.springframework.integration.websocket;
 
 import java.util.Arrays;
 
+import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -46,7 +48,8 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  * @author Gary Russell
  * @since 4.1
  */
-public class ServerWebSocketContainer extends IntegrationWebSocketContainer implements WebSocketConfigurer {
+public class ServerWebSocketContainer extends IntegrationWebSocketContainer
+		implements WebSocketConfigurer, SmartLifecycle {
 
 	private final String[] paths;
 
@@ -59,6 +62,10 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 	private SockJsServiceOptions sockJsServiceOptions;
 
 	private String[] origins;
+
+	private boolean autoStartup = true;
+
+	private int phase = 0;
 
 	public ServerWebSocketContainer(String... paths) {
 		this.paths = paths;
@@ -176,6 +183,51 @@ public class ServerWebSocketContainer extends IntegrationWebSocketContainer impl
 
 		}
 
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	@Override
+	public int getPhase() {
+		return this.phase;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.handshakeHandler instanceof Lifecycle && ((Lifecycle) this.handshakeHandler).isRunning();
+	}
+
+	@Override
+	public synchronized void start() {
+		if (this.handshakeHandler instanceof Lifecycle && !isRunning()) {
+			((Lifecycle) this.handshakeHandler).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (isRunning()) {
+			((Lifecycle) this.handshakeHandler).start();
+		}
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		if (isRunning()) {
+			((Lifecycle) this.handshakeHandler).stop();
+		}
+		callback.run();
 	}
 
 	/**

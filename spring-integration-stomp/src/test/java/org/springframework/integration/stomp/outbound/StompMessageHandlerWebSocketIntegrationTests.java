@@ -91,6 +91,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.2
  */
 @ContextConfiguration(classes = StompMessageHandlerWebSocketIntegrationTests.ContextConfiguration.class)
@@ -269,7 +270,7 @@ public class StompMessageHandlerWebSocketIntegrationTests extends LogAdjustingTe
 
 		@Override
 		public void configureClientInboundChannel(ChannelRegistration registration) {
-			registration.setInterceptors(new ChannelInterceptorAdapter() {
+			registration.interceptors(new ChannelInterceptorAdapter() {
 
 				private final AtomicBoolean invoked = new AtomicBoolean();
 

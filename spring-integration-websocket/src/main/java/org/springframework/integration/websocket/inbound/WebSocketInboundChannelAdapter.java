@@ -63,6 +63,7 @@ import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 public class WebSocketInboundChannelAdapter extends MessageProducerSupport
@@ -262,6 +263,9 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	@Override
 	protected void doStop() {
 		this.active = false;
+		if (this.webSocketContainer instanceof Lifecycle) {
+			((Lifecycle) this.webSocketContainer).stop();
+		}
 	}
 
 	private boolean isActive() {
