@@ -5,37 +5,45 @@
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<amqp:channel id="channelWithInterceptor">
+	<bean id="rabbitConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+	</bean>
+
+	<amqp:channel id="channelWithInterceptor"
+				  auto-startup="false">
 		<amqp:interceptors>
 			<bean class="org.springframework.integration.amqp.config.AmqpChannelParserTests$TestInterceptor"/>
 		</amqp:interceptors>
 	</amqp:channel>
 
-	<bean id="rabbitConnectionFactory" class="org.springframework.integration.amqp.StubRabbitConnectionFactory"/>
-
 	<amqp:channel id="channelWithSubscriberLimit" max-subscribers="1" missing-queues-fatal="false"
 				  template-channel-transacted="true" consumers-per-queue="2"
 				  recovery-interval="0"
+				  auto-startup="false"
 				  shutdown-timeout="0"/>
 
 	<amqp:publish-subscribe-channel id="pubSub"
 									recovery-interval="0"
+									auto-startup="false"
 									shutdown-timeout="0"/>
 
 	<amqp:channel id="withEP" extract-payload="true" default-delivery-mode="NON_PERSISTENT"
 				  inbound-header-mapper="inMapper" outbound-header-mapper="outMapper"
 				  recovery-interval="0"
+				  auto-startup="false"
 				  shutdown-timeout="0"/>
 
 	<amqp:channel id="pollableWithEP" extract-payload="true" message-driven="false"
 				  headers-last="true"
 				  inbound-header-mapper="inMapper" outbound-header-mapper="outMapper"
 				  recovery-interval="0"
+				  auto-startup="false"
 				  shutdown-timeout="0"/>
 
 	<amqp:publish-subscribe-channel id="pubSubWithEP" extract-payload="true"
 									inbound-header-mapper="inMapper" outbound-header-mapper="outMapper"
 									recovery-interval="0"
+									auto-startup="false"
 									shutdown-timeout="0"/>
 
 	<bean id="inMapper" class="org.mockito.Mockito" factory-method="mock">
