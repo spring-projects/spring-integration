@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,15 @@ public class GenericMessageTests {
 	@Test
 	public void testMessageHeadersCopiedFromMap() {
 		Map<String, Object> headerMap = new HashMap<String, Object>();
-		headerMap.put("testAttribute", new Integer(123));
+		headerMap.put("testAttribute", Integer.valueOf(123));
 		headerMap.put("testProperty", "foo");
 		headerMap.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, 42);
 		headerMap.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, 24);
 		GenericMessage<String> message = new GenericMessage<String>("test", headerMap);
-		assertEquals(new Integer(123), message.getHeaders().get("testAttribute"));
+		assertEquals(123, message.getHeaders().get("testAttribute"));
 		assertEquals("foo", message.getHeaders().get("testProperty", String.class));
-		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(message).getSequenceSize());
-		assertEquals(new Integer(24), new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
+		assertEquals(42, new IntegrationMessageHeaderAccessor(message).getSequenceSize());
+		assertEquals(24, new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
 	}
 
 }

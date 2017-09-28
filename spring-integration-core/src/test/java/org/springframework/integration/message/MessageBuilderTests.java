@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -196,7 +197,7 @@ public class MessageBuilderTests {
 	@Test
 	public void testNonDestructiveSet() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
-			.setPriority(42).build();
+				.setPriority(42).build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 			.setHeaderIfAbsent(IntegrationMessageHeaderAccessor.PRIORITY, 13)
 			.build();
@@ -222,20 +223,20 @@ public class MessageBuilderTests {
 	@Test
 	public void testRemove() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
-			.setHeader("foo", "bar").build();
+				.setHeader("foo", "bar").build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
-			.removeHeader("foo")
-			.build();
+				.removeHeader("foo")
+				.build();
 		assertFalse(message2.getHeaders().containsKey("foo"));
 	}
 
 	@Test
 	public void testSettingToNullRemoves() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
-			.setHeader("foo", "bar").build();
+				.setHeader("foo", "bar").build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
-			.setHeader("foo", null)
-			.build();
+				.setHeader("foo", null)
+				.build();
 		assertFalse(message2.getHeaders().containsKey("foo"));
 	}
 
@@ -349,6 +350,15 @@ public class MessageBuilderTests {
 		newHeaders.put("c", current);
 		Message<?> result = MessageBuilder.fromMessage(original).copyHeaders(newHeaders).build();
 		assertEquals(original, result);
+	}
+
+	@Test
+	public void testSequenceNumberAsLong() {
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Long.MAX_VALUE)
+				.build();
+
+		Integer sequenceNumber = new IntegrationMessageHeaderAccessor(message).getSequenceNumber();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Comparator;
+
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
@@ -25,12 +27,13 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MessageSequenceComparatorTests {
 
 	@Test
 	public void testLessThan() {
-		MessageSequenceComparator comparator = new MessageSequenceComparator();
+		Comparator<Message<?>> comparator = new MessageSequenceComparator();
 		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setSequenceNumber(1).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2")
@@ -40,7 +43,7 @@ public class MessageSequenceComparatorTests {
 
 	@Test
 	public void testEqual() {
-		MessageSequenceComparator comparator = new MessageSequenceComparator();
+		Comparator<Message<?>> comparator = new MessageSequenceComparator();
 		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setSequenceNumber(3).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2")
@@ -50,7 +53,7 @@ public class MessageSequenceComparatorTests {
 
 	@Test
 	public void testGreaterThan() {
-		MessageSequenceComparator comparator = new MessageSequenceComparator();
+		Comparator<Message<?>> comparator = new MessageSequenceComparator();
 		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setSequenceNumber(5).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2")
@@ -60,7 +63,7 @@ public class MessageSequenceComparatorTests {
 
 	@Test
 	public void testEqualWithDefaultValues() {
-		MessageSequenceComparator comparator = new MessageSequenceComparator();
+		Comparator<Message<?>> comparator = new MessageSequenceComparator();
 		Message<String> message1 = MessageBuilder.withPayload("test1").build();
 		Message<String> message2 = MessageBuilder.withPayload("test2").build();
 		assertEquals(0, comparator.compare(message1, message2));

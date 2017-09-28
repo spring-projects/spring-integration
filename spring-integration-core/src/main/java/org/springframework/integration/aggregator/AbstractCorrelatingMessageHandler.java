@@ -90,7 +90,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final Comparator<Message<?>> sequenceNumberComparator = new SequenceNumberComparator();
+	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<>();
 

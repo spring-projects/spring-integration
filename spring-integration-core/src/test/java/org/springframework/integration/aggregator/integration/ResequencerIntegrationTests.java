@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class ResequencerIntegrationTests {
 		inputChannel.send(message1);
 		message1 = outputChannel.receive(0);
 		assertNotNull(message1);
-		assertEquals((Integer) 1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
 		assertFalse(message1.getHeaders().containsKey("foo"));
 
 		inputChannel.send(message2);
@@ -90,9 +90,9 @@ public class ResequencerIntegrationTests {
 		message3 = outputChannel.receive(0);
 		assertNotNull(message2);
 		assertNotNull(message3);
-		assertEquals((Integer) 2, new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
 		assertTrue(message2.getHeaders().containsKey("foo"));
-		assertEquals((Integer) 3, new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
 		assertFalse(message3.getHeaders().containsKey("foo"));
 
 		inputChannel.send(message5);
@@ -108,11 +108,11 @@ public class ResequencerIntegrationTests {
 		assertNotNull(message4);
 		assertNotNull(message5);
 		assertNotNull(message6);
-		assertEquals((Integer) 4, new IntegrationMessageHeaderAccessor(message4).getSequenceNumber());
+		assertEquals(4, new IntegrationMessageHeaderAccessor(message4).getSequenceNumber());
 		assertTrue(message4.getHeaders().containsKey("foo"));
-		assertEquals((Integer) 5, new IntegrationMessageHeaderAccessor(message5).getSequenceNumber());
+		assertEquals(5, new IntegrationMessageHeaderAccessor(message5).getSequenceNumber());
 		assertFalse(message5.getHeaders().containsKey("foo"));
-		assertEquals((Integer) 6, new IntegrationMessageHeaderAccessor(message6).getSequenceNumber());
+		assertEquals(6, new IntegrationMessageHeaderAccessor(message6).getSequenceNumber());
 		assertFalse(message6.getHeaders().containsKey("foo"));
 
 		assertEquals(0, store.getMessageGroup("A").getMessages().size());
@@ -148,7 +148,7 @@ public class ResequencerIntegrationTests {
 		inputChannel.send(message1);
 		message1 = outputChannel.receive(0);
 		assertNotNull(message1);
-		assertEquals((Integer) 1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
 	}
 
 }

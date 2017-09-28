@@ -36,7 +36,7 @@ import org.springframework.messaging.Message;
  */
 public class ResequencingMessageGroupProcessor implements MessageGroupProcessor {
 
-	private final Comparator<Message<?>> comparator = new SequenceNumberComparator();
+	private final Comparator<Message<?>> comparator = new MessageSequenceComparator();
 
 	public Object processMessageGroup(MessageGroup group) {
 		Collection<Message<?>> messages = group.getMessages();

@@ -44,7 +44,7 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 	private static final Log logger = LogFactory.getLog(SequenceSizeReleaseStrategy.class);
 
-	private final Comparator<Message<?>> comparator = new SequenceNumberComparator();
+	private final Comparator<Message<?>> comparator = new MessageSequenceComparator();
 
 	private volatile boolean releasePartialSequences;
 

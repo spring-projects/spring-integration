@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -310,12 +310,12 @@ public class RecipientListRouterTests {
 		assertNotNull(result1a);
 		assertNotNull(result1b);
 		assertEquals("test", result1a.getPayload());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber().intValue());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(result1a).getSequenceSize().intValue());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(result1a).getSequenceSize());
 		assertNull(new IntegrationMessageHeaderAccessor(result1a).getCorrelationId());
 		assertEquals("test", result1b.getPayload());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(result1b).getSequenceNumber().intValue());
-		assertEquals(0, new IntegrationMessageHeaderAccessor(result1b).getSequenceSize().intValue());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(result1b).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(result1b).getSequenceSize());
 		assertNull(new IntegrationMessageHeaderAccessor(result1b).getCorrelationId());
 	}
 
@@ -338,12 +338,12 @@ public class RecipientListRouterTests {
 		assertNotNull(result1a);
 		assertNotNull(result1b);
 		assertEquals("test", result1a.getPayload());
-		assertEquals(1, new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber().intValue());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(result1a).getSequenceSize().intValue());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(result1a).getSequenceNumber());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(result1a).getSequenceSize());
 		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(result1a).getCorrelationId());
 		assertEquals("test", result1b.getPayload());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(result1b).getSequenceNumber().intValue());
-		assertEquals(2, new IntegrationMessageHeaderAccessor(result1b).getSequenceSize().intValue());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(result1b).getSequenceNumber());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(result1b).getSequenceSize());
 		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(result1b).getCorrelationId());
 	}
 
@@ -453,6 +453,7 @@ public class RecipientListRouterTests {
 		public boolean accept(Message<?> message) {
 			return true;
 		}
+
 	}
 
 
@@ -466,6 +467,7 @@ public class RecipientListRouterTests {
 		public boolean accept(Message<?> message) {
 			return false;
 		}
+
 	}
 
 }
