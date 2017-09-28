@@ -89,18 +89,19 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 		return this.getHeader(CORRELATION_ID);
 	}
 
-	public Integer getSequenceNumber() {
-		Integer sequenceNumber = this.getHeader(SEQUENCE_NUMBER, Integer.class);
-		return (sequenceNumber != null ? sequenceNumber : 0);
+	public int getSequenceNumber() {
+		Number sequenceNumber = this.getHeader(SEQUENCE_NUMBER, Number.class);
+		return (sequenceNumber != null ? sequenceNumber.intValue() : 0);
 	}
 
-	public Integer getSequenceSize() {
-		Integer sequenceSize = this.getHeader(SEQUENCE_SIZE, Integer.class);
-		return (sequenceSize != null ? sequenceSize : 0);
+	public int getSequenceSize() {
+		Number sequenceSize = this.getHeader(SEQUENCE_SIZE, Number.class);
+		return (sequenceSize != null ? sequenceSize.intValue() : 0);
 	}
 
 	public Integer getPriority() {
-		return this.getHeader(PRIORITY, Integer.class);
+		Number priority = this.getHeader(PRIORITY, Number.class);
+		return (priority != null ? priority.intValue() : null);
 	}
 
 	/**
@@ -140,8 +141,8 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 			else if (IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)
 					|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)
 					|| IntegrationMessageHeaderAccessor.PRIORITY.equals(headerName)) {
-				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
-						+ "' header value must be an Integer.");
+				Assert.isTrue(Number.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
+						+ "' header value must be a Number.");
 			}
 			else if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
 				Assert.isTrue(Map.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName

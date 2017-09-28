@@ -58,6 +58,8 @@ import org.springframework.util.MimeType;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -222,7 +224,7 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(Integer.valueOf(0), new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
 		message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
 		assertEquals("MyHost", message
@@ -231,7 +233,7 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(Integer.valueOf(0), new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(message).getSequenceNumber());
 	}
 
 	@Test
@@ -306,7 +308,7 @@ public class TcpMessageMapperTests {
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
 		IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(message);
-		assertEquals(Integer.valueOf(1), headerAccessor.getSequenceNumber());
+		assertEquals(1, headerAccessor.getSequenceNumber());
 		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), headerAccessor.getCorrelationId());
 		message = mapper.toMessage(connection);
 		headerAccessor = new IntegrationMessageHeaderAccessor(message);
@@ -317,7 +319,7 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
 		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
-		assertEquals(Integer.valueOf(2), headerAccessor.getSequenceNumber());
+		assertEquals(2, headerAccessor.getSequenceNumber());
 		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), headerAccessor.getCorrelationId());
 		assertNotNull(message.getHeaders().get("foo"));
 		assertEquals("bar", message.getHeaders().get("foo"));

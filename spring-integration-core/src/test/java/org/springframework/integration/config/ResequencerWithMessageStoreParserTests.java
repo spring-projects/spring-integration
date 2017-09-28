@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -65,11 +66,11 @@ public class ResequencerWithMessageStoreParserTests {
 		Message<?> message3 = output.receive(500);
 
 		assertNotNull(message1);
-		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
 		assertNotNull(message2);
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
 		assertNotNull(message3);
-		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
 
 	}
 

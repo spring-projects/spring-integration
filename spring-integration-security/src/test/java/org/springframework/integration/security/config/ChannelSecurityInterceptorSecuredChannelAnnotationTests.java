@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -229,12 +230,12 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		Message<?> receive = this.securedChannelQueue.receive(10000);
 		assertNotNull(receive);
 		IntegrationMessageHeaderAccessor headerAccessor = new IntegrationMessageHeaderAccessor(receive);
-		assertEquals(new Integer(0), headerAccessor.getSequenceNumber());
+		assertEquals(0, headerAccessor.getSequenceNumber());
 
 		receive = this.securedChannelQueue2.receive(10000);
 		assertNotNull(receive);
 		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
-		assertEquals(new Integer(0), headerAccessor.getSequenceNumber());
+		assertEquals(0, headerAccessor.getSequenceNumber());
 
 		this.publishSubscribeChannel.setApplySequence(true);
 
@@ -243,12 +244,12 @@ public class ChannelSecurityInterceptorSecuredChannelAnnotationTests {
 		receive = this.securedChannelQueue.receive(10000);
 		assertNotNull(receive);
 		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
-		assertEquals(new Integer(1), headerAccessor.getSequenceNumber());
+		assertEquals(1, headerAccessor.getSequenceNumber());
 
 		receive = this.securedChannelQueue2.receive(10000);
 		assertNotNull(receive);
 		headerAccessor = new IntegrationMessageHeaderAccessor(receive);
-		assertEquals(new Integer(2), headerAccessor.getSequenceNumber());
+		assertEquals(2, headerAccessor.getSequenceNumber());
 
 		this.publishSubscribeChannel.setApplySequence(false);
 

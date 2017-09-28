@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -355,13 +355,13 @@ public class MethodInvokingSplitterTests {
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(reply1).getSequenceSize());
-		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(reply1).getSequenceSize());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
 		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply1).getCorrelationId());
 		Message<?> reply2 = replies.get(1);
 		assertNotNull(reply2);
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(reply2).getSequenceSize());
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(reply2).getSequenceSize());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber());
 		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply2).getCorrelationId());
 	}
 
@@ -375,13 +375,13 @@ public class MethodInvokingSplitterTests {
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(reply1).getSequenceSize());
-		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(reply1).getSequenceSize());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(reply1).getSequenceNumber());
 		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply1).getCorrelationId());
 		Message<?> reply2 = replies.get(1);
 		assertNotNull(reply2);
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(reply2).getSequenceSize());
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(reply2).getSequenceSize());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(reply2).getSequenceNumber());
 		assertEquals(message.getHeaders().getId(), new IntegrationMessageHeaderAccessor(reply2).getCorrelationId());
 	}
 
