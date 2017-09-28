@@ -53,6 +53,7 @@ import org.springframework.util.StopWatch;
 /**
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Glenn Renfro
  * @since 4.3
  */
 @ContextConfiguration("JdbcLockRegistryTests-context.xml")

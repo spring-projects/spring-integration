@@ -995,6 +995,8 @@ Therefore `prefix` property must be used on the `DefaultLockRepository` bean def
 Sometimes it happens that one application has moved to the state when it can't release distributed lock - remove the particular record in the data base.
 For this purpose such dead locks can be expired by the other application on the next locking invocation.
 The `timeToLive` (TTL) option on the `DefaultLockRepository` is provided for this purpose.
+The user may also want to specify `CLIENT_ID` for the locks stored for a given `DefaultLockRepository` instance.  In this case you can specify the
+`id` to be associated with the `DefaultLockRepository` as a constructor parameter.
 
 [[jdbc-metadata-store]]
 === JDBC Metadata Store
