@@ -57,7 +57,7 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 	 */
 	public static final int DEFAULT_TTL = 10000;
 
-	private final String id = UUID.randomUUID().toString();
+	private String id = UUID.randomUUID().toString();
 
 	private final JdbcTemplate template;
 
@@ -82,6 +82,19 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 
 	@Autowired
 	public DefaultLockRepository(DataSource dataSource) {
+		this.template = new JdbcTemplate(dataSource);
+	}
+
+	/**
+	 * Constructor that allows the user to specify a client id that will
+	 * be associated for all the locks persisted by the store.
+	 * @param dataSource the {@link DataSource} used to maintain the lock repository.
+	 * @param id the client id to be associated with locks handled by the repository.
+	 */
+	public DefaultLockRepository(DataSource dataSource, String id) {
+		Assert.notNull(dataSource, "dataSource must not be null");
+		Assert.hasText(id, "id must not be null nor empty");
+		this.id = id;
 		this.template = new JdbcTemplate(dataSource);
 	}
 
