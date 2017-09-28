@@ -53,6 +53,7 @@ import org.springframework.util.StopWatch;
 /**
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Glenn Renfro
  * @since 4.3
  */
 @ContextConfiguration("JdbcLockRegistryTests-context.xml")
@@ -194,7 +195,11 @@ public class JdbcLockRegistryDifferentClientTests {
 
 	@Test
 	public void testOnlyOneLock() throws Exception {
+		testOnlyOneLock(null);
+		testOnlyOneLock("AABBCCDD");
+	}
 
+	private void testOnlyOneLock(String id) throws Exception {
 		for (int i = 0; i < 100; i++) {
 
 			final List<String> locked = new ArrayList<String>();
@@ -202,7 +207,9 @@ public class JdbcLockRegistryDifferentClientTests {
 			ExecutorService pool = Executors.newFixedThreadPool(6);
 			ArrayList<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>();
 			for (int j = 0; j < 20; j++) {
-				final DefaultLockRepository client = new DefaultLockRepository(this.dataSource);
+				final DefaultLockRepository client = (id == null) ?
+						new DefaultLockRepository(this.dataSource) :
+						new DefaultLockRepository(this.dataSource, id);
 				client.afterPropertiesSet();
 				this.context.getAutowireCapableBeanFactory().autowireBean(client);
 				Callable<Boolean> task = () -> {

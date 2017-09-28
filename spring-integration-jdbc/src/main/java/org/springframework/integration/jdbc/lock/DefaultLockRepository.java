@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  *
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Glenn Renfro
  * @since 4.3
  */
 @Repository
@@ -57,7 +58,7 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 	 */
 	public static final int DEFAULT_TTL = 10000;
 
-	private final String id = UUID.randomUUID().toString();
+	private final String id;
 
 	private final JdbcTemplate template;
 
@@ -79,9 +80,30 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 
 	private String countQuery = "SELECT COUNT(REGION) FROM %SLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=? AND CREATED_DATE>=?";
 
-
+	/**
+	 * Constructor that initializes the client id that will be associated for
+	 * all the locks persisted by the store instance to a random {@link UUID}.
+	 * @param dataSource the {@link DataSource}used to maintain the lock repository.
+	 */
 	@Autowired
 	public DefaultLockRepository(DataSource dataSource) {
+		Assert.notNull(dataSource, "dataSource must not be null");
+		this.template = new JdbcTemplate(dataSource);
+		this.id = UUID.randomUUID().toString();
+	}
+
+	/**
+	 * Constructor that allows the user to specify a client id that will
+	 * be associated for all the locks persisted by the store instance.
+	 * @param dataSource the {@link DataSource} used to maintain the lock repository.
+	 * @param id the client id to be associated with locks handled by the repository.
+	 *
+	 * @since 4.3.13
+	 */
+	public DefaultLockRepository(DataSource dataSource, String id) {
+		Assert.notNull(dataSource, "dataSource must not be null");
+		Assert.hasText(id, "id must not be null nor empty");
+		this.id = id;
 		this.template = new JdbcTemplate(dataSource);
 	}
 
