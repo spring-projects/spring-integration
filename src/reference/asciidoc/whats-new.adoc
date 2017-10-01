@@ -99,6 +99,8 @@ The `@GlobalChannelInterceptor` annotation and `<int:channel-interceptor>` now s
 
 See <<global-channel-configuration-interceptors>> for more information.
 
+The `Aggregator` will now fail fast if same `MessageStore` is registered to more than one `Aggregator`.
+
 ==== Gateway Changes
 
 The gateway now correctly sets the `errorChannel` header when the gateway method has a `void` return type and an error channel is provided.
