@@ -161,7 +161,7 @@ public class AggregatorWithGemfireLocksTests {
 				Thread.currentThread().interrupt();
 			}
 			this.callers.decrementAndGet();
-			return group.size() > 1;
+			return group.size() > 0;
 		}
 
 		public void reset(int expectedConcurrency) {
