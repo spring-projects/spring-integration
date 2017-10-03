@@ -26,9 +26,9 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSource;
+import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -190,7 +190,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 				this.fileSource.getScanner().setFilter(filter);
 			}
 			else if (!this.fileSource.isUseWatchService()) {
-				RecursiveDirectoryScanner directoryScanner = new RecursiveDirectoryScanner();
+				DirectoryScanner directoryScanner = new DefaultDirectoryScanner();
 				directoryScanner.setFilter(filter);
 				this.fileSource.setScanner(directoryScanner);
 			}

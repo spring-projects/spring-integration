@@ -455,7 +455,8 @@ This will work for any `ResettableFileListFilter`.
 
 Starting with _version 5.0_, the Inbound Channel Adapter can build sub-directories locally according the generated local file name.
 That can be a remote sub-path as well.
-To be able to read local directory recursively for modification according the hierarchy support, an internal `FileReadingMessageSource` now have been switched to use a new `RecursiveDirectoryScanner` based on the `Files.walk()` algorithm.
+To be able to read local directory recursively for modification according the hierarchy support, an internal `FileReadingMessageSource` now can bve supplied with a new `RecursiveDirectoryScanner` based on the `Files.walk()` algorithm.
+See `AbstractInboundFileSynchronizingMessageSource.setScanner()` for more information.
 Also the `AbstractInboundFileSynchronizingMessageSource` can now be switched to the `WatchService` -based `DirectoryScanner` via `setUseWatchService()` option.
 It is also configured for all the `WatchEventType` s to react for any modifications in local directory.
 The reprocessing sample above is based on the build-in functionality of the `FileReadingMessageSource.WatchServiceDirectoryScanner` to perform `ResettableFileListFilter.remove()` when the file is deleted (`StandardWatchEventKinds.ENTRY_DELETE`) from the local directory.
