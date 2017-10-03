@@ -49,6 +49,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.file.RecursiveDirectoryScanner;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -111,13 +112,14 @@ public class FtpInboundRemoteFileSystemSynchronizerTests {
 		FtpInboundFileSynchronizingMessageSource ms = new FtpInboundFileSynchronizingMessageSource(synchronizer);
 
 		ms.setAutoCreateLocalDirectory(true);
-
 		ms.setLocalDirectory(localDirectory);
 		ms.setBeanFactory(mock(BeanFactory.class));
 		CompositeFileListFilter<File> localFileListFilter = new CompositeFileListFilter<File>();
 		localFileListFilter.addFilter(new RegexPatternFileListFilter(".*\\.TEST\\.a$"));
 		AcceptOnceFileListFilter<File> localAcceptOnceFilter = new AcceptOnceFileListFilter<File>();
 		localFileListFilter.addFilter(localAcceptOnceFilter);
+		RecursiveDirectoryScanner scanner = new RecursiveDirectoryScanner();
+		ms.setScanner(scanner);
 		ms.setLocalFilter(localFileListFilter);
 		ms.afterPropertiesSet();
 		ms.start();
