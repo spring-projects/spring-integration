@@ -19,6 +19,7 @@ package org.springframework.integration.redis.store;
 import java.util.Collection;
 import java.util.Set;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,9 +41,11 @@ import org.springframework.util.Assert;
  *
  * @since 2.1
  */
-public class RedisMessageStore extends AbstractKeyValueMessageStore {
+public class RedisMessageStore extends AbstractKeyValueMessageStore implements BeanClassLoaderAware {
 
 	private final RedisTemplate<Object, Object> redisTemplate;
+
+	private boolean valueSerializerSet;
 
 	/**
 	 * Construct {@link RedisMessageStore} based on the provided
@@ -71,9 +74,17 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 		this.redisTemplate.afterPropertiesSet();
 	}
 
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		if (!this.valueSerializerSet) {
+			this.redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer(classLoader));
+		}
+	}
+
 	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
 		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
 		this.redisTemplate.setValueSerializer(valueSerializer);
+		this.valueSerializerSet = true;
 	}
 
 	@Override
