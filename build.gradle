@@ -128,7 +128,7 @@ subprojects { subproject ->
 		romeToolsVersion = '1.8.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"
-		smackVersion = '4.1.9'
+		smackVersion = '4.2.1'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.RELEASE'
 		springDataJpaVersion = '2.0.0.RELEASE'
 		springDataMongoVersion = '2.0.0.RELEASE'
@@ -138,7 +138,7 @@ subprojects { subproject ->
 		springSocialTwitterVersion = '2.0.0.M4'
 		springRetryVersion = '1.2.1.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.RELEASE'
-		springWsVersion = '2.4.0.RELEASE'
+		springWsVersion = '3.0.0.BUILD-SNAPSHOT'
 		tomcatVersion = "8.5.23"
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.10'
@@ -283,12 +283,7 @@ project('spring-integration-amqp') {
 	description = 'Spring Integration AMQP Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
-			exclude group: 'org.springframework', module: 'spring-aop'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-tx'
-		}
+		compile"org.springframework.amqp:spring-rabbit:$springAmqpVersion"
 		testCompile("org.springframework.amqp:spring-rabbit-junit:$springAmqpVersion")
 		testCompile project(":spring-integration-stream")
 	}
@@ -303,9 +298,7 @@ project('spring-integration-core') {
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
-		compile ("org.springframework.retry:spring-retry:$springRetryVersion") {
-			exclude group: 'org.springframework', module: 'spring-core'
-		}
+		compile "org.springframework.retry:spring-retry:$springRetryVersion"
 		compile "io.projectreactor:reactor-core:$reactorVersion"
 		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
 		compile("com.jayway.jsonpath:json-path:$jsonpathVersion") {
@@ -367,15 +360,7 @@ project('spring-integration-gemfire') {
 	description = 'Spring Integration GemFire Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile ("org.springframework.data:spring-data-gemfire:$springGemfireVersion") {
-			exclude group: 'org.springframework', module: 'spring-aop'
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-context-support'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-tx'
-			exclude group: 'org.springframework', module: 'spring-oxm'
-		}
+		compile "org.springframework.data:spring-data-gemfire:$springGemfireVersion"
 		compile "commons-io:commons-io:$commonsIoVersion"
 		testCompile project(":spring-integration-stream")
 
@@ -402,22 +387,8 @@ project('spring-integration-http') {
 		compile ("com.rometools:rome:$romeToolsVersion", optional)
 
 		testCompile project(":spring-integration-security")
-		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
-			exclude group: 'org.springframework', module: "spring-aop"
-			exclude group: 'org.springframework', module: "spring-beans"
-			exclude group: 'org.springframework', module: "spring-context"
-			exclude group: 'org.springframework', module: "spring-core"
-			exclude group: 'org.springframework', module: "spring-expression"
-		}
-		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion") {
-			exclude group: 'org.springframework', module: "spring-aop"
-			exclude group: 'org.springframework', module: "spring-beans"
-			exclude group: 'org.springframework', module: "spring-context"
-			exclude group: 'org.springframework', module: "spring-core"
-			exclude group: 'org.springframework', module: "spring-expression"
-			exclude group: 'org.springframework', module: "spring-test"
-			exclude group: 'org.springframework', module: "spring-web"
-		}
+		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
+		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
 	}
 }
 
@@ -479,15 +450,7 @@ project('spring-integration-jpa') {
 		compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
 
 
-		testCompile ("org.springframework.data:spring-data-jpa:$springDataJpaVersion") {
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-expression'
-			exclude group: 'org.springframework', module: 'spring-aop'
-			exclude group: 'org.springframework', module: 'spring-orm'
-			exclude group: 'org.springframework', module: 'spring-tx'
-		}
+		testCompile "org.springframework.data:spring-data-jpa:$springDataJpaVersion"
 
 		testCompile "com.h2database:h2:$h2Version"
 
@@ -525,13 +488,7 @@ project('spring-integration-mongodb') {
 	description = 'Spring Integration MongoDB Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") {
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-expression'
-			exclude group: 'org.springframework', module: 'spring-tx'
-		}
+		compile"org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
 	}
 }
 
@@ -547,15 +504,7 @@ project('spring-integration-redis') {
 	description = 'Spring Integration Redis Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion") {
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-context-support'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-tx'
-			exclude group: 'org.springframework', module: 'spring-aop'
-			exclude group: 'org.springframework', module: 'spring-oxm'
-		}
+		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		testCompile "redis.clients:jedis:$jedisVersion"
 	}
 }
@@ -581,21 +530,9 @@ project('spring-integration-security') {
 	description = 'Spring Integration Security Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
-			exclude group: 'org.springframework', module: "spring-aop"
-			exclude group: 'org.springframework', module: "spring-beans"
-			exclude group: 'org.springframework', module: "spring-context"
-			exclude group: 'org.springframework', module: "spring-core"
-			exclude group: 'org.springframework', module: "spring-expression"
-		}
+		compile"org.springframework.security:spring-security-core:$springSecurityVersion"
 
-		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
-			exclude group: 'org.springframework', module: "spring-aop"
-			exclude group: 'org.springframework', module: "spring-beans"
-			exclude group: 'org.springframework', module: "spring-context"
-			exclude group: 'org.springframework', module: "spring-core"
-			exclude group: 'org.springframework', module: "spring-expression"
-		}
+		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
 	}
 }
 
@@ -618,7 +555,6 @@ project('spring-integration-stomp') {
 		compile project(":spring-integration-core")
 
 		compile ("org.springframework:spring-websocket:$springVersion", optional)
-
 		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile project(":spring-integration-websocket")
@@ -656,14 +592,7 @@ project('spring-integration-twitter') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-web:$springVersion"
-		compile("org.springframework.social:spring-social-twitter:$springSocialTwitterVersion") {
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-expression'
-			exclude group: 'org.springframework', module: 'spring-web'
-			exclude group: 'org.springframework', module: 'spring-webmvc'
-		}
+		compile"org.springframework.social:spring-social-twitter:$springSocialTwitterVersion"
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
@@ -681,22 +610,8 @@ project('spring-integration-webflux') {
 		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile "org.springframework:spring-webmvc:$springVersion"
-		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
-			exclude group: 'org.springframework', module: "spring-aop"
-			exclude group: 'org.springframework', module: "spring-beans"
-			exclude group: 'org.springframework', module: "spring-context"
-			exclude group: 'org.springframework', module: "spring-core"
-			exclude group: 'org.springframework', module: "spring-expression"
-		}
-		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion") {
-			exclude group: 'org.springframework', module: "spring-aop"
-			exclude group: 'org.springframework', module: "spring-beans"
-			exclude group: 'org.springframework', module: "spring-context"
-			exclude group: 'org.springframework', module: "spring-core"
-			exclude group: 'org.springframework', module: "spring-expression"
-			exclude group: 'org.springframework', module: "spring-test"
-			exclude group: 'org.springframework', module: "spring-web"
-		}
+		testCompile "org.springframework.security:spring-security-config:$springSecurityVersion"
+		testCompile "org.springframework.security:spring-security-test:$springSecurityVersion"
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
@@ -718,31 +633,18 @@ project('spring-integration-ws') {
 	description = 'Spring Integration Web Services Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile "org.springframework:spring-oxm:$springVersion"
-		compile "org.springframework:spring-webmvc:$springVersion"
-		compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
-			exclude group: 'org.springframework', module: 'spring-aop'
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-oxm'
-			exclude group: 'org.springframework', module: 'spring-web'
-			exclude group: 'org.springframework', module: 'spring-webmvc'
-		}
+		compile "org.springframework.ws:spring-ws-core:$springWsVersion"
 
 		testCompile "com.thoughtworks.xstream:xstream:$xstreamVersion"
-		testCompile ("org.springframework.ws:spring-ws-support:$springWsVersion") {
-			exclude group: 'org.springframework'
-		}
-		testCompile ("org.springframework:spring-jms:$springVersion") {
-			exclude group: 'org.springframework'
-		}
+		testCompile "org.springframework.ws:spring-ws-support:$springWsVersion"
+		testCompile "org.springframework:spring-jms:$springVersion"
 		testCompile "javax.jms:javax.jms-api:$jmsApiVersion"
 		testCompile "org.igniterealtime.smack:smack-tcp:$smackVersion"
 		testCompile "org.igniterealtime.smack:smack-java7:$smackVersion"
 		testCompile "org.igniterealtime.smack:smack-extensions:$smackVersion"
 		testCompile "javax.mail:javax.mail-api:$javaxMailVersion"
 		testRuntime "com.sun.mail:mailapi:$javaxMailVersion"
+		testRuntime "com.sun.mail:javax.mail:$javaxMailVersion"
 	}
 }
 
@@ -751,21 +653,9 @@ project('spring-integration-xml') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.springframework:spring-oxm:$springVersion"
-		compile ("org.springframework.ws:spring-xml:$springWsVersion") {
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-core'
-		}
-		compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
-			optional it
-			exclude group: 'org.springframework', module: 'spring-aop'
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-oxm'
-			exclude group: 'org.springframework', module: 'spring-web'
-			exclude group: 'org.springframework', module: 'spring-webmvc'
-		}
+		compile "org.springframework.ws:spring-xml:$springWsVersion"
+		compile ("org.springframework.ws:spring-ws-core:$springWsVersion", optional)
+
 		testCompile "xmlunit:xmlunit:$xmlUnitVersion"
 	}
 }

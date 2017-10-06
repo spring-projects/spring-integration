@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		doAnswer(invocation -> {
 			Object[] args = invocation.getArguments();
 			org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
-			assertEquals("oleg", xmppMessage.getTo());
+			assertEquals("oleg", xmppMessage.getTo().toString());
 			assertEquals("foobar", JivePropertiesManager.getProperty(xmppMessage, "foobar"));
 			return null;
 		}).when(connection).sendStanza(Mockito.any(org.jivesoftware.smack.packet.Message.class));
@@ -150,7 +150,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		doAnswer(invocation -> {
 			Object[] args = invocation.getArguments();
 			org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
-			assertEquals("artem", xmppMessage.getTo());
+			assertEquals("artem", xmppMessage.getTo().toString());
 			assertEquals("hello", xmppMessage.getBody());
 			return null;
 		}).when(connection).sendStanza(Mockito.any(org.jivesoftware.smack.packet.Message.class));

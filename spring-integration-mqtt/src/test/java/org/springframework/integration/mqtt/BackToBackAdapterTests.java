@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -100,9 +101,9 @@ public class BackToBackAdapterTests {
 		inbound.afterPropertiesSet();
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<String>("foo"));
-		adapter.stop();
-		Message<?> out = outputChannel.receive(10000);
+		Message<?> out = outputChannel.receive(20000);
 		assertNotNull(out);
+		adapter.stop();
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
@@ -132,9 +133,9 @@ public class BackToBackAdapterTests {
 		inbound.afterPropertiesSet();
 		inbound.start();
 		adapter.handleMessage(new GenericMessage<Foo>(new Foo("bar"), Collections.singletonMap("baz", "qux")));
-		adapter.stop();
-		Message<?> out = outputChannel.receive(10000);
+		Message<?> out = outputChannel.receive(20000);
 		assertNotNull(out);
+		adapter.stop();
 		inbound.stop();
 		assertEquals(new Foo("bar"), out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
@@ -159,21 +160,21 @@ public class BackToBackAdapterTests {
 		inbound.start();
 		inbound.addTopic("mqtt-foo");
 		adapter.handleMessage(new GenericMessage<String>("foo"));
-		Message<?> out = outputChannel.receive(10_000);
+		Message<?> out = outputChannel.receive(20_000);
 		assertNotNull(out);
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 
 		inbound.addTopic("mqtt-bar");
 		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
-		out = outputChannel.receive(10_000);
+		out = outputChannel.receive(20_000);
 		assertNotNull(out);
 		assertEquals("bar", out.getPayload());
 		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
 
 		inbound.removeTopic("mqtt-bar");
 		adapter.handleMessage(MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build());
-		out = outputChannel.receive(10_000);
+		out = outputChannel.receive(1);
 		assertNull(out);
 
 		try {
@@ -213,17 +214,16 @@ public class BackToBackAdapterTests {
 		adapter.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> message = MessageBuilder.withPayload("bar").setHeader(MqttHeaders.TOPIC, "mqtt-bar").build();
 		adapter.handleMessage(message);
-		adapter.stop();
-		Message<?> out = outputChannel.receive(10000);
+		Message<?> out = outputChannel.receive(20000);
 		assertNotNull(out);
-		inbound.stop();
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
-		out = outputChannel.receive(10000);
+		out = outputChannel.receive(20000);
 		assertNotNull(out);
 		inbound.stop();
 		assertEquals("bar", out.getPayload());
 		assertEquals("mqtt-bar", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
+		adapter.stop();
 	}
 
 	@Test
@@ -250,9 +250,9 @@ public class BackToBackAdapterTests {
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		adapter.handleMessage(message);
 		verifyEvents(adapter, publisher, message);
-		adapter.stop();
-		Message<?> out = outputChannel.receive(10000);
+		Message<?> out = outputChannel.receive(20000);
 		assertNotNull(out);
+		adapter.stop();
 		inbound.stop();
 		assertEquals("foo", out.getPayload());
 		assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
@@ -316,11 +316,10 @@ public class BackToBackAdapterTests {
 		verifyMessageIds(publisher1, publisher2);
 
 		assertNotEquals(clientInstance, publisher1.delivered.getClientInstance());
-		adapter.stop();
 
 		Message<?> out = null;
 		for (int i = 0; i < 4; i++) {
-			out = outputChannel.receive(10000);
+			out = outputChannel.receive(20000);
 			assertNotNull(out);
 			if ("foo".equals(out.getPayload())) {
 				assertEquals("mqtt-foo", out.getHeaders().get(MqttHeaders.RECEIVED_TOPIC));
@@ -332,6 +331,7 @@ public class BackToBackAdapterTests {
 				fail("unexpected payload " + out.getPayload());
 			}
 		}
+		adapter.stop();
 		inbound.stop();
 	}
 
@@ -357,7 +357,7 @@ public class BackToBackAdapterTests {
 	@Test
 	public void testMultiURIs() {
 		out.send(new GenericMessage<String>("foo"));
-		Message<?> message = in.receive(10000);
+		Message<?> message = in.receive(20000);
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
 	}

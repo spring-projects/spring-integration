@@ -44,6 +44,8 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.junit.Test;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParser;
@@ -126,7 +128,7 @@ public class ChatMessageListeningEndpointTests {
 	}
 
 	@Test
-	public void testWithErrorChannel() throws NotConnectedException {
+	public void testWithErrorChannel() throws NotConnectedException, XmppStringprepException, InterruptedException {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
@@ -143,10 +145,10 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.setErrorChannel(errorChannel);
 		endpoint.afterPropertiesSet();
 		StanzaListener listener = (StanzaListener) TestUtils.getPropertyValue(endpoint, "stanzaListener");
-		Message smackMessage = new Message("kermit@frog.com");
+		Message smackMessage = new Message(JidCreate.from("kermit@frog.com"));
 		smackMessage.setBody("hello");
 		smackMessage.setThread("1234");
-		listener.processPacket(smackMessage);
+		listener.processStanza(smackMessage);
 
 		ErrorMessage msg =
 				(ErrorMessage) errorChannel.receive();
@@ -170,7 +172,7 @@ public class ChatMessageListeningEndpointTests {
 		Message smackMessage = new Message();
 		smackMessage.setBody("foo");
 
-		XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toString()));
+		XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML().toString()));
 		xmlPullParser.next();
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
@@ -196,7 +198,7 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.setPayloadExpression(null);
 
 		smackMessage = new Message();
-		xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toString()));
+		xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML().toString()));
 		xmlPullParser.next();
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
@@ -239,7 +241,7 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
-		XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toString()));
+		XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML().toString()));
 		xmlPullParser.next();
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 

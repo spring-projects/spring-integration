@@ -39,8 +39,9 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  * @author Philipp Etschel
  *
- * @see XMPPTCPConnection
  * @since 2.0
+ *
+ * @see XMPPTCPConnection
  */
 public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements SmartLifecycle {
 
@@ -140,14 +141,19 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 			XMPPTCPConnectionConfiguration.Builder builder =
 					XMPPTCPConnectionConfiguration.builder()
 							.setHost(this.host)
-							.setPort(this.port)
-							.setResource(this.resource)
-							.setUsernameAndPassword(this.user, this.password)
-							.setServiceName(this.serviceName);
+							.setPort(this.port);
 
-			if (!StringUtils.hasText(this.serviceName) && StringUtils.hasText(this.user)) {
+			if (StringUtils.hasText(this.resource)) {
+							builder.setResource(this.resource);
+			}
+
+			if (StringUtils.hasText(this.serviceName)) {
+				builder.setUsernameAndPassword(this.user, this.password)
+						.setXmppDomain(this.serviceName);
+			}
+			else {
 				builder.setUsernameAndPassword(XmppStringUtils.parseLocalpart(this.user), this.password)
-						.setServiceName(XmppStringUtils.parseDomain(this.user));
+						.setXmppDomain(this.user);
 			}
 
 			connectionConfiguration = builder.build();

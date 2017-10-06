@@ -19,12 +19,8 @@ package org.springframework.integration.xmpp.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.jivesoftware.smack.XMPPConnection;
@@ -57,21 +53,11 @@ public class PresenceListeningEndpointTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testEndpointLifecycle() {
-		final Set<RosterListener> rosterSet = new HashSet<RosterListener>();
 		XMPPConnection connection = mock(XMPPConnection.class);
-		Roster roster = mock(Roster.class);
-		Map<XMPPConnection, Roster> instances = TestUtils.getPropertyValue(roster, "INSTANCES", Map.class);
-		instances.put(connection, roster);
+		Roster roster = Roster.getInstanceFor(connection);
 
-		doAnswer(invocation -> {
-			rosterSet.add(invocation.getArgument(0));
-			return null;
-		}).when(roster).addRosterListener(any(RosterListener.class));
+		Set<RosterListener> rosterSet = TestUtils.getPropertyValue(roster, "rosterListeners", Set.class);
 
-		doAnswer(invocation -> {
-			rosterSet.remove((RosterListener) invocation.getArgument(0));
-			return null;
-		}).when(roster).removeRosterListener(any(RosterListener.class));
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		rosterEndpoint.setOutputChannel(new QueueChannel());
 		rosterEndpoint.setBeanFactory(mock(BeanFactory.class));
@@ -93,9 +79,6 @@ public class PresenceListeningEndpointTests {
 	@SuppressWarnings("unchecked")
 	public void testRosterPresenceChangeEvent() {
 		XMPPConnection connection = mock(XMPPConnection.class);
-		Roster roster = mock(Roster.class);
-		Map<XMPPConnection, Roster> instances = TestUtils.getPropertyValue(roster, "INSTANCES", Map.class);
-		instances.put(connection, roster);
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		QueueChannel channel = new QueueChannel();
 		rosterEndpoint.setOutputChannel(channel);

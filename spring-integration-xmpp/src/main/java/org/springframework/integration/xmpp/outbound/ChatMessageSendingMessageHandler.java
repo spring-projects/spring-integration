@@ -24,6 +24,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.provider.ExtensionElementProvider;
 import org.jivesoftware.smack.util.PacketParserUtils;
+import org.jxmpp.jid.impl.JidCreate;
 import org.xmlpull.v1.XmlPullParser;
 
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -93,7 +94,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		else {
 			String to = message.getHeaders().get(XmppHeaders.TO, String.class);
 			Assert.state(StringUtils.hasText(to), "The '" + XmppHeaders.TO + "' header must not be null");
-			xmppMessage = new org.jivesoftware.smack.packet.Message(to);
+			xmppMessage = new org.jivesoftware.smack.packet.Message(JidCreate.from(to));
 
 			if (payload instanceof ExtensionElement) {
 				xmppMessage.addExtension((ExtensionElement) payload);
