@@ -24,6 +24,9 @@ import java.util.Map;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
+import org.jxmpp.jid.Jid;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
 
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -36,12 +39,13 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Florian Schmaus
  * @author Stephane Nicoll
+ * @author Artem Bilan
  *
  * @since 2.1
  */
 public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> implements XmppHeaderMapper {
 
-	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
+	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<>();
 
 	static {
 		STANDARD_HEADER_NAMES.add(XmppHeaders.FROM);
@@ -57,10 +61,10 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 
 	@Override
 	protected Map<String, Object> extractStandardHeaders(Message source) {
-		Map<String, Object> headers = new HashMap<String, Object>();
-		String from = source.getFrom();
-		if (StringUtils.hasText(from)) {
-			headers.put(XmppHeaders.FROM, from);
+		Map<String, Object> headers = new HashMap<>();
+		Jid from = source.getFrom();
+		if (from != null) {
+			headers.put(XmppHeaders.FROM, from.toString());
 		}
 		String subject = source.getSubject();
 		if (StringUtils.hasText(subject)) {
@@ -70,9 +74,9 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 		if (StringUtils.hasText(thread)) {
 			headers.put(XmppHeaders.THREAD, thread);
 		}
-		String to = source.getTo();
-		if (StringUtils.hasText(to)) {
-			headers.put(XmppHeaders.TO, to);
+		Jid to = source.getTo();
+		if (to != null) {
+			headers.put(XmppHeaders.TO, to.toString());
 		}
 		Message.Type type = source.getType();
 		if (type != null) {
@@ -83,7 +87,7 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 
 	@Override
 	protected Map<String, Object> extractUserDefinedHeaders(Message source) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		JivePropertiesExtension jpe = (JivePropertiesExtension) source.getExtension(JivePropertiesExtension.NAMESPACE);
 		if (jpe == null) {
 			return headers;
@@ -102,12 +106,24 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 		}
 		String to = getHeaderIfAvailable(headers, XmppHeaders.TO, String.class);
 		if (StringUtils.hasText(to)) {
-			target.setTo(to);
+			try {
+				target.setTo(JidCreate.from(to));
+			}
+			catch (XmppStringprepException e) {
+				throw new IllegalStateException("Cannot parse 'xmpp_to' header value", e);
+			}
 		}
+
 		String from = getHeaderIfAvailable(headers, XmppHeaders.FROM, String.class);
 		if (StringUtils.hasText(from)) {
-			target.setFrom(from);
+			try {
+				target.setFrom(JidCreate.from(from));
+			}
+			catch (XmppStringprepException e) {
+				throw new IllegalStateException("Cannot parse 'xmpp_from' header value", e);
+			}
 		}
+
 		String subject = getHeaderIfAvailable(headers, XmppHeaders.SUBJECT, String.class);
 		if (StringUtils.hasText(subject)) {
 			target.setSubject(subject);

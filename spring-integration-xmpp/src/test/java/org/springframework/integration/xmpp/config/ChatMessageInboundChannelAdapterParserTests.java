@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import static org.junit.Assert.assertSame;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jxmpp.jid.impl.JidCreate;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +71,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 	private ChatMessageListeningEndpoint autoChannelAdapter;
 
 	@Test
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public void testInboundAdapter() {
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
 		MessageChannel errorChannel = (MessageChannel) TestUtils.getPropertyValue(adapter, "errorChannel");
@@ -86,14 +86,14 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		assertEquals("#root", TestUtils.getPropertyValue(adapter, "payloadExpression.expression"));
 		adapter.start();
 		Map asyncRecvListeners = TestUtils.getPropertyValue(connection, "asyncRecvListeners", Map.class);
-		assertEquals(1, asyncRecvListeners.size());
-		assertSame(stanzaFilter,
-				TestUtils.getPropertyValue(asyncRecvListeners.values().iterator().next(), "packetFilter"));
+		assertEquals(6, asyncRecvListeners.size());
+		Object lastListener = asyncRecvListeners.values().stream().reduce((first, second) -> second).get();
+		assertSame(stanzaFilter, TestUtils.getPropertyValue(lastListener, "packetFilter"));
 		adapter.stop();
 	}
 
 	@Test
-	public void testInboundAdapterUsageWithHeaderMapper() throws NotConnectedException {
+	public void testInboundAdapterUsageWithHeaderMapper() throws Exception {
 		XMPPConnection xmppConnection = Mockito.mock(XMPPConnection.class);
 
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
@@ -106,10 +106,10 @@ public class ChatMessageInboundChannelAdapterParserTests {
 
 		Message message = new Message();
 		message.setBody("hello");
-		message.setTo("oleg");
+		message.setTo(JidCreate.from("oleg"));
 		JivePropertiesManager.addProperty(message, "foo", "foo");
 		JivePropertiesManager.addProperty(message, "bar", "bar");
-		stanzaListener.processPacket(message);
+		stanzaListener.processStanza(message);
 		org.springframework.messaging.Message<?> siMessage = xmppInbound.receive(0);
 		assertEquals("foo", siMessage.getHeaders().get("foo"));
 		assertEquals("oleg", siMessage.getHeaders().get("xmpp_to"));

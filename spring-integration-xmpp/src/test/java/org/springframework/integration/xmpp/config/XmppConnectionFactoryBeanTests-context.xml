@@ -9,7 +9,7 @@
 
 	<bean id="xmppConnectionConfigurationBuilder" class="org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration"
 		  factory-method="builder">
-		<property name="serviceName" value="myServiceName"/>
+		<property name="xmppDomain" value="#{T(org.jxmpp.jid.impl.JidCreate).domainBareFrom('myServiceName')}"/>
 	</bean>
 
 	<bean id="xmppConnection" class="org.springframework.integration.xmpp.config.XmppConnectionFactoryBean">

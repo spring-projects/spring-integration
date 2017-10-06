@@ -25,6 +25,8 @@ import java.util.Map;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 import org.junit.Test;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
 
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.messaging.MessageHeaders;
@@ -32,6 +34,8 @@ import org.springframework.messaging.MessageHeaders;
 /**
  * @author Mark Fisher
  * @author Florian Schmaus
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class DefaultXmppHeaderMapperTests {
@@ -39,7 +43,7 @@ public class DefaultXmppHeaderMapperTests {
 	@Test
 	public void fromHeadersStandardOutbound() {
 		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
-		Map<String, Object> headerMap = new HashMap<String, Object>();
+		Map<String, Object> headerMap = new HashMap<>();
 		headerMap.put("userDefined1", "foo");
 		headerMap.put("userDefined2", "bar");
 		headerMap.put(XmppHeaders.THREAD, "test.thread");
@@ -53,8 +57,8 @@ public class DefaultXmppHeaderMapperTests {
 
 		// "standard" XMPP headers
 		assertEquals("test.thread", target.getThread());
-		assertEquals("test.to", target.getTo());
-		assertEquals("test.from", target.getFrom());
+		assertEquals("test.to", target.getTo().toString());
+		assertEquals("test.from", target.getFrom().toString());
 		assertEquals("test.subject", target.getSubject());
 		assertEquals(Message.Type.headline, target.getType());
 
@@ -70,7 +74,7 @@ public class DefaultXmppHeaderMapperTests {
 	@Test
 	public void fromHeadersUserDefinedOnly() {
 		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
-		mapper.setRequestHeaderNames(new String[] { "userDefined1", "userDefined2" });
+		mapper.setRequestHeaderNames("userDefined1", "userDefined2");
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("userDefined1", "foo");
 		headerMap.put("userDefined2", "bar");
@@ -104,17 +108,17 @@ public class DefaultXmppHeaderMapperTests {
 	}
 
 	@Test
-	public void toHeadersStandardOnly() {
+	public void toHeadersStandardOnly() throws XmppStringprepException {
 		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
-		Message source = new Message("test.to", Message.Type.headline);
-		source.setFrom("test.from");
+		Message source = new Message(JidCreate.from("test.to"), Message.Type.headline);
+		source.setFrom(JidCreate.from("test.from"));
 		source.setSubject("test.subject");
 		source.setThread("test.thread");
 		JivePropertiesManager.addProperty(source, "userDefined1", "foo");
 		JivePropertiesManager.addProperty(source, "userDefined2", "bar");
 		Map<String, Object> headers = mapper.toHeadersFromRequest(source);
-		assertEquals("test.to", headers.get(XmppHeaders.TO));
-		assertEquals("test.from", headers.get(XmppHeaders.FROM));
+		assertEquals("test.to", headers.get(XmppHeaders.TO).toString());
+		assertEquals("test.from", headers.get(XmppHeaders.FROM).toString());
 		assertEquals("test.subject", headers.get(XmppHeaders.SUBJECT));
 		assertEquals("test.thread", headers.get(XmppHeaders.THREAD));
 		assertEquals(Message.Type.headline, headers.get(XmppHeaders.TYPE));
@@ -123,11 +127,11 @@ public class DefaultXmppHeaderMapperTests {
 	}
 
 	@Test
-	public void toHeadersUserDefinedOnly() {
+	public void toHeadersUserDefinedOnly() throws XmppStringprepException {
 		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
-		mapper.setReplyHeaderNames(new String[] { "userDefined*" });
-		Message source = new Message("test.to", Message.Type.headline);
-		source.setFrom("test.from");
+		mapper.setReplyHeaderNames("userDefined*");
+		Message source = new Message(JidCreate.from("test.to"), Message.Type.headline);
+		source.setFrom(JidCreate.from("test.from"));
 		source.setSubject("test.subject");
 		source.setThread("test.thread");
 		JivePropertiesManager.addProperty(source, "userDefined1", "foo");
