@@ -36,7 +36,7 @@ public class AmqpInboundChannelAdapterSMLCSpec
 		super(new SimpleMessageListenerContainerSpec(listenerContainer));
 	}
 
-	AmqpInboundChannelAdapterSMLCSpec configureContainer(Consumer<SimpleMessageListenerContainerSpec> configurer) {
+	public AmqpInboundChannelAdapterSMLCSpec configureContainer(Consumer<SimpleMessageListenerContainerSpec> configurer) {
 		configurer.accept((SimpleMessageListenerContainerSpec) this.listenerContainerSpec);
 		return this;
 	}
