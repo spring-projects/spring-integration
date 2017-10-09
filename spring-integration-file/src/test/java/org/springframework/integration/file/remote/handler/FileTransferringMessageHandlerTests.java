@@ -55,6 +55,7 @@ import org.springframework.messaging.Message;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class FileTransferringMessageHandlerTests {
 
@@ -138,10 +139,9 @@ public class FileTransferringMessageHandlerTests {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
 		when(sf.getSession()).thenReturn(session);
-		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setBeanFactory(mock(BeanFactory.class));
-		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
+		handler.setRemoteDirectoryExpressionString("headers['path']");
 		handler.setTemporaryFileSuffix(null);
 		handler.onInit();
 	}
@@ -177,7 +177,7 @@ public class FileTransferringMessageHandlerTests {
 		Session<F> session2 = newSession();
 		Session<F> session3 = newSession();
 		when(sf.getSession()).thenReturn(session1, session2, session3);
-		handler.setRemoteDirectoryExpression(new LiteralExpression("foo"));
+		handler.setRemoteDirectoryExpressionString("'foo'");
 		handler.afterPropertiesSet();
 		for (int i = 0; i < 3; i++) {
 			try {
