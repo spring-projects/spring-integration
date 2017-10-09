@@ -93,7 +93,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	/**
 	 * Specify a remote directory path SpEL expression.
 	 * @param remoteDirectoryExpression the remote directory expression
-	 * @since 5.0
+	 * @since 4.3.13
 	 * @see #setRemoteDirectoryExpression(Expression)
 	 */
 	public void setRemoteDirectoryExpressionString(String remoteDirectoryExpression) {
@@ -112,7 +112,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	/**
 	 * Specify a remote directory path SpEL expression.
 	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression
-	 * @since 5.0
+	 * @since 4.3.13
 	 * @see #setTemporaryRemoteDirectoryExpression(Expression)
 	 */
 	public void setTemporaryRemoteDirectoryExpressionString(String temporaryRemoteDirectoryExpression) {

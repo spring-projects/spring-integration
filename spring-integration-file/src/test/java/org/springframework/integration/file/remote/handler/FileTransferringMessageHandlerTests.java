@@ -131,7 +131,6 @@ public class FileTransferringMessageHandlerTests {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
 		when(sf.getSession()).thenReturn(session);
-		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.setRemoteDirectoryExpressionString("headers['path']");

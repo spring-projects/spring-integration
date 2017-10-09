@@ -36,7 +36,9 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
@@ -66,6 +68,8 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class AbstractInboundFileSynchronizer<F>
 		implements InboundFileSynchronizer, BeanFactoryAware, InitializingBean, Closeable {
+
+	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -136,6 +140,16 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	/**
+	 * Set an expression used to determine the local file name.
+	 * @param localFilenameGeneratorExpression the expression.
+	 * @since 4.3.13
+	 * @see #setRemoteDirectoryExpression(Expression)
+	 */
+	public void setLocalFilenameGeneratorExpressionString(String localFilenameGeneratorExpression) {
+		setLocalFilenameGeneratorExpression(EXPRESSION_PARSER.parseExpression(localFilenameGeneratorExpression));
+	}
+
+	/**
 	 * Set a temporary file suffix to be used while transferring files. Default ".writing".
 	 * @param temporaryFileSuffix the file suffix.
 	 */
@@ -160,6 +174,17 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		doSetRemoteDirectoryExpression(remoteDirectoryExpression);
 	}
+
+	/**
+	 * Specify an expression that evaluates to the full path to the remote directory.
+	 * @param remoteDirectoryExpression The remote directory expression.
+	 * @since 4.3.13
+	 * @see #setRemoteDirectoryExpression(Expression)
+	 */
+	public void setRemoteDirectoryExpressionString(String remoteDirectoryExpression) {
+		setRemoteDirectoryExpression(EXPRESSION_PARSER.parseExpression(remoteDirectoryExpression));
+	}
+
 
 	protected final void doSetRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		Assert.notNull(remoteDirectoryExpression, "'remoteDirectoryExpression' must not be null");
