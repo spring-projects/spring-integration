@@ -16,17 +16,23 @@
 
 package org.springframework.integration.ws;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -40,36 +46,47 @@ import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
+import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.destination.DestinationProvider;
+import org.springframework.ws.client.support.interceptor.ClientInterceptorAdapter;
+import org.springframework.ws.context.MessageContext;
+import org.springframework.ws.pox.PoxMessage;
+import org.springframework.ws.pox.dom.DomPoxMessageFactory;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.WebServiceMessageSender;
+import org.springframework.xml.transform.StringResult;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 public class SimpleWebServiceOutboundGatewayTests {
 
 	private static final String response = "<response><name>Test Name</name></response>";
 
-	public static final String responseSoapMessage = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
-			"<soap:Body> " +
-			response +
-			"</soap:Body> " +
-			"</soap:Envelope>";
+	public static final String responseSoapMessage =
+			"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
+					"<soap:Body> " +
+					response +
+					"</soap:Body> " +
+					"</soap:Envelope>";
 
-	public static final String responseEmptyBodySoapMessage = "<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
-			"<SOAP:Header/>\n" +
-			"<SOAP:Body/>\n" +
-			"</SOAP:Envelope>";
+	public static final String responseEmptyBodySoapMessage =
+			"<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+					"<SOAP:Header/>\n" +
+					"<SOAP:Body/>\n" +
+					"</SOAP:Envelope>";
 
 	@Test // INT-1051
 	public void soapActionAndCustomCallback() {
@@ -91,8 +108,9 @@ public class SimpleWebServiceOutboundGatewayTests {
 			gateway.handleMessage(MessageBuilder.withPayload(request)
 					.setHeader(WebServiceHeaders.SOAP_ACTION, soapActionHeaderValue)
 					.build());
+			fail("Expected MessageHandlingException");
 		}
-		catch (Exception e) {
+		catch (MessageHandlingException e) {
 			// expected
 		}
 		assertNotNull(soapActionFromCallback.get());
@@ -119,6 +137,51 @@ public class SimpleWebServiceOutboundGatewayTests {
 		WebServiceMessageSender messageSender = createMockMessageSender(responseEmptyBodySoapMessage);
 		gateway.setMessageSender(messageSender);
 		gateway.handleMessage(new GenericMessage<String>("<test>foo</test>"));
+	}
+
+	@Test
+	public void testDomPoxMessageFactory() throws Exception {
+		String uri = "http://www.example.org";
+		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+
+		final SettableListenableFuture<WebServiceMessage> requestFuture = new SettableListenableFuture<>();
+
+		ClientInterceptorAdapter interceptorAdapter = new ClientInterceptorAdapter() {
+
+			@Override
+			public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
+				requestFuture.set(messageContext.getRequest());
+				return super.handleRequest(messageContext);
+			}
+
+		};
+		gateway.setInterceptors(interceptorAdapter);
+		gateway.setMessageFactory(new DomPoxMessageFactory());
+		gateway.afterPropertiesSet();
+
+		String request = "<test>foo</test>";
+		try {
+			gateway.handleMessage(new GenericMessage<>(request));
+			fail("Expected MessageHandlingException");
+		}
+		catch (MessageHandlingException e) {
+			// expected
+		}
+
+		WebServiceMessage requestMessage = requestFuture.get(10, TimeUnit.SECONDS);
+
+		assertNotNull(requestMessage);
+		assertThat(requestMessage, instanceOf(PoxMessage.class));
+
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+		transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+		StringResult stringResult = new StringResult();
+		transformer.transform(requestMessage.getPayloadSource(), stringResult);
+
+		assertEquals(request, stringResult.toString());
 	}
 
 	public static WebServiceMessageSender createMockMessageSender(final String mockResponseMessage) throws Exception {
@@ -151,6 +214,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 		public URI getDestination() {
 			return this.uri;
 		}
+
 	}
 
 }
