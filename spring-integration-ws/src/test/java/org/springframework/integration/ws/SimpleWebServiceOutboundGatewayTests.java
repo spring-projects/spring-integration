@@ -23,19 +23,14 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 
 import org.hamcrest.Matchers;
@@ -61,6 +56,8 @@ import org.springframework.ws.client.support.interceptor.ClientInterceptorAdapte
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.mime.Attachment;
 import org.springframework.ws.mime.MimeMessage;
+import org.springframework.ws.pox.PoxMessage;
+import org.springframework.ws.pox.dom.DomPoxMessageFactory;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 import org.springframework.ws.transport.WebServiceConnection;
@@ -72,22 +69,25 @@ import org.springframework.xml.transform.StringSource;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 public class SimpleWebServiceOutboundGatewayTests {
 
 	private static final String response = "<response><name>Test Name</name></response>";
 
-	public static final String responseSoapMessage = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
-			"<soap:Body> " +
-			response +
-			"</soap:Body> " +
-			"</soap:Envelope>";
+	public static final String responseSoapMessage =
+			"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
+					"<soap:Body> " +
+					response +
+					"</soap:Body> " +
+					"</soap:Envelope>";
 
-	public static final String responseEmptyBodySoapMessage = "<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
-			"<SOAP:Header/>\n" +
-			"<SOAP:Body/>\n" +
-			"</SOAP:Envelope>";
+	public static final String responseEmptyBodySoapMessage =
+			"<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+					"<SOAP:Header/>\n" +
+					"<SOAP:Body/>\n" +
+					"</SOAP:Envelope>";
 
 	@Test // INT-1051
 	public void soapActionAndCustomCallback() {
@@ -137,7 +137,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 	}
 
 	@Test
-	public void testAttachments() throws TransformerException, SOAPException, InterruptedException, ExecutionException, TimeoutException, IOException {
+	public void testAttachments() throws Exception {
 		String uri = "http://www.example.org";
 		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
 		gateway.setBeanFactory(mock(BeanFactory.class));
@@ -194,6 +194,49 @@ public class SimpleWebServiceOutboundGatewayTests {
 		assertEquals("my_data", StreamUtils.copyToString(myAttachment.getInputStream(), Charset.forName("UTF-8")));
 	}
 
+	@Test
+	public void testDomPoxMessageFactory() throws Exception {
+		String uri = "http://www.example.org";
+		SimpleWebServiceOutboundGateway gateway = new SimpleWebServiceOutboundGateway(uri);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+
+		final SettableListenableFuture<WebServiceMessage> requestFuture = new SettableListenableFuture<>();
+
+		ClientInterceptorAdapter interceptorAdapter = new ClientInterceptorAdapter() {
+
+			@Override
+			public boolean handleRequest(MessageContext messageContext) throws WebServiceClientException {
+				requestFuture.set(messageContext.getRequest());
+				return super.handleRequest(messageContext);
+			}
+
+		};
+		gateway.setInterceptors(interceptorAdapter);
+		gateway.setMessageFactory(new DomPoxMessageFactory());
+		gateway.afterPropertiesSet();
+
+		String request = "<test>foo</test>";
+		try {
+			gateway.handleMessage(new GenericMessage<>(request));
+		}
+		catch (Exception e) {
+			// expected
+		}
+
+		WebServiceMessage requestMessage = requestFuture.get(10, TimeUnit.SECONDS);
+
+		assertNotNull(requestMessage);
+		assertThat(requestMessage, instanceOf(PoxMessage.class));
+
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+		transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+		StringResult stringResult = new StringResult();
+		transformer.transform(requestMessage.getPayloadSource(), stringResult);
+
+		assertEquals(request, stringResult.toString());
+	}
 
 	public static WebServiceMessageSender createMockMessageSender(final String mockResponseMessage) throws Exception {
 		WebServiceMessageSender messageSender = Mockito.mock(WebServiceMessageSender.class);
@@ -222,6 +265,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 		public URI getDestination() {
 			return this.uri;
 		}
+
 	}
 
 }
