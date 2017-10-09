@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author David Turanski
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
@@ -91,11 +92,31 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	/**
 	 * Specify a remote directory path SpEL expression.
+	 * @param remoteDirectoryExpression the remote directory expression
+	 * @since 4.3.13
+	 * @see #setRemoteDirectoryExpression(Expression)
+	 */
+	public void setRemoteDirectoryExpressionString(String remoteDirectoryExpression) {
+		setRemoteDirectoryExpression(EXPRESSION_PARSER.parseExpression(remoteDirectoryExpression));
+	}
+
+	/**
+	 * Specify a remote directory path SpEL expression.
 	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression
 	 * @see RemoteFileTemplate#setTemporaryRemoteDirectoryExpression(Expression)
 	 */
 	public void setTemporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
 		this.remoteFileTemplate.setTemporaryRemoteDirectoryExpression(temporaryRemoteDirectoryExpression);
+	}
+
+	/**
+	 * Specify a remote directory path SpEL expression.
+	 * @param temporaryRemoteDirectoryExpression the temporary remote directory expression
+	 * @since 4.3.13
+	 * @see #setTemporaryRemoteDirectoryExpression(Expression)
+	 */
+	public void setTemporaryRemoteDirectoryExpressionString(String temporaryRemoteDirectoryExpression) {
+		setTemporaryRemoteDirectoryExpression(EXPRESSION_PARSER.parseExpression(temporaryRemoteDirectoryExpression));
 	}
 
 	protected String getTemporaryFileSuffix() {
