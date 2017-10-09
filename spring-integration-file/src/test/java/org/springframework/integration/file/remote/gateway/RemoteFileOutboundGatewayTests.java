@@ -811,7 +811,7 @@ public class RemoteFileOutboundGatewayTests {
 		template.afterPropertiesSet();
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", null);
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<TestLsEntry>(sessionFactory);
-		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		handler.setRemoteDirectoryExpressionString("'foo/'");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();

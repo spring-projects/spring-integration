@@ -773,7 +773,7 @@ public class SftpJavaApplication {
     @ServiceActivator(inputChannel = "toSftpChannel")
     public MessageHandler handler() {
         SftpMessageHandler handler = new SftpMessageHandler(sftpSessionFactory());
-        handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
+        handler.setRemoteDirectoryExpressionString("headers['remote-target-dir']");
         handler.setFileNameGenerator(new FileNameGenerator() {
 
             @Override

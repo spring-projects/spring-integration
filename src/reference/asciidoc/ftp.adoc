@@ -720,7 +720,7 @@ public class FtpJavaApplication {
     @ServiceActivator(inputChannel = "ftpChannel")
     public MessageHandler handler() {
         FtpMessageHandler handler = new FtpMessageHandler(ftpSessionFactory());
-        handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
+        handler.setRemoteDirectoryExpressionString("headers['remote-target-dir']");
         handler.setFileNameGenerator(new FileNameGenerator() {
 
             @Override
