@@ -251,15 +251,14 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		@Override
 		public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
 			Object payload = this.requestMessage.getPayload();
+			doWithMessageInternal(message, payload);
 			if (message instanceof SoapMessage) {
-				this.doWithMessageInternal(message, payload);
 				AbstractWebServiceOutboundGateway.this.headerMapper
 						.fromHeadersToRequest(this.requestMessage.getHeaders(), (SoapMessage) message);
-				if (this.requestCallback != null) {
-					this.requestCallback.doWithMessage(message);
-				}
 			}
-
+			if (this.requestCallback != null) {
+				this.requestCallback.doWithMessage(message);
+			}
 		}
 
 		public abstract void doWithMessageInternal(WebServiceMessage message, Object payload)
