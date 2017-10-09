@@ -19,6 +19,7 @@ package org.springframework.integration.ws.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doAnswer;
 
 import java.io.IOException;
@@ -38,7 +39,6 @@ import javax.jms.Session;
 import org.hamcrest.Matchers;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Stanza;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -113,7 +113,8 @@ public class UriVariableTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testHttpUriVariables() {
-		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(this.httpOutboundGateway, "webServiceTemplate", WebServiceTemplate.class);
+		WebServiceTemplate webServiceTemplate = TestUtils.getPropertyValue(this.httpOutboundGateway,
+				"webServiceTemplate", WebServiceTemplate.class);
 		webServiceTemplate = Mockito.spy(webServiceTemplate);
 		final AtomicReference<String> uri = new AtomicReference<>();
 		doAnswer(invocation -> {
@@ -207,10 +208,10 @@ public class UriVariableTests {
 	}
 
 	@Test
-	@Ignore("Need NPE fix in the S-WS for the XmppTransportUtils.toUri()")
 	public void testInt2720XmppUriVariables() throws Exception {
 
-		Mockito.doThrow(new WebServiceIOException("intentional")).when(this.xmppConnection).sendStanza(Mockito.any(Stanza.class));
+		willThrow(new WebServiceIOException("intentional"))
+				.given(this.xmppConnection).sendStanza(Mockito.any(Stanza.class));
 
 		Message<?> message = MessageBuilder.withPayload("<spring/>").setHeader("to", "user").build();
 		try {
@@ -224,7 +225,7 @@ public class UriVariableTests {
 
 		ArgumentCaptor<Stanza> argument = ArgumentCaptor.forClass(Stanza.class);
 		Mockito.verify(this.xmppConnection).sendStanza(argument.capture());
-		assertEquals("user@jabber.org", argument.getValue().getTo());
+		assertEquals("user@jabber.org", argument.getValue().getTo().toString());
 
 		assertEquals("xmpp:user@jabber.org", this.interceptor.getLastUri().toString());
 	}
@@ -272,11 +273,16 @@ public class UriVariableTests {
 		public void afterCompletion(MessageContext messageContext, Exception ex) throws WebServiceClientException {
 
 		}
+
 	}
 
 	private static class Int2720EmailTestClientInterceptor extends TestClientInterceptor {
 
 		private volatile WebServiceConnection webServiceConnection;
+
+		Int2720EmailTestClientInterceptor() {
+			super();
+		}
 
 		public WebServiceConnection getLastWebServiceConnection() {
 			return webServiceConnection;
@@ -296,6 +302,7 @@ public class UriVariableTests {
 			super.handleRequest(messageContext);
 			throw new WebServiceIOException("intentional");
 		}
+
 	}
 
 }
