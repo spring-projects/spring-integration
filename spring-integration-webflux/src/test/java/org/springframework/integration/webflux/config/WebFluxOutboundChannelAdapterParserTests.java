@@ -45,7 +45,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-public class HttpOutboundChannelAdapterParserTests {
+public class WebFluxOutboundChannelAdapterParserTests {
 
 	@Autowired
 	@Qualifier("reactiveMinimalConfig")

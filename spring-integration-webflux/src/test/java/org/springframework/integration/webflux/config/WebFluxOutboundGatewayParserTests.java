@@ -49,7 +49,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-public class HttpOutboundGatewayParserTests {
+public class WebFluxOutboundGatewayParserTests {
 
 	@Autowired
 	@Qualifier("reactiveMinimalConfig")

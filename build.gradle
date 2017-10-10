@@ -134,7 +134,7 @@ subprojects { subproject ->
 		springDataMongoVersion = '2.0.0.RELEASE'
 		springDataRedisVersion = '2.0.0.RELEASE'
 		springGemfireVersion = '2.0.0.RELEASE'
-		springSecurityVersion = '5.0.0.M4'
+		springSecurityVersion = '5.0.0.M5'
 		springSocialTwitterVersion = '2.0.0.M4'
 		springRetryVersion = '1.2.1.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.RELEASE'
