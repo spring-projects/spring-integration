@@ -43,6 +43,8 @@ import org.springframework.util.ClassUtils;
  * <a href="http://www.eaipatterns.com/BroadcastAggregate.html">Scatter-Gather</a> EIP pattern.
  *
  * @author Artem Bilan
+ * @author Abdul Zaheer
+ *
  * @since 4.1
  */
 public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
@@ -161,7 +163,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	@Override
 	public void stop() {
 		if (this.gatherEndpoint != null) {
-			this.gatherEndpoint.start();
+			this.gatherEndpoint.stop();
 		}
 	}
 
