@@ -161,7 +161,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	@Override
 	public void stop() {
 		if (this.gatherEndpoint != null) {
-			this.gatherEndpoint.start();
+			this.gatherEndpoint.stop();
 		}
 	}
 
