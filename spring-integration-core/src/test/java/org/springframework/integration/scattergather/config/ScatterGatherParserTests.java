@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.scattergather.config;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -30,11 +31,12 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.scattergather.ScatterGatherHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,6 +44,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
+ * @author Abdul Zaheer
+ *
  * @since 4.1
  */
 @ContextConfiguration
@@ -73,6 +77,7 @@ public class ScatterGatherParserTests {
 		MessageHandler scatterGather = this.beanFactory.getBean("scatterGather2.handler", MessageHandler.class);
 		assertSame(this.beanFactory.getBean("gatherChannel"),
 				TestUtils.getPropertyValue(scatterGather, "gatherChannel"));
+		Lifecycle gatherEndpoint = TestUtils.getPropertyValue(scatterGather, "gatherEndpoint", Lifecycle.class);
 		assertNotNull(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint"));
 		assertThat(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint"), instanceOf(EventDrivenConsumer.class));
 		assertTrue(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint.running", Boolean.class));
@@ -96,6 +101,11 @@ public class ScatterGatherParserTests {
 		Object scatterChannel = TestUtils.getPropertyValue(scatterGather, "scatterChannel");
 		assertThat(scatterChannel, instanceOf(FixedSubscriberChannel.class));
 		assertSame(scatterer, TestUtils.getPropertyValue(scatterChannel, "handler"));
+
+		assertTrue(gatherEndpoint.isRunning());
+		((Lifecycle) scatterGather).stop();
+		assertFalse(((Lifecycle) scatterGather).isRunning());
+		assertFalse(gatherEndpoint.isRunning());
 
 	}
 
