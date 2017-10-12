@@ -103,7 +103,7 @@ public class ScatterGatherParserTests {
 
 	@Test
 	public void testStop() {
-		MessageHandler scatterGather = this.beanFactory.getBean("scatterGather2.handler", MessageHandler.class);
+		MessageHandler scatterGather = this.beanFactory.getBean("scatterGather3.handler", MessageHandler.class);
 		assertSame(this.beanFactory.getBean("gatherChannel"),
 						TestUtils.getPropertyValue(scatterGather, "gatherChannel"));
 		assertNotNull(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint"));

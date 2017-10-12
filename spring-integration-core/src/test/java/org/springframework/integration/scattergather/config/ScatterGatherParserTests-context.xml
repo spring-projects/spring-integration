@@ -20,6 +20,13 @@
 		<int:gatherer id="myGatherer" message-store="messageStore"/>
 	</int:scatter-gather>
 
+	<int:scatter-gather id="scatterGather3" input-channel="input3" gather-channel="gatherChannel" gather-timeout="100">
+		<int:scatterer id="myScatterer" apply-sequence="true">
+			<int:recipient channel="distributionChannel"/>
+		</int:scatterer>
+		<int:gatherer id="myGatherer" message-store="messageStore"/>
+	</int:scatter-gather>
+
 	<int:channel id="gatherChannel"/>
 
 	<int:channel id="distributionChannel"/>
