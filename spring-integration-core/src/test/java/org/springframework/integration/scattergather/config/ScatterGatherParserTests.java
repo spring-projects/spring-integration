@@ -17,11 +17,7 @@
 package org.springframework.integration.scattergather.config;
 
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 
@@ -30,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -99,4 +96,17 @@ public class ScatterGatherParserTests {
 
 	}
 
+	@Test
+	public void testStop() {
+		MessageHandler scatterGather = this.beanFactory.getBean("scatterGather2.handler", MessageHandler.class);
+		assertSame(this.beanFactory.getBean("gatherChannel"),
+				   TestUtils.getPropertyValue(scatterGather, "gatherChannel"));
+		assertNotNull(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint"));
+		Lifecycle gatherEndpoint = TestUtils.getPropertyValue(scatterGather, "gatherEndpoint", Lifecycle.class);
+		assertTrue(((ScatterGatherHandler)scatterGather).isRunning());
+		assertTrue(gatherEndpoint.isRunning());
+		((ScatterGatherHandler) scatterGather).stop();
+		assertFalse((gatherEndpoint).isRunning());
+		assertFalse(((ScatterGatherHandler) scatterGather).isRunning());
+	}
 }
