@@ -105,10 +105,10 @@ public class ScatterGatherParserTests {
 	public void testStop() {
 		MessageHandler scatterGather = this.beanFactory.getBean("scatterGather2.handler", MessageHandler.class);
 		assertSame(this.beanFactory.getBean("gatherChannel"),
-				   TestUtils.getPropertyValue(scatterGather, "gatherChannel"));
+						TestUtils.getPropertyValue(scatterGather, "gatherChannel"));
 		assertNotNull(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint"));
 		Lifecycle gatherEndpoint = TestUtils.getPropertyValue(scatterGather, "gatherEndpoint", Lifecycle.class);
-		assertTrue(((ScatterGatherHandler)scatterGather).isRunning());
+		assertTrue(((ScatterGatherHandler) scatterGather).isRunning());
 		assertTrue(gatherEndpoint.isRunning());
 		((ScatterGatherHandler) scatterGather).stop();
 		assertFalse((gatherEndpoint).isRunning());
