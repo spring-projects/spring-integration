@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.util.Collection;
 
@@ -109,4 +110,17 @@ public class ScatterGatherParserTests {
 
 	}
 
+	@Test
+	public void testStop() {
+		MessageHandler scatterGather = this.beanFactory.getBean("scatterGather3.handler", MessageHandler.class);
+		assertSame(this.beanFactory.getBean("gatherChannel"),
+						TestUtils.getPropertyValue(scatterGather, "gatherChannel"));
+		assertNotNull(TestUtils.getPropertyValue(scatterGather, "gatherEndpoint"));
+		Lifecycle gatherEndpoint = TestUtils.getPropertyValue(scatterGather, "gatherEndpoint", Lifecycle.class);
+		assertTrue(((ScatterGatherHandler) scatterGather).isRunning());
+		assertTrue(gatherEndpoint.isRunning());
+		((ScatterGatherHandler) scatterGather).stop();
+		assertFalse((gatherEndpoint).isRunning());
+		assertFalse(((ScatterGatherHandler) scatterGather).isRunning());
+	}
 }
