@@ -99,6 +99,10 @@ The `@GlobalChannelInterceptor` annotation and `<int:channel-interceptor>` now s
 
 See <<global-channel-configuration-interceptors>> for more information.
 
+A new `OnFailedToAcquireMutexEvent` is emitted now via `DefaultLeaderEventPublisher` by the `LockRegistryLeaderInitiator`, when candidate is failed to acquire the lock.
+
+See <<leadership-event-handling>> for more information.
+
 ==== Gateway Changes
 
 The gateway now correctly sets the `errorChannel` header when the gateway method has a `void` return type and an error channel is provided.

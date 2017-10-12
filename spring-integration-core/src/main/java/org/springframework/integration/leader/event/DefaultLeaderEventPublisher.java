@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.integration.leader.Context;
  *
  * @author Janne Valkealahti
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  */
 public class DefaultLeaderEventPublisher implements LeaderEventPublisher, ApplicationEventPublisherAware {
@@ -57,6 +58,13 @@ public class DefaultLeaderEventPublisher implements LeaderEventPublisher, Applic
 	public void publishOnRevoked(Object source, Context context, String role) {
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(new OnRevokedEvent(source, context, role));
+		}
+	}
+
+	@Override
+	public void publishOnFailedToAcquire(Object source, Context context, String role) {
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new OnFailedToAcquireMutexEvent(source, context, role));
 		}
 	}
 
