@@ -53,7 +53,7 @@ Below is the complete configuration sample:
 [source,xml]
 ----
 <bean id="ftpClientFactory"
-    class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
+    class="org.springframework.integration.ftp.session.DefaultFtpsSessionFactory">
     <property name="host" value="localhost"/>
     <property name="port" value="22"/>
     <property name="username" value="oleg"/>
