@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Vedran Pavic
+ * @author Glenn Renfro
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
@@ -110,6 +111,13 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * can reduce the busy wait to zero.
 	 */
 	private long busyWaitMillis = DEFAULT_BUSY_WAIT_TIME;
+
+	/**
+	 * A boolean that if true, failures that occur during leader election will
+	 * be published to the specified applicationEventPublisher.  If false,
+	 * no failures will be published.  Default is false.
+	 */
+	private boolean publishFailedEvents = false;
 
 	private LeaderSelector leaderSelector;
 
@@ -231,6 +239,14 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		return this.leaderSelector.context;
 	}
 
+	public boolean isPublishFailedEvents() {
+		return this.publishFailedEvents;
+	}
+
+	public void setPublishFailedEvents(boolean publishFailedEvents) {
+		this.publishFailedEvents = publishFailedEvents;
+	}
+
 	/**
 	 * Start the registration of the {@link #candidate} for leader election.
 	 */
@@ -314,6 +330,13 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 								// Success: we are now leader
 								this.locked = true;
 								handleGranted();
+							}
+							else if (isPublishFailedEvents()) {
+								LockRegistryLeaderInitiator.this.
+										leaderEventPublisher.publishOnFailedToAcquireLock(
+												LockRegistryLeaderInitiator.this,
+												this.context,
+												LockRegistryLeaderInitiator.this.candidate.getRole());
 							}
 						}
 						else if (acquired) {
