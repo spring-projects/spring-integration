@@ -112,11 +112,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	private long busyWaitMillis = DEFAULT_BUSY_WAIT_TIME;
 
-	/**
-	 * A boolean that if true, failures that occur during leader election will
-	 * be published to the specified applicationEventPublisher.  If false,
-	 * no failures will be published.  Default is false.
-	 */
 	private boolean publishFailedEvents = false;
 
 	private LeaderSelector leaderSelector;
@@ -243,6 +238,16 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		return this.publishFailedEvents;
 	}
 
+	/**
+	 * Enables or disables the publishing of failed events to the
+	 * specified applicationEventPublisher.  Because of the large
+	 * number of failure events that can be published while attempting to get a
+	 * mutex during leader election (in the case that another instance is
+	 * holding the mutex), the default is set to false.
+	 * @param publishFailedEvents boolean that if true, failed events will
+	 * be published.  If false, no failures will be published.  Default is false.
+	 * @since 5.0.0
+	 */
 	public void setPublishFailedEvents(boolean publishFailedEvents) {
 		this.publishFailedEvents = publishFailedEvents;
 	}
@@ -333,7 +338,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							}
 							else if (isPublishFailedEvents()) {
 								LockRegistryLeaderInitiator.this.
-										leaderEventPublisher.publishOnFailedToAcquireLock(
+										leaderEventPublisher.publishOnFailedToAcquire(
 												LockRegistryLeaderInitiator.this,
 												this.context,
 												LockRegistryLeaderInitiator.this.candidate.getRole());

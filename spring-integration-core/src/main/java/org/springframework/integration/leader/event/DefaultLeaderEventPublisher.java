@@ -62,9 +62,9 @@ public class DefaultLeaderEventPublisher implements LeaderEventPublisher, Applic
 	}
 
 	@Override
-	public void publishOnFailedToAcquireLock(Object source, Context context, String role) {
+	public void publishOnFailedToAcquire(Object source, Context context, String role) {
 		if (this.applicationEventPublisher != null) {
-			this.applicationEventPublisher.publishEvent(new OnFailedToAcquireLockEvent(source, context, role));
+			this.applicationEventPublisher.publishEvent(new OnFailedToAcquireMutexEvent(source, context, role));
 		}
 	}
 

@@ -19,22 +19,20 @@ package org.springframework.integration.leader.event;
 import org.springframework.integration.leader.Context;
 
 /**
- * Generic event representing that a lock could not be acquired during leader election.
+ * Generic event representing that a mutex could not be acquired during leader election.
  *
  * @author Glenn Renfro
- *
  * @since 5.0.0
  */
-public class OnFailedToAcquireLockEvent extends AbstractLeaderEvent {
+public class OnFailedToAcquireMutexEvent extends AbstractLeaderEvent {
 
 	/**
-	 * Instantiates a new onFailedToAquireLock event.
-	 *
+	 * Instantiates a new onFailedToAquireMutex event.
 	 * @param source the component that published the event (never {@code null})
 	 * @param context the context associated with this event
 	 * @param role the role of the leader
 	 */
-	public OnFailedToAcquireLockEvent(Object source, Context context, String role) {
+	public OnFailedToAcquireMutexEvent(Object source, Context context, String role) {
 		super(source, context, role);
 	}
 }

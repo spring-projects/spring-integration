@@ -30,7 +30,6 @@ public interface LeaderEventPublisher {
 
 	/**
 	 * Publish a granted event.
-	 *
 	 * @param source the component generated this event
 	 * @param context the context associated with event
 	 * @param role the role of the leader
@@ -39,7 +38,6 @@ public interface LeaderEventPublisher {
 
 	/**
 	 * Publish a revoked event.
-	 *
 	 * @param source the component generated this event
 	 * @param context the context associated with event
 	 * @param role the role of the leader
@@ -47,13 +45,13 @@ public interface LeaderEventPublisher {
 	void publishOnRevoked(Object source, Context context, String role);
 
 	/**
-	 * Publish a failure to acquire lock event.
-	 *
+	 * Publish a failure to acquire event.
 	 * @param source the component generated this event
 	 * @param context the context associated with event
 	 * @param role the role of the leader
+	 * @since 5.0.0
 	 */
-	void publishOnFailedToAcquireLock(Object source, Context context, String role);
+	void publishOnFailedToAcquire(Object source, Context context, String role);
 
 
 }

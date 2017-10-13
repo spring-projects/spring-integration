@@ -200,7 +200,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 		}
 
 		@Override
-		public void publishOnFailedToAcquireLock(Object source, Context context, String role) {
+		public void publishOnFailedToAcquire(Object source, Context context, String role) {
 			this.acquireLockFailed.countDown();
 		}
 
