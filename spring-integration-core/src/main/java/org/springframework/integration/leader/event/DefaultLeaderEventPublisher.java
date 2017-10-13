@@ -25,6 +25,7 @@ import org.springframework.integration.leader.Context;
  *
  * @author Janne Valkealahti
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  */
 public class DefaultLeaderEventPublisher implements LeaderEventPublisher, ApplicationEventPublisherAware {
@@ -57,6 +58,13 @@ public class DefaultLeaderEventPublisher implements LeaderEventPublisher, Applic
 	public void publishOnRevoked(Object source, Context context, String role) {
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(new OnRevokedEvent(source, context, role));
+		}
+	}
+
+	@Override
+	public void publishOnFailedToAcquire(Object source, Context context, String role) {
+		if (this.applicationEventPublisher != null) {
+			this.applicationEventPublisher.publishEvent(new OnFailedToAcquireMutexEvent(source, context, role));
 		}
 	}
 

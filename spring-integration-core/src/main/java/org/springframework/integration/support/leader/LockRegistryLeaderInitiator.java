@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Vedran Pavic
+ * @author Glenn Renfro
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
@@ -110,6 +111,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * can reduce the busy wait to zero.
 	 */
 	private long busyWaitMillis = DEFAULT_BUSY_WAIT_TIME;
+
+	private boolean publishFailedEvents = false;
 
 	private LeaderSelector leaderSelector;
 
@@ -231,6 +234,24 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		return this.leaderSelector.context;
 	}
 
+	public boolean isPublishFailedEvents() {
+		return this.publishFailedEvents;
+	}
+
+	/**
+	 * Enables or disables the publishing of failed events to the
+	 * specified applicationEventPublisher.  Because of the large
+	 * number of failure events that can be published while attempting to get a
+	 * mutex during leader election (in the case that another instance is
+	 * holding the mutex), the default is set to false.
+	 * @param publishFailedEvents boolean that if true, failed events will
+	 * be published.  If false, no failures will be published.  Default is false.
+	 * @since 5.0.0
+	 */
+	public void setPublishFailedEvents(boolean publishFailedEvents) {
+		this.publishFailedEvents = publishFailedEvents;
+	}
+
 	/**
 	 * Start the registration of the {@link #candidate} for leader election.
 	 */
@@ -314,6 +335,13 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 								// Success: we are now leader
 								this.locked = true;
 								handleGranted();
+							}
+							else if (isPublishFailedEvents()) {
+								LockRegistryLeaderInitiator.this.
+										leaderEventPublisher.publishOnFailedToAcquire(
+												LockRegistryLeaderInitiator.this,
+												this.context,
+												LockRegistryLeaderInitiator.this.candidate.getRole());
 							}
 						}
 						else if (acquired) {

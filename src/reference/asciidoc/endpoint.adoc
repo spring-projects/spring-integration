@@ -695,8 +695,10 @@ This is useful in clustered scenarios where shared resources must only be consum
 An example of this is a file inbound channel adapter that is polling a shared directory.
 (See <<file-reading>>).
 
-To participate in a leader election and be notified when elected leader or when leadership is revoked, an application creates a component in the application context called a "leader initiator".
+To participate in a leader election and be notified when elected leader, when leadership is revoked or, failure to acquire the resources to become leader,
+an application creates a component in the application context called a "leader initiator".
 Normally a leader initiator is a `SmartLifecycle` so it starts up (optionally) automatically when the context starts, and then publishes notifications when leadership changes.
+Users can also receive failure notifications by setting the `publishFailedEvents` to `true`, in cases when they want take a specific action if a failure occurs.
 By convention the user provides a `Candidate` that receives the callbacks and also can revoke the leadership through a `Context` object provided by the framework.
 User code can also listen for `AbstractLeaderEvents`, and respond accordingly, for instance using a `SmartLifecycleRoleController`.
 
