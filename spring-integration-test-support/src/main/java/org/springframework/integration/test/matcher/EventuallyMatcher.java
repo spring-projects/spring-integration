@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.test.matcher;
 
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
+import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 
@@ -26,9 +27,9 @@ import org.hamcrest.Matcher;
  *
  * @param <U> the type the wrapped matcher operates on
  *
- * (Copied from {@code org.springframework.xd.test.fixtures.EventuallyMatcher})
- *
  * @author Eric Bottard
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
@@ -49,32 +50,36 @@ public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 		this.pause = pause;
 	}
 
+	@Factory
 	public static <U> Matcher<U> eventually(int nbAttempts, int pause, Matcher<U> delegate) {
-		return new EventuallyMatcher<U>(delegate, nbAttempts, pause);
+		return new EventuallyMatcher<>(delegate, nbAttempts, pause);
 	}
 
+	@Factory
 	public static <U> Matcher<U> eventually(Matcher<U> delegate) {
-		return new EventuallyMatcher<U>(delegate);
+		return new EventuallyMatcher<>(delegate);
 	}
 
 	@Override
 	public void describeTo(Description description) {
-		description.appendDescriptionOf(delegate).appendText(String.format(", trying at most %d times", nbAttempts));
+		description.appendDescriptionOf(this.delegate)
+				.appendText(String.format(", trying at most %d times", this.nbAttempts));
 	}
 
 	@Override
 	protected boolean matches(Object item, Description mismatchDescription) {
-		mismatchDescription.appendText(String.format("failed after %d*%d=%dms:%n", nbAttempts, pause, nbAttempts
-				* pause));
-		for (int i = 0; i < nbAttempts; i++) {
-			boolean result = delegate.matches(item);
+		mismatchDescription.appendText(
+				String.format("failed after %d*%d=%dms:%n", this.nbAttempts, this.pause, this.nbAttempts * this.pause));
+
+		for (int i = 0; i < this.nbAttempts; i++) {
+			boolean result = this.delegate.matches(item);
 			if (result) {
 				return true;
 			}
-			delegate.describeMismatch(item, mismatchDescription);
+			this.delegate.describeMismatch(item, mismatchDescription);
 			mismatchDescription.appendText(", ");
 			try {
-				Thread.sleep(pause);
+				Thread.sleep(this.pause);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -83,4 +88,5 @@ public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 		}
 		return false;
 	}
+
 }

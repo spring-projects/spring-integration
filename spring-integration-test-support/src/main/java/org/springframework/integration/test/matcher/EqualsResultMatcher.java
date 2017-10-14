@@ -16,43 +16,46 @@
 
 package org.springframework.integration.test.matcher;
 
+import java.util.function.Supplier;
+
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
+import org.hamcrest.Factory;
 
 import org.springframework.util.ObjectUtils;
 
 /**
  * A matcher that evaluates against the result of invoking a function,
- * wrapped by the {@link EqualsResultMatcher.Evaluator}
+ * wrapped by the {@link java.util.function.Supplier}
  *
  * The goal is to defer the computation until the matcher needs to be actually evaluated.
  * Mainly useful in conjunction with retrying matchers such as {@link EventuallyMatcher}
  *
  * @author Marius Bogoevici
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class EqualsResultMatcher<U> extends DiagnosingMatcher<U> {
 
-	private final Evaluator<U> evaluator;
+	private final Supplier<U> supplier;
 
-	public EqualsResultMatcher(Evaluator<U> evaluator) {
-		this.evaluator = evaluator;
+	public EqualsResultMatcher(Supplier<U> supplier) {
+		this.supplier = supplier;
 	}
 
 	@Override
 	protected boolean matches(Object item, Description mismatchDescription) {
-		return ObjectUtils.nullSafeEquals(item, evaluator.evaluate());
+		return ObjectUtils.nullSafeEquals(item, supplier.get());
 	}
 
 	@Override
 	public void describeTo(Description description) {
 	}
 
-	public interface Evaluator<U> {
-		U evaluate();
+	@Factory
+	public static <U> EqualsResultMatcher<U> equalsResult(Supplier<U> supplier) {
+		return new EqualsResultMatcher<>(supplier);
 	}
 
-	public static <U> EqualsResultMatcher<U> equalsResult(Evaluator<U> evaluator) {
-		return new EqualsResultMatcher<U>(evaluator);
-	}
 }

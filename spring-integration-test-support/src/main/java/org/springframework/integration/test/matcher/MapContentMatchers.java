@@ -24,6 +24,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.core.AllOf;
 
 /**
@@ -63,8 +64,7 @@ import org.hamcrest.core.AllOf;
  * @author Artem Bilan
  *
  */
-public class MapContentMatchers<T, V> extends
-		TypeSafeMatcher<Map<? super T, ? super V>> {
+public class MapContentMatchers<T, V> extends TypeSafeMatcher<Map<? super T, ? super V>> {
 
 	private final T key;
 

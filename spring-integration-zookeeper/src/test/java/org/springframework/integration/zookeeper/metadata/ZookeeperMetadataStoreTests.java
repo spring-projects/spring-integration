@@ -47,7 +47,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.metadata.MetadataStoreListener;
 import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.integration.test.matcher.EqualsResultMatcher.Evaluator;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 
 /**
@@ -115,22 +114,12 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		assertEquals("Integration",
 				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 		assertEquals("Integration", metadataStore.get(testKey));
-		assertThat("Integration", eventually(equalsResult(new Evaluator<String>() {
-			@Override
-			public String evaluate() {
-				return otherMetadataStore.get(testKey);
-			}
-		})));
+		assertThat("Integration", eventually(equalsResult(() -> otherMetadataStore.get(testKey))));
 		otherMetadataStore.putIfAbsent(testKey2, "Integration-2");
 		assertEquals("Integration-2",
 				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey2)), "UTF-8"));
 		assertEquals("Integration-2", otherMetadataStore.get(testKey2));
-		assertThat("Integration-2", eventually(equalsResult(new Evaluator<String>() {
-			@Override
-			public String evaluate() {
-				return metadataStore.get(testKey2);
-			}
-		})));
+		assertThat("Integration-2", eventually(equalsResult(() -> otherMetadataStore.get(testKey2))));
 		CloseableUtils.closeQuietly(otherClient);
 	}
 
@@ -148,21 +137,11 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		assertEquals("Integration",
 				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 		assertEquals("Integration", metadataStore.get(testKey));
-		assertThat("Integration", eventually(equalsResult(new Evaluator<String>() {
-			@Override
-			public String evaluate() {
-				return otherMetadataStore.get(testKey);
-			}
-		})));
+		assertThat("Integration", eventually(equalsResult(() -> otherMetadataStore.get(testKey))));
 		otherMetadataStore.replace(testKey, "Integration", "Integration-2");
 		assertEquals("Integration-2",
 				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
-		assertThat("Integration-2", eventually(equalsResult(new Evaluator<String>() {
-			@Override
-			public String evaluate() {
-				return metadataStore.get(testKey);
-			}
-		})));
+		assertThat("Integration-2", eventually(equalsResult(() -> metadataStore.get(testKey))));
 		assertEquals("Integration-2", otherMetadataStore.get(testKey));
 		CloseableUtils.closeQuietly(otherClient);
 	}
@@ -246,6 +225,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 			assertThat(e.getMessage(), containsString("'listener' must not be null"));
 		}
 		metadataStore.addListener(new MetadataStoreListenerAdapter() {
+
 			@Override
 			public void onAdd(String key, String value) {
 				notifiedChanges.add(Arrays.asList("add", key, value));
@@ -316,6 +296,7 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		barriers.put("remove", new CyclicBarrier(2));
 		barriers.put("update", new CyclicBarrier(2));
 		metadataStore.addListener(new MetadataStoreListenerAdapter() {
+
 			@Override
 			public void onAdd(String key, String value) {
 				notifiedChanges.add(Arrays.asList("add", key, value));

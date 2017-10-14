@@ -89,7 +89,7 @@ public class MockitoMessageMatchers {
 	}
 
 	public static <T> Message<?> messageWithHeaderEntry(String key, Matcher<T> valueMatcher) {
-		return ArgumentMatchers.argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.<T>hasHeader(key, valueMatcher)));
+		return ArgumentMatchers.argThat(new HamcrestArgumentMatcher<>(HeaderMatcher.hasHeader(key, valueMatcher)));
 	}
 
 	public static Message<?> messageWithHeaderEntries(Map<String, ?> entries) {
