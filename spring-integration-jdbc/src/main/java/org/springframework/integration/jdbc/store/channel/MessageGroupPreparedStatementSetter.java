@@ -25,7 +25,7 @@ import org.springframework.messaging.Message;
 
 /**
  * Callback to be used with {@link JdbcChannelMessageStore}.
- * <p/>
+ * <p>
  * Behavior is same as standard {@link PreparedStatementSetter}, it takes in
  * extra {@code Message<?> requestMessage} and {@code Object groupId} as
  * parameter used for {@code addMessageToGroup} method in
