@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.sql.Types;
+
 import javax.sql.DataSource;
 
 import org.junit.Before;
@@ -27,8 +29,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.util.UUIDConverter;
+import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -42,6 +48,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Meherzad Lahewala
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -49,6 +56,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 public abstract class AbstractJdbcChannelMessageStoreTests {
 
 	protected static final String TEST_MESSAGE_GROUP = "AbstractJdbcChannelMessageStoreTests";
+
+	private static final String REGION = "AbstractJdbcChannelMessageStoreTests";
 
 	@Autowired
 	protected DataSource dataSource;
@@ -64,7 +73,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 	@Before
 	public void init() throws Exception {
 		messageStore = new JdbcChannelMessageStore(dataSource);
-		messageStore.setRegion("AbstractJdbcChannelMessageStoreTests");
+		messageStore.setRegion(REGION);
 		messageStore.setChannelMessageStoreQueryProvider(queryProvider);
 		messageStore.afterPropertiesSet();
 		messageStore.removeMessageGroup("AbstractJdbcChannelMessageStoreTests");
@@ -100,4 +109,54 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 		assertEquals(message.getHeaders().getId(), messageFromDb.getHeaders().getId());
 	}
 
+	@Test
+	public void testAddAndGetCustomStatementSetter() {
+		messageStore.setMessageGroupPreparedStatementSetter(getMessageGroupPreparedStatementSetter());
+		final Message<String> message = MessageBuilder.withPayload("Cartman and Kenny")
+				.setHeader("homeTown", "Southpark")
+				.build();
+
+		final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+		transactionTemplate.setIsolationLevel(Isolation.READ_COMMITTED.value());
+		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+			@Override
+			protected void doInTransactionWithoutResult(TransactionStatus status) {
+				messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message);
+			}
+		});
+		Message<?> messageFromDb = messageStore.pollMessageFromGroup(TEST_MESSAGE_GROUP);
+		assertNotNull(messageFromDb);
+		assertEquals(message.getHeaders().getId(), messageFromDb.getHeaders().getId());
+	}
+
+	private String getKey(Object input) {
+		return input == null ? null : UUIDConverter.getUUID(input).toString();
+	}
+
+	private MessageGroupPreparedStatementSetter getMessageGroupPreparedStatementSetter() {
+		return (preparedStatement, message, groupId) -> {
+			String groupKey = getKey(groupId);
+			long createdDate = System.currentTimeMillis();
+			String messageId = getKey(message.getHeaders().getId());
+			SerializingConverter serializer = new SerializingConverter();
+			byte[] messageBytes = serializer.convert(message);
+
+			preparedStatement.setString(1, messageId);
+			preparedStatement.setString(2, groupKey);
+			preparedStatement.setString(3, REGION);
+			preparedStatement.setLong(4, createdDate);
+			Integer priority = message.getHeaders().get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
+
+			if (priority != null) {
+				preparedStatement.setInt(5, priority);
+			} else {
+				preparedStatement.setNull(5, Types.NUMERIC);
+			}
+			DefaultLobHandler lobHandler = new DefaultLobHandler();
+			lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
+		};
+	}
 }
