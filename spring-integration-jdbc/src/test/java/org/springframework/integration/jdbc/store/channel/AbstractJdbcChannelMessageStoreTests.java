@@ -152,7 +152,8 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 
 			if (priority != null) {
 				preparedStatement.setInt(5, priority);
-			} else {
+			}
+			else {
 				preparedStatement.setNull(5, Types.NUMERIC);
 			}
 			DefaultLobHandler lobHandler = new DefaultLobHandler();
