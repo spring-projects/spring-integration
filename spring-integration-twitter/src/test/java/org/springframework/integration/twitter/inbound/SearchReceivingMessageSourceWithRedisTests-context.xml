@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
+		http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:annotation-config/>
+
+	<bean class="org.springframework.integration.twitter.inbound.SearchReceivingMessageSourceWithRedisTests$SearchReceivingMessageSourceWithRedisTestsConfig"/>
 
 	<int:channel id="inbound_twitter">
 		<int:queue/>
@@ -18,7 +22,7 @@
 			channel="inbound_twitter"
 			metadata-store="redisMetadataStore"
 			auto-startup="false">
-		<int:poller fixed-rate="100" max-messages-per-poll="3"/>
+		<int:poller fixed-delay="100" max-messages-per-poll="3"/>
 	</int-twitter:search-inbound-channel-adapter>
 
 	<bean id="redisMetadataStore" class="org.springframework.integration.redis.metadata.RedisMetadataStore">
