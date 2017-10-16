@@ -834,7 +834,8 @@ directories, which is achievable using the `FileInfo` objects.
 Starting with _version 4.3_, the `FtpSession` supports `null` for the `list()` and `listNames()` methods,
 therefore the `expression` attribute can be omitted.
 From Java perspective there are two new constructor without `expression` argument for convenience.
-The `null` for `LS` command is treated as an Client working directory according to the FTP protocol.
+The `null` for `LS`, `NLST`, `PUT` and `MPUT` commands is treated as an Client working directory according to the FTP protocol.
+All other commands must be supplied with the `expression` to evaluate remote path against request message.
 The working directory can be set via the `FTPClient.changeWorkingDirectory()` function when you extend the `DefaultFtpSessionFactory` and implement `postProcessClientAfterConnect()` callback.
 
 *nlst*
