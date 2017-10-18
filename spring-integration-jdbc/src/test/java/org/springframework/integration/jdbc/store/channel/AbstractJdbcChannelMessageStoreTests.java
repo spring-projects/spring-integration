@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Types;
 
 import javax.sql.DataSource;
@@ -29,12 +31,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.util.UUIDConverter;
-import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -132,32 +131,31 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 		assertEquals(message.getHeaders().getId(), messageFromDb.getHeaders().getId());
 	}
 
-	private String getKey(Object input) {
-		return input == null ? null : UUIDConverter.getUUID(input).toString();
-	}
-
 	private MessageGroupPreparedStatementSetter getMessageGroupPreparedStatementSetter() {
-		return (preparedStatement, message, groupId) -> {
-			String groupKey = getKey(groupId);
-			long createdDate = System.currentTimeMillis();
-			String messageId = getKey(message.getHeaders().getId());
-			SerializingConverter serializer = new SerializingConverter();
-			byte[] messageBytes = serializer.convert(message);
+		return new MessageGroupPreparedStatementSetter() {
+			public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage, Object groupId,
+					String region, boolean priorityEnabled) throws SQLException {
+				String groupKey = getKey(groupId);
+				long createdDate = System.currentTimeMillis();
+				String messageId = getKey(requestMessage.getHeaders().getId());
 
-			preparedStatement.setString(1, messageId);
-			preparedStatement.setString(2, groupKey);
-			preparedStatement.setString(3, REGION);
-			preparedStatement.setLong(4, createdDate);
-			Integer priority = message.getHeaders().get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
+				byte[] messageBytes = getSerializer().convert(requestMessage);
 
-			if (priority != null) {
-				preparedStatement.setInt(5, priority);
+				preparedStatement.setString(1, messageId);
+				preparedStatement.setString(2, groupKey);
+				preparedStatement.setString(3, region);
+				preparedStatement.setLong(4, createdDate);
+				Integer priority = requestMessage.getHeaders().get(IntegrationMessageHeaderAccessor.PRIORITY,
+						Integer.class);
+
+				if (priority != null && priorityEnabled) {
+					preparedStatement.setInt(5, priority);
+				}
+				else {
+					preparedStatement.setNull(5, Types.NUMERIC);
+				}
+				getLobHandler().getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
 			}
-			else {
-				preparedStatement.setNull(5, Types.NUMERIC);
-			}
-			DefaultLobHandler lobHandler = new DefaultLobHandler();
-			lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
 		};
 	}
 }

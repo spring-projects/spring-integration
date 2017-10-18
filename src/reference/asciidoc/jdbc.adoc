@@ -365,6 +365,9 @@ If your database is not listed, you can easily extend the `AbstractChannelMessag
 
 Since _version 4.0_, the `MESSAGE_SEQUENCE` column has been added to the table to ensure first-in-first-out (FIFO) queueing even when messages are stored in the same millisecond.
 
+Since_version 5.0, by overloading `MessageGroupPreparedStatementSetter` class you can provide custom implementation to 
+ `PreparedStatementSetter` to support different columns or table structure.
+
 [IMPORTANT]
 =====
 Generally it is not recommended to use a relational database for the purpose of queuing.

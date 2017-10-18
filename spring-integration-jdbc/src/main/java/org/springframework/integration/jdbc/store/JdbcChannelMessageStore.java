@@ -40,7 +40,6 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.MessageGroupPreparedStatementSetter;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
@@ -428,32 +427,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 
 		if (this.messageGroupPreparedStatementSetter == null) {
-			this.messageGroupPreparedStatementSetter = (preparedStatement, message, groupId) -> {
-				String groupKey = getKey(groupId);
-				long createdDate = System.currentTimeMillis();
-				String messageId = getKey(message.getHeaders().getId());
-				byte[] messageBytes = this.serializer.convert(message);
-
-				if (logger.isDebugEnabled()) {
-					logger.debug("Inserting message with id key=" + messageId);
-				}
-
-				preparedStatement.setString(1, messageId);
-				preparedStatement.setString(2, groupKey);
-				preparedStatement.setString(3, this.region);
-				preparedStatement.setLong(4, createdDate);
-
-				Integer priority = message.getHeaders().get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
-
-				if (JdbcChannelMessageStore.this.priorityEnabled && priority != null) {
-					preparedStatement.setInt(5, priority);
-				}
-				else {
-					preparedStatement.setNull(5, Types.NUMERIC);
-				}
-
-				this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
-			};
+			this.messageGroupPreparedStatementSetter = new MessageGroupPreparedStatementSetter(serializer, lobHandler);
 		}
 		this.jdbcTemplate.afterPropertiesSet();
 	}
@@ -471,9 +445,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 		try {
 			this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
-					ps -> this.messageGroupPreparedStatementSetter.setValues(ps, message, groupId));
-		}
-		catch (DuplicateKeyException e) {
+					ps -> this.messageGroupPreparedStatementSetter.setValues(ps, message, groupId, this.region,
+							this.priorityEnabled));
+		} catch (DuplicateKeyException e) {
 			if (logger.isDebugEnabled()) {
 				String messageId = getKey(message.getHeaders().getId());
 				logger.debug("The Message with id [" + messageId + "] already exists.\nIgnoring INSERT...");
