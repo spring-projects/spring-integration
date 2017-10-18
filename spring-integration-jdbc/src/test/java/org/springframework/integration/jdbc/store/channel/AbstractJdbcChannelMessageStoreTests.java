@@ -31,9 +31,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jdbc.support.lob.DefaultLobHandler;
+import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -133,13 +136,17 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 
 	private MessageGroupPreparedStatementSetter getMessageGroupPreparedStatementSetter() {
 		return new MessageGroupPreparedStatementSetter() {
+
+			private SerializingConverter serializer = new SerializingConverter();
+			private LobHandler lobHandler = new DefaultLobHandler();
+
 			public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage, Object groupId,
 					String region, boolean priorityEnabled) throws SQLException {
 				String groupKey = getKey(groupId);
 				long createdDate = System.currentTimeMillis();
 				String messageId = getKey(requestMessage.getHeaders().getId());
 
-				byte[] messageBytes = getSerializer().convert(requestMessage);
+				byte[] messageBytes = serializer.convert(requestMessage);
 
 				preparedStatement.setString(1, messageId);
 				preparedStatement.setString(2, groupKey);
@@ -154,7 +161,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 				else {
 					preparedStatement.setNull(5, Types.NUMERIC);
 				}
-				getLobHandler().getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
+				lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
 			}
 		};
 	}
