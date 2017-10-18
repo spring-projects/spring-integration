@@ -427,7 +427,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		}
 
 		if (this.messageGroupPreparedStatementSetter == null) {
-			this.messageGroupPreparedStatementSetter = new MessageGroupPreparedStatementSetter(serializer, lobHandler);
+			this.messageGroupPreparedStatementSetter = new MessageGroupPreparedStatementSetter(this.serializer,
+					this.lobHandler);
 		}
 		this.jdbcTemplate.afterPropertiesSet();
 	}
@@ -447,7 +448,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
 					ps -> this.messageGroupPreparedStatementSetter.setValues(ps, message, groupId, this.region,
 							this.priorityEnabled));
-		} catch (DuplicateKeyException e) {
+		}
+		catch (DuplicateKeyException e) {
 			if (logger.isDebugEnabled()) {
 				String messageId = getKey(message.getHeaders().getId());
 				logger.debug("The Message with id [" + messageId + "] already exists.\nIgnoring INSERT...");

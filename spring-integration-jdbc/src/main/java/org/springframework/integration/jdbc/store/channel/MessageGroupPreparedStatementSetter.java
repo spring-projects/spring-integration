@@ -22,6 +22,7 @@ import java.sql.Types;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
@@ -35,9 +36,9 @@ import org.springframework.messaging.Message;
  * Callback to be used with {@link JdbcChannelMessageStore}.
  * <p>
  * Behavior is same as standard {@link PreparedStatementSetter}, it takes in
- * extra {@code Message<?> requestMessage}, {@code Object groupId}, {@code String region}
- * and {@code boolean priorityEnabled} as
- * parameters used for {@code addMessageToGroup} method in {@link JdbcChannelMessageStore}.
+ * extra {@code Message<?> requestMessage}, {@code Object groupId},
+ * {@code String region} and {@code boolean priorityEnabled} as parameters used
+ * for {@code addMessageToGroup} method in {@link JdbcChannelMessageStore}.
  * Implementors of this class just can use the default constructor
  * {@link #MessageGroupPreparedStatementSetter()} if default implementation of
  * {@code SerializingConverter} and {@code LobHandler} is required.
@@ -88,8 +89,7 @@ public class MessageGroupPreparedStatementSetter {
 
 		if (priorityEnabled && priority != null) {
 			preparedStatement.setInt(5, priority);
-		}
-		else {
+		} else {
 			preparedStatement.setNull(5, Types.NUMERIC);
 		}
 		this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
@@ -100,10 +100,10 @@ public class MessageGroupPreparedStatementSetter {
 	}
 
 	public SerializingConverter getSerializer() {
-		return serializer;
+		return this.serializer;
 	}
 
 	public LobHandler getLobHandler() {
-		return lobHandler;
+		return this.lobHandler;
 	}
 }
