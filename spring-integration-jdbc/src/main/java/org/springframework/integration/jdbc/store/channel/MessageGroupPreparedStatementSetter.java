@@ -64,8 +64,8 @@ public class MessageGroupPreparedStatementSetter {
 
 	public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage, Object groupId, String region,
 			boolean priorityEnabled) throws SQLException {
-		Assert.notNull(serializer, "The serializer should not be null.");
-		Assert.notNull(lobHandler, "The lobhandler should not be null.");
+		Assert.notNull(this.serializer, "The serializer should not be null.");
+		Assert.notNull(this.lobHandler, "The lobhandler should not be null.");
 		String groupKey = getKey(groupId);
 		long createdDate = System.currentTimeMillis();
 		String messageId = getKey(requestMessage.getHeaders().getId());
