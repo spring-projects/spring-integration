@@ -44,6 +44,7 @@ import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAd
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -52,6 +53,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.test.rule.KafkaEmbedded;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -116,6 +118,9 @@ public class KafkaDslTests {
 	@Qualifier("kafkaTemplate:" + TEST_TOPIC2)
 	private KafkaTemplate<?, ?> kafkaTemplateTopic2;
 
+	@Autowired
+	private DefaultKafkaHeaderMapper mapper;
+
 	@Test
 	public void testKafkaAdapters() {
 
@@ -125,6 +130,8 @@ public class KafkaDslTests {
 		this.kafkaProducer1.setPartitionIdExpression(new ValueExpression<>(0));
 		this.kafkaProducer2.setPartitionIdExpression(new ValueExpression<>(0));
 		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo", Collections.singletonMap("foo", "bar")));
+
+		assertThat(TestUtils.getPropertyValue(this.kafkaProducer1, "headerMapper")).isSameAs(this.mapper);
 
 		for (int i = 0; i < 100; i++) {
 			Message<?> receive = this.listeningFromKafkaResults1.receive(20000);
@@ -252,6 +259,11 @@ public class KafkaDslTests {
 					);
 		}
 
+		@Bean
+		public DefaultKafkaHeaderMapper mapper() {
+			return new DefaultKafkaHeaderMapper();
+		}
+
 		private KafkaProducerMessageHandlerSpec<Integer, String, ?> kafkaMessageHandler(
 				ProducerFactory<Integer, String> producerFactory, String topic) {
 			return Kafka
@@ -259,7 +271,7 @@ public class KafkaDslTests {
 					.messageKey(m -> m
 							.getHeaders()
 							.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
-					.headerMapper()
+					.headerMapper(mapper())
 					.partitionId(m -> 10)
 					.topicExpression("headers[kafka_topic] ?: '" + topic + "'")
 					.configureKafkaTemplate(t -> t.id("kafkaTemplate:" + topic));
