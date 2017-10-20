@@ -19,6 +19,7 @@ package org.springframework.integration.kafka.dsl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -123,7 +124,7 @@ public class KafkaDslTests {
 
 		this.kafkaProducer1.setPartitionIdExpression(new ValueExpression<>(0));
 		this.kafkaProducer2.setPartitionIdExpression(new ValueExpression<>(0));
-		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo"));
+		this.sendToKafkaFlowInput.send(new GenericMessage<>("foo", Collections.singletonMap("foo", "bar")));
 
 		for (int i = 0; i < 100; i++) {
 			Message<?> receive = this.listeningFromKafkaResults1.receive(20000);
@@ -139,6 +140,7 @@ public class KafkaDslTests {
 			assertThat(headers.get(KafkaHeaders.OFFSET)).isEqualTo((long) i);
 			assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
 			assertThat(headers.get(KafkaHeaders.RECEIVED_TIMESTAMP)).isEqualTo(1487694048633L);
+			assertThat(headers.get("foo")).isEqualTo("bar");
 		}
 
 		for (int i = 0; i < 100; i++) {
@@ -257,6 +259,7 @@ public class KafkaDslTests {
 					.messageKey(m -> m
 							.getHeaders()
 							.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
+					.headerMapper()
 					.partitionId(m -> 10)
 					.topicExpression("headers[kafka_topic] ?: '" + topic + "'")
 					.configureKafkaTemplate(t -> t.id("kafkaTemplate:" + topic));

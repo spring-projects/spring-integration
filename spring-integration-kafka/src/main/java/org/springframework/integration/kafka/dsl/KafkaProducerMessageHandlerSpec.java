@@ -31,6 +31,8 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandler;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
+import org.springframework.kafka.support.KafkaHeaderMapper;
 import org.springframework.kafka.support.LoggingProducerListener;
 import org.springframework.kafka.support.ProducerListener;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
@@ -254,6 +256,24 @@ public class KafkaProducerMessageHandlerSpec<K, V, S extends KafkaProducerMessag
 	 */
 	public S sendTimeout(long sendTimeout) {
 		this.target.setSendTimeout(sendTimeout);
+		return _this();
+	}
+
+	/**
+	 * Add a default header mapper to map spring messaging headers to Kafka headers.
+	 * @return the spec.
+	 */
+	public S headerMapper() {
+		return headerMapper(new DefaultKafkaHeaderMapper());
+	}
+
+	/**
+	 * Specify a header mapper to map spring messaging headers to Kafka headers.
+	 * @param mapper the mapper.
+	 * @return the spec.
+	 */
+	public S headerMapper(KafkaHeaderMapper mapper) {
+		this.target.setHeaderMapper(mapper);
 		return _this();
 	}
 
