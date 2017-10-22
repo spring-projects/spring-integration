@@ -291,3 +291,10 @@ See <<ip>> for more information.
 The `GemfireMetadataStore` now implements `ListenableMetadataStore`, allowing users to listen to cache events by providing `MetadataStoreListener` instances to the store.
 
 See <<gemfire>> for more information.
+
+==== Jdbc Message Channel Store Changes
+
+The `JdbcMessageChannelStore` now provides setter to set `MessageGroupPreparedStatementSetter`, 
+allowing users to easily customize `PreparedStatementSetter` in the store.
+
+See <<jdbc-message-store-channels>> for more information.

@@ -40,8 +40,8 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
+import org.springframework.integration.jdbc.store.channel.MessageGroupPreparedStatementSetter;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
 import org.springframework.integration.store.MessageGroup;
@@ -87,6 +87,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Meherzad Lahewala
  * @since 2.2
  */
 @ManagedResource
@@ -145,6 +146,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private volatile MessageRowMapper messageRowMapper;
 
+	private volatile MessageGroupPreparedStatementSetter messageGroupPreparedStatementSetter;
+
 	private volatile Map<String, String> queryCache = new HashMap<String, String>();
 
 	private volatile MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
@@ -153,6 +156,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private boolean priorityEnabled;
 
+	@SuppressWarnings("unused")
 	private BeanFactory beanFactory;
 
 	/**
@@ -252,6 +256,20 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	public void setMessageRowMapper(MessageRowMapper messageRowMapper) {
 		Assert.notNull(messageRowMapper, "The provided MessageRowMapper must not be null.");
 		this.messageRowMapper = messageRowMapper;
+	}
+
+	/**
+	 * Allows for passing in a custom {@link MessageGroupPreparedStatementSetter}.
+	 * The {@link MessageGroupPreparedStatementSetter} is used to insert message into the database.
+	 *
+	 * @param messageGroupPreparedStatementSetter Must not be null
+	 * @since 5.0
+	 */
+	public void setMessageGroupPreparedStatementSetter(
+			MessageGroupPreparedStatementSetter messageGroupPreparedStatementSetter) {
+		Assert.notNull(messageGroupPreparedStatementSetter,
+				"The provided MessageGroupPreparedStatementSetter must not be null.");
+		this.messageGroupPreparedStatementSetter = messageGroupPreparedStatementSetter;
 	}
 
 	/**
@@ -382,10 +400,12 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * Check mandatory properties ({@link DataSource} and
-	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper} was
-	 * explicitly set using {@link #setMessageRowMapper(MessageRowMapper)}, the default
-	 * {@link MessageRowMapper} will be instantiate using the specified {@link #deserializer}
-	 * and {@link #lobHandler}.
+	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper}
+	 * and {@link MessageGroupPreparedStatementSetter} was explicitly set using
+	 * {@link #setMessageRowMapper(MessageRowMapper)} and
+	 * {@link #setMessageGroupPreparedStatementSetter(MessageGroupPreparedStatementSetter)}  respectively, the default
+	 * {@link MessageRowMapper} and {@link MessageGroupPreparedStatementSetter} will be instantiate using the
+	 * specified {@link #deserializer} and {@link #lobHandler}.
 	 *
 	 * Also, if the jdbcTemplate's fetchSize property ({@link JdbcTemplate#getFetchSize()})
 	 * is not 1, a warning will be logged. When using the {@link JdbcChannelMessageStore}
@@ -407,6 +427,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			logger.warn("The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
+		if (this.messageGroupPreparedStatementSetter == null) {
+			this.messageGroupPreparedStatementSetter = new MessageGroupPreparedStatementSetter(this.serializer,
+					this.lobHandler);
+		}
 		this.jdbcTemplate.afterPropertiesSet();
 	}
 
@@ -414,55 +438,24 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Store a message in the database. The groupId identifies the channel for which
 	 * the message is to be stored.
 	 *
-	 * Keep in mind that the actual groupId (Channel
-	 * Identifier) is converted to a String-based UUID identifier.
+	 * Keep in mind that the actual groupId (Channel Identifier) is converted to a String-based UUID identifier.
 	 *
 	 * @param groupId the group id to store the message under
 	 * @param message a message
 	 */
 	@Override
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
-
-		String groupKey = getKey(groupId);
-
-		long createdDate = System.currentTimeMillis();
-
-		String messageId = getKey(message.getHeaders().getId());
-
-		byte[] messageBytes = this.serializer.convert(message);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Inserting message with id key=" + messageId);
-		}
-
 		try {
 			this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
-					ps -> {
-						ps.setString(1, messageId);
-						ps.setString(2, groupKey);
-						ps.setString(3, this.region);
-						ps.setLong(4, createdDate);
-
-						Integer priority = message.getHeaders()
-								.get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
-
-						if (JdbcChannelMessageStore.this.priorityEnabled && priority != null) {
-							ps.setInt(5, priority);
-						}
-						else {
-							ps.setNull(5, Types.NUMERIC);
-						}
-
-						this.lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
-					});
+					ps -> this.messageGroupPreparedStatementSetter.setValues(ps, message, groupId, this.region,
+							this.priorityEnabled));
 		}
 		catch (DuplicateKeyException e) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("The Message with id [" + messageId + "] already exists.\n" +
-						"Ignoring INSERT...");
+				String messageId = getKey(message.getHeaders().getId());
+				logger.debug("The Message with id [" + messageId + "] already exists.\nIgnoring INSERT...");
 			}
 		}
-
 		return getMessageGroup(groupId);
 	}
 
