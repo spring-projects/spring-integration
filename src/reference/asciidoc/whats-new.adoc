@@ -292,7 +292,7 @@ See <<gemfire>> for more information.
 
 ==== Jdbc Message Channel Store Changes
 
-The `JdbcMessageChannelStore` now provides setter to set `PreparedStatementSetter`, allowing users to easily customize
-`PreparedStatementSetter` in the store.
+The `JdbcMessageChannelStore` now provides setter to set `MessageGroupPreparedStatementSetter`, 
+allowing users to easily customize `PreparedStatementSetter` in the store.
 
 See <<jdbc-message-store-channels>> for more information.

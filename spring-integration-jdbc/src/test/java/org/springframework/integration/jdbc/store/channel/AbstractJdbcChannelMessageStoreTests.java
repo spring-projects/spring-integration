@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNull;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import javax.sql.DataSource;
 
@@ -32,7 +31,6 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.support.SerializingConverter;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
@@ -114,9 +112,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 	@Test
 	public void testAddAndGetCustomStatementSetter() {
 		messageStore.setMessageGroupPreparedStatementSetter(getMessageGroupPreparedStatementSetter());
-		final Message<String> message = MessageBuilder.withPayload("Cartman and Kenny")
-				.setHeader("homeTown", "Southpark")
-				.build();
+		final Message<String> message = MessageBuilder.withPayload("Cartman and Kenny").build();
 
 		final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
@@ -140,27 +136,11 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 			private SerializingConverter serializer = new SerializingConverter();
 			private LobHandler lobHandler = new DefaultLobHandler();
 
+			@Override
 			public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage, Object groupId,
 					String region, boolean priorityEnabled) throws SQLException {
-				String groupKey = getKey(groupId);
-				long createdDate = System.currentTimeMillis();
-				String messageId = getKey(requestMessage.getHeaders().getId());
-
+				super.setValues(preparedStatement, requestMessage, groupId, region, priorityEnabled);
 				byte[] messageBytes = serializer.convert(requestMessage);
-
-				preparedStatement.setString(1, messageId);
-				preparedStatement.setString(2, groupKey);
-				preparedStatement.setString(3, region);
-				preparedStatement.setLong(4, createdDate);
-				Integer priority = requestMessage.getHeaders().get(IntegrationMessageHeaderAccessor.PRIORITY,
-						Integer.class);
-
-				if (priority != null && priorityEnabled) {
-					preparedStatement.setInt(5, priority);
-				}
-				else {
-					preparedStatement.setNull(5, Types.NUMERIC);
-				}
 				lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
 			}
 		};

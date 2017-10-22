@@ -20,33 +20,25 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.jdbc.store.JdbcChannelMessageStore;
 import org.springframework.integration.util.UUIDConverter;
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
- * Callback to be used with {@link JdbcChannelMessageStore}.
+ * Callback to be used with {@link org.springframework.integration.jdbc.store.JdbcChannelMessageStore}.
  * <p>
- * Behavior is same as standard {@link PreparedStatementSetter}, it takes in
+ * Behavior is same as standard {@link org.springframework.jdbc.core.PreparedStatementSetter}, it takes in
  * extra {@code Message<?> requestMessage}, {@code Object groupId},
  * {@code String region} and {@code boolean priorityEnabled} as parameters used
- * for {@code addMessageToGroup} method in {@link JdbcChannelMessageStore}.
+ * for {@code addMessageToGroup} method in {@link org.springframework.integration.jdbc.store.JdbcChannelMessageStore}.
  *
  * @author Meherzad Lahewala
  * @since 5.0
- * @see PreparedStatementSetter
+ * @see org.springframework.jdbc.core.PreparedStatementSetter
  */
 public class MessageGroupPreparedStatementSetter {
-
-	private static final Log logger = LogFactory.getLog(MessageGroupPreparedStatementSetter.class);
 
 	private final SerializingConverter serializer;
 
@@ -64,15 +56,12 @@ public class MessageGroupPreparedStatementSetter {
 
 	public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage, Object groupId, String region,
 			boolean priorityEnabled) throws SQLException {
-		Assert.notNull(this.serializer, "The serializer should not be null.");
-		Assert.notNull(this.lobHandler, "The lobhandler should not be null.");
 		String groupKey = getKey(groupId);
 		long createdDate = System.currentTimeMillis();
 		String messageId = getKey(requestMessage.getHeaders().getId());
-		byte[] messageBytes = this.serializer.convert(requestMessage);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Inserting message with id key=" + messageId);
+		byte[] messageBytes = null;
+		if (this.serializer != null) {
+			messageBytes = this.serializer.convert(requestMessage);
 		}
 
 		preparedStatement.setString(1, messageId);
@@ -88,7 +77,9 @@ public class MessageGroupPreparedStatementSetter {
 		else {
 			preparedStatement.setNull(5, Types.NUMERIC);
 		}
-		this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
+		if (this.lobHandler != null) {
+			this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
+		}
 	}
 
 	protected String getKey(Object input) {

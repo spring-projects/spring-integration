@@ -260,9 +260,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * Allows for passing in a custom {@link MessageGroupPreparedStatementSetter}.
-	 * The {@link MessageGroupPreparedStatementSetter} is used to insert message in the database.
+	 * The {@link MessageGroupPreparedStatementSetter} is used to insert message into the database.
 	 *
 	 * @param messageGroupPreparedStatementSetter Must not be null
+	 * @since 5.0
 	 */
 	public void setMessageGroupPreparedStatementSetter(
 			MessageGroupPreparedStatementSetter messageGroupPreparedStatementSetter) {
