@@ -377,10 +377,12 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		private volatile StompSession session;
 
 		void addHandler(StompSessionHandler delegate) {
-			if (this.session != null) {
-				delegate.afterConnected(this.session, getConnectHeaders());
+			synchronized (this.delegates) {
+				if (this.session != null) {
+					delegate.afterConnected(this.session, getConnectHeaders());
+				}
+				this.delegates.add(delegate);
 			}
-			this.delegates.add(delegate);
 		}
 
 		void removeHandler(StompSessionHandler delegate) {
@@ -389,8 +391,8 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 		@Override
 		public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-			this.session = session;
 			synchronized (this.delegates) {
+				this.session = session;
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.afterConnected(session, connectedHeaders);
 				}
