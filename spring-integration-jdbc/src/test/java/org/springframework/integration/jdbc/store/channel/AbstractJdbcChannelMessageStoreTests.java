@@ -37,7 +37,7 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -49,10 +49,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Meherzad Lahewala
+ * @author Artem Bilan
  */
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext // close at the end after class
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public abstract class AbstractJdbcChannelMessageStoreTests {
 
 	protected static final String TEST_MESSAGE_GROUP = "AbstractJdbcChannelMessageStoreTests";
@@ -97,6 +98,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+
 			@Override
 			protected void doInTransactionWithoutResult(TransactionStatus status) {
 				messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message);
@@ -111,7 +113,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 
 	@Test
 	public void testAddAndGetCustomStatementSetter() {
-		messageStore.setMessageGroupPreparedStatementSetter(getMessageGroupPreparedStatementSetter());
+		messageStore.setPreparedStatementSetter(getMessageGroupPreparedStatementSetter());
 		final Message<String> message = MessageBuilder.withPayload("Cartman and Kenny").build();
 
 		final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
@@ -120,6 +122,7 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 		transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
 
 		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+
 			@Override
 			protected void doInTransactionWithoutResult(TransactionStatus status) {
 				messageStore.addMessageToGroup(TEST_MESSAGE_GROUP, message);
@@ -130,19 +133,22 @@ public abstract class AbstractJdbcChannelMessageStoreTests {
 		assertEquals(message.getHeaders().getId(), messageFromDb.getHeaders().getId());
 	}
 
-	private MessageGroupPreparedStatementSetter getMessageGroupPreparedStatementSetter() {
-		return new MessageGroupPreparedStatementSetter() {
+	private ChannelMessageStorePreparedStatementSetter getMessageGroupPreparedStatementSetter() {
+		return new ChannelMessageStorePreparedStatementSetter() {
 
 			private SerializingConverter serializer = new SerializingConverter();
+
 			private LobHandler lobHandler = new DefaultLobHandler();
 
 			@Override
 			public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage, Object groupId,
 					String region, boolean priorityEnabled) throws SQLException {
 				super.setValues(preparedStatement, requestMessage, groupId, region, priorityEnabled);
-				byte[] messageBytes = serializer.convert(requestMessage);
-				lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
+				byte[] messageBytes = this.serializer.convert(requestMessage);
+				this.lobHandler.getLobCreator().setBlobAsBytes(preparedStatement, 6, messageBytes);
 			}
+
 		};
 	}
+
 }
