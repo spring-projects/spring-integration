@@ -40,6 +40,7 @@ import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
@@ -91,13 +92,19 @@ public class AmqpTests {
 	@Qualifier("amqpInboundGatewayContainer")
 	private SimpleMessageListenerContainer amqpInboundGatewayContainer;
 
+	@Autowired
+	private Lifecycle asyncOutboundGateway;
+
 	@AfterClass
 	public static void tearDown() {
 		brokerRunning.removeTestQueues();
 	}
 
 	@Test
-	public void testAmqpInboundGatewayFlow() throws Exception {
+	public void testAmqpInboundGatewayFlow() {
+		assertNotNull(this.amqpInboundGatewayContainer);
+		assertSame(this.amqpTemplate, TestUtils.getPropertyValue(this.amqpInboundGateway, "amqpTemplate"));
+
 		Object result = this.amqpTemplate.convertSendAndReceive(this.amqpQueue.getName(), "world");
 		assertEquals("HELLO WORLD", result);
 
@@ -109,9 +116,6 @@ public class AmqpTests {
 		((RabbitTemplate) this.amqpTemplate).setReceiveTimeout(10000);
 		result = this.amqpTemplate.receiveAndConvert("defaultReplyTo");
 		assertEquals("HELLO WORLD", result);
-		assertSame(this.amqpTemplate, TestUtils.getPropertyValue(this.amqpInboundGateway, "amqpTemplate"));
-
-		assertNotNull(this.amqpInboundGatewayContainer);
 	}
 
 	@Autowired
@@ -141,6 +145,8 @@ public class AmqpTests {
 
 		assertNotNull(receive);
 		assertEquals("HELLO THROUGH THE AMQP", receive.getPayload());
+
+		((Lifecycle) this.amqpOutboundInput).stop();
 	}
 
 	@Test
@@ -167,6 +173,8 @@ public class AmqpTests {
 		Message<?> receive = replyChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("HELLO ASYNC GATEWAY", receive.getPayload());
+
+		this.asyncOutboundGateway.stop();
 	}
 
 	@Autowired
@@ -264,7 +272,8 @@ public class AmqpTests {
 
 		@Bean
 		public IntegrationFlow amqpInboundFlow(ConnectionFactory rabbitConnectionFactory) {
-			return IntegrationFlows.from(Amqp.inboundAdapter(rabbitConnectionFactory, fooQueue()))
+			return IntegrationFlows.from(Amqp.inboundAdapter(rabbitConnectionFactory, fooQueue())
+					.id("amqpInboundFlowAdapter"))
 					.transform(String.class, String::toUpperCase)
 					.channel(Amqp.pollableChannel(rabbitConnectionFactory)
 							.queueName("amqpReplyChannel")
@@ -286,7 +295,8 @@ public class AmqpTests {
 		public IntegrationFlow amqpAsyncOutboundFlow(AsyncRabbitTemplate asyncRabbitTemplate) {
 			return f -> f
 					.handle(Amqp.asyncOutboundGateway(asyncRabbitTemplate)
-							.routingKeyFunction(m -> queue().getName()));
+							.routingKeyFunction(m -> queue().getName()),
+							e -> e.id("asyncOutboundGateway"));
 		}
 
 		@Bean

@@ -47,13 +47,20 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 	public AnnotationGatewayProxyFactoryBean(Class<?> serviceInterface) {
 		super(serviceInterface);
-		AnnotationAttributes gatewayAttributes = AnnotatedElementUtils.getMergedAnnotationAttributes(serviceInterface,
-				MessagingGateway.class.getName(), false, true);
+		AnnotationAttributes gatewayAttributes =
+				AnnotatedElementUtils.getMergedAnnotationAttributes(serviceInterface,
+						MessagingGateway.class.getName(), false, true);
 		if (gatewayAttributes == null) {
 			gatewayAttributes = AnnotationUtils.getAnnotationAttributes(
 					AnnotationUtils.synthesizeAnnotation(MessagingGateway.class), false, true);
 		}
+
 		this.gatewayAttributes = gatewayAttributes;
+
+		String id = gatewayAttributes.getString("name");
+		if (!StringUtils.hasText(id)) {
+			setBeanName(id);
+		}
 	}
 
 	@Override
