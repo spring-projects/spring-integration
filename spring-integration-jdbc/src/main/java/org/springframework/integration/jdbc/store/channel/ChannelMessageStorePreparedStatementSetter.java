@@ -85,7 +85,6 @@ public class ChannelMessageStorePreparedStatementSetter {
 	/**
 	 * Perform a preparedStatement parameters population according provided arguments.
 	 * The default functionality is (parameter - data):
-	 * <p>
 	 * <ul>
 	 *     <li>1 - messageId
 	 *     <li>2 - groupKey
@@ -94,7 +93,6 @@ public class ChannelMessageStorePreparedStatementSetter {
 	 *     <li>5 - priority if enabled, otherwise null
 	 *     <li>6 - serialized message if {@link #serializer} and {@link #lobHandler} are provided.
 	 * </ul>
-	 * <p>
 	 * An inheritor may consider to call this method for population common properties and perform
 	 * custom message serialization logic for the parameter #6.
 	 * Any custom data structure population can be achieved with full overriding of this method.

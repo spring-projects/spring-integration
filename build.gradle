@@ -87,8 +87,8 @@ subprojects { subproject ->
 	}
 
 	ext {
-		activeMqVersion = '5.15.0'
-		aspectjVersion = '1.8.11'
+		activeMqVersion = '5.15.2'
+		aspectjVersion = '1.8.12'
 		apacheSshdVersion = '1.6.0'
 		boonVersion = '0.34'
 		commonsDbcp2Version = '2.1.1'
@@ -119,12 +119,12 @@ subprojects { subproject ->
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
 		log4jVersion = '1.2.17'
-		mockitoVersion = '2.10.0'
+		mockitoVersion = '2.11.0'
 		mysqlVersion = '6.0.6'
 		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.0.0'
-		reactorNettyVersion = '0.7.0.RELEASE'
-		reactorVersion = '3.1.0.RELEASE'
+		reactorNettyVersion = '0.7.1.RELEASE'
+		reactorVersion = '3.1.1.RELEASE'
 		romeToolsVersion = '1.8.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"
@@ -137,7 +137,7 @@ subprojects { subproject ->
 		springSecurityVersion = '5.0.0.M5'
 		springSocialTwitterVersion = '2.0.0.M4'
 		springRetryVersion = '1.2.1.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.1.RELEASE'
 		springWsVersion = '3.0.0.BUILD-SNAPSHOT'
 		tomcatVersion = "8.5.23"
 		xmlUnitVersion = '1.6'

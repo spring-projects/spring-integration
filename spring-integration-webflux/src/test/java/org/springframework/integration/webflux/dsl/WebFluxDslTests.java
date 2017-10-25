@@ -50,10 +50,13 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -173,12 +176,17 @@ public class WebFluxDslTests {
 	@EnableIntegration
 	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
 
-		@Override
-		protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-			auth.inMemoryAuthentication()
-					.withUser("guest")
-					.password("guest")
-					.roles("ADMIN");
+		@Bean
+		public UserDetailsService userDetailsService() {
+			InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+
+			manager.createUser(
+					User.withUsername("guest")
+							.password("guest")
+							.roles("ADMIN")
+							.build());
+
+			return manager;
 		}
 
 		@Override
@@ -230,6 +238,12 @@ public class WebFluxDslTests {
 		@Bean
 		public AccessDecisionManager accessDecisionManager() {
 			return new AffirmativeBased(Collections.singletonList(new RoleVoter()));
+		}
+
+		@Bean
+		@SuppressWarnings("deprecation")
+		public PasswordEncoder passwordEncoder() {
+			return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
 		}
 
 	}
