@@ -444,6 +444,7 @@ public class IntegrationFlowTests {
 	}
 
 	@Autowired
+	@Qualifier("errorRecovererFunction")
 	private Function<String, String> errorRecovererFlowGateway;
 
 	@Test
@@ -789,7 +790,7 @@ public class IntegrationFlowTests {
 
 		@Bean
 		public IntegrationFlow errorRecovererFlow() {
-			return IntegrationFlows.from(Function.class)
+			return IntegrationFlows.from(Function.class, "errorRecovererFunction")
 					.handle((GenericHandler<?>) (p, h) -> {
 						throw new RuntimeException("intentional");
 					}, e -> e.advice(retryAdvice()))
