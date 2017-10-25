@@ -37,6 +37,7 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @author Stuart Williams
  * @author David Turanski
+ *
  * @since 4.0
  *
  */
@@ -49,16 +50,19 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 	private final MutableMessageHeaders headers;
 
 	public MutableMessage(T payload) {
-		this(payload, null);
+		this(payload, (Map<String, Object>) null);
 	}
 
 	public MutableMessage(T payload, Map<String, Object> headers) {
-		Assert.notNull(payload, "payload must not be null");
-		this.payload = payload;
-
-		this.headers = new MutableMessageHeaders(headers);
+		this(payload, new MutableMessageHeaders(headers));
 	}
 
+	protected MutableMessage(T payload, MutableMessageHeaders headers) {
+		Assert.notNull(payload, "payload must not be null");
+		Assert.notNull(headers, "headers must not be null");
+		this.payload = payload;
+		this.headers = headers;
+	}
 
 	@Override
 	public MutableMessageHeaders getHeaders() {
