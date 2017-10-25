@@ -29,7 +29,6 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ReactiveHttpInputMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.AbstractHttpRequestExecutingMessageHandler;
@@ -37,7 +36,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
-import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -130,19 +128,12 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 			requestSpec.body(BodyInserters.fromObject(httpRequest.getBody()));
 		}
 
-		Mono<ClientResponse> responseMono = requestSpec.exchange()
-				.doOnNext(response -> {
-					HttpStatus httpStatus = response.statusCode();
-					if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {
-						throw new WebClientResponseException(
-								String.format("ClientResponse has erroneous status code: %d %s",
-										response.statusCode().value(),
-										response.statusCode().getReasonPhrase()),
-								httpStatus.value(),
-								httpStatus.getReasonPhrase(),
-								response.headers()
-										.asHttpHeaders(),
-								response.body(BodyExtractors.toDataBuffers())
+		Mono<ClientResponse> responseMono =
+				requestSpec.exchange()
+						.flatMap(response -> {
+							HttpStatus httpStatus = response.statusCode();
+							if (httpStatus.isError()) {
+								return response.body(BodyExtractors.toDataBuffers())
 										.reduce(DataBuffer::write)
 										.map(dataBuffer -> {
 											byte[] bytes = new byte[dataBuffer.readableByteCount()];
@@ -150,34 +141,48 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 											DataBufferUtils.release(dataBuffer);
 											return bytes;
 										})
-										.block(),
-								response.headers()
-										.contentType()
-										.map(MimeType::getCharset)
-										.orElse(StandardCharsets.ISO_8859_1));
-					}
-				});
+										.defaultIfEmpty(new byte[0])
+										.map(bodyBytes -> {
+													throw new WebClientResponseException(
+															"ClientResponse has erroneous status code: "
+																	+ httpStatus.value() + " "
+																	+ httpStatus.getReasonPhrase(),
+															httpStatus.value(),
+															httpStatus.getReasonPhrase(),
+															response.headers().asHttpHeaders(),
+															bodyBytes,
+															response.headers().contentType()
+																	.map(MimeType::getCharset)
+																	.orElse(StandardCharsets.ISO_8859_1));
+												}
+										);
+							}
+							else {
+								return Mono.just(response);
+							}
+						});
 
 		if (isExpectReply()) {
-			BodyExtractor<? extends Mono<?>, ReactiveHttpInputMessage> bodyExtractor;
-
-			if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-				bodyExtractor = BodyExtractors.toMono((ParameterizedTypeReference<?>) expectedResponseType);
-			}
-			else if (expectedResponseType != null) {
-				bodyExtractor = BodyExtractors.toMono((Class<?>) expectedResponseType);
-			}
-			else {
-				bodyExtractor = null;
-			}
-
 			return responseMono
-					.map(response ->
-							new ResponseEntity<>(bodyExtractor != null
-									? response.body(bodyExtractor).block()
-									: null,
-									response.headers().asHttpHeaders(),
-									response.statusCode()))
+					.flatMap(response -> {
+								ResponseEntity.BodyBuilder httpEntityBuilder =
+										ResponseEntity.status(response.statusCode())
+												.headers(response.headers().asHttpHeaders());
+
+								Mono<?> bodyMono = Mono.empty();
+
+								if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+									bodyMono = response.body(BodyExtractors.toMono((ParameterizedTypeReference<?>) expectedResponseType));
+								}
+								else if (expectedResponseType != null) {
+									bodyMono = response.body(BodyExtractors.toMono((Class<?>) expectedResponseType));
+								}
+
+								return bodyMono
+										.map(httpEntityBuilder::body)
+										.defaultIfEmpty(httpEntityBuilder.build());
+							}
+					)
 					.map(this::getReply);
 		}
 		else {
