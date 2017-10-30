@@ -54,7 +54,17 @@ public final class Udp {
 	}
 
 	/**
-	 * Create an inbound unicast channel adapter using the supplied destination
+	 * Create an outbound unicast channel adapter using the supplied host and port.
+	 * @param host the host.
+	 * @param port the port.
+	 * @return the spec.
+	 */
+	public static UdpUnicastOutboundChannelAdapterSpec outboundAdapter(String host, int port) {
+		return new UdpUnicastOutboundChannelAdapterSpec(host, port);
+	}
+
+	/**
+	 * Create an outbound unicast channel adapter using the supplied destination
 	 * expression.
 	 * @param destinationExpression destination expression.
 	 * @return the spec.
@@ -64,7 +74,7 @@ public final class Udp {
 	}
 
 	/**
-	 * Create an inbound unicast channel adapter using the supplied destination
+	 * Create an outbound unicast channel adapter using the supplied destination
 	 * expression.
 	 * @param destinationFunction function that will provide the destination based on the message.
 	 * @return the spec.
@@ -74,7 +84,17 @@ public final class Udp {
 	}
 
 	/**
-	 * Create an inbound multicast channel adapter using the supplied destination
+	 * Create an outbound multicast channel adapter using the supplied host and port.
+	 * @param host the host.
+	 * @param port the port.
+	 * @return the spec.
+	 */
+	public static UdpMulticastOutboundChannelAdapterSpec outboundMulticastAdapter(String host, int port) {
+		return new UdpMulticastOutboundChannelAdapterSpec(host, port);
+	}
+
+	/**
+	 * Create an outbound multicast channel adapter using the supplied destination
 	 * expression.
 	 * @param destinationExpression destination expression.
 	 * @return the spec.
@@ -84,7 +104,7 @@ public final class Udp {
 	}
 
 	/**
-	 * Create an inbound multicast channel adapter using the supplied destination
+	 * Create an outbound multicast channel adapter using the supplied destination
 	 * expression.
 	 * @param destinationFunction function that will provide the destination based on the message.
 	 * @return the spec.
