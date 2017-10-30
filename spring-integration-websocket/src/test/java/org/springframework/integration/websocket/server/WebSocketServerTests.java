@@ -75,7 +75,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
@@ -101,8 +101,8 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  *
  * @since 4.1
  */
-@ContextConfiguration(classes = WebSocketServerTests.ContextConfiguration.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = WebSocketServerTests.ClientConfig.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class WebSocketServerTests {
 
@@ -186,7 +186,7 @@ public class WebSocketServerTests {
 
 	@Configuration
 	@EnableIntegration
-	public static class ContextConfiguration {
+	public static class ClientConfig {
 
 		@Bean
 		public TomcatWebSocketTestServer server() {
