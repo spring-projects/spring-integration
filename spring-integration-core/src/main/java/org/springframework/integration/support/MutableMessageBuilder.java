@@ -30,6 +30,16 @@ import org.springframework.util.StringUtils;
 
 
 /**
+ * Specialized message builder that can be used within a component to avoid the overhead
+ * of having to build multiple messages for mutations within that component.
+ *
+ * <p>
+ * <b>IMPORTANT: Mutable messages may share state (such as message headers); such messages
+ * should never be exposed to other components or undesirable side-effects may result.</b>
+ * <p>
+ * <b>It is generally recommended that messages transferred between components should
+ * always be immutable unless great care is taken with their use.</b>
+ *
  * @author Gary Russell
  * @author Artem Bilan
  * @since 4.0

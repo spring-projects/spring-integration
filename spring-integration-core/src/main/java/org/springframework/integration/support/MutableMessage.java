@@ -27,11 +27,18 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * An implementation of {@link Message} with a generic payload. Unlike
- * {@link GenericMessage}, this message (or its headers) can be modified
- * after creation. Great care must be taken, when mutating messages, that
- * some other element/thread is not concurrently using the message. Also note
- * that any in-memory stores (such as {@link SimpleMessageStore}) may have
- * a reference to the message and changes will be reflected there too.
+ * {@link GenericMessage}, this message (or its headers) can be modified after creation.
+ * Great care must be taken, when mutating messages, that some other element/thread is not
+ * concurrently using the message. Also note that any in-memory stores (such as
+ * {@link SimpleMessageStore}) may have a reference to the message and changes will be
+ * reflected there too.
+ *
+ * <p>
+ * <b>IMPORTANT: Mutable messages may share state (such as message headers); such messages
+ * should never be exposed to other components or undesirable side-effects may result.</b>
+ * <p>
+ * <b>It is generally recommended that messages transferred between components should
+ * always be immutable unless great care is taken with their use.</b>
  *
  * @author Gary Russell
  * @author Artem Bilan
