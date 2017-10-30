@@ -33,6 +33,8 @@ This provides the same basic functionality as described in <<gateway-proxy>>.
 [[udp-adapters]]
 === UDP Adapters
 
+==== Outbound (XML Configuration)
+
 [source,xml]
 ----
 <int-ip:udp-outbound-channel-adapter id="udpOut"
@@ -99,42 +101,32 @@ For even more reliable networking, TCP can be used.
 
 Starting with _version 4.3_, the `ackPort` can be set to `0`, in which case the Operating System chooses the port.
 
-Also starting with _version 4.3_, the `destination-expression` and `socket-expression` options are available
-for the `<int-ip:udp-outbound-channel-adapter>` (`UnicastSendingMessageHandler`).
+==== Outbound (Java Configuration)
 
-The `destination-expression` can be used as a runtime alternative to the hardcoded `host`/`port` pair to determine
-the destination address for the outgoing datagram packet against `requestMessage` as a root object for evaluation context.
-The expression must evaluate to `URI`, or `String` in the URI style (see http://www.ietf.org/rfc/rfc2396.txt[RFC-2396])
-or `SocketAddress`.
-The new `IpHeaders.PACKET_ADDRESS` header can be used for this expression as well.
-In the Framework this header is populated by the `DatagramPacketMessageMapper`, when we receive datagrams in the
-`UnicastReceivingChannelAdapter` and convert them to messages.
-The header value is exactly the result of `DatagramPacket.getSocketAddress()` of incoming datagram.
-
-With the `socket-expression` help the Outbound Channel Adapter can use e.g. Inbound Channel Adapter socket
-to send datagrams through same port which they were received.
-It's useful in a scenario when our application works as a UDP server and clients operate behind the NAT.
-This expression must evaluate to the `DatagramSocket`.
-The `requestMessage` is used as a root object for evaluation context.
-The `socket-expression` parameter cannot be used with parameters like `multicast` and `acknowledge`.
-
-[source,xml]
+[source, java]
 ----
-<int-ip:udp-inbound-channel-adapter id="inbound" port="0" channel="in" />
-
-<int:channel id="in" />
-
-<int:transformer expression="new String(payload).toUpperCase()"
-                       input-channel="in" output-channel="out"/>
-
-<int:channel id="out" />
-
-<int-ip:udp-outbound-channel-adapter id="outbound"
-                        socket-expression="@inbound.socket"
-                        destination-expression="headers['ip_packetAddress']"
-                        channel="out" />
+@Bean
+@ServiceActivator(inputChannel = "udpOut")
+public UnicastSendingMessageHandler handler() {
+	return new UnicastSendingMessageHandler("localhost", 11111);
+}
 ----
 
+(or `MulticastSendingChannelAdapter` for multicast).
+
+==== Outbound (Java DSL Configuration)
+
+[source, java]
+----
+@Bean
+public IntegrationFlow udpOutFlow() {
+	return IntegrationFlows.from("udpOut")
+			.handle(Udp.outboundAdapter("localhost", 1234))
+			.get();
+}
+----
+
+==== Inbound (XML Configuration)
 
 [source,xml]
 ----
@@ -164,6 +156,82 @@ A basic multicast inbound udp channel adapter.
 By default, reverse DNS lookups are done on inbound packets to convert IP addresses to hostnames for use in message headers.
 In environments where DNS is not configured, this can cause delays.
 This default behavior can be overridden by setting the `lookup-host` attribute to "false".
+
+==== Inbound (Java Configuration)
+
+[source, java]
+----
+@Bean
+public UnicastReceivingChannelAdapter udpIn() {
+	UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(11111);
+	adapter.setOutputChannelName("udpChannel");
+	return adapter;
+}
+----
+
+==== Inbound (Java DSL Configuration)
+
+[source, java]
+----
+@Bean
+public IntegrationFlow udpIn() {
+	return IntegrationFlows.from(Udp.inboundAdapter(11111))
+			.channel("udpChannel")
+			.get();
+}
+----
+
+==== Advanced Outbound Configuration
+
+The `destination-expression` and `socket-expression` options are available
+for the `<int-ip:udp-outbound-channel-adapter>` (`UnicastSendingMessageHandler`).
+
+The `destination-expression` can be used as a runtime alternative to the hardcoded `host`/`port` pair to determine
+the destination address for the outgoing datagram packet against a `requestMessage` as the root object for the evaluation context.
+The expression must evaluate to an `URI`, or `String` in the URI style (see http://www.ietf.org/rfc/rfc2396.txt[RFC-2396])
+or `SocketAddress`.
+The inbound `IpHeaders.PACKET_ADDRESS` header can be used for this expression as well.
+In the Framework, this header is populated by the `DatagramPacketMessageMapper`, when we receive datagrams in the
+`UnicastReceivingChannelAdapter` and convert them to messages.
+The header value is exactly the result of `DatagramPacket.getSocketAddress()` of the incoming datagram.
+
+With the `socket-expression`, the Outbound Channel Adapter can use e.g. an Inbound Channel Adapter socket
+to send datagrams through same port which they were received.
+It's useful in a scenario when our application works as a UDP server and clients operate behind NAT.
+This expression must evaluate to a `DatagramSocket`.
+The `requestMessage` is used as the root object for the evaluation context.
+The `socket-expression` parameter cannot be used with parameters `multicast` and `acknowledge`.
+
+[source,xml]
+----
+<int-ip:udp-inbound-channel-adapter id="inbound" port="0" channel="in" />
+
+<int:channel id="in" />
+
+<int:transformer expression="new String(payload).toUpperCase()"
+                       input-channel="in" output-channel="out"/>
+
+<int:channel id="out" />
+
+<int-ip:udp-outbound-channel-adapter id="outbound"
+                        socket-expression="@inbound.socket"
+                        destination-expression="headers['ip_packetAddress']"
+                        channel="out" />
+----
+
+The equivalent configuration using Java DSL Configuration:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow udpEchoUpcaseServer() {
+	return IntegrationFlows.from(Udp.inboundAdapter(11111).id("udpIn"))
+			.<byte[], String>transform(p -> new String(p).toUpperCase())
+			.handle(Udp.outboundAdapter("headers['ip_packetAddress']")
+					.socketExpression("@udpIn.socket"))
+			.get();
+}
+----
 
 [[tcp-connection-factories]]
 === TCP Connection Factories
