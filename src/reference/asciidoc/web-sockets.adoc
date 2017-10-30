@@ -433,3 +433,12 @@ Defaults to `false`.
 
 
 <13> See the same option on the `<int-websocket:outbound-channel-adapter>`.
+
+[[client-stomp-encoder]]
+=== ClientStompEncoder
+
+Starting with _version 4.3.13_, the `ClientStompEncoder` is provided as an extension of standard `StompEncoder` for using on client side of the WebSocket Channel Adapters.
+An instance of the `ClientStompEncoder` must be injected into the `StompSubProtocolHandler` for proper client side message preparation.
+One of the problem of the default `StompSubProtocolHandler` that it was designed for the server side, so it updates the `SEND` `stompCommand` header into `MESSAGE` as it must be by the STOMP protocol from server side.
+If client doesn't send its messages in the proper `SEND` web socket frame, some STOMP brokers won't accept them.
+The purpose of the `ClientStompEncoder`, in this case, is to override `stompCommand` header to the `SEND` value before encoding the message to the `byte[]`.

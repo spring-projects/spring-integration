@@ -63,11 +63,13 @@ import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.integration.websocket.event.ReceiptEvent;
 import org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter;
 import org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler;
+import org.springframework.integration.websocket.support.ClientStompEncoder;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -156,6 +158,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		SimpleController controller = this.serverContext.getBean(SimpleController.class);
 		assertTrue(controller.latch.await(20, TimeUnit.SECONDS));
+		assertEquals(StompCommand.SEND.name(), controller.stompCommand);
 	}
 
 	@Test
@@ -350,7 +353,9 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		@Bean
 		public SubProtocolHandler stompSubProtocolHandler() {
-			return new StompSubProtocolHandler();
+			StompSubProtocolHandler stompSubProtocolHandler = new StompSubProtocolHandler();
+			stompSubProtocolHandler.setEncoder(new ClientStompEncoder());
+			return stompSubProtocolHandler;
 		}
 
 		@Bean
@@ -396,10 +401,11 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 	// WebSocket Server part
 
-	@Target({ElementType.TYPE})
+	@Target({ ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	@Controller
 	private @interface IntegrationTestController {
+
 	}
 
 	@IntegrationTestController
@@ -407,8 +413,11 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		private final CountDownLatch latch = new CountDownLatch(1);
 
+		private String stompCommand;
+
 		@MessageMapping("/simple")
-		public void handle() {
+		public void handle(@Header("stompCommand") String stompCommand) {
+			this.stompCommand = stompCommand;
 			this.latch.countDown();
 		}
 
