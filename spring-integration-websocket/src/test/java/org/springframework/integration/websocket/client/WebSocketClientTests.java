@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
@@ -65,10 +65,11 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = WebSocketClientTests.ClientConfig.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class WebSocketClientTests {
 
@@ -96,7 +97,7 @@ public class WebSocketClientTests {
 
 	@Configuration
 	@EnableIntegration
-	public static class ContextConfiguration {
+	public static class ClientConfig {
 
 		@Bean
 		public TomcatWebSocketTestServer server() {
