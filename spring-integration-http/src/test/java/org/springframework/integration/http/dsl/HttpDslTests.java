@@ -50,7 +50,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -124,13 +123,15 @@ public class HttpDslTests {
 			InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
 
 			manager.createUser(
-					User.withUsername("admin")
+					User.withDefaultPasswordEncoder()
+							.username("admin")
 							.password("admin")
 							.roles("ADMIN")
 							.build());
 
 			manager.createUser(
-					User.withUsername("user")
+					User.withDefaultPasswordEncoder()
+							.username("user")
 							.password("user")
 							.roles("USER")
 							.build());
@@ -191,12 +192,6 @@ public class HttpDslTests {
 		@Bean
 		public AccessDecisionManager accessDecisionManager() {
 			return new AffirmativeBased(Collections.singletonList(new RoleVoter()));
-		}
-
-		@Bean
-		@SuppressWarnings("deprecation")
-		public PasswordEncoder passwordEncoder() {
-			return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
 		}
 
 		@Bean

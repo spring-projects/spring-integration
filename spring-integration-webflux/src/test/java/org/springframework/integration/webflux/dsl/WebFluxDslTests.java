@@ -55,7 +55,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -181,7 +180,8 @@ public class WebFluxDslTests {
 			InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
 
 			manager.createUser(
-					User.withUsername("guest")
+					User.withDefaultPasswordEncoder()
+							.username("guest")
 							.password("guest")
 							.roles("ADMIN")
 							.build());
@@ -206,12 +206,12 @@ public class WebFluxDslTests {
 					.from(Http.inboundGateway("/service2")
 							.requestMapping(r -> r.params("name")))
 					.handle(WebFlux.<MultiValueMap<String, String>>outboundGateway(m ->
-									UriComponentsBuilder.fromUriString("http://www.springsource.org/spring-integration")
-											.queryParams(m.getPayload())
-											.build()
-											.toUri())
-									.httpMethod(HttpMethod.GET)
-									.expectedResponseType(String.class))
+							UriComponentsBuilder.fromUriString("http://www.springsource.org/spring-integration")
+									.queryParams(m.getPayload())
+									.build()
+									.toUri())
+							.httpMethod(HttpMethod.GET)
+							.expectedResponseType(String.class))
 					.get();
 		}
 
@@ -238,12 +238,6 @@ public class WebFluxDslTests {
 		@Bean
 		public AccessDecisionManager accessDecisionManager() {
 			return new AffirmativeBased(Collections.singletonList(new RoleVoter()));
-		}
-
-		@Bean
-		@SuppressWarnings("deprecation")
-		public PasswordEncoder passwordEncoder() {
-			return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
 		}
 
 	}
