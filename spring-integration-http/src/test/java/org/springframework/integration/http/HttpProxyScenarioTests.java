@@ -23,11 +23,11 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.isNull;
 
 import java.net.URI;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,18 +89,22 @@ public class HttpProxyScenarioTests {
 
 	@Test
 	public void testHttpProxyScenario() throws Exception {
-		DateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME;
+		ZoneId GMT = ZoneId.of("GMT");
 
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.MILLISECOND, 0);
 
 		final long ifModifiedSince = c.getTimeInMillis();
-		String ifModifiedSinceValue = dateFormat.format(ifModifiedSince);
+		Instant instant = Instant.ofEpochMilli(ifModifiedSince);
+		ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, GMT);
+		String ifModifiedSinceValue = dateTimeFormatter.format(zonedDateTime);
 
 		c.add(Calendar.DATE, -1);
 		long ifUnmodifiedSince = c.getTimeInMillis();
-		final String ifUnmodifiedSinceValue = dateFormat.format(ifUnmodifiedSince);
+		instant = Instant.ofEpochMilli(ifUnmodifiedSince);
+		zonedDateTime = ZonedDateTime.ofInstant(instant, GMT);
+		final String ifUnmodifiedSinceValue = dateTimeFormatter.format(zonedDateTime);
 
 		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/test");
 		request.setQueryString("foo=bar&FOO=BAR");
