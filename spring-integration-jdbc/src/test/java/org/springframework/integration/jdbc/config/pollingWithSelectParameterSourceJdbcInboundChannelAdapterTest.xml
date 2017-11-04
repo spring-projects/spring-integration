@@ -26,6 +26,11 @@
 				<beans:entry key="status" value="@statusBean.which()" />
 			</beans:map>
 		</beans:property>
+		<beans:property name="sqlParameterTypes">
+			<beans:map>
+				<beans:entry key="status" value="java.sql.Types.INTEGER" />
+			</beans:map>		
+		</beans:property>
 	</beans:bean>
 
 	<beans:bean id="statusBean" class="org.springframework.integration.jdbc.config.JdbcPollingChannelAdapterParserTests$Status" />
