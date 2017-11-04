@@ -101,7 +101,7 @@ Below example provides sql type for the parameters being used in the query.
 		class="o.s.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
 	<property name="sqlParameterTypes">
 		<map>
-			<entry key="status" value="java.sql.Types.BINARY" />
+			<entry key="status" value=""#{ T(java.sql.Types).BINARY}" />
 		</map>
 	</property>
 </bean>
