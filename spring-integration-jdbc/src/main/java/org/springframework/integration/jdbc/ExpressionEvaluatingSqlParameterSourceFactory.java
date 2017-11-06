@@ -130,11 +130,11 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	}
 
 	/**
-	 * Optionally set parameter types for the used parameters. Use
+	 * Optionally set parameter sql types for the used parameters. Use
 	 * {@link java.sql.Types} to get the parameter type value.
-	 * @param sqlParametersTypes the parameter type to set
-	 * @see java.sql.Types
+	 * @param sqlParametersTypes the parameter type to use
 	 * @since 5.0
+	 * @see java.sql.Types
 	 */
 	public void setSqlParameterTypes(Map<String, Integer> sqlParametersTypes) {
 		this.sqlParametersTypes = sqlParametersTypes;
@@ -144,7 +144,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	public SqlParameterSource createParameterSource(final Object input) {
 		AbstractSqlParameterSource sqlParameterSource = new ExpressionEvaluatingSqlParameterSource(input,
 				this.staticParameters, this.parameterExpressions, true);
-		enrichSqlParametersType(sqlParameterSource);
+		registerSqlTypes(sqlParameterSource);
 		return sqlParameterSource;
 	}
 
@@ -158,7 +158,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	public SqlParameterSource createParameterSourceNoCache(final Object input) {
 		AbstractSqlParameterSource sqlParameterSource = new ExpressionEvaluatingSqlParameterSource(input,
 				this.staticParameters, this.parameterExpressions, false);
-		enrichSqlParametersType(sqlParameterSource);
+		registerSqlTypes(sqlParameterSource);
 		return sqlParameterSource;
 	}
 
@@ -168,9 +168,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		this.getEvaluationContext().setVariable("staticParameters", this.staticParameters);
 	}
 
-	private void enrichSqlParametersType(AbstractSqlParameterSource sqlParameterSource) {
+	private void registerSqlTypes(AbstractSqlParameterSource sqlParameterSource) {
 		if (this.sqlParametersTypes != null) {
-			this.sqlParametersTypes.forEach((parameter, type) -> sqlParameterSource.registerSqlType(parameter, type));
+			this.sqlParametersTypes.forEach(sqlParameterSource::registerSqlType);
 		}
 	}
 

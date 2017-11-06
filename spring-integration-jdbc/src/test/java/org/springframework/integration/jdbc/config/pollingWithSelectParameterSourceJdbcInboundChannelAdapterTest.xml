@@ -17,7 +17,7 @@
 	<beans:import  resource="jdbcInboundChannelAdapterCommonConfig.xml" />
 
 	<beans:bean id="parameterSource" factory-bean="parameterSourceFactory" factory-method="createParameterSourceNoCache">
-		<beans:constructor-arg value="#{ T(java.sql.Types).INTEGER}" />
+		<beans:constructor-arg value="" />
 	</beans:bean>
 
 	<beans:bean id="parameterSourceFactory" class="org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
@@ -28,7 +28,7 @@
 		</beans:property>
 		<beans:property name="sqlParameterTypes">
 			<beans:map>
-				<beans:entry key="status" value="4" />
+				<beans:entry key="status" value="#{ T(java.sql.Types).INTEGER}" />
 			</beans:map>		
 		</beans:property>
 	</beans:bean>

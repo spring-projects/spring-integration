@@ -32,7 +32,7 @@ import org.springframework.jdbc.support.JdbcUtils;
 
 /**
  * @author Dave Syer
- *
+ * @author Meherzad Lahewala
  */
 public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 
