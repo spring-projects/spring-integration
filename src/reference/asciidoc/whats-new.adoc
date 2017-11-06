@@ -296,9 +296,6 @@ See <<gemfire>> for more information.
 
 The `JdbcMessageChannelStore` now provides setter for the `ChannelMessageStorePreparedStatementSetter` allowing users to customize a message insertion in the store.
 
-See <<jdbc-message-store-channels>> for more information.
+The `ExpressionEvaluatingSqlParameterSourceFactory` now provides setter for the sqlParameterTypes allowing users to customize sql types of the parameters.
 
-The `ExpressionEvaluatingSqlParameterSourceFactory` now provides setter for the sqlParameterTypes allowing users
-to customize sql types of the parameters.
-
-See <<jdbc-inbound-channel-adapter>> for more information.
+See <<jdbc>> for more information.

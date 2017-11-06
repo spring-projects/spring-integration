@@ -33,18 +33,20 @@ import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 /**
- * An implementation of {@link SqlParameterSourceFactory} which creates an {@link SqlParameterSource} that evaluates
- * Spring EL expressions. In addition the user can supply static parameters that always take precedence.
+ * An implementation of {@link SqlParameterSourceFactory} which creates
+ * an {@link SqlParameterSource} that evaluates Spring EL expressions.
+ * In addition the user can supply static parameters that always take precedence.
  *
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
  * @author Meherzad Lahewala
+ *
  * @since 2.0
  */
-public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator implements
-		SqlParameterSourceFactory {
+public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator
+		implements SqlParameterSourceFactory {
 
 	private final static Log logger = LogFactory.getLog(ExpressionEvaluatingSqlParameterSourceFactory.class);
 
@@ -66,14 +68,13 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 	public ExpressionEvaluatingSqlParameterSourceFactory() {
 		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());
-		this.parameterExpressions = new HashMap<String, Expression[]>();
+		this.parameterExpressions = new HashMap<>();
 	}
 
 	/**
 	 * Define some static parameter values. These take precedence over those defined as expressions in the
 	 * {@link #setParameterExpressions(Map) parameterExpressions}, so a parameter in the query will be filled from here
 	 * first, and then from the expressions.
-	 *
 	 * @param staticParameters the static parameters to set
 	 */
 	public void setStaticParameters(Map<String, ?> staticParameters) {
@@ -111,12 +112,10 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * <td>{@code select * from items where name=:key}</td>
 	 * </tr>
 	 * </table>
-	 * <p>
-	 *
 	 * @param parameterExpressions the parameter expressions to set
 	 */
 	public void setParameterExpressions(Map<String, String> parameterExpressions) {
-		Map<String, Expression[]> paramExpressions = new HashMap<String, Expression[]>(parameterExpressions.size());
+		Map<String, Expression[]> paramExpressions = new HashMap<>(parameterExpressions.size());
 		for (Map.Entry<String, String> entry : parameterExpressions.entrySet()) {
 			String key = entry.getKey();
 			String expression = entry.getValue();
@@ -130,9 +129,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	}
 
 	/**
-	 * Optionally set parameter sql types for the used parameters. Use
-	 * {@link java.sql.Types} to get the parameter type value.
-	 * @param sqlParametersTypes the parameter type to use
+	 * Specify sql types for the parameters. Optional.
+	 * Use {@link java.sql.Types} to get the parameter type value.
+	 * @param sqlParametersTypes the parameter types to use
 	 * @since 5.0
 	 * @see java.sql.Types
 	 */
@@ -142,10 +141,8 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 	@Override
 	public SqlParameterSource createParameterSource(final Object input) {
-		AbstractSqlParameterSource sqlParameterSource = new ExpressionEvaluatingSqlParameterSource(input,
+		return new ExpressionEvaluatingSqlParameterSource(input,
 				this.staticParameters, this.parameterExpressions, true);
-		registerSqlTypes(sqlParameterSource);
-		return sqlParameterSource;
 	}
 
 	/**
@@ -156,22 +153,14 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * @return The parameter source.
 	 */
 	public SqlParameterSource createParameterSourceNoCache(final Object input) {
-		AbstractSqlParameterSource sqlParameterSource = new ExpressionEvaluatingSqlParameterSource(input,
+		return new ExpressionEvaluatingSqlParameterSource(input,
 				this.staticParameters, this.parameterExpressions, false);
-		registerSqlTypes(sqlParameterSource);
-		return sqlParameterSource;
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
 		this.getEvaluationContext().setVariable("staticParameters", this.staticParameters);
-	}
-
-	private void registerSqlTypes(AbstractSqlParameterSource sqlParameterSource) {
-		if (this.sqlParametersTypes != null) {
-			this.sqlParametersTypes.forEach(sqlParameterSource::registerSqlType);
-		}
 	}
 
 	private final class ExpressionEvaluatingSqlParameterSource extends AbstractSqlParameterSource {
@@ -190,6 +179,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			this.parameterExpressions = parameterExpressions;
 			this.values.putAll(staticParameters);
 			this.cache = cache;
+			if (ExpressionEvaluatingSqlParameterSourceFactory.this.sqlParametersTypes != null) {
+				ExpressionEvaluatingSqlParameterSourceFactory.this.sqlParametersTypes.forEach(this::registerSqlType);
+			}
 		}
 
 		@Override
@@ -253,6 +245,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			}
 			return true;
 		}
+
 	}
 
 }

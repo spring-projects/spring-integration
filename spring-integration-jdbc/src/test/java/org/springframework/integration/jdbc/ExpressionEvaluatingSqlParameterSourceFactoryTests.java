@@ -36,7 +36,8 @@ import org.springframework.jdbc.support.JdbcUtils;
  */
 public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 
-	private final ExpressionEvaluatingSqlParameterSourceFactory factory = new ExpressionEvaluatingSqlParameterSourceFactory();
+	private final ExpressionEvaluatingSqlParameterSourceFactory factory =
+			new ExpressionEvaluatingSqlParameterSourceFactory();
 
 	@Test
 	public void testSetStaticParameters() throws Exception {
@@ -145,4 +146,5 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 		assertEquals("[BAR, BUCKET]", source.getValue(expression).toString());
 		assertEquals(JdbcUtils.TYPE_UNKNOWN, source.getSqlType("spam"));
 	}
+
 }
