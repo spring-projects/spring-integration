@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
  * @since 2.0
  */
 public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator implements
@@ -52,6 +53,8 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	private static final Object ERROR = new Object();
 
 	private volatile Map<String, ?> staticParameters;
+
+	private volatile Map<String, Integer> sqlParametersTypes;
 
 	/**
 	 * The {@link Map} of parameters with expressions.
@@ -126,9 +129,23 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 		this.parameterExpressions = paramExpressions;
 	}
 
+	/**
+	 * Optionally set parameter sql types for the used parameters. Use
+	 * {@link java.sql.Types} to get the parameter type value.
+	 * @param sqlParametersTypes the parameter type to use
+	 * @since 5.0
+	 * @see java.sql.Types
+	 */
+	public void setSqlParameterTypes(Map<String, Integer> sqlParametersTypes) {
+		this.sqlParametersTypes = sqlParametersTypes;
+	}
+
 	@Override
 	public SqlParameterSource createParameterSource(final Object input) {
-		return new ExpressionEvaluatingSqlParameterSource(input, this.staticParameters, this.parameterExpressions, true);
+		AbstractSqlParameterSource sqlParameterSource = new ExpressionEvaluatingSqlParameterSource(input,
+				this.staticParameters, this.parameterExpressions, true);
+		registerSqlTypes(sqlParameterSource);
+		return sqlParameterSource;
 	}
 
 	/**
@@ -139,13 +156,22 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * @return The parameter source.
 	 */
 	public SqlParameterSource createParameterSourceNoCache(final Object input) {
-		return new ExpressionEvaluatingSqlParameterSource(input, this.staticParameters, this.parameterExpressions, false);
+		AbstractSqlParameterSource sqlParameterSource = new ExpressionEvaluatingSqlParameterSource(input,
+				this.staticParameters, this.parameterExpressions, false);
+		registerSqlTypes(sqlParameterSource);
+		return sqlParameterSource;
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
 		this.getEvaluationContext().setVariable("staticParameters", this.staticParameters);
+	}
+
+	private void registerSqlTypes(AbstractSqlParameterSource sqlParameterSource) {
+		if (this.sqlParametersTypes != null) {
+			this.sqlParametersTypes.forEach(sqlParameterSource::registerSqlType);
+		}
 	}
 
 	private final class ExpressionEvaluatingSqlParameterSource extends AbstractSqlParameterSource {

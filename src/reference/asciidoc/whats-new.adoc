@@ -292,8 +292,13 @@ The `GemfireMetadataStore` now implements `ListenableMetadataStore`, allowing us
 
 See <<gemfire>> for more information.
 
-==== Jdbc Message Channel Store Changes
+==== Jdbc Changes
 
 The `JdbcMessageChannelStore` now provides setter for the `ChannelMessageStorePreparedStatementSetter` allowing users to customize a message insertion in the store.
 
 See <<jdbc-message-store-channels>> for more information.
+
+The `ExpressionEvaluatingSqlParameterSourceFactory` now provides setter for the sqlParameterTypes allowing users
+to customize sql types of the parameters.
+
+See <<jdbc-inbound-channel-adapter>> for more information.
