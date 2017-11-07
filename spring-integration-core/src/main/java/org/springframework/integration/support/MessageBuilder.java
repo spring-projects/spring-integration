@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -52,6 +53,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 
 	private final IntegrationMessageHeaderAccessor headerAccessor;
 
+	@Nullable
 	private final Message<T> originalMessage;
 
 	private volatile boolean modified;
@@ -113,7 +115,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * @return this MessageBuilder.
 	 */
 	@Override
-	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
+	public MessageBuilder<T> setHeader(String headerName, @Nullable Object headerValue) {
 		this.headerAccessor.setHeader(headerName, headerValue);
 		return this;
 	}
@@ -173,7 +175,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * @see MessageHeaders#TIMESTAMP
 	 */
 	@Override
-	public MessageBuilder<T> copyHeaders(Map<String, ?> headersToCopy) {
+	public MessageBuilder<T> copyHeaders(@Nullable Map<String, ?> headersToCopy) {
 		this.headerAccessor.copyHeaders(headersToCopy);
 		return this;
 	}
@@ -185,7 +187,7 @@ public final class MessageBuilder<T> extends AbstractIntegrationMessageBuilder<T
 	 * @return this MessageBuilder.
 	 */
 	@Override
-	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, ?> headersToCopy) {
+	public MessageBuilder<T> copyHeadersIfAbsent(@Nullable Map<String, ?> headersToCopy) {
 		if (headersToCopy != null) {
 			for (Map.Entry<String, ?> entry : headersToCopy.entrySet()) {
 				String headerName = entry.getKey();

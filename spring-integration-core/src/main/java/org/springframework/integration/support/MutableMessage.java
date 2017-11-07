@@ -85,17 +85,16 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 		return this.headers.getRawHeaders();
 	}
 
-	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+		sb.append(" [payload=");
 		if (this.payload instanceof byte[]) {
-			sb.append("[Payload byte[").append(((byte[]) this.payload).length).append("]]");
+			sb.append("byte[").append(((byte[]) this.payload).length).append("]");
 		}
 		else {
-			sb.append("[Payload ").append(this.payload.getClass().getSimpleName());
-			sb.append(" content=").append(this.payload).append("]");
+			sb.append(this.payload);
 		}
-		sb.append("[Headers=").append(this.headers).append("]");
+		sb.append(", headers=").append(this.headers).append("]");
 		return sb.toString();
 	}
 

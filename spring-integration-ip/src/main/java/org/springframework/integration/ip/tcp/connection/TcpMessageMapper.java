@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.mapping.InboundMessageMapper;
@@ -32,7 +33,9 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.MutableMessageHeaders;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
@@ -53,6 +56,7 @@ import org.springframework.util.MimeType;
  * *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -167,7 +171,7 @@ public class TcpMessageMapper implements
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Message<?> toMessage(TcpConnection connection) throws Exception {
+	public Message<?> toMessage(TcpConnection connection, @Nullable Map<String, Object> headers) throws Exception {
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {
@@ -177,11 +181,19 @@ public class TcpMessageMapper implements
 						.fromMessage(this.bytesMessageMapper.toMessage((byte[]) payload));
 			}
 			else {
-				messageBuilder = getMessageBuilderFactory().withPayload(payload);
+				messageBuilder = getMessageBuilderFactory()
+						.withPayload(payload);
 			}
-			this.addStandardHeaders(connection, messageBuilder);
-			this.addCustomHeaders(connection, messageBuilder);
-			message = messageBuilder.build();
+
+			MessageHeaders messageHeaders = new MutableMessageHeaders(null);
+
+			addStandardHeaders(connection, messageHeaders);
+			addCustomHeaders(connection, messageHeaders);
+
+			message = messageBuilder
+					.copyHeaders(messageHeaders)
+					.copyHeadersIfAbsent(headers)
+					.build();
 		}
 		else {
 			if (this.logger.isWarnEnabled()) {
@@ -191,33 +203,32 @@ public class TcpMessageMapper implements
 		return message;
 	}
 
-	protected final void addStandardHeaders(TcpConnection connection,
-			AbstractIntegrationMessageBuilder<?> messageBuilder) {
+	protected final void addStandardHeaders(TcpConnection connection, MessageHeaders messageHeaders) {
 		String connectionId = connection.getConnectionId();
-		messageBuilder
-			.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
-			.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
-			.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
-			.setHeader(IpHeaders.CONNECTION_ID, connectionId);
+
+		messageHeaders.put(IpHeaders.HOSTNAME, connection.getHostName());
+		messageHeaders.put(IpHeaders.IP_ADDRESS, connection.getHostAddress());
+		messageHeaders.put(IpHeaders.REMOTE_PORT, connection.getPort());
+		messageHeaders.put(IpHeaders.CONNECTION_ID, connectionId);
+
 		SocketInfo socketInfo = connection.getSocketInfo();
 		if (socketInfo != null) {
-			messageBuilder.setHeader(IpHeaders.LOCAL_ADDRESS, socketInfo.getLocalAddress());
+			messageHeaders.put(IpHeaders.LOCAL_ADDRESS, socketInfo.getLocalAddress());
 		}
 		if (this.applySequence) {
-			messageBuilder
-				.setCorrelationId(connectionId)
-				.setSequenceNumber((int) connection.incrementAndGetConnectionSequence());
+			messageHeaders.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, connectionId);
+			messageHeaders.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
+					connection.incrementAndGetConnectionSequence());
 		}
 		if (this.addContentTypeHeader) {
-			messageBuilder.setHeader(MessageHeaders.CONTENT_TYPE, this.contentType);
+			messageHeaders.put(MessageHeaders.CONTENT_TYPE, this.contentType);
 		}
 	}
 
-	protected final void addCustomHeaders(TcpConnection connection,
-			AbstractIntegrationMessageBuilder<?> messageBuilder) {
-		Map<String, ?> customHeaders = this.supplyCustomHeaders(connection);
+	protected final void addCustomHeaders(TcpConnection connection, MessageHeaders messageHeaders) {
+		Map<String, ?> customHeaders = supplyCustomHeaders(connection);
 		if (customHeaders != null) {
-			messageBuilder.copyHeadersIfAbsent(customHeaders);
+			customHeaders.forEach(messageHeaders::putIfAbsent);
 		}
 	}
 

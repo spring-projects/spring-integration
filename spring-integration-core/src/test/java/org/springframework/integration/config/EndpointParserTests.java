@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +31,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class EndpointParserTests {
 
@@ -41,8 +43,8 @@ public class EndpointParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("endpointParserTestInput");
 		TestHandler handler = (TestHandler) context.getBean("testHandler");
 		assertNull(handler.getMessageString());
-		channel.send(new GenericMessage<String>("test"));
-		handler.getLatch().await(500, TimeUnit.MILLISECONDS);
+		channel.send(new GenericMessage<>("test"));
+		assertTrue(handler.getLatch().await(10000, TimeUnit.MILLISECONDS));
 		assertEquals("test", handler.getMessageString());
 		context.close();
 	}

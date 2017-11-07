@@ -19,6 +19,7 @@ package org.springframework.integration.ip.udp;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,6 +35,7 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
@@ -61,6 +63,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Dave Syer
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>,
@@ -196,7 +199,12 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	}
 
 	@Override
-	public Message<byte[]> toMessage(DatagramPacket packet) throws Exception {
+	public Message<byte[]> toMessage(DatagramPacket object) throws Exception {
+		return toMessage(object, null);
+	}
+
+	@Override
+	public Message<byte[]> toMessage(DatagramPacket packet, @Nullable Map<String, Object> headers) throws Exception {
 		int offset = packet.getOffset();
 		int length = packet.getLength();
 		byte[] payload;
@@ -205,7 +213,8 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		if (this.lengthCheck) {
 			int declaredLength = buffer.getInt();
 			if (declaredLength != (length - 4)) {
-				throw new MessageMappingException("Incorrect length; expected " + (declaredLength + 4) + ", received " + length);
+				throw new MessageMappingException("Incorrect length; expected " + (declaredLength + 4)
+						+ ", received " + length);
 			}
 			offset += 4;
 			length -= 4;
@@ -223,8 +232,8 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		// side expects it.
 		if (this.acknowledge || startsWith(buffer, IpHeaders.ACK_ADDRESS)) {
 			try {
-				String headers = new String(packet.getData(), offset, length, this.charset);
-				Matcher matcher = udpHeadersPattern.matcher(headers);
+				String headersString = new String(packet.getData(), offset, length, this.charset);
+				Matcher matcher = udpHeadersPattern.matcher(headersString);
 				if (matcher.find()) {
 					// Strip off the ack headers and put in Message headers
 					length = length - matcher.end();
@@ -237,6 +246,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 							.setHeader(IpHeaders.IP_ADDRESS, hostAddress)
 							.setHeader(IpHeaders.PORT, port)
 							.setHeader(IpHeaders.PACKET_ADDRESS, packet.getSocketAddress())
+							.copyHeadersIfAbsent(headers)
 							.build();
 				}  // on no match, just treat as simple payload
 			}

@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.PatternMatchUtils;
@@ -70,6 +71,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * A constructor is provided allowing the provision of such a configured object mapper.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0
  *
@@ -187,10 +189,10 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	}
 
 	@Override
-	public Message<?> toMessage(byte[] bytes) throws Exception {
+	public Message<?> toMessage(byte[] bytes, @Nullable Map<String, Object> headers) throws Exception {
 		Message<?> message = null;
 		try {
-			message = decodeNativeFormat(bytes);
+			message = decodeNativeFormat(bytes, headers);
 		}
 		catch (Exception e) {
 			// empty
@@ -209,11 +211,11 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 			return message;
 		}
 		else {
-			return new GenericMessage<>(bytes);
+			return new GenericMessage<>(bytes, headers);
 		}
 	}
 
-	private Message<?> decodeNativeFormat(byte[] bytes) throws Exception {
+	private Message<?> decodeNativeFormat(byte[] bytes, Map<String, Object> headersToAdd) throws Exception {
 		ByteBuffer buffer = ByteBuffer.wrap(bytes);
 		if (buffer.remaining() > 4) {
 			int headersLen = buffer.getInt();
@@ -228,13 +230,19 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 					@SuppressWarnings("unchecked")
 					Map<String, Object> headers = this.objectMapper.readValue(bytes, buffer.position(), headersLen,
 							HashMap.class);
+
 					buffer.position(buffer.position() + headersLen);
 					buffer.getInt();
 					Object payload;
 					byte[] payloadBytes = new byte[payloadLen];
 					buffer.get(payloadBytes);
 					payload = payloadBytes;
-					return new GenericMessage<Object>(payload, new MutableMessageHeaders(headers));
+
+					if (headersToAdd != null) {
+						headersToAdd.forEach(headers::putIfAbsent);
+					}
+
+					return new GenericMessage<>(payload, new MutableMessageHeaders(headers));
 				}
 			}
 		}

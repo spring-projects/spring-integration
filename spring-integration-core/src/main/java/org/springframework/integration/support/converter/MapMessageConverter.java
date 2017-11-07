@@ -26,6 +26,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -90,8 +91,9 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 		this.filterHeadersInToMessage = filterHeadersInToMessage;
 	}
 
+	@Nullable
 	@Override
-	public Message<?> toMessage(Object object, MessageHeaders messageHeaders) {
+	public Message<?> toMessage(Object object, @Nullable MessageHeaders messageHeaders) {
 		Assert.isInstanceOf(Map.class, object, "This converter expects a Map");
 		@SuppressWarnings("unchecked")
 		Map<String, ?> map = (Map<String, ?>) object;
@@ -106,9 +108,12 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 			}
 			messageBuilder.copyHeaders(headers);
 		}
-		return messageBuilder.build();
+		return messageBuilder
+				.copyHeadersIfAbsent(messageHeaders)
+				.build();
 	}
 
+	@Nullable
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> clazz) {
 		Map<String, Object> map = new HashMap<String, Object>();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,39 @@
 
 package org.springframework.integration.mapping;
 
+import java.util.Map;
+
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
  * Strategy interface for mapping from an Object to a{@link Message}.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @FunctionalInterface
 public interface InboundMessageMapper<T> {
 
-	Message<?> toMessage(T object) throws Exception;
+	/**
+	 * Convert a provided object to the {@link Message}.
+	 * @param object the object for message payload or some other conversion logic
+	 * @return the message as a result of mapping
+	 * @throws Exception the exception thrown by the underlying mapper implementation
+	 */
+	default Message<?> toMessage(T object) throws Exception {
+		return toMessage(object, null);
+	}
+
+	/**
+	 * Convert a provided object to the {@link Message}
+	 * and supply with headers if necessary and provided.
+	 * @param object the object for message payload or some other conversion logic
+	 * @param headers additional headers for building message. Can be null
+	 * @return the message as a result of mapping
+	 * @throws Exception the exception thrown by the underlying mapper implementation
+	 * @since 5.0
+	 */
+	Message<?> toMessage(T object, @Nullable Map<String, Object> headers) throws Exception;
 
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.gateway;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -792,11 +793,14 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 
 		@Override
-		public Message<?> toMessage(Object object) throws Exception {
+		public Message<?> toMessage(Object object, @Nullable Map<String, Object> headers) throws Exception {
 			if (object instanceof Message<?>) {
 				return (Message<?>) object;
 			}
-			return (object != null) ? this.messageBuilderFactory.withPayload(object).build() : null;
+
+			return object != null
+					? this.messageBuilderFactory.withPayload(object).copyHeadersIfAbsent(headers).build()
+					: null;
 		}
 
 	}
