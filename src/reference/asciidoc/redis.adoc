@@ -103,7 +103,7 @@ Instead those Messages are passed through Redis allowing you to rely on its supp
 [[redis-inbound-channel-adapter]]
 ==== Redis Inbound Channel Adapter
 
-The Redis-based Inbound Channel Adapter adapts incoming Redis messages into Spring Integration Messages in the same way as other inbound adapters.
+The Redis-based Inbound Channel Adapter (`RedisInboundChannelAdapter`) adapts incoming Redis messages into Spring Integration Messages in the same way as other inbound adapters.
 It receives platform-specific messages (Redis in this case) and converts them to Spring Integration Messages using a `MessageConverter` strategy.
 [source,xml]
 ----
@@ -141,6 +141,8 @@ The `serializer` attribute of the `<int-redis:inbound-channel-adapter>` can be s
 In this case the raw `byte[]` bodies of Redis Messages are provided as the message payloads.
 
 Since _version 5.0_, an `Executor` instance can be provided to the Inbound Adapter via the `task-executor` attribute of the `<int-redis:inbound-channel-adapter>`.
+Also the received Spring Integration Messages have now `RedisHeaders.MESSAGE_SOURCE` header to indicate the source of the published message - topic or pattern.
+This can be used downstream for routing logic.
 
 [[redis-outbound-channel-adapter]]
 ==== Redis Outbound Channel Adapter

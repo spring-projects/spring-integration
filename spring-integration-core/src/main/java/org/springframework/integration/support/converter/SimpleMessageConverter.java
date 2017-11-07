@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,16 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class SimpleMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	private volatile InboundMessageMapper inboundMessageMapper;
@@ -103,7 +105,14 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 	@Override
 	public Message<?> toMessage(Object object, MessageHeaders headers) {
 		try {
-			return this.inboundMessageMapper.toMessage(object);
+			Message message = this.inboundMessageMapper.toMessage(object);
+			if (headers != null) {
+				message =
+						MessageBuilder.fromMessage(message)
+								.copyHeadersIfAbsent(headers)
+								.build();
+			}
+			return message;
 		}
 		catch (Exception e) {
 			throw new MessageConversionException("failed to convert object to Message", e);
