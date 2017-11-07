@@ -83,6 +83,7 @@ import org.springframework.util.CollectionUtils;
  * @author Artem Bilan
  * @author David Liu
  * @author Enrique Rodriguez
+ *
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
@@ -432,9 +433,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						completedMessages = this.completeGroup(message, correlationKey, messageGroup);
 					}
 					finally {
-						// Always clean up even if there was an exception
-						// processing messages
-						this.afterRelease(messageGroup, completedMessages);
+						// Possible clean (implementation dependency) up
+						// even if there was an exception processing messages
+						afterRelease(messageGroup, completedMessages);
 					}
 					if (!isExpireGroupsUponCompletion() && this.minimumTimeoutForEmptyGroups > 0) {
 						removeEmptyGroupAfterTimeout(messageGroup, this.minimumTimeoutForEmptyGroups);
