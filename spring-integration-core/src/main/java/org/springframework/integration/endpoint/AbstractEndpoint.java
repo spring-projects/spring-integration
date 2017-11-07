@@ -19,11 +19,15 @@ package org.springframework.integration.endpoint;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.IntegrationProperties;
+import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * The base class for Message Endpoint implementations.
@@ -40,7 +44,8 @@ import org.springframework.util.PatternMatchUtils;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public abstract class AbstractEndpoint extends IntegrationObjectSupport implements SmartLifecycle {
+public abstract class AbstractEndpoint extends IntegrationObjectSupport
+		implements SmartLifecycle, DisposableBean {
 
 	private boolean autoStartupSetExplicitly;
 
@@ -54,6 +59,9 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 
 	protected final Condition lifecycleCondition = this.lifecycleLock.newCondition();
 
+	private String role;
+
+	private SmartLifecycleRoleController roleController;
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
@@ -62,6 +70,22 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 
 	public void setPhase(int phase) {
 		this.phase = phase;
+	}
+
+	/**
+	 * Specify the role for the endpoint.
+	 * Such endpoints can be started/stopped as a group.
+	 * @param role the role for this endpoint.
+	 * @since 5.0
+	 * @see SmartLifecycle
+	 * @see org.springframework.integration.support.SmartLifecycleRoleController
+	 */
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	public String getRole() {
+		return this.role;
 	}
 
 	@Override
@@ -83,6 +107,21 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 					break;
 				}
 			}
+		}
+
+		if (StringUtils.hasText(this.role)) {
+			this.roleController = getBeanFactory()
+					.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
+					SmartLifecycleRoleController.class);
+
+			this.roleController.addLifecycleToRole(this.role, this);
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (this.roleController != null) {
+			this.roleController.removeLifecycle(this);
 		}
 	}
 

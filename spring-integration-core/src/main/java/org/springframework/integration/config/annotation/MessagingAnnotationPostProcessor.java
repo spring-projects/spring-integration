@@ -140,9 +140,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		try {
 			roleController = this.beanFactory.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
 					SmartLifecycleRoleController.class);
-			for (Entry<String, List<String>> entry : this.lazyLifecycleRoles.entrySet()) {
-				roleController.addLifecyclesToRole(entry.getKey(), entry.getValue());
-			}
+
+			this.lazyLifecycleRoles.forEach(roleController::addLifecyclesToRole);
 		}
 		catch (NoSuchBeanDefinitionException e) {
 			this.logger.error("No LifecycleRoleController in the context");

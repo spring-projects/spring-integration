@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 		}
 		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(sessionAcknowledgeMode);
 		if (acknowledgeMode != null) {
-			if (acknowledgeMode.intValue() == JmsAdapterUtils.SESSION_TRANSACTED) {
+			if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
 				this.listenerContainer.setSessionTransacted(true);
 			}
 			else {
@@ -191,15 +191,14 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 			this.stop();
 		}
 		this.listenerContainer.destroy();
+		super.destroy();
 	}
-
 
 	@Override
 	public int beforeShutdown() {
 		this.stop();
 		return 0;
 	}
-
 
 	@Override
 	public int afterShutdown() {
