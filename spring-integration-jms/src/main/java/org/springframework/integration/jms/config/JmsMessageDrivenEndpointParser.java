@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,20 +110,14 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String containerBeanName = this.parseMessageListenerContainer(element, parserContext, builder.getRawBeanDefinition());
-		String listenerBeanName = this.parseMessageListener(element, parserContext, builder.getRawBeanDefinition());
+		String containerBeanName = parseMessageListenerContainer(element, parserContext, builder.getRawBeanDefinition());
+		String listenerBeanName = parseMessageListener(element, parserContext, builder.getRawBeanDefinition());
 		builder.addConstructorArgReference(containerBeanName);
 		builder.addConstructorArgReference(listenerBeanName);
 		builder.addConstructorArgValue(hasExternalContainer(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
-		String role = element.getAttribute(IntegrationNamespaceUtils.ROLE);
-		if (StringUtils.hasText(role)) {
-			if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
-				parserContext.getReaderContext().error("When using 'role', 'id' is required", element);
-			}
-			IntegrationNamespaceUtils.putLifecycleInRole(role, element.getAttribute(ID_ATTRIBUTE), parserContext);
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.ROLE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge", "sessionAcknowledgeMode");
 
 	}

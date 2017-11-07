@@ -80,6 +80,12 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 		return _this();
 	}
 
+	@Override
+	public S role(String role) {
+		this.endpointFactoryBean.setRole(role);
+		return _this();
+	}
+
 	/**
 	 * Configure a {@link TaskScheduler} for scheduling tasks, for example in the
 	 * Polling Consumer. By default the global {@code ThreadPoolTaskScheduler} bean is used.

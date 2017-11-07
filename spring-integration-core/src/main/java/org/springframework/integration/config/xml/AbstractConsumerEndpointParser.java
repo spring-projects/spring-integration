@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			id = element.getAttribute("name");
 		}
 		if (!StringUtils.hasText(id)) {
-			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(), parserContext.isNested());
+			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(),
+					parserContext.isNested());
 		}
 		return id;
 	}
@@ -142,7 +143,9 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)) {
-			if (parserContext.getRegistry().containsBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)) {
+			if (parserContext.getRegistry()
+					.containsBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)) {
+
 				BeanDefinition channelRegistry = parserContext.getRegistry().
 						getBeanDefinition(IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
 				ConstructorArgumentValues caValues = channelRegistry.getConstructorArgumentValues();
@@ -152,12 +155,14 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 				}
 
 				@SuppressWarnings("unchecked")
-				Collection<String> channelCandidateNames = (Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue();
+				Collection<String> channelCandidateNames =
+						(Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue();
 				channelCandidateNames.add(inputChannelName);
 			}
 			else {
 				parserContext.getReaderContext().error("Failed to locate '" +
-						IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'", parserContext.getRegistry());
+						IntegrationContextUtils.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'",
+						parserContext.getRegistry());
 			}
 		}
 		IntegrationNamespaceUtils.checkAndConfigureFixedSubscriberChannel(element, parserContext, inputChannelName,
@@ -174,13 +179,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
-		String role = element.getAttribute(IntegrationNamespaceUtils.ROLE);
-		if (StringUtils.hasText(role)) {
-			if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
-				parserContext.getReaderContext().error("When using 'role', 'id' is required", element);
-			}
-			IntegrationNamespaceUtils.putLifecycleInRole(role, element.getAttribute(ID_ATTRIBUTE), parserContext);
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.ROLE);
+
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = this.resolveId(element, beanDefinition, parserContext);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));

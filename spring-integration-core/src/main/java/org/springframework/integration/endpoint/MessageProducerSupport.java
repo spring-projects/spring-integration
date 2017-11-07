@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.core.MessageProducer;
@@ -156,9 +157,17 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	@Override
 	protected void onInit() {
+		try {
+			super.onInit();
+		}
+		catch (Exception e) {
+			throw new BeanInitializationException("Cannot initialize: " + this, e);
+		}
+
 		if (this.getBeanFactory() != null) {
 			this.messagingTemplate.setBeanFactory(this.getBeanFactory());
 		}
+
 	}
 
 	/**

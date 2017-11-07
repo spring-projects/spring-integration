@@ -52,7 +52,8 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 			id = id + ".adapter";
 		}
 		else if (!StringUtils.hasText(id)) {
-			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(), parserContext.isNested());
+			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry(),
+					parserContext.isNested());
 		}
 		return id;
 	}
@@ -76,10 +77,7 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 			}
 			String role = element.getAttribute(IntegrationNamespaceUtils.ROLE);
 			if (StringUtils.hasText(role)) {
-				if (!StringUtils.hasText(element.getAttribute(ID_ATTRIBUTE))) {
-					parserContext.getReaderContext().error("When using 'role', 'id' is required", element);
-				}
-				IntegrationNamespaceUtils.putLifecycleInRole(role, element.getAttribute(ID_ATTRIBUTE), parserContext);
+				propertyValues.add("role", new TypedStringValue(role));
 			}
 		}
 		return beanDefinition;

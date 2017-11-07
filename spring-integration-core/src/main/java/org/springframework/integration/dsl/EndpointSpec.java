@@ -115,6 +115,16 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 */
 	public abstract S autoStartup(boolean autoStartup);
 
+	/**
+	 * Specify the role for the endpoint.
+	 * Such endpoints can be started/stopped as a group.
+	 * @param role the role for this endpoint.
+	 * @return the endpoint spec
+	 * @see SmartLifecycle
+	 * @see org.springframework.integration.support.SmartLifecycleRoleController
+	 */
+	public abstract S role(String role);
+
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
 		return this.componentsToRegister.isEmpty()

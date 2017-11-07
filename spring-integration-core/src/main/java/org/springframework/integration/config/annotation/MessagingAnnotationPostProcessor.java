@@ -36,8 +36,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -52,9 +50,7 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -74,8 +70,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Rick Hogge
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware,
-		InitializingBean, SmartInitializingSingleton {
+public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
@@ -132,21 +127,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
-	}
-
-	@Override
-	public void afterSingletonsInstantiated() {
-		SmartLifecycleRoleController roleController;
-		try {
-			roleController = this.beanFactory.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
-					SmartLifecycleRoleController.class);
-			for (Entry<String, List<String>> entry : this.lazyLifecycleRoles.entrySet()) {
-				roleController.addLifecyclesToRole(entry.getKey(), entry.getValue());
-			}
-		}
-		catch (NoSuchBeanDefinitionException e) {
-			this.logger.error("No LifecycleRoleController in the context");
-		}
 	}
 
 	@Override
@@ -222,16 +202,15 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					}
 				}
 
+				Role role = AnnotationUtils.findAnnotation(method, Role.class);
+				if (role != null) {
+					endpoint.setRole(role.value());
+				}
+
 				String endpointBeanName = generateBeanName(beanName, method, annotationType);
 				endpoint.setBeanName(endpointBeanName);
 				getBeanFactory().registerSingleton(endpointBeanName, endpoint);
 				getBeanFactory().initializeBean(endpoint, endpointBeanName);
-
-				Role role = AnnotationUtils.findAnnotation(method, Role.class);
-				if (role != null) {
-					MessagingAnnotationPostProcessor.this.lazyLifecycleRoles.add(role.value(),
-							endpointBeanName);
-				}
 			}
 		}
 	}
@@ -288,10 +267,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	protected Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> getPostProcessors() {
 		return this.postProcessors;
-	}
-
-	protected MultiValueMap<String, String> getLazyLifecycleRoles() {
-		return this.lazyLifecycleRoles;
 	}
 
 }

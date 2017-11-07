@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.w3c.dom.NodeList;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -611,21 +610,6 @@ public abstract class IntegrationNamespaceUtils {
 			}
 			candidates.put(handlerBeanName, channelName);
 		}
-	}
-
-	public static void putLifecycleInRole(String role, String beanName, ParserContext parserContext) {
-		BeanDefinitionRegistry registry = parserContext.getRegistry();
-		IntegrationConfigUtils.registerRoleControllerDefinitionIfNecessary(registry);
-		BeanDefinition controllerDef = registry.getBeanDefinition(
-				IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER);
-		@SuppressWarnings("unchecked")
-		ManagedList<String> roles = (ManagedList<String>) controllerDef.getConstructorArgumentValues()
-				.getArgumentValue(0, ManagedList.class).getValue();
-		@SuppressWarnings("unchecked")
-		ManagedList<BeanReference> lifecycles = (ManagedList<BeanReference>) controllerDef.getConstructorArgumentValues()
-				.getArgumentValue(1, ManagedList.class).getValue();
-		roles.add(role);
-		lifecycles.add(new RuntimeBeanReference(beanName));
 	}
 
 	public static void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
