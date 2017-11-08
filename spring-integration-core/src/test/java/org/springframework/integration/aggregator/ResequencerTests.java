@@ -92,7 +92,7 @@ public class ResequencerTests {
 	public void testBasicResequencingA() throws InterruptedException {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
-		this.resequencer.setReleaseStrategy(releaseStrategy);
+		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
 		this.resequencer.setBeanFactory(mock(BeanFactory.class));
 		this.resequencer.afterPropertiesSet();
 
@@ -111,8 +111,8 @@ public class ResequencerTests {
 	public void testBasicUnboundedResequencing() throws InterruptedException {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
+		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
 		QueueChannel replyChannel = new QueueChannel();
-		this.resequencer.setReleaseStrategy(releaseStrategy);
 		this.resequencer.setCorrelationStrategy(message -> "A");
 		this.resequencer.setBeanFactory(mock(BeanFactory.class));
 		this.resequencer.afterPropertiesSet();
