@@ -132,6 +132,8 @@ For simple scenarios your _Service Activators_ do not even have to reference a b
 
 In the above configuration our service logic is to simply multiply the payload value by 2, and SpEL lets us handle it relatively easy.
 
+See <<java-dsl-handle>> in Java DSL chapter for more information about configuring Service Activator.
+
 [[async-service-activator]]
 ==== Asynchronous Service Activator
 

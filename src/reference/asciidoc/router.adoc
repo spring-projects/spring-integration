@@ -1110,6 +1110,8 @@ public List<String> route(@Header("orderStatus") OrderStatus status)
 
 NOTE: For routing of XML-based Messages, including XPath support, see <<xml>>.
 
+Also see <<java-dsl-routers>> in Java DSL chapter for more information about routers configuration.
+
 [[dynamic-routers]]
 ==== Dynamic Routers
 

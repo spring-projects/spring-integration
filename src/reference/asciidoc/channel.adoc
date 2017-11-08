@@ -856,3 +856,6 @@ The 'nullChannel' acts like `/dev/null`, simply logging any Message sent to it a
 Any time you face channel resolution errors for a reply that you don't care about, you can set the affected component's `output-channel` attribute to 'nullChannel' (the name 'nullChannel' is reserved within the application context).
 The 'errorChannel' is used internally for sending error messages and may be overridden with a custom configuration.
 This is discussed in greater detail in <<namespace-errorhandler>>.
+
+
+See also <<java-dsl-channels>> in Java DSL chapter for more information about message channel and interceptors.
