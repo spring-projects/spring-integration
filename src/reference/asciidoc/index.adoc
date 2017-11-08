@@ -44,7 +44,10 @@ include::./message-transformation.adoc[]
 
 include::./messaging-endpoints.adoc[]
 
+include::./dsl.adoc[]
+
 include::./system-management.adoc[]
+
 [[spring-integration-endpoints]]
 = Integration Endpoints
 

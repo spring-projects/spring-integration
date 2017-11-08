@@ -13,7 +13,7 @@ development process.
 
 The separate https://github.com/spring-projects/spring-integration-java-dsl[Spring Integration Java DSL] project has now been merged into the core Spring Integration project.
 The `IntegrationComponentSpec` implementations for channel adapters and gateways are distributed to their specific modules.
-See <<spring-integration-endpoints>> for more information about Java DSL support for target protocol integration.
+See <<java-dsl>> for more information about Java DSL support.
 Also see the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.3-to-5.0-Migration-Guide#java-dsl[4.3 to 5.0 Migration Guide] for the required steps to move to Spring Integration 5.0.
 
 ==== Testing Support

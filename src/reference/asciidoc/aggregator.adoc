@@ -285,6 +285,8 @@ See <<aggregator-config>> below for more information.
 [[aggregator-config]]
 ==== Configuring an Aggregator
 
+See <<java-dsl-aggregators>> for configuring an Aggregator in Java DSL.
+
 [[aggregator-xml]]
 ===== Configuring an Aggregator with XML
 
