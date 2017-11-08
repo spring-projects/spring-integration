@@ -30,6 +30,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.jivesoftware.smackx.gcm.provider.GcmExtensionProvider;
 import org.junit.Test;
+import org.jxmpp.jid.impl.JidCreate;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -112,7 +113,8 @@ public class ChatMessageSendingMessageHandlerTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		org.jivesoftware.smack.packet.Message smackMessage = new org.jivesoftware.smack.packet.Message("kermit@frog.com");
+		org.jivesoftware.smack.packet.Message smackMessage =
+				new org.jivesoftware.smack.packet.Message(JidCreate.from("kermit@frog.com"));
 		smackMessage.setBody("Test Message");
 
 
@@ -123,7 +125,7 @@ public class ChatMessageSendingMessageHandlerTests {
 		verify(connection, times(1)).sendStanza(smackMessage);
 
 		// assuming we know thread ID although currently we do not provide this capability
-		smackMessage = new org.jivesoftware.smack.packet.Message("kermit@frog.com");
+		smackMessage = new org.jivesoftware.smack.packet.Message(JidCreate.from("kermit@frog.com"));
 		smackMessage.setBody("Hello Kitty");
 		smackMessage.setThread("123");
 		message = MessageBuilder.withPayload(smackMessage).build();
@@ -159,7 +161,7 @@ public class ChatMessageSendingMessageHandlerTests {
 		org.jivesoftware.smack.packet.Message smackMessage = argumentCaptor.getValue();
 
 		assertNull(smackMessage.getBody());
-		assertEquals("kermit@frog.com", smackMessage.getTo());
+		assertEquals("kermit@frog.com", smackMessage.getTo().toString());
 		GcmPacketExtension gcmPacketExtension = GcmPacketExtension.from(smackMessage);
 		assertNotNull(gcmPacketExtension);
 		assertEquals(json, gcmPacketExtension.getJson());
@@ -171,13 +173,13 @@ public class ChatMessageSendingMessageHandlerTests {
 	@Test(expected = MessageHandlingException.class)
 	public void validateFailureNoChatToUser() throws Exception {
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(mock(XMPPConnection.class));
-		handler.handleMessage(new GenericMessage<String>("hello"));
+		handler.handleMessage(new GenericMessage<>("hello"));
 	}
 
 	@Test(expected = MessageHandlingException.class)
 	public void validateMessageWithUnsupportedPayload() throws Exception {
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(mock(XMPPConnection.class));
-		handler.handleMessage(new GenericMessage<Integer>(123));
+		handler.handleMessage(new GenericMessage<>(123));
 	}
 
 	@Test

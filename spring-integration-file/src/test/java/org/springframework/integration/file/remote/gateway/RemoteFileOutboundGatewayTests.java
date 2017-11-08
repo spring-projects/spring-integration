@@ -809,9 +809,9 @@ public class RemoteFileOutboundGatewayTests {
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", null);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<TestLsEntry>(sessionFactory);
-		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		handler.setRemoteDirectoryExpressionString("'foo/'");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		gw.afterPropertiesSet();
@@ -844,7 +844,7 @@ public class RemoteFileOutboundGatewayTests {
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", null);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "put", "payload");
 		FileTransferringMessageHandler<TestLsEntry> handler = new FileTransferringMessageHandler<TestLsEntry>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		handler.setBeanFactory(mock(BeanFactory.class));
@@ -905,7 +905,7 @@ public class RemoteFileOutboundGatewayTests {
 		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", null);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", "payload");
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(session);
 		final AtomicReference<String> written = new AtomicReference<String>();

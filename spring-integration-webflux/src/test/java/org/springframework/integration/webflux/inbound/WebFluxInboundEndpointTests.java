@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -83,6 +84,17 @@ public class WebFluxInboundEndpointTests {
 				.jsonPath("$[2].name").isEqualTo("John");
 	}
 
+	@Test
+	public void testServerInternalErrorRequest() {
+		this.webTestClient
+				.get()
+				.uri("/error")
+				.accept(MediaType.TEXT_PLAIN)
+				.exchange()
+				.expectStatus()
+				.is5xxServerError();
+	}
+
 	@Configuration
 	@EnableWebFlux
 	@EnableIntegration
@@ -126,6 +138,22 @@ public class WebFluxInboundEndpointTests {
 		@ServiceActivator(inputChannel = "fluxResultChannel")
 		Flux<Person> getPersons() {
 			return Flux.just(new Person("Jane"), new Person("Jason"), new Person("John"));
+		}
+
+
+		@Bean
+		public WebFluxInboundEndpoint errorInboundEndpoint() {
+			WebFluxInboundEndpoint endpoint = new WebFluxInboundEndpoint();
+			RequestMapping requestMapping = new RequestMapping();
+			requestMapping.setPathPatterns("/error");
+			endpoint.setRequestMapping(requestMapping);
+			endpoint.setRequestChannelName("errorServiceChannel");
+			return endpoint;
+		}
+
+		@ServiceActivator(inputChannel = "errorServiceChannel")
+		public ResponseEntity<String> processHttpRequest() {
+			return new ResponseEntity<>("<500 Internal Server Error,{}>", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 	}

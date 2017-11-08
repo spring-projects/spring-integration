@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.xmpp.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
@@ -42,7 +41,7 @@ public class XmppConnectionParserTests {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("XmppConnectionParserTests-simple.xml", this.getClass());
 		XMPPConnection connection  = ac.getBean("connection", XMPPConnection.class);
-		assertEquals("my.domain", connection.getServiceName());
+		assertEquals("my.domain", connection.getXMPPServiceDomain().toString());
 		assertFalse(connection.isConnected());
 		XmppConnectionFactoryBean xmppFb = ac.getBean("&connection", XmppConnectionFactoryBean.class);
 		assertEquals("happy.user@my.domain", TestUtils.getPropertyValue(xmppFb, "user"));
@@ -57,19 +56,11 @@ public class XmppConnectionParserTests {
 	}
 
 	@Test
-	public void testDefaultConnectionName() {
-		ConfigurableApplicationContext ac =
-				new ClassPathXmlApplicationContext("XmppConnectionParserTests-simple.xml", this.getClass());
-		assertTrue(ac.containsBean("xmppConnection"));
-		ac.close();
-	}
-
-	@Test
 	public void testCompleteConfiguration() {
 		ConfigurableApplicationContext ac =
 				new ClassPathXmlApplicationContext("XmppConnectionParserTests-complete.xml", this.getClass());
 		XMPPConnection connection  = ac.getBean("connection", XMPPConnection.class);
-		assertEquals("foogle.com", connection.getServiceName());
+		assertEquals("foogle.com", connection.getXMPPServiceDomain().toString());
 		assertFalse(connection.isConnected());
 		XmppConnectionFactoryBean xmppFb = ac.getBean("&connection", XmppConnectionFactoryBean.class);
 		assertEquals("happy.user", TestUtils.getPropertyValue(xmppFb, "user"));

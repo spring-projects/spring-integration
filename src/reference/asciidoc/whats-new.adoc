@@ -99,7 +99,9 @@ The `@GlobalChannelInterceptor` annotation and `<int:channel-interceptor>` now s
 
 See <<global-channel-configuration-interceptors>> for more information.
 
-The `Aggregator` will now fail fast if same `MessageStore` is registered to more than one `Aggregator`.
+A new `OnFailedToAcquireMutexEvent` is emitted now via `DefaultLeaderEventPublisher` by the `LockRegistryLeaderInitiator`, when candidate is failed to acquire the lock.
+
+See <<leadership-event-handling>> for more information.
 
 ==== Gateway Changes
 
@@ -172,6 +174,7 @@ See <<files>> for more information.
 
 The Inbound Channel Adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
 They also are configured with a `FileSystemPersistentAcceptOnceFileListFilter` in the `local-filter` by default.
+
 You can also provide a custom `DirectoryScanner` implementation to Inbound Channel Adapters via the newly introduced `scanner` attribute.
 
 The regex and pattern filters can now be configured to always pass directories.
@@ -185,7 +188,8 @@ The (S)FTP streaming inbound channel adapters now add remote file information in
 
 The FTP and SFTP outbound channel adapters, as well as `PUT` command of the outbound gateways, now support `InputStream` as `payload`, too.
 
-The inbound channel adapters now can build file tree locally and use a new `RecursiveDirectoryScanner` by default for local directory.
+The inbound channel adapters now can build file tree locally using a newly introduced `RecursiveDirectoryScanner`.
+See `scanner` option for injection.
 Also these adapters can now be switched to the `WatchService` instead.
 
 The `NLST` command has been added to the `AbstractRemoteFileOutboundGateway` to perform only list files names remote command.
@@ -287,3 +291,11 @@ See <<ip>> for more information.
 The `GemfireMetadataStore` now implements `ListenableMetadataStore`, allowing users to listen to cache events by providing `MetadataStoreListener` instances to the store.
 
 See <<gemfire>> for more information.
+
+==== Jdbc Changes
+
+The `JdbcMessageChannelStore` now provides setter for the `ChannelMessageStorePreparedStatementSetter` allowing users to customize a message insertion in the store.
+
+The `ExpressionEvaluatingSqlParameterSourceFactory` now provides setter for the sqlParameterTypes allowing users to customize sql types of the parameters.
+
+See <<jdbc>> for more information.

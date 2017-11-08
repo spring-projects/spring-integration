@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -41,6 +43,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,7 +75,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
@@ -86,16 +89,20 @@ import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
 import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
+import org.springframework.web.socket.server.RequestUpgradeStrategy;
+import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
-@ContextConfiguration(classes = WebSocketServerTests.ContextConfiguration.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = WebSocketServerTests.ClientConfig.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class WebSocketServerTests {
 
@@ -114,6 +121,9 @@ public class WebSocketServerTests {
 
 	@Value("#{server.serverContext.getBean('webSocketEvents')}")
 	private PollableChannel webSocketEvents;
+
+	@Value("#{server.serverContext.getBean('requestUpgradeStrategy')}")
+	private Lifecycle requestUpgradeStrategy;
 
 	@Test
 	public void testWebSocketOutboundMessageHandler() throws Exception {
@@ -151,6 +161,8 @@ public class WebSocketServerTests {
 		Message<?> event = this.webSocketEvents.receive(10000);
 		assertNotNull(event);
 		assertThat(event.getPayload(), instanceOf(WebSocketSession.class));
+
+		verify(this.requestUpgradeStrategy).start();
 	}
 
 	@Test
@@ -174,7 +186,7 @@ public class WebSocketServerTests {
 
 	@Configuration
 	@EnableIntegration
-	public static class ContextConfiguration {
+	public static class ClientConfig {
 
 		@Bean
 		public TomcatWebSocketTestServer server() {
@@ -251,8 +263,19 @@ public class WebSocketServerTests {
 		}
 
 		@Bean
+		public RequestUpgradeStrategy requestUpgradeStrategy() {
+			return spy(new MyTomcatRequestUpgradeStrategy());
+		}
+
+		@Bean
+		public DefaultHandshakeHandler handshakeHandler() {
+			return new DefaultHandshakeHandler(requestUpgradeStrategy());
+		}
+
+		@Bean
 		public ServerWebSocketContainer serverWebSocketContainer() {
 			return new ServerWebSocketContainer("/ws")
+					.setHandshakeHandler(handshakeHandler())
 					.setDecoratorFactories(testWebSocketHandlerDecoratorFactory())
 					.setAllowedOrigins("http://foo.com")
 					.withSockJs();
@@ -349,6 +372,25 @@ public class WebSocketServerTests {
 				applicationEventPublisher.publishEvent(session);
 			}
 
+		}
+
+	}
+
+	public static class MyTomcatRequestUpgradeStrategy extends TomcatRequestUpgradeStrategy implements Lifecycle {
+
+		@Override
+		public void start() {
+
+		}
+
+		@Override
+		public void stop() {
+
+		}
+
+		@Override
+		public boolean isRunning() {
+			return true;
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,21 +69,10 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	private final List<SmartLifecycle> lifecycles = new LinkedList<>();
 
-	private final boolean registerComponents = true; // NOSONAR
-
 	private boolean running;
 
 	StandardIntegrationFlow(Map<Object, String> integrationComponents) {
 		this.integrationComponents = new LinkedHashMap<>(integrationComponents);
-	}
-
-	//TODO Figure out some custom DestinationResolver when we don't register singletons - remove NOSONAR above when done
-	/*public void setRegisterComponents(boolean registerComponents) {
-		this.registerComponents = registerComponents;
-	}*/
-
-	public boolean isRegisterComponents() {
-		return this.registerComponents;
 	}
 
 	public void setIntegrationComponents(Map<Object, String> integrationComponents) {

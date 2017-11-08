@@ -53,6 +53,7 @@ import org.springframework.integration.support.locks.LockRegistry;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Vedran Pavic
+ * @author Glenn Renfro
  *
  * @since 4.3.1
  */
@@ -116,6 +117,25 @@ public class LockRegistryLeaderInitiatorTests {
 	}
 
 	@Test
+	public void competingWithErrorPublish() throws Exception {
+		LockRegistryLeaderInitiator another =
+				new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
+
+		CountDownLatch other = new CountDownLatch(1);
+		CountDownLatch failedAcquireLatch = new CountDownLatch(1);
+		another.setLeaderEventPublisher(new CountingPublisher(other, new CountDownLatch(1), failedAcquireLatch));
+		another.setPublishFailedEvents(true);
+		this.initiator.start();
+		assertThat(this.granted.await(20, TimeUnit.SECONDS), is(true));
+		another.start();
+		assertThat(failedAcquireLatch.await(20, TimeUnit.SECONDS), is(true));
+		this.initiator.stop();
+		assertThat(other.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(another.getContext().isLeader(), is(true));
+		another.stop();
+	}
+
+	@Test
 	public void testExceptionFromEvent() throws Exception {
 		CountDownLatch onGranted = new CountDownLatch(1);
 
@@ -159,9 +179,10 @@ public class LockRegistryLeaderInitiatorTests {
 				new LockRegistryLeaderInitiator(firstRegistry, new DefaultCandidate());
 		CountDownLatch firstGranted = new CountDownLatch(1);
 		CountDownLatch firstRevoked = new CountDownLatch(1);
+		CountDownLatch firstAquireLockFailed = new CountDownLatch(1);
 		first.setHeartBeatMillis(10);
 		first.setBusyWaitMillis(1);
-		first.setLeaderEventPublisher(new CountingPublisher(firstGranted, firstRevoked));
+		first.setLeaderEventPublisher(new CountingPublisher(firstGranted, firstRevoked, firstAquireLockFailed));
 
 		// set up second registry instance - this one will NOT be able to obtain lock initially
 		LockRegistry secondRegistry = mock(LockRegistry.class);
@@ -174,9 +195,10 @@ public class LockRegistryLeaderInitiatorTests {
 				new LockRegistryLeaderInitiator(secondRegistry, new DefaultCandidate());
 		CountDownLatch secondGranted = new CountDownLatch(1);
 		CountDownLatch secondRevoked = new CountDownLatch(1);
+		CountDownLatch secondAquireLockFailed = new CountDownLatch(1);
 		second.setHeartBeatMillis(10);
 		second.setBusyWaitMillis(1);
-		second.setLeaderEventPublisher(new CountingPublisher(secondGranted, secondRevoked));
+		second.setLeaderEventPublisher(new CountingPublisher(secondGranted, secondRevoked, secondAquireLockFailed));
 
 		// start initiators
 		first.start();
@@ -249,18 +271,30 @@ public class LockRegistryLeaderInitiatorTests {
 
 		private final CountDownLatch revoked;
 
-		CountingPublisher(CountDownLatch granted, CountDownLatch revoked) {
-			this.granted = granted;
-			this.revoked = revoked;
-		}
+		private final CountDownLatch acquireFailed;
 
 		CountingPublisher(CountDownLatch granted) {
-			this(granted, new CountDownLatch(1));
+			this(granted, new CountDownLatch(1), new CountDownLatch(1));
+		}
+
+		CountingPublisher(CountDownLatch granted, CountDownLatch revoked) {
+			this(granted, revoked, new CountDownLatch(1));
+		}
+
+		CountingPublisher(CountDownLatch granted, CountDownLatch revoked, CountDownLatch acquireFailed) {
+			this.granted = granted;
+			this.revoked = revoked;
+			this.acquireFailed = acquireFailed;
 		}
 
 		@Override
 		public void publishOnRevoked(Object source, Context context, String role) {
 			this.revoked.countDown();
+		}
+
+		@Override
+		public void publishOnFailedToAcquire(Object source, Context context, String role) {
+			this.acquireFailed.countDown();
 		}
 
 		@Override

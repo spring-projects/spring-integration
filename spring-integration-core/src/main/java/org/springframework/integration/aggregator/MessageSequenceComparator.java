@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,18 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 
 /**
- * A {@link Comparator} implementation based on the 'sequence number'
- * property of a {@link Message Message's} header.
- *
  * @author Mark Fisher
+ * @author Dave Syer
+ * @author Artem Bilan
  */
 public class MessageSequenceComparator implements Comparator<Message<?>> {
 
-	public int compare(Message<?> message1, Message<?> message2) {
-		Integer s1 = new IntegrationMessageHeaderAccessor(message1).getSequenceNumber();
-		Integer s2 = new IntegrationMessageHeaderAccessor(message2).getSequenceNumber();
-		if (s1 == null) {
-			s1 = 0;
-		}
-		if (s2 == null) {
-			s2 = 0;
-		}
-		return s1.compareTo(s2);
+	@Override
+	public int compare(Message<?> o1, Message<?> o2) {
+		int sequenceNumber1 = new IntegrationMessageHeaderAccessor(o1).getSequenceNumber();
+		int sequenceNumber2 = new IntegrationMessageHeaderAccessor(o2).getSequenceNumber();
+
+		return Integer.compare(sequenceNumber1, sequenceNumber2);
 	}
 
 }

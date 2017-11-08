@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import org.springframework.integration.leader.Context;
  *
  * @author Janne Valkealahti
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  */
 public interface LeaderEventPublisher {
 
 	/**
 	 * Publish a granted event.
-	 *
 	 * @param source the component generated this event
 	 * @param context the context associated with event
 	 * @param role the role of the leader
@@ -38,11 +38,19 @@ public interface LeaderEventPublisher {
 
 	/**
 	 * Publish a revoked event.
-	 *
 	 * @param source the component generated this event
 	 * @param context the context associated with event
 	 * @param role the role of the leader
 	 */
 	void publishOnRevoked(Object source, Context context, String role);
+
+	/**
+	 * Publish a failure to acquire event.
+	 * @param source the component generated this event
+	 * @param context the context associated with event
+	 * @param role the role of the leader
+	 * @since 5.0
+	 */
+	void publishOnFailedToAcquire(Object source, Context context, String role);
 
 }

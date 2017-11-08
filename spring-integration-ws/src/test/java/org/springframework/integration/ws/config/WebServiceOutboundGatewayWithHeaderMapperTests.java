@@ -61,6 +61,7 @@ import org.springframework.util.xml.DomUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.WebServiceTemplate;
+import org.springframework.ws.pox.dom.DomPoxMessageFactory;
 import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.SoapMessageFactory;
@@ -210,7 +211,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 
 		if (!soap) {
 			WebServiceTemplate template = TestUtils.getPropertyValue(gateway, "webServiceTemplate", WebServiceTemplate.class);
-			template.setMessageFactory(new StubMessageFactory());
+			template.setMessageFactory(new DomPoxMessageFactory());
 		}
 
 		WebServiceMessageSender messageSender = Mockito.mock(WebServiceMessageSender.class);

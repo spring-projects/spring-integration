@@ -19,6 +19,7 @@ package org.springframework.integration.webflux.outbound;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
 
@@ -35,9 +36,11 @@ import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.web.reactive.server.HttpHandlerConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -52,10 +55,11 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 	@Test
 	public void testReactiveReturn() throws Throwable {
-		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
-			response.setStatusCode(HttpStatus.OK);
-			return Mono.defer(response::setComplete);
-		});
+		ClientHttpConnector httpConnector =
+				new HttpHandlerConnector((request, response) -> {
+					response.setStatusCode(HttpStatus.OK);
+					return Mono.defer(response::setComplete);
+				});
 
 		WebClient webClient = WebClient.builder()
 				.clientConnector(httpConnector)
@@ -81,10 +85,11 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 	@Test
 	public void testReactiveErrorOneWay() throws Throwable {
-		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
-			response.setStatusCode(HttpStatus.UNAUTHORIZED);
-			return Mono.defer(response::setComplete);
-		});
+		ClientHttpConnector httpConnector =
+				new HttpHandlerConnector((request, response) -> {
+					response.setStatusCode(HttpStatus.UNAUTHORIZED);
+					return Mono.defer(response::setComplete);
+				});
 
 		WebClient webClient = WebClient.builder()
 				.clientConnector(httpConnector)
@@ -110,9 +115,10 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 	@Test
 	public void testReactiveConnectErrorOneWay() throws Throwable {
-		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
-			throw new RuntimeException("Intentional connection error");
-		});
+		ClientHttpConnector httpConnector =
+				new HttpHandlerConnector((request, response) -> {
+					throw new RuntimeException("Intentional connection error");
+				});
 
 		WebClient webClient = WebClient.builder()
 				.clientConnector(httpConnector)
@@ -134,6 +140,46 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 		assertThat(errorMessage, instanceOf(ErrorMessage.class));
 		Throwable throwable = (Throwable) errorMessage.getPayload();
 		assertThat(throwable.getMessage(), containsString("Intentional connection error"));
+	}
+
+	@Test
+	public void testServiceUnavailableWithoutBody() {
+		ClientHttpConnector httpConnector =
+				new HttpHandlerConnector((request, response) -> {
+					response.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+					return Mono.defer(response::setComplete);
+				});
+
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.build();
+
+		String destinationUri = "http://www.springsource.org/spring-integration";
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel errorChannel = new QueueChannel();
+		WebFluxRequestExecutingMessageHandler messageHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+		messageHandler.setOutputChannel(replyChannel);
+
+		Message<String> requestMessage =
+				MessageBuilder.withPayload("test")
+						.setErrorChannel(errorChannel)
+						.build();
+
+		messageHandler.handleMessage(requestMessage);
+
+		Message<?> errorMessage = errorChannel.receive(10000);
+		assertNotNull(errorMessage);
+
+		Object payload = errorMessage.getPayload();
+		assertThat(payload, instanceOf(MessageHandlingException.class));
+
+		Exception exception = (Exception) payload;
+		assertThat(exception.getCause(), instanceOf(WebClientResponseException.class));
+		assertThat(exception.getMessage(), containsString("503 Service Unavailable"));
+
+		Message<?> replyMessage = errorChannel.receive(10);
+		assertNull(replyMessage);
 	}
 
 }

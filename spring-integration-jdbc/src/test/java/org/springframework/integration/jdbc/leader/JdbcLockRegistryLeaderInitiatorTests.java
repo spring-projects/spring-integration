@@ -45,6 +45,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Glenn Renfro
  *
  * @since 4.3.1
  */
@@ -110,7 +111,10 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 		final CountDownLatch granted2 = new CountDownLatch(1);
 		CountDownLatch revoked1 = new CountDownLatch(1);
 		CountDownLatch revoked2 = new CountDownLatch(1);
-		initiator1.setLeaderEventPublisher(new CountingPublisher(granted1, revoked1) {
+		final CountDownLatch acquireLockFailed1 = new CountDownLatch(1);
+		final CountDownLatch acquireLockFailed2 = new CountDownLatch(1);
+
+		initiator1.setLeaderEventPublisher(new CountingPublisher(granted1, revoked1, acquireLockFailed1) {
 
 			@Override
 			public void publishOnRevoked(Object source, Context context, String role) {
@@ -126,7 +130,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		});
 
-		initiator2.setLeaderEventPublisher(new CountingPublisher(granted2, revoked2) {
+		initiator2.setLeaderEventPublisher(new CountingPublisher(granted2, revoked2, acquireLockFailed2) {
 
 			@Override
 			public void publishOnRevoked(Object source, Context context, String role) {
@@ -176,20 +180,28 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 
 		private final CountDownLatch revoked;
 
+		private final CountDownLatch acquireLockFailed;
+
 		private volatile LockRegistryLeaderInitiator initiator;
 
-		CountingPublisher(CountDownLatch granted, CountDownLatch revoked) {
+		CountingPublisher(CountDownLatch granted, CountDownLatch revoked, CountDownLatch acquireLockFailed) {
 			this.granted = granted;
 			this.revoked = revoked;
+			this.acquireLockFailed = acquireLockFailed;
 		}
 
 		CountingPublisher(CountDownLatch granted) {
-			this(granted, new CountDownLatch(1));
+			this(granted, new CountDownLatch(1), new CountDownLatch(1));
 		}
 
 		@Override
 		public void publishOnRevoked(Object source, Context context, String role) {
 			this.revoked.countDown();
+		}
+
+		@Override
+		public void publishOnFailedToAcquire(Object source, Context context, String role) {
+			this.acquireLockFailed.countDown();
 		}
 
 		@Override

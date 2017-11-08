@@ -55,7 +55,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
-import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.websocket.ClientWebSocketContainer;
 import org.springframework.integration.websocket.IntegrationWebSocketContainer;
@@ -63,11 +62,13 @@ import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.integration.websocket.event.ReceiptEvent;
 import org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter;
 import org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler;
+import org.springframework.integration.websocket.support.ClientStompEncoder;
 import org.springframework.integration.websocket.support.SubProtocolHandlerRegistry;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -83,7 +84,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -106,10 +107,10 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  *
  * @since 4.1
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class StompIntegrationTests extends LogAdjustingTestSupport {
+@ContextConfiguration(classes = StompIntegrationTests.ClientConfig.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
+public class StompIntegrationTests {
 
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
@@ -128,11 +129,6 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 	@Autowired
 	@Qualifier("webSocketEvents")
 	private QueueChannel webSocketEvents;
-
-	public StompIntegrationTests() {
-		super("org.springframework", "org.springframework.integration", "org.apache.catalina");
-	}
-
 
 	@Test
 	public void sendMessageToController() throws Exception {
@@ -156,6 +152,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		SimpleController controller = this.serverContext.getBean(SimpleController.class);
 		assertTrue(controller.latch.await(20, TimeUnit.SECONDS));
+		assertEquals(StompCommand.SEND.name(), controller.stompCommand);
 	}
 
 	@Test
@@ -331,7 +328,7 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 	@Configuration
 	@EnableIntegration
-	public static class ContextConfiguration {
+	public static class ClientConfig {
 
 		@Bean
 		public TomcatWebSocketTestServer server() {
@@ -350,7 +347,9 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		@Bean
 		public SubProtocolHandler stompSubProtocolHandler() {
-			return new StompSubProtocolHandler();
+			StompSubProtocolHandler stompSubProtocolHandler = new StompSubProtocolHandler();
+			stompSubProtocolHandler.setEncoder(new ClientStompEncoder());
+			return stompSubProtocolHandler;
 		}
 
 		@Bean
@@ -396,10 +395,11 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 	// WebSocket Server part
 
-	@Target({ElementType.TYPE})
+	@Target({ ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	@Controller
 	private @interface IntegrationTestController {
+
 	}
 
 	@IntegrationTestController
@@ -407,8 +407,11 @@ public class StompIntegrationTests extends LogAdjustingTestSupport {
 
 		private final CountDownLatch latch = new CountDownLatch(1);
 
+		private String stompCommand;
+
 		@MessageMapping("/simple")
-		public void handle() {
+		public void handle(@Header("stompCommand") String stompCommand) {
+			this.stompCommand = stompCommand;
 			this.latch.countDown();
 		}
 

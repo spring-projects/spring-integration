@@ -323,10 +323,21 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
 		this.remoteFileTemplate = remoteFileTemplate;
 		this.command = command;
-		Expression parsedExpression = new SpelExpressionParser().parseExpression(expression);
-		this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<>(parsedExpression);
+		if (expression == null) {
+			Assert.state(Command.LS.equals(this.command)
+							|| Command.NLST.equals(this.command)
+							|| Command.PUT.equals(this.command)
+							|| Command.MPUT.equals(this.command),
+					"Only LS, NLST, PUT and MPUT commands can rely on the working directory.\n" +
+							"All other commands must be supplied with the filename expression");
+			this.fileNameProcessor = null;
+		}
+		else {
+			Expression parsedExpression = new SpelExpressionParser().parseExpression(expression);
+			this.fileNameProcessor = new ExpressionEvaluatingMessageProcessor<>(parsedExpression);
+			setPrimaryExpression(parsedExpression);
+		}
 		this.messageSessionCallback = null;
-		setPrimaryExpression(parsedExpression);
 	}
 
 	/**
@@ -554,10 +565,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					"Cannot use " + Option.SUBDIRS.toString() + " when using 'mget' use " +
 							Option.RECURSIVE.toString() + " to obtain files in subdirectories");
 		}
-		if (this.fileNameProcessor != null && getBeanFactory() != null) {
-			this.fileNameProcessor.setBeanFactory(this.getBeanFactory());
-			this.renameProcessor.setBeanFactory(this.getBeanFactory());
-			this.remoteFileTemplate.setBeanFactory(this.getBeanFactory());
+
+		if (getBeanFactory() != null) {
+			if (this.fileNameProcessor != null) {
+				this.fileNameProcessor.setBeanFactory(getBeanFactory());
+			}
+
+			this.renameProcessor.setBeanFactory(getBeanFactory());
+			this.remoteFileTemplate.setBeanFactory(getBeanFactory());
 		}
 	}
 
@@ -588,7 +603,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	private Object doLs(Message<?> requestMessage) {
-		String dir = this.fileNameProcessor.processMessage(requestMessage);
+		String dir = this.fileNameProcessor != null
+				? this.fileNameProcessor.processMessage(requestMessage)
+				: null;
 		if (dir != null && !dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}
@@ -600,7 +617,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	private Object doNlst(Message<?> requestMessage) {
-		String dir = this.fileNameProcessor.processMessage(requestMessage);
+		String dir = this.fileNameProcessor != null
+				? this.fileNameProcessor.processMessage(requestMessage)
+				: null;
 		if (dir != null && !dir.endsWith(this.remoteFileTemplate.getRemoteFileSeparator())) {
 			dir += this.remoteFileTemplate.getRemoteFileSeparator();
 		}

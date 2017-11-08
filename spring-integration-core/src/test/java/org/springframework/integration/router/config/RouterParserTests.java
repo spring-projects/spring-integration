@@ -192,12 +192,12 @@ public class RouterParserTests {
 		assertEquals(originalMessage.getHeaders().getId(), new IntegrationMessageHeaderAccessor(message1).getCorrelationId());
 		assertEquals(originalMessage.getHeaders().getId(), new IntegrationMessageHeaderAccessor(message2).getCorrelationId());
 		assertEquals(originalMessage.getHeaders().getId(), new IntegrationMessageHeaderAccessor(message3).getCorrelationId());
-		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
-		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message1).getSequenceSize());
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
-		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message2).getSequenceSize());
-		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
-		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(message3).getSequenceSize());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(message1).getSequenceNumber());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(message1).getSequenceSize());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(message2).getSequenceNumber());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(message2).getSequenceSize());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(message3).getSequenceNumber());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(message3).getSequenceSize());
 	}
 
 	@Test

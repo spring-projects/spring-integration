@@ -210,10 +210,10 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(target2);
 		dispatcher.dispatch(new GenericMessage<String>("test"));
 		assertEquals(2, messages.size());
-		assertEquals(0, (int) new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
-		assertEquals(0, (int) new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize());
-		assertEquals(0, (int) new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
-		assertEquals(0, (int) new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize());
 	}
 
 	@Test
@@ -231,14 +231,14 @@ public class BroadcastingDispatcherTests {
 		Object originalId = inputMessage.getHeaders().getId();
 		dispatcher.dispatch(inputMessage);
 		assertEquals(3, messages.size());
-		assertEquals(1, (int) new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
-		assertEquals(3, (int) new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceNumber());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(messages.get(0)).getSequenceSize());
 		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(0)).getCorrelationId());
-		assertEquals(2, (int) new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
-		assertEquals(3, (int) new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceNumber());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(messages.get(1)).getSequenceSize());
 		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(1)).getCorrelationId());
-		assertEquals(3, (int) new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceNumber());
-		assertEquals(3, (int) new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceSize());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceNumber());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(messages.get(2)).getSequenceSize());
 		assertEquals(originalId, new IntegrationMessageHeaderAccessor(messages.get(2)).getCorrelationId());
 	}
 

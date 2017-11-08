@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,17 +119,17 @@ public class SpelSplitterIntegrationTests {
 		Message<?> c = output.receive(0);
 		Message<?> d = output.receive(0);
 		assertEquals("a", a.getPayload());
-		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(a).getSequenceNumber());
-		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(a).getSequenceSize());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(a).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(a).getSequenceSize());
 		assertEquals("b", b.getPayload());
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(b).getSequenceNumber());
-		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(b).getSequenceSize());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(b).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(b).getSequenceSize());
 		assertEquals("c", c.getPayload());
-		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(c).getSequenceNumber());
-		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(c).getSequenceSize());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(c).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(c).getSequenceSize());
 		assertEquals("d", d.getPayload());
-		assertEquals(new Integer(4), new IntegrationMessageHeaderAccessor(d).getSequenceNumber());
-		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(d).getSequenceSize());
+		assertEquals(4, new IntegrationMessageHeaderAccessor(d).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(d).getSequenceSize());
 		assertNull(output.receive(0));
 	}
 
@@ -141,17 +141,17 @@ public class SpelSplitterIntegrationTests {
 		Message<?> c = output.receive(0);
 		Message<?> d = output.receive(0);
 		assertEquals("a", a.getPayload());
-		assertEquals(new Integer(1), new IntegrationMessageHeaderAccessor(a).getSequenceNumber());
-		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(a).getSequenceSize());
+		assertEquals(1, new IntegrationMessageHeaderAccessor(a).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(a).getSequenceSize());
 		assertEquals("b", b.getPayload());
-		assertEquals(new Integer(2), new IntegrationMessageHeaderAccessor(b).getSequenceNumber());
-		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(b).getSequenceSize());
+		assertEquals(2, new IntegrationMessageHeaderAccessor(b).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(b).getSequenceSize());
 		assertEquals("c", c.getPayload());
-		assertEquals(new Integer(3), new IntegrationMessageHeaderAccessor(c).getSequenceNumber());
-		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(c).getSequenceSize());
+		assertEquals(3, new IntegrationMessageHeaderAccessor(c).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(c).getSequenceSize());
 		assertEquals("d", d.getPayload());
-		assertEquals(new Integer(4), new IntegrationMessageHeaderAccessor(d).getSequenceNumber());
-		assertEquals(new Integer(0), new IntegrationMessageHeaderAccessor(d).getSequenceSize());
+		assertEquals(4, new IntegrationMessageHeaderAccessor(d).getSequenceNumber());
+		assertEquals(0, new IntegrationMessageHeaderAccessor(d).getSequenceSize());
 		assertNull(output.receive(0));
 	}
 
@@ -177,6 +177,7 @@ public class SpelSplitterIntegrationTests {
 		public Iterator<String> splitIterator(String s) {
 			return Arrays.asList(s.split(",")).iterator();
 		}
+
 	}
 
 }

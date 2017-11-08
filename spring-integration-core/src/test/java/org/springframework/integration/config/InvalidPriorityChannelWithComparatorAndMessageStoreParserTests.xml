@@ -11,7 +11,7 @@
 	</channel>
 
 	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore" />
-	
+
 	<beans:bean id="comparator" class="org.springframework.integration.aggregator.MessageSequenceComparator" />
 
 </beans:beans>

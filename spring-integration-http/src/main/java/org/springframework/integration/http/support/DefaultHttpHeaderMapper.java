@@ -257,11 +257,14 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	public static final String HTTP_RESPONSE_HEADER_NAME_PATTERN = "HTTP_RESPONSE_HEADERS";
 
+	// Copy of 'org.springframework.http.HttpHeaders#GMT'
+	private static final ZoneId GMT = ZoneId.of("GMT");
+
 	// Copy of 'org.springframework.http.HttpHeaders#DATE_FORMATS'
 	protected static final DateTimeFormatter[] DATE_FORMATS = new DateTimeFormatter[] {
-			DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US).withZone(ZoneId.of("GMT")),
-			DateTimeFormatter.ofPattern("EEE, dd-MMM-yy HH:mm:ss zzz", Locale.US).withZone(ZoneId.of("GMT")),
-			DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss yyyy", Locale.US).withZone(ZoneId.of("GMT"))
+			DateTimeFormatter.RFC_1123_DATE_TIME,
+			DateTimeFormatter.ofPattern("EEEE, dd-MMM-yy HH:mm:ss zz", Locale.US),
+			DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss yyyy", Locale.US).withZone(GMT)
 	};
 
 	static {
@@ -1069,22 +1072,25 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	// Utility methods
 
 	protected long getFirstDate(String headerValue, String headerName) {
-		for (DateTimeFormatter dateFormat : DATE_FORMATS) {
+		for (DateTimeFormatter dateFormatter : DATE_FORMATS) {
 			try {
-				return dateFormat.parse(headerValue, ZonedDateTime::from)
+				return ZonedDateTime.parse(headerValue, dateFormatter)
 						.toInstant()
 						.toEpochMilli();
 			}
-			catch (DateTimeParseException e) {
+			catch (DateTimeParseException ex) {
 				// ignore
 			}
 		}
+
 		throw new IllegalArgumentException("Cannot parse date value '" + headerValue + "' for '" + headerName
 				+ "' header");
 	}
 
 	protected String formatDate(long date) {
-		return DATE_FORMATS[0].format(Instant.ofEpochMilli(date));
+		Instant instant = Instant.ofEpochMilli(date);
+		ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, GMT);
+		return DATE_FORMATS[0].format(zonedDateTime);
 	}
 
 	/**

@@ -81,6 +81,31 @@ The `value` in each parameter expression can be any valid SpEL expression.
 The `#root` object for the expression evaluation is the constructor argument defined on the `parameterSource` bean.
 It is static for all evaluations (in this case, an empty String).
 
+Starting with _version 5.0_, the `ExpressionEvaluatingSqlParameterSourceFactory` can be supplied with the `sqlParameterTypes` to specify the target SQL type for the particular parameter.
+
+Below example provides sql type for the parameters being used in the query.
+
+[source,xml]
+----
+<int-jdbc:inbound-channel-adapter query="select * from item where status=:status"
+    channel="target" data-source="dataSource"
+    select-sql-parameter-source="parameterSource" />
+
+<bean id="parameterSource" factory-bean="parameterSourceFactory"
+            factory-method="createParameterSourceNoCache">
+    <constructor-arg value="" />
+</bean>
+
+<bean id="parameterSourceFactory"
+        class="o.s.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
+    <property name="sqlParameterTypes">
+        <map>
+            <entry key="status" value=""#{ T(java.sql.Types).BINARY}" />
+        </map>
+    </property>
+</bean>
+----
+
 IMPORTANT: Use the `createParameterSourceNoCache` factory method; otherwise the parameter source will cache the result of the evaluation.
 Also note that, because caching is disabled, if the same parameter name appears in the select query multiple times, it will be re-evaluated for each occurrence.
 
@@ -364,6 +389,31 @@ This `channelMessageStoreQueryProvider` provides the SQL queries and Spring Inte
 If your database is not listed, you can easily extend the `AbstractChannelMessageStoreQueryProvider` class and provide your own custom queries.
 
 Since _version 4.0_, the `MESSAGE_SEQUENCE` column has been added to the table to ensure first-in-first-out (FIFO) queueing even when messages are stored in the same millisecond.
+
+Since _version 5.0_, by overloading `ChannelMessageStorePreparedStatementSetter` class you can provide custom implementation for message insertion in the `JdbcChannelMessageStore`.
+It might be different columns or table structure or serialization strategy.
+For example, instead of default serialization to `byte[]`, we can store its structure in JSON string.
+
+Below example uses the default implementation of `setValues` to store common columns and overrides the behavior just to store the message payload as varchar.
+
+[source,java]
+----
+public class JsonPreparedStatementSetter extends ChannelMessageStorePreparedStatementSetter {
+
+    public JsonPreparedStatementSetter() {
+        super();
+    }
+
+    @Override
+    public void setValues(PreparedStatement preparedStatement, Message<?> requestMessage,
+        Object groupId, String region, 	boolean priorityEnabled) throws SQLException {
+        // Populate common columns
+        super.setValues(preparedStatement, requestMessage, groupId, region, priorityEnabled);
+        // Store message payload as varchar
+        preparedStatement.setString(6, requestMessage.getPayload().toString());
+    }
+}
+----
 
 [IMPORTANT]
 =====

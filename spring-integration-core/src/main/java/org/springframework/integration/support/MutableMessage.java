@@ -27,16 +27,24 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * An implementation of {@link Message} with a generic payload. Unlike
- * {@link GenericMessage}, this message (or its headers) can be modified
- * after creation. Great care must be taken, when mutating messages, that
- * some other element/thread is not concurrently using the message. Also note
- * that any in-memory stores (such as {@link SimpleMessageStore}) may have
- * a reference to the message and changes will be reflected there too.
+ * {@link GenericMessage}, this message (or its headers) can be modified after creation.
+ * Great care must be taken, when mutating messages, that some other element/thread is not
+ * concurrently using the message. Also note that any in-memory stores (such as
+ * {@link SimpleMessageStore}) may have a reference to the message and changes will be
+ * reflected there too.
+ *
+ * <p>
+ * <b>IMPORTANT: Mutable messages may share state (such as message headers); such messages
+ * should never be exposed to other components or undesirable side-effects may result.</b>
+ * <p>
+ * <b>It is generally recommended that messages transferred between components should
+ * always be immutable unless great care is taken with their use.</b>
  *
  * @author Gary Russell
  * @author Artem Bilan
  * @author Stuart Williams
  * @author David Turanski
+ *
  * @since 4.0
  *
  */
@@ -49,16 +57,19 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 	private final MutableMessageHeaders headers;
 
 	public MutableMessage(T payload) {
-		this(payload, null);
+		this(payload, (Map<String, Object>) null);
 	}
 
 	public MutableMessage(T payload, Map<String, Object> headers) {
-		Assert.notNull(payload, "payload must not be null");
-		this.payload = payload;
-
-		this.headers = new MutableMessageHeaders(headers);
+		this(payload, new MutableMessageHeaders(headers));
 	}
 
+	protected MutableMessage(T payload, MutableMessageHeaders headers) {
+		Assert.notNull(payload, "payload must not be null");
+		Assert.notNull(headers, "headers must not be null");
+		this.payload = payload;
+		this.headers = headers;
+	}
 
 	@Override
 	public MutableMessageHeaders getHeaders() {

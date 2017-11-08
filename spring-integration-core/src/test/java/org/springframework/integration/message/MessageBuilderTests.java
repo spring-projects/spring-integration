@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.message;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -34,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilderFactory;
 import org.springframework.messaging.Message;
@@ -47,6 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -76,7 +82,7 @@ public class MessageBuilderTests {
 	public void testHeaderValues() {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar")
-				.setHeader("count", new Integer(123))
+				.setHeader("count", 123)
 				.build();
 		assertEquals("bar", message.getHeaders().get("foo", String.class));
 		assertEquals(new Integer(123), message.getHeaders().get("count", Integer.class));
@@ -145,11 +151,11 @@ public class MessageBuilderTests {
 
 	@Test
 	public void mutate() {
-		assertTrue(messageBuilderFactory instanceof MutableMessageBuilderFactory);
-		in.send(new GenericMessage<String>("foo"));
+		assertTrue(this.messageBuilderFactory instanceof MutableMessageBuilderFactory);
+		in.send(new GenericMessage<>("foo"));
 		Message<?> m1 = out.receive(0);
 		Message<?> m2 = out.receive(0);
-		assertEquals("org.springframework.integration.support.MutableMessage", m1.getClass().getName());
+		assertThat(m1, instanceOf(MutableMessage.class));
 		assertTrue(m1 == m2);
 	}
 
@@ -189,17 +195,17 @@ public class MessageBuilderTests {
 	@Test
 	public void testPriority() {
 		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
-			.setPriority(123).build();
+				.setPriority(123).build();
 		assertEquals(new Integer(123), new IntegrationMessageHeaderAccessor(importantMessage).getPriority());
 	}
 
 	@Test
 	public void testNonDestructiveSet() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
-			.setPriority(42).build();
+				.setPriority(42).build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
-			.setHeaderIfAbsent(IntegrationMessageHeaderAccessor.PRIORITY, 13)
-			.build();
+				.setHeaderIfAbsent(IntegrationMessageHeaderAccessor.PRIORITY, 13)
+				.build();
 		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(message2).getPriority());
 	}
 
@@ -222,20 +228,20 @@ public class MessageBuilderTests {
 	@Test
 	public void testRemove() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
-			.setHeader("foo", "bar").build();
+				.setHeader("foo", "bar").build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
-			.removeHeader("foo")
-			.build();
+				.removeHeader("foo")
+				.build();
 		assertFalse(message2.getHeaders().containsKey("foo"));
 	}
 
 	@Test
 	public void testSettingToNullRemoves() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
-			.setHeader("foo", "bar").build();
+				.setHeader("foo", "bar").build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
-			.setHeader("foo", null)
-			.build();
+				.setHeader("foo", null)
+				.build();
 		assertFalse(message2.getHeaders().containsKey("foo"));
 	}
 
@@ -349,6 +355,31 @@ public class MessageBuilderTests {
 		newHeaders.put("c", current);
 		Message<?> result = MessageBuilder.fromMessage(original).copyHeaders(newHeaders).build();
 		assertEquals(original, result);
+	}
+
+	@Test
+	public void testSequenceNumberAsLong() {
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Long.MAX_VALUE)
+				.build();
+
+		@SuppressWarnings("unused")
+		Integer sequenceNumber = new IntegrationMessageHeaderAccessor(message).getSequenceNumber();
+	}
+
+	@Test
+	public void testNoIdAndTimestampHeaders() {
+		Message<String> message =
+				MutableMessageBuilder.withPayload("foo", false)
+						.pushSequenceDetails("bar", 1, 1)
+						.build();
+
+		assertThat(message, hasHeaderKey(IntegrationMessageHeaderAccessor.CORRELATION_ID));
+		assertThat(message, hasHeaderKey(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertThat(message, hasHeaderKey(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertThat(message, not(hasHeaderKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS)));
+		assertThat(message, not(hasHeaderKey(MessageHeaders.ID)));
+		assertThat(message, not(hasHeaderKey(MessageHeaders.TIMESTAMP)));
 	}
 
 }

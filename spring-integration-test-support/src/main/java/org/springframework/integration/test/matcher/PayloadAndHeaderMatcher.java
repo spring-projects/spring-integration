@@ -22,7 +22,6 @@ import java.util.Map;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -50,20 +49,20 @@ import org.springframework.messaging.MessageHeaders;
  * @author Artem Bilan
  *
  */
-public class PayloadAndHeaderMatcher extends BaseMatcher<Message<?>> {
+public class PayloadAndHeaderMatcher<T> extends BaseMatcher<Message<?>> {
 
-	private final Object payload;
+	private final T payload;
 
 	private final Map<String, Object> headers;
 
 	private final String[] ignoreKeys;
 
 	@Factory
-	public static Matcher<Message<?>> sameExceptIgnorableHeaders(Message<?> expected, String... ignoreKeys) {
-		return new PayloadAndHeaderMatcher(expected, ignoreKeys);
+	public static <P> PayloadAndHeaderMatcher<P> sameExceptIgnorableHeaders(Message<P> expected, String... ignoreKeys) {
+		return new PayloadAndHeaderMatcher<>(expected, ignoreKeys);
 	}
 
-	private PayloadAndHeaderMatcher(Message<?> expected, String... ignoreKeys) {
+	private PayloadAndHeaderMatcher(Message<T> expected, String... ignoreKeys) {
 		this.ignoreKeys = ignoreKeys;
 		this.payload = expected.getPayload();
 		this.headers = extractHeadersToAssert(expected);

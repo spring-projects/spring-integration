@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,17 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ReleaseStrategy;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
 @MessageEndpoint("endpointWithDefaultAnnotationAndCustomReleaseStrategy")
 public class TestAnnotatedEndpointWithReleaseStrategy {
@@ -40,7 +41,7 @@ public class TestAnnotatedEndpointWithReleaseStrategy {
 
 	@Aggregator(inputChannel = "inputChannel")
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {
-		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
+		List<Message<?>> sortableList = new ArrayList<>(messages);
 		Collections.sort(sortableList, new MessageSequenceComparator());
 		StringBuffer buffer = new StringBuffer();
 		Object correlationId = null;
@@ -50,8 +51,8 @@ public class TestAnnotatedEndpointWithReleaseStrategy {
 				correlationId = new IntegrationMessageHeaderAccessor(message).getCorrelationId();
 			}
 		}
-		Message<?> returnedMessage =  new GenericMessage<String>(buffer.toString());
-		aggregatedMessages.put(correlationId, returnedMessage);
+		Message<?> returnedMessage =  new GenericMessage<>(buffer.toString());
+		this.aggregatedMessages.put(correlationId, returnedMessage);
 		return returnedMessage;
 	}
 
@@ -61,7 +62,7 @@ public class TestAnnotatedEndpointWithReleaseStrategy {
 	}
 
 	public ConcurrentMap<Object, Message<?>> getAggregatedMessages() {
-		return aggregatedMessages;
+		return this.aggregatedMessages;
 	}
 
 }

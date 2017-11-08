@@ -19,6 +19,7 @@ package org.springframework.integration.test.matcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 
@@ -54,16 +55,17 @@ import org.springframework.messaging.Message;
  *
  * @author Alex Peters
  * @author Iwein Fuld
+ * @author Artem Bilan
  *
  */
-public class PayloadMatcher extends TypeSafeMatcher<Message<?>> {
+public class PayloadMatcher<T> extends TypeSafeMatcher<Message<?>> {
 
-	private final Matcher<?> matcher;
+	private final Matcher<T> matcher;
 
 	/**
 	 * Create a PayloadMatcher that matches the payload of messages against the given matcher
 	 */
-	private PayloadMatcher(Matcher<?> matcher) {
+	private PayloadMatcher(Matcher<T> matcher) {
 		super();
 		this.matcher = matcher;
 	}
@@ -81,13 +83,13 @@ public class PayloadMatcher extends TypeSafeMatcher<Message<?>> {
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasPayload(T payload) {
-		return new PayloadMatcher(IsEqual.equalTo(payload));
+	public static <P> PayloadMatcher<P> hasPayload(P payload) {
+		return new PayloadMatcher<>(IsEqual.equalTo(payload));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasPayload(Matcher<? super T> payloadMatcher) {
-		return new PayloadMatcher(payloadMatcher);
+	public static <P> PayloadMatcher<P> hasPayload(Matcher<P> payloadMatcher) {
+		return new PayloadMatcher<>(payloadMatcher);
 	}
 
 }

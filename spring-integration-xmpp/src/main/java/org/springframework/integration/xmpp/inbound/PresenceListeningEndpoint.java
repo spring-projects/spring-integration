@@ -24,6 +24,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterListener;
+import org.jxmpp.jid.Jid;
 
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.messaging.Message;
@@ -90,21 +91,21 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 		}
 
 		@Override
-		public void entriesAdded(Collection<String> entries) {
+		public void entriesAdded(Collection<Jid> entries) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("entries added: " + StringUtils.collectionToCommaDelimitedString(entries));
 			}
 		}
 
 		@Override
-		public void entriesUpdated(Collection<String> entries) {
+		public void entriesUpdated(Collection<Jid> entries) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("entries updated: " + StringUtils.collectionToCommaDelimitedString(entries));
 			}
 		}
 
 		@Override
-		public void entriesDeleted(Collection<String> entries) {
+		public void entriesDeleted(Collection<Jid> entries) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("entries deleted: " + StringUtils.collectionToCommaDelimitedString(entries));
 			}

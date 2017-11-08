@@ -32,15 +32,12 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.jdbc.store.channel.ChannelMessageStorePreparedStatementSetter;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
 import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
@@ -87,25 +84,14 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Meherzad Lahewala
+ *
  * @since 2.2
  */
 @ManagedResource
-public class JdbcChannelMessageStore implements PriorityCapableChannelMessageStore, InitializingBean, BeanFactoryAware {
+public class JdbcChannelMessageStore implements PriorityCapableChannelMessageStore, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(JdbcChannelMessageStore.class);
-
-	private final Set<String> idCache = new HashSet<String>();
-
-	private final ReadWriteLock idCacheLock = new ReentrantReadWriteLock();
-
-	private final Lock idCacheReadLock = this.idCacheLock.readLock();
-
-	private final Lock idCacheWriteLock = this.idCacheLock.writeLock();
-
-	/**
-	 * Default value for the table prefix property.
-	 */
-	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
 	/**
 	 * Default region property, used to partition the message store. For example,
@@ -114,7 +100,10 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	public static final String DEFAULT_REGION = "DEFAULT";
 
-	private ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider;
+	/**
+	 * Default value for the table prefix property.
+	 */
+	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
@@ -131,29 +120,39 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@Deprecated
 	public static final String CREATED_DATE_KEY = JdbcChannelMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
-	private volatile String region = DEFAULT_REGION;
+	private final Set<String> idCache = new HashSet<>();
 
-	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
+	private final ReadWriteLock idCacheLock = new ReentrantReadWriteLock();
 
-	private volatile JdbcTemplate jdbcTemplate;
+	private final Lock idCacheReadLock = this.idCacheLock.readLock();
 
-	private volatile WhiteListDeserializingConverter deserializer;
+	private final Lock idCacheWriteLock = this.idCacheLock.writeLock();
 
-	private volatile SerializingConverter serializer;
+	private ChannelMessageStoreQueryProvider channelMessageStoreQueryProvider;
 
-	private volatile LobHandler lobHandler = new DefaultLobHandler();
+	private String region = DEFAULT_REGION;
 
-	private volatile MessageRowMapper messageRowMapper;
+	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private volatile Map<String, String> queryCache = new HashMap<String, String>();
+	private JdbcTemplate jdbcTemplate;
 
-	private volatile MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
+	private WhiteListDeserializingConverter deserializer;
+
+	private SerializingConverter serializer;
+
+	private LobHandler lobHandler = new DefaultLobHandler();
+
+	private MessageRowMapper messageRowMapper;
+
+	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
+
+	private Map<String, String> queryCache = new HashMap<>();
+
+	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
 
 	private boolean usingIdCache = false;
 
 	private boolean priorityEnabled;
-
-	private BeanFactory beanFactory;
 
 	/**
 	 * Convenient constructor for configuration use.
@@ -166,16 +165,13 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * Create a {@link MessageStore} with all mandatory properties. The passed-in
 	 * {@link DataSource} is used to instantiate a {@link JdbcTemplate}
-	 *
 	 * with {@link JdbcTemplate#setFetchSize(int)} set to <code>1</code>
 	 * and with {@link JdbcTemplate#setMaxRows(int)} set to <code>1</code>.
-	 *
 	 * @param dataSource a {@link DataSource}
 	 */
 	public JdbcChannelMessageStore(DataSource dataSource) {
 		this();
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
-
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
 	}
@@ -185,22 +181,19 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * The passed-in {@link DataSource} is used to instantiate a {@link JdbcTemplate}
 	 * with {@link JdbcTemplate#setFetchSize(int)} set to <code>1</code>
 	 * and with {@link JdbcTemplate#setMaxRows(int)} set to <code>1</code>.
-	 *
 	 * @param dataSource a {@link DataSource}
 	 */
 	public void setDataSource(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
-
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
 	}
 
 	/**
 	 * A converter for deserializing byte arrays to messages.
-	 *
 	 * @param deserializer the deserializer to set
 	 */
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
 		this.deserializer = new WhiteListDeserializingConverter((Deserializer) deserializer);
 	}
@@ -219,11 +212,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * The {@link JdbcOperations} to use when interacting with the database. Either
 	 * this property can be set or the {@link #setDataSource(DataSource) dataSource}.
-	 *
 	 * Please consider passing in a {@link JdbcTemplate} with a fetchSize property
 	 * of 1. This is particularly important for Oracle to ensure First In, First Out (FIFO)
 	 * message retrieval characteristics.
-	 *
 	 * @param jdbcTemplate a {@link JdbcOperations}
 	 */
 	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
@@ -234,7 +225,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * Override the {@link LobHandler} that is used to create and unpack large objects in SQL queries. The default is
 	 * fine for almost all platforms, but some Oracle drivers require a native implementation.
-	 *
 	 * @param lobHandler a {@link LobHandler}
 	 */
 	public void setLobHandler(LobHandler lobHandler) {
@@ -246,12 +236,23 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Allows for passing in a custom {@link MessageRowMapper}. The {@link MessageRowMapper}
 	 * is used to convert the selected database row representing the persisted
 	 * message into the actual {@link Message} object.
-	 *
 	 * @param messageRowMapper Must not be null
 	 */
 	public void setMessageRowMapper(MessageRowMapper messageRowMapper) {
 		Assert.notNull(messageRowMapper, "The provided MessageRowMapper must not be null.");
 		this.messageRowMapper = messageRowMapper;
+	}
+
+	/**
+	 * Set a {@link ChannelMessageStorePreparedStatementSetter} to insert message into the database.
+	 * @param preparedStatementSetter {@link ChannelMessageStorePreparedStatementSetter} to use.
+	 * Must not be null
+	 * @since 5.0
+	 */
+	public void setPreparedStatementSetter(ChannelMessageStorePreparedStatementSetter preparedStatementSetter) {
+		Assert.notNull(preparedStatementSetter,
+				"The provided ChannelMessageStorePreparedStatementSetter must not be null.");
+		this.preparedStatementSetter = preparedStatementSetter;
 	}
 
 	/**
@@ -273,7 +274,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * A unique grouping identifier for all messages persisted with this store.
 	 * Using multiple regions allows the store to be partitioned (if necessary)
 	 * for different purposes. Defaults to <code>{@link #DEFAULT_REGION}</code>.
-	 *
 	 * @param region the region name to set
 	 */
 	public void setRegion(String region) {
@@ -282,7 +282,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * A converter for serializing messages to byte arrays for storage.
-	 *
 	 * @param serializer The serializer to set
 	 */
 	@SuppressWarnings("unchecked")
@@ -294,7 +293,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * Public setter for the table prefix property. This will be prefixed to all the table names before queries are
 	 * executed. Defaults to {@link #DEFAULT_TABLE_PREFIX}.
-	 *
 	 * @param tablePrefix the tablePrefix to set
 	 */
 	public void setTablePrefix(String tablePrefix) {
@@ -305,23 +303,18 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * <p>Consider using this property when polling the database transactionally
 	 * using multiple parallel threads, meaning when the configured poller is configured
 	 * using a task executor.</p>
-	 *
 	 * <p>The issue is that the {@link #pollMessageFromGroup(Object)} looks for the
 	 * oldest entry for a giving channel (groupKey) and region ({@link #setRegion(String)}).
 	 * If you do that with multiple threads and you are using transactions, other
 	 * threads may be waiting for that same locked row.</p>
-	 *
 	 * <p>If using the provided {@link OracleChannelMessageStoreQueryProvider}, don't set {@link #usingIdCache}
 	 * to true, as the Oracle query will ignore locked rows.</p>
-	 *
 	 * <p>Using the id cache, the {@link JdbcChannelMessageStore} will store each
 	 * message id in an in-memory collection for the duration of processing. With
 	 * that, any polling threads will explicitly exclude those messages from
 	 * being polled.</p>
-	 *
 	 * <p>For this to work, you must setup the corresponding
 	 * {@link TransactionSynchronizationFactory}:</p>
-	 *
 	 * <pre class="code">
 	 * {@code
 	 * <int:transaction-synchronization-factory id="syncFactory">
@@ -330,10 +323,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * </int:transaction-synchronization-factory>
 	 * }
 	 * </pre>
-	 *
 	 * This {@link TransactionSynchronizationFactory} is then referenced in the
 	 * transaction configuration of the poller:
-	 *
 	 * <pre class="code">
 	 * {@code
 	 * <int:poller fixed-delay="300" receive-timeout="500"
@@ -343,7 +334,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * </int:poller>
 	 * }
 	 * </pre>
-	 *
 	 * @param usingIdCache When <code>true</code> the id cache will be used.
 	 */
 	public void setUsingIdCache(boolean usingIdCache) {
@@ -375,23 +365,18 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		return this.messageGroupFactory;
 	}
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
-
 	/**
 	 * Check mandatory properties ({@link DataSource} and
-	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper} was
-	 * explicitly set using {@link #setMessageRowMapper(MessageRowMapper)}, the default
-	 * {@link MessageRowMapper} will be instantiate using the specified {@link #deserializer}
-	 * and {@link #lobHandler}.
-	 *
+	 * {@link #setChannelMessageStoreQueryProvider(ChannelMessageStoreQueryProvider)}). If no {@link MessageRowMapper}
+	 * and {@link ChannelMessageStorePreparedStatementSetter} was explicitly set using
+	 * {@link #setMessageRowMapper(MessageRowMapper)} and
+	 * {@link #setPreparedStatementSetter(ChannelMessageStorePreparedStatementSetter)}  respectively, the default
+	 * {@link MessageRowMapper} and {@link ChannelMessageStorePreparedStatementSetter} will be instantiate using the
+	 * specified {@link #deserializer} and {@link #lobHandler}.
 	 * Also, if the jdbcTemplate's fetchSize property ({@link JdbcTemplate#getFetchSize()})
 	 * is not 1, a warning will be logged. When using the {@link JdbcChannelMessageStore}
 	 * with Oracle, the fetchSize value of 1 is needed to ensure FIFO characteristics
 	 * of polled messages. Please see the Oracle {@link ChannelMessageStoreQueryProvider} for more details.
-	 *
 	 * @throws Exception Any Exception.
 	 */
 	@Override
@@ -407,69 +392,39 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 			logger.warn("The jdbcTemplate's fetch size is not 1. This may cause FIFO issues with Oracle databases.");
 		}
 
+		if (this.preparedStatementSetter == null) {
+			this.preparedStatementSetter = new ChannelMessageStorePreparedStatementSetter(this.serializer,
+					this.lobHandler);
+		}
 		this.jdbcTemplate.afterPropertiesSet();
 	}
 
 	/**
 	 * Store a message in the database. The groupId identifies the channel for which
 	 * the message is to be stored.
-	 *
-	 * Keep in mind that the actual groupId (Channel
-	 * Identifier) is converted to a String-based UUID identifier.
-	 *
+	 * Keep in mind that the actual groupId (Channel Identifier) is converted to a String-based UUID identifier.
 	 * @param groupId the group id to store the message under
 	 * @param message a message
 	 */
 	@Override
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
-
-		String groupKey = getKey(groupId);
-
-		long createdDate = System.currentTimeMillis();
-
-		String messageId = getKey(message.getHeaders().getId());
-
-		byte[] messageBytes = this.serializer.convert(message);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Inserting message with id key=" + messageId);
-		}
-
 		try {
 			this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
-					ps -> {
-						ps.setString(1, messageId);
-						ps.setString(2, groupKey);
-						ps.setString(3, this.region);
-						ps.setLong(4, createdDate);
-
-						Integer priority = message.getHeaders()
-								.get(IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
-
-						if (JdbcChannelMessageStore.this.priorityEnabled && priority != null) {
-							ps.setInt(5, priority);
-						}
-						else {
-							ps.setNull(5, Types.NUMERIC);
-						}
-
-						this.lobHandler.getLobCreator().setBlobAsBytes(ps, 6, messageBytes);
-					});
+					ps -> this.preparedStatementSetter.setValues(ps, message, groupId, this.region,
+							this.priorityEnabled));
 		}
 		catch (DuplicateKeyException e) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("The Message with id [" + messageId + "] already exists.\n" +
-						"Ignoring INSERT...");
+				String messageId = getKey(message.getHeaders().getId());
+				logger.debug("The Message with id [" + messageId + "] already exists.\nIgnoring INSERT...");
 			}
 		}
-
 		return getMessageGroup(groupId);
 	}
 
 	/**
 	 * Helper method that converts the channel id to a UUID using
 	 * {@link UUIDConverter#getUUID(Object)}.
-	 *
 	 * @param input Parameter may be null
 	 * @return Returns null when the input is null otherwise the UUID as String.
 	 */
@@ -487,13 +442,13 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	/**
 	 * Method not implemented.
-	 *
 	 * @return The message group count.
 	 * @throws UnsupportedOperationException Method not supported.
 	 */
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		return this.jdbcTemplate.queryForObject(this.getQuery("SELECT COUNT(DISTINCT GROUP_KEY) from %PREFIX%CHANNEL_MESSAGE where REGION = ?"),
+		return this.jdbcTemplate.queryForObject(
+				getQuery("SELECT COUNT(DISTINCT GROUP_KEY) from %PREFIX%CHANNEL_MESSAGE where REGION = ?"),
 				Integer.class, this.region);
 	}
 
@@ -501,7 +456,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Replace patterns in the input to produce a valid SQL query. This implementation lazily initializes a
 	 * simple map-based cache, only replacing the table prefix on the first access to a named query. Further
 	 * accesses will be resolved from the cache.
-	 *
 	 * @param sqlQuery The SQL query to be transformed.
 	 * @return A transformed query with replacements.
 	 */
@@ -519,7 +473,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * Returns the number of messages persisted for the specified channel id (groupId)
 	 * and the specified region ({@link #setRegion(String)}).
-	 *
 	 * @return The message group size.
 	 */
 	@Override
@@ -559,7 +512,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * This method executes a call to the DB to get the oldest Message in the
 	 * MessageGroup which in the context of the {@link JdbcChannelMessageStore}
 	 * means the channel identifier.
-	 *
 	 * @param groupIdKey String representation of message group (Channel) ID
 	 * @return a message; could be null if query produced no Messages
 	 */
@@ -631,7 +583,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		final UUID id = messageToRemove.getHeaders().getId();
 
 		int updated = this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
-				new Object[]{getKey(id), getKey(groupId), this.region}, new int[]{Types.VARCHAR, Types.VARCHAR, Types.VARCHAR});
+				new Object[] { getKey(id), getKey(groupId), this.region },
+				new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
 
 		boolean result = updated != 0;
 		if (result) {
@@ -651,7 +604,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * rolled back.</p>
 	 * <p>Only applicable if {@link #setUsingIdCache(boolean)} is set to
 	 * <code>true</code></p>.
-	 *
 	 * @param messageId The message identifier.
 	 */
 	public void removeFromIdCache(String messageId) {
@@ -670,7 +622,6 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	/**
 	 * Returns the size of the Message Id Cache, which caches Message Ids for
 	 * those messages that are currently being processed.
-	 *
 	 * @return The size of the Message Id Cache
 	 */
 	@ManagedMetric

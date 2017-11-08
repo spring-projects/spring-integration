@@ -40,7 +40,10 @@ public class XmppConnectionFactoryBeanTests {
 	@Test
 	public void testXmppConnectionFactoryBean() throws Exception {
 		XmppConnectionFactoryBean xmppConnectionFactoryBean = new XmppConnectionFactoryBean();
-		xmppConnectionFactoryBean.setConnectionConfiguration(mock(XMPPTCPConnectionConfiguration.class));
+		xmppConnectionFactoryBean.setConnectionConfiguration(
+				XMPPTCPConnectionConfiguration.builder()
+						.setXmppDomain("foo")
+						.build());
 		XMPPConnection connection = xmppConnectionFactoryBean.createInstance();
 		assertNotNull(connection);
 	}

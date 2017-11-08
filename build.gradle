@@ -87,8 +87,8 @@ subprojects { subproject ->
 	}
 
 	ext {
-		activeMqVersion = '5.15.0'
-		aspectjVersion = '1.8.10'
+		activeMqVersion = '5.15.2'
+		aspectjVersion = '1.8.12'
 		apacheSshdVersion = '1.6.0'
 		boonVersion = '0.34'
 		commonsDbcp2Version = '2.1.1'
@@ -119,27 +119,27 @@ subprojects { subproject ->
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
 		log4jVersion = '1.2.17'
-		mockitoVersion = '2.9.0'
+		mockitoVersion = '2.11.0'
 		mysqlVersion = '6.0.6'
-		pahoMqttClientVersion = '1.1.1'
+		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.0.0'
-		reactorNettyVersion = '0.7.0.RELEASE'
-		reactorVersion = '3.1.0.RELEASE'
-		romeToolsVersion = '1.7.4'
+		reactorNettyVersion = '0.7.1.RELEASE'
+		reactorVersion = '3.1.1.RELEASE'
+		romeToolsVersion = '1.8.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"
-		smackVersion = '4.1.9'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.RC2'
-		springDataJpaVersion = '2.0.0.RC3'
-		springDataMongoVersion = '2.0.0.RC3'
-		springDataRedisVersion = '2.0.0.RC3'
-		springGemfireVersion = '2.0.0.RC3'
-		springSecurityVersion = '5.0.0.M4'
+		smackVersion = '4.2.1'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.0.RELEASE'
+		springDataJpaVersion = '2.0.0.RELEASE'
+		springDataMongoVersion = '2.0.0.RELEASE'
+		springDataRedisVersion = '2.0.0.RELEASE'
+		springGemfireVersion = '2.0.0.RELEASE'
+		springSecurityVersion = '5.0.0.RC1'
 		springSocialTwitterVersion = '2.0.0.M4'
 		springRetryVersion = '1.2.1.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.0.RELEASE'
-		springWsVersion = '2.4.0.RELEASE'
-		tomcatVersion = "8.5.20"
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.1.RELEASE'
+		springWsVersion = '3.0.0.RELEASE'
+		tomcatVersion = "8.5.23"
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.10'
 	}
@@ -289,6 +289,7 @@ project('spring-integration-amqp') {
 			exclude group: 'org.springframework', module: 'spring-core'
 			exclude group: 'org.springframework', module: 'spring-tx'
 		}
+
 		testCompile("org.springframework.amqp:spring-rabbit-junit:$springAmqpVersion")
 		testCompile project(":spring-integration-stream")
 	}
@@ -478,7 +479,6 @@ project('spring-integration-jpa') {
 		compile "org.springframework:spring-orm:$springVersion"
 		compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
 
-
 		testCompile ("org.springframework.data:spring-data-jpa:$springDataJpaVersion") {
 			exclude group: 'org.springframework', module: 'spring-beans'
 			exclude group: 'org.springframework', module: 'spring-context'
@@ -618,7 +618,6 @@ project('spring-integration-stomp') {
 		compile project(":spring-integration-core")
 
 		compile ("org.springframework:spring-websocket:$springVersion", optional)
-
 		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile project(":spring-integration-websocket")
@@ -743,6 +742,7 @@ project('spring-integration-ws') {
 		testCompile "org.igniterealtime.smack:smack-extensions:$smackVersion"
 		testCompile "javax.mail:javax.mail-api:$javaxMailVersion"
 		testRuntime "com.sun.mail:mailapi:$javaxMailVersion"
+		testRuntime "com.sun.mail:javax.mail:$javaxMailVersion"
 	}
 }
 

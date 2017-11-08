@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl.context;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,10 +25,10 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
@@ -68,8 +69,6 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	private AutowiredAnnotationBeanPostProcessor autowiredAnnotationBeanPostProcessor;
-
 	private IntegrationFlowContext() {
 	}
 
@@ -80,8 +79,6 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 						"'ConfigurableListableBeanFactory'. " +
 						"Consider using 'GenericApplicationContext' implementation.");
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
-		this.autowiredAnnotationBeanPostProcessor = new AutowiredAnnotationBeanPostProcessor();
-		this.autowiredAnnotationBeanPostProcessor.setBeanFactory(this.beanFactory);
 	}
 
 	/**
@@ -113,22 +110,23 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 		this.registry.put(flowId, builder.integrationFlowRegistration);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object registerBean(Object bean, String beanName, String parentName) {
 		if (beanName == null) {
 			beanName = generateBeanName(bean, parentName);
 		}
 
-		this.autowiredAnnotationBeanPostProcessor.processInjection(bean);
-		bean = this.beanFactory.initializeBean(bean, beanName);
-		this.beanFactory.registerSingleton(beanName, bean);
+		BeanDefinition beanDefinition =
+				BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) bean.getClass(), () -> bean)
+						.getRawBeanDefinition();
+
+		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
+
 		if (parentName != null) {
 			this.beanFactory.registerDependentBean(parentName, beanName);
 		}
-		if (bean instanceof DisposableBean) {
-			((DefaultSingletonBeanRegistry) this.beanFactory)
-					.registerDisposableBean(beanName, (DisposableBean) bean);
-		}
-		return bean;
+
+		return this.beanFactory.getBean(beanName);
 	}
 
 	/**
@@ -150,7 +148,11 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 		if (this.registry.containsKey(flowId)) {
 			IntegrationFlowRegistration flowRegistration = this.registry.remove(flowId);
 			flowRegistration.stop();
-			((DefaultSingletonBeanRegistry) this.beanFactory).destroySingleton(flowId);
+
+			Arrays.stream(this.beanFactory.getDependentBeans(flowId))
+					.forEach(((BeanDefinitionRegistry) this.beanFactory)::removeBeanDefinition);
+
+			((BeanDefinitionRegistry) this.beanFactory).removeBeanDefinition(flowId);
 		}
 		else {
 			throw new IllegalStateException("Only manually registered IntegrationFlows can be removed. "
@@ -207,7 +209,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 
 		private boolean autoStartup = true;
 
-		IntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
+		private IntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
 			this.integrationFlowRegistration = new IntegrationFlowRegistration(integrationFlow);
 			this.integrationFlowRegistration.setBeanFactory(IntegrationFlowContext.this.beanFactory);
 			this.integrationFlowRegistration.setIntegrationFlowContext(IntegrationFlowContext.this);

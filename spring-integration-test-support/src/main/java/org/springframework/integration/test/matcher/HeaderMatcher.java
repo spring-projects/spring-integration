@@ -23,6 +23,7 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Assert;
 
 import org.springframework.messaging.Message;
@@ -70,7 +71,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Artem Bilan
  *
  */
-public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
+public class HeaderMatcher<T> extends TypeSafeMatcher<Message<T>> {
 
 	private final Matcher<?> matcher;
 
@@ -83,7 +84,7 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 	}
 
 	@Override
-	public boolean matchesSafely(Message<?> item) {
+	public boolean matchesSafely(Message<T> item) {
 		return this.matcher.matches(item.getHeaders());
 	}
 
@@ -94,73 +95,73 @@ public class HeaderMatcher extends TypeSafeMatcher<Message<?>> {
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasHeader(String key, T value) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry(key, value));
+	public static <P, V> HeaderMatcher<P> hasHeader(String key, V value) {
+		return new HeaderMatcher<>(MapContentMatchers.hasEntry(key, value));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasHeader(String key, Matcher<T> valueMatcher) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry(key, valueMatcher));
+	public static <P, V> HeaderMatcher<P> hasHeader(String key, Matcher<V> valueMatcher) {
+		return new HeaderMatcher<>(MapContentMatchers.hasEntry(key, valueMatcher));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasHeaderKey(String key) {
-		return new HeaderMatcher(MapContentMatchers.hasKey(key));
+	public static <P> HeaderMatcher<P> hasHeaderKey(String key) {
+		return new HeaderMatcher<>(MapContentMatchers.hasKey(key));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasAllHeaders(Map<String, ?> entries) {
-		return new HeaderMatcher(MapContentMatchers.hasAllEntries(entries));
+	public static <P> HeaderMatcher<P> hasAllHeaders(Map<String, ?> entries) {
+		return new HeaderMatcher<>(MapContentMatchers.hasAllEntries(entries));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasMessageId(T value) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.ID, value));
+	public static <P, V> HeaderMatcher<P> hasMessageId(V value) {
+		return new HeaderMatcher<>(MapContentMatchers.hasEntry(MessageHeaders.ID, value));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasCorrelationId(T value) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry("correlationId", value));
+	public static <P, V> HeaderMatcher<P> hasCorrelationId(V value) {
+		return new HeaderMatcher<>(MapContentMatchers.hasEntry("correlationId", value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasSequenceNumber(Integer value) {
+	public static <P> HeaderMatcher<P> hasSequenceNumber(Integer value) {
 		return hasSequenceNumber(CoreMatchers.is(value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasSequenceNumber(Matcher<Integer> matcher) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry("sequenceNumber", matcher));
+	public static <P> HeaderMatcher<P> hasSequenceNumber(Matcher<Integer> matcher) {
+		return new HeaderMatcher<>(MapContentMatchers.hasEntry("sequenceNumber", matcher));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasSequenceSize(Integer value) {
+	public static <P> HeaderMatcher<P> hasSequenceSize(Integer value) {
 		return hasSequenceSize(CoreMatchers.is(value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasSequenceSize(Matcher<Integer> value) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry("sequenceSize", value));
+	public static <P> HeaderMatcher<P> hasSequenceSize(Matcher<Integer> value) {
+		return new HeaderMatcher<>(MapContentMatchers.hasEntry("sequenceSize", value));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasExpirationDate(Date value) {
+	public static <P> HeaderMatcher<P> hasExpirationDate(Date value) {
 		return hasExpirationDate(CoreMatchers.is(value.getTime()));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasExpirationDate(Matcher<Long> matcher) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry("expirationDate", matcher));
+	public static <P> HeaderMatcher<P> hasExpirationDate(Matcher<Long> matcher) {
+		return new HeaderMatcher<>(MapContentMatchers.hasEntry("expirationDate", matcher));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasTimestamp(Date value) {
+	public static <P> HeaderMatcher<P> hasTimestamp(Date value) {
 		return hasTimestamp(CoreMatchers.is(value.getTime()));
 	}
 
 	@Factory
-	public static Matcher<Message<?>> hasTimestamp(Matcher<Long> matcher) {
-		return new HeaderMatcher(MapContentMatchers.hasEntry(MessageHeaders.TIMESTAMP, matcher));
+	public static <P> HeaderMatcher<P> hasTimestamp(Matcher<Long> matcher) {
+		return new HeaderMatcher<>(MapContentMatchers.hasEntry(MessageHeaders.TIMESTAMP, matcher));
 	}
 
 }

@@ -36,7 +36,7 @@ public class AmqpInboundChannelAdapterDMLCSpec
 		super(new DirectMessageListenerContainerSpec(listenerContainer));
 	}
 
-	AmqpInboundChannelAdapterDMLCSpec configureContainer(Consumer<DirectMessageListenerContainerSpec> configurer) {
+	public AmqpInboundChannelAdapterDMLCSpec configureContainer(Consumer<DirectMessageListenerContainerSpec> configurer) {
 		configurer.accept((DirectMessageListenerContainerSpec) this.listenerContainerSpec);
 		return this;
 	}
