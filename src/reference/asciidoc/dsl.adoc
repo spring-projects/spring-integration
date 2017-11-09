@@ -697,7 +697,7 @@ public class MyFlow implements IntegrationFlow {
 
 And yes, it is picked up by the `IntegrationFlowBeanPostProcessor` and correctly parsed and registered in the application context.
 
-For convenience the `IntegrationFlowAdapter` base class implementation is provided.
+For convenience and loosely coupled architecture the `IntegrationFlowAdapter` base class implementation is provided.
 It requires a `buildFlow()` method implementation to produce an `IntegrationFlowDefinition` using one of `from()` support methods:
 
 [source,java]
@@ -754,4 +754,135 @@ public class MyFlowAdapter extends IntegrationFlowAdapter {
     }
 
 }
+----
+
+[[java-dsl-runtime-flows]]
+=== Dynamic and runtime Integration Flows
+
+The `IntegrationFlow` s and therefore all its dependant components can be registered at runtime.
+This was done previously by the `BeanFactory.registerSingleton()` hook and now via newly introduced in the Spring Framework `5.0` programmatic `BeanDefinition` registration with the `instanceSupplier` hook:
+
+[source,java]
+----
+BeanDefinition beanDefinition =
+         BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) bean.getClass(), () -> bean)
+               .getRawBeanDefinition();
+
+((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
+----
+
+and all the necessary bean initialization and lifecycle is done automatically as it is with the standard context configuration bean definitions.
+
+To simplify the development experience Spring Integration introduced `IntegrationFlowContext` to register and manage `IntegrationFlow` instances at runtime:
+
+[source,java]
+----
+@Autowired
+private AbstractServerConnectionFactory server1;
+
+@Autowired
+private IntegrationFlowContext flowContext;
+
+...
+
+@Test
+public void testTcpGateways() {
+    TestingUtilities.waitListening(this.server1, null);
+
+    IntegrationFlow flow = f -> f
+            .handle(Tcp.outboundGateway(Tcp.netClient("localhost", this.server1.getPort())
+                    .serializer(TcpCodecs.crlf())
+                    .deserializer(TcpCodecs.lengthHeader1())
+                    .id("client1"))
+                .remoteTimeout(m -> 5000))
+            .transform(Transformers.objectToString());
+
+    IntegrationFlowRegistration theFlow = this.flowContext.registration(flow).register();
+    assertThat(theFlow.getMessagingTemplate().convertSendAndReceive("foo", String.class), equalTo("FOO"));
+}
+----
+
+This is useful when we have multi configuration options and have to create several instances of similar flows.
+So, we can iterate our options and create and register `IntegrationFlow` s within loop.
+Another variant when our source of data isn't Spring-based and we must create it on the fly.
+Such a sample is Reactive Streams event source:
+
+[source,java]
+----
+Flux<Message<?>> messageFlux =
+    Flux.just("1,2,3,4")
+        .map(v -> v.split(","))
+        .flatMapIterable(Arrays::asList)
+        .map(Integer::parseInt)
+        .map(GenericMessage<Integer>::new);
+
+QueueChannel resultChannel = new QueueChannel();
+
+IntegrationFlow integrationFlow =
+    IntegrationFlows.from(messageFlux)
+        .<Integer, Integer>transform(p -> p * 2)
+        .channel(resultChannel)
+        .get();
+
+this.integrationFlowContext.registration(integrationFlow)
+            .register();
+----
+
+The `IntegrationFlowRegistrationBuilder` (as a result of the `IntegrationFlowContext.registration()`) can be used to specify a bean name for the `IntegrationFlow` to register, to control its `autoStartup` and also for additional, non Integration beans registration.
+Usually those additional beans are connection factories (AMQP, JMS, (S)FTP, TCP/UDP etc.), serializers/deserializers or any other required support components.
+
+Such a dynamically registered `IntegrationFlow` and all its dependant beans can be removed afterwards using `IntegrationFlowRegistration.destroy()` callback.
+See `IntegrationFlowContext` JavaDocs for more information.
+
+[[java-dsl-gateway]]
+=== IntegrationFlow as Gateway
+
+The `IntegrationFlow` can start from the service interface providing `GatewayProxyFactoryBean` component:
+
+[source,java]
+----
+public interface ControlBusGateway {
+
+    void send(String command);
+}
+
+...
+
+@Bean
+public IntegrationFlow controlBusFlow() {
+    return IntegrationFlows.from(ControlBusGateway.class)
+            .controlBus()
+            .get();
+}
+----
+
+All the proxy for interface methods are supplied with the channel to send messages to the next integration component in the `IntegrationFlow`.
+The service interface can be marked with the `@MessagingGateway` as well as methods with the `@Gateway` annotations.
+Nevertheless the `requestChannel` is ignored and overridden with that internal channel for the next component in the `IntegrationFlow`.
+Otherwise such a configuration via `IntegrationFlow` won't make sense.
+
+By default a `GatewayProxyFactoryBean` gets a conventional bean name like `[FLOW_BEAN_NAME.gateway]`.
+That id can be changed via `@MessagingGateway.name()` attribute or the overloaded `from(Class<?> serviceInterface, String beanName)` factory method.
+
+With the Java 8 on board we even can create such an Integration Gateway with the `java.util.function` interfaces:
+
+[source,java]
+----
+@Bean
+public IntegrationFlow errorRecovererFlow() {
+    return IntegrationFlows.from(Function.class, "errorRecovererFunction")
+            .handle((GenericHandler<?>) (p, h) -> {
+                throw new RuntimeException("intentional");
+            }, e -> e.advice(retryAdvice()))
+            .get();
+}
+----
+
+That can be used lately as:
+
+[source,java]
+----
+@Autowired
+@Qualifier("errorRecovererFunction")
+private Function<String, String> errorRecovererFlowGateway;
 ----
