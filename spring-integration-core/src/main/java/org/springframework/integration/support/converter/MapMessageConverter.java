@@ -106,7 +106,9 @@ public class MapMessageConverter implements MessageConverter, BeanFactoryAware {
 			}
 			messageBuilder.copyHeaders(headers);
 		}
-		return messageBuilder.build();
+		return messageBuilder
+				.copyHeadersIfAbsent(messageHeaders)
+				.build();
 	}
 
 	@Override

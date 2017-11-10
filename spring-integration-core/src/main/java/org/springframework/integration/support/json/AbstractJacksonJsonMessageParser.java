@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.support.json;
 
 import java.lang.reflect.Type;
+import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -30,6 +31,7 @@ import org.springframework.messaging.Message;
  * Base {@link JsonInboundMessageMapper.JsonMessageParser} implementation for Jackson processors.
  *
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -66,18 +68,23 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 	}
 
 	@Override
-	public Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage) throws Exception {
+	public Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage,
+			Map<String, Object> headers) throws Exception {
+
 		if (this.messageMapper == null) {
 			this.messageMapper = messageMapper;
 		}
 		P parser = this.createJsonParser(jsonMessage);
 
 		if (messageMapper.isMapToPayload()) {
-			Object payload = this.readPayload(parser, jsonMessage);
-			return getMessageBuilderFactory().withPayload(payload).build();
+			Object payload = readPayload(parser, jsonMessage);
+			return getMessageBuilderFactory()
+					.withPayload(payload)
+					.copyHeaders(headers)
+					.build();
 		}
 		else {
-			return this.parseWithHeaders(parser, jsonMessage);
+			return parseWithHeaders(parser, jsonMessage, headers);
 		}
 	}
 
@@ -92,8 +99,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 	}
 
 	protected Object readHeader(P parser, String headerName, String jsonMessage) throws Exception {
-		Class<?> headerType = this.messageMapper.getHeaderTypes().containsKey(headerName) ?
-				this.messageMapper.getHeaderTypes().get(headerName) : Object.class;
+		Class<?> headerType = this.messageMapper.getHeaderTypes().getOrDefault(headerName, Object.class);
 		try {
 			return this.objectMapper.fromJson(parser, (Type) headerType);
 		}
@@ -103,7 +109,8 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 		}
 	}
 
-	protected abstract Message<?> parseWithHeaders(P parser, String jsonMessage) throws Exception;
+	protected abstract Message<?> parseWithHeaders(P parser, String jsonMessage,
+			Map<String, Object> headers) throws Exception;
 
 	protected abstract P createJsonParser(String jsonMessage) throws Exception;
 

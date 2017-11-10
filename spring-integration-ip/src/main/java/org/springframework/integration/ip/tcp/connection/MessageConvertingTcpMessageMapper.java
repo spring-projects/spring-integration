@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,19 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import java.util.Map;
+
+import org.springframework.integration.support.MutableMessageHeaders;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
  * @author Gary Russell
+ * @author Artem  Bilan
+ *
  * @since 3.0
  *
  */
@@ -36,14 +42,24 @@ public class MessageConvertingTcpMessageMapper extends TcpMessageMapper {
 	}
 
 	@Override
-	public Message<?> toMessage(TcpConnection connection) throws Exception {
+	public Message<?> toMessage(TcpConnection connection, @Nullable Map<String, Object> headers) throws Exception {
 		Object data = connection.getPayload();
 		if (data != null) {
-			Message<?> message = this.messageConverter.toMessage(data, null);
-			AbstractIntegrationMessageBuilder<?> messageBuilder = this.getMessageBuilderFactory().fromMessage(message);
-			this.addStandardHeaders(connection, messageBuilder);
-			this.addCustomHeaders(connection, messageBuilder);
-			return messageBuilder.build();
+
+			MessageHeaders messageHeaders = new MutableMessageHeaders(null, MessageHeaders.ID_VALUE_NONE, -1L) {
+
+				private static final long serialVersionUID = 3084692953798643018L;
+
+			};
+
+			addStandardHeaders(connection, messageHeaders);
+			addCustomHeaders(connection, messageHeaders);
+
+			if (headers != null) {
+				headers.forEach(messageHeaders::putIfAbsent);
+			}
+
+			return this.messageConverter.toMessage(data, messageHeaders);
 		}
 		else {
 			if (logger.isWarnEnabled()) {
