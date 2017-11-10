@@ -418,6 +418,8 @@ By default this `key` has the value `MetaData`.
 
 Starting with _version 4.0_, this store now implements `ConcurrentMetadataStore`, allowing it to be reliably shared across multiple application instances where only one instance will be allowed to store or modify a key's value.
 
+IMPORTANT: The `RedisMetadataStore.replace()` (for example in the `AbstractPersistentAcceptOnceFileListFilter`) can't be used with clustered Redis connections since the `WATCH` command for atomicity isn't supported there.
+
 [[redis-store-inbound-channel-adapter]]
 === RedisStore Inbound Channel Adapter
 
