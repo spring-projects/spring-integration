@@ -150,6 +150,8 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 
 	@Override
 	protected void onInit() {
+		super.onInit();
+
 		this.listener.afterPropertiesSet();
 		if (!this.listenerContainer.isActive()) {
 			this.listenerContainer.afterPropertiesSet();

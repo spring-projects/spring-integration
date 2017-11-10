@@ -27,6 +27,7 @@ import org.aopalliance.aop.Advice;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.MessagingExceptionWrapper;
@@ -177,6 +178,12 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				}
 			}
 			this.initialized = true;
+		}
+		try {
+			super.onInit();
+		}
+		catch (Exception e) {
+			throw new BeanInitializationException("Cannot initialize: " + this, e);
 		}
 	}
 

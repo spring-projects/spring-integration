@@ -20,6 +20,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -110,11 +111,16 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 		}
 
 		if (StringUtils.hasText(this.role)) {
-			this.roleController = getBeanFactory()
-					.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
-					SmartLifecycleRoleController.class);
+			try {
+				this.roleController = getBeanFactory()
+						.getBean(IntegrationContextUtils.INTEGRATION_LIFECYCLE_ROLE_CONTROLLER,
+								SmartLifecycleRoleController.class);
 
-			this.roleController.addLifecycleToRole(this.role, this);
+				this.roleController.addLifecycleToRole(this.role, this);
+			}
+			catch (NoSuchBeanDefinitionException e) {
+					this.logger.trace("No LifecycleRoleController in the context");
+				}
 		}
 	}
 
