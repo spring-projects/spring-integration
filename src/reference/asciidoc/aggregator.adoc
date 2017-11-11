@@ -800,10 +800,6 @@ The interface is very straightforward:
 
 [source,java]
 ----
-public interface UniqueExpiryCallback extends MessageGroupCallback {
-
-}
-
 public interface MessageGroupCallback {
 
     void execute(MessageGroupStore messageGroupStore, MessageGroup group);
@@ -815,8 +811,6 @@ The callback has direct access to the store and the message group so it can mana
 by removing the group from the store entirely).
 
 The `MessageGroupStore` maintains a list of these callbacks which it applies, on demand, to all messages whose timestamp is earlier than a time supplied as a parameter (see the `registerMessageGroupExpiryCallback(..)` and `expireMessageGroups(..)` methods above).
-
-Since 5.0 only aggregator will fail if same `MessageStore` is shared accross different aggregators.
 
 The `expireMessageGroups` method can be called with a timeout value.
 Any message older than the current time minus this value will be expired, and have the callbacks applied.

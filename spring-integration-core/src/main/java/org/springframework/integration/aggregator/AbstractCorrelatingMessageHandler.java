@@ -50,7 +50,6 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.integration.store.UniqueExpiryCallback;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
@@ -166,9 +165,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public final void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
-		UniqueExpiryCallback callback = (messageGroupStore, group) -> this.forceReleaseProcessor
-				.processMessageGroup(group);
-		store.registerMessageGroupExpiryCallback(callback);
+		store.registerMessageGroupExpiryCallback(
+				(messageGroupStore, group) -> this.forceReleaseProcessor.processMessageGroup(group));
 	}
 
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {

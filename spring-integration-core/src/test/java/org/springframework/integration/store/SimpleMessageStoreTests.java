@@ -52,6 +52,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class SimpleMessageStoreTests {
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void shouldRetainMessage() {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
@@ -294,11 +295,4 @@ public class SimpleMessageStoreTests {
 		assertEquals(0, group.size());
 	}
 
-	@Test(expected = MessagingException.class)
-	public void testAddMultipleUniqueCallback() {
-		SimpleMessageStore messageStore = new SimpleMessageStore();
-		UniqueExpiryCallback callback = (messageGroupStore, group) -> group.clear();
-		messageStore.registerMessageGroupExpiryCallback(callback);
-		messageStore.registerMessageGroupExpiryCallback(callback);
-	}
 }

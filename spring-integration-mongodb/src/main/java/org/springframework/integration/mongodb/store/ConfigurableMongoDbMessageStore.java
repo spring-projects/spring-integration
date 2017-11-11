@@ -35,9 +35,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.MessageStoreException;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.integration.store.UniqueExpiryCallback;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
@@ -273,13 +271,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
-		if (callback instanceof UniqueExpiryCallback) {
-			if (this.expiryCallbacks.stream().filter(expiryCallback -> expiryCallback instanceof UniqueExpiryCallback)
-					.findAny().isPresent()) {
-				throw new MessageStoreException("Already an instance of UniqueExpiryCallback registered on "
-						+ "message store. Use separate message store for each aggregator.");
-			}
-		}
 		this.expiryCallbacks.add(callback);
 	}
 

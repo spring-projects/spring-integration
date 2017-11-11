@@ -110,13 +110,6 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
-		if (callback instanceof UniqueExpiryCallback) {
-			if (this.expiryCallbacks.stream().filter(expiryCallback -> expiryCallback instanceof UniqueExpiryCallback)
-					.findAny().isPresent()) {
-				throw new MessageStoreException("Already an instance of UniqueExpiryCallback registered on "
-						+ "message store. Use separate message store for each aggregator.");
-			}
-		}
 		this.expiryCallbacks.add(callback);
 	}
 

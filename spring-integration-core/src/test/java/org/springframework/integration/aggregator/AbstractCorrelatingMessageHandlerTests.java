@@ -46,7 +46,6 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -418,14 +417,4 @@ public class AbstractCorrelatingMessageHandlerTests {
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
-	@Test(expected = MessagingException.class)
-	public void testSetMessageStore() {
-		final MessageGroupStore groupStore = new SimpleMessageStore();
-		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group);
-
-		handler.setMessageStore(groupStore);
-
-		handler = new AggregatingMessageHandler(group -> group);
-		handler.setMessageStore(groupStore);
-	}
 }
