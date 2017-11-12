@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
  * @since 2.2
  *
  */
@@ -417,4 +418,37 @@ public class AbstractCorrelatingMessageHandlerTests {
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
+	@Test
+	public void test() {
+		final MessageGroupStore groupStore = new SimpleMessageStore();
+		AbstractCorrelatingMessageHandler handler = new AbstractCorrelatingMessageHandler(group -> group, groupStore) {
+			@Override
+			protected void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages) {
+
+			}
+		};
+		AbstractCorrelatingMessageHandler handler1 = new AbstractCorrelatingMessageHandler(group -> group, groupStore) {
+			@Override
+			protected void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages) {
+
+			}
+		};
+		String correlationId1 = "id1";
+		String correlationId2 = "id2";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId1).build();
+		handler.handleMessage(message);
+
+		Message<String> message1 = MessageBuilder.withPayload("bar").setCorrelationId(correlationId2).build();
+		handler1.handleMessage(message1);
+
+		handler.remove(groupStore.getMessageGroup(correlationId2));
+		assertTrue(groupStore.messageGroupSize(correlationId2) == 1);
+		handler1.remove(groupStore.getMessageGroup(correlationId2));
+		assertTrue(groupStore.messageGroupSize(correlationId2) == 0);
+
+		handler1.remove(groupStore.getMessageGroup(correlationId1));
+		assertTrue(groupStore.messageGroupSize(correlationId1) == 1);
+		handler.remove(groupStore.getMessageGroup(correlationId1));
+		assertTrue(groupStore.messageGroupSize(correlationId1) == 0);
+	}
 }
