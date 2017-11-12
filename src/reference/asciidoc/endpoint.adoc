@@ -653,6 +653,12 @@ private SmartLifecycleRoleController roleController;
 ...
 ----
 
+[source, java]
+----
+IntegrationFlow flow -> flow
+        .handle(..., e -> e.role("cluster"));
+----
+
 Each of these adds the endpoint to the role `cluster`.
 
 Invoking `roleController.startLifecyclesInRole("cluster")` (and the corresponding `stop...` method) will start/stop

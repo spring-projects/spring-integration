@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -42,35 +43,38 @@ import org.springframework.util.StringUtils;
  * @author Artem Bilan
  */
 public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<SourcePollingChannelAdapter>,
-		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
+		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle, DisposableBean {
 
-	private volatile MessageSource<?> source;
+	private final Object initializationMonitor = new Object();
 
-	private volatile MessageChannel outputChannel;
+	private MessageSource<?> source;
 
-	private volatile String outputChannelName;
+	private MessageChannel outputChannel;
 
-	private volatile PollerMetadata pollerMetadata;
+	private String outputChannelName;
 
-	private volatile boolean autoStartup = true;
+	private PollerMetadata pollerMetadata;
 
-	private volatile int phase = Integer.MAX_VALUE / 2;
+	private boolean autoStartup = true;
 
-	private volatile Long sendTimeout;
+	private int phase = Integer.MAX_VALUE / 2;
 
-	private volatile String beanName;
+	private Long sendTimeout;
 
-	private volatile ConfigurableBeanFactory beanFactory;
+	private String beanName;
 
-	private volatile ClassLoader beanClassLoader;
+	private ConfigurableBeanFactory beanFactory;
+
+	private ClassLoader beanClassLoader;
+
+	private DestinationResolver<MessageChannel> channelResolver;
+
+	private String role;
 
 	private volatile SourcePollingChannelAdapter adapter;
 
 	private volatile boolean initialized;
 
-	private volatile DestinationResolver<MessageChannel> channelResolver;
-
-	private final Object initializationMonitor = new Object();
 
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
@@ -98,6 +102,10 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	public void setPhase(int phase) {
 		this.phase = phase;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 	/**
@@ -191,6 +199,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setBeanClassLoader(this.beanClassLoader);
 			spca.setAutoStartup(this.autoStartup);
 			spca.setPhase(this.phase);
+			spca.setRole(this.role);
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
 			spca.setTransactionSynchronizationFactory(this.pollerMetadata.getTransactionSynchronizationFactory());
@@ -237,6 +246,13 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	public void stop(Runnable callback) {
 		if (this.adapter != null) {
 			this.adapter.stop(callback);
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (this.adapter != null) {
+			this.adapter.destroy();
 		}
 	}
 

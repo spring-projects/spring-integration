@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.messaging.Message;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandler {
@@ -75,6 +76,13 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 		afterRelease(messageGroup, completedMessages, false);
 	}
 
+	/**
+	 * Perform group removal if its {@code size} is equal to the {@code sequenceSize}.
+	 * Remove {@code completedMessages} from the group if it isn't null.
+	 * @param messageGroup the group to clean up.
+	 * @param completedMessages The completed messages.
+	 * @param timeout True if the release/discard was due to a timeout.
+	 */
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages, boolean timeout) {
 		int size = messageGroup.size();

@@ -141,3 +141,5 @@ List<LineItem> extractItems(Order order) {
 ----
 
 Also see <<advising-with-annotations>>.
+
+Also see <<java-dsl-splitters>> in Java DSL chapter.

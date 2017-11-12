@@ -440,7 +440,7 @@ The reply timeout is how long the gateway will wait for a reply, or return `null
 The timeouts can be set as defaults for all methods on the gateway (`defaultRequestTimeout`, `defaultReplyTimeout`) (or on the `MessagingGateway` interface annotation).
 Individual methods can override these defaults (in `<method/>` child elements) or on the `@Gateway` annotation.
 
-Starting with _version 5.0_ the timeouts can be defined as expressions:
+Starting with _version 5.0_, the timeouts can be defined as expressions:
 
 [source, java]
 ----
@@ -574,7 +574,7 @@ public interface NoExecGateway {
 }
 ----
 
-IMPORTANT: If the return type is a specific concrete `Future` implementation or some other subinterface that is not supported by the configured executor, the flow will run on the caller's thread and the flow must return the required type in the reply message payload.
+IMPORTANT: If the return type is a specific concrete `Future` implementation or some other sub-interface that is not supported by the configured executor, the flow will run on the caller's thread and the flow must return the required type in the reply message payload.
 
 [[gw-completable-future]]
 ===== CompletableFuture
@@ -669,7 +669,7 @@ A `Mono` can be used to retrieve the result later (similar to a `Future<?>`) or 
 IMPORTANT: The `Mono` isn't _flushed_ immediately by the framework.
 Hence the underlying message flow won't be started before the gateway method returns (as it is with `Future<?>` `Executor` task).
 The flow will be started when the `Mono` is _subscribed_.
-Alternatively, the `Mono` (being a `Composable`) might be a part of Reactor stream, when the `subscribe()` is related to the entire `Flux`.
+Alternatively, the `Mono` (being a *Composable*) might be a part of Reactor stream, when the `subscribe()` is related to the entire `Flux`.
 For example:
 
 [source,java]
@@ -759,10 +759,12 @@ In other words, it will help to ensure a timely response from the Gateway method
 NOTE: * _reply-timeout_ is unbounded for _<gateway/>_ elements (created by the GatewayProxyFactoryBean).
 Inbound gateways for external integration (ws, http, etc.) share many characteristics and attributes with these gateways.
 However, for those inbound gateways, the default _reply-timeout_ is 1000 milliseconds (1 second).
-If a downstream async handoff is made to another thread, you may need to increase this attribute to allow enough time for the flow to complete before the gateway times out.
+If a downstream async hand-off is made to another thread, you may need to increase this attribute to allow enough time for the flow to complete before the gateway times out.
 
 IMPORTANT: It is important to understand that the timer starts when the thread returns to the gateway, i.e. when the
 flow completes or a message is handed off to another thread.
 At that time, the calling thread starts waiting for the reply.
 If the flow was completely synchronous, the reply will be immediately available; for asynchronous flows, the thread
 will wait for up to this time.
+
+Also see <<java-dsl-gateway>> in the Java DSL chapter for options to define gateways via `IntegrationFlows`.

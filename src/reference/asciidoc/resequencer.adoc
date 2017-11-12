@@ -18,6 +18,8 @@ If you have a large number of disjoint sequences with many gaps, you may experie
 
 ==== Configuring a Resequencer
 
+See <<java-dsl-aggregators>> for configuring a Resequencer in Java DSL.
+
 Configuring a resequencer requires only including the appropriate element in XML.
 
 A sample resequencer configuration is shown below.

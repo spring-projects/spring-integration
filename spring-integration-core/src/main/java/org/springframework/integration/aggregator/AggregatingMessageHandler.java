@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.messaging.Message;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.1
  */
 public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler {
@@ -66,6 +67,12 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 		return this.expireGroupsUponCompletion;
 	}
 
+	/**
+	 * Complete the group and remove all its messages.
+	 * If the {@link #expireGroupsUponCompletion} is true, then remove group fully.
+	 * @param messageGroup the group to clean up.
+	 * @param completedMessages The completed messages. Ignored in this implementation.
+	 */
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
 		Object groupId = messageGroup.getGroupId();

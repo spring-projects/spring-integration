@@ -43,6 +43,8 @@ import org.springframework.util.Assert;
  * Eclipse Paho Implementation.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0
  *
  */
@@ -172,6 +174,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			catch (MqttException e) {
 				logger.error("Exception while disconnecting", e);
 			}
+
+			this.client.setCallback(null);
+
 			try {
 				this.client.close();
 			}
@@ -308,11 +313,13 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	@Override
 	public synchronized void connectionLost(Throwable cause) {
-		this.logger.error("Lost connection:" + cause.getMessage() + "; retrying...");
-		this.connected = false;
-		scheduleReconnect();
-		if (this.applicationEventPublisher != null) {
-			this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+		if (isRunning()) {
+			this.logger.error("Lost connection: " + cause.getMessage() + "; retrying...");
+			this.connected = false;
+			scheduleReconnect();
+			if (this.applicationEventPublisher != null) {
+				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
+			}
 		}
 	}
 

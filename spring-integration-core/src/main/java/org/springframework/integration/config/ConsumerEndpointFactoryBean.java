@@ -30,6 +30,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -64,43 +65,45 @@ import org.springframework.util.StringUtils;
  */
 public class ConsumerEndpointFactoryBean
 		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware,
-		InitializingBean, SmartLifecycle {
+		InitializingBean, SmartLifecycle, DisposableBean {
 
-	private volatile MessageHandler handler;
-
-	private volatile String beanName;
-
-	private volatile String inputChannelName;
-
-	private volatile PollerMetadata pollerMetadata;
-
-	private volatile Boolean autoStartup;
-
-	private volatile int phase = 0;
-
-	private volatile boolean isPhaseSet;
-
-	private volatile MessageChannel inputChannel;
-
-	private volatile ConfigurableBeanFactory beanFactory;
-
-	private volatile ClassLoader beanClassLoader;
-
-	private volatile AbstractEndpoint endpoint;
-
-	private volatile boolean initialized;
+	private static final Log logger = LogFactory.getLog(ConsumerEndpointFactoryBean.class);
 
 	private final Object initializationMonitor = new Object();
 
 	private final Object handlerMonitor = new Object();
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private MessageHandler handler;
 
-	private volatile List<Advice> adviceChain;
+	private String beanName;
 
-	private volatile DestinationResolver<MessageChannel> channelResolver;
+	private String inputChannelName;
+
+	private PollerMetadata pollerMetadata;
+
+	private Boolean autoStartup;
+
+	private int phase = 0;
+
+	private boolean isPhaseSet;
+
+	private String role;
+
+	private MessageChannel inputChannel;
+
+	private ConfigurableBeanFactory beanFactory;
+
+	private ClassLoader beanClassLoader;
+
+	private List<Advice> adviceChain;
+
+	private DestinationResolver<MessageChannel> channelResolver;
 
 	private TaskScheduler taskScheduler;
+
+	private volatile AbstractEndpoint endpoint;
+
+	private volatile boolean initialized;
 
 	public void setHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
@@ -147,6 +150,10 @@ public class ConsumerEndpointFactoryBean
 		this.isPhaseSet = true;
 	}
 
+	public void setRole(String role) {
+		this.role = role;
+	}
+
 	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
@@ -170,7 +177,7 @@ public class ConsumerEndpointFactoryBean
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (this.beanName == null) {
-			this.logger.error("The MessageHandler [" + this.handler + "] will be created without a 'componentName'. " +
+			logger.error("The MessageHandler [" + this.handler + "] will be created without a 'componentName'. " +
 					"Consider specifying the 'beanName' property on this ConsumerEndpointFactoryBean.");
 		}
 		else {
@@ -189,8 +196,8 @@ public class ConsumerEndpointFactoryBean
 				}
 			}
 			catch (Exception e) {
-				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Could not set component name for handler "
+				if (logger.isDebugEnabled()) {
+					logger.debug("Could not set component name for handler "
 							+ this.handler + " for " + this.beanName + " :" + e.getMessage());
 				}
 			}
@@ -267,10 +274,10 @@ public class ConsumerEndpointFactoryBean
 				Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
 						+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
 				this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
-				if (this.logger.isWarnEnabled()
+				if (logger.isWarnEnabled()
 						&& Boolean.FALSE.equals(this.autoStartup)
 						&& channel instanceof FixedSubscriberChannel) {
-					this.logger.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
+					logger.warn("'autoStartup=\"false\"' has no effect when using a FixedSubscriberChannel");
 				}
 			}
 			else if (channel instanceof PollableChannel) {
@@ -307,6 +314,7 @@ public class ConsumerEndpointFactoryBean
 				phase = Integer.MAX_VALUE / 2;
 			}
 			this.endpoint.setPhase(phase);
+			this.endpoint.setRole(this.role);
 			if (this.taskScheduler != null) {
 				this.endpoint.setTaskScheduler(this.taskScheduler);
 			}
@@ -353,6 +361,13 @@ public class ConsumerEndpointFactoryBean
 	public void stop(Runnable callback) {
 		if (this.endpoint != null) {
 			this.endpoint.stop(callback);
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (this.endpoint != null) {
+			this.endpoint.destroy();
 		}
 	}
 

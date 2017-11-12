@@ -40,6 +40,7 @@ import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -62,7 +63,6 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.MqttToken;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.Test;
@@ -97,6 +97,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -345,6 +346,13 @@ public class MqttAdapterTests {
 		adapter.start();
 		adapter.stop();
 		verifyUnsubscribe(client);
+
+		adapter.connectionLost(new RuntimeException("Intentional"));
+
+		TaskScheduler taskScheduler = TestUtils.getPropertyValue(adapter, "taskScheduler", TaskScheduler.class);
+
+		verify(taskScheduler, never())
+				.schedule(any(Runnable.class), any(Date.class));
 	}
 
 	@Test
@@ -509,7 +517,7 @@ public class MqttAdapterTests {
 	}
 
 	private MqttPahoMessageDrivenChannelAdapter buildAdapter(final IMqttClient client, Boolean cleanSession,
-			ConsumerStopAction action) throws MqttException, MqttSecurityException {
+			ConsumerStopAction action) throws MqttException {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory() {
 
 			@Override
