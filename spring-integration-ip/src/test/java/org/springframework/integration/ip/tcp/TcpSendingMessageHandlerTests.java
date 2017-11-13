@@ -55,6 +55,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
@@ -1156,7 +1157,10 @@ public class TcpSendingMessageHandlerTests extends AbstractTcpChannelAdapterTest
 				"TcpOutboundChannelAdapterWithinChainTests-context.xml", this.getClass());
 		AbstractServerConnectionFactory scf = ctx.getBean(AbstractServerConnectionFactory.class);
 		TestingUtilities.waitListening(scf, null);
-		MessageChannel channelAdapterWithinChain = ctx.getBean("tcpOutboundChannelAdapterWithinChain", MessageChannel.class);
+		ctx.getBean(AbstractClientConnectionFactory.class).setPort(scf.getPort());
+		ctx.getBeansOfType(ConsumerEndpointFactoryBean.class).values().forEach(c -> c.start());
+		MessageChannel channelAdapterWithinChain = ctx.getBean("tcpOutboundChannelAdapterWithinChain",
+				MessageChannel.class);
 		PollableChannel inbound = ctx.getBean("inbound", PollableChannel.class);
 		String testPayload = "Hello, world!";
 		channelAdapterWithinChain.send(new GenericMessage<String>(testPayload));

@@ -299,7 +299,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @since 5.0
 	 */
 	public void setPort(int port) {
-		Assert.state(!isRunning(), "Cannot change the host while running");
+		Assert.state(!isRunning(), "Cannot change the port while running");
 		this.port = port;
 	}
 

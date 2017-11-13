@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,13 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.remoting.RemoteLookupFailureException;
 import org.springframework.remoting.rmi.RmiServiceExporter;
+import org.springframework.util.SocketUtils;
 
 /**
  * @author Mark Fisher
@@ -45,9 +45,10 @@ import org.springframework.remoting.rmi.RmiServiceExporter;
  */
 public class RmiOutboundGatewayTests {
 
-	private final static int port = SocketUtils.findAvailableServerSocket(11099);
+	private final static int port = SocketUtils.findAvailableTcpPort();
 
-	private final RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:" + port + "/testRemoteHandler");
+	private final RmiOutboundGateway gateway =
+			new RmiOutboundGateway("rmi://localhost:" + port + "/testRemoteHandler");
 
 	private final QueueChannel output = new QueueChannel(1);
 

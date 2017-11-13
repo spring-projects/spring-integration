@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,15 +28,20 @@ import javax.net.ServerSocketFactory;
 import org.springframework.util.Assert;
 
 /**
- * Contains several socket-specific utility methods. For example, you may have
- * test cases that require an open port. Rather than hard-coding the relevant port,
- * it will be better to use methods from this utility class to automatically select
- * an open port, therefore improving the portability of your test-cases across
- * systems.
+ * Contains several socket-specific utility methods. For example, you may have test cases
+ * that require an open port. Rather than hard-coding the relevant port, it will be better
+ * to use methods from this utility class to automatically select an open port, therefore
+ * improving the portability of your test-cases across systems.
+ *
+ * @deprecated - it's generally better to set the server port to 0; let the operating
+ * system choose a port; wait until the server starts (see TestingUtilities in the ip
+ * module for an example), then set the port on the client factory.
+ *
  * @author Gunnar Hillert
  * @author Gary Russell
  * @since 2.2
  */
+@Deprecated
 public final class SocketUtils {
 
 	public static final int DEFAULT_PORT_RANGE_MIN = 10000;

@@ -224,18 +224,14 @@ public class UdpChannelAdapterTests {
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setBeanName("test");
 		adapter.setOutputChannel(channel);
-//		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.start();
 		SocketTestUtils.waitListening(adapter);
 		int port = adapter.getPort();
 
-//		String whichNic = SocketUtils.chooseANic(false);
 		UnicastSendingMessageHandler handler = new UnicastSendingMessageHandler(
 				"localhost", port, false, true,
 				"localhost",
-//				whichNic,
 				0, 5000);
-//		handler.setLocalAddress(whichNic);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 		handler.start();
@@ -302,8 +298,6 @@ public class UdpChannelAdapterTests {
 	public void testUnicastReceiverException() throws Exception {
 		SubscribableChannel channel = new DirectChannel();
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
-		adapter.setOutputChannel(channel);
-//		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.setOutputChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
 		channel.subscribe(handler);

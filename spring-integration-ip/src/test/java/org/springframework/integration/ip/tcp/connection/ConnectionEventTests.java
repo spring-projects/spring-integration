@@ -70,7 +70,6 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -131,16 +130,14 @@ public class ConnectionEventTests {
 
 	@Test
 	public void testNetServerExceptionEvent() throws Exception {
-		int port = SocketUtils.findAvailableTcpPort();
-		AbstractServerConnectionFactory factory = new TcpNetServerConnectionFactory(port);
-		testServerExceptionGuts(port, factory);
+		AbstractServerConnectionFactory factory = new TcpNetServerConnectionFactory(0);
+		testServerExceptionGuts(factory);
 	}
 
 	@Test
 	public void testNioServerExceptionEvent() throws Exception {
-		int port = SocketUtils.findAvailableTcpPort();
-		AbstractServerConnectionFactory factory = new TcpNioServerConnectionFactory(port);
-		testServerExceptionGuts(port, factory);
+		AbstractServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
+		testServerExceptionGuts(factory);
 	}
 
 	@Test
@@ -265,14 +262,15 @@ public class ConnectionEventTests {
 		assertEquals("Cannot correlate response - no connection id", messagingException.getMessage());
 	}
 
-	private void testServerExceptionGuts(int port, AbstractServerConnectionFactory factory) throws Exception {
+	private void testServerExceptionGuts(AbstractServerConnectionFactory factory) throws Exception {
 		ServerSocket ss = null;
 		try {
-			ss = ServerSocketFactory.getDefault().createServerSocket(port);
+			ss = ServerSocketFactory.getDefault().createServerSocket(0);
 		}
 		catch (Exception e) {
-			return; // skip this test, someone grabbed the port
+			fail("Failed to get a server socket");
 		}
+		factory.setPort(ss.getLocalPort());
 		final AtomicReference<TcpConnectionServerExceptionEvent> theEvent =
 				new AtomicReference<TcpConnectionServerExceptionEvent>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -301,13 +299,13 @@ public class ConnectionEventTests {
 		String actual = theEvent.toString();
 		assertThat(actual, containsString("cause=java.net.BindException"));
 		assertThat(actual, containsString("source="
-				+ "sf, port=" + port));
+				+ "sf, port=" + factory.getPort()));
 
 		ArgumentCaptor<String> reasonCaptor = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
 		verify(logger).error(reasonCaptor.capture(), throwableCaptor.capture());
 		assertThat(reasonCaptor.getValue(), startsWith("Error on Server"));
-		assertThat(reasonCaptor.getValue(), endsWith("; port = " + port));
+		assertThat(reasonCaptor.getValue(), endsWith("; port = " + factory.getPort()));
 		assertThat(throwableCaptor.getValue(), instanceOf(BindException.class));
 		ss.close();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
-import org.junit.AfterClass;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,13 +28,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -43,9 +48,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class TcpConfigOutboundGatewayTests {
 
-	static AbstractApplicationContext staticContext;
+	private static boolean initializedFactories;
 
 	@Autowired
 	AbstractApplicationContext ctx;
@@ -117,6 +123,55 @@ public class TcpConfigOutboundGatewayTests {
 	@Autowired
 	MessageChannel tcpOutboundGatewayInsideChain;
 
+	@Before
+	public void before() {
+		if (initializedFactories) {
+			return;
+		}
+		Map<String, AbstractServerConnectionFactory> servers =
+				this.ctx.getBeansOfType(AbstractServerConnectionFactory.class);
+		servers.forEach((k, v) -> {
+			TestingUtilities.waitListening(v, null);
+			switch (k) {
+			case "crLfServer":
+				this.crLfClient.setPort(v.getPort());
+				break;
+			case "crLfServer2":
+				this.ctx.getBean("crLfClient2", AbstractClientConnectionFactory.class).setPort(v.getPort());
+				break;
+			case "crLfServerNio":
+				this.ctx.getBean("crLfClientNio", AbstractClientConnectionFactory.class).setPort(v.getPort());
+				break;
+			case "stxEtxServer":
+				this.stxEtxClient.setPort(v.getPort());
+				break;
+			case "stxEtxServerNio":
+				this.ctx.getBean("stxEtxClientNio", AbstractClientConnectionFactory.class).setPort(v.getPort());
+				break;
+			case "lengthHeaderServer":
+				this.lengthHeaderClient.setPort(v.getPort());
+				break;
+			case "lengthHeaderServerNio":
+				this.ctx.getBean("lengthHeaderClientNio",
+						AbstractClientConnectionFactory.class).setPort(v.getPort());
+				break;
+			case "javaSerialServer":
+				this.javaSerialClient.setPort(v.getPort());
+				break;
+			case "javaSerialServerNio":
+				this.ctx.getBean("javaSerialClientNio",
+						AbstractClientConnectionFactory.class).setPort(v.getPort());
+				break;
+			default:
+				fail("Unexpected server:" + v);
+			}
+		});
+		Map<String, ConsumerEndpointFactoryBean> consumers =
+				this.ctx.getBeansOfType(ConsumerEndpointFactoryBean.class);
+		consumers.values().forEach(g -> g.start());
+		initializedFactories = true;
+	}
+
 	@Test
 	public void testOutboundCrLf() throws Exception {
 		testOutboundUsingConfig();
@@ -127,23 +182,11 @@ public class TcpConfigOutboundGatewayTests {
 		testOutboundUsingConfigNio();
 	}
 
-	private void waitListening(TcpInboundGateway gateway) throws Exception {
-		int n = 0;
-		while (!gateway.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				throw new Exception("Gateway failed to listen");
-			}
-		}
-
-	}
-
 	@Test
 	public void testOutboundStxEtx() throws Exception {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		stxEtxClient.start();
 		gateway.setConnectionFactory(stxEtxClient);
-		waitListening(inboundGatewayStxEtx);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		@SuppressWarnings("unchecked")
 		byte[] bytes = ((Message<byte[]>) gateway.handleRequestMessage(message)).getPayload();
@@ -155,7 +198,6 @@ public class TcpConfigOutboundGatewayTests {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		javaSerialClient.start();
 		gateway.setConnectionFactory(javaSerialClient);
-		waitListening(inboundGatewaySerialized);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		@SuppressWarnings("unchecked")
 		Object response = ((Message<Object>) gateway.handleRequestMessage(message)).getPayload();
@@ -167,7 +209,6 @@ public class TcpConfigOutboundGatewayTests {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		lengthHeaderClient.start();
 		gateway.setConnectionFactory(lengthHeaderClient);
-		waitListening(inboundGatewayLength);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		@SuppressWarnings("unchecked")
 		byte[] bytes = ((Message<byte[]>) gateway.handleRequestMessage(message)).getPayload();
@@ -195,18 +236,6 @@ public class TcpConfigOutboundGatewayTests {
 		requestChannelNio.send(message);
 		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
 		assertEquals("echo:test", new String(bytes).trim());
-	}
-
-	@Before
-	public void copyContext() {
-		if (staticContext == null) {
-			staticContext = ctx;
-		}
-	}
-
-	@AfterClass
-	public static void shutDown() {
-		staticContext.close();
 	}
 
 }

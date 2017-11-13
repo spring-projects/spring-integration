@@ -45,8 +45,8 @@
 		request-channel="toSA" />
 
 	<channel id="toSA" />
-	
-	<service-activator id="SA" 
+
+	<service-activator id="SA"
 		input-channel="toSA"
 		ref="service"
 		method="test"

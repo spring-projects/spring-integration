@@ -7,8 +7,6 @@
 		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
-
 	<bean id="serializer" class="org.springframework.core.serializer.DefaultSerializer" />
 
 	<bean id="deserializer" class="org.springframework.core.serializer.DefaultDeserializer" />
@@ -27,7 +25,7 @@
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(10100)}"
+		port="0"
 		serializer="serializer"
 		deserializer="deserializer"
 		using-nio="true"
@@ -38,7 +36,7 @@
 	<int-ip:tcp-connection-factory id="client"
 		type="client"
 		host="localhost"
-		port="#{server.port}"
+		port="0"
 		single-use="true"
 		so-timeout="100000"
 		using-nio="true"
@@ -54,10 +52,12 @@
 	</int:channel>
 
 	<int-ip:tcp-outbound-channel-adapter id="outboundClient"
+		auto-startup="false"
 		channel="input"
 		connection-factory="client"/>
 
 	<int-ip:tcp-inbound-channel-adapter id="inboundClient"
+		auto-startup="false"
 		channel="replies"
 		connection-factory="client"/>
 

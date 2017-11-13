@@ -13,13 +13,11 @@
 
 	<int:message-history/>
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
-
 	<int-ip:tcp-connection-factory id="serverNet"
 		type="server"
 		using-nio="false"
 		single-use="true"
-		port="#{tcpIpUtils.findAvailableServerSocket(10000)}"
+		port="0"
 		task-executor="exec"
 		lookup-host="false"
 		so-timeout="20000"
@@ -28,7 +26,7 @@
 	<int-ip:tcp-connection-factory id="clientNet"
 		type="client"
 		host="localhost"
-		port="#{serverNet.port}"
+		port="0"
 		single-use="true"
 		lookup-host="false"
 		so-timeout="100000"
@@ -38,7 +36,7 @@
 		type="server"
 		using-nio="true"
 		single-use="true"
-		port="#{tcpIpUtils.findAvailableServerSocket(20000)}"
+		port="0"
 		task-executor="exec"
 		lookup-host="false"
 		so-timeout="20000"
@@ -48,7 +46,7 @@
 		type="client"
 		host="localhost"
 		using-nio="true"
-		port="#{serverNio.port}"
+		port="0"
 		single-use="true"
 		lookup-host="false"
 		so-timeout="100000"
@@ -73,7 +71,7 @@
 	<task:executor id="exec" pool-size="10"/>
 
 	<int-event:inbound-channel-adapter channel="events"
-									   event-types="org.springframework.integration.ip.tcp.connection.TcpConnectionEvent"/>
+		event-types="org.springframework.integration.ip.tcp.connection.TcpConnectionEvent"/>
 
 	<int:channel id="events">
 		<int:queue />

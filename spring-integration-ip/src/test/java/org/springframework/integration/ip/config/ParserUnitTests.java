@@ -16,12 +16,14 @@
 
 package org.springframework.integration.ip.config;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
@@ -279,7 +281,6 @@ public class ParserUnitTests {
 	@Test
 	public void testInUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpIn);
-		assertTrue(udpIn.getPort() >= 5000);
 		assertEquals(27, dfa.getPropertyValue("poolSize"));
 		assertEquals(29, dfa.getPropertyValue("receiveBufferSize"));
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
@@ -352,15 +353,12 @@ public class ParserUnitTests {
 	@Test
 	public void testOutUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpOut);
-		assertTrue(udpOut.getPort() >= 5400);
 		assertEquals("localhost", dfa.getPropertyValue("host"));
-		int ackPort = (Integer) dfa.getPropertyValue("ackPort");
-		assertTrue("Expected ackPort >= 5300 was:" + ackPort, ackPort >= 5300);
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa
 				.getPropertyValue("mapper");
 		String ackAddress = (String) new DirectFieldAccessor(mapper)
 				.getPropertyValue("ackAddress");
-		assertEquals("somehost:" + ackPort, ackAddress);
+		assertThat(ackAddress, startsWith("somehost:"));
 		assertEquals(51, dfa.getPropertyValue("ackTimeout"));
 		assertEquals(true, dfa.getPropertyValue("waitForAck"));
 		assertEquals(52, dfa.getPropertyValue("soReceiveBufferSize"));
@@ -376,15 +374,12 @@ public class ParserUnitTests {
 	@Test
 	public void testOutUdpMulticast() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpOutMulticast);
-		assertTrue(udpOutMulticast.getPort() >= 5600);
 		assertEquals("225.6.7.8", dfa.getPropertyValue("host"));
-		int ackPort = (Integer) dfa.getPropertyValue("ackPort");
-		assertTrue("Expected ackPort >= 5500 was:" + ackPort, ackPort >= 5500);
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa
 				.getPropertyValue("mapper");
 		String ackAddress = (String) new DirectFieldAccessor(mapper)
 				.getPropertyValue("ackAddress");
-		assertEquals("somehost:" + ackPort, ackAddress);
+		assertThat(ackAddress, startsWith("somehost:"));
 		assertEquals(51, dfa.getPropertyValue("ackTimeout"));
 		assertEquals(true, dfa.getPropertyValue("waitForAck"));
 		assertEquals(52, dfa.getPropertyValue("soReceiveBufferSize"));
@@ -492,7 +487,6 @@ public class ParserUnitTests {
 	public void testConnClient1() {
 		assertTrue(client1 instanceof TcpNioClientConnectionFactory);
 		assertEquals("localhost", client1.getHost());
-		assertTrue(client1.getPort() >= 6000);
 		assertEquals(54, client1.getSoLinger());
 		assertEquals(1234, client1.getSoReceiveBufferSize());
 		assertEquals(1235, client1.getSoSendBufferSize());
@@ -511,7 +505,6 @@ public class ParserUnitTests {
 	@Test
 	public void testConnServer1() {
 		assertTrue(server1 instanceof TcpNioServerConnectionFactory);
-		assertEquals(client1.getPort(), server1.getPort());
 		assertEquals(55, server1.getSoLinger());
 		assertEquals(1234, server1.getSoReceiveBufferSize());
 		assertEquals(1235, server1.getSoSendBufferSize());
@@ -532,7 +525,6 @@ public class ParserUnitTests {
 	public void testConnClient2() {
 		assertTrue(client2 instanceof TcpNetClientConnectionFactory);
 		assertEquals("localhost", client1.getHost());
-		assertTrue(client1.getPort() >= 6000);
 		assertEquals(54, client1.getSoLinger());
 		assertEquals(1234, client1.getSoReceiveBufferSize());
 		assertEquals(1235, client1.getSoSendBufferSize());
@@ -550,7 +542,6 @@ public class ParserUnitTests {
 	@Test
 	public void testConnServer2() {
 		assertTrue(server2 instanceof TcpNetServerConnectionFactory);
-		assertEquals(client1.getPort(), server1.getPort());
 		assertEquals(55, server1.getSoLinger());
 		assertEquals(1234, server1.getSoReceiveBufferSize());
 		assertEquals(1235, server1.getSoSendBufferSize());
