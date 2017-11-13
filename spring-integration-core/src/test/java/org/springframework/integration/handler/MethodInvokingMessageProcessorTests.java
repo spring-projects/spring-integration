@@ -874,12 +874,47 @@ public class MethodInvokingMessageProcessorTests {
 	public void testSingleMethodJson() throws Exception {
 		SingleMethodJsonWithSpELBean bean = new SingleMethodJsonWithSpELBean();
 		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
-				SingleMethodJsonWithSpELBean.class.getDeclaredMethod("foo", SingleMethodJsonWithSpELBean.Foo.class),
+				SingleMethodJsonWithSpELBean.class.getDeclaredMethod("foo",
+				SingleMethodJsonWithSpELBean.Foo.class),
 				false);
 		Message<?> message = new GenericMessage<>("{\"bar\":\"bar\"}",
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
 		helper.process(message);
 		assertThat(bean.foo.bar, equalTo("bar"));
+	}
+
+	@Test
+	public void testSingleMethodBadJson() throws Exception {
+		SingleMethodJsonWithSpELMessageWildBean bean = new SingleMethodJsonWithSpELMessageWildBean();
+		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+				SingleMethodJsonWithSpELMessageWildBean.class.getDeclaredMethod("foo", Message.class), false);
+		Message<?> message = new GenericMessage<>("baz",
+				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
+		helper.process(message);
+		assertThat(bean.foo.getPayload(), equalTo("baz"));
+	}
+
+	@Test
+	public void testSingleMethodJsonMessageFoo() throws Exception {
+		SingleMethodJsonWithSpELMessageFooBean bean = new SingleMethodJsonWithSpELMessageFooBean();
+		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+				SingleMethodJsonWithSpELMessageFooBean.class.getDeclaredMethod("foo", Message.class), false);
+		Message<?> message = new GenericMessage<>("{\"bar\":\"bar\"}",
+				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
+		helper.process(message);
+		assertThat(bean.foo.getPayload().bar, equalTo("bar"));
+	}
+
+	@Test
+	public void testSingleMethodJsonMessageWild() throws Exception {
+		SingleMethodJsonWithSpELMessageWildBean bean = new SingleMethodJsonWithSpELMessageWildBean();
+		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+				SingleMethodJsonWithSpELMessageWildBean.class.getDeclaredMethod("foo", Message.class), false);
+		Message<?> message = new GenericMessage<>("{\"bar\":\"baz\"}",
+				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
+		helper.process(message);
+		assertThat(bean.foo.getPayload(), instanceOf(Map.class));
+		assertThat(((Map<?, ?>) bean.foo.getPayload()).get("bar"), equalTo("baz"));
 	}
 
 	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
@@ -1192,6 +1227,55 @@ public class MethodInvokingMessageProcessorTests {
 				return "Foo [bar=" + this.bar + "]";
 			}
 
+		}
+
+	}
+
+	public static class SingleMethodJsonWithSpELMessageFooBean {
+
+		private Message<Foo> foo;
+
+		private final CountDownLatch latch = new CountDownLatch(1);
+
+		@ServiceActivator(inputChannel = "foo")
+		@UseSpelInvoker
+		public void foo(Message<Foo> foo) {
+			this.foo = foo;
+			this.latch.countDown();
+		}
+
+		public static class Foo {
+
+			private String bar;
+
+			public String getBar() {
+				return this.bar;
+			}
+
+			public void setBar(String bar) {
+				this.bar = bar;
+			}
+
+			@Override
+			public String toString() {
+				return "Foo [bar=" + this.bar + "]";
+			}
+
+		}
+
+	}
+
+	public static class SingleMethodJsonWithSpELMessageWildBean {
+
+		private Message<?> foo;
+
+		private final CountDownLatch latch = new CountDownLatch(1);
+
+		@ServiceActivator(inputChannel = "foo")
+		@UseSpelInvoker
+		public void foo(Message<?> foo) {
+			this.foo = foo;
+			this.latch.countDown();
 		}
 
 	}
