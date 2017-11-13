@@ -46,6 +46,7 @@ import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -59,6 +60,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@DirtiesContext
 public class ConnectionToConnectionTests {
 
 	@Autowired
@@ -110,6 +112,7 @@ public class ConnectionToConnectionTests {
 	private void testConnectGuts(AbstractClientConnectionFactory client, AbstractServerConnectionFactory server,
 			String gatewayName, boolean expectExceptionOnClose) throws Exception {
 		TestingUtilities.waitListening(server, null);
+		client.setPort(server.getPort());
 		client.start();
 		for (int i = 0; i < 100; i++) {
 			TcpConnection connection = client.getConnection();

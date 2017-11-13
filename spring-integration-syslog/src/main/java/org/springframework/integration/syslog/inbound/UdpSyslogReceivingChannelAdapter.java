@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,16 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	}
 
 	@Override
+	protected int getPort() {
+		if (this.udpAdapter == null) {
+			return super.getPort();
+		}
+		else {
+			return this.udpAdapter.getPort();
+		}
+	}
+
+	@Override
 	public String getComponentType() {
 		return "syslog:inbound-channel-adapter(udp)";
 	}
@@ -47,7 +57,7 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	protected void onInit() {
 		super.onInit();
 		if (this.udpAdapter == null) {
-			this.udpAdapter = new UnicastReceivingChannelAdapter(this.getPort());
+			this.udpAdapter = new UnicastReceivingChannelAdapter(getPort());
 			this.udpAdapter.setBeanFactory(getBeanFactory());
 		}
 		else {

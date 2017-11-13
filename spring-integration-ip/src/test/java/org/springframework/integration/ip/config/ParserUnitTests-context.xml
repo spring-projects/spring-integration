@@ -11,8 +11,6 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
-
 	<int:channel id="udpChannel" />
 
 	<int:channel id="tcpChannel" />
@@ -26,7 +24,7 @@
 		check-length="true"
 		multicast="false"
 		pool-size="27"
-		port="#{tcpIpUtils.findAvailableUdpSocket(5000)}"
+		port="0"
 		receive-buffer-size="29"
 		so-receive-buffer-size="30"
 		so-send-buffer-size="31"
@@ -45,7 +43,7 @@
 		multicast="true"
 		multicast-address="225.6.7.8"
 		pool-size="27"
-		port="#{tcpIpUtils.findAvailableUdpSocket(5100)}"
+		port="0"
 		receive-buffer-size="29"
 		so-receive-buffer-size="30"
 		so-send-buffer-size="31"
@@ -55,7 +53,7 @@
 
 	<ip:tcp-connection-factory id="cfS1"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(5200)}"
+		port="0"
 		lookup-host="false"
 		apply-sequence="true"
 		ssl-context-support="sslContextSupport"
@@ -66,7 +64,7 @@
 
 	<ip:tcp-connection-factory id="cfS1Nio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(5210)}"
+		port="0"
 		lookup-host="false"
 		apply-sequence="true"
 		using-nio="true"
@@ -87,7 +85,7 @@
 
 	<ip:tcp-connection-factory id="secureServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(5250)}"
+		port="0"
 		lookup-host="false"
 		apply-sequence="true"
 		ssl-context-support="sslContextSupport"
@@ -100,7 +98,7 @@
 
 	<ip:tcp-connection-factory id="secureServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(5250)}"
+		port="0"
 		lookup-host="false"
 		apply-sequence="true"
 		using-nio="true"
@@ -127,13 +125,13 @@
 
 	<ip:udp-outbound-channel-adapter id="testOutUdp"
 		ack-host="somehost"
-		ack-port="#{tcpIpUtils.findAvailableUdpSocket(5300)}"
+		ack-port="0"
 		ack-timeout="51"
 		acknowledge="true"
 		channel="udpChannel"
 		check-length="true"
 		host="localhost"
-		port="#{tcpIpUtils.findAvailableUdpSocket(5400)}"
+		port="0"
 		multicast="false"
 		so-receive-buffer-size="52"
 		so-send-buffer-size="53"
@@ -145,13 +143,13 @@
 
 	<ip:udp-outbound-channel-adapter id="testOutUdpiMulticast"
 		ack-host="somehost"
-		ack-port="#{tcpIpUtils.findAvailableUdpSocket(5500)}"
+		ack-port="0"
 		ack-timeout="51"
 		acknowledge="true"
 		channel="udpChannel"
 		check-length="true"
 		host="225.6.7.8"
-		port="#{tcpIpUtils.findAvailableUdpSocket(5600)}"
+		port="0"
 		multicast="true"
 		min-acks-for-success="2"
 		so-receive-buffer-size="52"
@@ -175,7 +173,7 @@
 
 	<ip:tcp-connection-factory id="cfC1"
 		type="client"
-		port="#{tcpIpUtils.findAvailableServerSocket(5700)}"
+		port="0"
 		host="localhost"
 		lookup-host="false"
 		apply-sequence="false"
@@ -210,7 +208,7 @@
 
 	<ip:tcp-connection-factory id="cfS2"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(5800)}"
+		port="0"
 		/>
 
 	<ip:tcp-inbound-gateway id="inGateway1"
@@ -225,7 +223,7 @@
 
 	<ip:tcp-connection-factory id="cfS3"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(5850)}"
+		port="0"
 		/>
 
 	<ip:tcp-inbound-gateway id="inGateway2"
@@ -237,7 +235,7 @@
 
 	<ip:tcp-connection-factory id="cfC2"
 		type="client"
-		port="#{tcpIpUtils.findAvailableServerSocket(5900)}"
+		port="0"
 		host="localhost"
 		/>
 
@@ -272,7 +270,7 @@
 		id="client1"
 		type="client"
 		host="localhost"
-		port="#{tcpIpUtils.findAvailableServerSocket(6000)}"
+		port="0"
 		serializer="defaultSerializer"
 		deserializer="defaultDeserializer"
 		so-keep-alive="true"
@@ -319,7 +317,7 @@
 		id="client2"
 		type="client"
 		host="localhost"
-		port="#{tcpIpUtils.findAvailableServerSocket(6100)}"
+		port="0"
 		serializer="defaultSerializer"
 		deserializer="defaultDeserializer"
 		so-keep-alive="true"
@@ -382,7 +380,7 @@
 
 	<ip:tcp-connection-factory id="cfC3"
 		type="client"
-		port="#{tcpIpUtils.findAvailableServerSocket(6120)}"
+		port="0"
 		host="localhost"
 		lookup-host="false"
 		apply-sequence="false"
@@ -398,7 +396,7 @@
 
 	<ip:tcp-connection-factory id="cfC4"
 		type="client"
-		port="#{tcpIpUtils.findAvailableServerSocket(6140)}"
+		port="0"
 		host="localhost"
 		lookup-host="false"
 		apply-sequence="false"
@@ -414,7 +412,7 @@
 
 	<ip:tcp-connection-factory id="cfC5"
 		type="client"
-		port="#{tcpIpUtils.findAvailableServerSocket(6160)}"
+		port="0"
 		host="localhost"
 		lookup-host="false"
 		apply-sequence="false"
@@ -437,7 +435,7 @@
 
 	<int:bridge input-channel="tcpAutoChannel" output-channel="nullChannel" />
 
-	<ip:udp-inbound-channel-adapter id="udpAutoChannel" port="#{tcpIpUtils.findAvailableUdpSocket(5050)}" />
+	<ip:udp-inbound-channel-adapter id="udpAutoChannel" port="0" />
 
 	<int:bridge input-channel="udpAutoChannel" output-channel="nullChannel" />
 

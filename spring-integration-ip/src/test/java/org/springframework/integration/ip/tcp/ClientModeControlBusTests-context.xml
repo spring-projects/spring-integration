@@ -8,8 +8,6 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.test.util.SocketUtils" />
-
 	<int:channel id="in"/>
 
 	<int:channel id="dummy">
@@ -19,7 +17,7 @@
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
 		using-nio="true"
-		port="#{tcpIpUtils.findAvailableServerSocket(12000)}"
+		port="0"
 		local-address="localhost"
 		lookup-host="false"
 		so-timeout="20000"
@@ -42,12 +40,14 @@
 		connection-factory="client1"
 		channel="in"
 		retry-interval="1000"
-		client-mode="true"/>
+		client-mode="true"
+		auto-startup="false" />
 
 	<int:channel id="cbChannel" />
 
 	<int:control-bus input-channel="cbChannel" />
 
-	<int:gateway default-request-channel="cbChannel" service-interface="org.springframework.integration.ip.tcp.ClientModeControlBusTests$ControlBus"/>
+	<int:gateway default-request-channel="cbChannel"
+		service-interface="org.springframework.integration.ip.tcp.ClientModeControlBusTests$ControlBus"/>
 
 </beans>

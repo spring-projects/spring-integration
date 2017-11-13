@@ -18,7 +18,6 @@ package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 import java.util.Properties;
 
@@ -26,14 +25,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -43,14 +46,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class SharedConnectionTests {
 
 	@Autowired
 	AbstractApplicationContext ctx;
 
 	@Autowired
-	@Qualifier("inboundServer")
-	TcpReceivingChannelAdapter listener;
+	AbstractServerConnectionFactory server;
+
+	@Autowired
+	AbstractClientConnectionFactory client;
 
 	/**
 	 * Tests a loopback. The client-side outbound adapter sends a message over
@@ -64,13 +70,9 @@ public class SharedConnectionTests {
 	 */
 	@Test
 	public void test1() throws Exception {
-		int n = 0;
-		while (!listener.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				fail("Failed to listen");
-			}
-		}
+		TestingUtilities.waitListening(this.server, null);
+		this.client.setPort(this.server.getPort());
+		this.ctx.getBeansOfType(ConsumerEndpointFactoryBean.class).values().forEach(c -> c.start());
 		MessageChannel input = ctx.getBean("input", MessageChannel.class);
 		input.send(MessageBuilder.withPayload("Test").build());
 		QueueChannel replies = ctx.getBean("replies", QueueChannel.class);

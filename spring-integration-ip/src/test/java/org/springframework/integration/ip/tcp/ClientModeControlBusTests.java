@@ -20,10 +20,14 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,7 +49,20 @@ public class ClientModeControlBusTests {
 	TcpReceivingChannelAdapter tcpIn;
 
 	@Autowired
+	AbstractServerConnectionFactory server;
+
+	@Autowired
+	AbstractClientConnectionFactory client;
+
+	@Autowired
 	TaskScheduler taskScheduler; // default
+
+	@Before
+	public void before() {
+		TestingUtilities.waitListening(this.server, null);
+		this.client.setPort(this.server.getPort());
+		this.tcpIn.start();
+	}
 
 	@Test
 	public void test() throws Exception {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,16 @@ public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	}
 
 	@Override
+	protected int getPort() {
+		if (this.connectionFactory == null) {
+			return super.getPort();
+		}
+		else {
+			return this.connectionFactory.getPort();
+		}
+	}
+
+	@Override
 	public String getComponentType() {
 		return "syslog:inbound-channel-adapter(tcp)";
 	}
@@ -61,7 +71,7 @@ public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	protected void onInit() {
 		super.onInit();
 		if (this.connectionFactory == null) {
-			this.connectionFactory = new TcpNioServerConnectionFactory(this.getPort());
+			this.connectionFactory = new TcpNioServerConnectionFactory(getPort());
 			this.connectionFactory.setDeserializer(new ByteArrayLfSerializer());
 			this.connectionFactory.setBeanFactory(getBeanFactory());
 			if (this.applicationEventPublisher != null) {
