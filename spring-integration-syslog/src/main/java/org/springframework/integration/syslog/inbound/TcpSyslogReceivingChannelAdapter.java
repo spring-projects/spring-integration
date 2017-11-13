@@ -71,7 +71,7 @@ public class TcpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	protected void onInit() {
 		super.onInit();
 		if (this.connectionFactory == null) {
-			this.connectionFactory = new TcpNioServerConnectionFactory(super.getPort());
+			this.connectionFactory = new TcpNioServerConnectionFactory(getPort());
 			this.connectionFactory.setDeserializer(new ByteArrayLfSerializer());
 			this.connectionFactory.setBeanFactory(getBeanFactory());
 			if (this.applicationEventPublisher != null) {

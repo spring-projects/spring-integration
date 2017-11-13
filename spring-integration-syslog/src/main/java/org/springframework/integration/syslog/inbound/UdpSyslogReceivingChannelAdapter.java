@@ -57,7 +57,7 @@ public class UdpSyslogReceivingChannelAdapter extends SyslogReceivingChannelAdap
 	protected void onInit() {
 		super.onInit();
 		if (this.udpAdapter == null) {
-			this.udpAdapter = new UnicastReceivingChannelAdapter(this.getPort());
+			this.udpAdapter = new UnicastReceivingChannelAdapter(getPort());
 			this.udpAdapter.setBeanFactory(getBeanFactory());
 		}
 		else {
