@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,19 +53,22 @@ public class PriorityChannelSpec extends MessageChannelSpec<PriorityChannelSpec,
 
 	public PriorityChannelSpec messageStore(PriorityCapableChannelMessageStore messageGroupStore, Object groupId) {
 		this.messageGroupQueue = new MessageGroupQueue(messageGroupStore, groupId);
+		this.messageGroupQueue.setPriority(true);
 		return this;
 	}
 
 	@Override
 	protected PriorityChannel doGet() {
-		Assert.state(this.comparator != null && this.messageGroupQueue != null,
+		Assert.state(!(this.comparator != null && this.messageGroupQueue != null),
 				"Only one of 'comparator' or 'messageGroupStore' can be specified.");
+
 		if (this.messageGroupQueue != null) {
 			this.channel = new PriorityChannel(this.messageGroupQueue);
 		}
 		else {
 			this.channel = new PriorityChannel(this.capacity, this.comparator);
 		}
+
 		return super.doGet();
 	}
 

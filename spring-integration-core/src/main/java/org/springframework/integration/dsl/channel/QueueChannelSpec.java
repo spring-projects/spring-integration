@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.concurrent.locks.Lock;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.MessageGroupQueue;
-import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.messaging.Message;
 
 /**
@@ -112,9 +111,6 @@ public class QueueChannelSpec extends MessageChannelSpec<QueueChannelSpec, Queue
 			else {
 				this.queue = new MessageGroupQueue(this.messageGroupStore, this.groupId);
 			}
-
-			((MessageGroupQueue) this.queue).setPriority(
-					this.messageGroupStore instanceof PriorityCapableChannelMessageStore);
 
 			return super.doGet();
 		}

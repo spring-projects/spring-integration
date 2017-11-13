@@ -55,9 +55,12 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
@@ -880,6 +883,43 @@ public class MethodInvokingMessageProcessorTests {
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
 		helper.process(message);
 		assertThat(bean.foo.bar, equalTo("bar"));
+	}
+
+
+	@Test
+	public void testCompiledSpELForProxy() {
+		Foo foo = new FooImpl();
+
+		foo = (Foo) new ProxyFactory(foo).getProxy();
+
+		SpelExpressionParser expressionParser =
+				new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, null));
+
+		Expression expression = expressionParser.parseExpression("#target.handle(#root)");
+
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.setVariable("target", foo);
+
+		expression.getValue(evaluationContext, "foo", String.class); // Twice to make a compiler to work
+		String result = expression.getValue(evaluationContext, "foo", String.class);
+
+		assertEquals("FOO", result);
+	}
+
+
+	public interface Foo {
+
+		String handle(String payload);
+
+	}
+
+	public class FooImpl implements Foo {
+
+		@Override
+		public String handle(String payload) {
+			return payload.toUpperCase();
+		}
+
 	}
 
 	private DirectFieldAccessor compileImmediate(MethodInvokingMessageProcessor processor) {
