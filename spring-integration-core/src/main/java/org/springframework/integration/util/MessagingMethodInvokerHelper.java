@@ -259,27 +259,38 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	@SuppressWarnings("unchecked")
 	public T process(Message<?> message) throws Exception {
-		Message<?> messageToProcess = message;
-		/*
-		 * If there's a single method, the content is JSON, the payload is a
-		 * String or byte[], the parameter doesn't match the payload,
-		 * and there is a Json Object Mapper on the CP,
-		 * convert.
-		 */
+		Message<?> messageToProcess = possiblyConvert(message);
+		ParametersWrapper parameters = new ParametersWrapper(messageToProcess);
+		return processInternal(parameters);
+	}
+
+	/*
+	 * If there's a single method, the content is JSON, the payload is a
+	 * String or byte[], the parameter doesn't match the payload,
+	 * and there is a Json Object Mapper on the CP,
+	 * convert.
+	 */
+	private Message<?> possiblyConvert(Message<?> message) throws Exception {
 		if (this.handlerMethod != null && this.handlerMethod.getTargetParameterType() != null &&
 				this.jsonObjectMapper != null) {
 			Class<?> type = this.handlerMethod.getTargetParameterType();
 			if ((message.getPayload() instanceof String && !type.equals(String.class)
 					|| message.getPayload() instanceof byte[] && !type.equals(byte[].class))
 							&& contentTypeIsJson(message)) {
-				messageToProcess = getMessageBuilderFactory()
-						.withPayload(this.jsonObjectMapper.fromJson(message.getPayload(), type))
-						.copyHeaders(message.getHeaders())
-						.build();
+				try {
+					return getMessageBuilderFactory()
+							.withPayload(this.jsonObjectMapper.fromJson(message.getPayload(), type))
+							.copyHeaders(message.getHeaders())
+							.build();
+				}
+				catch (Exception e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Failed to convert from JSON", e);
+					}
+				}
 			}
 		}
-		ParametersWrapper parameters = new ParametersWrapper(messageToProcess);
-		return processInternal(parameters);
+		return message;
 	}
 
 	private boolean contentTypeIsJson(Message<?> message) {
