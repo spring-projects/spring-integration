@@ -103,55 +103,32 @@ public class JmsInboundGatewayParserTests {
 	}
 
 	@Test
-	public void testGatewayWithDefaultExtractPayload() {
+	public void testGatewayWithExtractPayloadAttributes() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
+
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("defaultGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractReplyPayload"));
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithExtractReplyPayloadTrue() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("extractReplyPayloadTrue");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("extractReplyPayloadTrue");
+		accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractReplyPayload"));
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithExtractReplyPayloadFalse() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("extractReplyPayloadFalse");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("extractReplyPayloadFalse");
+		accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractReplyPayload"));
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithExtractRequestPayloadTrue() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("extractRequestPayloadTrue");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("extractRequestPayloadTrue");
+		accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractRequestPayload"));
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithExtractRequestPayloadFalse() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("extractRequestPayloadFalse");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("extractRequestPayloadFalse");
+		accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractRequestPayload"));
 		context.close();
@@ -195,22 +172,16 @@ public class JmsInboundGatewayParserTests {
 	}
 
 	@Test
-	public void testTransactionManagerIsNullByDefault() {
+	public void testTransactionManager() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayTransactionManagerTests.xml", this.getClass());
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithoutTransactionManager");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listenerContainer"));
 		assertNull(accessor.getPropertyValue("transactionManager"));
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithTransactionManagerReference() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewayTransactionManagerTests.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithTransactionManager");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithTransactionManager");
+		accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listenerContainer"));
 		Object txManager = accessor.getPropertyValue("transactionManager");
 		assertEquals(JmsTransactionManager.class, txManager.getClass());
@@ -220,64 +191,32 @@ public class JmsInboundGatewayParserTests {
 	}
 
 	@Test
-	public void testGatewayWithConcurrentConsumers() {
+	public void testGatewayWithContainerSettings() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithContainerSettings.xml", this.getClass());
+
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithConcurrentConsumers");
-		gateway.start();
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("concurrentConsumers"));
-		gateway.stop();
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithMaxConcurrentConsumers() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewayWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithMaxConcurrentConsumers");
-		gateway.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithMaxConcurrentConsumers");
+		container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(22, new DirectFieldAccessor(container).getPropertyValue("maxConcurrentConsumers"));
-		gateway.stop();
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithMaxMessagesPerTask() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewayWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithMaxMessagesPerTask");
-		gateway.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithMaxMessagesPerTask");
+		container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(99, new DirectFieldAccessor(container).getPropertyValue("maxMessagesPerTask"));
-		gateway.stop();
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithReceiveTimeout() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewayWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithReceiveTimeout");
-		gateway.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithReceiveTimeout");
+		container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(1111L, new DirectFieldAccessor(container).getPropertyValue("receiveTimeout"));
-		gateway.stop();
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithRecoveryInterval() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewayWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithRecoveryInterval");
-		gateway.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithRecoveryInterval");
+		container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		Object recoveryInterval;
 		try {
@@ -287,33 +226,23 @@ public class JmsInboundGatewayParserTests {
 			recoveryInterval = TestUtils.getPropertyValue(container, "backOff.interval");
 		}
 		assertEquals(2222L, recoveryInterval);
-		gateway.stop();
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithIdleTaskExecutionLimit() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewayWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithIdleTaskExecutionLimit");
-		gateway.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithIdleTaskExecutionLimit");
+		container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(7, new DirectFieldAccessor(container).getPropertyValue("idleTaskExecutionLimit"));
-		gateway.stop();
-		context.close();
-	}
 
-	@Test
-	public void testGatewayWithIdleConsumerLimit() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewayWithContainerSettings.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithIdleConsumerLimit");
-		gateway.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithIdleConsumerLimit");
+		container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
-		gateway.stop();
+
+		gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithMessageSelector");
+		container = (AbstractMessageListenerContainer)
+				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
+		String messageSelector = (String) new DirectFieldAccessor(container).getPropertyValue("messageSelector");
+		assertEquals("TestProperty = 'foo'", messageSelector);
+
 		context.close();
 	}
 
@@ -339,20 +268,6 @@ public class JmsInboundGatewayParserTests {
 		assertEquals(messageListenerContainer, container);
 		assertTrue(gateway.isRunning());
 		assertTrue(messageListenerContainer.isRunning());
-		gateway.stop();
-		context.close();
-	}
-
-	@Test
-	public void testGatewayWithMessageSelector() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"inboundGatewayWithMessageSelector.xml", this.getClass());
-		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithMessageSelector");
-		gateway.start();
-		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
-				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
-		String messageSelector = (String) new DirectFieldAccessor(container).getPropertyValue("messageSelector");
-		assertEquals("TestProperty = 'foo'", messageSelector);
 		gateway.stop();
 		context.close();
 	}
@@ -411,15 +326,17 @@ public class JmsInboundGatewayParserTests {
 
 	@Test
 	public void gatewayWithReplyChannel() {
-		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithReplyChannel.xml", this.getClass());
+		JmsTemplate template = new JmsTemplate(context.getBean(ConnectionFactory.class));
+		template.convertAndSend("testDestination", "Hello");
+
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gateway");
 		Object replyChannel = TestUtils.getPropertyValue(gateway, "listener.gatewayDelegate.replyChannel");
 		assertEquals(context.getBean("replies"), replyChannel);
-		JmsTemplate template = new JmsTemplate(context.getBean(ConnectionFactory.class));
-		template.convertAndSend("testDestination", "Hello");
+
 		assertNotNull(template.receive("testReplyDestination"));
+
 		context.close();
 	}
 

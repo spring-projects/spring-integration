@@ -19,6 +19,7 @@
 					 	 request-channel="requestChannel"
 					 	 reply-time-to-live="12345"
 					 	 reply-priority="7"
+						 reply-timeout="0"
 					 	 reply-delivery-persistent="false"
 					 	 explicit-qos-enabled-for-replies="true"/>
 

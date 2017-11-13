@@ -17,12 +17,14 @@
 	<jms:inbound-gateway id="gatewayWithoutTransactionManager"
 	                     connection-factory="testConnectionFactory"
 	                     request-destination="testDestination"
+						 auto-startup="false"
 	                     request-channel="requestChannel"/>
 
 	<jms:inbound-gateway id="gatewayWithTransactionManager"
 	                     connection-factory="testConnectionFactory"
 	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
+						 auto-startup="false"
 	                     transaction-manager="txManager"/>
 
 	<bean id="txManager" class="org.springframework.jms.connection.JmsTransactionManager">

@@ -11,7 +11,7 @@
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
 	<si:message-history/>
-	
+
 	<si:channel id="requestChannel">
 		<si:queue/>
 	</si:channel>
@@ -19,6 +19,7 @@
 	<jms:inbound-gateway id="jmsGateway"
 	                 	 connection-factory="testConnectionFactory"
 	                 	 request-destination="testDestination"
+						 reply-timeout="0"
 	                 	 request-channel="requestChannel"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">

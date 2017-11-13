@@ -16,6 +16,7 @@
 
 	<jms:inbound-gateway id="jmsGateway"
 					 	 request-destination-name="testDestinationName"
+						 reply-timeout="0"
 					 	 request-channel="requestChannel"/>
 
 	<bean id="jmsConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">

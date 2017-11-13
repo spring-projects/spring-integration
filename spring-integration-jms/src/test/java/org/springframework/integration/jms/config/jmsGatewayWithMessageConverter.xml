@@ -18,6 +18,7 @@
 	                 	 connection-factory="testConnectionFactory"
 	                 	 request-destination="testDestination"
 	                 	 message-converter="converter"
+						 reply-timeout="0"
 	                 	 request-channel="requestChannel"/>
 
 	<bean id="converter" class="org.springframework.integration.jms.config.TestMessageConverter"/>
