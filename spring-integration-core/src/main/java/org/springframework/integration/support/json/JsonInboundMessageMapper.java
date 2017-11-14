@@ -20,6 +20,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import org.springframework.integration.support.json.JsonInboundMessageMapper.JsonMessageParser;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<JsonMessageParser<?>> {
@@ -63,8 +65,8 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 	}
 
 	@Override
-	public Message<?> toMessage(String jsonMessage) throws Exception {
-		return this.messageParser.doInParser(this, jsonMessage);
+	public Message<?> toMessage(String jsonMessage, @Nullable Map<String, Object> headers) throws Exception {
+		return this.messageParser.doInParser(this, jsonMessage, headers);
 	}
 
 	@Override
@@ -81,7 +83,8 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 
 	public interface JsonMessageParser<P> {
 
-		Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage) throws Exception;
+		Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage,
+				@Nullable Map<String, Object> headers) throws Exception;
 
 	}
 

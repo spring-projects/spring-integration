@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -31,6 +32,8 @@ import org.springframework.util.Assert;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -47,7 +50,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 	 * @param headerValue The header value.
 	 * @return this.
 	 */
-	public abstract AbstractIntegrationMessageBuilder<T> setHeader(String headerName, Object headerValue);
+	public abstract AbstractIntegrationMessageBuilder<T> setHeader(String headerName, @Nullable Object headerValue);
 
 	/**
 	 * Set the value for the given header name only if the header name is not already associated with a value.
@@ -86,7 +89,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 	 * @see MessageHeaders#ID
 	 * @see MessageHeaders#TIMESTAMP
 	 */
-	public abstract AbstractIntegrationMessageBuilder<T> copyHeaders(Map<String, ?> headersToCopy);
+	public abstract AbstractIntegrationMessageBuilder<T> copyHeaders(@Nullable Map<String, ?> headersToCopy);
 
 	/**
 	 * Copy the name-value pairs from the provided Map. This operation will <em>not</em> overwrite any existing values.
@@ -94,7 +97,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 	 * @param headersToCopy The headers to copy.
 	 * @return this.
 	 */
-	public abstract AbstractIntegrationMessageBuilder<T> copyHeadersIfAbsent(Map<String, ?> headersToCopy);
+	public abstract AbstractIntegrationMessageBuilder<T> copyHeadersIfAbsent(@Nullable Map<String, ?> headersToCopy);
 
 	public AbstractIntegrationMessageBuilder<T> setExpirationDate(Long expirationDate) {
 		return this.setHeader(IntegrationMessageHeaderAccessor.EXPIRATION_DATE, expirationDate);

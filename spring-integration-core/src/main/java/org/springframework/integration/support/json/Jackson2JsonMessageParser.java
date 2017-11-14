@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.springframework.integration.support.json;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.core.JsonToken;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<JsonParser> {
@@ -52,7 +54,9 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 	}
 
 	@Override
-	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage) throws Exception {
+	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage,
+			@Nullable Map<String, Object> headersToAdd) throws Exception {
+
 		String error = AbstractJsonInboundMessageMapper.MESSAGE_FORMAT_ERROR + jsonMessage;
 		Assert.isTrue(JsonToken.START_OBJECT == parser.nextToken(), error);
 		Map<String, Object> headers = null;
@@ -72,11 +76,16 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 			}
 		}
 		Assert.notNull(headers, error);
-		return this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers).build();
+
+		return getMessageBuilderFactory()
+				.withPayload(payload)
+				.copyHeaders(headers)
+				.copyHeadersIfAbsent(headersToAdd)
+				.build();
 	}
 
 	private Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws Exception {
-		Map<String, Object> headers = new LinkedHashMap<String, Object>();
+		Map<String, Object> headers = new LinkedHashMap<>();
 		while (JsonToken.END_OBJECT != parser.nextToken()) {
 			String headerName = parser.getCurrentName();
 			parser.nextToken();

@@ -45,6 +45,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.util.MessagingAnnotationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.GenericMessagingTemplate;
@@ -172,19 +173,19 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	@Override
-	public Message<?> toMessage(Object[] arguments) {
+	public Message<?> toMessage(Object[] arguments, @Nullable Map<String, Object> headers) {
 		Assert.notNull(arguments, "cannot map null arguments to Message");
 		if (arguments.length != this.parameterList.size()) {
 			String prefix = (arguments.length < this.parameterList.size()) ? "Not enough" : "Too many";
 			throw new IllegalArgumentException(prefix + " parameters provided for method [" + this.method +
 					"], expected " + this.parameterList.size() + " but received " + arguments.length + ".");
 		}
-		return this.mapArgumentsToMessage(arguments);
+		return mapArgumentsToMessage(arguments, headers);
 	}
 
-	private Message<?> mapArgumentsToMessage(Object[] arguments) {
+	private Message<?> mapArgumentsToMessage(Object[] arguments, Map<String, Object> headers) {
 		try {
-			return this.argsMapper.toMessage(new MethodArgsHolder(this.method, arguments));
+			return this.argsMapper.toMessage(new MethodArgsHolder(this.method, arguments), headers);
 		}
 		catch (Exception e) {
 			if (e instanceof MessagingException) {
@@ -276,12 +277,15 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	public class DefaultMethodArgsMessageMapper implements MethodArgsMessageMapper {
 
 		@Override
-		public Message<?> toMessage(MethodArgsHolder holder) throws Exception {
+		public Message<?> toMessage(MethodArgsHolder holder, @Nullable Map<String, Object> headers) throws Exception {
 			Object messageOrPayload = null;
 			boolean foundPayloadAnnotation = false;
 			Object[] arguments = holder.getArgs();
 			EvaluationContext methodInvocationEvaluationContext = createMethodInvocationEvaluationContext(arguments);
-			Map<String, Object> headers = new HashMap<String, Object>();
+			headers =
+					headers != null
+							? new HashMap<>(headers)
+							: new HashMap<>();
 			if (GatewayMethodInboundMessageMapper.this.payloadExpression != null) {
 				messageOrPayload =
 						GatewayMethodInboundMessageMapper.this.payloadExpression.getValue(methodInvocationEvaluationContext);

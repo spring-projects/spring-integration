@@ -273,6 +273,7 @@ The `zsetIncrementExpression` can now be configured on the `RedisStoreWritingMes
 In addition this property has been changed from `true` to `false` since `INCR` option on `ZADD` Redis command is optional.
 
 The `RedisInboundChannelAdapter` can now be supplied with an `Executor` for executing Redis listener invokers.
+In addition the received messages now contains a `RedisHeaders.MESSAGE_SOURCE` header to indicate the source of the message - topic or pattern.
 
 See <<redis>> for more information.
 

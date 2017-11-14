@@ -78,6 +78,7 @@ import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -522,8 +523,10 @@ public class GatewayInterfaceTests {
 	public static class BazMapper implements MethodArgsMessageMapper {
 
 		@Override
-		public Message<?> toMessage(MethodArgsHolder object) throws Exception {
-			return MessageBuilder.withPayload("fizbuz").build();
+		public Message<?> toMessage(MethodArgsHolder object, @Nullable Map<String, Object> headers) throws Exception {
+			return MessageBuilder.withPayload("fizbuz")
+					.copyHeadersIfAbsent(headers)
+					.build();
 		}
 
 	}

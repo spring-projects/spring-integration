@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.integration.redis.inbound;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import org.hamcrest.Matchers;
@@ -33,6 +33,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 
@@ -40,6 +41,7 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.1
  */
 public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
@@ -83,7 +85,8 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 				throw new RuntimeException("Failed to receive message # " + i + " iteration " + iteration);
 			}
 			assertNotNull(message);
-			assertTrue(message.getPayload().toString().startsWith("test-"));
+			assertThat(message.getPayload().toString(), startsWith("test-"));
+			assertEquals("testRedisInboundChannelAdapterChannel", message.getHeaders().get(RedisHeaders.MESSAGE_SOURCE));
 			counter++;
 		}
 		assertEquals(numToTest, counter);
@@ -119,7 +122,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests {
 			Object payload = message.getPayload();
 			assertThat(payload, Matchers.instanceOf(byte[].class));
 
-			assertTrue(new String((byte[]) payload).startsWith("test-"));
+			assertThat(new String((byte[]) payload), startsWith("test-"));
 			counter++;
 		}
 

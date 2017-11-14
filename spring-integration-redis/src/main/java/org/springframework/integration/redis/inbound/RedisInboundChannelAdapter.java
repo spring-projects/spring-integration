@@ -17,6 +17,7 @@
 package org.springframework.integration.redis.inbound;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -30,10 +31,13 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -78,6 +82,12 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.messageConverter = messageConverter;
 	}
 
+	/**
+	 * Specify an {@link Executor} used for running the message listeners when messages are received.
+	 * @param taskExecutor the Executor to use for listener container.
+	 * @since 4.3.13
+	 * @see RedisMessageListenerContainer#setTaskExecutor(Executor)
+	 */
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.container.setTaskExecutor(taskExecutor);
 	}
@@ -138,8 +148,13 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.container.stop();
 	}
 
-	private Message<?> convertMessage(Object object) {
-		return this.messageConverter.toMessage(object, null);
+	private Message<?> convertMessage(Object object, String source) {
+		MessageHeaders messageHeaders = null;
+		if (StringUtils.hasText(source)) {
+			messageHeaders = new MessageHeaders(Collections.singletonMap(RedisHeaders.MESSAGE_SOURCE, source));
+		}
+
+		return this.messageConverter.toMessage(object, messageHeaders);
 	}
 
 
@@ -150,9 +165,10 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		}
 
 		@SuppressWarnings("unused")
-		public void handleMessage(Object object) {
-			sendMessage(convertMessage(object));
+		public void handleMessage(Object message, String source) {
+			sendMessage(convertMessage(message, source));
 		}
+
 	}
 
 }

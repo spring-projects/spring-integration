@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.support.converter;
 
+import java.util.Map;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -24,6 +26,7 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -33,9 +36,10 @@ import org.springframework.messaging.converter.MessageConverter;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class SimpleMessageConverter implements MessageConverter, BeanFactoryAware {
 
 	private volatile InboundMessageMapper inboundMessageMapper;
@@ -100,16 +104,18 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		return this.messageBuilderFactory;
 	}
 
+	@Nullable
 	@Override
-	public Message<?> toMessage(Object object, MessageHeaders headers) {
+	public Message<?> toMessage(Object object, @Nullable MessageHeaders headers) {
 		try {
-			return this.inboundMessageMapper.toMessage(object);
+			return this.inboundMessageMapper.toMessage(object, headers);
 		}
 		catch (Exception e) {
 			throw new MessageConversionException("failed to convert object to Message", e);
 		}
 	}
 
+	@Nullable
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		try {
@@ -128,14 +134,17 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		}
 
 		@Override
-		public Message<?> toMessage(Object object) throws Exception {
+		public Message<?> toMessage(Object object, @Nullable Map<String, Object> headers) throws Exception {
 			if (object == null) {
 				return null;
 			}
 			if (object instanceof Message<?>) {
 				return (Message<?>) object;
 			}
-			return getMessageBuilderFactory().withPayload(object).build();
+			return getMessageBuilderFactory()
+					.withPayload(object)
+					.copyHeadersIfAbsent(headers)
+					.build();
 		}
 
 	}
