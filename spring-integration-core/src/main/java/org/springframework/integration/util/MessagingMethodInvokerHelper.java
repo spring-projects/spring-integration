@@ -42,6 +42,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -69,6 +70,7 @@ import org.springframework.integration.annotation.Default;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
+import org.springframework.integration.config.HandlerMethodArgumentResolversHolder;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.support.CollectionArgumentResolver;
 import org.springframework.integration.handler.support.MapArgumentResolver;
@@ -245,7 +247,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			if (beanExpressionResolver != null) {
 				this.resolver = beanExpressionResolver;
 			}
-			this.expressionContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
+			this.expressionContext =
+					new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
 		}
 	}
 
@@ -257,7 +260,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public T process(Message<?> message) throws Exception {
 		Message<?> messageToProcess = possiblyConvert(message);
 		ParametersWrapper parameters = new ParametersWrapper(messageToProcess);
@@ -524,40 +526,71 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private synchronized void initialize() throws Exception {
 		if (!this.initialized) {
-			PayloadExpressionArgumentResolver payloadExpressionArgumentResolver =
-					new PayloadExpressionArgumentResolver();
-			payloadExpressionArgumentResolver.setBeanFactory(getBeanFactory());
-
-			PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
-			payloadsArgumentResolver.setBeanFactory(getBeanFactory());
-
-			CollectionArgumentResolver collectionArgumentResolver =
-					new CollectionArgumentResolver(this.canProcessMessageList);
-			collectionArgumentResolver.setBeanFactory(getBeanFactory());
-
-			MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
-			mapArgumentResolver.setBeanFactory(getBeanFactory());
-
-			List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
-			customArgumentResolvers.add(payloadExpressionArgumentResolver);
-			customArgumentResolvers.add(payloadsArgumentResolver);
-			customArgumentResolvers.add(collectionArgumentResolver);
-			customArgumentResolvers.add(mapArgumentResolver);
-
-			this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
-
-			if (getBeanFactory() != null &&
-					getBeanFactory()
-							.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
-				this.messageHandlerMethodFactory
-						.setMessageConverter(getBeanFactory()
-								.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-										MessageConverter.class));
+			if (getBeanFactory() != null
+					&& getBeanFactory().containsBean(
+							IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
+				try {
+					this.messageHandlerMethodFactory.setMessageConverter(getBeanFactory().getBean(
+							IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+							MessageConverter.class));
+					if (this.canProcessMessageList) {
+						this.messageHandlerMethodFactory.setCustomArgumentResolvers(getBeanFactory().getBean(
+								IntegrationContextUtils.LIST_ARGUMENT_RESOLVERS_BEAN_NAME,
+								HandlerMethodArgumentResolversHolder.class).getResolvers());
+					}
+					else {
+						this.messageHandlerMethodFactory.setCustomArgumentResolvers(getBeanFactory().getBean(
+								IntegrationContextUtils.ARGUMENT_RESOLVERS_BEAN_NAME,
+								HandlerMethodArgumentResolversHolder.class).getResolvers());
+					}
+				}
+				catch (NoSuchBeanDefinitionException e) {
+					configureLocalMessageHandlerFactory();
+				}
 			}
-
+			else {
+				configureLocalMessageHandlerFactory();
+			}
 			this.messageHandlerMethodFactory.afterPropertiesSet();
 			prepareEvaluationContext();
 			this.initialized = true;
+		}
+	}
+
+	/*
+	 * This should not be needed in production but we have many tests
+	 * that don't run in an application context.
+	 */
+	private void configureLocalMessageHandlerFactory() {
+		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver =
+				new PayloadExpressionArgumentResolver();
+		payloadExpressionArgumentResolver.setBeanFactory(getBeanFactory());
+
+		PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
+		payloadsArgumentResolver.setBeanFactory(getBeanFactory());
+
+		CollectionArgumentResolver collectionArgumentResolver =
+				new CollectionArgumentResolver(this.canProcessMessageList);
+		collectionArgumentResolver.setBeanFactory(getBeanFactory());
+
+		MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
+		mapArgumentResolver.setBeanFactory(getBeanFactory());
+
+		List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
+		customArgumentResolvers.add(payloadExpressionArgumentResolver);
+		customArgumentResolvers.add(payloadsArgumentResolver);
+		customArgumentResolvers.add(collectionArgumentResolver);
+		customArgumentResolvers.add(mapArgumentResolver);
+
+		this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
+
+		if (getBeanFactory() != null &&
+				getBeanFactory()
+						.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
+			this.messageHandlerMethodFactory
+					.setMessageConverter(getBeanFactory()
+							.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+									MessageConverter.class));
 		}
 	}
 
