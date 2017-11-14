@@ -20,6 +20,7 @@ package org.springframework.integration.support.json;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -53,8 +54,8 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 	}
 
 	@Override
-	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage, Map<String, Object> headersToAdd)
-			throws Exception {
+	protected Message<?> parseWithHeaders(JsonParser parser, String jsonMessage,
+			@Nullable Map<String, Object> headersToAdd) throws Exception {
 
 		String error = AbstractJsonInboundMessageMapper.MESSAGE_FORMAT_ERROR + jsonMessage;
 		Assert.isTrue(JsonToken.START_OBJECT == parser.nextToken(), error);
@@ -84,7 +85,7 @@ public class Jackson2JsonMessageParser extends AbstractJacksonJsonMessageParser<
 	}
 
 	private Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws Exception {
-		Map<String, Object> headers = new LinkedHashMap<String, Object>();
+		Map<String, Object> headers = new LinkedHashMap<>();
 		while (JsonToken.END_OBJECT != parser.nextToken()) {
 			String headerName = parser.getCurrentName();
 			parser.nextToken();

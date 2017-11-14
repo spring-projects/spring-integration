@@ -25,6 +25,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -69,7 +70,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 
 	@Override
 	public Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage,
-			Map<String, Object> headers) throws Exception {
+			@Nullable Map<String, Object> headers) throws Exception {
 
 		if (this.messageMapper == null) {
 			this.messageMapper = messageMapper;
@@ -110,7 +111,7 @@ abstract class AbstractJacksonJsonMessageParser<P> implements JsonInboundMessage
 	}
 
 	protected abstract Message<?> parseWithHeaders(P parser, String jsonMessage,
-			Map<String, Object> headers) throws Exception;
+			@Nullable Map<String, Object> headers) throws Exception;
 
 	protected abstract P createJsonParser(String jsonMessage) throws Exception;
 

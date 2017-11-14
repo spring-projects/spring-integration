@@ -103,8 +103,8 @@ Instead those Messages are passed through Redis allowing you to rely on its supp
 [[redis-inbound-channel-adapter]]
 ==== Redis Inbound Channel Adapter
 
-The Redis-based Inbound Channel Adapter (`RedisInboundChannelAdapter`) adapts incoming Redis messages into Spring Integration Messages in the same way as other inbound adapters.
-It receives platform-specific messages (Redis in this case) and converts them to Spring Integration Messages using a `MessageConverter` strategy.
+The Redis-based Inbound Channel Adapter (`RedisInboundChannelAdapter`) adapts incoming Redis messages into Spring Messages in the same way as other inbound adapters.
+It receives platform-specific messages (Redis in this case) and converts them to Spring Messages using a `MessageConverter` strategy.
 [source,xml]
 ----
 <int-redis:inbound-channel-adapter id="redisAdapter"

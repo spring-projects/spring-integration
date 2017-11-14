@@ -104,8 +104,9 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		return this.messageBuilderFactory;
 	}
 
+	@Nullable
 	@Override
-	public Message<?> toMessage(Object object, MessageHeaders headers) {
+	public Message<?> toMessage(Object object, @Nullable MessageHeaders headers) {
 		try {
 			return this.inboundMessageMapper.toMessage(object, headers);
 		}
@@ -114,6 +115,7 @@ public class SimpleMessageConverter implements MessageConverter, BeanFactoryAwar
 		}
 	}
 
+	@Nullable
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		try {

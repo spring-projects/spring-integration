@@ -83,8 +83,8 @@ public class JsonInboundMessageMapper extends AbstractJsonInboundMessageMapper<J
 
 	public interface JsonMessageParser<P> {
 
-		Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage, Map<String, Object> headers)
-				throws Exception;
+		Message<?> doInParser(JsonInboundMessageMapper messageMapper, String jsonMessage,
+				@Nullable Map<String, Object> headers) throws Exception;
 
 	}
 

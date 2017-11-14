@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -121,7 +122,7 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	}
 
 	@Override
-	public AbstractIntegrationMessageBuilder<T> setHeader(String headerName, Object headerValue) {
+	public AbstractIntegrationMessageBuilder<T> setHeader(String headerName, @Nullable Object headerValue) {
 		Assert.notNull(headerName, "'headerName' must not be null");
 		if (headerValue == null) {
 			this.removeHeader(headerName);
@@ -180,7 +181,7 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	}
 
 	@Override
-	public AbstractIntegrationMessageBuilder<T> copyHeaders(Map<String, ?> headersToCopy) {
+	public AbstractIntegrationMessageBuilder<T> copyHeaders(@Nullable Map<String, ?> headersToCopy) {
 		if (headersToCopy != null) {
 			this.headers.putAll(headersToCopy);
 		}
@@ -188,7 +189,7 @@ public final class MutableMessageBuilder<T> extends AbstractIntegrationMessageBu
 	}
 
 	@Override
-	public AbstractIntegrationMessageBuilder<T> copyHeadersIfAbsent(Map<String, ?> headersToCopy) {
+	public AbstractIntegrationMessageBuilder<T> copyHeadersIfAbsent(@Nullable Map<String, ?> headersToCopy) {
 		if (headersToCopy != null) {
 			for (Entry<String, ?> entry : headersToCopy.entrySet()) {
 				setHeaderIfAbsent(entry.getKey(), entry.getValue());
