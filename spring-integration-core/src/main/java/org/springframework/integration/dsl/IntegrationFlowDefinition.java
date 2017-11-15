@@ -2742,9 +2742,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			return target;
 		}
 		Advised advised = (Advised) target;
-		if (advised.getTargetSource() == null) {
-			return null;
-		}
 		try {
 			return extractProxyTarget(advised.getTargetSource().getTarget());
 		}

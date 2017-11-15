@@ -460,7 +460,7 @@ Of course we register some custom `BytesToIntegerConverter` within `ConversionSe
 
 For convenience to log the message journey throw the Spring Integration flow (`<logging-channel-adapter>`), a `log()` operator is presented.
 Underneath it is represented by the `WireTap` `ChannelInterceptor` and `LoggingHandler` as subscriber.
-It is responsible to log message incoming into the next endpoint:
+It is responsible to log message incoming into the next endpoint or for the current channel:
 
 [source,java]
 ----
@@ -490,6 +490,26 @@ public IntegrationFlow loggingFlow() {
     return f -> f.log();
 }
 ----
+
+[IMPORTANT]
+=====
+If `log()` or `wireTap()` are used in the end of flow they are considered as one-way `MessageHandler` s.
+If the integration flow is expected to return reply, the `bridge()` should be used in the end, after `log()` or `wireTap()`:
+[source,java]
+----
+@Bean
+public IntegrationFlow sseFlow() {
+    return IntegrationFlows
+        .from(WebFlux.inboundGateway("/sse")
+            .requestMapping(m ->
+                m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
+        .handle((p, h) -> Flux.just("foo", "bar", "baz"))
+        .log(LoggingHandler.Level.WARN)
+        .bridge()
+        .get();
+}
+----
+=====
 
 [[java-dsl-flows]]
 === Working With Message Flows
