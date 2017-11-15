@@ -130,14 +130,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private static final ExpressionParser EXPRESSION_PARSER_DEFAULT = EXPRESSION_PARSER;
 
-	private static final ExpressionParser EXPRESSION_PARSER_OFF = new SpelExpressionParser(
-			new SpelParserConfiguration(SpelCompilerMode.OFF, null));
+	private static final ExpressionParser EXPRESSION_PARSER_OFF =
+			new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.OFF, null));
 
-	private static final ExpressionParser EXPRESSION_PARSER_IMMEDIATE = new SpelExpressionParser(
-			new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, null));
+	private static final ExpressionParser EXPRESSION_PARSER_IMMEDIATE =
+			new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE, null));
 
-	private static final ExpressionParser EXPRESSION_PARSER_MIXED = new SpelExpressionParser(
-			new SpelParserConfiguration(SpelCompilerMode.MIXED, null));
+	private static final ExpressionParser EXPRESSION_PARSER_MIXED =
+			new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.MIXED, null));
 
 	private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER =
 			new LocalVariableTableParameterNameDiscoverer();
@@ -149,8 +149,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	@SuppressWarnings("unused")
 	private static final Collection<Message<?>> dummyMessages = Collections.emptyList();
 
-	private static final TypeDescriptor messageListTypeDescriptor = new TypeDescriptor(
-			ReflectionUtils.findField(MessagingMethodInvokerHelper.class, "dummyMessages"));
+	private static final TypeDescriptor messageListTypeDescriptor =
+			new TypeDescriptor(ReflectionUtils.findField(MessagingMethodInvokerHelper.class, "dummyMessages"));
 
 	private static final TypeDescriptor messageArrayTypeDescriptor = TypeDescriptor.valueOf(Message[].class);
 
@@ -201,6 +201,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
+
 		this(targetObject, null, method, expectedType, canProcessMessageList);
 	}
 
@@ -210,6 +211,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	public MessagingMethodInvokerHelper(Object targetObject, String methodName, Class<?> expectedType,
 			boolean canProcessMessageList) {
+
 		this(targetObject, null, methodName, expectedType, canProcessMessageList);
 	}
 
@@ -219,12 +221,58 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	public MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
 			boolean canProcessMessageList) {
+
 		this(targetObject, annotationType, null, canProcessMessageList);
 	}
 
 	public MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
 			Class<?> expectedType, boolean canProcessMessageList) {
+
 		this(targetObject, annotationType, (String) null, expectedType, canProcessMessageList);
+	}
+
+	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
+			Method method, Class<?> expectedType, boolean canProcessMessageList) {
+
+		this.annotationType = annotationType;
+		this.canProcessMessageList = canProcessMessageList;
+		Assert.notNull(method, "method must not be null");
+		this.method = method;
+		this.requiresReply = expectedType != null;
+		if (expectedType != null) {
+			Assert.isTrue(method.getReturnType() != Void.class && method.getReturnType() != Void.TYPE,
+					"method must have a return type");
+			this.expectedType = TypeDescriptor.valueOf(expectedType);
+		}
+		else {
+			this.expectedType = null;
+		}
+
+		Assert.notNull(targetObject, "targetObject must not be null");
+		this.targetObject = targetObject;
+		try {
+			InvocableHandlerMethod invocableHandlerMethod =
+					this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, method);
+			this.handlerMethod = new HandlerMethod(invocableHandlerMethod, canProcessMessageList);
+			this.defaultHandlerMethod = null;
+			checkSpelInvokerRequired(getTargetClass(targetObject), method, this.handlerMethod);
+		}
+		catch (IneligibleMethodException e) {
+			throw new IllegalArgumentException(e);
+		}
+		this.handlerMethods = null;
+		this.handlerMessageMethods = null;
+		this.handlerMethodsList = null;
+		setDisplayString(targetObject, method);
+
+		JsonObjectMapper<?, ?> mapper;
+		try {
+			mapper = JsonObjectMapperProvider.newInstance();
+		}
+		catch (IllegalStateException e) {
+			mapper = null;
+		}
+		this.jsonObjectMapper = mapper;
 	}
 
 	/**
@@ -247,8 +295,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			if (beanExpressionResolver != null) {
 				this.resolver = beanExpressionResolver;
 			}
-			this.expressionContext =
-					new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
+			this.expressionContext = new BeanExpressionContext((ConfigurableListableBeanFactory) beanFactory, null);
 		}
 	}
 
@@ -278,7 +325,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			Class<?> type = this.handlerMethod.getTargetParameterType();
 			if ((message.getPayload() instanceof String && !type.equals(String.class)
 					|| message.getPayload() instanceof byte[] && !type.equals(byte[].class))
-							&& contentTypeIsJson(message)) {
+					&& contentTypeIsJson(message)) {
+
 				try {
 					return getMessageBuilderFactory()
 							.withPayload(this.jsonObjectMapper.fromJson(message.getPayload(), type))
@@ -297,7 +345,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private boolean contentTypeIsJson(Message<?> message) {
 		Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
-		return contentType != null ? contentType.toString().contains("json") : false;
+		return contentType != null && contentType.toString().contains("json");
 	}
 
 	public T process(Collection<Message<?>> messages, Map<String, Object> headers) throws Exception {
@@ -332,48 +380,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	/*
 	 * Private constructors for internal use
 	 */
-
-	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
-			Method method, Class<?> expectedType, boolean canProcessMessageList) {
-		this.annotationType = annotationType;
-		this.canProcessMessageList = canProcessMessageList;
-		Assert.notNull(method, "method must not be null");
-		this.method = method;
-		this.requiresReply = expectedType != null;
-		if (expectedType != null) {
-			Assert.isTrue(method.getReturnType() != Void.class && method.getReturnType() != Void.TYPE,
-					"method must have a return type");
-			this.expectedType = TypeDescriptor.valueOf(expectedType);
-		}
-		else {
-			this.expectedType = null;
-		}
-
-		Assert.notNull(targetObject, "targetObject must not be null");
-		this.targetObject = targetObject;
-		try {
-			InvocableHandlerMethod invocableHandlerMethod =
-					this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, method);
-			this.handlerMethod = new HandlerMethod(invocableHandlerMethod, canProcessMessageList);
-			this.defaultHandlerMethod = null;
-			checkSpelInvokerRequired(getTargetClass(targetObject), method, this.handlerMethod);
-		}
-		catch (IneligibleMethodException e) {
-			throw new IllegalArgumentException(e);
-		}
-		this.handlerMethods = null;
-		this.handlerMessageMethods = null;
-		this.handlerMethodsList = null;
-		this.setDisplayString(targetObject, method);
-		JsonObjectMapper<?, ?> mapper;
-		try {
-			mapper = JsonObjectMapperProvider.newInstance();
-		}
-		catch (IllegalStateException e) {
-			mapper = null;
-		}
-		this.jsonObjectMapper = mapper;
-	}
 
 	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
 			String methodName, Class<?> expectedType, boolean canProcessMessageList) {
@@ -517,8 +523,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			String compilerMode = resolveExpression(candidate.useSpelInvoker.compilerMode(),
 					"UseSpelInvoker.compilerMode:").toUpperCase();
 			parser = !StringUtils.hasText(compilerMode)
-				? EXPRESSION_PARSER_DEFAULT
-				: SPEL_COMPILERS.get(SpelCompilerMode.valueOf(compilerMode));
+					? EXPRESSION_PARSER_DEFAULT
+					: SPEL_COMPILERS.get(SpelCompilerMode.valueOf(compilerMode));
 		}
 		candidate.expression = parser.parseExpression(candidate.expressionString);
 		candidate.initialized = true;
@@ -526,23 +532,25 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private synchronized void initialize() throws Exception {
 		if (!this.initialized) {
-			if (getBeanFactory() != null
-					&& getBeanFactory().containsBean(
-							IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
+			BeanFactory beanFactory = getBeanFactory();
+			if (beanFactory != null &&
+					beanFactory.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
+
 				try {
-					this.messageHandlerMethodFactory.setMessageConverter(getBeanFactory().getBean(
-							IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-							MessageConverter.class));
-					if (this.canProcessMessageList) {
-						this.messageHandlerMethodFactory.setCustomArgumentResolvers(getBeanFactory().getBean(
-								IntegrationContextUtils.LIST_ARGUMENT_RESOLVERS_BEAN_NAME,
-								HandlerMethodArgumentResolversHolder.class).getResolvers());
-					}
-					else {
-						this.messageHandlerMethodFactory.setCustomArgumentResolvers(getBeanFactory().getBean(
-								IntegrationContextUtils.ARGUMENT_RESOLVERS_BEAN_NAME,
-								HandlerMethodArgumentResolversHolder.class).getResolvers());
-					}
+					MessageConverter messageConverter =
+							beanFactory.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+									MessageConverter.class);
+
+					this.messageHandlerMethodFactory.setMessageConverter(messageConverter);
+
+					HandlerMethodArgumentResolversHolder handlerMethodArgumentResolversHolder =
+							beanFactory.getBean(this.canProcessMessageList
+											? IntegrationContextUtils.LIST_ARGUMENT_RESOLVERS_BEAN_NAME
+											: IntegrationContextUtils.ARGUMENT_RESOLVERS_BEAN_NAME,
+									HandlerMethodArgumentResolversHolder.class);
+
+					this.messageHandlerMethodFactory.setCustomArgumentResolvers(
+							handlerMethodArgumentResolversHolder.getResolvers());
 				}
 				catch (NoSuchBeanDefinitionException e) {
 					configureLocalMessageHandlerFactory();
@@ -551,6 +559,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			else {
 				configureLocalMessageHandlerFactory();
 			}
+
 			this.messageHandlerMethodFactory.afterPropertiesSet();
 			prepareEvaluationContext();
 			this.initialized = true;
@@ -562,8 +571,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	 * that don't run in an application context.
 	 */
 	private void configureLocalMessageHandlerFactory() {
-		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver =
-				new PayloadExpressionArgumentResolver();
+		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver = new PayloadExpressionArgumentResolver();
 		payloadExpressionArgumentResolver.setBeanFactory(getBeanFactory());
 
 		PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();

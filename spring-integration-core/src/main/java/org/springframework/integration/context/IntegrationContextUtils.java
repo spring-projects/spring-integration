@@ -58,11 +58,11 @@ public abstract class IntegrationContextUtils {
 
 	public static final String DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME = "DefaultConfiguringBeanFactoryPostProcessor";
 
-	public static final String MESSAGING_ANNOTATION_POSTPROCESSOR_NAME = IntegrationConfigUtils.BASE_PACKAGE
-			+ ".internalMessagingAnnotationPostProcessor";
+	public static final String MESSAGING_ANNOTATION_POSTPROCESSOR_NAME =
+			IntegrationConfigUtils.BASE_PACKAGE + ".internalMessagingAnnotationPostProcessor";
 
-	public static final String PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME = IntegrationConfigUtils.BASE_PACKAGE
-			+ ".internalPublisherAnnotationBeanPostProcessor";
+	public static final String PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME =
+			IntegrationConfigUtils.BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
 
 	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME =
 			"IntegrationConfigurationBeanFactoryPostProcessor";
@@ -75,8 +75,7 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_FIXED_SUBSCRIBER_CHANNEL_BPP_BEAN_NAME =
 			"fixedSubscriberChannelBeanFactoryPostProcessor";
 
-	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME =
-			"globalChannelInterceptorProcessor";
+	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
 
 	public static final String TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME =
 			"toStringFriendlyJsonNodeToStringConverter";

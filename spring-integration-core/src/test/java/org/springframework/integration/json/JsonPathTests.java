@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -56,6 +61,7 @@ import com.jayway.jsonpath.Predicate;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 @ContextConfiguration(classes = JsonPathTests.JsonPathTestsContextConfiguration.class,
@@ -207,14 +213,38 @@ public class JsonPathTests {
 		assertNull(this.routerOutput1.receive(10));
 	}
 
+	@Autowired
+	private MessageChannel jsonPathMessageChannel;
+
+	@Test
+	public void testJsonPathOnPayloadAnnotation() {
+		QueueChannel replyChannel = new QueueChannel();
+
+		Message<String> message = MessageBuilder.withPayload(JSON)
+				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
+				.build();
+
+		this.jsonPathMessageChannel.send(message);
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertNotNull(receive);
+		assertEquals("Nigel Rees", receive.getPayload());
+	}
 
 	@Configuration
 	@ImportResource("classpath:org/springframework/integration/json/JsonPathTests-context.xml")
+	@EnableIntegration
 	public static class JsonPathTestsContextConfiguration {
 
 		@Bean
 		public Predicate jsonPathFilter() {
 			return Filter.filter(Criteria.where("isbn").exists(true).and("category").ne("fiction"));
+		}
+
+		@ServiceActivator(inputChannel = "jsonPathMessageChannel")
+		public String handle(@Payload("#jsonPath(#root, '$.store.book[0].author')") String payload) {
+			return payload;
 		}
 
 	}

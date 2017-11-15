@@ -26,6 +26,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
  * A holder for the configured argument resolvers.
  *
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */
