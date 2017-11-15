@@ -69,7 +69,8 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 
 		if (this.canProcessMessageList) {
 			Assert.state(value instanceof Collection,
-					"This Argument Resolver only supports messages with a payload of Collection<Message<?>>");
+					"This Argument Resolver only supports messages with a payload of Collection<Message<?>>, "
+					+ "payload is: " + value.getClass());
 			Collection<Message<?>> messages = (Collection<Message<?>>) value;
 
 			parameter.increaseNestingLevel();

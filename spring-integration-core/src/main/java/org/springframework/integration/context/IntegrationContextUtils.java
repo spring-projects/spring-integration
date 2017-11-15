@@ -61,18 +61,22 @@ public abstract class IntegrationContextUtils {
 	public static final String MESSAGING_ANNOTATION_POSTPROCESSOR_NAME = IntegrationConfigUtils.BASE_PACKAGE
 			+ ".internalMessagingAnnotationPostProcessor";
 
-	public static final String PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME = IntegrationConfigUtils.BASE_PACKAGE +
-			".internalPublisherAnnotationBeanPostProcessor";
+	public static final String PUBLISHER_ANNOTATION_POSTPROCESSOR_NAME = IntegrationConfigUtils.BASE_PACKAGE
+			+ ".internalPublisherAnnotationBeanPostProcessor";
 
-	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME = "IntegrationConfigurationBeanFactoryPostProcessor";
+	public static final String INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME =
+			"IntegrationConfigurationBeanFactoryPostProcessor";
 
 	public static final String INTEGRATION_MESSAGE_HISTORY_CONFIGURER_BEAN_NAME = "messageHistoryConfigurer";
 
-	public static final String INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME = "datatypeChannelMessageConverter";
+	public static final String INTEGRATION_DATATYPE_CHANNEL_MESSAGE_CONVERTER_BEAN_NAME =
+			"datatypeChannelMessageConverter";
 
-	public static final String INTEGRATION_FIXED_SUBSCRIBER_CHANNEL_BPP_BEAN_NAME = "fixedSubscriberChannelBeanFactoryPostProcessor";
+	public static final String INTEGRATION_FIXED_SUBSCRIBER_CHANNEL_BPP_BEAN_NAME =
+			"fixedSubscriberChannelBeanFactoryPostProcessor";
 
-	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME = "globalChannelInterceptorProcessor";
+	public static final String GLOBAL_CHANNEL_INTERCEPTOR_PROCESSOR_BEAN_NAME =
+			"globalChannelInterceptorProcessor";
 
 	public static final String TO_STRING_FRIENDLY_JSON_NODE_TO_STRING_CONVERTER_BEAN_NAME =
 			"toStringFriendlyJsonNodeToStringConverter";
@@ -84,7 +88,12 @@ public abstract class IntegrationContextUtils {
 
 	public static final String SPEL_PROPERTY_ACCESSOR_REGISTRAR_BEAN_NAME = "spelPropertyAccessorRegistrar";
 
-	public static final String ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME = "integrationArgumentResolverMessageConverter";
+	public static final String ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME =
+			"integrationArgumentResolverMessageConverter";
+
+	public static final String ARGUMENT_RESOLVERS_BEAN_NAME = "integrationArgumentResolvers";
+
+	public static final String LIST_ARGUMENT_RESOLVERS_BEAN_NAME = "integrationListArgumentResolvers";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
