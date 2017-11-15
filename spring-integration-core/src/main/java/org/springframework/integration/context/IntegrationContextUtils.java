@@ -91,16 +91,6 @@ public abstract class IntegrationContextUtils {
 	public static final String ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME =
 			"integrationArgumentResolverMessageConverter";
 
-	public static final String PAYLOAD_RESOLVER_BEAN_NAME = "integrationPayloadResolver";
-
-	public static final String PAYLOADS_RESOLVER_BEAN_NAME = "integrationPayloadsResolver";
-
-	public static final String COLLECTION_RESOLVER_BEAN_NAME = "integrationCollectionResolver";
-
-	public static final String LIST_COLLECTION_RESOLVER_BEAN_NAME = "integrationListCollectionResolver";
-
-	public static final String MAP_RESOLVER_BEAN_NAME = "integrationMapArgumentResolver";
-
 	public static final String ARGUMENT_RESOLVERS_BEAN_NAME = "integrationArgumentResolvers";
 
 	public static final String LIST_ARGUMENT_RESOLVERS_BEAN_NAME = "integrationListArgumentResolvers";

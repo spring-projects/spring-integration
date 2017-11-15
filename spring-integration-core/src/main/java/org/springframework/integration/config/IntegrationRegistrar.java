@@ -30,7 +30,6 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -57,7 +56,7 @@ import org.springframework.integration.support.converter.ConfigurableCompositeMe
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -425,16 +424,16 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	private void registerArgumentResolverMessageConverter(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(
 				IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
-			BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder
+			BeanDefinitionBuilder converterBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(ConfigurableCompositeMessageConverter.class);
 			registry.registerBeanDefinition(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-					resolverBuilder.getBeanDefinition());
+					converterBuilder.getBeanDefinition());
 		}
 	}
 
 	/**
-	 * Register the default {@link MessageHandlerMethodFactory} for handler method
-	 * invocation.
+	 * Register the default {@link HandlerMethodArgumentResolversHolder} for handler
+	 * method invocation.
 	 * @param registry the registry.
 	 */
 	private void registerArgumentResolvers(BeanDefinitionRegistry registry) {
@@ -445,8 +444,8 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	}
 
 	/**
-	 * Register the default {@link MessageHandlerMethodFactory} for handler method
-	 * invocation for lists.
+	 * Register the default {@link HandlerMethodArgumentResolversHolder} for handler
+	 * method invocation for lists.
 	 * @param registry the registry.
 	 */
 	private void registerListCapableArgumentResolvers(BeanDefinitionRegistry registry) {
@@ -459,52 +458,11 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 
 	private BeanDefinitionBuilder internalArgumentResolversBuilder(BeanDefinitionRegistry registry,
 			boolean listCapable) {
-		ManagedList<BeanReference> resolvers = new ManagedList<>();
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.PAYLOAD_RESOLVER_BEAN_NAME)) {
-			BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					PayloadExpressionArgumentResolver.class);
-			registry.registerBeanDefinition(IntegrationContextUtils.PAYLOAD_RESOLVER_BEAN_NAME,
-					resolverBuilder.getBeanDefinition());
-		}
-		resolvers.add(new RuntimeBeanReference(IntegrationContextUtils.PAYLOAD_RESOLVER_BEAN_NAME));
-
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.PAYLOADS_RESOLVER_BEAN_NAME)) {
-			BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					PayloadsArgumentResolver.class);
-			registry.registerBeanDefinition(IntegrationContextUtils.PAYLOADS_RESOLVER_BEAN_NAME,
-					resolverBuilder.getBeanDefinition());
-		}
-		resolvers.add(new RuntimeBeanReference(IntegrationContextUtils.PAYLOADS_RESOLVER_BEAN_NAME));
-
-		if (listCapable) {
-			if (!registry.containsBeanDefinition(IntegrationContextUtils.LIST_COLLECTION_RESOLVER_BEAN_NAME)) {
-				BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						CollectionArgumentResolver.class);
-				resolverBuilder.addConstructorArgValue(listCapable);
-				registry.registerBeanDefinition(IntegrationContextUtils.LIST_COLLECTION_RESOLVER_BEAN_NAME,
-						resolverBuilder.getBeanDefinition());
-			}
-			resolvers.add(new RuntimeBeanReference(IntegrationContextUtils.LIST_COLLECTION_RESOLVER_BEAN_NAME));
-		}
-		else {
-			if (!registry.containsBeanDefinition(IntegrationContextUtils.COLLECTION_RESOLVER_BEAN_NAME)) {
-				BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						CollectionArgumentResolver.class);
-				resolverBuilder.addConstructorArgValue(listCapable);
-				registry.registerBeanDefinition(IntegrationContextUtils.COLLECTION_RESOLVER_BEAN_NAME,
-						resolverBuilder.getBeanDefinition());
-			}
-			resolvers.add(new RuntimeBeanReference(IntegrationContextUtils.COLLECTION_RESOLVER_BEAN_NAME));
-		}
-
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.MAP_RESOLVER_BEAN_NAME)) {
-			BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					MapArgumentResolver.class);
-			registry.registerBeanDefinition(IntegrationContextUtils.MAP_RESOLVER_BEAN_NAME,
-					resolverBuilder.getBeanDefinition());
-		}
-		resolvers.add(new RuntimeBeanReference(IntegrationContextUtils.MAP_RESOLVER_BEAN_NAME));
-
+		ManagedList<HandlerMethodArgumentResolver> resolvers = new ManagedList<>();
+		resolvers.add(new PayloadExpressionArgumentResolver());
+		resolvers.add(new PayloadsArgumentResolver());
+		resolvers.add(new CollectionArgumentResolver(listCapable));
+		resolvers.add(new MapArgumentResolver());
 		return BeanDefinitionBuilder.genericBeanDefinition(HandlerMethodArgumentResolversHolder.class)
 				.addConstructorArgValue(resolvers);
 	}

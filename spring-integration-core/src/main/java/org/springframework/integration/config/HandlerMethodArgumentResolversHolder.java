@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -37,7 +38,7 @@ public class HandlerMethodArgumentResolversHolder {
 	}
 
 	public List<HandlerMethodArgumentResolver> getResolvers() {
-		return new ArrayList<>(this.resolvers);
+		return Collections.unmodifiableList(this.resolvers);
 	}
 
 	public void addResolver(HandlerMethodArgumentResolver resolver) {
