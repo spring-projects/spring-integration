@@ -21,7 +21,6 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -452,12 +451,12 @@ public class EnableIntegrationTests {
 		assertThat(result, containsString("SpelExpression"));
 		assertThat(result, containsString("CompoundExpression.getValueInternal"));
 		assertNotNull(this.testGateway2.echo2("baz"));
-		result = this.testGateway2.echo2("baz"); // third one should be compiled
+		// third one should be compiled, but it's not since SF-5.0.2 - proxies aren't compilable SpELs any more
+		result = this.testGateway2.echo2("baz");
 		assertNotNull(result);
 		assertEquals("BAZ2", result.substring(0, 4));
 		assertThat(result, not(containsString("InvocableHandlerMethod")));
 		assertThat(result, containsString("SpelExpression"));
-		assertThat(result, is(new RegexMatcher<String>(".+Ex\\d.getValue\\(.+")));
 		this.testGateway.sendAsync("foo");
 		assertTrue(this.asyncAnnotationProcessLatch.await(1, TimeUnit.SECONDS));
 		assertNotSame(Thread.currentThread(), this.asyncAnnotationProcessThread.get());
