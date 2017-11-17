@@ -46,6 +46,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Marius Bogoevici
+ * @author Artem Bilan
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractReplyProducingMessageHandlerTests {
@@ -80,19 +81,20 @@ public class AbstractReplyProducingMessageHandlerTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testNotPropagate() {
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				return new GenericMessage<String>("world", Collections.singletonMap("bar", "RAB"));
+				return new GenericMessage<>("world", Collections.singletonMap("bar", "RAB"));
 			}
 
 		};
 		assertThat(handler.getNotPropagatedHeaders(), emptyCollectionOf(String.class));
-		handler.setNotPropagatedHeaders("foo", "bar");
+		handler.setNotPropagatedHeaders("f*", "*r");
 		handler.setOutputChannel(this.channel);
-		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("foo", "bar"));
+		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("f*", "*r"));
 		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture());
 		handler.handleMessage(MessageBuilder.withPayload("hello")
@@ -120,9 +122,9 @@ public class AbstractReplyProducingMessageHandlerTests {
 		};
 		assertThat(handler.getNotPropagatedHeaders(), emptyCollectionOf(String.class));
 		handler.setNotPropagatedHeaders("foo");
-		handler.addNotPropagatedHeaders("bar");
+		handler.addNotPropagatedHeaders("b*r");
 		handler.setOutputChannel(this.channel);
-		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("foo", "bar"));
+		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("foo", "b*r"));
 		ArgumentCaptor<Message<?>> captor =
 				(ArgumentCaptor<Message<?>>) (ArgumentCaptor<?>) ArgumentCaptor.forClass(Message.class);
 		willReturn(true).given(this.channel).send(captor.capture());

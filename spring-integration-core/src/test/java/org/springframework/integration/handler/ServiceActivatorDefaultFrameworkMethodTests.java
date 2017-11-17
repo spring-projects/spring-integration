@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -27,6 +28,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -189,18 +191,20 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		this.handlerTestInputChannel.send(message);
 	}
 
-	//	INT-2399
 	@Test
 	public void testMessageProcessor() {
 		Object processor = TestUtils.getPropertyValue(processorTestService, "handler.processor");
 		assertSame(testMessageProcessor, processor);
 
 		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.withPayload("bar").setReplyChannel(replyChannel).build();
+		Message<?> message = MessageBuilder.withPayload("bar")
+				.setReplyChannel(replyChannel)
+				.setHeader("foo", "foo")
+				.build();
 		this.processorTestInputChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
 		assertEquals("foo:bar", reply.getPayload());
-		assertEquals("processorTestInputChannel,processorTestService", reply.getHeaders().get("history").toString());
+		assertThat(reply, not(hasHeaderKey("foo")));
 	}
 
 	@Test

@@ -249,6 +249,25 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 		return _this();
 	}
 
+	/**
+	 * Set header patterns ("xxx*", "*xxx", "*xxx*" or "xxx*yyy")
+	 * that will NOT be copied from the inbound message.
+	 * '*' means do not copy headers at all.
+	 * @param headerPatterns the headers to not propagate from the inbound message.
+	 * @return the endpoint spec.
+	 * @see AbstractMessageProducingHandler#setNotPropagatedHeaders(String...)
+	 */
+	public S notPropagatedHeaders(String... headerPatterns) {
+		assertHandler();
+		if (this.handler instanceof AbstractMessageProducingHandler) {
+			((AbstractMessageProducingHandler) this.handler).setNotPropagatedHeaders(headerPatterns);
+		}
+		else {
+			logger.warn("'async' can be applied only for AbstractMessageProducingHandler");
+		}
+		return _this();
+	}
+
 	@Override
 	protected Tuple2<ConsumerEndpointFactoryBean, H> doGet() {
 		this.endpointFactoryBean.setHandler(this.handler);

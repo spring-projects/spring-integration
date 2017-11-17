@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import java.util.Arrays;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -42,12 +44,18 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 	private volatile Boolean requiresReply;
 
+	private String[] headers;
+
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
 	}
 
 	public void setRequiresReply(Boolean requiresReply) {
 		this.requiresReply = requiresReply;
+	}
+
+	public void setNotPropagatedHeaders(String... headers) {
+		this.headers = Arrays.copyOf(headers, headers.length);
 	}
 
 	@Override
@@ -121,6 +129,9 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
+		}
+		if (this.headers != null) {
+			handler.setNotPropagatedHeaders(this.headers);
 		}
 		if (this.requiresReply != null) {
 			if (handler instanceof AbstractReplyProducingMessageHandler) {

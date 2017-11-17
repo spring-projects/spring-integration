@@ -38,7 +38,10 @@
 			class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageHandler"/>
 	</service-activator>
 
-	<service-activator id="processorTestService" input-channel="processorTestInputChannel" ref="testMessageProcessor"/>
+	<service-activator id="processorTestService"
+					   input-channel="processorTestInputChannel"
+					   ref="testMessageProcessor"
+					   not-propagated-headers="*"/>
 
 	<gateway id="gateway" default-request-channel="requestChannel" default-reply-channel="replyChannel"/>
 
