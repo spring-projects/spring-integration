@@ -394,9 +394,16 @@ Also, a header is only propagated if it does not already exist in the outbound m
 
 Starting with _version 4.3.10_, you can configure message handlers (that modify messages and produce output) to suppress the propagation of specific headers.
 Call the `setNotPropagatedHeaders()` or `addNotPropagatedHeaders()` methods on the `MessageProducingMessageHandler` abstract class, to configure the header(s) you don't want to be copied.
+
 You can also globally suppress propagation of specific message headers by setting the `readOnlyHeaders` property in `META-INF/spring.integration.properties` to a comma-delimited list of headers.
 
-IMPORTANT: Header propagation suppression does not apply to those endpoints that don't modify the message, e.g. <<bridge, bridges>> and <<router, routers>>
+Starting with _version 5.0_, the `setNotPropagatedHeaders()` implementation on the `AbstractMessageProducingHandler` applies the simple patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) to allow filtering headers with a common suffix or prefix.
+See `PatternMatchUtils` JavaDocs for more information.
+When one of the patterns is `*` (asterisk), no headers are propagated; all other patterns are ignored.
+In this case the Service Activator behaves the same way as Transformer and any required headers must be supplied in the `Message` returned from the service method.
+The option `notPropagatedHeaders()` is available in the `ConsumerEndpointSpec` for Java DSL, as well as for XML configuration of the `<service-activator>` component as a `not-propagated-headers` attribute.
+
+IMPORTANT: Header propagation suppression does not apply to those endpoints that don't modify the message, e.g. <<bridge, bridges>> and <<router, routers>>.
 
 
 [[message-implementations]]

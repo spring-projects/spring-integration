@@ -43,6 +43,7 @@ import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
@@ -64,17 +65,19 @@ import reactor.core.publisher.Mono;
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
 		implements MessageProducer, HeaderPropagationAware {
 
-	private final Set<String> notPropagatedHeaders = new HashSet<String>();
-
 	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile MessageChannel outputChannel;
+	private boolean async;
 
-	private volatile String outputChannelName;
+	private String outputChannelName;
 
-	private volatile boolean async;
+	private MessageChannel outputChannel;
+
+	private String[] notPropagatedHeaders;
 
 	private boolean selectiveHeaderPropagation;
+
+	private boolean noHeadersPropagation;
 
 	/**
 	 * Set the timeout for sending reply Messages.
@@ -115,10 +118,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	/**
-	 * Set headers that will NOT be copied from the inbound message if
+	 * Set header patterns ("xxx*", "*xxx", "*xxx*" or "xxx*yyy")
+	 * that will NOT be copied from the inbound message if
 	 * {@link #shouldCopyRequestHeaders() shouldCopyRequestHeaaders} is true.
+	 * At least one pattern as "*" means do not copy headers at all.
 	 * @param headers the headers to not propagate from the inbound message.
 	 * @since 4.3.10
+	 * @see org.springframework.util.PatternMatchUtils
 	 */
 	@Override
 	public void setNotPropagatedHeaders(String... headers) {
@@ -126,30 +132,48 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	private void updateNotPropagatedHeaders(String[] headers, boolean merge) {
+		Set<String> headerPatterns = new HashSet<>();
+
+		if (merge) {
+			headerPatterns.addAll(Arrays.asList(this.notPropagatedHeaders));
+		}
+
 		if (!ObjectUtils.isEmpty(headers)) {
 			Assert.noNullElements(headers, "null elements are not allowed in 'headers'");
-			if (!merge) {
-				this.notPropagatedHeaders.clear();
-			}
-			this.notPropagatedHeaders.addAll(Arrays.asList(headers));
+
+			headerPatterns.addAll(Arrays.asList(headers));
+
+			this.notPropagatedHeaders = headerPatterns.toArray(new String[headerPatterns.size()]);
 		}
-		this.selectiveHeaderPropagation = this.notPropagatedHeaders.size() > 0;
+
+		boolean hasAsterisk = headerPatterns.contains("*");
+
+		if (hasAsterisk) {
+			this.notPropagatedHeaders = new String[] { "*" };
+			this.noHeadersPropagation = true;
+		}
+
+		this.selectiveHeaderPropagation = this.notPropagatedHeaders.length > 0;
 	}
 
 	/**
-	 * Get the header names this handler doesn't propagate.
+	 * Get the header patterns this handler doesn't propagate.
 	 * @return an immutable {@link java.util.Collection} of headers that will not be
 	 * copied from the inbound message if {@link #shouldCopyRequestHeaders()} is true.
 	 * @since 4.3.10
 	 * @see #setNotPropagatedHeaders(String...)
+	 * @see org.springframework.util.PatternMatchUtils
 	 */
 	@Override
 	public Collection<String> getNotPropagatedHeaders() {
-		return Collections.unmodifiableSet(this.notPropagatedHeaders);
+		return this.notPropagatedHeaders != null
+				? Collections.unmodifiableSet(new HashSet<>(Arrays.asList(this.notPropagatedHeaders)))
+				: Collections.emptyList();
 	}
 
 	/**
-	 * Add headers that will NOT be copied from the inbound message if
+	 * Add header patterns ("xxx*", "*xxx", "*xxx*" or "xxx*yyy")
+	 * that will NOT be copied from the inbound message if
 	 * {@link #shouldCopyRequestHeaders()} is true, instead of overwriting the existing
 	 * set.
 	 * @param headers the headers to not propagate from the inbound message.
@@ -344,7 +368,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	protected Message<?> createOutputMessage(Object output, MessageHeaders requestHeaders) {
 		AbstractIntegrationMessageBuilder<?> builder = null;
 		if (output instanceof Message<?>) {
-			if (!this.shouldCopyRequestHeaders()) {
+			if (this.noHeadersPropagation || !shouldCopyRequestHeaders()) {
 				return (Message<?>) output;
 			}
 			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) output);
@@ -355,12 +379,13 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		else {
 			builder = this.getMessageBuilderFactory().withPayload(output);
 		}
-		if (this.shouldCopyRequestHeaders()) {
+		if (!this.noHeadersPropagation && shouldCopyRequestHeaders()) {
 			if (this.selectiveHeaderPropagation) {
-				Map<String, Object> headersToCopy = new HashMap<String, Object>(requestHeaders);
-				for (String header : this.notPropagatedHeaders) {
-					headersToCopy.remove(header);
-				}
+				Map<String, Object> headersToCopy = new HashMap<>(requestHeaders);
+
+				headersToCopy.entrySet()
+						.removeIf(entry -> PatternMatchUtils.simpleMatch(this.notPropagatedHeaders, entry.getKey()));
+
 				builder.copyHeadersIfAbsent(headersToCopy);
 			}
 			else {

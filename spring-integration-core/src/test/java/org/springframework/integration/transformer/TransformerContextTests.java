@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.transformer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -90,6 +91,9 @@ public class TransformerContextTests {
 		assertFalse(this.testBean.isRunning());
 		this.pojoTransformer.start();
 		assertTrue(this.testBean.isRunning());
+
+		this.directRef.send(new GenericMessage<String>("bar"));
+		assertNull(this.output.receive(0));
 	}
 
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
@@ -106,6 +110,9 @@ public class TransformerContextTests {
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
+			if ("bar".equals(requestMessage.getPayload())) {
+				return null;
+			}
 			Exception e = new RuntimeException();
 			StackTraceElement[] st = e.getStackTrace();
 			return MessageBuilder.withPayload(requestMessage.getPayload().toString().toUpperCase())

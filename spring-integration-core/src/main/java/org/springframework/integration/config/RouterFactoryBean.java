@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Dave Syer
  * @author Gary Russell
  * @author David Liu
+ * @author Artem Bilan
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
@@ -46,8 +47,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	private volatile MessageChannel defaultOutputChannel;
 
 	private volatile String defaultOutputChannelName;
-
-	private volatile Long sendTimeout;
 
 	private volatile Boolean resolutionRequired;
 
@@ -61,10 +60,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
 		this.defaultOutputChannelName = defaultOutputChannelName;
-	}
-
-	public void setSendTimeout(Long timeout) {
-		this.sendTimeout = timeout;
 	}
 
 	public void setResolutionRequired(Boolean resolutionRequired) {
@@ -124,8 +119,8 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		if (this.defaultOutputChannelName != null) {
 			router.setDefaultOutputChannelName(this.defaultOutputChannelName);
 		}
-		if (this.sendTimeout != null) {
-			router.setSendTimeout(this.sendTimeout);
+		if (getSendTimeout() != null) {
+			router.setSendTimeout(getSendTimeout());
 		}
 		if (this.applySequence != null) {
 			router.setApplySequence(this.applySequence);
@@ -155,7 +150,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	protected boolean noRouterAttributesProvided() {
 		return this.channelMappings == null && this.defaultOutputChannel == null
-				&& this.sendTimeout == null && this.resolutionRequired == null && this.applySequence == null
+				&& getSendTimeout() == null && this.resolutionRequired == null && this.applySequence == null
 				&& this.ignoreSendFailures == null;
 	}
 

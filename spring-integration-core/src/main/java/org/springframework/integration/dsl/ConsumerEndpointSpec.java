@@ -187,7 +187,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 			((AbstractReplyProducingMessageHandler) this.handler).setRequiresReply(requiresReply);
 		}
 		else {
-			logger.warn("'requiresReply' can be applied only for AbstractReplyProducingMessageHandler");
+			this.logger.warn("'requiresReply' can be applied only for AbstractReplyProducingMessageHandler");
 		}
 		return _this();
 	}
@@ -207,7 +207,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 			((AbstractMessageRouter) this.handler).setSendTimeout(sendTimeout);
 		}
 		else {
-			logger.warn("'sendTimeout' can be applied only for AbstractMessageProducingHandler");
+			this.logger.warn("'sendTimeout' can be applied only for AbstractMessageProducingHandler");
 		}
 		return _this();
 	}
@@ -223,7 +223,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 			((AbstractMessageHandler) this.handler).setOrder(order);
 		}
 		else {
-			logger.warn("'order' can be applied only for AbstractMessageHandler");
+			this.logger.warn("'order' can be applied only for AbstractMessageHandler");
 		}
 		return _this();
 	}
@@ -244,7 +244,26 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 			((AbstractMessageProducingHandler) this.handler).setAsync(async);
 		}
 		else {
-			logger.warn("'async' can be applied only for AbstractMessageProducingHandler");
+			this.logger.warn("'async' can be applied only for AbstractMessageProducingHandler");
+		}
+		return _this();
+	}
+
+	/**
+	 * Set header patterns ("xxx*", "*xxx", "*xxx*" or "xxx*yyy")
+	 * that will NOT be copied from the inbound message.
+	 * At least one pattern as "*" means do not copy headers at all.
+	 * @param headerPatterns the headers to not propagate from the inbound message.
+	 * @return the endpoint spec.
+	 * @see AbstractMessageProducingHandler#setNotPropagatedHeaders(String...)
+	 */
+	public S notPropagatedHeaders(String... headerPatterns) {
+		assertHandler();
+		if (this.handler instanceof AbstractMessageProducingHandler) {
+			((AbstractMessageProducingHandler) this.handler).setNotPropagatedHeaders(headerPatterns);
+		}
+		else {
+			this.logger.warn("'headerPatterns' can be applied only for AbstractMessageProducingHandler");
 		}
 		return _this();
 	}

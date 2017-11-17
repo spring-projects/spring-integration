@@ -16,9 +16,10 @@
 
 package org.springframework.integration.config;
 
+import java.util.Arrays;
+
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
@@ -38,16 +39,10 @@ import org.springframework.util.StringUtils;
  */
 public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
-	private volatile Long sendTimeout;
+	private String[] headers;
 
-	private volatile Boolean requiresReply;
-
-	public void setSendTimeout(Long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
-
-	public void setRequiresReply(Boolean requiresReply) {
-		this.requiresReply = requiresReply;
+	public void setNotPropagatedHeaders(String... headers) {
+		this.headers = Arrays.copyOf(headers, headers.length);
 	}
 
 	@Override
@@ -119,19 +114,10 @@ public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerF
 
 	@Override
 	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
-		if (this.sendTimeout != null) {
-			handler.setSendTimeout(this.sendTimeout);
-		}
-		if (this.requiresReply != null) {
-			if (handler instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
-			}
-			else {
-				if (this.requiresReply && logger.isDebugEnabled()) {
-					logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
-							+ handler.getComponentName() + " doesn't support it.");
-				}
-			}
+		super.postProcessReplyProducer(handler);
+
+		if (this.headers != null) {
+			handler.setNotPropagatedHeaders(this.headers);
 		}
 	}
 
