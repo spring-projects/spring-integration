@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.config.xml;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,24 +44,29 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHandler {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
-
 	private static final String VERSION = "5.0";
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final NamespaceHandlerDelegate delegate = new NamespaceHandlerDelegate();
 
+	private final AtomicBoolean initialized = new AtomicBoolean();
 
 	@Override
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
-		this.verifySchemaVersion(element, parserContext);
-		IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
-		integrationRegistrar.setBeanClassLoader(parserContext.getReaderContext().getBeanClassLoader());
-		integrationRegistrar.registerBeanDefinitions(null, parserContext.getRegistry());
+		if (!this.initialized.getAndSet(true)) {
+			verifySchemaVersion(element, parserContext);
+			IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
+			integrationRegistrar.setBeanClassLoader(parserContext.getReaderContext().getBeanClassLoader());
+			integrationRegistrar.registerBeanDefinitions(null, parserContext.getRegistry());
+		}
 		return this.delegate.parse(element, parserContext);
 	}
 
 	@Override
-	public final BeanDefinitionHolder decorate(Node source, BeanDefinitionHolder definition, ParserContext parserContext) {
+	public final BeanDefinitionHolder decorate(Node source, BeanDefinitionHolder definition,
+			ParserContext parserContext) {
+
 		return this.delegate.decorate(source, definition, parserContext);
 	}
 
@@ -67,7 +74,9 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		this.delegate.doRegisterBeanDefinitionDecorator(elementName, decorator);
 	}
 
-	protected final void registerBeanDefinitionDecoratorForAttribute(String attributeName, BeanDefinitionDecorator decorator) {
+	protected final void registerBeanDefinitionDecoratorForAttribute(String attributeName,
+			BeanDefinitionDecorator decorator) {
+
 		this.delegate.doRegisterBeanDefinitionDecoratorForAttribute(attributeName, decorator);
 	}
 
@@ -79,7 +88,8 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		if (!(matchesVersion(element) && matchesVersion(element.getOwnerDocument().getDocumentElement()))) {
 			parserContext.getReaderContext().error(
 					"You cannot use prior versions of Spring Integration schemas with Spring Integration " + VERSION +
-							". Please upgrade your schema declarations or use versionless aliases (e.g. spring-integration.xsd).", element);
+							". Please upgrade your schema declarations " +
+							"or use versionless aliases (e.g. spring-integration.xsd).", element);
 		}
 	}
 
@@ -106,7 +116,9 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			super.registerBeanDefinitionDecorator(elementName, decorator);
 		}
 
-		private void doRegisterBeanDefinitionDecoratorForAttribute(String attributeName, BeanDefinitionDecorator decorator) {
+		private void doRegisterBeanDefinitionDecoratorForAttribute(String attributeName,
+				BeanDefinitionDecorator decorator) {
+
 			super.registerBeanDefinitionDecoratorForAttribute(attributeName, decorator);
 		}
 
