@@ -123,8 +123,8 @@ subprojects { subproject ->
 		mysqlVersion = '6.0.6'
 		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.0.0'
-		reactorNettyVersion = '0.7.1.RELEASE'
-		reactorVersion = '3.1.1.RELEASE'
+		reactorNettyVersion = '0.7.2.RELEASE'
+		reactorVersion = '3.1.2.RELEASE'
 		romeToolsVersion = '1.8.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"

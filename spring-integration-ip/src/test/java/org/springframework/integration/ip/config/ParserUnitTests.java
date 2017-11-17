@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -301,7 +302,6 @@ public class ParserUnitTests {
 	@Test
 	public void testInUdpMulticast() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpInMulticast);
-		assertTrue(udpInMulticast.getPort() >= 5100);
 		assertEquals("225.6.7.8", dfa.getPropertyValue("group"));
 		assertEquals(27, dfa.getPropertyValue("poolSize"));
 		assertEquals(29, dfa.getPropertyValue("receiveBufferSize"));
