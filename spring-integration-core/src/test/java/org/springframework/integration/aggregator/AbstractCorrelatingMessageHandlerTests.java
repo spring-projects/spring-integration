@@ -419,36 +419,45 @@ public class AbstractCorrelatingMessageHandlerTests {
 	}
 
 	@Test
-	public void test() {
+	public void testDontReapMessageOfOtherHandler() throws Exception {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
-		AbstractCorrelatingMessageHandler handler = new AbstractCorrelatingMessageHandler(group -> group, groupStore) {
-			@Override
-			protected void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages) {
+		AggregatingMessageHandler handler1 = new AggregatingMessageHandler(group -> group, groupStore);
+		AggregatingMessageHandler handler2 = new AggregatingMessageHandler(group -> group, groupStore);
 
-			}
-		};
-		AbstractCorrelatingMessageHandler handler1 = new AbstractCorrelatingMessageHandler(group -> group, groupStore) {
-			@Override
-			protected void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages) {
+		final List<Message<?>> handler1DiscardChannel = new ArrayList<Message<?>>();
+		handler1.setDiscardChannel((message, timeout) -> {
+			handler1DiscardChannel.add(message);
+			return true;
+		});
 
-			}
-		};
-		String correlationId1 = "id1";
-		String correlationId2 = "id2";
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId1).build();
-		handler.handleMessage(message);
+		final List<Message<?>> handler2DiscardChannel = new ArrayList<Message<?>>();
+		handler2.setDiscardChannel((message, timeout) -> {
+			handler2DiscardChannel.add(message);
+			return true;
+		});
 
-		Message<String> message1 = MessageBuilder.withPayload("bar").setCorrelationId(correlationId2).build();
-		handler1.handleMessage(message1);
+		handler1.setReleaseStrategy(group -> group.size() == 2);
+		handler2.setReleaseStrategy(group -> group.size() == 2);
 
-		handler.remove(groupStore.getMessageGroup(correlationId2));
-		assertTrue(groupStore.messageGroupSize(correlationId2) == 1);
-		handler1.remove(groupStore.getMessageGroup(correlationId2));
-		assertTrue(groupStore.messageGroupSize(correlationId2) == 0);
+		handler1.setMinimumTimeoutForEmptyGroups(100);
+		handler2.setMinimumTimeoutForEmptyGroups(100);
 
-		handler1.remove(groupStore.getMessageGroup(correlationId1));
-		assertTrue(groupStore.messageGroupSize(correlationId1) == 1);
-		handler.remove(groupStore.getMessageGroup(correlationId1));
-		assertTrue(groupStore.messageGroupSize(correlationId1) == 0);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler1.setTaskScheduler(taskScheduler);
+		handler2.setTaskScheduler(taskScheduler);
+
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("bar").build();
+		handler2.handleMessage(message);
+		Thread.sleep(100);
+		int n = 0;
+		while (TestUtils.getPropertyValue(handler1, "messageStore.groupIdToMessageGroup", Map.class).size() > 0
+				&& n++ < 200) {
+			groupStore.expireMessageGroups(0);
+			Thread.sleep(50);
+		}
+		assertTrue(n < 200);
+		assertTrue(handler1DiscardChannel.size() == 0);
+		assertTrue(handler2DiscardChannel.size() == 1);
 	}
 }

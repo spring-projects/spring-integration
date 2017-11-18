@@ -299,9 +299,3 @@ The `JdbcMessageChannelStore` now provides setter for the `ChannelMessageStorePr
 The `ExpressionEvaluatingSqlParameterSourceFactory` now provides setter for the sqlParameterTypes allowing users to customize sql types of the parameters.
 
 See <<jdbc>> for more information.
-
-==== Messagehandler Changes
-
-The `AbstractCorrelatingMessageHandler` now keep tracks of group ids. Cases when `MessageStores` are shared by multiple handlers, messages will not be removed by the handler if the group id is not present in the handler.
-
-See <<aggregator>> for more information.

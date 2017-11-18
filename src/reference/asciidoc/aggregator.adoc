@@ -145,8 +145,6 @@ messages from the group, which, as indicated above, causes the released messages
 This allows the aggregator to work as a message barrier where arriving messages are held until the release strategy
 fires, and the group is released, as a sequence of individual messages.
 
-Since _version 5.0_, `AbstractCorrelatingMessageHandler` keeps track of the groupIds being processed by the handler and will only expire groups which are handled by the handler, this will be helpful for cases when same `MessageStore` is shared by multiple handlers.
-
 ===== ReleaseStrategy
 
 The `ReleaseStrategy` interface is defined as follows:
@@ -275,7 +273,6 @@ Spring Integration provides an out-of-the box implementation for `CorrelationStr
 This implementation returns the value of one of the message headers (whose name is specified by a constructor argument) as the correlation key.
 By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` returning the value of the `CORRELATION_ID` header attribute.
 If you have a custom header name you would like to use for correlation, then simply configure that on an instance of `HeaderAttributeCorrelationStrategy` and provide that as a reference for the Aggregator's correlation-strategy.
-Ensure proper `CorrelationStrategy` is used when same `MessageStore` is used for multiple aggregators to ensure unique correlationkey is being assigned to the messages.
 
 ===== LockRegistry
 
@@ -849,10 +846,10 @@ If the flag is set to true, then when the expiry callback is invoked, any unmark
 
 [IMPORTANT]
 =====
-When using a `MessageGroupStoreReaper`, it is generally recommended to use a separate `MessageStore` for each correlating endpoint.
-Otherwise, unexpected results may occur because one endpoint may remove another endpoint's groups.
+When using a `MessageGroupStoreReaper`, with a common `MessageStore` for multiple correlating endpoints, ensure proper `CorrelationStrategy` is used when same `MessageStore` is used for multiple aggregators to ensure unique correlationkey is being assigned to the messages.
 
 Some `MessageStore` implementations allow using the same physical resources, by partitioning the data; for example, the `JdbcMessageStore` has a `region` property; the `MongoDbMessageStore` has a `collectionName` property.
 
 For more information about `MessageStore` interface and its implementations, please read <<message-store>>.
+
 =====

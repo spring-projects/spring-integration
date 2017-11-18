@@ -101,6 +101,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<>();
 
+	private final Set<Object> groupIds =  new HashSet<>();
+
 	private MessageGroupProcessor outputProcessor;
 
 	private volatile MessageGroupStore messageStore;
@@ -141,8 +143,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private volatile boolean running;
 
-	private volatile Set<Object> groupIds;
-
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(processor, "'processor' must not be null");
@@ -155,7 +155,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				: correlationStrategy);
 		this.releaseStrategy = releaseStrategy == null ? new SimpleSequenceSizeReleaseStrategy() : releaseStrategy;
 		this.sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
-		this.groupIds = new HashSet<>();
 	}
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
@@ -486,12 +485,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 							boolean removeGroup = groupNow.size() == 0 &&
 									groupNow.getLastModified()
 											<= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
-							if (removeGroup && this.groupIds.contains(groupId)) {
+							if (removeGroup) {
 								if (this.logger.isDebugEnabled()) {
 									this.logger.debug("Removing empty group: " + groupUuid);
 								}
-								this.messageStore.removeMessageGroup(groupId);
-								this.groupIds.remove(groupId);
+								remove(messageGroup);
 							}
 						}
 						finally {
@@ -681,12 +679,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
-	void remove(MessageGroup group) {
+	protected void remove(MessageGroup group) {
 		Object correlationKey = group.getGroupId();
-		if (this.groupIds.contains(correlationKey)) {
-			this.messageStore.removeMessageGroup(correlationKey);
-			this.groupIds.remove(correlationKey);
-		}
+		this.messageStore.removeMessageGroup(correlationKey);
+		this.groupIds.remove(group.getGroupId());
 	}
 
 	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence) {
@@ -865,7 +861,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
-			forceComplete(group);
+			if (groupIds.contains(group.getGroupId())) {
+				forceComplete(group);
+			}
 			return null;
 		}
 
