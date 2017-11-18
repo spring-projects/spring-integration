@@ -851,5 +851,4 @@ When using a `MessageGroupStoreReaper`, with a common `MessageStore` for multipl
 Some `MessageStore` implementations allow using the same physical resources, by partitioning the data; for example, the `JdbcMessageStore` has a `region` property; the `MongoDbMessageStore` has a `collectionName` property.
 
 For more information about `MessageStore` interface and its implementations, please read <<message-store>>.
-
 =====
