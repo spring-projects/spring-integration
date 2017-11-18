@@ -861,7 +861,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
-			if (groupIds.contains(group.getGroupId())) {
+			if (AbstractCorrelatingMessageHandler.this.groupIds.contains(group.getGroupId())) {
 				forceComplete(group);
 			}
 			return null;
