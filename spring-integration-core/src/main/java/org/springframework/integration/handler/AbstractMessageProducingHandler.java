@@ -121,7 +121,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * Set header patterns ("xxx*", "*xxx", "*xxx*" or "xxx*yyy")
 	 * that will NOT be copied from the inbound message if
 	 * {@link #shouldCopyRequestHeaders() shouldCopyRequestHeaaders} is true.
-	 * '*' means do not copy headers at all.
+	 * At least one pattern as "*" means do not copy headers at all.
 	 * @param headers the headers to not propagate from the inbound message.
 	 * @since 4.3.10
 	 * @see org.springframework.util.PatternMatchUtils
@@ -139,9 +139,16 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 			this.notPropagatedHeaders.addAll(Arrays.asList(headers));
 		}
+		boolean hasAsterisk = this.notPropagatedHeaders.contains("*");
+
+		if (hasAsterisk) {
+			this.notPropagatedHeaders.clear();
+			this.notPropagatedHeaders.add("*");
+		}
+
 		this.selectiveHeaderPropagation = this.notPropagatedHeaders.size() > 0;
 
-		this.shouldCopyRequestHeaders = !this.notPropagatedHeaders.contains("*");
+		this.shouldCopyRequestHeaders = !hasAsterisk;
 	}
 
 	/**

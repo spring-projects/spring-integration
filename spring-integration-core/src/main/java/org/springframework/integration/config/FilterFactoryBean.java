@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Liu
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
@@ -41,8 +43,6 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	private volatile MessageChannel discardChannel;
 
 	private volatile Boolean throwExceptionOnRejection;
-
-	private volatile Long sendTimeout;
 
 	private volatile Boolean discardWithinAdvice;
 
@@ -52,10 +52,6 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	public void setThrowExceptionOnRejection(Boolean throwExceptionOnRejection) {
 		this.throwExceptionOnRejection = throwExceptionOnRejection;
-	}
-
-	public void setSendTimeout(Long sendTimeout) {
-		this.sendTimeout = sendTimeout;
 	}
 
 	public void setDiscardWithinAdvice(boolean discardWithinAdvice) {
@@ -113,12 +109,12 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	@Override
 	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
-		if (this.sendTimeout != null) {
-			handler.setSendTimeout(this.sendTimeout);
-		}
+		super.postProcessReplyProducer(handler);
+
 		if (!(handler instanceof MessageFilter)) {
-			Assert.isNull(this.throwExceptionOnRejection, "Cannot set throwExceptionOnRejection if the referenced bean is "
-					+ "an AbstractReplyProducingMessageHandler, but not a MessageFilter");
+			Assert.isNull(this.throwExceptionOnRejection,
+					"Cannot set throwExceptionOnRejection if the referenced bean is "
+							+ "an AbstractReplyProducingMessageHandler, but not a MessageFilter");
 			Assert.isNull(this.discardChannel, "Cannot set discardChannel if the referenced bean is "
 					+ "an AbstractReplyProducingMessageHandler, but not a MessageFilter");
 			Assert.isNull(this.discardWithinAdvice, "Cannot set discardWithinAdvice if the referenced bean is "
@@ -137,8 +133,8 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	protected boolean canBeUsedDirect(AbstractMessageProducingHandler handler) {
 		return handler instanceof MessageFilter
 				|| (!(handler instanceof MessageSelector)
-						&& this.discardChannel == null && this.throwExceptionOnRejection == null
-						&& this.discardWithinAdvice == null);
+				&& this.discardChannel == null && this.throwExceptionOnRejection == null
+				&& this.discardWithinAdvice == null);
 	}
 
 	@Override

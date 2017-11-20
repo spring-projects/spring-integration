@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,12 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Liu
+ * @author Artem Bilan
  */
 public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
-	private volatile Long sendTimeout;
-
-	public void setSendTimeout(Long sendTimeout) {
-		this.sendTimeout = sendTimeout;
+	public TransformerFactoryBean() {
+		setRequiresReply(true);
 	}
 
 	@Override
@@ -72,13 +71,6 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
 		this.postProcessReplyProducer(handler);
 		return handler;
-	}
-
-	@Override
-	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
-		if (this.sendTimeout != null) {
-			handler.setSendTimeout(this.sendTimeout);
-		}
 	}
 
 	/**

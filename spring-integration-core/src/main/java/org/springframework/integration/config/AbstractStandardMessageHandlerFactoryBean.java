@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -44,16 +43,19 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractStandardMessageHandlerFactoryBean
 		extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
-	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true,
-			true));
+	private static final ExpressionParser expressionParser = new SpelExpressionParser();
 
-	private static final Set<MessageHandler> referencedReplyProducers = new HashSet<MessageHandler>();
+	private static final Set<MessageHandler> referencedReplyProducers = new HashSet<>();
+
+	private volatile Boolean requiresReply;
 
 	private volatile Object targetObject;
 
 	private volatile String targetMethodName;
 
 	private volatile Expression expression;
+
+	private volatile Long sendTimeout;
 
 	/**
 	 * Set the target POJO for the message handler.
@@ -87,6 +89,18 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 		this.expression = expression;
 	}
 
+	public void setRequiresReply(Boolean requiresReply) {
+		this.requiresReply = requiresReply;
+	}
+
+	public void setSendTimeout(Long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
+	public Long getSendTimeout() {
+		return this.sendTimeout;
+	}
+
 	@Override
 	protected MessageHandler createHandler() {
 		MessageHandler handler;
@@ -100,8 +114,8 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 			AbstractMessageProducingHandler actualHandler = this.extractTypeIfPossible(this.targetObject,
 					AbstractMessageProducingHandler.class);
 			boolean targetIsDirectReplyProducingHandler = actualHandler != null
-							&& this.canBeUsedDirect(actualHandler) // give subclasses a say
-							&& this.methodIsHandleMessageOrEmpty(this.targetMethodName);
+					&& canBeUsedDirect(actualHandler) // give subclasses a say
+					&& methodIsHandleMessageOrEmpty(this.targetMethodName);
 			if (this.targetObject instanceof MessageProcessor<?>) {
 				handler = this.createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
 			}
@@ -109,8 +123,8 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 				if (logger.isDebugEnabled()) {
 					logger.debug("Wiring handler (" + this.targetObject + ") directly into endpoint");
 				}
-				this.checkReuse(actualHandler);
-				this.postProcessReplyProducer(actualHandler);
+				checkReuse(actualHandler);
+				postProcessReplyProducer(actualHandler);
 				handler = (MessageHandler) this.targetObject;
 			}
 			else {
@@ -142,7 +156,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 	private void checkReuse(AbstractMessageProducingHandler replyHandler) {
 		Assert.isTrue(!referencedReplyProducers.contains(replyHandler),
 				"An AbstractMessageProducingMessageHandler may only be referenced once (" +
-				replyHandler.getComponentName() + ") - use scope=\"prototype\"");
+						replyHandler.getComponentName() + ") - use scope=\"prototype\"");
 		referencedReplyProducers.add(replyHandler);
 	}
 
@@ -176,9 +190,6 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 		}
 		if (targetObject instanceof Advised) {
 			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
-			if (targetSource == null) {
-				return null;
-			}
 			try {
 				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
 			}
@@ -199,6 +210,21 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 	}
 
 	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
+		if (this.sendTimeout != null) {
+			handler.setSendTimeout(this.sendTimeout);
+		}
+
+		if (this.requiresReply != null) {
+			if (handler instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
+			}
+			else {
+				if (this.requiresReply && logger.isDebugEnabled()) {
+					logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler " +
+							"or its subclass, " + handler.getComponentName() + " doesn't support it.");
+				}
+			}
+		}
 	}
 
 }

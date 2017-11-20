@@ -399,7 +399,7 @@ You can also globally suppress propagation of specific message headers by settin
 
 Starting with _version 5.0_, the `setNotPropagatedHeaders()` implementation on the `AbstractMessageProducingHandler` applies the simple patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) to allow to filter header with common suffix or prefix.
 See `PatternMatchUtils` JavaDocs for more information.
-When `*` (asterisk) is used, no any headers are propagated.
+When one of the patterns is `*` (asterisk), no headers are propagated; all other patterns are ignored.
 In this case the Service Activator behaves the same way as Transformer and any required headers must be supplied in the `Message` returned from the service method.
 The option `notPropagatedHeaders()` is available in the `ConsumerEndpointSpec` for Java DSL, as well as for XML configuration of the `<service-activator>` component as a `not-propagated-headers` attribute.
 

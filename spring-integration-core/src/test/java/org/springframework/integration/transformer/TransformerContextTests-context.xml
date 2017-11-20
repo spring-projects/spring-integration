@@ -25,7 +25,8 @@
 		<beans:bean class="org.springframework.integration.transformer.TransformerContextTests$Bar"/>
 	</transformer>
 
-	<transformer input-channel="directRef" output-channel="output" ref="trans" method="handleMessage"/>
+	<transformer input-channel="directRef" output-channel="output" ref="trans" method="handleMessage"
+				 requires-reply="false"/>
 
 	<beans:bean id="trans" class="org.springframework.integration.transformer.TransformerContextTests$Bar"/>
 

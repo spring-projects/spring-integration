@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
@@ -34,29 +33,13 @@ import org.springframework.util.StringUtils;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author David Liu
+ * @author Artem Bilan
  */
 public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
-
-	private volatile Long sendTimeout;
-
-	private volatile Boolean requiresReply;
 
 	private volatile Boolean applySequence;
 
 	private volatile String delimiters;
-
-
-	public void setSendTimeout(Long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
-
-	public boolean isRequiresReply() {
-		return this.requiresReply;
-	}
-
-	public void setRequiresReply(boolean requiresReply) {
-		this.requiresReply = requiresReply;
-	}
 
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
@@ -116,18 +99,8 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 
 	@Override
 	protected void postProcessReplyProducer(AbstractMessageProducingHandler handler) {
-		if (this.sendTimeout != null) {
-			handler.setSendTimeout(this.sendTimeout);
-		}
-		if (this.requiresReply != null) {
-			if (handler instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) handler).setRequiresReply(this.requiresReply);
-			}
-			else if (this.requiresReply && logger.isDebugEnabled()) {
-				logger.debug("requires-reply can only be set to AbstractReplyProducingMessageHandler or its subclass, "
-						+ handler.getComponentName() + " doesn't support it.");
-			}
-		}
+		super.postProcessReplyProducer(handler);
+
 		if (!(handler instanceof AbstractMessageSplitter)) {
 			Assert.isNull(this.applySequence, "Cannot set applySequence if the referenced bean is "
 					+ "an AbstractReplyProducingMessageHandler, but not an AbstractMessageSplitter");

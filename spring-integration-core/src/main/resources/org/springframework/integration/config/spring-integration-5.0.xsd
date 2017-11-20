@@ -1212,15 +1212,6 @@
 	<xsd:complexType name="serviceActivatorType">
 		<xsd:complexContent>
 			<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
-				<xsd:attribute name="requires-reply">
-					<xsd:annotation>
-						<xsd:documentation>
-							Specify whether the service method must return a non-null value. This value will be
-							'false' by default, but if set to 'true', a ReplyRequiredException will be thrown when
-							the underlying service method (or expression) returns a null value.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
 				<xsd:attribute name="async">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
@@ -3626,15 +3617,6 @@
 	<xsd:complexType name="splitter-type">
 		<xsd:complexContent>
 			<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
-				<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
-					<xsd:annotation>
-						<xsd:documentation>
-							Specify whether the service method must return a non-null value. This value will be
-							'false' by default, but if set to 'true', a ReplyRequiredException will be thrown when
-							the underlying service method (or expression) returns a null value.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
 				<xsd:attribute name="apply-sequence" type="xsd:string" use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
@@ -4198,6 +4180,20 @@
 							A SpEL expression to be evaluated against the input Message as its root object.
 						</xsd:documentation>
 					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="requires-reply">
+					<xsd:annotation>
+						<xsd:documentation>
+							If set to 'true', a reply must return a non-null value.
+							By setting 'requires-reply' to 'true', a 'ReplyRequiredException'
+							will be raised for null reply messages. If 'requires-reply' is set
+							to false, those messages are silently dropped.
+							This attribute defaults to 'true' for 'transformer'.
+						</xsd:documentation>
+					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:union memberTypes="xsd:boolean xsd:string" />
+					</xsd:simpleType>
 				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
