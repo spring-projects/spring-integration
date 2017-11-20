@@ -75,6 +75,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private String[] notPropagatedHeaders;
 
+	private boolean selectiveHeaderPropagation;
+
 	private boolean noHeadersPropagation;
 
 	/**
@@ -148,6 +150,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			this.notPropagatedHeaders = new String[] { "*" };
 			this.noHeadersPropagation = true;
 		}
+
+		this.selectiveHeaderPropagation = this.notPropagatedHeaders.length > 0;
 	}
 
 	/**
@@ -372,7 +376,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			builder = this.getMessageBuilderFactory().withPayload(output);
 		}
 		if (!this.noHeadersPropagation && shouldCopyRequestHeaders()) {
-			if (this.notPropagatedHeaders.length > 0) {
+			if (this.selectiveHeaderPropagation) {
 				Map<String, Object> headersToCopy = new HashMap<>(requestHeaders);
 
 				headersToCopy.entrySet()
