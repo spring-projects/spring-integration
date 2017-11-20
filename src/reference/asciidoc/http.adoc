@@ -584,6 +584,44 @@ NOTE: The `uri-variables-expression` must evaluate to a `Map`.
 The values of the Map must be instances of `String` or `Expression`.
 This Map is provided to an `ExpressionEvalMap` for further resolution of URI variable placeholders using those expressions in the context of the outbound `Message`.
 
+Scenarios when we need to supply a dynamic set of URI variables on per message basis can be achieved with the custom `url-expression` and some utilities for building and encoding URL parameters:
+
+[source,xml]
+----
+url-expression="T(org.springframework.web.util.UriComponentsBuilder)
+                           .fromHttpUrl('http://HOST:PORT/PATH')
+                           .queryParams(payload)
+                           .build()
+                           .toUri()"
+----
+
+where `queryParams()` expects a `MultiValueMap<String, String>` as an argument, so a real set of URL query parameters can be build in advance, before performing request.
+
+The whole `queryString` can also be presented as an uri variable:
+
+[source,xml]
+----
+<int-http:outbound-gateway id="proxyGateway" request-channel="testChannel"
+              url="http://testServer/test?{queryString}">
+    <int-http:uri-variable name="queryString" expression="'a=A&amp;b=B'"/>
+</int-http:outbound-gateway>
+----
+
+In this case the URL encoding must be provided manually.
+For example the `org.apache.http.client.utils.URLEncodedUtils#format()` can be used for this purpose.
+A mentioned, manually built, `MultiValueMap<String, String>` can be converted to the the `List<NameValuePair>` `format()` method argument using this Java Streams snippet:
+[source,java]
+----
+List<NameValuePair> nameValuePairs =
+    params.entrySet()
+            .stream()
+            .flatMap(e -> e
+                    .getValue()
+                    .stream()
+                    .map(v -> new BasicNameValuePair(e.getKey(), v)))
+            .collect(Collectors.toList());
+----
+
 ==== Controlling URI Encoding
 
 By default, the URL string is encoded (see http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
