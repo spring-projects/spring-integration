@@ -397,7 +397,7 @@ Call the `setNotPropagatedHeaders()` or `addNotPropagatedHeaders()` methods on t
 
 You can also globally suppress propagation of specific message headers by setting the `readOnlyHeaders` property in `META-INF/spring.integration.properties` to a comma-delimited list of headers.
 
-Starting with _version 5.0_, the `setNotPropagatedHeaders()` implementation on the `AbstractMessageProducingHandler` applies the simple patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) to allow to filter header with common suffix or prefix.
+Starting with _version 5.0_, the `setNotPropagatedHeaders()` implementation on the `AbstractMessageProducingHandler` applies the simple patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) to allow filtering headers with a common suffix or prefix.
 See `PatternMatchUtils` JavaDocs for more information.
 When one of the patterns is `*` (asterisk), no headers are propagated; all other patterns are ignored.
 In this case the Service Activator behaves the same way as Transformer and any required headers must be supplied in the `Message` returned from the service method.

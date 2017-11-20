@@ -65,19 +65,17 @@ import reactor.core.publisher.Mono;
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
 		implements MessageProducer, HeaderPropagationAware {
 
-	private final Set<String> notPropagatedHeaders = new HashSet<>();
-
 	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private boolean async;
 
-	private boolean selectiveHeaderPropagation;
-
-	private boolean shouldCopyRequestHeaders = true;
-
 	private String outputChannelName;
 
-	private volatile MessageChannel outputChannel;
+	private MessageChannel outputChannel;
+
+	private String[] notPropagatedHeaders;
+
+	private boolean noHeadersPropagation;
 
 	/**
 	 * Set the timeout for sending reply Messages.
@@ -132,23 +130,24 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	private void updateNotPropagatedHeaders(String[] headers, boolean merge) {
+		Set<String> headerPatterns = new HashSet<>();
+
+		if (merge) {
+			headerPatterns.addAll(Arrays.asList(this.notPropagatedHeaders));
+		}
+
 		if (!ObjectUtils.isEmpty(headers)) {
 			Assert.noNullElements(headers, "null elements are not allowed in 'headers'");
-			if (!merge) {
-				this.notPropagatedHeaders.clear();
-			}
-			this.notPropagatedHeaders.addAll(Arrays.asList(headers));
+
+			headerPatterns.addAll(Arrays.asList(headers));
 		}
-		boolean hasAsterisk = this.notPropagatedHeaders.contains("*");
+
+		boolean hasAsterisk = headerPatterns.contains("*");
 
 		if (hasAsterisk) {
-			this.notPropagatedHeaders.clear();
-			this.notPropagatedHeaders.add("*");
+			this.notPropagatedHeaders = new String[] { "*" };
+			this.noHeadersPropagation = true;
 		}
-
-		this.selectiveHeaderPropagation = this.notPropagatedHeaders.size() > 0;
-
-		this.shouldCopyRequestHeaders = !hasAsterisk;
 	}
 
 	/**
@@ -161,7 +160,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 */
 	@Override
 	public Collection<String> getNotPropagatedHeaders() {
-		return Collections.unmodifiableSet(this.notPropagatedHeaders);
+		return Collections.unmodifiableList(Arrays.asList(this.notPropagatedHeaders));
 	}
 
 	/**
@@ -361,7 +360,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	protected Message<?> createOutputMessage(Object output, MessageHeaders requestHeaders) {
 		AbstractIntegrationMessageBuilder<?> builder = null;
 		if (output instanceof Message<?>) {
-			if (!shouldCopyRequestHeaders()) {
+			if (this.noHeadersPropagation || !shouldCopyRequestHeaders()) {
 				return (Message<?>) output;
 			}
 			builder = this.getMessageBuilderFactory().fromMessage((Message<?>) output);
@@ -372,14 +371,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		else {
 			builder = this.getMessageBuilderFactory().withPayload(output);
 		}
-		if (shouldCopyRequestHeaders()) {
-			if (this.selectiveHeaderPropagation) {
-				String[] patterns = this.notPropagatedHeaders.toArray(new String[this.notPropagatedHeaders.size()]);
-
+		if (!this.noHeadersPropagation && shouldCopyRequestHeaders()) {
+			if (this.notPropagatedHeaders.length > 0) {
 				Map<String, Object> headersToCopy = new HashMap<>(requestHeaders);
 
 				headersToCopy.entrySet()
-						.removeIf(entry -> PatternMatchUtils.simpleMatch(patterns, entry.getKey()));
+						.removeIf(entry -> PatternMatchUtils.simpleMatch(this.notPropagatedHeaders, entry.getKey()));
 
 				builder.copyHeadersIfAbsent(headersToCopy);
 			}
@@ -434,7 +431,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * @return true if the request headers should be copied.
 	 */
 	protected boolean shouldCopyRequestHeaders() {
-		return this.shouldCopyRequestHeaders;
+		return true;
 	}
 
 	protected void sendErrorMessage(final Message<?> requestMessage, Throwable ex) {
