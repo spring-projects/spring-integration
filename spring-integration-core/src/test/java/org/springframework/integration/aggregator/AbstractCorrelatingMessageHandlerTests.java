@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
  * @since 2.2
  *
  */
@@ -417,4 +418,46 @@ public class AbstractCorrelatingMessageHandlerTests {
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
+	@Test
+	public void testDontReapMessageOfOtherHandler() throws Exception {
+		final MessageGroupStore groupStore = new SimpleMessageStore();
+		AggregatingMessageHandler handler1 = new AggregatingMessageHandler(group -> group, groupStore);
+		AggregatingMessageHandler handler2 = new AggregatingMessageHandler(group -> group, groupStore);
+
+		final List<Message<?>> handler1DiscardChannel = new ArrayList<Message<?>>();
+		handler1.setDiscardChannel((message, timeout) -> {
+			handler1DiscardChannel.add(message);
+			return true;
+		});
+
+		final List<Message<?>> handler2DiscardChannel = new ArrayList<Message<?>>();
+		handler2.setDiscardChannel((message, timeout) -> {
+			handler2DiscardChannel.add(message);
+			return true;
+		});
+
+		handler1.setReleaseStrategy(group -> group.size() == 2);
+		handler2.setReleaseStrategy(group -> group.size() == 2);
+
+		handler1.setMinimumTimeoutForEmptyGroups(100);
+		handler2.setMinimumTimeoutForEmptyGroups(100);
+
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		handler1.setTaskScheduler(taskScheduler);
+		handler2.setTaskScheduler(taskScheduler);
+
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("bar").build();
+		handler2.handleMessage(message);
+		Thread.sleep(100);
+		int n = 0;
+		while (TestUtils.getPropertyValue(handler1, "messageStore.groupIdToMessageGroup", Map.class).size() > 0
+				&& n++ < 200) {
+			groupStore.expireMessageGroups(0);
+			Thread.sleep(50);
+		}
+		assertTrue(n < 200);
+		assertTrue(handler1DiscardChannel.size() == 0);
+		assertTrue(handler2DiscardChannel.size() == 1);
+	}
 }
