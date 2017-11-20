@@ -142,6 +142,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			Assert.noNullElements(headers, "null elements are not allowed in 'headers'");
 
 			headerPatterns.addAll(Arrays.asList(headers));
+
+			this.notPropagatedHeaders = headerPatterns.toArray(new String[headerPatterns.size()]);
 		}
 
 		boolean hasAsterisk = headerPatterns.contains("*");
@@ -164,7 +166,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 */
 	@Override
 	public Collection<String> getNotPropagatedHeaders() {
-		return Collections.unmodifiableList(Arrays.asList(this.notPropagatedHeaders));
+		return this.notPropagatedHeaders != null
+				? Collections.unmodifiableSet(new HashSet<>(Arrays.asList(this.notPropagatedHeaders)))
+				: Collections.emptyList();
 	}
 
 	/**
