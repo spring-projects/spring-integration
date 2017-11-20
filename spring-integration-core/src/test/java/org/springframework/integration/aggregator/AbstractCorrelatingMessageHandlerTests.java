@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
+ *
  * @since 2.2
  *
  */
@@ -417,4 +419,29 @@ public class AbstractCorrelatingMessageHandlerTests {
 		assertEquals(0, TestUtils.getPropertyValue(handler, "messageStore.groupIdToMessageGroup", Map.class).size());
 	}
 
+	@Test
+	public void testDontReapMessageOfOtherHandler() throws Exception {
+		MessageGroupStore groupStore = new SimpleMessageStore();
+
+		AggregatingMessageHandler handler1 = new AggregatingMessageHandler(group -> group, groupStore);
+		AggregatingMessageHandler handler2 = new AggregatingMessageHandler(group -> group, groupStore);
+
+		QueueChannel handler1DiscardChannel = new QueueChannel();
+		handler1.setDiscardChannel(handler1DiscardChannel);
+
+		QueueChannel handler2DiscardChannel = new QueueChannel();
+		handler2.setDiscardChannel(handler2DiscardChannel);
+
+		handler1.setReleaseStrategy(group -> false);
+		handler2.setReleaseStrategy(group -> false);
+
+		handler1.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+		handler1.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+		handler2.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("bar").build());
+
+		groupStore.expireMessageGroups(0);
+
+		assertTrue(handler1DiscardChannel.getQueueSize() == 2);
+		assertTrue(handler2DiscardChannel.getQueueSize() == 1);
+	}
 }

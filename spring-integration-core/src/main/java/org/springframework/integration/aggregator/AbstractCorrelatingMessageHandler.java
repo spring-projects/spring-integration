@@ -21,8 +21,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
@@ -75,6 +77,9 @@ import org.springframework.util.CollectionUtils;
  * By default the {@link CorrelationStrategy} will be a
  * {@link HeaderAttributeCorrelationStrategy} and the {@link ReleaseStrategy} will be a
  * {@link SequenceSizeReleaseStrategy}.
+ * <p>
+ * Use proper {@link CorrelationStrategy} for cases when same {@link MessageStore} is used
+ * for multiple handlers to ensure uniqueness of message groups across handlers.
  *
  * @author Iwein Fuld
  * @author Dave Syer
@@ -83,7 +88,7 @@ import org.springframework.util.CollectionUtils;
  * @author Artem Bilan
  * @author David Liu
  * @author Enrique Rodriguez
- *
+ * @author Meherzad Lahewala
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
@@ -94,6 +99,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<>();
+
+	private final Set<Object> groupIds =  new HashSet<>();
 
 	private MessageGroupProcessor outputProcessor;
 
@@ -481,7 +488,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 								if (this.logger.isDebugEnabled()) {
 									this.logger.debug("Removing empty group: " + groupUuid);
 								}
-								this.messageStore.removeMessageGroup(groupId);
+								remove(messageGroup);
 							}
 						}
 						finally {
@@ -671,9 +678,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
-	void remove(MessageGroup group) {
+	protected void remove(MessageGroup group) {
 		Object correlationKey = group.getGroupId();
 		this.messageStore.removeMessageGroup(correlationKey);
+		this.groupIds.remove(group.getGroupId());
 	}
 
 	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence) {
@@ -682,6 +690,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	protected MessageGroup store(Object correlationKey, Message<?> message) {
+		this.groupIds.add(correlationKey);
 		return this.messageStore.addMessageToGroup(correlationKey, message);
 	}
 
@@ -851,7 +860,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
-			forceComplete(group);
+			if (AbstractCorrelatingMessageHandler.this.groupIds.contains(group.getGroupId())) {
+				forceComplete(group);
+			}
 			return null;
 		}
 

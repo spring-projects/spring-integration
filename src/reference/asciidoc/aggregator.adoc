@@ -846,8 +846,8 @@ If the flag is set to true, then when the expiry callback is invoked, any unmark
 
 [IMPORTANT]
 =====
-When using a `MessageGroupStoreReaper`, it is generally recommended to use a separate `MessageStore` for each correlating endpoint.
-Otherwise, unexpected results may occur because one endpoint may remove another endpoint's groups.
+When a shared `MessageStore` is used for different correlation endpoints, it is necessary to configure a proper `CorrelationStrategy` to ensure uniqueness for group ids.
+Otherwise unexpected behavior may happen when one correlation endpoint may release or expire messages from others - messages with the same correlation key are stored in the same message group.
 
 Some `MessageStore` implementations allow using the same physical resources, by partitioning the data; for example, the `JdbcMessageStore` has a `region` property; the `MongoDbMessageStore` has a `collectionName` property.
 
