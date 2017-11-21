@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -62,6 +63,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -189,13 +191,16 @@ public class PseudoTransactionalMessageSourceTests {
 
 		QueueChannel outputChannel = new QueueChannel();
 		adapter.setOutputChannel(outputChannel);
+
+		final Message<?> testMessage = new GenericMessage<>("foo");
+
 		adapter.setSource(new MessageSource<String>() {
 
 			@Override
 			public Message<String> receive() {
 				GenericMessage<String> message = new GenericMessage<String>("foo");
 				((IntegrationResourceHolder) TransactionSynchronizationManager.getResource(this))
-						.addAttribute("baz", "qux");
+						.addAttribute("baz", testMessage);
 				return message;
 			}
 		});
@@ -206,7 +211,7 @@ public class PseudoTransactionalMessageSourceTests {
 		TransactionSynchronizationUtils.triggerAfterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
 		Message<?> rollbackMessage = queueChannel.receive(1000);
 		assertNotNull(rollbackMessage);
-		assertEquals("qux", rollbackMessage.getPayload());
+		assertSame(testMessage, rollbackMessage);
 		TransactionSynchronizationManager.clearSynchronization();
 		TransactionSynchronizationManager.setActualTransactionActive(false);
 	}
