@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -114,19 +115,20 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	}
 
 	public void processBeforeCommit(IntegrationResourceHolder holder) {
-		this.doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
+		doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
 	}
 
 	public void processAfterCommit(IntegrationResourceHolder holder) {
-		this.doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
+		doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
 	}
 
 	public void processAfterRollback(IntegrationResourceHolder holder) {
-		this.doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
+		doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
 	}
 
 	private void doProcess(IntegrationResourceHolder holder, Expression expression, MessageChannel messageChannel,
 			String expressionType) {
+
 		Message<?> message = holder.getMessage();
 		if (message != null) {
 			if (expression != null) {
@@ -134,19 +136,27 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 					logger.debug("Evaluating " + expressionType + " expression: '" + expression.getExpressionString()
 							+ "' on " + message);
 				}
-				EvaluationContext evaluationContextToUse = this.prepareEvaluationContextToUse(holder);
+				EvaluationContext evaluationContextToUse = prepareEvaluationContextToUse(holder);
 				Object value = expression.getValue(evaluationContextToUse, message);
 				if (value != null) {
-					Message<?> spelResultMessage = null;
 					if (logger.isDebugEnabled()) {
 						logger.debug("Sending expression result message to " + messageChannel + " " +
 								"as part of '" + expressionType + "' transaction synchronization");
 					}
+					Message<?> spelResultMessage = null;
 					try {
-						spelResultMessage = this.getMessageBuilderFactory().withPayload(value)
-								.copyHeaders(message.getHeaders())
-								.build();
-						this.sendMessage(messageChannel, spelResultMessage);
+						if (value instanceof Message<?>) {
+							spelResultMessage = (Message<?>) value;
+						}
+						else {
+							spelResultMessage =
+									getMessageBuilderFactory()
+											.withPayload(value)
+											.copyHeaders(message.getHeaders())
+											.build();
+						}
+
+						sendMessage(messageChannel, spelResultMessage);
 					}
 					catch (Exception e) {
 						logger.error("Failed to send " + expressionType + " evaluation result " + spelResultMessage, e);
@@ -166,7 +176,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 				try {
 					// rollback will be initiated if any of the previous sync operations fail (e.g., beforeCommit)
 					// this means that this method will be called without explicit configuration thus no channel
-					this.sendMessage(messageChannel, this.getMessageBuilderFactory().fromMessage(message).build());
+					sendMessage(messageChannel, message);
 				}
 				catch (Exception e) {
 					logger.error("Failed to send " + message, e);
@@ -188,7 +198,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	 */
 	private EvaluationContext prepareEvaluationContextToUse(Object resource) {
 		if (resource != null) {
-			EvaluationContext evaluationContext = this.createEvaluationContext();
+			EvaluationContext evaluationContext = createEvaluationContext();
 			if (resource instanceof IntegrationResourceHolder) {
 				IntegrationResourceHolder holder = (IntegrationResourceHolder) resource;
 				for (Entry<String, Object> entry : holder.getAttributes().entrySet()) {
@@ -204,7 +214,7 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	}
 
 	protected StandardEvaluationContext createEvaluationContext() {
-		return ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		return ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 }
