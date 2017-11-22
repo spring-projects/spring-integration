@@ -203,7 +203,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private long getIdForTweet(T twitterMessage) {
 		if (twitterMessage instanceof Tweet) {
-			return Long.parseLong(((Tweet) twitterMessage).getId());
+			return ((Tweet) twitterMessage).getId();
 		}
 		else if (twitterMessage instanceof DirectMessage) {
 			return ((DirectMessage) twitterMessage).getId();

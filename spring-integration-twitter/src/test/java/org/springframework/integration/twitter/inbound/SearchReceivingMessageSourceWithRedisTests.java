@@ -138,12 +138,12 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 		receive = this.tweets.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(Tweet.class));
-		assertEquals(((Tweet) receive.getPayload()).getId(), "2");
+		assertEquals(((Tweet) receive.getPayload()).getId(), 2L);
 
 		receive = this.tweets.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(Tweet.class));
-		assertEquals(((Tweet) receive.getPayload()).getId(), "3");
+		assertEquals(((Tweet) receive.getPayload()).getId(), 3L);
 
 		assertNull(this.tweets.receive(0));
 
@@ -162,17 +162,17 @@ public class SearchReceivingMessageSourceWithRedisTests extends RedisAvailableTe
 			SearchOperations so = mock(SearchOperations.class);
 
 			Tweet tweet3 = mock(Tweet.class);
-			given(tweet3.getId()).willReturn("3");
+			given(tweet3.getId()).willReturn(3L);
 			given(tweet3.getCreatedAt()).willReturn(new GregorianCalendar(2013, 2, 20).getTime());
 			given(tweet3.toString()).will(invocation -> "Mock for Tweet: " + tweet3.getId());
 
 			Tweet tweet1 = mock(Tweet.class);
-			given(tweet1.getId()).willReturn("1");
+			given(tweet1.getId()).willReturn(1L);
 			given(tweet1.getCreatedAt()).willReturn(new GregorianCalendar(2013, 0, 20).getTime());
 			given(tweet1.toString()).will(invocation -> "Mock for Tweet: " + tweet1.getId());
 
 			final Tweet tweet2 = mock(Tweet.class);
-			given(tweet2.getId()).willReturn("2");
+			given(tweet2.getId()).willReturn(2L);
 			given(tweet2.getCreatedAt()).willReturn(new GregorianCalendar(2013, 1, 20).getTime());
 			given(tweet2.toString()).will(invocation -> "Mock for Tweet: " + tweet2.getId());
 
