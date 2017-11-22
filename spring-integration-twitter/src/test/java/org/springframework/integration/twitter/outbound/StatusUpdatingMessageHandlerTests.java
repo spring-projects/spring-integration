@@ -90,7 +90,7 @@ public class StatusUpdatingMessageHandlerTests {
 		this.in1.send(new GenericMessage<String>("foo"));
 
 		Mockito.verify(timelineOperations).updateStatus(argument.capture());
-		assertEquals("foo", argument.getValue().toTweetParameters().getFirst("status"));
+		assertEquals("foo", argument.getValue().toRequestParameters().getFirst("status"));
 
 		Mockito.reset(timelineOperations);
 
@@ -101,7 +101,7 @@ public class StatusUpdatingMessageHandlerTests {
 
 		Mockito.verify(timelineOperations).updateStatus(argument.capture());
 		TweetData tweetData = argument.getValue();
-		MultiValueMap<String, Object> requestParameters = tweetData.toTweetParameters();
+		MultiValueMap<String, Object> requestParameters = tweetData.toRequestParameters();
 		assertEquals("bar", requestParameters.getFirst("status"));
 		assertNull(requestParameters.getFirst("media"));
 		MultiValueMap<String, Object> uploadMediaParameters = tweetData.toUploadMediaParameters();
