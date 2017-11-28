@@ -134,7 +134,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	private void updateNotPropagatedHeaders(String[] headers, boolean merge) {
 		Set<String> headerPatterns = new HashSet<>();
 
-		if (merge) {
+		if (merge && this.notPropagatedHeaders != null) {
 			headerPatterns.addAll(Arrays.asList(this.notPropagatedHeaders));
 		}
 
@@ -153,7 +153,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			this.noHeadersPropagation = true;
 		}
 
-		this.selectiveHeaderPropagation = this.notPropagatedHeaders.length > 0;
+		this.selectiveHeaderPropagation = !ObjectUtils.isEmpty(this.notPropagatedHeaders);
 	}
 
 	/**
