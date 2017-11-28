@@ -73,7 +73,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 	private MessageChannel outputChannel;
 
-	private String[] notPropagatedHeaders;
+	private String[] notPropagatedHeaders = new String[] {};
 
 	private boolean selectiveHeaderPropagation;
 
