@@ -82,7 +82,6 @@ public class AbstractReplyProducingMessageHandlerTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testNotPropagate() {
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
@@ -106,6 +105,33 @@ public class AbstractReplyProducingMessageHandlerTests {
 		Message<?> out = captor.getValue();
 		assertThat(out, notNullValue());
 		assertThat(out.getHeaders().get("foo"), nullValue());
+		assertThat(out.getHeaders().get("bar"), equalTo("RAB"));
+		assertThat(out.getHeaders().get("baz"), equalTo("BAZ"));
+	}
+
+	@Test
+	public void testNotPropagateAddWhenNonExist() {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new GenericMessage<>("world", Collections.singletonMap("bar", "RAB"));
+			}
+
+		};
+		handler.addNotPropagatedHeaders("boom");
+		assertThat(handler.getNotPropagatedHeaders(), containsInAnyOrder("boom"));
+		handler.setOutputChannel(this.channel);
+		ArgumentCaptor<Message<?>> captor = ArgumentCaptor.forClass(Message.class);
+		willReturn(true).given(this.channel).send(captor.capture());
+		handler.handleMessage(MessageBuilder.withPayload("hello")
+				.setHeader("boom", "FOO")
+				.setHeader("bar", "BAR")
+				.setHeader("baz", "BAZ")
+				.build());
+		Message<?> out = captor.getValue();
+		assertThat(out, notNullValue());
+		assertThat(out.getHeaders().get("boom"), nullValue());
 		assertThat(out.getHeaders().get("bar"), equalTo("RAB"));
 		assertThat(out.getHeaders().get("baz"), equalTo("BAZ"));
 	}
