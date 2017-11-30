@@ -128,7 +128,7 @@ subprojects { subproject ->
 		romeToolsVersion = '1.8.0'
 		servletApiVersion = '3.1.0'
 		slf4jVersion = "1.7.25"
-		smackVersion = '4.2.1'
+		smackVersion = '4.2.2'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.1.RELEASE'
 		springDataJpaVersion = '2.0.2.RELEASE'
 		springDataMongoVersion = '2.0.2.RELEASE'

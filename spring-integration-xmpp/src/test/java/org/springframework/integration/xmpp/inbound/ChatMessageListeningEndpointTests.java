@@ -36,7 +36,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
-import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
@@ -45,7 +44,6 @@ import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.junit.Test;
 import org.jxmpp.jid.impl.JidCreate;
-import org.jxmpp.stringprep.XmppStringprepException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParser;
@@ -128,7 +126,7 @@ public class ChatMessageListeningEndpointTests {
 	}
 
 	@Test
-	public void testWithErrorChannel() throws NotConnectedException, XmppStringprepException, InterruptedException {
+	public void testWithErrorChannel() throws Exception {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);

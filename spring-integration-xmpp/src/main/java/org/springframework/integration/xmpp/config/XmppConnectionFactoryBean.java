@@ -229,6 +229,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	}
 
 
+	@SuppressWarnings("deprecation")
 	private class LoggingConnectionListener implements ConnectionListener {
 
 		LoggingConnectionListener() {
