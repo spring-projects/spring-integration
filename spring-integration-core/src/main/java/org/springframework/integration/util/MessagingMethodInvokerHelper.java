@@ -702,7 +702,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 			HandlerMethod handlerMethod1;
 			try {
-				method1 = org.springframework.util.ClassUtils.getMostSpecificMethod(method1, targetObject.getClass());
+				method1 = AopUtils.selectInvocableMethod(method1,
+						org.springframework.util.ClassUtils.getUserClass(targetObject));
 				InvocableHandlerMethod invocableHandlerMethod =
 						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, method1);
 				handlerMethod1 = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
