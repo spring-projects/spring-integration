@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -74,6 +75,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
 
@@ -806,6 +808,42 @@ public class MethodInvokingMessageProcessorTests {
 		processor.processMessage(new GenericMessage<>("foo"));
 
 		assertEquals("foo", result.get());
+		assertTrue(adviceCalled.get());
+	}
+
+	@Test
+	public void testProxyAndHeaderAnnotation() {
+		final AtomicReference<Object> payloadReference = new AtomicReference<>();
+		final AtomicReference<UUID> idReference = new AtomicReference<>();
+
+		class MyHandler {
+
+			public void handle(@Header(MessageHeaders.ID) UUID id, @Payload Object payload) {
+				idReference.set(id);
+				payloadReference.set(payload);
+			}
+
+		}
+
+		MyHandler service = new MyHandler();
+
+		final AtomicBoolean adviceCalled = new AtomicBoolean();
+		ProxyFactory proxyFactory = new ProxyFactory(service);
+		proxyFactory.addAdvice((MethodInterceptor) i -> {
+			adviceCalled.set(true);
+			return i.proceed();
+		});
+		service = (MyHandler) proxyFactory.getProxy(getClass().getClassLoader());
+
+
+		GenericMessage<String> testMessage = new GenericMessage<>("foo");
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, "handle");
+
+		processor.processMessage(testMessage);
+
+		assertEquals(testMessage.getPayload(), payloadReference.get());
+		assertEquals(testMessage.getHeaders().getId(), idReference.get());
 		assertTrue(adviceCalled.get());
 	}
 
