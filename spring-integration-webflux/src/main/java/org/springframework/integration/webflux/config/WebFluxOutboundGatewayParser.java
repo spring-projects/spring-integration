@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.config.HttpOutboundGatewayParser;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
 import org.springframework.util.StringUtils;
@@ -46,6 +47,7 @@ public class WebFluxOutboundGatewayParser extends HttpOutboundGatewayParser {
 					.addIndexedArgumentValue(1, new RuntimeBeanReference(webClientRef));
 		}
 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-to-flux");
 		return builder;
 	}
 

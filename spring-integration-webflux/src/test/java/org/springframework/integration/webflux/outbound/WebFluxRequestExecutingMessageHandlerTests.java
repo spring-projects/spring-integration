@@ -28,7 +28,10 @@ import java.util.List;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -42,6 +45,7 @@ import org.springframework.test.web.reactive.server.HttpHandlerConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -54,7 +58,7 @@ import reactor.test.StepVerifier;
 public class WebFluxRequestExecutingMessageHandlerTests {
 
 	@Test
-	public void testReactiveReturn() throws Throwable {
+	public void testReactiveReturn() {
 		ClientHttpConnector httpConnector =
 				new HttpHandlerConnector((request, response) -> {
 					response.setStatusCode(HttpStatus.OK);
@@ -84,7 +88,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 	}
 
 	@Test
-	public void testReactiveErrorOneWay() throws Throwable {
+	public void testReactiveErrorOneWay() {
 		ClientHttpConnector httpConnector =
 				new HttpHandlerConnector((request, response) -> {
 					response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -114,7 +118,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 	}
 
 	@Test
-	public void testReactiveConnectErrorOneWay() throws Throwable {
+	public void testReactiveConnectErrorOneWay() {
 		ClientHttpConnector httpConnector =
 				new HttpHandlerConnector((request, response) -> {
 					throw new RuntimeException("Intentional connection error");
@@ -180,6 +184,52 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 		Message<?> replyMessage = errorChannel.receive(10);
 		assertNull(replyMessage);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testFluxReply() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.OK);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+
+			Flux<DataBuffer> data =
+					Flux.just(bufferFactory.wrap("foo".getBytes()),
+							bufferFactory.wrap("bar".getBytes()),
+							bufferFactory.wrap("baz".getBytes()));
+
+			return response.writeWith(data)
+					.then(Mono.defer(response::setComplete));
+		});
+
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.build();
+
+		String destinationUri = "http://www.springsource.org/spring-integration";
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+
+		QueueChannel replyChannel = new QueueChannel();
+		reactiveHandler.setOutputChannel(replyChannel);
+		reactiveHandler.setExpectedResponseType(String.class);
+		reactiveHandler.setReplyToFlux(true);
+
+		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertNotNull(receive);
+
+		assertThat(receive.getPayload(), instanceOf(Flux.class));
+
+		Flux<String> flux = (Flux<String>) receive.getPayload();
+
+		StepVerifier.create(flux)
+				.expectNext("foo", "bar", "baz")
+				.verifyComplete();
 	}
 
 }
