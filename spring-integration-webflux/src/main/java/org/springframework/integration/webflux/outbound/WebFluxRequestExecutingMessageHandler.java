@@ -29,6 +29,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ReactiveHttpInputMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.AbstractHttpRequestExecutingMessageHandler;
@@ -36,12 +37,14 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
+import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -58,6 +61,8 @@ import reactor.core.publisher.Mono;
 public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestExecutingMessageHandler {
 
 	private final WebClient webClient;
+
+	private boolean replyToFlux;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -108,6 +113,20 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 		super(uriExpression);
 		this.webClient = (webClient == null ? WebClient.create() : webClient);
 		this.setAsync(true);
+	}
+
+	/**
+	 * The boolean flag to identify if the reply payload should be as a {@link Flux} from the response body
+	 * or as resolved value from the {@link Mono} of the response body.
+	 * Defaults to {@code false} - simple value is pushed downstream.
+	 * Makes sense when {@code expectedResponseType} is configured.
+	 * @param replyToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
+	 * @since 5.0.1
+	 * @see #setExpectedResponseType(Class)
+	 * @see #setExpectedResponseTypeExpression(Expression)
+	 */
+	public void setReplyToFlux(boolean replyToFlux) {
+		this.replyToFlux = replyToFlux;
 	}
 
 	@Override
@@ -169,13 +188,35 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 										ResponseEntity.status(response.statusCode())
 												.headers(response.headers().asHttpHeaders());
 
-								Mono<?> bodyMono = Mono.empty();
+								Mono<?> bodyMono;
 
-								if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
-									bodyMono = response.body(BodyExtractors.toMono((ParameterizedTypeReference<?>) expectedResponseType));
+								if (expectedResponseType != null) {
+									if (this.replyToFlux) {
+										BodyExtractor<? extends Flux<?>, ReactiveHttpInputMessage> extractor;
+										if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+											extractor = BodyExtractors.toFlux(
+													(ParameterizedTypeReference<?>) expectedResponseType);
+										}
+										else {
+											extractor = BodyExtractors.toFlux((Class<?>) expectedResponseType);
+										}
+										Flux<?> flux = response.body(extractor);
+										bodyMono = Mono.just(flux);
+									}
+									else {
+										BodyExtractor<? extends Mono<?>, ReactiveHttpInputMessage> extractor;
+										if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
+											extractor = BodyExtractors.toMono(
+													(ParameterizedTypeReference<?>) expectedResponseType);
+										}
+										else {
+											extractor = BodyExtractors.toMono((Class<?>) expectedResponseType);
+										}
+										bodyMono = response.body(extractor);
+									}
 								}
-								else if (expectedResponseType != null) {
-									bodyMono = response.body(BodyExtractors.toMono((Class<?>) expectedResponseType));
+								else {
+									bodyMono = Mono.empty();
 								}
 
 								return bodyMono

@@ -10,7 +10,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-5.0.xsd" />
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-5.0.xsd"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration/http"
 				schemaLocation="http://www.springframework.org/schema/integration/http/spring-integration-http-5.0.xsd"/>
 
@@ -82,7 +82,8 @@
 			<xsd:complexContent>
 				<xsd:extension base="int-http:gatewayType">
 					<xsd:choice minOccurs="0" maxOccurs="3">
-						<xsd:element name="uri-variable" type="int-http:uriVariableType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:element name="uri-variable" type="int-http:uriVariableType" minOccurs="0"
+									 maxOccurs="unbounded">
 							<xsd:annotation>
 								<xsd:documentation>
 									Specify an expression for URI variable placeholder within 'url'.
@@ -126,7 +127,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="transfer-cookies" type="xsd:string" default="false">
+					<xsd:attribute name="transfer-cookies" default="false">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 	When set to "true", if a response contains a 'Set-Cookie' header, it will be mapped to a 'Cookie' header.
@@ -134,6 +135,9 @@
 	supplied by the server. Default is "false".
 							]]></xsd:documentation>
 						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
 					</xsd:attribute>
 					<xsd:attribute name="reply-timeout" type="xsd:string">
 						<xsd:annotation>
@@ -172,6 +176,19 @@
 								which is used to send to send the HTTP Requests reactive manner.
 							</xsd:documentation>
 						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-to-flux" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								When set to "true", the response is converted to the Flux which is sent as a reply
+								message payload.
+								The downstream flow might have a splitter to walk through that Flux.
+								Default is "false".
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>

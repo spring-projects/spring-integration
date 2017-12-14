@@ -95,10 +95,13 @@ You can configure a `WebClient` instance to use:
 </bean>
 ----
 
-The `WebClient` `exchange()` operation returns a `Mono<ClientResponse>` which is mapped to the `AbstractIntegrationMessageBuilder` reactive support (using `Mono.map()`) as the output from the `WebFluxRequestExecutingMessageHandler`.
+The `WebClient` `exchange()` operation returns a `Mono<ClientResponse>` which is mapped (using several `Mono.map()` steps) to an `AbstractIntegrationMessageBuilder` as the output from the `WebFluxRequestExecutingMessageHandler`.
 Together with the `ReactiveChannel` as an `outputChannel`, the `Mono<ClientResponse>` evaluation is deferred until a downstream subscription is made.
 Otherwise, it is treated as an `async` mode and the `Mono` response is adapted to an `SettableListenableFuture` for an asynchronous reply from the `WebFluxRequestExecutingMessageHandler`.
-
+The target payload of the output message depends on the `WebFluxRequestExecutingMessageHandler` configuration.
+The `setExpectedResponseType(Class<?>)` or `setExpectedResponseTypeExpression(Expression)` identifies the target type of the response body element conversion.
+If `replyToFlux` is set to `true`, the response body is converted to a `Flux` with the provided `expectedResponseType` for each element and this `Flux` is sent as the payload downstream.
+A <<splitter,splitter>> afterwards can be used to iterate over this `Flux` in a reactive manner.
 
 Also see <<http-outbound>> for more possible configuration options.
 

@@ -20,22 +20,23 @@
 	</si:channel>
 
 	<outbound-gateway id="reactiveMinimalConfig" url="http://localhost/test1" request-channel="requests"
-							   web-client="webClient"/>
+					  web-client="webClient"/>
 
 	<outbound-gateway id="reactiveFullConfig"
-							   url="http://localhost/test2"
-							   http-method="PUT"
-							   request-channel="requests"
-							   reply-timeout="1234"
-							   extract-request-payload="false"
-							   expected-response-type="java.lang.String"
-							   mapped-request-headers="requestHeader1, requestHeader2"
-							   mapped-response-headers="responseHeader"
-							   reply-channel="replies"
-							   charset="UTF-8"
-							   order="77"
-							   auto-startup="false"
-							   transfer-cookies="true">
+					  url="http://localhost/test2"
+					  http-method="PUT"
+					  request-channel="requests"
+					  reply-timeout="1234"
+					  extract-request-payload="false"
+					  expected-response-type="java.lang.String"
+					  mapped-request-headers="requestHeader1, requestHeader2"
+					  mapped-response-headers="responseHeader"
+					  reply-channel="replies"
+					  charset="UTF-8"
+					  order="77"
+					  auto-startup="false"
+					  transfer-cookies="true"
+					  reply-to-flux="true">
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>
 
