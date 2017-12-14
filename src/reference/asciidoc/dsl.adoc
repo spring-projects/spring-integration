@@ -493,6 +493,34 @@ public IntegrationFlow loggingFlow() {
 
 [IMPORTANT]
 =====
+The `log()` or `wireTap()` opearators are applied to the current `MessageChannel` (if it is an instane of `ChannelInterceptorAware`) or an intermediate `DirectChannel` is injected into the flow for the currently configured endpoint.
+In the example above the `WireTap` interceptor is added to the `myChannel` directly, because `DirectChannel` implements `ChannelInterceptorAware`:
+[source,java]
+----
+@Bean
+MessageChannel myChannel() {
+    return new DirectChannel();
+}
+
+...
+    .channel(myChannel())
+    .log()
+}
+----
+
+When current `MessageChannel` doesn't implement `ChannelInterceptorAware`, an implicit `DirectChannel` and `BridgeHandler` are injected into the `IntegrationFlow` and only after that a `WireTap` is added to this new `DirectChannel`.
+And when there is no any channel declaration like in this sample:
+[source,java]
+----
+.handle(...)
+.log()
+}
+----
+=====
+an implicit `DirectChannel` is injected in the current position of the `IntegrationFlow` and it is used as an output channel for the currently configured `ServiceActivatingHandler` (the `.handle()` above).
+
+[IMPORTANT]
+=====
 If `log()` or `wireTap()` are used in the end of flow they are considered as one-way `MessageHandler` s.
 If the integration flow is expected to return reply, the `bridge()` should be used in the end, after `log()` or `wireTap()`:
 [source,java]
