@@ -24,6 +24,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
@@ -57,7 +58,8 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
-abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport implements MessageSource {
+abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport implements MessageSource,
+		Lifecycle {
 
 	private static final int DEFAULT_PAGE_SIZE = 20;
 
@@ -69,9 +71,9 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private final String metadataKey;
 
-	private volatile MetadataStore metadataStore;
-
 	private final Queue<T> tweets = new LinkedBlockingQueue<T>();
+
+	private volatile MetadataStore metadataStore;
 
 	private volatile int prefetchThreshold = 0;
 
@@ -81,6 +83,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private volatile int pageSize = DEFAULT_PAGE_SIZE;
 
+	private volatile boolean running;
 
 	protected AbstractTwitterMessageSource(Twitter twitter, String metadataKey) {
 		Assert.notNull(twitter, "twitter must not be null");
@@ -132,13 +135,31 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 			}
 		}
 
-		String lastId = this.metadataStore.get(this.metadataKey);
-		// initialize the last status ID from the metadataStore
-		if (StringUtils.hasText(lastId)) {
-			this.lastProcessedId = Long.parseLong(lastId);
-			this.lastEnqueuedId = this.lastProcessedId;
-		}
+	}
 
+	@Override
+	public synchronized void start() {
+		if (!this.running) {
+			String lastId = this.metadataStore.get(this.metadataKey);
+			// initialize the last status ID from the metadataStore
+			if (StringUtils.hasText(lastId)) {
+				this.lastProcessedId = Long.parseLong(lastId);
+				synchronized (this.lastEnqueuedIdMonitor) {
+					this.lastEnqueuedId = this.lastProcessedId;
+				}
+			}
+			this.running = true;
+		}
+	}
+
+	@Override
+	public synchronized void stop() {
+		this.running = false;
+	}
+
+	@Override
+	public synchronized boolean isRunning() {
+		return this.running;
 	}
 
 	@Override
@@ -169,7 +190,9 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 			long id = this.getIdForTweet(tweet);
 			if (id > this.lastEnqueuedId) {
 				this.tweets.add(tweet);
-				this.lastEnqueuedId = id;
+				synchronized (this.lastEnqueuedIdMonitor) {
+					this.lastEnqueuedId = id;
+				}
 			}
 		}
 	}
@@ -177,9 +200,11 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	private void refreshTweetQueueIfNecessary() {
 		try {
 			if (this.tweets.size() <= this.prefetchThreshold) {
-				List<T> tweets = pollForTweets(this.lastEnqueuedId);
-				if (!CollectionUtils.isEmpty(tweets)) {
-					enqueueAll(tweets);
+				synchronized (this.lastEnqueuedIdMonitor) {
+					List<T> tweets = pollForTweets(this.lastEnqueuedId);
+					if (!CollectionUtils.isEmpty(tweets)) {
+						enqueueAll(tweets);
+					}
 				}
 			}
 		}
@@ -222,7 +247,9 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		synchronized (this) {
 			this.metadataStore.remove(this.metadataKey);
 			this.lastProcessedId = -1L;
-			this.lastEnqueuedId = -1L;
+			synchronized (this.lastEnqueuedIdMonitor) {
+				this.lastEnqueuedId = -1L;
+			}
 		}
 	}
 
