@@ -82,6 +82,7 @@ public class WebFluxOutboundGatewayParserTests {
 		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
+		assertEquals(false, handlerAccessor.getPropertyValue("replyToFlux"));
 	}
 
 	@Test
@@ -123,6 +124,7 @@ public class WebFluxOutboundGatewayParserTests {
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
 		assertEquals("responseHeader", mappedResponseHeaders[0]);
 		assertEquals(true, handlerAccessor.getPropertyValue("transferCookies"));
+		assertEquals(true, handlerAccessor.getPropertyValue("replyToFlux"));
 	}
 
 }
