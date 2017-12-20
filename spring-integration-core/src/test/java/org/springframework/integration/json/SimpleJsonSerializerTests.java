@@ -26,6 +26,8 @@ import org.springframework.integration.support.json.JsonObjectMapperProvider;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -81,6 +83,10 @@ public class SimpleJsonSerializerTests {
 
 		public String fileInfo() {
 			return this.fileInfo;
+		}
+
+		public String getPermissions() {
+			throw new UnsupportedOperationException("Permissions are not supported");
 		}
 
 	}

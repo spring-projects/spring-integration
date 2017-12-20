@@ -33,6 +33,8 @@ import org.springframework.beans.BeanUtils;
  * properties accessed by getters.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -66,10 +68,19 @@ public final class SimpleJsonSerializer {
 					result = readMethod.invoke(bean, emptyArgs);
 				}
 				catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to serialize property " + propertyName, e);
+					Throwable exception = e;
+					if (e instanceof InvocationTargetException) {
+						exception = e.getCause();
 					}
-					result = e.getMessage();
+
+					if (logger.isDebugEnabled()) {
+						logger.debug("Failed to serialize property " + propertyName, exception);
+					}
+
+					result =
+							exception.getMessage() != null
+									? exception.getMessage()
+									: exception.toString();
 				}
 				stringBuilder.append(toElement(result)).append(",");
 			}
@@ -89,7 +100,7 @@ public final class SimpleJsonSerializer {
 			return result.toString();
 		}
 		else {
-			return "\"" + result.toString() + "\"";
+			return "\"" + (result == null ? "null" : result.toString()) + "\"";
 		}
 	}
 
