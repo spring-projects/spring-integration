@@ -126,7 +126,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 	@Override
 	public String getComponentType() {
-		return super.getComponentType().replaceFirst("(http:)", "$1webflux-");
+		return super.getComponentType().replaceFirst("http", "webflux");
 	}
 
 	@Override

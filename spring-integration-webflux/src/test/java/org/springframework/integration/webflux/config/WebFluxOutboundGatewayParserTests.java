@@ -40,6 +40,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
@@ -61,6 +62,9 @@ public class WebFluxOutboundGatewayParserTests {
 
 	@Autowired
 	private WebClient webClient;
+
+	@Autowired
+	private BodyExtractor<?, ?> bodyExtractor;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -125,6 +129,7 @@ public class WebFluxOutboundGatewayParserTests {
 		assertEquals("responseHeader", mappedResponseHeaders[0]);
 		assertEquals(true, handlerAccessor.getPropertyValue("transferCookies"));
 		assertEquals(true, handlerAccessor.getPropertyValue("replyToFlux"));
+		assertSame(this.bodyExtractor, handlerAccessor.getPropertyValue("bodyExtractor"));
 	}
 
 }

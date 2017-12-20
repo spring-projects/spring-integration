@@ -31,6 +31,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ReactiveHttpInputMessage;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.AbstractHttpRequestExecutingMessageHandler;
 import org.springframework.messaging.Message;
@@ -63,6 +64,8 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	private final WebClient webClient;
 
 	private boolean replyToFlux;
+
+	private BodyExtractor<?, ClientHttpResponse> bodyExtractor;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -127,6 +130,18 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 */
 	public void setReplyToFlux(boolean replyToFlux) {
 		this.replyToFlux = replyToFlux;
+	}
+
+	/**
+	 * Specify a {@link BodyExtractor} as an alternative to the {@code expectedResponseType}
+	 * to allow to get low-level access to the received {@link ClientHttpResponse}.
+	 * @param bodyExtractor the {@link BodyExtractor} to use.
+	 * @since 5.0.1
+	 * @see #setExpectedResponseType(Class)
+	 * @see #setExpectedResponseTypeExpression(Expression)
+	 */
+	public void setBodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
+		this.bodyExtractor = bodyExtractor;
 	}
 
 	@Override
@@ -213,6 +228,15 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 											extractor = BodyExtractors.toMono((Class<?>) expectedResponseType);
 										}
 										bodyMono = response.body(extractor);
+									}
+								}
+								else if (this.bodyExtractor != null) {
+									Object body = response.body(this.bodyExtractor);
+									if (body instanceof Mono) {
+										bodyMono = (Mono<?>) body;
+									}
+									else {
+										bodyMono = Mono.just(body);
 									}
 								}
 								else {

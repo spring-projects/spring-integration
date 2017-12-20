@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+		xmlns="http://www.springframework.org/schema/integration/webflux"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:si="http://www.springframework.org/schema/integration"
+		xsi:schemaLocation="http://www.springframework.org/schema/integration/webflux http://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<si:channel id="requests"/>
+
+	<inbound-gateway id="reactiveMinimalConfig" request-channel="requests"/>
+
+	<inbound-gateway id="reactiveFullConfig" request-channel="requests"
+							 path="test1"
+							 auto-startup="false"
+							 phase="101"
+							 request-payload-type="byte[]"
+							 error-channel="errorChannel"
+							 payload-expression="payload"
+							 supported-methods="PUT"
+							 reply-timeout-status-code-expression="'504'"
+							 header-mapper="headerMapper"
+							 codec-configurer="codecConfigurer"
+							 reactive-adapter-registry="reactiveAdapterRegistry"
+							 requested-content-type-resolver="requestedContentTypeResolver">
+		<request-mapping headers="foo"/>
+		<cross-origin origin="foo"
+					  method="PUT"/>
+		<header name="foo" expression="'foo'"/>
+	</inbound-gateway>
+
+	<beans:bean id="headerMapper" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.integration.mapping.HeaderMapper"/>
+	</beans:bean>
+
+	<beans:bean id="codecConfigurer" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.http.codec.ServerCodecConfigurer"/>
+	</beans:bean>
+
+	<beans:bean id="requestedContentTypeResolver" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.web.reactive.accept.RequestedContentTypeResolver"/>
+	</beans:bean>
+
+	<beans:bean id="reactiveAdapterRegistry" class="org.springframework.core.ReactiveAdapterRegistry"/>
+
+</beans:beans>

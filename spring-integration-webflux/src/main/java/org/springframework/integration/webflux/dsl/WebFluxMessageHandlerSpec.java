@@ -20,10 +20,15 @@ import java.net.URI;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.dsl.BaseHttpMessageHandlerSpec;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
+import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * The {@link BaseHttpMessageHandlerSpec} implementation for the {@link WebFluxRequestExecutingMessageHandler}.
@@ -51,6 +56,30 @@ public class WebFluxMessageHandlerSpec
 	WebFluxMessageHandlerSpec(Expression uriExpression, WebClient webClient) {
 		super(new WebFluxRequestExecutingMessageHandler(uriExpression, webClient));
 		this.webClient = webClient;
+	}
+
+	/**
+	 * The boolean flag to identify if the reply payload should be as a {@link Flux} from the response body
+	 * or as resolved value from the {@link Mono} of the response body.
+	 * Defaults to {@code false} - simple value is pushed downstream.
+	 * Makes sense when {@code expectedResponseType} is configured.
+	 * @param replyToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
+	 * @since 5.0.1
+	 * @see WebFluxRequestExecutingMessageHandler#setReplyToFlux(boolean)
+	 */
+	public void replyToFlux(boolean replyToFlux) {
+		this.target.setReplyToFlux(replyToFlux);
+	}
+
+	/**
+	 * Specify a {@link BodyExtractor} as an alternative to the {@code expectedResponseType}
+	 * to allow to get low-level access to the received {@link ClientHttpResponse}.
+	 * @param bodyExtractor the {@link BodyExtractor} to use.
+	 * @since 5.0.1
+	 * @see WebFluxRequestExecutingMessageHandler#setBodyExtractor(BodyExtractor)
+	 */
+	public void bodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
+		this.target.setBodyExtractor(bodyExtractor);
 	}
 
 	@Override
