@@ -146,6 +146,17 @@ public final class Amqp {
 	}
 
 	/**
+	 * Create an initial AmqpInboundPolledChannelAdapterSpec
+	 * @param connectionFactory the connectionFactory.
+	 * @param queue the queue.
+	 * @return the AmqpInboundPolledChannelAdapterSpec.
+	 */
+	public static AmqpInboundPolledChannelAdapterSpec inboundPolledAdapter(ConnectionFactory connectionFactory,
+			String queue) {
+		return new AmqpInboundPolledChannelAdapterSpec(connectionFactory, queue);
+	}
+
+	/**
 	 * Create an initial AmqpInboundChannelAdapterSpec using a
 	 * {@link SimpleMessageListenerContainer}.
 	 * @param connectionFactory the connectionFactory.

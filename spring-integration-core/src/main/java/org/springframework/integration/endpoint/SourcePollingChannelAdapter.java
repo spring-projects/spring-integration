@@ -27,11 +27,15 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.context.ExpressionCapable;
+import org.springframework.integration.core.DeferredAcknowlegmentMessageSource;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.AcknowledgmentCallback;
+import org.springframework.integration.support.AcknowledgmentCallback.Status;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
@@ -214,8 +218,22 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		}
 		try {
 			this.messagingTemplate.send(getOutputChannel(), message);
+			if (this.source instanceof DeferredAcknowlegmentMessageSource) {
+				AcknowledgmentCallback callback = message.getHeaders()
+						.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
+				if (callback != null && !callback.isAcknowledged()) {
+					callback.acknlowlege(Status.ACCEPT);
+				}
+			}
 		}
 		catch (Exception e) {
+			if (this.source instanceof DeferredAcknowlegmentMessageSource) {
+				AcknowledgmentCallback callback = message.getHeaders()
+						.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
+				if (callback != null && !callback.isAcknowledged()) {
+					callback.acknlowlege(Status.REJECT);
+				}
+			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
