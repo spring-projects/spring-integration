@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -38,6 +40,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
@@ -71,6 +74,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @author Artem Bilan
  * @author Nasko Vasilev
  * @author Biju Kunjummen
+ * @author Gary Russell
  *
  * @since 3.0
  */
@@ -82,8 +86,10 @@ public class KafkaDslTests {
 
 	private static final String TEST_TOPIC2 = "test-topic2";
 
+	private static final String TEST_TOPIC3 = "test-topic3";
+
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2);
+	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3);
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -112,7 +118,7 @@ public class KafkaDslTests {
 
 	@Autowired(required = false)
 	@Qualifier("kafkaTemplate:" + TEST_TOPIC1)
-	private KafkaTemplate<?, ?> kafkaTemplateTopic1;
+	private KafkaTemplate<Object, Object> kafkaTemplateTopic1;
 
 	@Autowired(required = false)
 	@Qualifier("kafkaTemplate:" + TEST_TOPIC2)
@@ -121,8 +127,11 @@ public class KafkaDslTests {
 	@Autowired
 	private DefaultKafkaHeaderMapper mapper;
 
+	@Autowired
+	private ContextConfiguration config;
+
 	@Test
-	public void testKafkaAdapters() {
+	public void testKafkaAdapters() throws Exception {
 
 		assertThatThrownBy(() -> this.sendToKafkaFlowInput.send(new GenericMessage<>("foo")))
 				.hasMessageContaining("10 is not in the range");
@@ -180,12 +189,19 @@ public class KafkaDslTests {
 		assertThat(this.messageListenerContainer).isNotNull();
 		assertThat(this.kafkaTemplateTopic1).isNotNull();
 		assertThat(this.kafkaTemplateTopic2).isNotNull();
+
+		this.kafkaTemplateTopic1.send(TEST_TOPIC3, "foo");
+		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.config.fromSource).isEqualTo("foo");
 	}
 
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
 
+		private final CountDownLatch latch = new CountDownLatch(1);
+
+		private Object fromSource;
 
 		@Bean
 		public ConsumerFactory<Integer, String> consumerFactory() {
@@ -276,6 +292,20 @@ public class KafkaDslTests {
 					.topicExpression("headers[kafka_topic] ?: '" + topic + "'")
 					.configureKafkaTemplate(t -> t.id("kafkaTemplate:" + topic));
 		}
+
+
+		@Bean
+		public IntegrationFlow sourceFlow() {
+			return IntegrationFlows
+					.from(Kafka.inboundChannelAdapter(consumerFactory(), TEST_TOPIC3),
+							e -> e.poller(Pollers.fixedDelay(100)))
+					.handle(p -> {
+						this.fromSource = p.getPayload();
+						this.latch.countDown();
+					})
+					.get();
+		}
+
 
 	}
 

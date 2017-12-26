@@ -84,7 +84,7 @@
 				org.hamcrest.Matchers.*,
 				org.mockito.Mockito.*,
 				org.mockito.BDDMockito.*,
-				org.mockito.Matchers.*,
+				org.mockito.ArgumentMatchers.*,
 				org.springframework.kafka.test.hamcrest.KafkaMatchers.*,
 				org.springframework.kafka.test.assertj.KafkaConditions.*" />
 		</module>
