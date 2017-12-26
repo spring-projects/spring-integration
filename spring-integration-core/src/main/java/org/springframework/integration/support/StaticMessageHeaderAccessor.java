@@ -31,6 +31,7 @@ import org.springframework.util.MimeType;
  * creation just to access a header.
  *
  * @author Gary Russell
+ *
  * @since 5.0.1
  *
  * @see IntegrationMessageHeaderAccessor
@@ -98,6 +99,12 @@ public final class StaticMessageHeaderAccessor {
 	@Nullable
 	public static AtomicInteger getDeliveryAttempt(Message<?> message) {
 		return message.getHeaders().get(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, AtomicInteger.class);
+	}
+
+	@Nullable
+	public static AcknowledgmentCallback getAcknowledgmentCallback(Message<?> message) {
+		return message.getHeaders().get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+				AcknowledgmentCallback.class);
 	}
 
 }

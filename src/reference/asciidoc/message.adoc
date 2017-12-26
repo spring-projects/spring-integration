@@ -256,6 +256,15 @@ An example is the `Session` associated with a streamed file transfer using FTP, 
 
 | If a message-driven channel adapter supports the configuration of a `RetryTemplate` this header contains the current delivery attempt.
 
+| IntegrationMessageHeaderAccessor.
+    ACKNOWLEDGMENT_CALLBACK
+
+
+| org.springframework.integration.
+    support.AcknowledgmentCallback
+
+| If a message source supports it, a call back to accept, reject, or requeue a message - see <<deferred-acks-message-source>>.
+
 |===
 
 Convenient typed getters for some of these headers are provided on the `IntegrationMessageHeaderAccessor` class:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,14 @@ import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.integration.amqp.inbound.AmqpMessageSource.AmqpAckCallbackFactory;
 
 /**
  * Factory class for AMQP components.
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
 public final class Amqp {
@@ -53,6 +55,7 @@ public final class Amqp {
 	 */
 	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
 			String... queueNames) {
+
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueueNames(queueNames);
 		return inboundGateway(listenerContainer, amqpTemplate);
@@ -80,6 +83,7 @@ public final class Amqp {
 	 */
 	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
 			Queue... queues) {
+
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueues(queues);
 		return inboundGateway(listenerContainer, amqpTemplate);
@@ -112,6 +116,7 @@ public final class Amqp {
 	 */
 	public static AmqpInboundGatewaySMLCSpec inboundGateway(SimpleMessageListenerContainer listenerContainer,
 			AmqpTemplate amqpTemplate) {
+
 		return new AmqpInboundGatewaySMLCSpec(listenerContainer, amqpTemplate);
 	}
 
@@ -142,7 +147,35 @@ public final class Amqp {
 	 */
 	public static AmqpInboundGatewayDMLCSpec inboundGateway(DirectMessageListenerContainer listenerContainer,
 			AmqpTemplate amqpTemplate) {
+
 		return new AmqpInboundGatewayDMLCSpec(listenerContainer, amqpTemplate);
+	}
+
+	/**
+	 * Create an initial AmqpInboundPolledChannelAdapterSpec
+	 * @param connectionFactory the connectionFactory.
+	 * @param queue the queue.
+	 * @return the AmqpInboundPolledChannelAdapterSpec.
+	 * @since 5.0.1
+	 */
+	public static AmqpInboundPolledChannelAdapterSpec inboundPolledAdapter(ConnectionFactory connectionFactory,
+			String queue) {
+
+		return new AmqpInboundPolledChannelAdapterSpec(connectionFactory, queue);
+	}
+
+	/**
+	 * Create an initial AmqpInboundPolledChannelAdapterSpec
+	 * @param connectionFactory the connectionFactory.
+	 * @param ackCallbackFactory the ackCallbackFactory
+	 * @param queue the queue.
+	 * @return the AmqpInboundPolledChannelAdapterSpec.
+	 * @since 5.0.1
+	 */
+	public static AmqpInboundPolledChannelAdapterSpec inboundPolledAdapter(ConnectionFactory connectionFactory,
+			AmqpAckCallbackFactory ackCallbackFactory, String queue) {
+
+		return new AmqpInboundPolledChannelAdapterSpec(connectionFactory, ackCallbackFactory, queue);
 	}
 
 	/**
@@ -154,6 +187,7 @@ public final class Amqp {
 	 */
 	public static AmqpInboundChannelAdapterSMLCSpec inboundAdapter(ConnectionFactory connectionFactory,
 			String... queueNames) {
+
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueueNames(queueNames);
 		return new AmqpInboundChannelAdapterSMLCSpec(listenerContainer);
@@ -166,7 +200,9 @@ public final class Amqp {
 	 * @param queues the queues.
 	 * @return the AmqpInboundChannelAdapterSpec.
 	 */
-	public static AmqpInboundChannelAdapterSMLCSpec inboundAdapter(ConnectionFactory connectionFactory, Queue... queues) {
+	public static AmqpInboundChannelAdapterSMLCSpec inboundAdapter(ConnectionFactory connectionFactory,
+			Queue... queues) {
+
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueues(queues);
 		return new AmqpInboundChannelAdapterSMLCSpec(listenerContainer);
@@ -235,6 +271,7 @@ public final class Amqp {
 	 */
 	public static <S extends AmqpPollableMessageChannelSpec<S>> AmqpPollableMessageChannelSpec<S> pollableChannel(
 			ConnectionFactory connectionFactory) {
+
 		return pollableChannel(null, connectionFactory);
 	}
 
@@ -247,6 +284,7 @@ public final class Amqp {
 	 */
 	public static <S extends AmqpPollableMessageChannelSpec<S>> AmqpPollableMessageChannelSpec<S> pollableChannel(
 			String id, ConnectionFactory connectionFactory) {
+
 		return new AmqpPollableMessageChannelSpec<S>(connectionFactory).id(id);
 	}
 
@@ -258,6 +296,7 @@ public final class Amqp {
 	 */
 	public static <S extends AmqpMessageChannelSpec<S>> AmqpMessageChannelSpec<S> channel(
 			ConnectionFactory connectionFactory) {
+
 		return channel(null, connectionFactory);
 	}
 
@@ -270,6 +309,7 @@ public final class Amqp {
 	 */
 	public static <S extends AmqpMessageChannelSpec<S>> AmqpMessageChannelSpec<S> channel(String id,
 			ConnectionFactory connectionFactory) {
+
 		return new AmqpMessageChannelSpec<S>(connectionFactory).id(id);
 	}
 
@@ -290,6 +330,7 @@ public final class Amqp {
 	 */
 	public static AmqpPublishSubscribeMessageChannelSpec publishSubscribeChannel(String id,
 			ConnectionFactory connectionFactory) {
+
 		return new AmqpPublishSubscribeMessageChannelSpec(connectionFactory).id(id);
 	}
 
