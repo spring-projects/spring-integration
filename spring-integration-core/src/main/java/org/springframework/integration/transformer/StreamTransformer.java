@@ -20,7 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.InputStream;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -60,7 +60,7 @@ public class StreamTransformer extends AbstractTransformer {
 		InputStream stream = (InputStream) message.getPayload();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		FileCopyUtils.copy(stream, baos);
-		Closeable closeableResource = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
+		Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(message);
 		if (closeableResource != null) {
 			closeableResource.close();
 		}
