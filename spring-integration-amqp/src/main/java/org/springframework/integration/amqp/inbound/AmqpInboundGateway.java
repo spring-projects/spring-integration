@@ -17,6 +17,7 @@
 package org.springframework.integration.amqp.inbound;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Address;
@@ -32,12 +33,14 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -255,23 +258,29 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		public void onMessage(final Message message, final Channel channel) throws Exception {
 			if (AmqpInboundGateway.this.retryTemplate == null) {
 				try {
-					doOnMessage(message, channel);
+					org.springframework.messaging.Message<Object> converted = convert(message, channel);
+					if (converted != null) {
+						process(message, converted);
+					}
 				}
 				finally {
 					attributesHolder.remove();
 				}
 			}
 			else {
-				AmqpInboundGateway.this.retryTemplate.execute(context -> {
-							doOnMessage(message, channel);
+				org.springframework.messaging.Message<Object> converted = convert(message, channel);
+				if (converted != null) {
+					AmqpInboundGateway.this.retryTemplate.execute(context -> {
+							StaticMessageHeaderAccessor.getDeliveryAttempt(converted).incrementAndGet();
+							process(message, converted);
 							return null;
 						},
 						(RecoveryCallback<Object>) AmqpInboundGateway.this.recoveryCallback);
+				}
 			}
 		}
 
-		private void doOnMessage(Message message, Channel channel) {
-			boolean error = false;
+		private org.springframework.messaging.Message<Object> convert(Message message, Channel channel) {
 			Map<String, Object> headers = null;
 			Object payload = null;
 			try {
@@ -280,6 +289,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				if (AmqpInboundGateway.this.messageListenerContainer.getAcknowledgeMode() == AcknowledgeMode.MANUAL) {
 					headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
 					headers.put(AmqpHeaders.CHANNEL, channel);
+				}
+				if (AmqpInboundGateway.this.retryTemplate != null) {
+					headers.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, new AtomicInteger());
 				}
 			}
 			catch (RuntimeException e) {
@@ -290,60 +302,60 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				else {
 					throw e;
 				}
-				error = true;
+				return null;
 			}
-
-			if (!error) {
-				org.springframework.messaging.Message<Object> messagingMessage = getMessageBuilderFactory()
+			return getMessageBuilderFactory()
 						.withPayload(payload)
 						.copyHeaders(headers)
 						.build();
-				setAttributesIfNecessary(message, messagingMessage);
-				final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(messagingMessage);
-				if (reply != null) {
-					Address replyTo;
-					String replyToProperty = message.getMessageProperties().getReplyTo();
-					if (replyToProperty != null) {
-						replyTo = new Address(replyToProperty);
+		}
+
+		private void process(Message message, org.springframework.messaging.Message<Object> messagingMessage) {
+			setAttributesIfNecessary(message, messagingMessage);
+			final org.springframework.messaging.Message<?> reply = sendAndReceiveMessage(messagingMessage);
+			if (reply != null) {
+				Address replyTo;
+				String replyToProperty = message.getMessageProperties().getReplyTo();
+				if (replyToProperty != null) {
+					replyTo = new Address(replyToProperty);
+				}
+				else {
+					replyTo = AmqpInboundGateway.this.defaultReplyTo;
+				}
+
+				MessagePostProcessor messagePostProcessor =
+						message1 -> {
+							MessageProperties messageProperties = message1.getMessageProperties();
+							String contentEncoding = messageProperties.getContentEncoding();
+							long contentLength = messageProperties.getContentLength();
+							String contentType = messageProperties.getContentType();
+							AmqpInboundGateway.this.headerMapper.fromHeadersToReply(reply.getHeaders(),
+									messageProperties);
+							// clear the replyTo from the original message since we are using it now
+							messageProperties.setReplyTo(null);
+							// reset the content-* properties as determined by the MessageConverter
+							if (StringUtils.hasText(contentEncoding)) {
+								messageProperties.setContentEncoding(contentEncoding);
+							}
+							messageProperties.setContentLength(contentLength);
+							if (contentType != null) {
+								messageProperties.setContentType(contentType);
+							}
+							return message1;
+						};
+
+				if (replyTo != null) {
+					AmqpInboundGateway.this.amqpTemplate.convertAndSend(replyTo.getExchangeName(),
+							replyTo.getRoutingKey(), reply.getPayload(), messagePostProcessor);
+				}
+				else {
+					if (!AmqpInboundGateway.this.amqpTemplateExplicitlySet) {
+						throw new IllegalStateException("There is no 'replyTo' message property " +
+								"and the `defaultReplyTo` hasn't been configured.");
 					}
 					else {
-						replyTo = AmqpInboundGateway.this.defaultReplyTo;
-					}
-
-					MessagePostProcessor messagePostProcessor =
-							message1 -> {
-								MessageProperties messageProperties = message1.getMessageProperties();
-								String contentEncoding = messageProperties.getContentEncoding();
-								long contentLength = messageProperties.getContentLength();
-								String contentType = messageProperties.getContentType();
-								AmqpInboundGateway.this.headerMapper.fromHeadersToReply(reply.getHeaders(),
-										messageProperties);
-								// clear the replyTo from the original message since we are using it now
-								messageProperties.setReplyTo(null);
-								// reset the content-* properties as determined by the MessageConverter
-								if (StringUtils.hasText(contentEncoding)) {
-									messageProperties.setContentEncoding(contentEncoding);
-								}
-								messageProperties.setContentLength(contentLength);
-								if (contentType != null) {
-									messageProperties.setContentType(contentType);
-								}
-								return message1;
-							};
-
-					if (replyTo != null) {
-						AmqpInboundGateway.this.amqpTemplate.convertAndSend(replyTo.getExchangeName(),
-								replyTo.getRoutingKey(), reply.getPayload(), messagePostProcessor);
-					}
-					else {
-						if (!AmqpInboundGateway.this.amqpTemplateExplicitlySet) {
-							throw new IllegalStateException("There is no 'replyTo' message property " +
-									"and the `defaultReplyTo` hasn't been configured.");
-						}
-						else {
-							AmqpInboundGateway.this.amqpTemplate.convertAndSend(reply.getPayload(),
-									messagePostProcessor);
-						}
+						AmqpInboundGateway.this.amqpTemplate.convertAndSend(reply.getPayload(),
+								messagePostProcessor);
 					}
 				}
 			}
