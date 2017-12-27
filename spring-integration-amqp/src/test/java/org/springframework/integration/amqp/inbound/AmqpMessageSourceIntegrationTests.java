@@ -45,11 +45,16 @@ import org.springframework.integration.amqp.dsl.Amqp;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.MessageSourcePollableChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -68,8 +73,10 @@ public class AmqpMessageSourceIntegrationTests {
 
 	private static final String DLQ = QUEUE_WITH_DLQ + ".dlq";
 
+	private static final String CHANNEL_QUEUE = "AmqpMessageSourceIntegrationTests.channel";
+
 	@ClassRule
-	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues(DSL_QUEUE, DLQ);
+	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues(DSL_QUEUE, CHANNEL_QUEUE, DLQ);
 
 	@Autowired
 	private Config config;
@@ -96,22 +103,26 @@ public class AmqpMessageSourceIntegrationTests {
 		template.convertAndSend(QUEUE_WITH_DLQ, "foo");
 		template.convertAndSend(QUEUE_WITH_DLQ, "nackIt");
 		template.convertAndSend(DSL_QUEUE, "bar");
+		template.convertAndSend(CHANNEL_QUEUE, "baz");
 		assertTrue(this.config.latch.await(10, TimeUnit.SECONDS));
 		assertThat(this.config.received, equalTo("foo"));
 		Message dead = template.receive(DLQ, 10_000);
 		assertNotNull(dead);
-		assertThat(this.config.dsl, equalTo("bar"));
+		assertThat(this.config.fromDsl, equalTo("bar"));
+		assertThat(this.config.fromSourceChannel, equalTo("BAZ"));
 	}
 
 	@Configuration
 	@EnableIntegration
 	public static class Config {
 
-		private final CountDownLatch latch = new CountDownLatch(3);
+		private final CountDownLatch latch = new CountDownLatch(4);
 
 		private String received;
 
-		private Object dsl;
+		private Object fromDsl;
+
+		private Object fromSourceChannel;
 
 		@InboundChannelAdapter(channel = "in", poller = @Poller(fixedDelay = "100"))
 		@Bean
@@ -135,10 +146,52 @@ public class AmqpMessageSourceIntegrationTests {
 			return IntegrationFlows.from(Amqp.inboundPolledAdapter(connectionFactory(), DSL_QUEUE),
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.handle(p -> {
-						this.dsl = p.getPayload();
+						this.fromDsl = p.getPayload();
 						this.latch.countDown();
 					})
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow messageSourceChannelFlow() {
+			return IntegrationFlows.from(sourceChannel())
+					.handle(p -> {
+						this.fromSourceChannel = p.getPayload();
+						this.latch.countDown();
+					}, e -> e.poller(Pollers.fixedDelay(100)))
+					.get();
+		}
+
+		@Bean
+		public MessageSourcePollableChannel sourceChannel() {
+			MessageSourcePollableChannel channel = new MessageSourcePollableChannel(channelSource());
+			channel.addInterceptor(upcase());
+			return channel;
+		}
+
+		@Bean
+		public MessageSource<?> channelSource() {
+			return new AmqpMessageSource(connectionFactory(), CHANNEL_QUEUE);
+		}
+
+		@Bean
+		public ChannelInterceptor upcase() {
+			return new ChannelInterceptorAdapter() {
+
+				@Override
+				public org.springframework.messaging.Message<?> postReceive(
+						org.springframework.messaging.Message<?> message, MessageChannel channel) {
+					if (message != null) {
+						return MessageBuilder.withPayload(((String) message.getPayload()).toUpperCase())
+								.copyHeaders(message.getHeaders())
+								.build();
+					}
+					else {
+						return null;
+					}
+				}
+
+			};
 		}
 
 		@Bean
