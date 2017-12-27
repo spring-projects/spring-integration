@@ -816,5 +816,18 @@ public MessageHandler myService() {
 }
 ----
 
+And with the Java DSL, the interceptor is added to the endpoint's advice chain:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow flow() {
+    ...
+        .handle("someBean", "someMethod",
+            e -> e.advice(idempotentReceiverInterceptor())
+    ...
+}
+----
+
 NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method and starting with _version 4.3.1_ it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
 See <<handle-message-advice>> for more information.
