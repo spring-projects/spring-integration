@@ -30,7 +30,7 @@ public interface AcknowledgmentCallback {
 	 * Acknowledge the message.
 	 * @param status the status.
 	 */
-	void acknlowlege(Status status);
+	void acknlowledge(Status status);
 
 	/**
 	 * Implementations must implement this to indicate when the ack has been

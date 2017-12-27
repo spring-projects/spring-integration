@@ -72,7 +72,7 @@ public class AmqpMessageSourceTests {
 		verify(connection, times(2)).createChannel();
 		received.getHeaders()
 				.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class)
-				.acknlowlege(Status.ACCEPT);
+				.acknlowledge(Status.ACCEPT);
 		verify(channel).basicAck(123L, false);
 		Channel cached = conn.createChannel(false); // should have been "closed"
 		verify(connection, times(2)).createChannel();
@@ -112,7 +112,7 @@ public class AmqpMessageSourceTests {
 		verify(connection).createChannel();
 		received.getHeaders()
 				.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class)
-				.acknlowlege(requeue ? Status.REQUEUE : Status.REJECT);
+				.acknlowledge(requeue ? Status.REQUEUE : Status.REJECT);
 		verify(channel).basicReject(123L, requeue);
 		verify(connection).createChannel();
 		ccf.destroy();

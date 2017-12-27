@@ -222,7 +222,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 				AcknowledgmentCallback callback = message.getHeaders()
 						.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
 				if (callback != null && !callback.isAcknowledged()) {
-					callback.acknlowlege(Status.ACCEPT);
+					callback.acknlowledge(Status.ACCEPT);
 				}
 			}
 		}
@@ -231,7 +231,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 				AcknowledgmentCallback callback = message.getHeaders()
 						.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
 				if (callback != null && !callback.isAcknowledged()) {
-					callback.acknlowlege(Status.REJECT);
+					callback.acknlowledge(Status.REJECT);
 				}
 			}
 			if (e instanceof MessagingException) {

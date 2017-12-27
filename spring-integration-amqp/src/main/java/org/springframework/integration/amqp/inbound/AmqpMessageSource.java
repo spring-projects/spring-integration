@@ -166,7 +166,7 @@ public class AmqpMessageSource extends AbstractDeferredAcknowlegmentMessageSourc
 		}
 
 		@Override
-		public void acknlowlege(Status status) {
+		public void acknlowledge(Status status) {
 			Assert.notNull(status, "'status' cannot be null");
 			try {
 				switch (status) {
