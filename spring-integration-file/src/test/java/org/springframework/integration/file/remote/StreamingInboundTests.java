@@ -47,6 +47,7 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.splitter.FileSplitter;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -85,7 +86,7 @@ public class StreamingInboundTests {
 		assertThat(fileInfo, containsString("link\":false"));
 
 		// close after list, transform
-		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(2)).close();
+		verify(StaticMessageHeaderAccessor.getCloseableResource(received), times(2)).close();
 
 		received = (Message<byte[]>) this.transformer.transform(streamer.receive());
 		assertEquals("baz\nqux", new String(received.getPayload()));
@@ -101,7 +102,7 @@ public class StreamingInboundTests {
 		assertThat(fileInfo, containsString("link\":false"));
 
 		// close after transform
-		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(3)).close();
+		verify(StaticMessageHeaderAccessor.getCloseableResource(received), times(3)).close();
 
 		verify(sessionFactory.getSession()).list("/foo");
 	}
@@ -122,7 +123,7 @@ public class StreamingInboundTests {
 		assertEquals("foo", received.getHeaders().get(FileHeaders.REMOTE_FILE));
 
 		// close after list, transform
-		verify(new IntegrationMessageHeaderAccessor(received).getCloseableResource(), times(2)).close();
+		verify(StaticMessageHeaderAccessor.getCloseableResource(received), times(2)).close();
 
 		received = (Message<byte[]>) this.transformer.transform(streamer.receive());
 		assertEquals("baz\nqux", new String(received.getPayload()));

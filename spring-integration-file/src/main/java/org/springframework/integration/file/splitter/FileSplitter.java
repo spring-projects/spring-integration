@@ -34,11 +34,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter.FileMarker.Mark;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.messaging.Message;
@@ -220,8 +220,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 					super.close();
 				}
 				finally {
-					Closeable closeableResource = new IntegrationMessageHeaderAccessor(message)
-							.getCloseableResource();
+					Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(message);
 					if (closeableResource != null) {
 						closeableResource.close();
 					}
