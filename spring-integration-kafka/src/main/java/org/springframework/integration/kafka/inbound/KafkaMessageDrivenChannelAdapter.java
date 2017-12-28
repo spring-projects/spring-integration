@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,19 @@
 package org.springframework.integration.kafka.inbound;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.MessageListener;
@@ -40,6 +43,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
 import org.springframework.kafka.support.converter.ConversionException;
+import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
 import org.springframework.messaging.Message;
@@ -358,6 +362,9 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 			Message<?> message = null;
 			try {
 				message = toMessagingMessage(record, acknowledgment, consumer);
+				if (KafkaMessageDrivenChannelAdapter.this.retryTemplate != null) {
+					message = addDeliveryAttemptHeader(message);
+				}
 				setAttributesIfNecessary(record, message);
 			}
 			catch (RuntimeException e) {
@@ -378,6 +385,22 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 				KafkaMessageDrivenChannelAdapter.this.logger.debug("Converter returned a null message for: "
 						+ record);
 			}
+		}
+
+		private Message<?> addDeliveryAttemptHeader(Message<?> message) {
+			Message<?> messageToReturn = message;
+			AtomicInteger deliveryAttempt =
+					new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
+			if (message.getHeaders() instanceof KafkaMessageHeaders) {
+				((KafkaMessageHeaders) message.getHeaders()).getRawHeaders()
+					.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+			}
+			else {
+				messageToReturn = MessageBuilder.fromMessage(message)
+						.setHeader(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt)
+						.build();
+			}
+			return messageToReturn;
 		}
 
 		@Override
