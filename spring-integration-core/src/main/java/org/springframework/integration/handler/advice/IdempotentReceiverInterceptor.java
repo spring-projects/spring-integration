@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,10 @@ package org.springframework.integration.handler.advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.support.DefaultMessageBuilderFactory;
-import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -46,30 +40,28 @@ import org.springframework.util.Assert;
  * {@code requestMessage} isn't accepted by {@link MessageSelector}.
  * <p>
  * The {@code idempotent filtering} logic depends on the provided {@link MessageSelector}.
-  * <p>
+ * <p>
  * This class is designed to be used only for the {@link MessageHandler#handleMessage},
  * method.
  *
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 4.1
  * @see org.springframework.integration.selector.MetadataStoreSelector
  * @see org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer
  */
-public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice implements BeanFactoryAware {
+public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private final MessageSelector messageSelector;
 
-	private volatile MessageChannel discardChannel;
+	private MessageChannel discardChannel;
 
-	private volatile boolean throwExceptionOnRejection;
+	private String discardChannelName;
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-
-	private volatile boolean messageBuilderFactorySet;
-
-	private BeanFactory beanFactory;
+	private boolean throwExceptionOnRejection;
 
 	public IdempotentReceiverInterceptor(MessageSelector messageSelector) {
 		Assert.notNull(messageSelector, "'messageSelector' must not be null");
@@ -120,19 +112,31 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice i
 		this.discardChannel = discardChannel;
 	}
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+	/**
+	 * Specify a channel name where rejected Messages should be sent. If the discard
+	 * channel is null (the default), duplicate Messages will be enriched with
+	 * {@link IntegrationMessageHeaderAccessor#DUPLICATE_MESSAGE} header
+	 * and returned as normal to the {@code invocation.proceed()}. However,
+	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
+	 * trigger an exception. That value is evaluated regardless of the presence
+	 * of a discard channel.
+	 * <p>
+	 * If there is needed just silently 'drop' rejected messages configure the
+	 * {@link #discardChannel} to the {@code nullChannel}.
+	 * <p>
+	 * Only applies if a {@link #setDiscardChannel(MessageChannel) discardChannel}
+	 * is not provided.
+	 * @param discardChannelName The discard channel name.
+	 * @see #setThrowExceptionOnRejection(boolean)
+	 * @since 5.0.1
+	 */
+	public void setDiscardChannelName(String discardChannelName) {
+		this.discardChannelName = discardChannelName;
 	}
 
-	protected MessageBuilderFactory getMessageBuilderFactory() {
-		if (!this.messageBuilderFactorySet) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
-			this.messageBuilderFactorySet = true;
-		}
-		return this.messageBuilderFactory;
+	@Override
+	public String getComponentType() {
+		return "idempotent-receiver-interceptor";
 	}
 
 	@Override
@@ -140,8 +144,9 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice i
 		boolean accept = this.messageSelector.accept(message);
 		if (!accept) {
 			boolean discarded = false;
-			if (this.discardChannel != null) {
-				this.messagingTemplate.send(this.discardChannel, message);
+			MessageChannel theDiscardChannel = obtainDiscardChannel();
+			if (theDiscardChannel != null) {
+				this.messagingTemplate.send(theDiscardChannel, message);
 				discarded = true;
 			}
 			if (this.throwExceptionOnRejection) {
@@ -150,14 +155,31 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice i
 			}
 
 			if (!discarded) {
-				invocation.getArguments()[0] = getMessageBuilderFactory().fromMessage(message)
-						.setHeader(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true).build();
+				invocation.getArguments()[0] =
+						getMessageBuilderFactory()
+								.fromMessage(message)
+								.setHeader(IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE, true)
+								.build();
 			}
 			else {
 				return null;
 			}
 		}
 		return invocation.proceed();
+	}
+
+	private MessageChannel obtainDiscardChannel() {
+		if (this.discardChannel == null) {
+			if (this.discardChannelName != null) {
+				if (getChannelResolver() == null) {
+					throw new IllegalStateException("No channel resolver available to resolve the discard channel '"
+							+ this.discardChannelName + "'");
+				}
+				this.discardChannel = getChannelResolver()
+						.resolveDestination(this.discardChannelName);
+			}
+		}
+		return this.discardChannel;
 	}
 
 }

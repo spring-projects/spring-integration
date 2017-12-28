@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 
@@ -30,9 +31,11 @@ import org.springframework.messaging.MessageHandler;
  * for the {@link MessageHandler#handleMessage(Message)}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 4.3.1
  */
-public abstract class AbstractHandleMessageAdvice implements HandleMessageAdvice {
+public abstract class AbstractHandleMessageAdvice extends IntegrationObjectSupport implements HandleMessageAdvice {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
