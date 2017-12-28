@@ -323,7 +323,7 @@ public class TransformerTests {
 		public IdempotentReceiverInterceptor idempotentReceiverInterceptor() {
 			IdempotentReceiverInterceptor idempotentReceiverInterceptor =
 					new IdempotentReceiverInterceptor(new MetadataStoreSelector(m -> m.getPayload().toString()));
-			idempotentReceiverInterceptor.setDiscardChannel(idempotentDiscardChannel());
+			idempotentReceiverInterceptor.setDiscardChannelName("idempotentDiscardChannel");
 			idempotentReceiverInterceptor.setThrowExceptionOnRejection(true);
 			return idempotentReceiverInterceptor;
 		}

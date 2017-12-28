@@ -22,6 +22,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 
@@ -32,7 +33,7 @@ import org.springframework.messaging.MessageHandler;
  * @author Artem Bilan
  * @since 4.3.1
  */
-public abstract class AbstractHandleMessageAdvice implements HandleMessageAdvice {
+public abstract class AbstractHandleMessageAdvice extends IntegrationObjectSupport implements HandleMessageAdvice {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
