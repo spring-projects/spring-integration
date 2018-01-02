@@ -167,11 +167,6 @@ All (core) Spring Integration specific Message Headers constants are now declare
 
 [cols="5l,3l,5", options="header"]
 |===
-
-
-
-
-
 | Header Name
 
 
@@ -179,12 +174,6 @@ All (core) Spring Integration specific Message Headers constants are now declare
 
 
 | Usage
-
-
-
-
-
-
 
 
 | IntegrationMessageHeaderAccessor.
@@ -197,12 +186,6 @@ All (core) Spring Integration specific Message Headers constants are now declare
 | Used to correlate two or more messages.
 
 
-
-
-
-
-
-
 | IntegrationMessageHeaderAccessor.
     SEQUENCE_NUMBER
 
@@ -213,12 +196,6 @@ All (core) Spring Integration specific Message Headers constants are now declare
 | Usually a sequence number with a group of messages with a `SEQUENCE_SIZE` but can also be used in a `<resequencer/>` to resequence an unbounded group of messages.
 
 
-
-
-
-
-
-
 | IntegrationMessageHeaderAccessor.
     SEQUENCE_SIZE
 
@@ -227,12 +204,6 @@ All (core) Spring Integration specific Message Headers constants are now declare
 
 
 | The number of messages within a group of correlated messages.
-
-
-
-
-
-
 
 
 | IntegrationMessageHeaderAccessor.
@@ -246,12 +217,6 @@ All (core) Spring Integration specific Message Headers constants are now declare
 Not used by the framework directly but can be set with a header enricher and used in a `<filter/>` configured with an `UnexpiredMessageSelector`.
 
 
-
-
-
-
-
-
 | IntegrationMessageHeaderAccessor.
     PRIORITY
 
@@ -260,12 +225,6 @@ Not used by the framework directly but can be set with a header enricher and use
 
 
 | Message priority; for example within a `PriorityChannel`
-
-
-
-
-
-
 
 
 | IntegrationMessageHeaderAccessor.
@@ -277,6 +236,25 @@ Not used by the framework directly but can be set with a header enricher and use
 
 | True if a message was detected as a duplicate by an idempotent receiver interceptor.
 See <<idempotent-receiver>>.
+
+| IntegrationMessageHeaderAccessor.
+    CLOSEABLE_RESOURCE
+
+
+| java.io.Closeable
+
+
+| This header is present if the message is associated with a `Closeable` which should be closed when message processing is complete.
+An example is the `Session` associated with a streamed file transfer using FTP, SFTP, etc.
+
+| IntegrationMessageHeaderAccessor.
+    DELIVERY_ATTEMPT
+
+
+| java.lang.AtomicInteger
+
+
+| If a message-driven channel adapter supports the configuration of a `RetryTemplate` this header contains the current delivery attempt.
 
 |===
 

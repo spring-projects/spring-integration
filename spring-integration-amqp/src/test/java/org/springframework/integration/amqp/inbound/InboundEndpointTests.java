@@ -19,6 +19,7 @@ package org.springframework.integration.amqp.inbound;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -66,6 +67,7 @@ import org.springframework.integration.json.JsonToObjectTransformer;
 import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.integration.mapping.support.JsonHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.messaging.Message;
@@ -307,9 +309,11 @@ public class InboundEndpointTests {
 		Message<?> errorMessage = errors.receive(0);
 		assertNotNull(errorMessage);
 		assertThat(errorMessage.getPayload(), instanceOf(MessagingException.class));
-		assertThat(((MessagingException) errorMessage.getPayload()).getMessage(), containsString("Dispatcher has no"));
+		MessagingException payload = (MessagingException) errorMessage.getPayload();
+		assertThat(payload.getMessage(), containsString("Dispatcher has no"));
+		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get(), equalTo(3));
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
-				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
+			.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
 		assertThat(amqpMessage, notNullValue());
 		assertNull(errors.receive(0));
 	}
@@ -332,9 +336,11 @@ public class InboundEndpointTests {
 		Message<?> errorMessage = errors.receive(0);
 		assertNotNull(errorMessage);
 		assertThat(errorMessage.getPayload(), instanceOf(MessagingException.class));
-		assertThat(((MessagingException) errorMessage.getPayload()).getMessage(), containsString("Dispatcher has no"));
+		MessagingException payload = (MessagingException) errorMessage.getPayload();
+		assertThat(payload.getMessage(), containsString("Dispatcher has no"));
+		assertThat(StaticMessageHeaderAccessor.getDeliveryAttempt(payload.getFailedMessage()).get(), equalTo(3));
 		org.springframework.amqp.core.Message amqpMessage = errorMessage.getHeaders()
-				.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
+			.get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, org.springframework.amqp.core.Message.class);
 		assertThat(amqpMessage, notNullValue());
 		assertNull(errors.receive(0));
 	}

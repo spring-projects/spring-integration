@@ -22,7 +22,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageHeaderAccessor;
@@ -35,7 +37,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Andy Wilkinson
  * @author Artem Bilan
- * @author Gary Russel
+ * @author Gary Russell
  *
  * @since 4.0
  *
@@ -60,6 +62,8 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String CLOSEABLE_RESOURCE = "closeableResource";
 
+	public static final String DELIVERY_ATTEMPT = "deliveryAttempt";
+
 	private Set<String> readOnlyHeaders = new HashSet<String>();
 
 	public IntegrationMessageHeaderAccessor(Message<?> message) {
@@ -81,10 +85,12 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 		}
 	}
 
+	@Nullable
 	public Long getExpirationDate() {
 		return this.getHeader(EXPIRATION_DATE, Long.class);
 	}
 
+	@Nullable
 	public Object getCorrelationId() {
 		return this.getHeader(CORRELATION_ID);
 	}
@@ -99,6 +105,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 		return (sequenceSize != null ? sequenceSize.intValue() : 0);
 	}
 
+	@Nullable
 	public Integer getPriority() {
 		Number priority = this.getHeader(PRIORITY, Number.class);
 		return (priority != null ? priority.intValue() : null);
@@ -113,11 +120,24 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @return the {@link Closeable}.
 	 * @since 4.3
 	 */
+	@Nullable
 	public Closeable getCloseableResource() {
 		return this.getHeader(CLOSEABLE_RESOURCE, Closeable.class);
 	}
 
+	/**
+	 * When a message-driven enpoint supports retry implicitly, this
+	 * header is incremented for each delivery attempt.
+	 * @return the delivery attempt.
+	 * @since 5.0.1
+	 */
+	@Nullable
+	public AtomicInteger getDeliveryAttempt() {
+		return this.getHeader(DELIVERY_ATTEMPT, AtomicInteger.class);
+	}
+
 	@SuppressWarnings("unchecked")
+	@Nullable
 	public <T> T getHeader(String key, Class<T> type) {
 		Object value = getHeader(key);
 		if (value == null) {

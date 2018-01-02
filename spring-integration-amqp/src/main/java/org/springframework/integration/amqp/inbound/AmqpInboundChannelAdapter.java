@@ -17,6 +17,7 @@
 package org.springframework.integration.amqp.inbound;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
@@ -27,6 +28,7 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -34,6 +36,7 @@ import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -200,15 +203,18 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			try {
 				if (AmqpInboundChannelAdapter.this.retryTemplate == null) {
 					try {
-						processMessage(message, channel);
+						createAndSend(message, channel);
 					}
 					finally {
 						attributesHolder.remove();
 					}
 				}
 				else {
+					final org.springframework.messaging.Message<Object> toSend = createMessage(message, channel);
 					AmqpInboundChannelAdapter.this.retryTemplate.execute(context -> {
-								processMessage(message, channel);
+								StaticMessageHeaderAccessor.getDeliveryAttempt(toSend).incrementAndGet();
+								setAttributesIfNecessary(message, toSend);
+								sendMessage(toSend);
 								return null;
 							},
 							(RecoveryCallback<Object>) AmqpInboundChannelAdapter.this.recoveryCallback);
@@ -225,7 +231,13 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 			}
 		}
 
-		private void processMessage(Message message, Channel channel) {
+		private void createAndSend(Message message, Channel channel) {
+			org.springframework.messaging.Message<Object> messagingMessage = createMessage(message, channel);
+			setAttributesIfNecessary(message, messagingMessage);
+			sendMessage(messagingMessage);
+		}
+
+		private org.springframework.messaging.Message<Object> createMessage(Message message, Channel channel) {
 			Object payload = AmqpInboundChannelAdapter.this.messageConverter.fromMessage(message);
 			Map<String, Object> headers = AmqpInboundChannelAdapter.this.headerMapper
 					.toHeadersFromRequest(message.getMessageProperties());
@@ -234,12 +246,14 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 				headers.put(AmqpHeaders.DELIVERY_TAG, message.getMessageProperties().getDeliveryTag());
 				headers.put(AmqpHeaders.CHANNEL, channel);
 			}
+			if (AmqpInboundChannelAdapter.this.retryTemplate != null) {
+				headers.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, new AtomicInteger());
+			}
 			final org.springframework.messaging.Message<Object> messagingMessage = getMessageBuilderFactory()
 					.withPayload(payload)
 					.copyHeaders(headers)
 					.build();
-			setAttributesIfNecessary(message, messagingMessage);
-			sendMessage(messagingMessage);
+			return messagingMessage;
 		}
 
 		@Override
