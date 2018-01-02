@@ -218,7 +218,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 		QueueChannel replyChannel = new QueueChannel();
 		reactiveHandler.setOutputChannel(replyChannel);
 		reactiveHandler.setExpectedResponseType(String.class);
-		reactiveHandler.setReplyToFlux(true);
+		reactiveHandler.setReplyPayloadToFlux(true);
 
 		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
 

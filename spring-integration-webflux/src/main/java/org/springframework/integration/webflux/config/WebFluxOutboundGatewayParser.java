@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class WebFluxOutboundGatewayParser extends HttpOutboundGatewayParser {
 					.addIndexedArgumentValue(1, new RuntimeBeanReference(webClientRef));
 		}
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-to-flux");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-payload-to-flux");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "body-extractor");
 		return builder;
 	}

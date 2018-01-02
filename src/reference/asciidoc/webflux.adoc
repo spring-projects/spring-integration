@@ -100,7 +100,7 @@ Together with the `ReactiveChannel` as an `outputChannel`, the `Mono<ClientRespo
 Otherwise, it is treated as an `async` mode and the `Mono` response is adapted to an `SettableListenableFuture` for an asynchronous reply from the `WebFluxRequestExecutingMessageHandler`.
 The target payload of the output message depends on the `WebFluxRequestExecutingMessageHandler` configuration.
 The `setExpectedResponseType(Class<?>)` or `setExpectedResponseTypeExpression(Expression)` identifies the target type of the response body element conversion.
-If the `replyToFlux` is set to `true`, the response body is converted to a `Flux` with the provided `expectedResponseType` for each element and this `Flux` is sent as the payload downstream.
+If the `replyPayloadToFlux` is set to `true`, the response body is converted to a `Flux` with the provided `expectedResponseType` for each element and this `Flux` is sent as the payload downstream.
 A <<splitter,splitter>> afterwards can be used to iterate over this `Flux` in a reactive manner.
 
 In addition a `BodyExtractor<?, ClientHttpResponse>` can be injected into the `WebFluxRequestExecutingMessageHandler` instead of `expectedResponseType` and `replyToFlux` properties.

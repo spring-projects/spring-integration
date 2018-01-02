@@ -36,7 +36,7 @@
 					  order="77"
 					  auto-startup="false"
 					  transfer-cookies="true"
-					  reply-to-flux="true"
+					  reply-payload-to-flux="true"
 					  body-extractor="bodyExtractor">
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>

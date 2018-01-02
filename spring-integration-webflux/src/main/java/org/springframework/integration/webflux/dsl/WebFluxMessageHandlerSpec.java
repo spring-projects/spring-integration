@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,12 +63,12 @@ public class WebFluxMessageHandlerSpec
 	 * or as resolved value from the {@link Mono} of the response body.
 	 * Defaults to {@code false} - simple value is pushed downstream.
 	 * Makes sense when {@code expectedResponseType} is configured.
-	 * @param replyToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
+	 * @param replyPayloadToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
 	 * @since 5.0.1
-	 * @see WebFluxRequestExecutingMessageHandler#setReplyToFlux(boolean)
+	 * @see WebFluxRequestExecutingMessageHandler#setReplyPayloadToFlux(boolean)
 	 */
-	public void replyToFlux(boolean replyToFlux) {
-		this.target.setReplyToFlux(replyToFlux);
+	public void replyPayloadToFlux(boolean replyPayloadToFlux) {
+		this.target.setReplyPayloadToFlux(replyPayloadToFlux);
 	}
 
 	/**

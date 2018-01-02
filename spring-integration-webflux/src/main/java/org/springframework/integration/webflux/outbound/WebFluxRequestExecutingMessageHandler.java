@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	private final WebClient webClient;
 
-	private boolean replyToFlux;
+	private boolean replyPayloadToFlux;
 
 	private BodyExtractor<?, ClientHttpResponse> bodyExtractor;
 
@@ -123,13 +123,13 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 * or as resolved value from the {@link Mono} of the response body.
 	 * Defaults to {@code false} - simple value is pushed downstream.
 	 * Makes sense when {@code expectedResponseType} is configured.
-	 * @param replyToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
+	 * @param replyPayloadToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
 	 * @since 5.0.1
 	 * @see #setExpectedResponseType(Class)
 	 * @see #setExpectedResponseTypeExpression(Expression)
 	 */
-	public void setReplyToFlux(boolean replyToFlux) {
-		this.replyToFlux = replyToFlux;
+	public void setReplyPayloadToFlux(boolean replyPayloadToFlux) {
+		this.replyPayloadToFlux = replyPayloadToFlux;
 	}
 
 	/**
@@ -206,7 +206,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 								Mono<?> bodyMono;
 
 								if (expectedResponseType != null) {
-									if (this.replyToFlux) {
+									if (this.replyPayloadToFlux) {
 										BodyExtractor<? extends Flux<?>, ReactiveHttpInputMessage> extractor;
 										if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
 											extractor = BodyExtractors.toFlux(

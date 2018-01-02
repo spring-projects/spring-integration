@@ -486,7 +486,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="reply-to-flux" default="false">
+					<xsd:attribute name="reply-payload-to-flux" default="false">
 						<xsd:annotation>
 							<xsd:documentation>
 								When set to "true", the response is converted to the Flux which is sent as a reply

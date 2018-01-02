@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class WebFluxOutboundGatewayParserTests {
 		assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
-		assertEquals(false, handlerAccessor.getPropertyValue("replyToFlux"));
+		assertEquals(false, handlerAccessor.getPropertyValue("replyPayloadToFlux"));
 	}
 
 	@Test
@@ -128,7 +128,7 @@ public class WebFluxOutboundGatewayParserTests {
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
 		assertEquals("responseHeader", mappedResponseHeaders[0]);
 		assertEquals(true, handlerAccessor.getPropertyValue("transferCookies"));
-		assertEquals(true, handlerAccessor.getPropertyValue("replyToFlux"));
+		assertEquals(true, handlerAccessor.getPropertyValue("replyPayloadToFlux"));
 		assertSame(this.bodyExtractor, handlerAccessor.getPropertyValue("bodyExtractor"));
 	}
 
