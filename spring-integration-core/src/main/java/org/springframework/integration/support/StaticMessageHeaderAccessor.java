@@ -100,4 +100,10 @@ public final class StaticMessageHeaderAccessor {
 		return message.getHeaders().get(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, AtomicInteger.class);
 	}
 
+	@Nullable
+	public static AcknowledgmentCallback getAcknowledgmentCallback(Message<?> message) {
+		return message.getHeaders().get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK,
+				AcknowledgmentCallback.class);
+	}
+
 }

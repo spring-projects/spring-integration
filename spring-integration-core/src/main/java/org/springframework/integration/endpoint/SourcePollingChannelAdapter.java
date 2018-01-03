@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.core.MessageSource;
@@ -35,6 +34,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.integration.support.AcknowledgmentCallback.Status;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
@@ -215,17 +215,16 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
-		AcknowledgmentCallback callback = message.getHeaders()
-				.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
+		AcknowledgmentCallback callback = StaticMessageHeaderAccessor.getAcknowledgmentCallback(message);
 		try {
 			this.messagingTemplate.send(getOutputChannel(), message);
 			if (callback != null && !callback.isAcknowledged()) {
-				callback.acknlowledge(Status.ACCEPT);
+				callback.acknowledge(Status.ACCEPT);
 			}
 		}
 		catch (Exception e) {
 			if (callback != null && !callback.isAcknowledged()) {
-				callback.acknlowledge(Status.REJECT);
+				callback.acknowledge(Status.REJECT);
 			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;

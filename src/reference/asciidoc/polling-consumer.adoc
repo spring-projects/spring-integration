@@ -59,6 +59,76 @@ _Version 4.2_ added more flexibility in this area - see <<conditional-pollers>>.
 This chapter is meant to only give a high-level overview regarding Polling Consumers and how they fit into the concept of message channels - <<channel>> and channel adapters - <<channel-adapter>>.
 For more in-depth information regarding Messaging Endpoints in general and Polling Consumers in particular, please see <<endpoint>>.
 
+[[deferred-acks-message-source]]
+==== Deferred Acknowledgment Pollable Message Source
+
+Starting with _version 5.0.1_, certain modules provide `MessageSource` implementations that support deferring acknowledgment until the downstream flow completes (or hands off the message to another thread).
+This is currently limited to the `AmqpMessageSource` and the `KafkaMessageSource` provided by the https://github.com/spring-projects/spring-integration-kafka[spring-kafka-integration extension project, version 3.0.1 or higher].
+
+With these message sources, the `ACKNOWLEDGMENT_CALLBACK` header (see <<message-header-accessor>>) is added to the message.
+The value of the header is an instance of `AcknowledgmentCallback`:
+
+[source, java]
+----
+@FunctionalInterface
+public interface AcknowledgmentCallback {
+
+	void acknlowledge(Status status);
+
+	default boolean isAcknowledged() {
+		return false;
+	}
+
+	enum Status {
+
+		/**
+		 * Mark the message as accepted.
+		 */
+		ACCEPT,
+
+		/**
+		 * Mark the message as rejected.
+		 */
+		REJECT,
+
+		/**
+		 * Reject the message and requeue so that it will be redelivered.
+		 */
+		REQUEUE
+
+	}
+
+}
+----
+
+Not all message sources (e.g. Kafka) support the `REJECT` status; it is treated the same as `ACCEPT`.
+
+Applications can acknowledge a message at any time:
+
+[source, java]
+----
+Message<?> received = source.receive();
+
+...
+
+StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+        .acknowledge(Status.ACCEPT);
+----
+
+If the `MessageSource` is wired into a `SourcePollingChannelAdapter`, when the poller thread returns to the adapter after the downstream flow completes, the adapter will check if the acknowledgment has already been acknowledged and, if not, `ACCEPT` it (or `REJECT` it if the flow throws an exception).
+
+To perform ad-hoc polling of a `MessageSource` a `MessageSourcePollingTemplate` is provided; this, too will take care of `ACCEPT` ing or `REJECT` ing the AcknowledgmentCallback when the `MessageHandler` callback returns (or throws an exception).
+
+[source, java]
+----
+MessageSourcePollingTemplate template =
+    new MessageSourcePollingTemplate(this.source);
+template.poll(h -> {
+    ...
+});
+----
+
+The callback for the `poll` method is a `MessageHandler`.
 
 [[conditional-pollers]]
 ==== Conditional Pollers for Message Sources

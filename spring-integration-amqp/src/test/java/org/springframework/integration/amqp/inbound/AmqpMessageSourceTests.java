@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,8 @@ import java.util.concurrent.TimeoutException;
 import org.junit.Test;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.integration.support.AcknowledgmentCallback.Status;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
@@ -70,9 +69,8 @@ public class AmqpMessageSourceTests {
 		org.springframework.amqp.rabbit.connection.Connection conn = ccf.createConnection();
 		Channel notCached = conn.createChannel(false); // should not have been "closed"
 		verify(connection, times(2)).createChannel();
-		received.getHeaders()
-				.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class)
-				.acknlowledge(Status.ACCEPT);
+		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+				.acknowledge(Status.ACCEPT);
 		verify(channel).basicAck(123L, false);
 		Channel cached = conn.createChannel(false); // should have been "closed"
 		verify(connection, times(2)).createChannel();
@@ -110,9 +108,8 @@ public class AmqpMessageSourceTests {
 		AmqpMessageSource source = new AmqpMessageSource(ccf, "foo");
 		Message<?> received = source.receive();
 		verify(connection).createChannel();
-		received.getHeaders()
-				.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class)
-				.acknlowledge(requeue ? Status.REQUEUE : Status.REJECT);
+		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
+				.acknowledge(requeue ? Status.REQUEUE : Status.REJECT);
 		verify(channel).basicReject(123L, requeue);
 		verify(connection).createChannel();
 		ccf.destroy();

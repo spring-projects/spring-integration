@@ -165,7 +165,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 		}
 
 		@Override
-		public void acknlowledge(Status status) {
+		public void acknowledge(Status status) {
 			Assert.notNull(status, "'status' cannot be null");
 			try {
 				long deliveryTag = this.ackInfo.getGetResponse().getEnvelope().getDeliveryTag();
