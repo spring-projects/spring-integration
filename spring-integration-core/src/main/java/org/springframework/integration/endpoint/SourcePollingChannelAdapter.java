@@ -30,7 +30,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.context.ExpressionCapable;
-import org.springframework.integration.core.DeferredAcknowlegmentMessageSource;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -216,23 +215,17 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
+		AcknowledgmentCallback callback = message.getHeaders()
+				.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
 		try {
 			this.messagingTemplate.send(getOutputChannel(), message);
-			if (this.source instanceof DeferredAcknowlegmentMessageSource) {
-				AcknowledgmentCallback callback = message.getHeaders()
-						.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
-				if (callback != null && !callback.isAcknowledged()) {
-					callback.acknlowledge(Status.ACCEPT);
-				}
+			if (callback != null && !callback.isAcknowledged()) {
+				callback.acknlowledge(Status.ACCEPT);
 			}
 		}
 		catch (Exception e) {
-			if (this.source instanceof DeferredAcknowlegmentMessageSource) {
-				AcknowledgmentCallback callback = message.getHeaders()
-						.get(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
-				if (callback != null && !callback.isAcknowledged()) {
-					callback.acknlowledge(Status.REJECT);
-				}
+			if (callback != null && !callback.isAcknowledged()) {
+				callback.acknlowledge(Status.REJECT);
 			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;

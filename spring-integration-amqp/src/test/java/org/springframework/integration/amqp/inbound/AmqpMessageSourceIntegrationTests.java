@@ -24,6 +24,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -38,22 +40,21 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.junit.BrokerRunning;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.dsl.Amqp;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.channel.MessageSourcePollableChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -73,10 +74,10 @@ public class AmqpMessageSourceIntegrationTests {
 
 	private static final String DLQ = QUEUE_WITH_DLQ + ".dlq";
 
-	private static final String CHANNEL_QUEUE = "AmqpMessageSourceIntegrationTests.channel";
+	private static final String INTERCEPT_QUEUE = "AmqpMessageSourceIntegrationTests.channel";
 
 	@ClassRule
-	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues(DSL_QUEUE, CHANNEL_QUEUE, DLQ);
+	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues(DSL_QUEUE, INTERCEPT_QUEUE, DLQ);
 
 	@Autowired
 	private Config config;
@@ -103,13 +104,13 @@ public class AmqpMessageSourceIntegrationTests {
 		template.convertAndSend(QUEUE_WITH_DLQ, "foo");
 		template.convertAndSend(QUEUE_WITH_DLQ, "nackIt");
 		template.convertAndSend(DSL_QUEUE, "bar");
-		template.convertAndSend(CHANNEL_QUEUE, "baz");
+		template.convertAndSend(INTERCEPT_QUEUE, "baz");
 		assertTrue(this.config.latch.await(10, TimeUnit.SECONDS));
 		assertThat(this.config.received, equalTo("foo"));
 		Message dead = template.receive(DLQ, 10_000);
 		assertNotNull(dead);
 		assertThat(this.config.fromDsl, equalTo("bar"));
-		assertThat(this.config.fromSourceChannel, equalTo("BAZ"));
+		assertThat(this.config.fromInterceptedSource, equalTo("BAZ"));
 	}
 
 	@Configuration
@@ -122,7 +123,7 @@ public class AmqpMessageSourceIntegrationTests {
 
 		private Object fromDsl;
 
-		private Object fromSourceChannel;
+		private Object fromInterceptedSource;
 
 		@InboundChannelAdapter(channel = "in", poller = @Poller(fixedDelay = "100"))
 		@Bean
@@ -132,7 +133,7 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@ServiceActivator(inputChannel = "in")
 		public void in(String in) {
-			latch.countDown();
+			this.latch.countDown();
 			if ("nackIt".equals(in)) {
 				throw new RuntimeException("testing auto nack");
 			}
@@ -154,41 +155,52 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@Bean
 		public IntegrationFlow messageSourceChannelFlow() {
-			return IntegrationFlows.from(sourceChannel())
+			return IntegrationFlows.from(interceptedSource(),
+							e -> e.poller(Pollers.fixedDelay(100)))
 					.handle(p -> {
-						this.fromSourceChannel = p.getPayload();
+						this.fromInterceptedSource = p.getPayload();
 						this.latch.countDown();
-					}, e -> e.poller(Pollers.fixedDelay(100)))
+					})
 					.get();
 		}
 
 		@Bean
-		public MessageSourcePollableChannel sourceChannel() {
-			MessageSourcePollableChannel channel = new MessageSourcePollableChannel(channelSource());
-			channel.addInterceptor(upcase());
-			return channel;
+		public MessageSource<?> interceptedSource() {
+			return new AmqpMessageSource(connectionFactory(), INTERCEPT_QUEUE);
 		}
 
 		@Bean
-		public MessageSource<?> channelSource() {
-			return new AmqpMessageSource(connectionFactory(), CHANNEL_QUEUE);
-		}
-
-		@Bean
-		public ChannelInterceptor upcase() {
-			return new ChannelInterceptorAdapter() {
+		public static BeanPostProcessor upcase() {
+			return new BeanPostProcessor() {
 
 				@Override
-				public org.springframework.messaging.Message<?> postReceive(
-						org.springframework.messaging.Message<?> message, MessageChannel channel) {
-					if (message != null) {
-						return MessageBuilder.withPayload(((String) message.getPayload()).toUpperCase())
-								.copyHeaders(message.getHeaders())
-								.build();
+				public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+					if (beanName.equals("interceptedSource")) {
+						ProxyFactory pf = new ProxyFactory(bean);
+						MethodInterceptor interceptor = new MethodInterceptor() {
+
+							@Override
+							public Object invoke(MethodInvocation invocation) throws Throwable {
+								if (invocation.getMethod().getName().equals("receive")) {
+									org.springframework.messaging.Message<?> message =
+											(org.springframework.messaging.Message<?>) invocation.proceed();
+									if (message == null) {
+										return null;
+									}
+									return MessageBuilder.withPayload(((String) message.getPayload()).toUpperCase())
+											.copyHeaders(message.getHeaders())
+											.build();
+								}
+								else {
+									return invocation.proceed();
+								}
+							}
+
+						};
+						pf.addAdvice(interceptor);
+						return pf.getProxy();
 					}
-					else {
-						return null;
-					}
+					return bean;
 				}
 
 			};

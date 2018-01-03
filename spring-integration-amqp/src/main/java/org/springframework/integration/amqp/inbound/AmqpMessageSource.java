@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.amqp.inbound;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.Connection;
@@ -34,7 +33,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
-import org.springframework.integration.endpoint.AbstractDeferredAcknowlegmentMessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.integration.support.AcknowledgmentCallbackFactory;
@@ -50,7 +49,7 @@ import com.rabbitmq.client.GetResponse;
  * @since 5.0.1
  *
  */
-public class AmqpMessageSource extends AbstractDeferredAcknowlegmentMessageSource<Object> {
+public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 	private final String queue;
 
@@ -118,7 +117,7 @@ public class AmqpMessageSource extends AbstractDeferredAcknowlegmentMessageSourc
 	}
 
 	@Override
-	protected AbstractIntegrationMessageBuilder<Object> receiveMessageBuilder() {
+	protected AbstractIntegrationMessageBuilder<Object> doReceive() {
 		Connection connection = this.connectionFactory.createConnection();
 		Channel channel = connection.createChannel(this.transacted);
 		try {
@@ -129,7 +128,7 @@ public class AmqpMessageSource extends AbstractDeferredAcknowlegmentMessageSourc
 				return null;
 			}
 			AcknowledgmentCallback callback = this.ackCallbackFactory
-					.createCallback(() -> new AmqpAckInfo(connection, channel, resp.getEnvelope().getDeliveryTag()));
+					.createCallback(new AmqpAckInfo(connection, channel, resp.getEnvelope().getDeliveryTag()));
 			MessageProperties messageProperties = this.propertiesConverter.toMessageProperties(resp.getProps(),
 					resp.getEnvelope(), StandardCharsets.UTF_8.name());
 			Map<String, Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
@@ -149,8 +148,8 @@ public class AmqpMessageSource extends AbstractDeferredAcknowlegmentMessageSourc
 	public static class AmqpAckCallbackFactory implements AcknowledgmentCallbackFactory<AmqpAckInfo> {
 
 		@Override
-		public AcknowledgmentCallback createCallback(Supplier<AmqpAckInfo> supplier) {
-			return new AmqpAckCallback(supplier.get());
+		public AcknowledgmentCallback createCallback(AmqpAckInfo info) {
+			return new AmqpAckCallback(info);
 		}
 
 	}
@@ -189,8 +188,8 @@ public class AmqpMessageSource extends AbstractDeferredAcknowlegmentMessageSourc
 			finally {
 				RabbitUtils.closeChannel(this.ackInfo.getChannel());
 				RabbitUtils.closeConnection(this.ackInfo.getConnection());
+				this.acknowledged = true;
 			}
-			this.acknowledged = true;
 		}
 
 		@Override

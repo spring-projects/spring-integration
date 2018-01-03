@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.support;
 
-import java.util.function.Supplier;
-
 /**
  * A factory for creating {@link AcknowledgmentCallback}s.
  *
@@ -31,9 +29,9 @@ public interface AcknowledgmentCallbackFactory<T> {
 
 	/**
 	 * Create the callback.
-	 * @param supplier a supplier of T
+	 * @param info information for the callback to process the acknowledgment.
 	 * @return the callback
 	 */
-	AcknowledgmentCallback createCallback(Supplier<T> supplier);
+	AcknowledgmentCallback createCallback(T info);
 
 }

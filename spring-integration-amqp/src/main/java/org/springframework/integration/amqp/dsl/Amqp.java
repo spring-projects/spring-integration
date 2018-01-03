@@ -150,6 +150,7 @@ public final class Amqp {
 	 * @param connectionFactory the connectionFactory.
 	 * @param queue the queue.
 	 * @return the AmqpInboundPolledChannelAdapterSpec.
+	 * @since 5.0.1
 	 */
 	public static AmqpInboundPolledChannelAdapterSpec inboundPolledAdapter(ConnectionFactory connectionFactory,
 			String queue) {
