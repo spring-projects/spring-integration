@@ -128,7 +128,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 				return null;
 			}
 			AcknowledgmentCallback callback = this.ackCallbackFactory
-					.createCallback(new AmqpAckInfo(connection, channel, resp.getEnvelope().getDeliveryTag()));
+					.createCallback(new AmqpAckInfo(connection, channel, resp));
 			MessageProperties messageProperties = this.propertiesConverter.toMessageProperties(resp.getProps(),
 					resp.getEnvelope(), StandardCharsets.UTF_8.name());
 			Map<String, Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
@@ -168,15 +168,16 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 		public void acknlowledge(Status status) {
 			Assert.notNull(status, "'status' cannot be null");
 			try {
+				long deliveryTag = this.ackInfo.getGetResponse().getEnvelope().getDeliveryTag();
 				switch (status) {
 				case ACCEPT:
-					this.ackInfo.getChannel().basicAck(this.ackInfo.getDeliveryTag(), false);
+					this.ackInfo.getChannel().basicAck(deliveryTag, false);
 					break;
 				case REJECT:
-					this.ackInfo.getChannel().basicReject(this.ackInfo.getDeliveryTag(), false);
+					this.ackInfo.getChannel().basicReject(deliveryTag, false);
 					break;
 				case REQUEUE:
-					this.ackInfo.getChannel().basicReject(this.ackInfo.getDeliveryTag(), true);
+					this.ackInfo.getChannel().basicReject(deliveryTag, true);
 					break;
 				default:
 					break;
@@ -208,12 +209,12 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 		private final Channel channel;
 
-		private final long deliveryTag;
+		private final GetResponse getResponse;
 
-		public AmqpAckInfo(Connection connection, Channel channel, long deliveryTag) {
+		public AmqpAckInfo(Connection connection, Channel channel, GetResponse getResponse) {
 			this.connection = connection;
 			this.channel = channel;
-			this.deliveryTag = deliveryTag;
+			this.getResponse = getResponse;
 		}
 
 		public Connection getConnection() {
@@ -224,8 +225,8 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 			return this.channel;
 		}
 
-		public long getDeliveryTag() {
-			return this.deliveryTag;
+		public GetResponse getGetResponse() {
+			return this.getResponse;
 		}
 
 	}
