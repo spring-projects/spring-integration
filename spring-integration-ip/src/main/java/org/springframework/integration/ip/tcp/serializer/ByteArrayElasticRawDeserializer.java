@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,9 @@ public class ByteArrayElasticRawDeserializer implements Deserializer<byte[]> {
 	@Override
 	public byte[] deserialize(InputStream inputStream) throws IOException {
 		ByteArrayOutputStream out = new ByteArrayOutputStream(this.initialBufferSize);
-		StreamUtils.copy(inputStream, out);
+		if (StreamUtils.copy(inputStream, out) == 0) {
+			throw new SoftEndOfStreamException("Stream closed with no data");
+		}
 		out.close();
 		return out.toByteArray();
 	}
