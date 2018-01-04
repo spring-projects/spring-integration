@@ -38,7 +38,7 @@ public class AmqpInboundPolledChannelAdapterSpec
 		this.target = new AmqpMessageSource(connectionFactory, queue);
 	}
 
-	public AmqpInboundPolledChannelAdapterSpec(ConnectionFactory connectionFactory,
+	AmqpInboundPolledChannelAdapterSpec(ConnectionFactory connectionFactory,
 			AmqpAckCallbackFactory ackCallbackFactory, String queue) {
 		this.target = new AmqpMessageSource(connectionFactory, ackCallbackFactory, queue);
 	}

@@ -17,8 +17,12 @@
 package org.springframework.integration.support;
 
 import org.springframework.integration.support.AcknowledgmentCallback.Status;
+import org.springframework.lang.Nullable;
+import org.springframework.messaging.Message;
 
 /**
+ * Utility methods for acting on {@link AcknowledgmentCallback} headers.
+ *
  * @author Gary Russell
  * @since 5.0.1
  *
@@ -27,6 +31,16 @@ public final class AckUtils {
 
 	private AckUtils() {
 		super();
+	}
+
+	/**
+	 * Return the {@link AcknowledgmentCallback} header (if present).
+	 * @param message the message.
+	 * @return the callback, or null.
+	 */
+	@Nullable
+	public static AcknowledgmentCallback getAckCallback(Message<?> message) {
+		return StaticMessageHeaderAccessor.getAcknowledgmentCallback(message);
 	}
 
 	/**
@@ -48,6 +62,36 @@ public final class AckUtils {
 	public static void autoNack(AcknowledgmentCallback ackCallback) {
 		if (ackCallback != null && ackCallback.isAutoAck() && !ackCallback.isAcknowledged()) {
 			ackCallback.acknowledge(Status.REJECT);
+		}
+	}
+
+	/**
+	 * ACCEPT the associated message if the callback is not null.
+	 * @param ackCallback the callback.
+	 */
+	public static void accept(@Nullable AcknowledgmentCallback ackCallback) {
+		if (ackCallback != null) {
+			ackCallback.acknowledge(Status.ACCEPT);
+		}
+	}
+
+	/**
+	 * REJECT the associated message if the callback is not null.
+	 * @param ackCallback the callback.
+	 */
+	public static void reject(@Nullable AcknowledgmentCallback ackCallback) {
+		if (ackCallback != null) {
+			ackCallback.acknowledge(Status.REJECT);
+		}
+	}
+
+	/**
+	 * REQUEUE the associated message if the callback is not null.
+	 * @param ackCallback the callback.
+	 */
+	public static void requeue(@Nullable AcknowledgmentCallback ackCallback) {
+		if (ackCallback != null) {
+			ackCallback.acknowledge(Status.REQUEUE);
 		}
 	}
 
