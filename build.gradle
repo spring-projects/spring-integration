@@ -88,7 +88,7 @@ subprojects { subproject ->
 
 	ext {
 		activeMqVersion = '5.15.2'
-		aspectjVersion = '1.8.12'
+		aspectjVersion = '1.8.13'
 		apacheSshdVersion = '1.6.0'
 		boonVersion = '0.34'
 		commonsDbcp2Version = '2.1.1'
@@ -126,7 +126,7 @@ subprojects { subproject ->
 		reactorNettyVersion = '0.7.2.RELEASE'
 		reactorVersion = '3.1.2.RELEASE'
 		romeToolsVersion = '1.8.0'
-		servletApiVersion = '3.1.0'
+		servletApiVersion = '4.0.0'
 		slf4jVersion = "1.7.25"
 		smackVersion = '4.2.2'
 		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.1.RELEASE'
