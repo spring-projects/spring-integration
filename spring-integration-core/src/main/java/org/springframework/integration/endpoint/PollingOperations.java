@@ -17,7 +17,6 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 
 /**
  * Operations to perform on some message source.
@@ -32,8 +31,7 @@ public interface PollingOperations {
 	 * Poll for a message.
 	 * @param handler a message handler.
 	 * @return the message
-	 * @throws MessageHandlingException if the handler throws an exception.
 	 */
-	boolean poll(MessageHandler handler) throws MessageHandlingException;
+	boolean poll(MessageHandler handler);
 
 }

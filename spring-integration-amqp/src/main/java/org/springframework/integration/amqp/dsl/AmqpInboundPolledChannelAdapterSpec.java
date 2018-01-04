@@ -20,6 +20,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.integration.amqp.inbound.AmqpMessageSource;
+import org.springframework.integration.amqp.inbound.AmqpMessageSource.AmqpAckCallbackFactory;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.dsl.MessageSourceSpec;
 
@@ -35,6 +36,11 @@ public class AmqpInboundPolledChannelAdapterSpec
 
 	AmqpInboundPolledChannelAdapterSpec(ConnectionFactory connectionFactory, String queue) {
 		this.target = new AmqpMessageSource(connectionFactory, queue);
+	}
+
+	public AmqpInboundPolledChannelAdapterSpec(ConnectionFactory connectionFactory,
+			AmqpAckCallbackFactory ackCallbackFactory, String queue) {
+		this.target = new AmqpMessageSource(connectionFactory, ackCallbackFactory, queue);
 	}
 
 	public AmqpInboundPolledChannelAdapterSpec transacted(boolean transacted) {

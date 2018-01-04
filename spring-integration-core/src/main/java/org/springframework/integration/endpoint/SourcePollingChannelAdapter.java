@@ -32,8 +32,8 @@ import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.AckUtils;
 import org.springframework.integration.support.AcknowledgmentCallback;
-import org.springframework.integration.support.AcknowledgmentCallback.Status;
 import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.TrackableComponent;
@@ -213,19 +213,15 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void handleMessage(Message<?> message) {
 		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
+			message = MessageHistory.write(message, this, getMessageBuilderFactory());
 		}
-		AcknowledgmentCallback callback = StaticMessageHeaderAccessor.getAcknowledgmentCallback(message);
+		AcknowledgmentCallback ackCallback = StaticMessageHeaderAccessor.getAcknowledgmentCallback(message);
 		try {
 			this.messagingTemplate.send(getOutputChannel(), message);
-			if (callback != null && !callback.isAcknowledged()) {
-				callback.acknowledge(Status.ACCEPT);
-			}
+			AckUtils.autoAck(ackCallback);
 		}
 		catch (Exception e) {
-			if (callback != null && !callback.isAcknowledged()) {
-				callback.acknowledge(Status.REJECT);
-			}
+			AckUtils.autoNack(ackCallback);
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}

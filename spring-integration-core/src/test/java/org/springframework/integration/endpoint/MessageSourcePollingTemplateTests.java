@@ -19,7 +19,9 @@ package org.springframework.integration.endpoint;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
@@ -43,6 +45,7 @@ public class MessageSourcePollingTemplateTests {
 	@Test
 	public void testAckNack() {
 		AcknowledgmentCallback callback = mock(AcknowledgmentCallback.class);
+		given(callback.isAutoAck()).willReturn(true);
 		MessageSource<?> source = () -> new GenericMessage<>("foo",
 				Collections.singletonMap(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, callback));
 		MessageSourcePollingTemplate template = new MessageSourcePollingTemplate(source);
@@ -58,6 +61,18 @@ public class MessageSourcePollingTemplateTests {
 			assertThat(e.getCause().getMessage(), equalTo("expected"));
 		}
 		verify(callback).acknowledge(Status.REJECT);
+	}
+
+	@Test
+	public void testNoAutoAck() {
+		AcknowledgmentCallback callback = mock(AcknowledgmentCallback.class);
+		given(callback.isAutoAck()).willReturn(false);
+		MessageSource<?> source = () -> new GenericMessage<>("foo",
+				Collections.singletonMap(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, callback));
+		MessageSourcePollingTemplate template = new MessageSourcePollingTemplate(source);
+		template.poll(h -> { });
+		verify(callback, never()).acknowledge(Status.ACCEPT);
+		verify(callback, never()).acknowledge(Status.REJECT);
 	}
 
 }

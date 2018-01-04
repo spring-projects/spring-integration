@@ -71,6 +71,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 	public AmqpMessageSource(ConnectionFactory connectionFactory, AmqpAckCallbackFactory ackCallbackFactory,
 			String queue) {
+
 		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
 		Assert.notNull(ackCallbackFactory, "'ackCallbackFactory' cannot be null");
 		Assert.notNull(queue, "'queue' cannot be null");
@@ -79,34 +80,53 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 		this.queue = queue;
 	}
 
-	public boolean isTransacted() {
+	protected boolean isTransacted() {
 		return this.transacted;
 	}
 
+	/**
+	 * Set to true to use a transacted channel for the ack.
+	 * @param transacted true for transacted.
+	 */
 	public void setTransacted(boolean transacted) {
 		this.transacted = transacted;
 	}
 
-	public MessagePropertiesConverter getPropertiesConverter() {
+	protected MessagePropertiesConverter getPropertiesConverter() {
 		return this.propertiesConverter;
 	}
 
+	/**
+	 * Set a custom {@link MessagePropertiesConverter} to replace the default
+	 * {@link DefaultMessagePropertiesConverter}.
+	 * @param propertiesConverter the converter.
+	 */
 	public void setPropertiesConverter(MessagePropertiesConverter propertiesConverter) {
 		this.propertiesConverter = propertiesConverter;
 	}
 
-	public AmqpHeaderMapper getHeaderMapper() {
+	protected AmqpHeaderMapper getHeaderMapper() {
 		return this.headerMapper;
 	}
 
+	/**
+	 * Set a custom {@link AmqpHeaderMapper} to replace the default
+	 * {@link DefaultAmqpHeaderMapper#inboundMapper()}.
+	 * @param headerMapper the header mapper.
+	 */
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
 	}
 
-	public MessageConverter getMessageConverter() {
+	protected MessageConverter getMessageConverter() {
 		return this.messageConverter;
 	}
 
+	/**
+	 * Set a custom {@link MessageConverter} to replace the default
+	 * {@link SimpleMessageConverter}.
+	 * @param messageConverter the converter.
+	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
 		this.messageConverter = messageConverter;
 	}
@@ -128,7 +148,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 				return null;
 			}
 			AcknowledgmentCallback callback = this.ackCallbackFactory
-					.createCallback(new AmqpAckInfo(connection, channel, resp));
+					.createCallback(new AmqpAckInfo(connection, channel, this.transacted, resp));
 			MessageProperties messageProperties = this.propertiesConverter.toMessageProperties(resp.getProps(),
 					resp.getEnvelope(), StandardCharsets.UTF_8.name());
 			Map<String, Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
@@ -141,8 +161,8 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 		catch (IOException e) {
 			RabbitUtils.closeChannel(channel);
 			RabbitUtils.closeConnection(connection);
+			throw RabbitExceptionTranslator.convertRabbitAccessException(e);
 		}
-		return null;
 	}
 
 	public static class AmqpAckCallbackFactory implements AcknowledgmentCallbackFactory<AmqpAckInfo> {
@@ -158,10 +178,35 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 		private final AmqpAckInfo ackInfo;
 
-		private volatile boolean acknowledged;
+		private boolean acknowledged;
+
+		private boolean autoAckEnabled = true;
 
 		public AmqpAckCallback(AmqpAckInfo ackInfo) {
 			this.ackInfo = ackInfo;
+		}
+
+		protected AmqpAckInfo getAckInfo() {
+			return this.ackInfo;
+		}
+
+		protected void setAcknowledged(boolean acknowledged) {
+			this.acknowledged = acknowledged;
+		}
+
+		@Override
+		public boolean isAcknowledged() {
+			return this.acknowledged;
+		}
+
+		@Override
+		public void noAutoAck() {
+			this.autoAckEnabled = false;
+		}
+
+		@Override
+		public boolean isAutoAck() {
+			return this.autoAckEnabled;
 		}
 
 		@Override
@@ -182,6 +227,9 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 				default:
 					break;
 				}
+				if (this.ackInfo.isTransacted()) {
+					this.ackInfo.getChannel().txCommit();
+				}
 			}
 			catch (IOException e) {
 				throw RabbitExceptionTranslator.convertRabbitAccessException(e);
@@ -191,11 +239,6 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 				RabbitUtils.closeConnection(this.ackInfo.getConnection());
 				this.acknowledged = true;
 			}
-		}
-
-		@Override
-		public boolean isAcknowledged() {
-			return this.acknowledged;
 		}
 
 	}
@@ -209,11 +252,14 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 		private final Channel channel;
 
+		private final boolean transacted;
+
 		private final GetResponse getResponse;
 
-		public AmqpAckInfo(Connection connection, Channel channel, GetResponse getResponse) {
+		public AmqpAckInfo(Connection connection, Channel channel, boolean transacted, GetResponse getResponse) {
 			this.connection = connection;
 			this.channel = channel;
+			this.transacted = transacted;
 			this.getResponse = getResponse;
 		}
 
@@ -223,6 +269,10 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 		public Channel getChannel() {
 			return this.channel;
+		}
+
+		public boolean isTransacted() {
+			return this.transacted;
 		}
 
 		public GetResponse getGetResponse() {

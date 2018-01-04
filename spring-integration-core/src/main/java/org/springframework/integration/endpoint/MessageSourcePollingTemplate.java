@@ -17,12 +17,13 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.support.AckUtils;
 import org.springframework.integration.support.AcknowledgmentCallback;
-import org.springframework.integration.support.AcknowledgmentCallback.Status;
 import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.util.Assert;
 
 /**
  * A {@link PollingOperations} used to ad-hoc poll a {@link MessageSource}.
@@ -30,7 +31,7 @@ import org.springframework.messaging.MessageHandlingException;
  * or REJECTed if necessary.
  *
  * @author Gary Russell
- * @since 5.0
+ * @since 5.0.1
  *
  */
 public class MessageSourcePollingTemplate implements PollingOperations {
@@ -38,24 +39,23 @@ public class MessageSourcePollingTemplate implements PollingOperations {
 	private final MessageSource<?> source;
 
 	public MessageSourcePollingTemplate(MessageSource<?> source) {
+		Assert.notNull(source, "'source' cannot be null");
 		this.source = source;
 	}
 
 	@Override
-	public boolean poll(MessageHandler handler) throws MessageHandlingException {
+	public boolean poll(MessageHandler handler) {
+		Assert.notNull(handler, "'handler' cannot be null");
 		Message<?> message = this.source.receive();
-		AcknowledgmentCallback acknowledgmentCallback = StaticMessageHeaderAccessor.getAcknowledgmentCallback(message);
 		if (message != null) {
+			AcknowledgmentCallback ackCallback = StaticMessageHeaderAccessor
+					.getAcknowledgmentCallback(message);
 			try {
 				handler.handleMessage(message);
-				if (acknowledgmentCallback != null && !acknowledgmentCallback.isAcknowledged()) {
-					acknowledgmentCallback.acknowledge(Status.ACCEPT);
-				}
+				AckUtils.autoAck(ackCallback);
 			}
 			catch (Exception e) {
-				if (acknowledgmentCallback != null && !acknowledgmentCallback.isAcknowledged()) {
-					acknowledgmentCallback.acknowledge(Status.REJECT);
-				}
+				AckUtils.autoNack(ackCallback);
 				throw new MessageHandlingException(message, e);
 			}
 			return true;

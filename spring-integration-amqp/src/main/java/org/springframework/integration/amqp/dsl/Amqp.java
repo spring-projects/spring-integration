@@ -22,6 +22,7 @@ import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.integration.amqp.inbound.AmqpMessageSource.AmqpAckCallbackFactory;
 
 /**
  * Factory class for AMQP components.
@@ -155,6 +156,19 @@ public final class Amqp {
 	public static AmqpInboundPolledChannelAdapterSpec inboundPolledAdapter(ConnectionFactory connectionFactory,
 			String queue) {
 		return new AmqpInboundPolledChannelAdapterSpec(connectionFactory, queue);
+	}
+
+	/**
+	 * Create an initial AmqpInboundPolledChannelAdapterSpec
+	 * @param connectionFactory the connectionFactory.
+	 * @param ackCallbackFactory the ackCallbackFactory
+	 * @param queue the queue.
+	 * @return the AmqpInboundPolledChannelAdapterSpec.
+	 * @since 5.0.1
+	 */
+	public static AmqpInboundPolledChannelAdapterSpec inboundPolledAdapter(ConnectionFactory connectionFactory,
+			AmqpAckCallbackFactory ackCallbackFactory, String queue) {
+		return new AmqpInboundPolledChannelAdapterSpec(connectionFactory, ackCallbackFactory, queue);
 	}
 
 	/**

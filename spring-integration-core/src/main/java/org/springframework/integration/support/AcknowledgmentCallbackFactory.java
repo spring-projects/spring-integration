@@ -25,6 +25,7 @@ package org.springframework.integration.support;
  * @since 5.0.1
  *
  */
+@FunctionalInterface
 public interface AcknowledgmentCallbackFactory<T> {
 
 	/**

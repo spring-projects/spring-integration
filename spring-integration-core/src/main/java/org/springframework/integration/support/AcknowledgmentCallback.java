@@ -41,6 +41,24 @@ public interface AcknowledgmentCallback {
 		return false;
 	}
 
+	/**
+	 * Disable auto acknowledgment by a {@code SourcePollingChannelAdapter}
+	 * or {@code MessageSourcePollingTemplate}. Not all implementations support
+	 * this - for example, the Kafka message source.
+	 */
+	default void noAutoAck() {
+		throw new UnsupportedOperationException("You cannot disable auto acknowledgment with this implementation");
+	}
+
+	/**
+	 * Return true if this acknowledgment supports auto ack when it has not been
+	 * already ack'd by the application.
+	 * @return true if auto ack is supported.
+	 */
+	default boolean isAutoAck() {
+		return true;
+	}
+
 	enum Status {
 
 		/**

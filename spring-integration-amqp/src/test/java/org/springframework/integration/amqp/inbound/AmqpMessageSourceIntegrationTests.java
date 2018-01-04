@@ -18,6 +18,7 @@ package org.springframework.integration.amqp.inbound;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -25,7 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -44,8 +45,10 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.amqp.dsl.Amqp;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
@@ -55,6 +58,9 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.support.AcknowledgmentCallback;
+import org.springframework.integration.support.AcknowledgmentCallback.Status;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -76,11 +82,17 @@ public class AmqpMessageSourceIntegrationTests {
 
 	private static final String INTERCEPT_QUEUE = "AmqpMessageSourceIntegrationTests.channel";
 
+	private static final String NOAUTOACK_QUEUE = "AmqpMessageSourceIntegrationTests.noAutoAck";
+
 	@ClassRule
-	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues(DSL_QUEUE, INTERCEPT_QUEUE, DLQ);
+	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues(DSL_QUEUE, INTERCEPT_QUEUE, DLQ,
+			NOAUTOACK_QUEUE);
 
 	@Autowired
 	private Config config;
+
+	@Autowired
+	private ConfigurableApplicationContext context;
 
 	@Before
 	public void before() {
@@ -91,6 +103,12 @@ public class AmqpMessageSourceIntegrationTests {
 				.withArgument("x-dead-letter-routing-key", DLQ)
 				.build();
 		admin.declareQueue(queue);
+		this.context.start();
+	}
+
+	@After
+	public void after() {
+		this.context.stop();
 	}
 
 	@AfterClass
@@ -105,27 +123,33 @@ public class AmqpMessageSourceIntegrationTests {
 		template.convertAndSend(QUEUE_WITH_DLQ, "nackIt");
 		template.convertAndSend(DSL_QUEUE, "bar");
 		template.convertAndSend(INTERCEPT_QUEUE, "baz");
+		template.convertAndSend(NOAUTOACK_QUEUE, "qux");
 		assertTrue(this.config.latch.await(10, TimeUnit.SECONDS));
 		assertThat(this.config.received, equalTo("foo"));
 		Message dead = template.receive(DLQ, 10_000);
 		assertNotNull(dead);
 		assertThat(this.config.fromDsl, equalTo("bar"));
 		assertThat(this.config.fromInterceptedSource, equalTo("BAZ"));
+		assertNull(template.receive(NOAUTOACK_QUEUE));
+		this.config.callback.acknowledge(Status.REQUEUE);
+		assertNotNull(template.receive(NOAUTOACK_QUEUE, 10_000));
 	}
 
 	@Configuration
 	@EnableIntegration
 	public static class Config {
 
-		private final CountDownLatch latch = new CountDownLatch(4);
+		private final CountDownLatch latch = new CountDownLatch(5);
 
-		private String received;
+		private volatile String received;
 
-		private Object fromDsl;
+		private volatile Object fromDsl;
 
-		private Object fromInterceptedSource;
+		private volatile Object fromInterceptedSource;
 
-		@InboundChannelAdapter(channel = "in", poller = @Poller(fixedDelay = "100"))
+		private volatile AcknowledgmentCallback callback;
+
+		@InboundChannelAdapter(channel = "in", poller = @Poller(fixedDelay = "100"), autoStartup = "false")
 		@Bean
 		public MessageSource<?> source() {
 			return new AmqpMessageSource(connectionFactory(), QUEUE_WITH_DLQ);
@@ -133,19 +157,37 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@ServiceActivator(inputChannel = "in")
 		public void in(String in) {
-			this.latch.countDown();
-			if ("nackIt".equals(in)) {
-				throw new RuntimeException("testing auto nack");
+			try {
+				if ("nackIt".equals(in)) {
+					throw new RuntimeException("testing auto nack");
+				}
+				else {
+					this.received = in;
+				}
 			}
-			else {
-				this.received = in;
+			finally {
+				this.latch.countDown();
 			}
+		}
+
+		@InboundChannelAdapter(channel = "noAutoAck", poller = @Poller(fixedDelay = "100"), autoStartup = "false")
+		@Bean
+		public MessageSource<?> noAutoAckSource() {
+			return new AmqpMessageSource(connectionFactory(), NOAUTOACK_QUEUE);
+		}
+
+		@ServiceActivator(inputChannel = "noAutoAck")
+		public void ack(@Header(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK)
+				AcknowledgmentCallback callback) {
+			callback.noAutoAck();
+			this.callback = callback;
+			latch.countDown();
 		}
 
 		@Bean
 		public IntegrationFlow flow() {
 			return IntegrationFlows.from(Amqp.inboundPolledAdapter(connectionFactory(), DSL_QUEUE),
-							e -> e.poller(Pollers.fixedDelay(100)))
+							e -> e.poller(Pollers.fixedDelay(100)).autoStartup(false))
 					.handle(p -> {
 						this.fromDsl = p.getPayload();
 						this.latch.countDown();
@@ -156,7 +198,7 @@ public class AmqpMessageSourceIntegrationTests {
 		@Bean
 		public IntegrationFlow messageSourceChannelFlow() {
 			return IntegrationFlows.from(interceptedSource(),
-							e -> e.poller(Pollers.fixedDelay(100)))
+							e -> e.poller(Pollers.fixedDelay(100)).autoStartup(false))
 					.handle(p -> {
 						this.fromInterceptedSource = p.getPayload();
 						this.latch.countDown();
@@ -177,27 +219,22 @@ public class AmqpMessageSourceIntegrationTests {
 				public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 					if (beanName.equals("interceptedSource")) {
 						ProxyFactory pf = new ProxyFactory(bean);
-						MethodInterceptor interceptor = new MethodInterceptor() {
+						pf.addAdvice((MethodInterceptor) invocation -> {
 
-							@Override
-							public Object invoke(MethodInvocation invocation) throws Throwable {
-								if (invocation.getMethod().getName().equals("receive")) {
-									org.springframework.messaging.Message<?> message =
-											(org.springframework.messaging.Message<?>) invocation.proceed();
-									if (message == null) {
-										return null;
-									}
-									return MessageBuilder.withPayload(((String) message.getPayload()).toUpperCase())
-											.copyHeaders(message.getHeaders())
-											.build();
+							if (invocation.getMethod().getName().equals("receive")) {
+								org.springframework.messaging.Message<?> message =
+										(org.springframework.messaging.Message<?>) invocation.proceed();
+								if (message == null) {
+									return null;
 								}
-								else {
-									return invocation.proceed();
-								}
+								return MessageBuilder.withPayload(((String) message.getPayload()).toUpperCase())
+										.copyHeaders(message.getHeaders())
+										.build();
 							}
-
-						};
-						pf.addAdvice(interceptor);
+							else {
+								return invocation.proceed();
+							}
+						});
 						return pf.getProxy();
 					}
 					return bean;
@@ -208,7 +245,7 @@ public class AmqpMessageSourceIntegrationTests {
 
 		@Bean
 		public ConnectionFactory connectionFactory() {
-			return new CachingConnectionFactory("localhost");
+			return new CachingConnectionFactory(brokerRunning.getConnectionFactory());
 		}
 
 	}
