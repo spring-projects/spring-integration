@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.integration.amqp.inbound.AmqpMessageSource.AmqpAckCallbackFactory;
 
 /**
  * Factory class for AMQP components.
@@ -143,6 +144,31 @@ public final class Amqp {
 	public static AmqpInboundGatewayDMLCSpec inboundGateway(DirectMessageListenerContainer listenerContainer,
 			AmqpTemplate amqpTemplate) {
 		return new AmqpInboundGatewayDMLCSpec(listenerContainer, amqpTemplate);
+	}
+
+	/**
+	 * Create an initial AmqpInboundPolledChannelAdapterSpec
+	 * @param connectionFactory the connectionFactory.
+	 * @param queue the queue.
+	 * @return the AmqpInboundPolledChannelAdapterSpec.
+	 * @since 5.0.1
+	 */
+	public static AmqpInboundPolledChannelAdapterSpec inboundPolledAdapter(ConnectionFactory connectionFactory,
+			String queue) {
+		return new AmqpInboundPolledChannelAdapterSpec(connectionFactory, queue);
+	}
+
+	/**
+	 * Create an initial AmqpInboundPolledChannelAdapterSpec
+	 * @param connectionFactory the connectionFactory.
+	 * @param ackCallbackFactory the ackCallbackFactory
+	 * @param queue the queue.
+	 * @return the AmqpInboundPolledChannelAdapterSpec.
+	 * @since 5.0.1
+	 */
+	public static AmqpInboundPolledChannelAdapterSpec inboundPolledAdapter(ConnectionFactory connectionFactory,
+			AmqpAckCallbackFactory ackCallbackFactory, String queue) {
+		return new AmqpInboundPolledChannelAdapterSpec(connectionFactory, ackCallbackFactory, queue);
 	}
 
 	/**

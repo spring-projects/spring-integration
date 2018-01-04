@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.AckUtils;
+import org.springframework.integration.support.AcknowledgmentCallback;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
@@ -210,12 +213,15 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	@Override
 	protected void handleMessage(Message<?> message) {
 		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
+			message = MessageHistory.write(message, this, getMessageBuilderFactory());
 		}
+		AcknowledgmentCallback ackCallback = StaticMessageHeaderAccessor.getAcknowledgmentCallback(message);
 		try {
 			this.messagingTemplate.send(getOutputChannel(), message);
+			AckUtils.autoAck(ackCallback);
 		}
 		catch (Exception e) {
+			AckUtils.autoNack(ackCallback);
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}

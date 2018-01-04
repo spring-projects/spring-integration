@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,8 +144,14 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	@SuppressWarnings("unchecked")
 	protected Message<T> buildMessage(Object result) {
 		Message<T> message = null;
-		Map<String, Object> headers = this.evaluateHeaders();
-		if (result instanceof Message<?>) {
+		Map<String, Object> headers = evaluateHeaders();
+		if (result instanceof AbstractIntegrationMessageBuilder) {
+			if (!CollectionUtils.isEmpty(headers)) {
+				((AbstractIntegrationMessageBuilder<T>) result).copyHeaders(headers);
+			}
+			message = ((AbstractIntegrationMessageBuilder<T>) result).build();
+		}
+		else if (result instanceof Message<?>) {
 			try {
 				message = (Message<T>) result;
 			}
@@ -154,7 +160,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 			}
 			if (!CollectionUtils.isEmpty(headers)) {
 				// create a new Message from this one in order to apply headers
-				AbstractIntegrationMessageBuilder<T> builder = this.getMessageBuilderFactory().fromMessage(message);
+				AbstractIntegrationMessageBuilder<T> builder = getMessageBuilderFactory().fromMessage(message);
 				builder.copyHeaders(headers);
 				message = builder.build();
 			}
@@ -167,7 +173,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 			catch (Exception e) {
 				throw new MessagingException("MessageSource returned unexpected type.", e);
 			}
-			AbstractIntegrationMessageBuilder<T> builder = this.getMessageBuilderFactory().withPayload(payload);
+			AbstractIntegrationMessageBuilder<T> builder = getMessageBuilderFactory().withPayload(payload);
 			if (!CollectionUtils.isEmpty(headers)) {
 				builder.copyHeaders(headers);
 			}

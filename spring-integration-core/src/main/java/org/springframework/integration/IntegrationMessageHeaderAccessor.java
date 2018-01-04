@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -63,6 +64,8 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	public static final String CLOSEABLE_RESOURCE = "closeableResource";
 
 	public static final String DELIVERY_ATTEMPT = "deliveryAttempt";
+
+	public static final String ACKNOWLEDGMENT_CALLBACK = "acknowledgmentCallback";
 
 	private Set<String> readOnlyHeaders = new HashSet<String>();
 
@@ -122,7 +125,16 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 */
 	@Nullable
 	public Closeable getCloseableResource() {
-		return this.getHeader(CLOSEABLE_RESOURCE, Closeable.class);
+		return getHeader(CLOSEABLE_RESOURCE, Closeable.class);
+	}
+
+	/**
+	 * Return the acknowledgment callback, if present.
+	 * @return the callback.
+	 * @since 5.0.1
+	 */
+	public AcknowledgmentCallback getAcknowledgmentCallback() {
+		return getHeader(ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
 	}
 
 	/**
