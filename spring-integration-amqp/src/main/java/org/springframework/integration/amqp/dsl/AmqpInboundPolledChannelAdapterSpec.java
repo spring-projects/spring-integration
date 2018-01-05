@@ -50,17 +50,17 @@ public class AmqpInboundPolledChannelAdapterSpec
 		return this;
 	}
 
-	public AmqpInboundPolledChannelAdapterSpec setPropertiesConverter(MessagePropertiesConverter propertiesConverter) {
+	public AmqpInboundPolledChannelAdapterSpec propertiesConverter(MessagePropertiesConverter propertiesConverter) {
 		this.target.setPropertiesConverter(propertiesConverter);
 		return this;
 	}
 
-	public AmqpInboundPolledChannelAdapterSpec setHeaderMapper(AmqpHeaderMapper headerMapper) {
+	public AmqpInboundPolledChannelAdapterSpec headerMapper(AmqpHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
 		return this;
 	}
 
-	public AmqpInboundPolledChannelAdapterSpec setMessageConverter(MessageConverter messageConverter) {
+	public AmqpInboundPolledChannelAdapterSpec messageConverter(MessageConverter messageConverter) {
 		this.target.setMessageConverter(messageConverter);
 		return this;
 	}
