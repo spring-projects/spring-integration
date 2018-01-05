@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ReactiveHttpInputMessage;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.AbstractHttpRequestExecutingMessageHandler;
 import org.springframework.messaging.Message;
@@ -62,7 +63,9 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 
 	private final WebClient webClient;
 
-	private boolean replyToFlux;
+	private boolean replyPayloadToFlux;
+
+	private BodyExtractor<?, ClientHttpResponse> bodyExtractor;
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -120,13 +123,25 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	 * or as resolved value from the {@link Mono} of the response body.
 	 * Defaults to {@code false} - simple value is pushed downstream.
 	 * Makes sense when {@code expectedResponseType} is configured.
-	 * @param replyToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
+	 * @param replyPayloadToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
 	 * @since 5.0.1
 	 * @see #setExpectedResponseType(Class)
 	 * @see #setExpectedResponseTypeExpression(Expression)
 	 */
-	public void setReplyToFlux(boolean replyToFlux) {
-		this.replyToFlux = replyToFlux;
+	public void setReplyPayloadToFlux(boolean replyPayloadToFlux) {
+		this.replyPayloadToFlux = replyPayloadToFlux;
+	}
+
+	/**
+	 * Specify a {@link BodyExtractor} as an alternative to the {@code expectedResponseType}
+	 * to allow to get low-level access to the received {@link ClientHttpResponse}.
+	 * @param bodyExtractor the {@link BodyExtractor} to use.
+	 * @since 5.0.1
+	 * @see #setExpectedResponseType(Class)
+	 * @see #setExpectedResponseTypeExpression(Expression)
+	 */
+	public void setBodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
+		this.bodyExtractor = bodyExtractor;
 	}
 
 	@Override
@@ -191,7 +206,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 								Mono<?> bodyMono;
 
 								if (expectedResponseType != null) {
-									if (this.replyToFlux) {
+									if (this.replyPayloadToFlux) {
 										BodyExtractor<? extends Flux<?>, ReactiveHttpInputMessage> extractor;
 										if (expectedResponseType instanceof ParameterizedTypeReference<?>) {
 											extractor = BodyExtractors.toFlux(
@@ -213,6 +228,15 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 											extractor = BodyExtractors.toMono((Class<?>) expectedResponseType);
 										}
 										bodyMono = response.body(extractor);
+									}
+								}
+								else if (this.bodyExtractor != null) {
+									Object body = response.body(this.bodyExtractor);
+									if (body instanceof Mono) {
+										bodyMono = (Mono<?>) body;
+									}
+									else {
+										bodyMono = Mono.just(body);
 									}
 								}
 								else {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class WebFluxNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
+		registerBeanDefinitionParser("inbound-channel-adapter", new WebFluxInboundEndpointParser(false));
+		registerBeanDefinitionParser("inbound-gateway", new WebFluxInboundEndpointParser(true));
 		registerBeanDefinitionParser("outbound-channel-adapter", new WebFluxOutboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-gateway", new WebFluxOutboundGatewayParser());
 	}

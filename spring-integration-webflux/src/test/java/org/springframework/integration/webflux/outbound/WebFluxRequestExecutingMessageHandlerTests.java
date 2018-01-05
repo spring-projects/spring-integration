@@ -18,6 +18,7 @@ package org.springframework.integration.webflux.outbound;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -33,11 +34,13 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.webflux.support.ClientHttpResponseBodyExtractor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.ErrorMessage;
@@ -215,7 +218,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 		QueueChannel replyChannel = new QueueChannel();
 		reactiveHandler.setOutputChannel(replyChannel);
 		reactiveHandler.setExpectedResponseType(String.class);
-		reactiveHandler.setReplyToFlux(true);
+		reactiveHandler.setReplyPayloadToFlux(true);
 
 		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
 
@@ -231,5 +234,56 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 				.expectNext("foo", "bar", "baz")
 				.verifyComplete();
 	}
+
+	@Test
+	public void testClientHttpResponseAsReply() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.OK);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+
+			Flux<DataBuffer> data =
+					Flux.just(bufferFactory.wrap("foo".getBytes()),
+							bufferFactory.wrap("bar".getBytes()),
+							bufferFactory.wrap("baz".getBytes()));
+
+			return response.writeWith(data)
+					.then(Mono.defer(response::setComplete));
+		});
+
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.build();
+
+		String destinationUri = "http://www.springsource.org/spring-integration";
+		WebFluxRequestExecutingMessageHandler reactiveHandler =
+				new WebFluxRequestExecutingMessageHandler(destinationUri, webClient);
+
+		QueueChannel replyChannel = new QueueChannel();
+		reactiveHandler.setOutputChannel(replyChannel);
+		reactiveHandler.setBodyExtractor(new ClientHttpResponseBodyExtractor());
+
+		reactiveHandler.handleMessage(MessageBuilder.withPayload("hello, world").build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertNotNull(receive);
+
+		assertThat(receive.getPayload(), instanceOf(ClientHttpResponse.class));
+
+		ClientHttpResponse response = (ClientHttpResponse) receive.getPayload();
+
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(MediaType.TEXT_PLAIN, response.getHeaders().getContentType());
+
+		StepVerifier.create(
+				response.getBody()
+						.map(dataBuffer -> new String(dataBuffer.asByteBuffer().array())))
+				.expectNext("foo", "bar", "baz")
+				.verifyComplete();
+	}
+
 
 }
