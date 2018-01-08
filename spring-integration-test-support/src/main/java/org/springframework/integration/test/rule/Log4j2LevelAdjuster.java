@@ -63,7 +63,7 @@ public class Log4j2LevelAdjuster implements MethodRule {
 	private Log4j2LevelAdjuster(Level level, Class<?>[] classes, String[] categories) {
 		Assert.notNull(level, "'level' must be null");
 		this.level = level;
-		this.classes = classes != null ? classes : new Class[0];
+		this.classes = classes != null ? classes : new Class<?>[0];
 
 		Stream<String> categoryStream = Stream.of(getClass().getPackage().getName());
 

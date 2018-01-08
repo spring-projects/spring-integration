@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,60 +25,27 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  *
  */
 public class AggregatorWithCustomReleaseStrategyTests {
 
-	@Rule
-	public TestWatcher longTests = new TestWatcher() {
-
-		private static final String RUN_LONG_PROP = "RUN_LONG_INTEGRATION_TESTS";
-
-		private boolean shouldRun;
-
-		{
-			for (String value: new String[]{System.getenv(RUN_LONG_PROP), System.getProperty(RUN_LONG_PROP)}) {
-				if ("true".equalsIgnoreCase(value)) {
-					this.shouldRun = true;
-					break;
-				}
-			}
-		}
-
-		@Override
-		public Statement apply(Statement base, Description description) {
-			if (!this.shouldRun) {
-				return new Statement() {
-
-					@Override
-					public void evaluate() throws Throwable {
-						Assume.assumeTrue(false);
-					}
-				};
-			}
-			else {
-				return super.apply(base, description);
-			}
-		}
-
-	};
+	@ClassRule
+	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	private static ExecutorService executor = Executors.newCachedThreadPool();
 
