@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,12 @@ import javax.jms.JMSException;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.test.support.LogAdjustingTestSupport;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -50,10 +51,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
-public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
+public class OutboundGatewayFunctionTests {
 
 	private static Destination requestQueue1 = new ActiveMQQueue("request1");
 
@@ -75,6 +78,9 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 	private static Destination replyQueue7 = new ActiveMQQueue("reply7");
 
+	@Rule
+	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace();
+
 	@Test
 	public void testContainerWithDest() throws Exception {
 		BeanFactory beanFactory = mock(BeanFactory.class);
@@ -82,7 +88,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		ConnectionFactory connectionFactory = getConnectionFactory();
@@ -127,7 +133,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -173,7 +179,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -202,7 +208,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue3);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
+		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
 
@@ -217,7 +223,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -226,13 +232,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		gateway.setUseReplyContainer(true);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		final AtomicReference<Object> reply = new AtomicReference<Object>();
+		final AtomicReference<Object> reply = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch2.countDown();
@@ -245,7 +251,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue4);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> {
+		template.send(request.getJMSReplyTo(), session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
 		});
@@ -263,7 +269,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -273,13 +279,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		gateway.setComponentName("testContainerWithTemporary.gateway");
 		gateway.afterPropertiesSet();
 		gateway.start();
-		final AtomicReference<Object> reply = new AtomicReference<Object>();
+		final AtomicReference<Object> reply = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch2.countDown();
@@ -292,7 +298,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue5);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
+		template.send(request.getJMSReplyTo(), session -> jmsReply);
 		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		assertNotNull(reply.get());
 
@@ -307,7 +313,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -315,13 +321,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		gateway.setUseReplyContainer(true);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		final AtomicReference<Object> reply = new AtomicReference<Object>();
+		final AtomicReference<Object> reply = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(() -> {
 			latch1.countDown();
 			try {
-				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 			}
 			finally {
 				latch2.countDown();
@@ -334,7 +340,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue6);
 		assertNotNull(request);
 		final javax.jms.Message jmsReply = request;
-		template.send(request.getJMSReplyTo(), (MessageCreator) session -> {
+		template.send(request.getJMSReplyTo(), session -> {
 			jmsReply.setJMSCorrelationID(jmsReply.getJMSMessageID());
 			return jmsReply;
 		});
@@ -352,7 +358,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -373,7 +379,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 			receiveAndSend(template);
 		});
 
-		assertNotNull(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+		assertNotNull(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(gateway, "replyContainer",
 				DefaultMessageListenerContainer.class);
 		int n = 0;
@@ -381,7 +387,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 			Thread.sleep(100);
 		}
 		assertFalse(container.isRunning());
-		assertNotNull(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+		assertNotNull(gateway.handleRequestMessage(new GenericMessage<>("foo")));
 		assertTrue(container.isRunning());
 
 		gateway.stop();
@@ -393,7 +399,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		javax.jms.Message request = template.receive(requestQueue7);
 		final javax.jms.Message jmsReply = request;
 		try {
-			template.send(request.getJMSReplyTo(), (MessageCreator) session -> jmsReply);
+			template.send(request.getJMSReplyTo(), session -> jmsReply);
 		}
 		catch (JmsException | JMSException e) {
 		}

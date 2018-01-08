@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,6 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -81,7 +80,7 @@ import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
@@ -93,6 +92,8 @@ import org.springframework.util.ReflectionUtils;
 /**
  * @author Gary Russell
  * @author John Anderson
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -101,8 +102,9 @@ public class TcpNioConnectionTests {
 	private final static Log logger = LogFactory.getLog(TcpNioConnectionTests.class);
 
 	@Rule
-	public final Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE,
-			"org.springframework.integration.ip.tcp");
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.trace()
+					.categories("org.springframework.integration.ip.tcp");
 
 	@Rule
 	public TestName testName = new TestName();

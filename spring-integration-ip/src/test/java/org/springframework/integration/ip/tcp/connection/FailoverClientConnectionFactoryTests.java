@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.log4j.Level;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -56,7 +55,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.util.TestingUtilities;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
@@ -66,6 +65,8 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -85,8 +86,10 @@ public class FailoverClientConnectionFactoryTests {
 	};
 
 	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE,
-			"org.springframework.integration.ip.tcp", "org.springframework.integration.util.SimplePool");
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.trace()
+					.classes(SimplePool.class)
+					.categories("org.springframework.integration.ip.tcp");
 
 	@Test
 	public void testFailoverGood() throws Exception {
@@ -227,7 +230,8 @@ public class FailoverClientConnectionFactoryTests {
 			failoverFactory.getConnection().send(message);
 			fail("ExpectedFailure");
 		}
-		catch (IOException e) { }
+		catch (IOException e) {
+		}
 		failoverFactory.getConnection().send(message);
 		Mockito.verify(conn2).send(message);
 		Mockito.verify(conn1, times(3)).send(message);
@@ -572,7 +576,7 @@ public class FailoverClientConnectionFactoryTests {
 		gateway2.start();
 		TestingUtilities.waitListening(server1, null);
 		TestingUtilities.waitListening(server2, null);
-		Holder holder =  new Holder();
+		Holder holder = new Holder();
 		holder.exec = exec;
 		holder.connectionId = connectionId;
 		holder.server1 = server1;
