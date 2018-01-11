@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -55,7 +56,7 @@ import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
-import org.springframework.integration.test.support.LogAdjustingTestSupport;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
@@ -97,10 +98,15 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @ContextConfiguration(classes = StompMessageHandlerWebSocketIntegrationTests.ContextConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-public class StompMessageHandlerWebSocketIntegrationTests extends LogAdjustingTestSupport {
+public class StompMessageHandlerWebSocketIntegrationTests {
 
 	@ClassRule
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
+
+	@Rule
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.trace()
+					.categories("org.springframework", "org.springframework.integration.stomp");
 
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
@@ -112,10 +118,6 @@ public class StompMessageHandlerWebSocketIntegrationTests extends LogAdjustingTe
 	@Autowired
 	@Qualifier("stompEvents")
 	private PollableChannel stompEvents;
-
-	public StompMessageHandlerWebSocketIntegrationTests() {
-		super("org.springframework", "org.springframework.integration.stomp");
-	}
 
 	@Test
 	public void testStompMessageHandler() throws InterruptedException {
@@ -225,10 +227,11 @@ public class StompMessageHandlerWebSocketIntegrationTests extends LogAdjustingTe
 
 	// WebSocket Server part
 
-	@Target({ElementType.TYPE})
+	@Target({ ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	@Controller
 	private @interface IntegrationTestController {
+
 	}
 
 	@IntegrationTestController

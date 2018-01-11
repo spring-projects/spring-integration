@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,14 @@ import javax.jms.TextMessage;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
-import org.springframework.integration.test.support.LogAdjustingTestSupport;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jms.JmsException;
@@ -63,15 +64,17 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2.4
  */
-public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
+public class JmsOutboundGatewayTests {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	public JmsOutboundGatewayTests() {
-		super("org.springframework.integration", "org.springframework.jms", "org.apache");
-	}
+	@Rule
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.trace()
+					.categories("org.springframework.integration", "org.springframework.jms", "org.apache");
 
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {

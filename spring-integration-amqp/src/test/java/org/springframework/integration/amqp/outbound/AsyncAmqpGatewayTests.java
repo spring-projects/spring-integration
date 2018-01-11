@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
-import org.apache.log4j.Level;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -59,7 +58,7 @@ import org.springframework.integration.amqp.support.ReturnedAmqpMessageException
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.rule.Log4jLevelAdjuster;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
@@ -78,8 +77,10 @@ public class AsyncAmqpGatewayTests {
 	public static BrokerRunning brokerRunning = BrokerRunning.isRunningWithEmptyQueues("asyncQ1", "asyncRQ1");
 
 	@Rule
-	public Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE, "org.springframework.integration",
-			"org.springframework.amqp");
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.trace()
+					.categories("org.springframework.integration",
+							"org.springframework.amqp");
 
 	@AfterClass
 	public static void tearDown() {

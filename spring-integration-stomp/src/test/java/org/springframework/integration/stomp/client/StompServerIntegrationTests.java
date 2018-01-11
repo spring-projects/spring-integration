@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static org.junit.Assert.fail;
 import org.apache.activemq.broker.BrokerService;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationEvent;
@@ -51,7 +52,7 @@ import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 import org.springframework.integration.stomp.outbound.StompMessageHandler;
 import org.springframework.integration.support.converter.PassThruMessageConverter;
-import org.springframework.integration.test.support.LogAdjustingTestSupport;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -66,19 +67,23 @@ import org.springframework.util.SocketUtils;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.2
  */
-public class StompServerIntegrationTests extends LogAdjustingTestSupport {
+public class StompServerIntegrationTests {
 
 	private static BrokerService activeMQBroker;
 
 	private static ReactorNettyTcpStompClient stompClient;
 
-
-	public StompServerIntegrationTests() {
-		super("org.springframework", "org.springframework.integration.stomp",
-				"org.apache.activemq.broker", "reactor.ipc", "io.netty");
-	}
+	@Rule
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.trace()
+					.categories("org.springframework",
+							"org.springframework.integration.stomp",
+							"org.apache.activemq.broker",
+							"reactor.ipc",
+							"io.netty");
 
 	@BeforeClass
 	public static void setup() throws Exception {

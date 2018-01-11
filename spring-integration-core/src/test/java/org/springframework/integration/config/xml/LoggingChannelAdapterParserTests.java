@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.1
  */
 @ContextConfiguration
@@ -56,7 +57,8 @@ public class LoggingChannelAdapterParserTests {
 	@Test
 	public void verifyConfig() {
 		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerConsumer, "handler", LoggingHandler.class);
-		assertEquals("org.springframework.integration.test.logger", TestUtils.getPropertyValue(loggingHandler, "messageLogger.name"));
+		assertEquals("org.springframework.integration.test.logger",
+				TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"));
 		assertEquals(1, TestUtils.getPropertyValue(loggingHandler, "order"));
 		assertEquals("WARN", TestUtils.getPropertyValue(loggingHandler, "level").toString());
 		assertEquals("#root", TestUtils.getPropertyValue(loggingHandler, "expression.expression"));
@@ -65,7 +67,8 @@ public class LoggingChannelAdapterParserTests {
 	@Test
 	public void verifyExpressionAndOtherDefaultConfig() {
 		LoggingHandler loggingHandler = TestUtils.getPropertyValue(loggerWithExpression, "handler", LoggingHandler.class);
-		assertEquals("org.springframework.integration.handler.LoggingHandler", TestUtils.getPropertyValue(loggingHandler, "messageLogger.name"));
+		assertEquals("org.springframework.integration.handler.LoggingHandler",
+				TestUtils.getPropertyValue(loggingHandler, "messageLogger.logger.name"));
 		assertEquals(Ordered.LOWEST_PRECEDENCE, TestUtils.getPropertyValue(loggingHandler, "order"));
 		assertEquals("INFO", TestUtils.getPropertyValue(loggingHandler, "level").toString());
 		assertEquals("payload.foo", TestUtils.getPropertyValue(loggingHandler, "expression.expression"));

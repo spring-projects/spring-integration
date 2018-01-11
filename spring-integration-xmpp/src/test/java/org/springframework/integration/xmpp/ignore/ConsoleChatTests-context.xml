@@ -11,7 +11,7 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
-	<context:property-placeholder location="test.properties"/>
+	<context:property-placeholder location="../../../../../../resources/test.properties"/>
 
 	<xmpp:xmpp-connection
 			id="testConnection"

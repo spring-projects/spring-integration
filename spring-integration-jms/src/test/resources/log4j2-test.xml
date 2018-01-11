@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+	<Appenders>
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d %p [%t] [%c] - %m%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Logger name="org.apache.derby" level="warn"/>
+		<Logger name="org.springframework" level="error"/>
+		<Logger name="org.springframework.integration" level="error"/>
+		<Logger name="org.springframework.integration.jms" level="warn"/>
+		<Logger name="org.springframework.integration.jms.jms.request_reply" level="info"/>
+		<Logger name="si.jmsgateway.debug" level="debug"/>
+		<Root level="warn">
+			<AppenderRef ref="STDOUT" />
+		</Root>
+	</Loggers>
+</Configuration>
