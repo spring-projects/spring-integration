@@ -169,6 +169,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 					.createCallback(new AmqpAckInfo(connection, channel, this.transacted, resp));
 			MessageProperties messageProperties = this.propertiesConverter.toMessageProperties(resp.getProps(),
 					resp.getEnvelope(), StandardCharsets.UTF_8.name());
+			messageProperties.setConsumerQueue(this.queue);
 			Map<String, Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
 			org.springframework.amqp.core.Message amqpMessage = new org.springframework.amqp.core.Message(resp.getBody(), messageProperties);
 			Object payload = this.messageConverter.fromMessage(amqpMessage);
