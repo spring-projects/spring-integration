@@ -32,6 +32,7 @@ import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.context.MessageSource;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -65,6 +66,8 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 	private AmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 
 	private MessageConverter messageConverter = new SimpleMessageConverter();
+
+	private boolean rawMessageHeader;
 
 	public AmqpMessageSource(ConnectionFactory connectionFactory, String queue) {
 		this(connectionFactory, new AmqpAckCallbackFactory(), queue);
@@ -132,6 +135,20 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 		this.messageConverter = messageConverter;
 	}
 
+	protected boolean isRawMessageHeader() {
+		return this.rawMessageHeader;
+	}
+
+	/**
+	 * Set to true to include the raw spring-amqp message as a header
+	 * with key {@link AmqpMessageHeaderErrorMessageStrategy#AMQP_RAW_MESSAGE},
+	 * enabling callers to have access to the message to process errors.
+	 * @param rawMessageHeader true to include the header.
+	 */
+	public void setRawMessageHeader(boolean rawMessageHeader) {
+		this.rawMessageHeader = rawMessageHeader;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "amqp:message-source";
@@ -153,11 +170,15 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 			MessageProperties messageProperties = this.propertiesConverter.toMessageProperties(resp.getProps(),
 					resp.getEnvelope(), StandardCharsets.UTF_8.name());
 			Map<String, Object> headers = this.headerMapper.toHeadersFromRequest(messageProperties);
-			Object payload = this.messageConverter
-					.fromMessage(new org.springframework.amqp.core.Message(resp.getBody(), messageProperties));
-			return getMessageBuilderFactory().withPayload(payload)
+			org.springframework.amqp.core.Message amqpMessage = new org.springframework.amqp.core.Message(resp.getBody(), messageProperties);
+			Object payload = this.messageConverter.fromMessage(amqpMessage);
+			AbstractIntegrationMessageBuilder<Object> builder = getMessageBuilderFactory().withPayload(payload)
 					.copyHeaders(headers)
 					.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, callback);
+			if (this.rawMessageHeader) {
+				builder.setHeader(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
+			}
+			return builder;
 		}
 		catch (IOException e) {
 			RabbitUtils.closeChannel(channel);
