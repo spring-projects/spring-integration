@@ -65,4 +65,9 @@ public class AmqpInboundPolledChannelAdapterSpec
 		return this;
 	}
 
+	public AmqpInboundPolledChannelAdapterSpec rawMessageHeader(boolean rawMessageHeader) {
+		this.target.setRawMessageHeader(rawMessageHeader);
+		return this;
+	}
+
 }

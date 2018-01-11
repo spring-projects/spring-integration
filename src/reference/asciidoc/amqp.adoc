@@ -301,6 +301,38 @@ public class AmqpJavaApplication {
 }
 ----
 
+=== Polled Inbound Channel Adapter
+
+Starting with _version 5.0.1_, a polled channel adapter is provided, allowing fetching individual messages on-demand, for example with a `MessageSourcePollingTemplate` or a poller.
+See <<deferred-acks-message-source>> for more information.
+
+It does not currently have XML configuration.
+
+[source, java]
+----
+@Bean
+public AmqpMessageSource source(ConnectionFactory connectionFactory) {
+    return new AmpqpMessageSource(connectionFactory, "someQueue");
+}
+----
+
+Refer to the javadocs for configuration properties.
+
+With the Java DSL:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow flow() {
+    return IntegrationFlows.from(Amqp.inboundPolledAdapter(connectionFactory(), DSL_QUEUE),
+                    e -> e.poller(Pollers.fixedDelay(1_000)).autoStartup(false))
+            .handle(p -> {
+                ...
+            })
+            .get();
+}
+----
+
 [[amqp-inbound-gateway]]
 === Inbound Gateway
 
