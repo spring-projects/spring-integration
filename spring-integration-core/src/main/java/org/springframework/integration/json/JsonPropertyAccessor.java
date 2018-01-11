@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,13 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * A SpEL {@link PropertyAccessor} that knows how to read on Jackson JSON objects.
+ * A SpEL {@link PropertyAccessor} that knows how to read properties from JSON objects.
+ * Uses Jackson {@link JsonNode} API for nested properties access.
  *
  * @author Eric Bottard
  * @author Artem Bilan
  * @author Paul Martin
+ *
  * @since 3.0
  */
 public class JsonPropertyAccessor implements PropertyAccessor {
@@ -46,11 +48,22 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	/**
 	 * The kind of types this can work with.
 	 */
-	private static final Class<?>[] SUPPORTED_CLASSES = new Class<?>[] { String.class, ToStringFriendlyJsonNode.class,
-			ArrayNodeAsList.class, ObjectNode.class, ArrayNode.class };
+	private static final Class<?>[] SUPPORTED_CLASSES =
+			new Class<?>[] {
+					String.class,
+					ToStringFriendlyJsonNode.class,
+					ArrayNodeAsList.class,
+					ObjectNode.class,
+					ArrayNode.class
+			};
 
 	// Note: ObjectMapper is thread-safe
 	private ObjectMapper objectMapper = new ObjectMapper();
+
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		Assert.notNull(objectMapper, "'objectMapper' cannot be null");
+		this.objectMapper = objectMapper;
+	}
 
 	@Override
 	public Class<?>[] getSpecificTargetClasses() {
@@ -133,18 +146,13 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	}
 
 	@Override
-	public boolean canWrite(EvaluationContext context, Object target, String name) throws AccessException {
+	public boolean canWrite(EvaluationContext context, Object target, String name) {
 		return false;
 	}
 
 	@Override
-	public void write(EvaluationContext context, Object target, String name, Object newValue) throws AccessException {
+	public void write(EvaluationContext context, Object target, String name, Object newValue) {
 		throw new UnsupportedOperationException("Write is not supported");
-	}
-
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "'objectMapper' cannot be null");
-		this.objectMapper = objectMapper;
 	}
 
 	private static TypedValue typedValue(JsonNode json) {
@@ -172,19 +180,30 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	 * The base interface for wrapped {@link JsonNode}.
 	 * @since 5.0
 	 */
-	public interface WrappedJsonNode {
+	public interface WrappedJsonNode<T extends JsonNode> {
+
+		/**
+		 * Return the wrapped {@link JsonNode}
+		 * @return the wrapped JsonNode
+		 */
+		T getTarget();
 
 	}
 
 	/**
 	 * A {@link WrappedJsonNode} implementation to represent {@link JsonNode} as string.
 	 */
-	public static class ToStringFriendlyJsonNode implements WrappedJsonNode {
+	public static class ToStringFriendlyJsonNode implements WrappedJsonNode<JsonNode> {
 
 		private final JsonNode node;
 
 		ToStringFriendlyJsonNode(JsonNode node) {
 			this.node = node;
+		}
+
+		@Override
+		public JsonNode getTarget() {
+			return this.node;
 		}
 
 		@Override
@@ -224,12 +243,17 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	 * An {@link AbstractList} implementation around {@link ArrayNode} with {@link WrappedJsonNode} aspect.
 	 * @since 5.0
 	 */
-	public static class ArrayNodeAsList extends AbstractList<WrappedJsonNode> implements WrappedJsonNode {
+	public static class ArrayNodeAsList extends AbstractList<WrappedJsonNode> implements WrappedJsonNode<ArrayNode> {
 
 		private final ArrayNode node;
 
 		ArrayNodeAsList(ArrayNode node) {
 			this.node = node;
+		}
+
+		@Override
+		public ArrayNode getTarget() {
+			return this.node;
 		}
 
 		@Override
