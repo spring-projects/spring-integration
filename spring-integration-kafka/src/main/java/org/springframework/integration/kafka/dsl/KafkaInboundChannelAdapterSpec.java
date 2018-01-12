@@ -18,6 +18,8 @@ package org.springframework.integration.kafka.dsl;
 
 import java.lang.reflect.Type;
 
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+
 import org.springframework.integration.dsl.MessageSourceSpec;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource;
 import org.springframework.integration.kafka.inbound.KafkaMessageSource.KafkaAckCallbackFactory;
@@ -70,6 +72,16 @@ public class KafkaInboundChannelAdapterSpec<K, V>
 
 	public KafkaInboundChannelAdapterSpec<K, V> payloadType(Type type) {
 		this.target.setPayloadType(type);
+		return this;
+	}
+
+	public KafkaInboundChannelAdapterSpec<K, V> rebalanceListener(ConsumerRebalanceListener rebalanceListener) {
+		this.target.setRebalanceListener(rebalanceListener);
+		return this;
+	}
+
+	public KafkaInboundChannelAdapterSpec<K, V> rawMessageHeader(boolean rawMessageHeader) {
+		this.target.setRawMessageHeader(rawMessageHeader);
 		return this;
 	}
 

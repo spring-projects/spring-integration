@@ -109,8 +109,11 @@ public class MessageSourceTests {
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
+		source.setRawMessageHeader(true);
 
 		Message<?> received = source.receive();
+		assertThat(received).isNotNull();
+		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isInstanceOf(ConsumerRecord.class);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
 				.acknowledge(Status.ACCEPT);
 		received = source.receive();

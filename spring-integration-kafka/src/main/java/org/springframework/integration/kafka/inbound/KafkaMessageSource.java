@@ -43,10 +43,12 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.integration.support.AcknowledgmentCallbackFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
 import org.springframework.kafka.support.converter.RecordMessageConverter;
@@ -95,6 +97,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	private RecordMessageConverter messageConverter = new MessagingMessageConverter();
 
 	private Type payloadType;
+
+	private ConsumerRebalanceListener rebalanceListener;
+
+	private boolean rawMessageHeader;
 
 	private volatile Consumer<K, V> consumer;
 
@@ -184,9 +190,35 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		this.payloadType = payloadType;
 	}
 
+	protected ConsumerRebalanceListener getRebalanceListener() {
+		return this.rebalanceListener;
+	}
+
+	/**
+	 * Set a rebalance listener.
+	 * @param rebalanceListener the rebalance listener.
+	 */
+	public void setRebalanceListener(ConsumerRebalanceListener rebalanceListener) {
+		this.rebalanceListener = rebalanceListener;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "kafka:message-source";
+	}
+
+	protected boolean isRawMessageHeader() {
+		return this.rawMessageHeader;
+	}
+
+	/**
+	 * Set to true to include the raw {@link ConsumerRecord} as a header
+	 * with key {@link KafkaHeaders#RAW_DATA},
+	 * enabling callers to have access to the record to process errors.
+	 * @param rawMessageHeader true to include the header.
+	 */
+	public void setRawMessageHeader(boolean rawMessageHeader) {
+		this.rawMessageHeader = rawMessageHeader;
 	}
 
 	@Override
@@ -221,11 +253,18 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		if (message.getHeaders() instanceof KafkaMessageHeaders) {
 			Map<String, Object> rawHeaders = ((KafkaMessageHeaders) message.getHeaders()).getRawHeaders();
 			rawHeaders.put(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, ackCallback);
+			if (this.rawMessageHeader) {
+				rawHeaders.put(KafkaHeaders.RAW_DATA, record);
+			}
 			return message;
 		}
 		else {
-			return getMessageBuilderFactory().fromMessage(message)
+			AbstractIntegrationMessageBuilder<?> builder = getMessageBuilderFactory().fromMessage(message)
 					.setHeader(IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK, ackCallback);
+			if (this.rawMessageHeader) {
+				builder.setHeader(KafkaHeaders.RAW_DATA, record);
+			}
+			return builder;
 		}
 	}
 
@@ -237,11 +276,17 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 				@Override
 				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 					KafkaMessageSource.this.partitions = Collections.emptyList();
+					if (KafkaMessageSource.this.rebalanceListener != null) {
+						KafkaMessageSource.this.rebalanceListener.onPartitionsRevoked(partitions);
+					}
 				}
 
 				@Override
 				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
 					KafkaMessageSource.this.partitions = new ArrayList<>(partitions);
+					if (KafkaMessageSource.this.rebalanceListener != null) {
+						KafkaMessageSource.this.rebalanceListener.onPartitionsAssigned(partitions);
+					}
 				}
 
 			});

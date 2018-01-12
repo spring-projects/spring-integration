@@ -18,9 +18,14 @@ package org.springframework.integration.kafka.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -50,6 +55,19 @@ public class MessageSourceIntegrationTests {
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
 		KafkaMessageSource<Integer, String> source = new KafkaMessageSource<>(consumerFactory, TOPIC1);
+		final CountDownLatch assigned = new CountDownLatch(1);
+		source.setRebalanceListener(new ConsumerRebalanceListener() {
+
+			@Override
+			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+			}
+
+			@Override
+			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+				assigned.countDown();
+			}
+
+		});
 
 		Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
 		DefaultKafkaProducerFactory<Object, Object> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
@@ -59,6 +77,7 @@ public class MessageSourceIntegrationTests {
 		template.send(TOPIC1, "baz");
 		template.send(TOPIC1, "qux");
 		Message<Object> received = source.receive();
+		assertThat(assigned.await(10, TimeUnit.SECONDS)).isTrue();
 		int n = 0;
 		while (n++ < 100 && received == null) {
 			received = source.receive();
