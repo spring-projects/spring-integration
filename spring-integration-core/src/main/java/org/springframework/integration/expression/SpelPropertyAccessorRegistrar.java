@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.expression;
 
-import java.util.HashMap;
+import java.beans.Introspector;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.expression.PropertyAccessor;
@@ -34,7 +35,7 @@ import org.springframework.util.Assert;
  */
 public class SpelPropertyAccessorRegistrar {
 
-	private final Map<String, PropertyAccessor> propertyAccessors = new HashMap<String, PropertyAccessor>();
+	private final Map<String, PropertyAccessor> propertyAccessors = new LinkedHashMap<String, PropertyAccessor>();
 
 	public SpelPropertyAccessorRegistrar() {
 	}
@@ -48,7 +49,7 @@ public class SpelPropertyAccessorRegistrar {
 	public SpelPropertyAccessorRegistrar(PropertyAccessor... propertyAccessors) {
 		Assert.notEmpty(propertyAccessors, "'propertyAccessors' must not be empty");
 		for (PropertyAccessor propertyAccessor : propertyAccessors) {
-			this.propertyAccessors.put(propertyAccessors.getClass().getSimpleName(), propertyAccessor);
+			this.propertyAccessors.put(obtainAccessorKey(propertyAccessor), propertyAccessor);
 		}
 	}
 
@@ -95,9 +96,13 @@ public class SpelPropertyAccessorRegistrar {
 	public SpelPropertyAccessorRegistrar add(PropertyAccessor... propertyAccessors) {
 		Assert.notEmpty(propertyAccessors, "'propertyAccessors' must not be empty");
 		for (PropertyAccessor propertyAccessor : propertyAccessors) {
-			this.propertyAccessors.put(propertyAccessors.getClass().getSimpleName(), propertyAccessor);
+			this.propertyAccessors.put(obtainAccessorKey(propertyAccessor), propertyAccessor);
 		}
 		return this;
+	}
+
+	private static String obtainAccessorKey(PropertyAccessor propertyAccessor) {
+		return Introspector.decapitalize(propertyAccessor.getClass().getSimpleName());
 	}
 
 }
