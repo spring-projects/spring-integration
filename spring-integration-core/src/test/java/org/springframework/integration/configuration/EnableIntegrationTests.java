@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,9 +69,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.expression.EnvironmentAccessor;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
@@ -694,7 +697,11 @@ public class EnableIntegrationTests {
 	public void testIntegrationEvaluationContextCustomization() {
 		EvaluationContext evaluationContext = this.context.getBean(EvaluationContext.class);
 		List<?> propertyAccessors = TestUtils.getPropertyValue(evaluationContext, "propertyAccessors", List.class);
+		assertEquals(4, propertyAccessors.size());
 		assertThat(propertyAccessors.get(0), instanceOf(JsonPropertyAccessor.class));
+		assertThat(propertyAccessors.get(1), instanceOf(EnvironmentAccessor.class));
+		assertThat(propertyAccessors.get(2), instanceOf(MapAccessor.class));
+		assertThat(propertyAccessors.get(3), instanceOf(ReflectivePropertyAccessor.class));
 		Map<?, ?> variables = TestUtils.getPropertyValue(evaluationContext, "variables", Map.class);
 		Object testSpelFunction = variables.get("testSpelFunction");
 		assertEquals(ClassUtils.getStaticMethod(TestSpelFunction.class, "bar", Object.class), testSpelFunction);
@@ -1109,7 +1116,7 @@ public class EnableIntegrationTests {
 
 		@Bean
 		public SpelPropertyAccessorRegistrar spelPropertyAccessorRegistrar() {
-			return new SpelPropertyAccessorRegistrar(new JsonPropertyAccessor());
+			return new SpelPropertyAccessorRegistrar(new JsonPropertyAccessor(), new EnvironmentAccessor());
 		}
 
 	}
