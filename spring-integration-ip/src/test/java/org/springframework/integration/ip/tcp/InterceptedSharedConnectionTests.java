@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package org.springframework.integration.ip.tcp;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.apache.log4j.Level;
@@ -29,8 +32,11 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptor;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionOpenEvent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -51,6 +57,9 @@ public class InterceptedSharedConnectionTests {
 	@Autowired
 	@Qualifier(value = "inboundServer")
 	TcpReceivingChannelAdapter listener;
+
+	@Autowired
+	Listener testListener;
 
 	private static Level existingLogLevel;
 
@@ -73,8 +82,6 @@ public class InterceptedSharedConnectionTests {
 	 * for the outbound adapter that's sharing the connections. The response
 	 * comes back to an inbound adapter that is sharing the client's
 	 * connection and we verify we get the echo back as expected.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void test1() throws Exception {
@@ -93,6 +100,21 @@ public class InterceptedSharedConnectionTests {
 			assertNotNull(message);
 			assertEquals("Test", message.getPayload());
 		}
+		assertThat(this.testListener.openEvent, notNullValue());
+		assertThat(this.testListener.openEvent.getConnectionFactoryName(), equalTo("client"));
+	}
+
+	public static class Listener implements ApplicationListener<TcpConnectionOpenEvent> {
+
+		private volatile TcpConnectionOpenEvent openEvent;
+
+		@Override
+		public void onApplicationEvent(TcpConnectionOpenEvent event) {
+			if (event.getSource() instanceof HelloWorldInterceptor) {
+				this.openEvent = event;
+			}
+		}
+
 	}
 
 }
