@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2016 the original author or authors.
+ * Copyright 2001-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -328,6 +328,10 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		return this.socketInfo;
 	}
 
+	public String getConnectionFactoryName() {
+		return this.connectionFactoryName;
+	}
+
 	protected boolean isNoReadErrorOnClose() {
 		return this.noReadErrorOnClose;
 	}
@@ -347,19 +351,19 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 
 	protected void publishConnectionOpenEvent() {
 		TcpConnectionEvent event = new TcpConnectionOpenEvent(this,
-				this.connectionFactoryName);
+				getConnectionFactoryName());
 		doPublish(event);
 	}
 
 	protected void publishConnectionCloseEvent() {
 		TcpConnectionEvent event = new TcpConnectionCloseEvent(this,
-				this.connectionFactoryName);
+				getConnectionFactoryName());
 		doPublish(event);
 	}
 
 	protected void publishConnectionExceptionEvent(Throwable t) {
 		TcpConnectionEvent event = new TcpConnectionExceptionEvent(this,
-				this.connectionFactoryName, t);
+				getConnectionFactoryName(), t);
 		doPublish(event);
 	}
 
