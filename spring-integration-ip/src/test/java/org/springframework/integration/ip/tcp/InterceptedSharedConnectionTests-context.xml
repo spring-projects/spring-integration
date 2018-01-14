@@ -71,4 +71,6 @@
 
 	<int:channel id="loop" />
 
+	<bean class="org.springframework.integration.ip.tcp.InterceptedSharedConnectionTests$Listener" />
+
 </beans>
