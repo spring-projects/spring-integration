@@ -37,6 +37,8 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * @author Dave Syer
@@ -80,6 +82,7 @@ public class AnnotatedEndpointActivationTests {
 
 		assertTrue(this.applicationContext.containsBean("annotatedEndpoint.process.serviceActivator"));
 		assertTrue(this.applicationContext.containsBean("annotatedEndpoint2.process.serviceActivator"));
+		assertTrue(this.applicationContext.containsBean("annotatedEndpoint3.process.serviceActivator"));
 	}
 
 	@Test
@@ -139,5 +142,17 @@ public class AnnotatedEndpointActivationTests {
 
 	}
 
+	@SuppressWarnings("unused")
+	private static class AnnotatedEndpoint3 {
+
+	    @ServiceActivator(inputChannel = "input", outputChannel = "output", async = "true")
+		public ListenableFuture<String> process(String message) {
+			count++;
+			SettableListenableFuture<String> future = new SettableListenableFuture<>();
+			future.set(message + ": " + count);
+			return future;
+		}
+
+	}
 
 }
