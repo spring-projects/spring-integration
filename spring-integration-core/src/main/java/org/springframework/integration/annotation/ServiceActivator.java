@@ -80,6 +80,12 @@ public @interface ServiceActivator {
 	String[] adviceChain() default {};
 
 	/**
+	 * Specify whether the service method is async. This value is {@code false} by default.
+	 * @return the async flag.
+	 */
+	String async() default "";
+
+	/**
 	 * Specify the maximum amount of time in milliseconds to wait when sending a reply
 	 * {@link org.springframework.messaging.Message} to the {@code outputChannel}.
 	 * Defaults to {@code -1} - blocking indefinitely.

@@ -79,6 +79,12 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 			serviceActivator.setRequiresReply(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(requiresReply)));
 		}
 
+
+		String isAsync = MessagingAnnotationUtils.resolveAttribute(annotations, "async", String.class);
+		if (StringUtils.hasText(isAsync)) {
+			serviceActivator.setAsync(Boolean.parseBoolean(this.beanFactory.resolveEmbeddedValue(isAsync)));
+		}
+
 		this.setOutputChannelIfPresent(annotations, serviceActivator);
 		return serviceActivator;
 	}
