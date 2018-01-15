@@ -145,7 +145,7 @@ public class AnnotatedEndpointActivationTests {
 	@SuppressWarnings("unused")
 	private static class AnnotatedEndpoint3 {
 
-	    @ServiceActivator(inputChannel = "input", outputChannel = "output", async = "true")
+		@ServiceActivator(inputChannel = "input", outputChannel = "output", async = "true")
 		public ListenableFuture<String> process(String message) {
 			count++;
 			SettableListenableFuture<String> future = new SettableListenableFuture<>();
