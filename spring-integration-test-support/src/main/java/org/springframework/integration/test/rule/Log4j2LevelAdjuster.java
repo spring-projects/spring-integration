@@ -183,7 +183,7 @@ public class Log4j2LevelAdjuster implements MethodRule {
 	 * @return the Log4j2LevelAdjuster instance
 	 */
 	public static Log4j2LevelAdjuster trace() {
-		return level(Level.TRACE);
+		return forLevel(Level.TRACE);
 	}
 
 	/**
@@ -192,7 +192,7 @@ public class Log4j2LevelAdjuster implements MethodRule {
 	 * @return the Log4j2LevelAdjuster instance
 	 */
 	public static Log4j2LevelAdjuster debug() {
-		return level(Level.DEBUG);
+		return forLevel(Level.DEBUG);
 	}
 
 	/**
@@ -201,15 +201,16 @@ public class Log4j2LevelAdjuster implements MethodRule {
 	 * @return the Log4j2LevelAdjuster instance
 	 */
 	public static Log4j2LevelAdjuster info() {
-		return level(Level.INFO);
+		return forLevel(Level.INFO);
 	}
 
 	/**
 	 * The factory to produce Log4j2LevelAdjuster instances for arbitrary logging {@link Level}
 	 * with the {@code org.springframework.integration} as default category.
+	 * @param level the {@link Level} to use for logging
 	 * @return the Log4j2LevelAdjuster instance
 	 */
-	public static Log4j2LevelAdjuster level(Level level) {
+	public static Log4j2LevelAdjuster forLevel(Level level) {
 		return new Log4j2LevelAdjuster(level);
 	}
 

@@ -19,9 +19,19 @@
 	<beans:bean id="annotatedEndpoint2"
 			class="org.springframework.integration.config.annotation.AnnotatedEndpointActivationTests.AnnotatedEndpoint2"/>
 
+	<beans:bean id="annotatedEndpoint3"
+		        class="org.springframework.integration.config.annotation.AnnotatedEndpointActivationTests.AnnotatedEndpoint3"/>
+
 	<channel id="input"/>
 
 	<channel id="output">
+		<queue capacity="10"/>
+	</channel>
+
+
+	<channel id="inputAsync"/>
+
+	<channel id="outputAsync">
 		<queue capacity="10"/>
 	</channel>
 

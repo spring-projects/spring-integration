@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,17 +35,18 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.SettableListenableFuture;
 
 /**
  * @author Dave Syer
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Yilin Wei
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class AnnotatedEndpointActivationTests {
 
@@ -56,6 +57,14 @@ public class AnnotatedEndpointActivationTests {
 	@Autowired
 	@Qualifier("output")
 	private PollableChannel output;
+
+	@Autowired
+	@Qualifier("inputAsync")
+	private MessageChannel inputAsync;
+
+	@Autowired
+	@Qualifier("outputAsync")
+	private PollableChannel outputAsync;
 
 	@Autowired
 	private AbstractApplicationContext applicationContext;
@@ -72,7 +81,7 @@ public class AnnotatedEndpointActivationTests {
 
 	@Test
 	public void sendAndReceive() {
-		this.input.send(new GenericMessage<String>("foo"));
+		this.input.send(new GenericMessage<>("foo"));
 		Message<?> message = this.output.receive(100);
 		assertNotNull(message);
 		assertEquals("foo: 1", message.getPayload());
@@ -83,9 +92,18 @@ public class AnnotatedEndpointActivationTests {
 	}
 
 	@Test
+	public void sendAndReceiveAsync() {
+		this.inputAsync.send(new GenericMessage<>("foo"));
+		Message<?> message = this.outputAsync.receive(100);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+		assertTrue(this.applicationContext.containsBean("annotatedEndpoint3.process.serviceActivator"));
+	}
+
+	@Test
 	public void sendAndReceiveImplicitInputChannel() {
 		MessageChannel input = this.applicationContext.getBean("inputImplicit", MessageChannel.class);
-		input.send(new GenericMessage<String>("foo"));
+		input.send(new GenericMessage<>("foo"));
 		Message<?> message = this.output.receive(100);
 		assertNotNull(message);
 		assertEquals("foo: 1", message.getPayload());
@@ -96,7 +114,7 @@ public class AnnotatedEndpointActivationTests {
 	@DirtiesContext
 	public void stopContext() {
 		applicationContext.stop();
-		this.input.send(new GenericMessage<String>("foo"));
+		this.input.send(new GenericMessage<>("foo"));
 	}
 
 	@Test
@@ -104,7 +122,7 @@ public class AnnotatedEndpointActivationTests {
 	public void stopAndRestartContext() {
 		applicationContext.stop();
 		applicationContext.start();
-		this.input.send(new GenericMessage<String>("foo"));
+		this.input.send(new GenericMessage<>("foo"));
 		Message<?> message = this.output.receive(100);
 		assertNotNull(message);
 		assertEquals("foo: 1", message.getPayload());
@@ -139,5 +157,16 @@ public class AnnotatedEndpointActivationTests {
 
 	}
 
+	@SuppressWarnings("unused")
+	private static class AnnotatedEndpoint3 {
+
+		@ServiceActivator(inputChannel = "inputAsync", outputChannel = "outputAsync", async = "true")
+		public ListenableFuture<String> process(String message) {
+			SettableListenableFuture<String> future = new SettableListenableFuture<>();
+			future.set(message);
+			return future;
+		}
+
+	}
 
 }

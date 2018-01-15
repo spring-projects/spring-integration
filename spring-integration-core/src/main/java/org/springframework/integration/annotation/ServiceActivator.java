@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,9 @@ import java.lang.annotation.Target;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Yilin Wei
  */
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
@@ -77,7 +78,7 @@ public @interface ServiceActivator {
 	 * Only the handler is advised, not the downstream flow.
 	 * @return the advice chain.
 	 */
-	String[] adviceChain() default {};
+	String[] adviceChain() default { };
 
 	/**
 	 * Specify the maximum amount of time in milliseconds to wait when sending a reply
@@ -111,11 +112,18 @@ public @interface ServiceActivator {
 	String phase() default "";
 
 	/**
+	 * Specify whether the service method is async.
+	 * This value is {@code false} by default.
+	 * @return the async flag.
+	 */
+	String async() default "";
+
+	/**
 	 * @return the {@link Poller} options for a polled endpoint
 	 * ({@link org.springframework.integration.scheduling.PollerMetadata}).
 	 * This attribute is an {@code array} just to allow an empty default (no poller).
 	 * Only one {@link Poller} element is allowed.
 	 */
-	Poller[] poller() default {};
+	Poller[] poller() default { };
 
 }

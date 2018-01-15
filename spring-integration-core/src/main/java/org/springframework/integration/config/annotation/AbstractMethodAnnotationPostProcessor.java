@@ -257,7 +257,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		 * by setting an empty array on the custom annotation.
 		 */
 		if (adviceChainNames != null && adviceChainNames.length > 0) {
-			adviceChain = new ArrayList<Advice>();
+			adviceChain = new ArrayList<>();
 			for (String adviceChainName : adviceChainNames) {
 				Object adviceChainBean = this.beanFactory.getBean(adviceChainName);
 				if (adviceChainBean instanceof Advice) {
