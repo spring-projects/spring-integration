@@ -28,4 +28,11 @@
 		<queue capacity="10"/>
 	</channel>
 
+
+	<channel id="inputAsync"/>
+
+	<channel id="outputAsync">
+		<queue capacity="10"/>
+	</channel>
+
 </beans:beans>

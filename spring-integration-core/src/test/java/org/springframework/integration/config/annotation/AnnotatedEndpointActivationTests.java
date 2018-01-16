@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Yilin Wei
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -58,6 +59,14 @@ public class AnnotatedEndpointActivationTests {
 	@Autowired
 	@Qualifier("output")
 	private PollableChannel output;
+
+	@Autowired
+	@Qualifier("inputAsync")
+	private MessageChannel inputAsync;
+
+	@Autowired
+	@Qualifier("outputAsync")
+	private PollableChannel outputAsync;
 
 	@Autowired
 	private AbstractApplicationContext applicationContext;
@@ -82,6 +91,14 @@ public class AnnotatedEndpointActivationTests {
 
 		assertTrue(this.applicationContext.containsBean("annotatedEndpoint.process.serviceActivator"));
 		assertTrue(this.applicationContext.containsBean("annotatedEndpoint2.process.serviceActivator"));
+	}
+
+	@Test
+	public void sendAndReceiveAsync() {
+		this.inputAsync.send(new GenericMessage<String>("foo"));
+		Message<?> message = this.outputAsync.receive(100);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
 		assertTrue(this.applicationContext.containsBean("annotatedEndpoint3.process.serviceActivator"));
 	}
 
@@ -145,11 +162,10 @@ public class AnnotatedEndpointActivationTests {
 	@SuppressWarnings("unused")
 	private static class AnnotatedEndpoint3 {
 
-		@ServiceActivator(inputChannel = "input", outputChannel = "output", async = "true")
+		@ServiceActivator(inputChannel = "inputAsync", outputChannel = "outputAsync", async = "true")
 		public ListenableFuture<String> process(String message) {
-			count++;
 			SettableListenableFuture<String> future = new SettableListenableFuture<>();
-			future.set(message + ": " + count);
+			future.set(message);
 			return future;
 		}
 
