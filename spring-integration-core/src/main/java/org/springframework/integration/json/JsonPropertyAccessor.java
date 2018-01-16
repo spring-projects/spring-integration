@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Eric Bottard
  * @author Artem Bilan
  * @author Paul Martin
+ * @author Gary Russell
  *
  * @since 3.0
  */
@@ -164,7 +165,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		}
 	}
 
-	public static WrappedJsonNode wrap(JsonNode json) {
+	public static WrappedJsonNode<?> wrap(JsonNode json) {
 		if (json == null) {
 			return null;
 		}
@@ -243,7 +244,8 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 	 * An {@link AbstractList} implementation around {@link ArrayNode} with {@link WrappedJsonNode} aspect.
 	 * @since 5.0
 	 */
-	public static class ArrayNodeAsList extends AbstractList<WrappedJsonNode> implements WrappedJsonNode<ArrayNode> {
+	public static class ArrayNodeAsList extends AbstractList<WrappedJsonNode<?>>
+			implements WrappedJsonNode<ArrayNode> {
 
 		private final ArrayNode node;
 
@@ -257,7 +259,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		}
 
 		@Override
-		public WrappedJsonNode get(int index) {
+		public WrappedJsonNode<?> get(int index) {
 			return wrap(this.node.get(index));
 		}
 
@@ -267,9 +269,9 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 		}
 
 		@Override
-		public Iterator<WrappedJsonNode> iterator() {
+		public Iterator<WrappedJsonNode<?>> iterator() {
 
-			return new Iterator<WrappedJsonNode>() {
+			return new Iterator<WrappedJsonNode<?>>() {
 
 				private final Iterator<JsonNode> delegate = ArrayNodeAsList.this.node.iterator();
 
@@ -279,7 +281,7 @@ public class JsonPropertyAccessor implements PropertyAccessor {
 				}
 
 				@Override
-				public WrappedJsonNode next() {
+				public WrappedJsonNode<?> next() {
 					return wrap(this.delegate.next());
 				}
 
