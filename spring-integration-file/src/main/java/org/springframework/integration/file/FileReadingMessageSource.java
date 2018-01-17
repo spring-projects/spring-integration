@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -159,8 +160,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	 *            queue
 	 */
 	public FileReadingMessageSource(Comparator<File> receptionOrderComparator) {
-		this.toBeReceived = new PriorityBlockingQueue<File>(
-				DEFAULT_INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
+		this.toBeReceived = new PriorityBlockingQueue<>(DEFAULT_INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
 	}
 
 
@@ -350,8 +350,21 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	@Override
 	public Message<File> receive() throws MessagingException {
+		AbstractIntegrationMessageBuilder<File> messageBuilder = doReceive();
+
 		Message<File> message = null;
 
+		if (messageBuilder != null) {
+			message = messageBuilder.build();
+			if (logger.isInfoEnabled()) {
+				logger.info("Created message: [" + message + "]");
+			}
+		}
+
+		return message;
+	}
+
+	protected AbstractIntegrationMessageBuilder<File> doReceive() {
 		// rescan only if needed or explicitly configured
 		if (this.scanEachPoll || this.toBeReceived.isEmpty()) {
 			scanInputDirectory();
@@ -366,23 +379,22 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		}
 
 		if (file != null) {
-			message = getMessageBuilderFactory().withPayload(file)
-					.setHeader(FileHeaders.RELATIVE_PATH, file.getAbsolutePath()
-							.replaceFirst(Matcher.quoteReplacement(this.directory.getAbsolutePath() + File.separator),
-									""))
+			return getMessageBuilderFactory()
+					.withPayload(file)
+					.setHeader(FileHeaders.RELATIVE_PATH,
+							file.getAbsolutePath()
+									.replaceFirst(Matcher.quoteReplacement(
+											this.directory.getAbsolutePath() + File.separator), ""))
 					.setHeader(FileHeaders.FILENAME, file.getName())
-					.setHeader(FileHeaders.ORIGINAL_FILE, file)
-					.build();
-			if (logger.isInfoEnabled()) {
-				logger.info("Created message: [" + message + "]");
-			}
+					.setHeader(FileHeaders.ORIGINAL_FILE, file);
 		}
-		return message;
+
+		return null;
 	}
 
 	private void scanInputDirectory() {
 		List<File> filteredFiles = this.scanner.listFiles(this.directory);
-		Set<File> freshFiles = new LinkedHashSet<File>(filteredFiles);
+		Set<File> freshFiles = new LinkedHashSet<>(filteredFiles);
 		if (!freshFiles.isEmpty()) {
 			this.toBeReceived.addAll(freshFiles);
 			if (logger.isDebugEnabled()) {
@@ -421,7 +433,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 	private class WatchServiceDirectoryScanner extends DefaultDirectoryScanner implements Lifecycle {
 
-		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<Path, WatchKey>();
+		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<>();
 
 		private WatchService watcher;
 
@@ -547,7 +559,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		}
 
 		private Set<File> walkDirectory(Path directory, final WatchEvent.Kind<?> kind) {
-			final Set<File> walkedFiles = new LinkedHashSet<File>();
+			final Set<File> walkedFiles = new LinkedHashSet<>();
 			try {
 				registerWatch(directory);
 				Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {

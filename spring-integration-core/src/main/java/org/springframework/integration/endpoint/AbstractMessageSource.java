@@ -37,11 +37,13 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @IntegrationManagedResource
-public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator implements MessageSource<T>,
-		MessageSourceMetrics, NamedComponent, BeanNameAware {
+public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator
+		implements MessageSource<T>, MessageSourceMetrics, NamedComponent, BeanNameAware {
 
 	private final AtomicLong messageCount = new AtomicLong();
 
@@ -61,7 +63,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = (headerExpressions != null)
-				? headerExpressions : Collections.<String, Expression>emptyMap();
+				? headerExpressions : Collections.emptyMap();
 	}
 
 	@Override
@@ -160,24 +162,24 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 			}
 			if (!CollectionUtils.isEmpty(headers)) {
 				// create a new Message from this one in order to apply headers
-				AbstractIntegrationMessageBuilder<T> builder = getMessageBuilderFactory().fromMessage(message);
-				builder.copyHeaders(headers);
-				message = builder.build();
+				message = getMessageBuilderFactory()
+						.fromMessage(message)
+						.copyHeaders(headers)
+						.build();
 			}
 		}
 		else if (result != null) {
-			T payload = null;
+			T payload;
 			try {
 				payload = (T) result;
 			}
 			catch (Exception e) {
 				throw new MessagingException("MessageSource returned unexpected type.", e);
 			}
-			AbstractIntegrationMessageBuilder<T> builder = getMessageBuilderFactory().withPayload(payload);
-			if (!CollectionUtils.isEmpty(headers)) {
-				builder.copyHeaders(headers);
-			}
-			message = builder.build();
+			message = getMessageBuilderFactory()
+					.withPayload(payload)
+					.copyHeaders(headers)
+					.build();
 		}
 		if (this.countsEnabled && message != null) {
 			this.messageCount.incrementAndGet();
@@ -186,7 +188,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	private Map<String, Object> evaluateHeaders() {
-		Map<String, Object> results = new HashMap<String, Object>();
+		Map<String, Object> results = new HashMap<>();
 		for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
 			Object headerValue = this.evaluateExpression(entry.getValue());
 			if (headerValue != null) {
@@ -197,9 +199,9 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	/**
-	 * Subclasses must implement this method. Typically the returned value will be the payload of
-	 * type T, but the returned value may also be a Message instance whose payload is of type T.
-	 *
+	 * Subclasses must implement this method. Typically the returned value will be the {@code payload} of
+	 * type T, but the returned value may also be a {@link Message} instance whose payload is of type T;
+	 * also can be {@link AbstractIntegrationMessageBuilder} which is used for additional headers population.
 	 * @return The value returned.
 	 */
 	protected abstract Object doReceive();
