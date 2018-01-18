@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -59,7 +60,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gunnar Hillert
  * @author Artem Bilan
  */
-public class PollableJmsChannelTests {
+public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 
 	private ActiveMQConnectionFactory connectionFactory;
 
@@ -188,7 +189,8 @@ public class PollableJmsChannelTests {
 		assertTrue(sent1);
 		final AtomicReference<javax.jms.Message> message = new AtomicReference<javax.jms.Message>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(() -> {
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
 			message.set(receiver.receive(queue));
 			latch1.countDown();
 		});
@@ -201,7 +203,7 @@ public class PollableJmsChannelTests {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		boolean sent2 = channel.send(MessageBuilder.withPayload("foo").setPriority(6).build());
 		assertTrue(sent2);
-		Executors.newSingleThreadExecutor().execute(() -> {
+		exec.execute(() -> {
 			message.set(receiver.receive(queue));
 			latch2.countDown();
 		});
@@ -210,6 +212,7 @@ public class PollableJmsChannelTests {
 		assertEquals(6, message.get().getJMSPriority());
 		assertTrue(message.get().getJMSExpiration() <= System.currentTimeMillis() + ttl);
 		assertTrue(message.get().toString().contains("persistent = false"));
+		exec.shutdownNow();
 	}
 
 	@Test

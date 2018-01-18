@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -210,7 +210,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("mult-producer-and-consumers-temp-reply.xml", this.getClass());
 		final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
-		Executor executor = Executors.newFixedThreadPool(10);
+		ExecutorService executor = Executors.newFixedThreadPool(10);
 		final int testNumbers = 100;
 		final CountDownLatch latch = new CountDownLatch(testNumbers);
 		final AtomicInteger failures = new AtomicInteger();
@@ -250,6 +250,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		assertEquals(0, failures.get());
 		assertEquals(0, timeouts.get());
 		context.close();
+		executor.shutdownNow();
 	}
 
 	private void print(AtomicInteger failures, AtomicInteger timeouts, AtomicInteger missmatches, long echangesProcessed) {

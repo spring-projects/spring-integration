@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,7 +52,7 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests {
 
-	private final Executor executor = Executors.newFixedThreadPool(30);
+	private final ExecutorService executor = Executors.newFixedThreadPool(30);
 
 	private static final Log logger = LogFactory.getLog(PipelineJmsTests.class);
 
@@ -63,7 +64,12 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 		LogManager.getLogger(getClass()).setLevel(Level.INFO);
 	}
 
-	int requests = 50;
+	@After
+	public void tearDown() {
+		this.executor.shutdownNow();
+	}
+
+	int requests = 5;
 
 	/**
 	 * jms:out(reply-destination-name="pipeline01-01") -> jms:in -> randomTimeoutProcess ->
@@ -194,7 +200,7 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 			assertTrue(latch.await(120, TimeUnit.SECONDS));
 			// technically all we care that its > 0,
 			// but reality of this test it has to be something more then 0
-			assertTrue(successCounter.get() > 10);
+			assertTrue(successCounter.get() > 1);
 			assertEquals(0, failureCounter.get());
 			assertEquals(requests, successCounter.get() + timeoutCounter.get());
 			return timeoutCounter.get();
