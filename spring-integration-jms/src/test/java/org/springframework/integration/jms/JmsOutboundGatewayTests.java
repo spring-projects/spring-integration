@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -69,13 +70,11 @@ import org.springframework.util.ObjectUtils;
  * @author Artem Bilan
  * @since 2.2.4
  */
-public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
+public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	public JmsOutboundGatewayTests() {
-		super("org.springframework.integration", "org.springframework.jms", "org.apache");
-	}
+
 
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {
@@ -100,16 +99,11 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		gateway.setUseReplyContainer(true);
 		ReplyContainerProperties replyContainerProperties = new ReplyContainerProperties();
 		final List<Throwable> errors = new ArrayList<Throwable>();
+		ExecutorService exec = Executors.newFixedThreadPool(10);
 		ErrorHandlingTaskExecutor errorHandlingTaskExecutor =
-				new ErrorHandlingTaskExecutor(Executors.newFixedThreadPool(10), new ErrorHandler() {
-
-					@Override
-					public void handleError(Throwable t) {
-						logger.info("Error:", t);
-						errors.add(t);
-						throw new RuntimeException(t);
-					}
-
+				new ErrorHandlingTaskExecutor(exec, t -> {
+					errors.add(t);
+					throw new RuntimeException(t);
 				});
 		replyContainerProperties.setTaskExecutor(errorHandlingTaskExecutor);
 		replyContainerProperties.setRecoveryInterval(100L);
@@ -173,6 +167,7 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		}
 		finally {
 			gateway.stop();
+			exec.shutdownNow();
 		}
 	}
 
@@ -192,13 +187,8 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		gateway.setReceiveTimeout(60000);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				gateway.handleMessage(new GenericMessage<String>("foo"));
-			}
-		});
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
@@ -224,6 +214,7 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		gateway.stop();
 		connectionFactory1.destroy();
 		connectionFactory2.destroy();
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -243,13 +234,8 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		gateway.setCorrelationKey("JMSCorrelationID");
 		gateway.afterPropertiesSet();
 		gateway.start();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				gateway.handleMessage(new GenericMessage<String>("foo"));
-			}
-		});
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
@@ -276,6 +262,7 @@ public class JmsOutboundGatewayTests extends LogAdjustingTestSupport {
 		gateway.stop();
 		connectionFactory1.destroy();
 		connectionFactory2.destroy();
+		exec.shutdownNow();
 	}
 
 }

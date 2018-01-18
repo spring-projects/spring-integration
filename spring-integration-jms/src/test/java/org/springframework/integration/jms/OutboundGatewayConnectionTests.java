@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,12 +38,13 @@ import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -57,14 +59,15 @@ public class OutboundGatewayConnectionTests {
 
 	private Destination replyQueue1 = new ActiveMQQueue("reply1");
 
-	@Test @Ignore // need a more reliable stop/start for AMQ
+	@Test
+	@Ignore // need a more reliable stop/start for AMQ
 	public void testContainerWithDestBrokenConnection() throws Exception {
 		BeanFactory beanFactory = mock(BeanFactory.class);
 		when(beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)).thenReturn(true);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		BrokerService broker = new BrokerService();
@@ -82,15 +85,14 @@ public class OutboundGatewayConnectionTests {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -116,15 +118,13 @@ public class OutboundGatewayConnectionTests {
 
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		final CountDownLatch latch4 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			public void run() {
-				latch3.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch4.countDown();
-				}
+		exec.execute(() -> {
+			latch3.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch4.countDown();
 			}
 		});
 		assertTrue(latch3.await(10, TimeUnit.SECONDS));
@@ -147,6 +147,7 @@ public class OutboundGatewayConnectionTests {
 		broker.stop();
 
 		scheduler.destroy();
+		exec.shutdownNow();
 	}
 
 }

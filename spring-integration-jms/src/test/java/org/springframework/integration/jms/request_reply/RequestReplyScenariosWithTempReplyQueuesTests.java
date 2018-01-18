@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@ package org.springframework.integration.jms.request_reply;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,6 +54,7 @@ import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.support.GenericMessage;
+
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -73,7 +72,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 	public void messageCorrelationBasedOnRequestMessageId() throws Exception {
 		ActiveMqTestUtils.prepare();
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", this.getClass());
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("producer-temp-reply-consumers.xml", this.getClass());
 		RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
 		CachingConnectionFactory connectionFactory = context.getBean(CachingConnectionFactory.class);
 		final JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
@@ -187,7 +187,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		BrokerService broker = new BrokerService();
 		broker.setPersistent(false);
 		broker.setUseJmx(false);
-		broker.setTransportConnectorURIs(new String[]{"tcp://localhost:61623"});
+		broker.setTransportConnectorURIs(new String[] { "tcp://localhost:61623" });
 		broker.setDeleteAllMessagesOnStartup(true);
 		broker.start();
 
@@ -223,7 +223,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		ClassPathXmlApplicationContext context =
 				new ClassPathXmlApplicationContext("mult-producer-and-consumers-temp-reply.xml", this.getClass());
 		final RequestReplyExchanger gateway = context.getBean(RequestReplyExchanger.class);
-		Executor executor = Executors.newFixedThreadPool(10);
+		ExecutorService executor = Executors.newFixedThreadPool(10);
 		final int testNumbers = 100;
 		final CountDownLatch latch = new CountDownLatch(testNumbers);
 		final AtomicInteger failures = new AtomicInteger();
@@ -232,6 +232,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		for (int i = 0; i < testNumbers; i++) {
 			final int y = i;
 			executor.execute(new Runnable() {
+
 				@Override
 				public void run() {
 					try {
@@ -266,6 +267,7 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		assertEquals(0, failures.get());
 		assertEquals(0, timeouts.get());
 		context.close();
+		executor.shutdownNow();
 	}
 
 	private void print(AtomicInteger failures, AtomicInteger timeouts, AtomicInteger missmatches, long echangesProcessed) {
@@ -273,18 +275,8 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		logger.info(echangesProcessed + " exchanges processed");
 		logger.info("Failures: " + failures.get());
 		logger.info("Timeouts: " + timeouts.get());
-		logger.info("Missmatches: " + missmatches.get());
+		logger.info("Mismatches: " + missmatches.get());
 		logger.info("============================");
-	}
-
-	public static class MyRandomlySlowService {
-		Random random = new Random();
-		List<Integer> list = new ArrayList<Integer>();
-		public String secho(String value) throws Exception {
-			int i = random.nextInt(2000);
-			Thread.sleep(i);
-			return value;
-		}
 	}
 
 	private Object extractPayload(Message jmsMessage) {
@@ -297,4 +289,17 @@ public class RequestReplyScenariosWithTempReplyQueuesTests extends ActiveMQMulti
 		}
 		return null;
 	}
+
+	public static class MyRandomlySlowService {
+
+		Random random = new Random();
+
+		public String echo(String value) throws Exception {
+			int i = random.nextInt(2000);
+			Thread.sleep(i);
+			return value;
+		}
+
+	}
+
 }

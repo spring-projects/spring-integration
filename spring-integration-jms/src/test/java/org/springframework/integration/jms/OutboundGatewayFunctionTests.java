@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,7 +41,6 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -56,7 +56,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @since 2.2
  *
  */
-public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
+public class OutboundGatewayFunctionTests extends ActiveMQMultiContextTests {
 
 	private static Destination requestQueue1 = new ActiveMQQueue("request1");
 
@@ -85,7 +85,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		ConnectionFactory connectionFactory = getConnectionFactory();
@@ -99,16 +99,14 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -130,6 +128,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 		gateway.stop();
 		scheduler.destroy();
+		exec.shutdown();
 	}
 
 	@Test
@@ -139,7 +138,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -151,16 +150,14 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -183,6 +180,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 		gateway.stop();
 		scheduler.destroy();
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -192,7 +190,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -205,16 +203,14 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -236,6 +232,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 		gateway.stop();
 		scheduler.destroy();
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -245,7 +242,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -257,16 +254,14 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -289,6 +284,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 		gateway.stop();
 		scheduler.destroy();
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -298,7 +294,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -311,16 +307,14 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -342,6 +336,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 		gateway.stop();
 		scheduler.destroy();
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -352,7 +347,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -363,16 +358,14 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		final AtomicReference<Object> reply = new AtomicReference<Object>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				latch1.countDown();
-				try {
-					reply.set(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
-				}
-				finally {
-					latch2.countDown();
-				}
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			latch1.countDown();
+			try {
+				reply.set(gateway.handleRequestMessage(new GenericMessage<>("foo")));
+			}
+			finally {
+				latch2.countDown();
 			}
 		});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
@@ -395,6 +388,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 
 		gateway.stop();
 		scheduler.destroy();
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -404,7 +398,7 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.initialize();
 		when(beanFactory.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, TaskScheduler.class))
-			.thenReturn(scheduler);
+				.thenReturn(scheduler);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setBeanFactory(beanFactory);
 		gateway.setConnectionFactory(getConnectionFactory());
@@ -417,33 +411,13 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		gateway.setReceiveTimeout(20000);
 		gateway.afterPropertiesSet();
 		gateway.start();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				JmsTemplate template = new JmsTemplate();
-				template.setConnectionFactory(getConnectionFactory());
-				template.setReceiveTimeout(20000);
-				receiveAndSend(template);
-				receiveAndSend(template);
-			}
-
-			private void receiveAndSend(JmsTemplate template) {
-				javax.jms.Message request = template.receive(requestQueue7);
-				final javax.jms.Message jmsReply = request;
-				try {
-					template.send(request.getJMSReplyTo(), new MessageCreator() {
-
-						@Override
-						public Message createMessage(Session session) throws JMSException {
-							return jmsReply;
-						}
-					});
-				}
-				catch (JmsException e) {
-				}
-				catch (JMSException e) {
-				}
-			}
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			JmsTemplate template = new JmsTemplate();
+			template.setConnectionFactory(getConnectionFactory());
+			template.setReceiveTimeout(20000);
+			receiveAndSend(template);
+			receiveAndSend(template);
 		});
 
 		assertNotNull(gateway.handleRequestMessage(new GenericMessage<String>("foo")));
@@ -460,6 +434,17 @@ public class OutboundGatewayFunctionTests extends LogAdjustingTestSupport {
 		gateway.stop();
 		assertFalse(container.isRunning());
 		scheduler.destroy();
+		exec.shutdownNow();
+	}
+
+	private void receiveAndSend(JmsTemplate template) {
+		javax.jms.Message request = template.receive(requestQueue7);
+		final javax.jms.Message jmsReply = request;
+		try {
+			template.send(request.getJMSReplyTo(), session -> jmsReply);
+		}
+		catch (JmsException | JMSException e) {
+		}
 	}
 
 	private ConnectionFactory getConnectionFactory() {

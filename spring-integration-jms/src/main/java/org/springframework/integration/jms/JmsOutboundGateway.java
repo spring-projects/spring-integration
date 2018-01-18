@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,6 +155,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private long lastSend;
 
 	private volatile long idleReplyContainerTimeout;
+
+	private volatile boolean wasStopped;
 
 	private ScheduledFuture<?> idleTask;
 
@@ -676,6 +678,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				if (this.replyContainer != null) {
 					TaskScheduler taskScheduler = getTaskScheduler();
 					if (this.idleReplyContainerTimeout <= 0) {
+						if (this.wasStopped) {
+							this.replyContainer.initialize();
+							this.wasStopped = false;
+						}
 						this.replyContainer.start();
 					}
 					else {
@@ -695,7 +701,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	public void stop() {
 		synchronized (this.lifeCycleMonitor) {
 			if (this.replyContainer != null) {
-				this.replyContainer.stop();
+				this.replyContainer.shutdown();
+				this.wasStopped = true;
 				this.deleteDestinationIfTemporary(this.replyContainer.getDestination());
 				if (this.reaper != null) {
 					this.reaper.cancel(false);
