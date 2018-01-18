@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.store;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -29,6 +30,7 @@ import org.springframework.messaging.Message;
  * The {@link GroupType#HASH_SET} is the default type.
  *
  * @author Artem Bilan
+ *
  * @since 4.3
  */
 public class SimpleMessageGroupFactory implements MessageGroupFactory {
@@ -45,7 +47,7 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 
 	@Override
 	public MessageGroup create(Object groupId) {
-		return create(Collections.<Message<?>>emptyList(), groupId);
+		return create(Collections.emptyList(), groupId);
 	}
 
 	@Override
@@ -56,6 +58,7 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 	@Override
 	public MessageGroup create(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
 			boolean complete) {
+
 		return new SimpleMessageGroup(this.type.get(), messages, groupId, timestamp, complete, false);
 	}
 
@@ -72,7 +75,7 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 	@Override
 	public MessageGroup create(MessageGroupStore messageGroupStore, Object groupId, long timestamp, boolean complete) {
 		if (GroupType.PERSISTENT.equals(this.type)) {
-			SimpleMessageGroup original = new SimpleMessageGroup(Collections.<Message<?>>emptyList(), groupId,
+			SimpleMessageGroup original = new SimpleMessageGroup(Collections.emptyList(), groupId,
 					timestamp, complete);
 			return new PersistentMessageGroup(messageGroupStore, original);
 		}
@@ -83,28 +86,44 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 
 	public enum GroupType {
 
+		LIST {
+
+			@Override
+			Collection<Message<?>> get() {
+				return new ArrayList<>();
+			}
+
+		},
+
 		BLOCKING_QUEUE {
+
 			@Override
 			Collection<Message<?>> get() {
-				return new LinkedBlockingQueue<Message<?>>();
+				return new LinkedBlockingQueue<>();
 			}
 
 		},
+
 		HASH_SET {
+
 			@Override
 			Collection<Message<?>> get() {
-				return new LinkedHashSet<Message<?>>();
+				return new LinkedHashSet<>();
 			}
 
 		},
+
 		SYNCHRONISED_SET {
+
 			@Override
 			Collection<Message<?>> get() {
 				return Collections.synchronizedSet(new LinkedHashSet<>());
 			}
 
 		},
+
 		PERSISTENT {
+
 			@Override
 			Collection<Message<?>> get() {
 				return HASH_SET.get();

@@ -95,6 +95,7 @@ This defaults to a `SimpleMessageGroupFactory` which produces `SimpleMessageGrou
 Other possible options are `SYNCHRONISED_SET` and `BLOCKING_QUEUE`, where the last one can be used to reinstate the
 previous `SimpleMessageGroup` behavior.
 Also the `PERSISTENT` option is available. See the next section for more information.
+Starting with __version 5.0.1_, the `LIST` option is also available for use-cases when the order and uniqueness of messages in the group doesn't matter.
 
 [[lazy-load-message-group]]
 ==== Persistence MessageGroupStore and Lazy-Load
