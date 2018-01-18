@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -52,6 +51,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.config.TcpConnectionFactoryFactoryBean;
@@ -233,7 +233,8 @@ public class ConnectionFactoryTests {
 		factory.start();
 		assertTrue("missing info log", latch1.await(10, TimeUnit.SECONDS));
 		// stop on a different thread because it waits for the executor
-		Executors.newSingleThreadExecutor().execute(() -> factory.stop());
+		new SimpleAsyncTaskExecutor()
+				.execute(factory::stop);
 		int n = 0;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(factory);
 		while (n++ < 200 && accessor.getPropertyValue(property) != null) {

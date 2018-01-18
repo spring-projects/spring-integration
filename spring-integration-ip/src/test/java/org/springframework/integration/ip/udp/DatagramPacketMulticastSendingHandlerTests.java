@@ -27,7 +27,6 @@ import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,6 +34,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -89,7 +89,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				e.printStackTrace();
 			}
 		};
-		Executor executor = Executors.newFixedThreadPool(2);
+		Executor executor = new SimpleAsyncTaskExecutor();
 		executor.execute(catcher);
 		executor.execute(catcher);
 		assertTrue(listening.await(10000, TimeUnit.MILLISECONDS));
@@ -159,7 +159,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				e.printStackTrace();
 			}
 		};
-		Executor executor = Executors.newFixedThreadPool(2);
+		Executor executor = new SimpleAsyncTaskExecutor();
 		executor.execute(catcher);
 		executor.execute(catcher);
 		assertTrue(listening.await(10000, TimeUnit.MILLISECONDS));

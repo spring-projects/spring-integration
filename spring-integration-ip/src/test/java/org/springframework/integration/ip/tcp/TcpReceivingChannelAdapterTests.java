@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -46,6 +45,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -64,6 +64,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTests {
 
@@ -97,27 +98,24 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 
 	@Test
 	public void testNetClientMode() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
-					serverSocket.set(server);
-					latch1.countDown();
-					Socket socket = server.accept();
-					socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
-					latch2.await();
-					socket.close();
-					server.close();
-				}
-				catch (Exception e) {
-					if (!done.get()) {
-						e.printStackTrace();
-					}
+		new SimpleAsyncTaskExecutor().execute(() -> {
+			try {
+				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
+				serverSocket.set(server);
+				latch1.countDown();
+				Socket socket = server.accept();
+				socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
+				latch2.await();
+				socket.close();
+				server.close();
+			}
+			catch (Exception e) {
+				if (!done.get()) {
+					e.printStackTrace();
 				}
 			}
 		});
@@ -416,7 +414,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 		handler.setConnectionFactory(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
-		Executor te = Executors.newCachedThreadPool();
+		Executor te = new SimpleAsyncTaskExecutor();
 		scf.setTaskExecutor(te);
 		scf.start();
 		QueueChannel channel = new QueueChannel();
@@ -650,6 +648,7 @@ public class TcpReceivingChannelAdapterTests extends AbstractTcpChannelAdapterTe
 	}
 
 	private class FailingService {
+
 		@SuppressWarnings("unused")
 		public String serviceMethod(byte[] bytes) {
 			throw new RuntimeException("Failed");
