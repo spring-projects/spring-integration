@@ -12,7 +12,7 @@
 		connection-factory="jmsConnectionFactory"
 		request-destination="siOutQueueOptimizedA"
 		reply-destination="siInQueueOptimizedA"
-		receive-timeout="10000"
+		receive-timeout="100"
 		correlation-key="JMSCorrelationID">
 		<int-jms:reply-listener />
 	</int-jms:outbound-gateway>
@@ -73,7 +73,7 @@
 
 	<int-jms:outbound-gateway request-channel="jmsInNonOptimizedD"
 		connection-factory="jmsConnectionFactory"
-		receive-timeout="10000"
+		receive-timeout="100"
 		request-destination="siOutQueueNonOptimizedD"
 		reply-destination="siInQueueNonOptimizedD">
 		<int-jms:reply-listener />
