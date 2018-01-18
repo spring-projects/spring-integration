@@ -53,7 +53,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.jms.JmsOutboundGateway.ReplyContainerProperties;
-import org.springframework.integration.test.support.LogAdjustingTestSupport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.jms.JmsException;
@@ -62,7 +61,6 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.ErrorHandler;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -73,7 +71,6 @@ import org.springframework.util.ObjectUtils;
 public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
 
 
 	@Test
