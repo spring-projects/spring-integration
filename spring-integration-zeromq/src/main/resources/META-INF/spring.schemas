@@ -1,0 +1,2 @@
+http\://www.springframework.org/schema/integration/zeromq/spring-integration-zeromq-5.1.xsd=org/springframework/integration/zeromq/config/spring-integration-zeromq-5.1.xsd
+http\://www.springframework.org/schema/integration/zeromq/spring-integration-zeromq.xsd=org/springframework/integration/zeromq/config/spring-integration-zeromq-5.1.xsd

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/zeromq"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/zeromq"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="https://www.springframework.org/schema/integration/spring-integration-5.1.xsd" />
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+			Defines the configuration elements for the Spring Integration
+			Zeromq Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="message-driven-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Message Producing Endpoint for the
+				'org.springframework.integration.zeromq.inbound.ZeromqMessageDrivenChannelAdapter' that
+				subscribes to the Zeromq topic and produces messages to the channel.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="coreZeromqComponentAttributes"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="topic">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the topic on which to listen for messages.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="recovery-interval" type="xsd:string" default="10000">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						The time in milliseconds to wait between reconnection attempts.
+	 					Defaults to 10 seconds.
+					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						If a downstream exception is thrown and an error-channel is specified,
+						the MessagingException will be sent to this channel. Otherwise, any such exception
+						will be logged.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+			<xsd:annotation>
+					<xsd:documentation>
+						Configures a Consumer Endpoint for the
+						'org.springframework.integration.zeromq.outbound.ZeromqMessageDrivenChannelAdapter'
+						that sends messages to the ZeroMQ topic.
+					</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexType>
+				<xsd:all>
+					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+								 minOccurs="0" maxOccurs="1" />
+				</xsd:all>
+				<xsd:attributeGroup ref="coreZeromqComponentAttributes"/>
+				<xsd:attribute name="channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<xsd:documentation>
+								Channel from which messages will be output.
+								When a message is sent to this channel it will
+								cause the query
+								to be executed.
+							</xsd:documentation>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="order">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies the order for invocation when this endpoint is connected as a
+							subscriber to a SubscribableChannel.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="topic">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specifies the topic to which messages will be sent. Required if
+							the 'topic-expression' evaluates to 'null'
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:complexType>
+	</xsd:element>
+
+	<xsd:attributeGroup name="coreZeromqComponentAttributes">
+		<xsd:attribute name="id" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifies the underlying Spring bean definition, which is an
+					instance of either 'EventDrivenConsumer' or 'PollingConsumer',
+					depending on whether the component's input channel is a
+					'SubscribableChannel' or 'PollableChannel'.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" default="true" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate that the component should start automatically
+					on startup (default true).
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="phase" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate the phase in which the component should start automatically
+					on startup. See SmartLifecycle.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:integer xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="url" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					ZeroMQ URL to connect.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="client-id" use="required" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					ZeroMQ client ID.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation><![CDATA[
+						A message converter to convert Spring Integration Message<String> to/from
+						a Zeromq Message bytearray. Default is DefaultZeromqMessageConverter.
+					]]></xsd:documentation>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.zeromq.support.ZeromqMessageConverter" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="client-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation><![CDATA[
+						An ZeromqClientFactory used to create clients and connection options if you wish to
+						override the defaults. Default is DefaultZeromqClientFactory.
+					]]></xsd:documentation>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.zeromq.core.ZeromqClientFactory" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+</xsd:schema>

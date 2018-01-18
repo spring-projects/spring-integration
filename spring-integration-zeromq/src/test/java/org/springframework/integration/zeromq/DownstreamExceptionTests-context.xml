@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-zeromq="http://www.springframework.org/schema/integration/zeromq"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/zeromq https://www.springframework.org/schema/integration/zeromq/spring-integration-zeromq.xsd">
+
+	<int-zeromq:message-driven-channel-adapter id="noErrorChannel" url="tcp://localhost:5558"
+											client-id="fooEx1"
+											client-factory="inClientFactory1"
+											channel="foo"
+											converter="converter"/>
+
+	<int-zeromq:message-driven-channel-adapter id="withErrorChannel" url="tcp://localhost:5559"
+											client-id="fooEx2"
+											client-factory="inClientFactory2"
+											error-channel="errors"
+											channel="foo"
+											converter="converter"/>
+
+	<bean id="converter" class="org.springframework.integration.zeromq.support.DefaultZeromqMessageConverter"/>
+
+	<bean id="outClientFactory" class="org.springframework.integration.zeromq.core.DefaultZeromqClientFactory">
+		<property name="clientType" value="1"/>
+	</bean>
+
+	<bean id="inClientFactory1"  class="org.springframework.integration.zeromq.core.DefaultZeromqClientFactory">
+		<property name="clientType" value="2"/>
+	</bean>
+
+	<bean id="inClientFactory2"  class="org.springframework.integration.zeromq.core.DefaultZeromqClientFactory">
+		<property name="clientType" value="2"/>
+	</bean>
+
+	<int:channel id="foo" />
+
+	<int:service-activator input-channel="foo" ref="service" />
+
+	<bean id="service" class="org.springframework.integration.zeromq.DownstreamExceptionTests$Service" />
+
+	<int:channel id="errors">
+		<int:queue />
+	</int:channel>
+
+</beans>

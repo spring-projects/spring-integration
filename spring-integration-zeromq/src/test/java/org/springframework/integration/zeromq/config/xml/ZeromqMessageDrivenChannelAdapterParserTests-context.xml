@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-zeromq="http://www.springframework.org/schema/integration/zeromq"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/zeromq https://www.springframework.org/schema/integration/zeromq/spring-integration-zeromq.xsd">
+
+	<int:channel id="out"/>
+
+	<int-zeromq:message-driven-channel-adapter id="noTopicsAdapter"
+			client-id="clientId1"
+			auto-startup="false"
+			url="tcp://localhost:5559"
+			client-factory="inClientFactory1"
+			recovery-interval="5000"
+			channel="out"/>
+
+	<int-zeromq:message-driven-channel-adapter id="noTopicsAdapterDefaultCF"
+											auto-startup="false"
+											client-id="clientId2"
+											url="tcp://localhost:5559"
+											channel="out"/>
+
+	<int-zeromq:message-driven-channel-adapter id="oneTopicAdapter"
+											auto-startup="false"
+											client-id="clientId4"
+											url="tcp://localhost:5559"
+											topic="zmq-foo"
+											converter="myConverter"
+											client-factory="inClientFactory1"
+											error-channel="errors"
+											channel="out"/>
+
+	<bean id="inClientFactory1"  class="org.springframework.integration.zeromq.core.DefaultZeromqClientFactory">
+		<property name="clientType" value="2"/>
+	</bean>
+
+	<bean id="myConverter" class="org.springframework.integration.zeromq.support.DefaultZeromqMessageConverter"/>
+
+	<int:channel id="out"/>
+
+	<int:channel id="errors"/>
+</beans>

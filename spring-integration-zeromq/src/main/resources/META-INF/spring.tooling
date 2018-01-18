@@ -1,0 +1,4 @@
+# Tooling related information for the integration zeromq namespace
+http\://www.springframework.org/schema/integration/zeromqadapter@name=integration zeromq Namespace
+http\://www.springframework.org/schema/integration/zeromqadapter@prefix=int-zeromq
+http\://www.springframework.org/schema/integration/zeromqadapter@icon=org/springframework/integration/config/xml/spring-integration-zeromq.gif

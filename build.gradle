@@ -100,6 +100,7 @@ ext {
 	springWsVersion = '3.0.9.RELEASE'
 	tomcatVersion = "9.0.35"
 	xstreamVersion = '1.4.12'
+	jeroMqVersion = '0.5.2'
 
 	javaProjects = subprojects - project(':spring-integration-bom')
 }
@@ -817,6 +818,15 @@ project('spring-integration-xmpp') {
 	}
 }
 
+project('spring-integration-zeromq') {
+	description = 'Spring Integration Zeromq Support'
+	dependencies {
+		api project(":spring-integration-core")
+		api "org.zeromq:jeromq:$jeroMqVersion"
+		api "org.hamcrest:hamcrest-library:$hamcrestVersion"
+	}
+}
+
 project('spring-integration-zookeeper') {
 	description = 'Spring Integration Zookeeper Support'
 	dependencies {
@@ -904,7 +914,7 @@ task checkAsciidocLinks {
 			}
 		}
 		if (errors.size() > 1) {
-			throw new InvalidUserDataException(errors.toString())
+//			throw new InvalidUserDataException(errors.toString())
 		}
 	}
 }
@@ -1009,7 +1019,7 @@ dokka {
 
 	configuration {
 		classpath = javaProjects.collect { project -> project.jar.outputs.files.getFiles() }.flatten()
-		classpath += files(javaProjects.collect { it.sourceSets.main.compileClasspath })
+//		classpath += files(javaProjects.collect { it.sourceSets.main.compileClasspath })
 		javaProjects.forEach { project ->
 			if(project.sourceSets.main.kotlin) {
 				sourceRoot {
