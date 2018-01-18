@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
@@ -89,8 +90,9 @@ public class CorrelatingMessageBarrierTests {
 		barrier.setReleaseStrategy(trackingReleaseStrategy);
 		final CountDownLatch start = new CountDownLatch(1);
 		final CountDownLatch sent = new CountDownLatch(200);
+		ExecutorService exec = Executors.newSingleThreadExecutor();
 		for (int i = 0; i < 200; i++) {
-			sendAsynchronously(barrier, testMessage(), start, sent);
+			sendAsynchronously(barrier, testMessage(), start, sent, exec);
 		}
 		start.countDown();
 
@@ -106,10 +108,12 @@ public class CorrelatingMessageBarrierTests {
 			trackingReleaseStrategy.release("foo");
 			assertThat((barrier.receive()), is(notNullValue()));
 		}
+		exec.shutdownNow();
 	}
 
-	private void sendAsynchronously(final MessageHandler handler, final Message<Object> message, final CountDownLatch start, final CountDownLatch sent) {
-		Executors.newSingleThreadExecutor().execute(() -> {
+	private void sendAsynchronously(final MessageHandler handler, final Message<Object> message,
+			final CountDownLatch start, final CountDownLatch sent, ExecutorService exec) {
+		exec.execute(() -> {
 			try {
 				start.await();
 			}
@@ -119,7 +123,6 @@ public class CorrelatingMessageBarrierTests {
 			handler.handleMessage(message);
 			sent.countDown();
 		});
-
 	}
 
 	private Message<Object> testMessage() {

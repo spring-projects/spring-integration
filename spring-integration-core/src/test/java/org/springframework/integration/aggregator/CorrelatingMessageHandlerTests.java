@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -146,7 +147,8 @@ public class CorrelatingMessageHandlerTests {
 		handler.handleMessage(message1);
 		bothMessagesHandled.countDown();
 		storedMessages.add(message1);
-		Executors.newSingleThreadExecutor().submit(() -> {
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.submit(() -> {
 			handler.handleMessage(message2);
 			storedMessages.add(message2);
 			bothMessagesHandled.countDown();
@@ -155,6 +157,7 @@ public class CorrelatingMessageHandlerTests {
 		assertTrue(bothMessagesHandled.await(10, TimeUnit.SECONDS));
 
 		assertEquals(0, store.expireMessageGroups(10000));
+		exec.shutdownNow();
 	}
 
 	@Test

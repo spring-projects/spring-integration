@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +61,7 @@ import reactor.core.publisher.Flux;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -116,8 +118,9 @@ public class ReactiveStreamsTests {
 				.doOnNext(p -> latch.countDown())
 				.subscribe();
 
+		ExecutorService exec = Executors.newSingleThreadExecutor();
 		Future<List<Integer>> future =
-				Executors.newSingleThreadExecutor().submit(() ->
+				exec.submit(() ->
 						Flux.just("11,12,13")
 								.map(v -> v.split(","))
 								.flatMapIterable(Arrays::asList)
@@ -138,6 +141,7 @@ public class ReactiveStreamsTests {
 
 		assertNotNull(integers);
 		assertEquals(7, integers.size());
+		exec.shutdownNow();
 	}
 
 	@Test

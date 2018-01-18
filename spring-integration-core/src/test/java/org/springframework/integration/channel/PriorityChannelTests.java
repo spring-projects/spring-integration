@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +37,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class PriorityChannelTests {
 
@@ -246,7 +246,7 @@ public class PriorityChannelTests {
 		final PriorityChannel channel = new PriorityChannel(1);
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
-		Executor executor = Executors.newSingleThreadScheduledExecutor();
+		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(() -> {
 			sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 3000));
@@ -262,6 +262,7 @@ public class PriorityChannelTests {
 		Message<?> message2 = channel.receive();
 		assertNotNull(message2);
 		assertEquals("test-2", message2.getPayload());
+		executor.shutdownNow();
 	}
 
 	@Test

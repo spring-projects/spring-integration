@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +41,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
@@ -69,7 +70,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 	@Mock
 	private List<Exception> exceptionRegistry;
 
-	private ApplicationContext ac;
+	private ConfigurableApplicationContext ac;
 
 	@Mock
 	private MessageHandler handlerA;
@@ -97,6 +98,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		start = new CountDownLatch(1);
 		failed = new AtomicBoolean(false);
+	}
+
+	@After
+	public void tearDown() {
+		this.executor.shutdownNow();
+		this.ac.close();
 	}
 
 	@Test

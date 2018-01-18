@@ -32,10 +32,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -75,14 +77,17 @@ public class AsyncHandlerTests {
 
 	private volatile CountDownLatch exceptionLatch = new CountDownLatch(1);
 
+	private ExecutorService executor;
+
 	@Before
 	public void setup() {
+		this.executor = Executors.newSingleThreadExecutor();
 		this.handler = new AbstractReplyProducingMessageHandler() {
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				final SettableListenableFuture<String> future = new SettableListenableFuture<String>();
-				Executors.newSingleThreadExecutor().execute(() -> {
+				AsyncHandlerTests.this.executor.execute(() -> {
 					try {
 						latch.await(10, TimeUnit.SECONDS);
 						switch (whichTest) {
@@ -116,6 +121,11 @@ public class AsyncHandlerTests {
 			exceptionLatch.countDown();
 			return null;
 		}).when(logger).error(anyString(), any(Throwable.class));
+	}
+
+	@After
+	public void tearDown() {
+		this.executor.shutdownNow();
 	}
 
 	@Test
