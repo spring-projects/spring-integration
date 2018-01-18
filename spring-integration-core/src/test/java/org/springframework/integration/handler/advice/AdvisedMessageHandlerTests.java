@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -890,7 +891,8 @@ public class AdvisedMessageHandlerTests {
 		PollableChannel inputChannel = new QueueChannel();
 		PollingConsumer consumer = new PollingConsumer(inputChannel, message -> { });
 		consumer.setAdviceChain(Collections.singletonList(advice));
-		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(Executors.newSingleThreadExecutor(), t -> { }));
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		consumer.setTaskExecutor(new ErrorHandlingTaskExecutor(exec, t -> { }));
 		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
 		consumer.setTaskScheduler(mock(TaskScheduler.class));
@@ -916,6 +918,7 @@ public class AdvisedMessageHandlerTests {
 				"an attempt to advise method 'call' in " +
 				"'org.springframework.integration.endpoint.AbstractPollingEndpoint"));
 		consumer.stop();
+		exec.shutdownNow();
 	}
 
 	public void filterDiscardNoAdvice() {

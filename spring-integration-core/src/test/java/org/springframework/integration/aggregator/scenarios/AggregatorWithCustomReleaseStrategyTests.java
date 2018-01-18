@@ -92,7 +92,7 @@ public class AggregatorWithCustomReleaseStrategyTests {
 			});
 		}
 
-		assertTrue("Sends failed to complete: " + latch.getCount() + " remain", latch.await(60, TimeUnit.SECONDS));
+		assertTrue("Sends failed to complete: " + latch.getCount() + " remain", latch.await(120, TimeUnit.SECONDS));
 
 		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;

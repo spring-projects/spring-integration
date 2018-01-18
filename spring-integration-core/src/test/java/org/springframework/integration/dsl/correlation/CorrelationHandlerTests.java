@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -51,6 +50,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -157,7 +157,9 @@ public class CorrelationHandlerTests {
 
 		@Bean
 		public Executor taskExecutor() {
-			return Executors.newCachedThreadPool();
+			ThreadPoolTaskExecutor tpte = new ThreadPoolTaskExecutor();
+			tpte.setCorePoolSize(50);
+			return tpte;
 		}
 
 		@Bean

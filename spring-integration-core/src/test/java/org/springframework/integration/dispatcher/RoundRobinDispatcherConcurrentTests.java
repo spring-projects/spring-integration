@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +50,7 @@ public class RoundRobinDispatcherConcurrentTests {
 
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
-	private final ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
+	private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
 	@Mock
 	private MessageHandler handler1;
@@ -69,9 +70,14 @@ public class RoundRobinDispatcherConcurrentTests {
 	@Before
 	public void initialize() throws Exception {
 		dispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
-		scheduler.setCorePoolSize(10);
-		scheduler.setMaxPoolSize(10);
-		scheduler.initialize();
+		executor.setCorePoolSize(10);
+		executor.setMaxPoolSize(10);
+		executor.initialize();
+	}
+
+	@After
+	public void tearDown() {
+		this.executor.shutdown();
 	}
 
 	@Test(timeout = 1000)
@@ -97,7 +103,7 @@ public class RoundRobinDispatcherConcurrentTests {
 			allDone.countDown();
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
 		}
 		start.countDown();
 		allDone.await();
@@ -131,7 +137,7 @@ public class RoundRobinDispatcherConcurrentTests {
 			allDone.countDown();
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
 		}
 		start.countDown();
 		allDone.await();
@@ -164,7 +170,7 @@ public class RoundRobinDispatcherConcurrentTests {
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
 		}
 		start.countDown();
 		allDone.await(5000, TimeUnit.MILLISECONDS);

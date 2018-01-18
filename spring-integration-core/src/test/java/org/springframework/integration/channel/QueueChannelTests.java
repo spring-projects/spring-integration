@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -68,7 +68,7 @@ public class QueueChannelTests {
 		final QueueChannel channel = new QueueChannel();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
-		Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
+		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 		Runnable receiveTask1 = () -> {
 			Message<?> message = channel.receive(0);
 			if (message != null) {
@@ -91,6 +91,7 @@ public class QueueChannelTests {
 		singleThreadExecutor.execute(receiveTask2);
 		latch2.await();
 		assertTrue(messageReceived.get());
+		singleThreadExecutor.shutdownNow();
 	}
 
 	@Test

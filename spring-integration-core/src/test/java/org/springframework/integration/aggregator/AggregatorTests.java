@@ -272,7 +272,7 @@ public class AggregatorTests {
 		Message<?> message = createMessage(3, "ABC", 2, 1, replyChannel, null);
 		this.aggregator.handleMessage(message);
 		this.store.expireMessageGroups(-10000);
-		Message<?> reply = replyChannel.receive(1000);
+		Message<?> reply = replyChannel.receive(0);
 		assertNull("No message should have been sent normally", reply);
 		Message<?> discardedMessage = discardChannel.receive(1000);
 		assertNotNull("A message should have been discarded", discardedMessage);
