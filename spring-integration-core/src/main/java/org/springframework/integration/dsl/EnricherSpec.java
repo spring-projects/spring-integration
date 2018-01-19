@@ -97,6 +97,26 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	}
 
 	/**
+	 * @param errorChannel the error channel.
+	 * @return the enricher spec.
+	 * @see ContentEnricher#setErrorChannel(MessageChannel)
+	 */
+	public EnricherSpec errorChannel(MessageChannel errorChannel) {
+		this.handler.setErrorChannel(errorChannel);
+		return _this();
+	}
+
+	/**
+	 * @param errorChannel the error channel.
+	 * @return the enricher spec.
+	 * @see ContentEnricher#setErrorChannelName(String)
+	 */
+	public EnricherSpec errorChannel(String errorChannel) {
+		this.handler.setErrorChannelName(errorChannel);
+		return _this();
+	}
+
+	/**
 	 * @param requestTimeout the requestTimeout
 	 * @return the enricher spec.
 	 * @see ContentEnricher#setRequestTimeout(Long)
