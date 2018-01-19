@@ -411,33 +411,33 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		final Set<PosixFilePermission> permissions = new HashSet<>();
 		bits.stream().forEach(b -> {
 			switch (b) {
-			case 0:
-				permissions.add(PosixFilePermission.OTHERS_EXECUTE);
-				break;
-			case 1:
-				permissions.add(PosixFilePermission.OTHERS_WRITE);
-				break;
-			case 2:
-				permissions.add(PosixFilePermission.OTHERS_READ);
-				break;
-			case 3:
-				permissions.add(PosixFilePermission.GROUP_EXECUTE);
-				break;
-			case 4:
-				permissions.add(PosixFilePermission.GROUP_WRITE);
-				break;
-			case 5:
-				permissions.add(PosixFilePermission.GROUP_READ);
-				break;
-			case 6:
-				permissions.add(PosixFilePermission.OWNER_EXECUTE);
-				break;
-			case 7:
-				permissions.add(PosixFilePermission.OWNER_WRITE);
-				break;
-			case 8:
-				permissions.add(PosixFilePermission.OWNER_READ);
-				break;
+				case 0:
+					permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+					break;
+				case 1:
+					permissions.add(PosixFilePermission.OTHERS_WRITE);
+					break;
+				case 2:
+					permissions.add(PosixFilePermission.OTHERS_READ);
+					break;
+				case 3:
+					permissions.add(PosixFilePermission.GROUP_EXECUTE);
+					break;
+				case 4:
+					permissions.add(PosixFilePermission.GROUP_WRITE);
+					break;
+				case 5:
+					permissions.add(PosixFilePermission.GROUP_READ);
+					break;
+				case 6:
+					permissions.add(PosixFilePermission.OWNER_EXECUTE);
+					break;
+				case 7:
+					permissions.add(PosixFilePermission.OWNER_WRITE);
+					break;
+				case 8:
+					permissions.add(PosixFilePermission.OWNER_READ);
+					break;
 			}
 		});
 		this.permissions = permissions;
@@ -474,12 +474,32 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	@Override
-	public synchronized void stop() {
-		if (this.flushTask != null) {
-			this.flushTask.cancel(true);
-			this.flushTask = null;
+	public void stop() {
+		synchronized (this) {
+			if (this.flushTask != null) {
+				this.flushTask.cancel(true);
+				this.flushTask = null;
+			}
 		}
-		new Flusher().run();
+		Flusher flusher = new Flusher();
+		flusher.run();
+		boolean needInterrupt = this.fileStates.size() > 0;
+		int n = 0;
+		while (n++ < 10 && this.fileStates.size() > 0) {
+			try {
+				Thread.sleep(1);
+			}
+			catch (InterruptedException e) {
+				// cancel the interrupt
+			}
+			flusher.run();
+		}
+		if (this.fileStates.size() > 0) {
+			this.logger.error("Failed to flush after multiple attempts, while stopping: " + this.fileStates.keySet());
+		}
+		if (needInterrupt) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	@Override
@@ -524,10 +544,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			timestamp = ((File) payload).lastModified();
 		}
 		boolean ignore = (FileExistsMode.IGNORE.equals(this.fileExistsMode)
-						&& (exists || (StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists())))
+				&& (exists || (StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists())))
 				|| ((exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(this.fileExistsMode))
-						&& (timestamp instanceof Number
-								&& ((Number) timestamp).longValue() == resultFile.lastModified()));
+				&& (timestamp instanceof Number
+				&& ((Number) timestamp).longValue() == resultFile.lastModified()));
 		if (!ignore) {
 			try {
 				if (!exists &&
@@ -862,10 +882,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private synchronized FileState getFileState(final File fileToWriteTo, boolean isString)
 			throws FileNotFoundException {
-		String absolutePath = fileToWriteTo.getAbsolutePath();
 		FileState state;
 		boolean appendNoFlush = FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
 		if (appendNoFlush) {
+			String absolutePath = fileToWriteTo.getAbsolutePath();
 			state = this.fileStates.get(absolutePath);
 			if (state != null && ((isString && state.stream != null) || (!isString && state.writer != null))) {
 				state.close();
@@ -938,16 +958,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param flushPredicate the {@link FlushPredicate}.
 	 * @since 4.3
 	 */
-	public synchronized void flushIfNeeded(FlushPredicate flushPredicate) {
-		Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
-		while (iterator.hasNext()) {
-			Entry<String, FileState> entry = iterator.next();
-			FileState state = entry.getValue();
-			if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite)) {
-				iterator.remove();
-				state.close();
-			}
-		}
+	public void flushIfNeeded(FlushPredicate flushPredicate) {
+		flushIfNeeded((fileAbsolutePath, firstWrite, lastWrite, filterMessage) ->
+						flushPredicate.shouldFlush(fileAbsolutePath, firstWrite, lastWrite),
+				null);
 	}
 
 	/**
@@ -959,21 +973,56 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param filterMessage an optional message passed into the predicate.
 	 * @since 4.3
 	 */
-	public synchronized void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
-		Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
-		while (iterator.hasNext()) {
-			Entry<String, FileState> entry = iterator.next();
-			FileState state = entry.getValue();
-			if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite, filterMessage)) {
-				iterator.remove();
-				state.close();
+	public void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+		doFlush(findFilesToFlush(flushPredicate, filterMessage));
+	}
+
+	private Map<String, FileState> findFilesToFlush(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+		Map<String, FileState> toRemove = new HashMap<>();
+		synchronized (this) {
+			Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
+			while (iterator.hasNext()) {
+				Entry<String, FileState> entry = iterator.next();
+				FileState state = entry.getValue();
+				if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite, filterMessage)) {
+					iterator.remove();
+					toRemove.put(entry.getKey(), state);
+				}
 			}
 		}
+		return toRemove;
 	}
 
 	private synchronized void clearState(final File fileToWriteTo, final FileState state) {
 		if (state != null) {
 			this.fileStates.remove(fileToWriteTo.getAbsolutePath());
+		}
+	}
+
+	private void doFlush(Map<String, FileState> toRemove) {
+		Map<String, FileState> toRestore = new HashMap<>();
+		boolean interrupted = false;
+		for (Entry<String, FileState> entry : toRemove.entrySet()) {
+			if (!interrupted && entry.getValue().close()) {
+				if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
+					FileWritingMessageHandler.this.logger.debug("Flushed: " + entry.getKey());
+				}
+			}
+			else { // interrupted (stop), re-add
+				interrupted = true;
+				toRestore.put(entry.getKey(), entry.getValue());
+			}
+		}
+		if (interrupted) {
+			if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
+				FileWritingMessageHandler.this.logger
+						.debug("Interrupted during flush; not flushed: " + toRestore.keySet());
+			}
+			synchronized (this) {
+				for (Entry<String, FileState> entry : toRestore.entrySet()) {
+					this.fileStates.putIfAbsent(entry.getKey(), entry.getValue());
+				}
+			}
 		}
 	}
 
@@ -1039,6 +1088,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		@Override
 		public void run() {
+			Map<String, FileState> toRemove = new HashMap<>();
 			synchronized (FileWritingMessageHandler.this) {
 				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
 						: (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
@@ -1049,18 +1099,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					FileState state = entry.getValue();
 					if (state.lastWrite < expired ||
 							(!FileWritingMessageHandler.this.flushWhenIdle && state.firstWrite < expired)) {
-						if (state.close()) {
-							if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
-								FileWritingMessageHandler.this.logger.debug("Flushed: " + entry.getKey());
-							}
-							iterator.remove();
-						}
-						else {
-							break; // interrupted
-						}
+						toRemove.put(entry.getKey(), state);
+						iterator.remove();
 					}
 				}
 			}
+			doFlush(toRemove);
 		}
 
 	}
