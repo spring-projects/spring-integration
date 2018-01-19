@@ -474,10 +474,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	@Override
-	public synchronized void stop() {
-		if (this.flushTask != null) {
-			this.flushTask.cancel(true);
-			this.flushTask = null;
+	public void stop() {
+		synchronized (this) {
+			if (this.flushTask != null) {
+				this.flushTask.cancel(true);
+				this.flushTask = null;
+			}
 		}
 		new Flusher().run();
 	}
@@ -938,16 +940,20 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param flushPredicate the {@link FlushPredicate}.
 	 * @since 4.3
 	 */
-	public synchronized void flushIfNeeded(FlushPredicate flushPredicate) {
-		Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
-		while (iterator.hasNext()) {
-			Entry<String, FileState> entry = iterator.next();
-			FileState state = entry.getValue();
-			if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite)) {
-				iterator.remove();
-				state.close();
+	public void flushIfNeeded(FlushPredicate flushPredicate) {
+		Map<String, FileState> toRemove = new HashMap<>();
+		synchronized (this) {
+			Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
+			while (iterator.hasNext()) {
+				Entry<String, FileState> entry = iterator.next();
+				FileState state = entry.getValue();
+				if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite)) {
+					iterator.remove();
+					toRemove.put(entry.getKey(), state);
+				}
 			}
 		}
+		doFlush(toRemove);
 	}
 
 	/**
@@ -959,21 +965,51 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @param filterMessage an optional message passed into the predicate.
 	 * @since 4.3
 	 */
-	public synchronized void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
-		Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
-		while (iterator.hasNext()) {
-			Entry<String, FileState> entry = iterator.next();
-			FileState state = entry.getValue();
-			if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite, filterMessage)) {
-				iterator.remove();
-				state.close();
+	public void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+		Map<String, FileState> toRemove = new HashMap<>();
+		synchronized (this) {
+			Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
+			while (iterator.hasNext()) {
+				Entry<String, FileState> entry = iterator.next();
+				FileState state = entry.getValue();
+				if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite, filterMessage)) {
+					iterator.remove();
+					toRemove.put(entry.getKey(), state);
+				}
 			}
 		}
+		doFlush(toRemove);
 	}
 
 	private synchronized void clearState(final File fileToWriteTo, final FileState state) {
 		if (state != null) {
 			this.fileStates.remove(fileToWriteTo.getAbsolutePath());
+		}
+	}
+
+	private void doFlush(Map<String, FileState> toRemove) {
+		Map<String, FileState> toRestore = new HashMap<>();
+		boolean interrupted = false;
+		for (Entry<String, FileState> entry : toRemove.entrySet()) {
+			if (!interrupted && entry.getValue().close()) {
+				if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
+					FileWritingMessageHandler.this.logger.debug("Flushed: " + entry.getKey());
+				}
+			}
+			else { // interrupted (stop), re-add
+				interrupted = true;
+				toRestore.put(entry.getKey(), entry.getValue());
+			}
+		}
+		if (interrupted) {
+			if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
+				FileWritingMessageHandler.this.logger.debug("Flushed: " + toRestore.keySet());
+			}
+			synchronized (this) {
+				for (Entry<String, FileState> entry : toRestore.entrySet()) {
+					this.fileStates.putIfAbsent(entry.getKey(), entry.getValue());
+				}
+			}
 		}
 	}
 
@@ -1039,6 +1075,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		@Override
 		public void run() {
+			Map<String, FileState> toRemove = new HashMap<>();
 			synchronized (FileWritingMessageHandler.this) {
 				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
 						: (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
@@ -1049,18 +1086,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					FileState state = entry.getValue();
 					if (state.lastWrite < expired ||
 							(!FileWritingMessageHandler.this.flushWhenIdle && state.firstWrite < expired)) {
-						if (state.close()) {
-							if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
-								FileWritingMessageHandler.this.logger.debug("Flushed: " + entry.getKey());
-							}
-							iterator.remove();
-						}
-						else {
-							break; // interrupted
-						}
+						toRemove.put(entry.getKey(), state);
+						iterator.remove();
 					}
 				}
 			}
+			doFlush(toRemove);
 		}
 
 	}
