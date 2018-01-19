@@ -201,4 +201,10 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 		}
 	}
 
+	@Override
+	protected void closeSocketIfNeeded() {
+		this.multicastSocket = null;
+		super.closeSocketIfNeeded();
+	}
+
 }
