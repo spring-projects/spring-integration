@@ -481,7 +481,25 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				this.flushTask = null;
 			}
 		}
-		new Flusher().run();
+		Flusher flusher = new Flusher();
+		flusher.run();
+		boolean needInterrupt = this.fileStates.size() > 0;
+		int n = 0;
+		while (n++ < 10 && this.fileStates.size() > 0) {
+			try {
+				Thread.sleep(1);
+			}
+			catch (InterruptedException e) {
+				// cancel the interrupt
+			}
+			flusher.run();
+		}
+		if (this.fileStates.size() > 0) {
+			this.logger.error("Failed to flush after multiple attempts, while stopping: " + this.fileStates.keySet());
+		}
+		if (needInterrupt) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	@Override
@@ -864,10 +882,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private synchronized FileState getFileState(final File fileToWriteTo, boolean isString)
 			throws FileNotFoundException {
-		String absolutePath = fileToWriteTo.getAbsolutePath();
 		FileState state;
 		boolean appendNoFlush = FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
 		if (appendNoFlush) {
+			String absolutePath = fileToWriteTo.getAbsolutePath();
 			state = this.fileStates.get(absolutePath);
 			if (state != null && ((isString && state.stream != null) || (!isString && state.writer != null))) {
 				state.close();
@@ -941,19 +959,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @since 4.3
 	 */
 	public void flushIfNeeded(FlushPredicate flushPredicate) {
-		Map<String, FileState> toRemove = new HashMap<>();
-		synchronized (this) {
-			Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
-			while (iterator.hasNext()) {
-				Entry<String, FileState> entry = iterator.next();
-				FileState state = entry.getValue();
-				if (flushPredicate.shouldFlush(entry.getKey(), state.firstWrite, state.lastWrite)) {
-					iterator.remove();
-					toRemove.put(entry.getKey(), state);
-				}
-			}
-		}
-		doFlush(toRemove);
+		doFlush(findFilesToFlush((fileAbsolutePath, firstWrite, lastWrite, filterMessage) ->
+			flushPredicate.shouldFlush(fileAbsolutePath, firstWrite, lastWrite), null));
 	}
 
 	/**
@@ -966,6 +973,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * @since 4.3
 	 */
 	public void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+		doFlush(findFilesToFlush(flushPredicate, filterMessage));
+	}
+
+	private Map<String, FileState> findFilesToFlush(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
 		Map<String, FileState> toRemove = new HashMap<>();
 		synchronized (this) {
 			Iterator<Entry<String, FileState>> iterator = this.fileStates.entrySet().iterator();
@@ -978,7 +989,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 			}
 		}
-		doFlush(toRemove);
+		return toRemove;
 	}
 
 	private synchronized void clearState(final File fileToWriteTo, final FileState state) {
@@ -1003,7 +1014,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		if (interrupted) {
 			if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
-				FileWritingMessageHandler.this.logger.debug("Flushed: " + toRestore.keySet());
+				FileWritingMessageHandler.this.logger
+						.debug("Interrupted during flush; not flushed: " + toRestore.keySet());
 			}
 			synchronized (this) {
 				for (Entry<String, FileState> entry : toRestore.entrySet()) {
