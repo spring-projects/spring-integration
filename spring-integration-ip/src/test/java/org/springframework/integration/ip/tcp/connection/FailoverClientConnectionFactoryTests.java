@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,6 +47,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.BridgeHandler;
@@ -548,8 +548,9 @@ public class FailoverClientConnectionFactoryTests {
 	}
 
 	private Holder setupAndStartServers(AbstractServerConnectionFactory server1,
-			AbstractServerConnectionFactory server2) throws Exception {
-		Executor exec = Executors.newCachedThreadPool();
+			AbstractServerConnectionFactory server2) {
+
+		Executor exec = new SimpleAsyncTaskExecutor();
 		server1.setTaskExecutor(exec);
 		server2.setTaskExecutor(exec);
 		server1.setBeanName("server1");

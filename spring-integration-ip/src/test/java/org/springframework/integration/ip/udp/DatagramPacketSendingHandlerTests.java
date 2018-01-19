@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -39,6 +39,8 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Marcin Pilaczynski
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DatagramPacketSendingHandlerTests {
@@ -50,19 +52,20 @@ public class DatagramPacketSendingHandlerTests {
 		final CountDownLatch received = new CountDownLatch(1);
 		final AtomicInteger testPort = new AtomicInteger();
 		final CountDownLatch listening = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(() -> {
-			try {
-				DatagramSocket socket = new DatagramSocket();
-				testPort.set(socket.getLocalPort());
-				listening.countDown();
-				socket.receive(receivedPacket);
-				received.countDown();
-				socket.close();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
+		new SimpleAsyncTaskExecutor()
+				.execute(() -> {
+					try {
+						DatagramSocket socket = new DatagramSocket();
+						testPort.set(socket.getLocalPort());
+						listening.countDown();
+						socket.receive(receivedPacket);
+						received.countDown();
+						socket.close();
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+				});
 		assertTrue(listening.await(10, TimeUnit.SECONDS));
 		UnicastSendingMessageHandler handler =
 				new UnicastSendingMessageHandler("localhost", testPort.get());
@@ -89,31 +92,32 @@ public class DatagramPacketSendingHandlerTests {
 		final CountDownLatch listening = new CountDownLatch(1);
 		final CountDownLatch ackListening = new CountDownLatch(1);
 		final CountDownLatch ackSent = new CountDownLatch(1);
-		Executors.newSingleThreadExecutor().execute(() -> {
-			try {
-				DatagramSocket socket = new DatagramSocket();
-				testPort.set(socket.getLocalPort());
-				listening.countDown();
-				assertTrue(ackListening.await(10, TimeUnit.SECONDS));
-				socket.receive(receivedPacket);
-				socket.close();
-				DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
-				mapper.setAcknowledge(true);
-				mapper.setLengthCheck(true);
-				Message<byte[]> message = mapper.toMessage(receivedPacket);
-				Object id = message.getHeaders().get(IpHeaders.ACK_ID);
-				byte[] ack = id.toString().getBytes();
-				DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
-						new InetSocketAddress("localHost", ackPort.get()));
-				DatagramSocket out = new DatagramSocket();
-				out.send(ackPack);
-				out.close();
-				ackSent.countDown();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
+		new SimpleAsyncTaskExecutor()
+				.execute(() -> {
+					try {
+						DatagramSocket socket = new DatagramSocket();
+						testPort.set(socket.getLocalPort());
+						listening.countDown();
+						assertTrue(ackListening.await(10, TimeUnit.SECONDS));
+						socket.receive(receivedPacket);
+						socket.close();
+						DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+						mapper.setAcknowledge(true);
+						mapper.setLengthCheck(true);
+						Message<byte[]> message = mapper.toMessage(receivedPacket);
+						Object id = message.getHeaders().get(IpHeaders.ACK_ID);
+						byte[] ack = id.toString().getBytes();
+						DatagramPacket ackPack = new DatagramPacket(ack, ack.length,
+								new InetSocketAddress("localHost", ackPort.get()));
+						DatagramSocket out = new DatagramSocket();
+						out.send(ackPack);
+						out.close();
+						ackSent.countDown();
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+				});
 		listening.await(10000, TimeUnit.MILLISECONDS);
 		UnicastSendingMessageHandler handler =
 				new UnicastSendingMessageHandler("localhost", testPort.get(), true, true, "localhost", 0, 5000);

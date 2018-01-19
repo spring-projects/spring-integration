@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2016 the original author or authors.
+ * Copyright 2001-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ import org.springframework.messaging.MessageHandler;
  * determine success.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler {
@@ -126,49 +128,45 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	@Override
 	protected DatagramSocket getSocket() throws IOException {
-		if (this.getTheSocket() == null) {
+		if (this.multicastSocket == null) {
 			synchronized (this) {
-				createSocket();
+				if (this.multicastSocket == null) {
+					createSocket();
+				}
 			}
 		}
-		return this.getTheSocket();
+		return getTheSocket();
 	}
 
 	private void createSocket() throws IOException {
-		if (this.getTheSocket() == null) {
-			MulticastSocket socket;
-			if (this.isAcknowledge()) {
-				int ackPort = this.getAckPort();
-				if (this.localAddress == null) {
-					socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
-				}
-				else {
-					InetAddress whichNic = InetAddress.getByName(this.localAddress);
-					socket = new MulticastSocket(new InetSocketAddress(whichNic, ackPort));
-				}
-				if (getSoReceiveBufferSize() > 0) {
-					socket.setReceiveBufferSize(this.getSoReceiveBufferSize());
-				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Listening for acks on port: " + socket.getLocalPort());
-				}
-				setSocket(socket);
-				updateAckAddress();
+		MulticastSocket socket;
+		if (isAcknowledge()) {
+			int ackPort = getAckPort();
+			if (this.localAddress == null) {
+				socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
 			}
 			else {
-				socket = new MulticastSocket();
-				setSocket(socket);
-			}
-			if (this.timeToLive >= 0) {
-				socket.setTimeToLive(this.timeToLive);
-			}
-			setSocketAttributes(socket);
-			if (this.localAddress != null) {
 				InetAddress whichNic = InetAddress.getByName(this.localAddress);
-				socket.setInterface(whichNic);
+				socket = new MulticastSocket(new InetSocketAddress(whichNic, ackPort));
 			}
-			this.multicastSocket = socket;
+			if (getSoReceiveBufferSize() > 0) {
+				socket.setReceiveBufferSize(getSoReceiveBufferSize());
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("Listening for acks on port: " + socket.getLocalPort());
+			}
+			setSocket(socket);
+			updateAckAddress();
 		}
+		else {
+			socket = new MulticastSocket();
+			setSocket(socket);
+		}
+		if (this.timeToLive >= 0) {
+			socket.setTimeToLive(this.timeToLive);
+		}
+		setSocketAttributes(socket);
+		this.multicastSocket = socket;
 	}
 
 
@@ -178,7 +176,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 * @param minAcksForSuccess The minimum number of acks that will represent success.
 	 */
 	public void setMinAcksForSuccess(int minAcksForSuccess) {
-		this.setAckCounter(minAcksForSuccess);
+		setAckCounter(minAcksForSuccess);
 	}
 
 	/**

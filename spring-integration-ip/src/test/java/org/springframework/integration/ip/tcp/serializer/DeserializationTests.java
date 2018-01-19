@@ -33,8 +33,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
@@ -46,6 +45,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
@@ -62,6 +62,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Gary Russell
  * @author Gavin Gray
+ *
  * @since 2.0
  */
 public class DeserializationTests {
@@ -419,7 +420,7 @@ public class DeserializationTests {
 				// eat SocketTimeoutException. Doesn't matter for this test
 			}
 		};
-		ExecutorService exec = Executors.newSingleThreadExecutor();
+		Executor exec = new SimpleAsyncTaskExecutor();
 
 		Message<?> message;
 
