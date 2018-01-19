@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
@@ -783,7 +782,7 @@ public class CachingClientConnectionFactoryTests {
 				invocation.callRealMethod();
 				String log = invocation.getArgument(0);
 				if (log.startsWith("Response")) {
-					new SimpleAsyncTaskExecutor()
+					Executors.newSingleThreadScheduledExecutor()
 							.execute(() -> gate.handleMessage(new GenericMessage<>("bar")));
 					// hold up the first thread until the second has added its pending reply
 					latch.await(10, TimeUnit.SECONDS);
