@@ -124,4 +124,9 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 		return this.delegate.getOverrides();
 	}
 
+	@Override
+	public void setCounterFacade(CounterFacade counterFacade) {
+		this.delegate.setCounterFacade(counterFacade);
+	}
+
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -38,6 +39,10 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 
 	protected final ExponentialMovingAverage duration;
 
+	protected final TimerFacade timerFacade;
+
+	protected final CounterFacade errorCounterFacade;
+
 	public DefaultMessageHandlerMetrics() {
 		this(null);
 	}
@@ -47,7 +52,18 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	 * @param name the name.
 	 */
 	public DefaultMessageHandlerMetrics(String name) {
-		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.));
+		this(name, null, null);
+	}
+
+	/**
+	 * Construct an instance with the default moving average window (10).
+	 * @param name the name.
+	 * @param timerFacade a facade for timing operations.
+	 * @param errorCounterFacade a facade for counting errors.
+	 */
+	public DefaultMessageHandlerMetrics(String name, TimerFacade timerFacade, CounterFacade errorCounterFacade) {
+		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.), timerFacade,
+				errorCounterFacade);
 	}
 
 	/**
@@ -59,8 +75,25 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	 * @since 4.2
 	 */
 	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration) {
+		this(name, duration, null, null);
+	}
+
+	/**
+	 * Construct an instance with the supplied {@link ExponentialMovingAverage} calculating
+	 * the duration of processing by the message handler (and any downstream synchronous
+	 * endpoints).
+	 * @param name the name.
+	 * @param duration an {@link ExponentialMovingAverage} for calculating the duration.
+	 * @param timerFacade a facade for timing operations.
+	 * @param errorCounterFacade a facade for counting errors.
+	 * @since 5.0.1
+	 */
+	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration, TimerFacade timerFacade,
+			CounterFacade errorCounterFacade) {
 		super(name);
 		this.duration = duration;
+		this.timerFacade = timerFacade;
+		this.errorCounterFacade = errorCounterFacade;
 	}
 
 	@Override
@@ -78,10 +111,17 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	public void afterHandle(MetricsContext context, boolean success) {
 		this.activeCount.decrementAndGet();
 		if (isFullStatsEnabled() && success) {
-			this.duration.append(System.nanoTime() - ((DefaultHandlerMetricsContext) context).start);
+			long elapsed = System.nanoTime() - ((DefaultHandlerMetricsContext) context).start;
+			this.duration.append(elapsed);
+			if (this.timerFacade != null) {
+				this.timerFacade.record(Duration.ofNanos(elapsed));
+			}
 		}
 		else if (!success) {
 			this.errorCount.incrementAndGet();
+			if (this.errorCounterFacade != null) {
+				this.errorCounterFacade.increment();
+			}
 		}
 	}
 

@@ -204,22 +204,32 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 			this.metricsFactory = this.applicationContext.getBean(this.metricsFactoryBeanName, MetricsFactory.class);
 		}
 		if (this.metricsFactory == null) {
+			Map<String, MetricsFactory> factories = this.applicationContext.getBeansOfType(MetricsFactory.class);
+			if (factories.size() == 1) {
+				this.metricsFactory = factories.values().iterator().next();
+			}
+		}
+		if (this.metricsFactory == null) {
 			this.metricsFactory = new DefaultMetricsFactory();
 		}
+		Map<String, MessageSourceMetricsConfigurer> sourceConfigurers = this.applicationContext
+				.getBeansOfType(MessageSourceMetricsConfigurer.class);
 		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
 			if (!bean.getOverrides().loggingConfigured) {
 				bean.setLoggingEnabled(this.defaultLoggingEnabled);
 			}
+			String name = entry.getKey();
 			if (bean instanceof MessageChannelMetrics) {
-				configureChannelMetrics(entry.getKey(), (MessageChannelMetrics) bean);
+				configureChannelMetrics(name, (MessageChannelMetrics) bean);
 			}
 			else if (bean instanceof MessageHandlerMetrics) {
-				configureHandlerMetrics(entry.getKey(), (MessageHandlerMetrics) bean);
+				configureHandlerMetrics(name, (MessageHandlerMetrics) bean);
 			}
 			else if (bean instanceof MessageSourceMetrics) {
-				configureSourceMetrics(entry.getKey(), (MessageSourceMetrics) bean);
+				configureSourceMetrics(name, (MessageSourceMetrics) bean);
+				sourceConfigurers.values().forEach(c -> c.configure((MessageSourceMetrics) bean, name));
 			}
 		}
 	}

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -51,6 +52,10 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	protected final AtomicLong receiveErrorCount = new AtomicLong();
 
+	protected final TimerFacade timerFacade;
+
+	protected final CounterFacade errorCounterFacade;
+
 	public DefaultMessageChannelMetrics() {
 		this(null);
 	}
@@ -61,13 +66,25 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 * @param name the name.
 	 */
 	public DefaultMessageChannelMetrics(String name) {
+		this(name, null, null);
+	}
+
+	/**
+	 * Construct an instance with default metrics with {@code window=10, period=1 second,
+	 * lapsePeriod=1 minute}.
+	 * @param name the name.
+	 * @param timerFacade a facade for timing operations.
+	 * @param errorCounterFacade a facade for counting errors.
+	 */
+	public DefaultMessageChannelMetrics(String name, TimerFacade timerFacade, CounterFacade errorCounterFacade) {
 		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.),
-		new ExponentialMovingAverageRate(
-				ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
-		new ExponentialMovingAverageRatio(
-				ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
-		new ExponentialMovingAverageRate(
-				ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true));
+			new ExponentialMovingAverageRate(
+					ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
+			new ExponentialMovingAverageRatio(
+					ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
+			new ExponentialMovingAverageRate(
+					ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
+			timerFacade, errorCounterFacade);
 	}
 
 	/**
@@ -84,11 +101,32 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
 			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
 			ExponentialMovingAverageRate sendRate) {
+		this(name, sendDuration, sendErrorRate, sendSuccessRatio, sendRate, null, null);
+	}
+
+	/**
+	 * Construct an instance with the supplied metrics. For proper representation of metrics, the
+	 * supplied sendDuration must have a {@code factor=1000000.} and the the other arguments
+	 * must be created with the {@code millis} constructor argument set to true.
+	 * @param name the name.
+	 * @param sendDuration an {@link ExponentialMovingAverage} for calculating the send duration.
+	 * @param sendErrorRate an {@link ExponentialMovingAverageRate} for calculating the send error rate.
+	 * @param sendSuccessRatio an {@link ExponentialMovingAverageRatio} for calculating the success ratio.
+	 * @param sendRate an {@link ExponentialMovingAverageRate} for calculating the send rate.
+	 * @param timerFacade a facade for timing operations.
+	 * @param errorCounterFacade a facade for counting errors.
+	 * @since 4.2
+	 */
+	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
+			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
+			ExponentialMovingAverageRate sendRate, TimerFacade timerFacade, CounterFacade errorCounterFacade) {
 		super(name);
 		this.sendDuration = sendDuration;
 		this.sendErrorRate = sendErrorRate;
 		this.sendSuccessRatio = sendSuccessRatio;
 		this.sendRate = sendRate;
+		this.timerFacade = timerFacade;
+		this.errorCounterFacade = errorCounterFacade;
 	}
 
 	public void destroy() {
@@ -114,7 +152,11 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 			if (isFullStatsEnabled()) {
 				long now = System.nanoTime();
 				this.sendSuccessRatio.success(now);
-				this.sendDuration.append(now - ((DefaultChannelMetricsContext) context).start);
+				long elapsed = now - ((DefaultChannelMetricsContext) context).start;
+				this.sendDuration.append(elapsed);
+				if (this.timerFacade != null) {
+					this.timerFacade.record(Duration.ofNanos(elapsed));
+				}
 			}
 		}
 		else {
@@ -124,6 +166,9 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 				this.sendErrorRate.increment(now);
 			}
 			this.sendErrorCount.incrementAndGet();
+			if (this.errorCounterFacade != null) {
+				this.errorCounterFacade.increment();
+			}
 		}
 	}
 
