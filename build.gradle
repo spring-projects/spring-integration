@@ -88,8 +88,9 @@ subprojects { subproject ->
 
 	ext {
 		activeMqVersion = '5.15.2'
-		aspectjVersion = '1.8.13'
 		apacheSshdVersion = '1.6.0'
+		aspectjVersion = '1.8.13'
+		assertjVersion = '2.6.0'
 		boonVersion = '0.34'
 		commonsDbcp2Version = '2.1.1'
 		commonsIoVersion = '2.4'
@@ -119,6 +120,7 @@ subprojects { subproject ->
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
 		log4jVersion = '2.10.0'
+		micrometerVersion = '1.0.0-rc.7'
 		mockitoVersion = '2.11.0'
 		mysqlVersion = '6.0.6'
 		pahoMqttClientVersion = '1.2.0'
@@ -520,6 +522,15 @@ project('spring-integration-mail') {
 
 	// suppress javax.activation path warnings
 	[compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
+}
+
+project('spring-integration-micrometer') {
+	description = 'Spring Integration with Micrometer'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile "io.micrometer:micrometer-core:$micrometerVersion"
+		testCompile "org.assertj:assertj-core:$assertjVersion"
+	}
 }
 
 project('spring-integration-mongodb') {

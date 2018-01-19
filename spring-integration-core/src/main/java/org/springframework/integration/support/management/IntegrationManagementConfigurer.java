@@ -204,6 +204,12 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 			this.metricsFactory = this.applicationContext.getBean(this.metricsFactoryBeanName, MetricsFactory.class);
 		}
 		if (this.metricsFactory == null) {
+			Map<String, MetricsFactory> factories = this.applicationContext.getBeansOfType(MetricsFactory.class);
+			if (factories.size() == 1) {
+				this.metricsFactory = factories.values().iterator().next();
+			}
+		}
+		if (this.metricsFactory == null) {
 			this.metricsFactory = new DefaultMetricsFactory();
 		}
 		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
