@@ -24,18 +24,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
-import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -57,23 +58,27 @@ public class MicrometerMetricsTests {
 	private AbstractMessageChannel channel;
 
 	@Autowired
-	@Qualifier("micrometerMetricsTests.Config.service.serviceActivator.handler")
-	private AbstractMessageHandler handler;
+	private MessageSource<?> source;
 
 	@Test
 	public void testSend() {
 		this.channel.send(new GenericMessage<>("foo"));
+		source.receive();
 		List<Meter> meters = this.meterRegistry.getMeters();
-		int foundTimers = 0;
+		int foundMeters = 0;
 		for (Meter meter : meters) {
 			String name = meter.getId().getName();
 			if (name.equals("channel.timer")
 					|| name.equals("micrometerMetricsTests.Config.service.serviceActivator.handler.timer")) {
 				assertThat(((Timer) meter).count()).isEqualTo(1L);
-				foundTimers++;
+				foundMeters++;
+			}
+			else if (name.equals("source")) {
+				assertThat(((Counter) meter).count()).isEqualTo(1L);
+				foundMeters++;
 			}
 		}
-		assertThat(foundTimers).isEqualTo(2);
+		assertThat(foundMeters).isEqualTo(3);
 	}
 
 	@Configuration
@@ -96,6 +101,21 @@ public class MicrometerMetricsTests {
 
 		}
 
+		@Bean
+		public MessageSource<?> source() {
+			return new AbstractMessageSource<String>() {
+
+				@Override
+				public String getComponentType() {
+					return "testSource";
+				}
+
+				@Override
+				protected Object doReceive() {
+					return "foo";
+				}
+			};
+		}
 	}
 
 }

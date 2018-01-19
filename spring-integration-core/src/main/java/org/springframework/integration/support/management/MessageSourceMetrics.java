@@ -47,4 +47,8 @@ public interface MessageSourceMetrics extends IntegrationManagement {
 
 	String getManagedType();
 
+	default void setCounterFacade(CounterFacade counterFacade) {
+		// no op
+	}
+
 }

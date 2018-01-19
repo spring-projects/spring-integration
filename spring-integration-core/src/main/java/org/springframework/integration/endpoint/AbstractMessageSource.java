@@ -26,6 +26,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.CounterFacade;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -51,11 +52,13 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private volatile Map<String, Expression> headerExpressions = Collections.emptyMap();
 
-	private volatile String beanName;
+	private String beanName;
 
-	private volatile String managedType;
+	private String managedType;
 
-	private volatile String managedName;
+	private String managedName;
+
+	private CounterFacade counterFacade;
 
 	private volatile boolean countsEnabled;
 
@@ -116,6 +119,10 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
 		this.managementOverrides.loggingConfigured = true;
+	}
+
+	public void setCounterFacade(CounterFacade counterFacade) {
+		this.counterFacade = counterFacade;
 	}
 
 	@Override
@@ -183,6 +190,9 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		}
 		if (this.countsEnabled && message != null) {
 			this.messageCount.incrementAndGet();
+			if (this.counterFacade != null) {
+				this.counterFacade.increment();
+			}
 		}
 		return message;
 	}

@@ -20,6 +20,8 @@ import org.springframework.integration.support.management.AbstractMessageChannel
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
+import org.springframework.integration.support.management.MessageSourceMetrics;
+import org.springframework.integration.support.management.MessageSourceMetricsConfigurer;
 import org.springframework.integration.support.management.MetricsFactory;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -31,7 +33,7 @@ import io.micrometer.core.instrument.MeterRegistry;
  * @since 5.0.1
  *
  */
-public class MicrometerMetricsFactory implements MetricsFactory {
+public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMetricsConfigurer {
 
 	private final MeterRegistry meterRegistry;
 
@@ -49,6 +51,11 @@ public class MicrometerMetricsFactory implements MetricsFactory {
 	public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
 		return new DefaultMessageHandlerMetrics(name, new TimerImpl(this.meterRegistry.timer(name + ".timer")),
 				new CounterImpl(this.meterRegistry.counter(name + ".counter")));
+	}
+
+	@Override
+	public void configure(MessageSourceMetrics metrics, String name) {
+		metrics.setCounterFacade(new CounterImpl(this.meterRegistry.counter(name)));
 	}
 
 }
