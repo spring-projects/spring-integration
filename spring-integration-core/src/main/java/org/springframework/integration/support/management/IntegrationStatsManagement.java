@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ package org.springframework.integration.support.management;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
+
 
 /**
  * Base interface containing methods to control complete statistics gathering.
@@ -33,5 +36,23 @@ public interface IntegrationStatsManagement extends IntegrationManagement {
 
 	@ManagedAttribute
 	boolean isStatsEnabled();
+
+	/**
+	 * Set a micrometer timer to time operations.
+	 * @param timer the timer.
+	 * @since 5.0.2
+	 */
+	default void setTimer(Timer timer) {
+		// no op
+	}
+
+	/**
+	 * Set a micrometer counter to count errors.
+	 * @param counter the counter.
+	 * @since 5.0.2
+	 */
+	default void setErrorCounter(Counter counter) {
+		// no op
+	}
 
 }

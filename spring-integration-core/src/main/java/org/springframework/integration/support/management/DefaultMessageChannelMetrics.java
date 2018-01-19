@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 the original author or authors.
+ * Copyright 2009-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 package org.springframework.integration.support.management;
 
 import java.util.concurrent.atomic.AtomicLong;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 
 /**
  * Default implementation; use the full constructor to customize the moving averages.
@@ -61,13 +64,26 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 * @param name the name.
 	 */
 	public DefaultMessageChannelMetrics(String name) {
+		this(name, null, null);
+	}
+
+	/**
+	 * Construct an instance with default metrics with {@code window=10, period=1 second,
+	 * lapsePeriod=1 minute}.
+	 * @param name the name.
+	 * @param timer a timer.
+	 * @param errorCounter a counter.
+	 * @since 5.0.2
+	 */
+	public DefaultMessageChannelMetrics(String name, Timer timer, Counter errorCounter) {
 		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.),
-		new ExponentialMovingAverageRate(
-				ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
-		new ExponentialMovingAverageRatio(
-				ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
-		new ExponentialMovingAverageRate(
-				ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true));
+			new ExponentialMovingAverageRate(
+					ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
+			new ExponentialMovingAverageRatio(
+					ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
+			new ExponentialMovingAverageRate(
+					ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
+			timer, errorCounter);
 	}
 
 	/**
@@ -84,7 +100,26 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
 			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
 			ExponentialMovingAverageRate sendRate) {
-		super(name);
+		this(name, sendDuration, sendErrorRate, sendSuccessRatio, sendRate, null, null);
+	}
+
+	/**
+	 * Construct an instance with the supplied metrics. For proper representation of metrics, the
+	 * supplied sendDuration must have a {@code factor=1000000.} and the the other arguments
+	 * must be created with the {@code millis} constructor argument set to true.
+	 * @param name the name.
+	 * @param sendDuration an {@link ExponentialMovingAverage} for calculating the send duration.
+	 * @param sendErrorRate an {@link ExponentialMovingAverageRate} for calculating the send error rate.
+	 * @param sendSuccessRatio an {@link ExponentialMovingAverageRatio} for calculating the success ratio.
+	 * @param sendRate an {@link ExponentialMovingAverageRate} for calculating the send rate.
+	 * @param timer a timer.
+	 * @param errorCounter a counter.
+	 * @since 5.0.2
+	 */
+	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
+			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
+			ExponentialMovingAverageRate sendRate, Timer timer, Counter errorCounter) {
+		super(name, timer, errorCounter);
 		this.sendDuration = sendDuration;
 		this.sendErrorRate = sendErrorRate;
 		this.sendSuccessRatio = sendSuccessRatio;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,17 +135,39 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
-			if (countsEnabled) {
-				start = handlerMetrics.beforeHandle();
+			if (handlerMetrics.getTimer() != null && countsEnabled) {
+				final Message<?> messageToSend = message;
+				handlerMetrics.getTimer().record(() -> {
+					try {
+						handleMessageInternal(messageToSend);
+					}
+					catch (Exception e) {
+						if (e instanceof MessagingException) {
+							throw (MessagingException) e;
+						}
+						throw new MessageHandlingException(messageToSend,
+								"error occurred in message handler [" + this + "]", e);
+					}
+				});
 			}
-			this.handleMessageInternal(message);
-			if (countsEnabled) {
-				handlerMetrics.afterHandle(start, true);
+			else {
+				if (countsEnabled) {
+					start = handlerMetrics.beforeHandle();
+				}
+				handleMessageInternal(message);
+				if (countsEnabled) {
+					handlerMetrics.afterHandle(start, true);
+				}
 			}
 		}
 		catch (Exception e) {
 			if (countsEnabled) {
-				handlerMetrics.afterHandle(start, false);
+				if (handlerMetrics.getErrorCounter() != null) {
+					handlerMetrics.getErrorCounter().increment();
+				}
+				else {
+					handlerMetrics.afterHandle(start, false);
+				}
 			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;

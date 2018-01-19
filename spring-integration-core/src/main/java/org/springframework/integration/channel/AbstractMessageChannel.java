@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -432,13 +432,19 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					return false;
 				}
 			}
-			if (countsEnabled) {
-				metrics = channelMetrics.beforeSend();
+			if (channelMetrics.getTimer() != null && countsEnabled) {
+				final Message<?> messageToSend = message;
+				sent = channelMetrics.getTimer().recordCallable(() -> doSend(messageToSend, timeout));
 			}
-			sent = this.doSend(message, timeout);
-			if (countsEnabled) {
-				channelMetrics.afterSend(metrics, sent);
-				metricsProcessed = true;
+			else {
+				if (countsEnabled) {
+					metrics = channelMetrics.beforeSend();
+				}
+				sent = doSend(message, timeout);
+				if (countsEnabled) {
+					channelMetrics.afterSend(metrics, sent);
+					metricsProcessed = true;
+				}
 			}
 
 			if (debugEnabled) {
@@ -452,7 +458,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 		catch (Exception e) {
 			if (countsEnabled && !metricsProcessed) {
-				channelMetrics.afterSend(metrics, false);
+				if (channelMetrics.getErrorCounter() != null) {
+					channelMetrics.getErrorCounter().increment();
+				}
+				else {
+					channelMetrics.afterSend(metrics, false);
+				}
 			}
 			if (interceptorStack != null) {
 				interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 package org.springframework.integration.support.management;
 
 import java.util.concurrent.atomic.AtomicLong;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 
 /**
  * Default implementation; use the full constructor to customize the moving averages.
@@ -47,7 +50,19 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	 * @param name the name.
 	 */
 	public DefaultMessageHandlerMetrics(String name) {
-		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.));
+		this(name, null, null);
+	}
+
+	/**
+	 * Construct an instance with the default moving average window (10).
+	 * @param name the name.
+	 * @param timer a timer.
+	 * @param errorCounter a counter.
+	 * @since 5.0.2
+	 */
+	public DefaultMessageHandlerMetrics(String name, Timer timer, Counter errorCounter) {
+		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.), timer,
+				errorCounter);
 	}
 
 	/**
@@ -59,7 +74,22 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	 * @since 4.2
 	 */
 	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration) {
-		super(name);
+		this(name, duration, null, null);
+	}
+
+	/**
+	 * Construct an instance with the supplied {@link ExponentialMovingAverage} calculating
+	 * the duration of processing by the message handler (and any downstream synchronous
+	 * endpoints).
+	 * @param name the name.
+	 * @param duration an {@link ExponentialMovingAverage} for calculating the duration.
+	 * @param timer a timer.
+	 * @param errorCounter a counter.
+	 * @since 5.0.2
+	 */
+	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration, Timer timer,
+			Counter errorCounter) {
+		super(name, timer, errorCounter);
 		this.duration = duration;
 	}
 
