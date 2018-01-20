@@ -251,7 +251,8 @@ An example is the `Session` associated with a streamed file transfer using FTP, 
     DELIVERY_ATTEMPT
 
 
-| java.lang.AtomicInteger
+| java.lang.
+AtomicInteger
 
 
 | If a message-driven channel adapter supports the configuration of a `RetryTemplate` this header contains the current delivery attempt.
@@ -260,8 +261,9 @@ An example is the `Session` associated with a streamed file transfer using FTP, 
     ACKNOWLEDGMENT_CALLBACK
 
 
-| org.springframework.integration.
-    support.AcknowledgmentCallback
+| o.s.i.support.
+Acknowledgment
+Callback
 
 | If a message source supports it, a call back to accept, reject, or requeue a message - see <<deferred-acks-message-source>>.
 
