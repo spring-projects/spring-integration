@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class TcpNioConnectionWriteTests {
@@ -61,15 +63,21 @@ public class TcpNioConnectionWriteTests {
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(() -> {
+			AbstractConnectionFactory ccf = null;
 			try {
 				ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
-				AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
+				ccf = getClientConnectionFactory(false, port, serializer);
 				TcpConnection connection = ccf.getConnection();
 				connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 				latch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
+			}
+			finally {
+				if (ccf != null) {
+					ccf.stop();
+				}
 			}
 		});
 		t.setDaemon(true);
@@ -94,15 +102,21 @@ public class TcpNioConnectionWriteTests {
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(() -> {
+			AbstractConnectionFactory ccf = null;
 			try {
 				ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
-				AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
+				ccf = getClientConnectionFactory(false, port, serializer);
 				TcpConnection connection = ccf.getConnection();
 				connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 				latch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
+			}
+			finally {
+				if (ccf != null) {
+					ccf.stop();
+				}
 			}
 		});
 		t.setDaemon(true);
@@ -127,15 +141,21 @@ public class TcpNioConnectionWriteTests {
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(() -> {
+			AbstractConnectionFactory ccf = null;
 			try {
 				ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
-				AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
+				ccf = getClientConnectionFactory(false, port, serializer);
 				TcpConnection connection = ccf.getConnection();
 				connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 				latch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
+			}
+			finally {
+				if (ccf != null) {
+					ccf.stop();
+				}
 			}
 		});
 		t.setDaemon(true);
@@ -160,15 +180,21 @@ public class TcpNioConnectionWriteTests {
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(() -> {
+			AbstractConnectionFactory ccf = null;
 			try {
 				ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
-				AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
+				ccf = getClientConnectionFactory(true, port, serializer);
 				TcpConnection connection = ccf.getConnection();
 				connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 				latch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
+			}
+			finally {
+				if (ccf != null) {
+					ccf.stop();
+				}
 			}
 		});
 		t.setDaemon(true);
@@ -193,15 +219,21 @@ public class TcpNioConnectionWriteTests {
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(() -> {
+			AbstractConnectionFactory ccf = null;
 			try {
 				ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
-				AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
+				ccf = getClientConnectionFactory(true, port, serializer);
 				TcpConnection connection = ccf.getConnection();
 				connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 				latch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
+			}
+			finally {
+				if (ccf != null) {
+					ccf.stop();
+				}
 			}
 		});
 		t.setDaemon(true);
@@ -226,15 +258,21 @@ public class TcpNioConnectionWriteTests {
 		server.setSoTimeout(10000);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(() -> {
+			AbstractConnectionFactory ccf = null;
 			try {
 				ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
-				AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
+				ccf = getClientConnectionFactory(true, port, serializer);
 				TcpConnection connection = ccf.getConnection();
 				connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 				latch.await(10, TimeUnit.SECONDS);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
+			}
+			finally {
+				if (ccf != null) {
+					ccf.stop();
+				}
 			}
 		});
 		t.setDaemon(true);
@@ -251,10 +289,6 @@ public class TcpNioConnectionWriteTests {
 		latch.countDown();
 	}
 
-	/**
-	 * @param is
-	 * @param buff
-	 */
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
 			buff[i] = (byte) is.read();

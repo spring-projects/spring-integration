@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ import org.springframework.messaging.support.MessageBuilder;
 
 /**
  * @author Gary Russell
- * @author Artyem Bilan
+ * @author Artem Bilan
  *
  * @since 3.0
  *
@@ -216,6 +216,8 @@ public class ConnectionEventTests {
 		TcpConnectionFailedCorrelationEvent event = (TcpConnectionFailedCorrelationEvent) theEvent.get();
 		assertEquals("bar", event.getConnectionId());
 		assertSame(message, ((MessagingException) event.getCause()).getFailedMessage());
+		gw.stop();
+		scf.stop();
 	}
 
 	@Test
@@ -260,6 +262,8 @@ public class ConnectionEventTests {
 		messagingException = (MessagingException) event.getCause();
 		assertSame(message, messagingException.getFailedMessage());
 		assertEquals("Cannot correlate response - no connection id", messagingException.getMessage());
+		gw.stop();
+		ccf.stop();
 	}
 
 	private void testServerExceptionGuts(AbstractServerConnectionFactory factory) throws Exception {
@@ -336,6 +340,8 @@ public class ConnectionEventTests {
 			TcpConnectionFailedEvent event = (TcpConnectionFailedEvent) failEvent.get();
 			assertSame(e, event.getCause());
 		}
+
+		ccf.stop();
 	}
 
 }

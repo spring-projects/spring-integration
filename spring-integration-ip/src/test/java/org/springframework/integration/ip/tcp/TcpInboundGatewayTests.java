@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -39,6 +38,7 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -56,6 +56,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class TcpInboundGatewayTests {
@@ -119,30 +121,31 @@ public class TcpInboundGatewayTests {
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		final CountDownLatch latch3 = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		Executors.newSingleThreadExecutor().execute(() -> {
-			try {
-				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
-				port.set(server.getLocalPort());
-				latch1.countDown();
-				Socket socket = server.accept();
-				socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
-				byte[] bytes = new byte[12];
-				readFully(socket.getInputStream(), bytes);
-				assertEquals("Echo:Test1\r\n", new String(bytes));
-				readFully(socket.getInputStream(), bytes);
-				assertEquals("Echo:Test2\r\n", new String(bytes));
-				latch2.await();
-				socket.close();
-				server.close();
-				done.set(true);
-				latch3.countDown();
-			}
-			catch (Exception e) {
-				if (!done.get()) {
-					e.printStackTrace();
-				}
-			}
-		});
+		new SimpleAsyncTaskExecutor()
+				.execute(() -> {
+					try {
+						ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
+						port.set(server.getLocalPort());
+						latch1.countDown();
+						Socket socket = server.accept();
+						socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
+						byte[] bytes = new byte[12];
+						readFully(socket.getInputStream(), bytes);
+						assertEquals("Echo:Test1\r\n", new String(bytes));
+						readFully(socket.getInputStream(), bytes);
+						assertEquals("Echo:Test2\r\n", new String(bytes));
+						latch2.await();
+						socket.close();
+						server.close();
+						done.set(true);
+						latch3.countDown();
+					}
+					catch (Exception e) {
+						if (!done.get()) {
+							e.printStackTrace();
+						}
+					}
+				});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port.get());
 		ccf.setSingleUse(false);

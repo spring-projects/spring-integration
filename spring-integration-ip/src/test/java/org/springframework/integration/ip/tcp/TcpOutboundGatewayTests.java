@@ -43,7 +43,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,6 +60,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -90,6 +91,8 @@ public class TcpOutboundGatewayTests {
 
 	private static final Log logger = LogFactory.getLog(TcpOutboundGatewayTests.class);
 
+	private AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+
 	@ClassRule
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
@@ -101,13 +104,13 @@ public class TcpOutboundGatewayTests {
 	public void testGoodNetSingle() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 100);
 				serverSocket.set(server);
 				latch.countDown();
-				List<Socket> sockets = new ArrayList<Socket>();
+				List<Socket> sockets = new ArrayList<>();
 				int i = 0;
 				while (true) {
 					Socket socket = server.accept();
@@ -158,6 +161,7 @@ public class TcpOutboundGatewayTests {
 			assertTrue(replies.remove("Reply" + i));
 		}
 		done.set(true);
+		ccf.stop();
 		serverSocket.get().close();
 	}
 
@@ -165,8 +169,8 @@ public class TcpOutboundGatewayTests {
 	public void testGoodNetMultiplex() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0, 10);
 				serverSocket.set(server);
@@ -213,6 +217,7 @@ public class TcpOutboundGatewayTests {
 		}
 		done.set(true);
 		gateway.stop();
+		ccf.stop();
 		serverSocket.get().close();
 	}
 
@@ -220,8 +225,8 @@ public class TcpOutboundGatewayTests {
 	public void testGoodNetTimeout() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
 				serverSocket.set(server);
@@ -260,12 +265,12 @@ public class TcpOutboundGatewayTests {
 		Future<Integer>[] results = (Future<Integer>[]) new Future<?>[2];
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
-			results[j] = (Executors.newSingleThreadExecutor().submit(() -> {
+			results[j] = (this.executor.submit(() -> {
 				gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
 				return 0;
 			}));
 		}
-		Set<String> replies = new HashSet<String>();
+		Set<String> replies = new HashSet<>();
 		int timeouts = 0;
 		for (int i = 0; i < 2; i++) {
 			try {
@@ -294,6 +299,7 @@ public class TcpOutboundGatewayTests {
 		}
 		done.set(true);
 		gateway.stop();
+		ccf.stop();
 		serverSocket.get().close();
 	}
 
@@ -344,7 +350,7 @@ public class TcpOutboundGatewayTests {
 		final AtomicReference<String> lastReceived = new AtomicReference<String>();
 		final CountDownLatch serverLatch = new CountDownLatch(2);
 
-		Executors.newSingleThreadExecutor().execute(() -> {
+		this.executor.execute(() -> {
 			try {
 				latch.countDown();
 				int i = 0;
@@ -398,7 +404,7 @@ public class TcpOutboundGatewayTests {
 
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
-			results[j] = (Executors.newSingleThreadExecutor().submit(() -> {
+			results[j] = (this.executor.submit(() -> {
 				gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
 				return j;
 			}));
@@ -433,6 +439,7 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 		assertEquals(0, TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size());
 		gateway.stop();
+		ccf.stop();
 	}
 
 	@Test
@@ -442,7 +449,7 @@ public class TcpOutboundGatewayTests {
 		final AtomicBoolean done = new AtomicBoolean();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
 
-		Executors.newSingleThreadExecutor().execute(() -> {
+		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
 				serverSocket.set(server);
@@ -512,17 +519,18 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 		gateway.stop();
 		verify(mockConn1).send(Mockito.any(Message.class));
+		factory2.stop();
 		serverSocket.get().close();
 	}
 
 	@Test
 	public void testFailoverCached() throws Exception {
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
 
-		Executors.newSingleThreadExecutor().execute(() -> {
+		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
 				serverSocket.set(server);
@@ -595,6 +603,7 @@ public class TcpOutboundGatewayTests {
 		done.set(true);
 		gateway.stop();
 		verify(mockConn1).send(Mockito.any(Message.class));
+		factory2.stop();
 		serverSocket.get().close();
 	}
 
@@ -667,11 +676,11 @@ public class TcpOutboundGatewayTests {
 			final ServerSocket server) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
-		final AtomicReference<String> lastReceived = new AtomicReference<String>();
+		final AtomicReference<String> lastReceived = new AtomicReference<>();
 		final CountDownLatch serverLatch = new CountDownLatch(1);
 
-		Executors.newSingleThreadExecutor().execute(() -> {
-			List<Socket> sockets = new ArrayList<Socket>();
+		this.executor.execute(() -> {
+			List<Socket> sockets = new ArrayList<>();
 			try {
 				latch.countDown();
 				while (!done.get()) {
@@ -793,8 +802,8 @@ public class TcpOutboundGatewayTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 
-		Executors.newSingleThreadExecutor().execute(() -> {
-			List<Socket> sockets = new ArrayList<Socket>();
+		this.executor.execute(() -> {
+			List<Socket> sockets = new ArrayList<>();
 			try {
 				latch.countDown();
 				while (!done.get()) {

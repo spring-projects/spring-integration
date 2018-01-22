@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import org.springframework.util.StopWatch;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -39,7 +41,7 @@ public class ConnectionFactoryShutDownTests {
 		final AbstractConnectionFactory factory = new AbstractConnectionFactory(0) {
 
 			@Override
-			public TcpConnection getConnection() throws Exception {
+			public TcpConnection getConnection() {
 				return null;
 			}
 
@@ -53,7 +55,7 @@ public class ConnectionFactoryShutDownTests {
 			try {
 				while (true) {
 					factory.getTaskExecutor();
-					Thread.sleep(100);
+					Thread.sleep(10);
 				}
 			}
 			catch (MessagingException e1) {
@@ -68,7 +70,7 @@ public class ConnectionFactoryShutDownTests {
 		watch.start();
 		factory.stop();
 		watch.stop();
-		assertTrue("Expected < 10000, was:" + watch.getLastTaskTimeMillis(), watch.getLastTaskTimeMillis() < 10000);
+		assertTrue("Expected < 10000, was: " + watch.getLastTaskTimeMillis(), watch.getLastTaskTimeMillis() < 10000);
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 	}
 

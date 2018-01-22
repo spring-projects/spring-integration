@@ -72,8 +72,11 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.ip.tcp.connection.TcpNioConnection.ChannelInputStream;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
@@ -111,12 +114,14 @@ public class TcpNioConnectionTests {
 
 	private final ApplicationEventPublisher nullPublisher = mock(ApplicationEventPublisher.class);
 
+	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+
 	@Test
 	public void testWriteTimeout() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final CountDownLatch done = new CountDownLatch(1);
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
 				logger.debug(testName.getMethodName() + " starting server for " + server.getLocalPort());
@@ -134,7 +139,7 @@ public class TcpNioConnectionTests {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
-		factory.setSoTimeout(1000);
+		factory.setSoTimeout(100);
 		factory.start();
 		try {
 			TcpConnection connection = factory.getConnection();
@@ -145,6 +150,7 @@ public class TcpNioConnectionTests {
 					":" + e.getMessage(), e instanceof SocketTimeoutException);
 		}
 		done.countDown();
+		factory.stop();
 		serverSocket.get().close();
 	}
 
@@ -152,8 +158,8 @@ public class TcpNioConnectionTests {
 	public void testReadTimeout() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final CountDownLatch done = new CountDownLatch(1);
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
 				logger.debug(testName.getMethodName() + " starting server for " + server.getLocalPort());
@@ -173,14 +179,14 @@ public class TcpNioConnectionTests {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost",
 				serverSocket.get().getLocalPort());
 		factory.setApplicationEventPublisher(nullPublisher);
-		factory.setSoTimeout(1000);
+		factory.setSoTimeout(100);
 		factory.start();
 		try {
 			TcpConnection connection = factory.getConnection();
 			connection.send(MessageBuilder.withPayload("Test").build());
 			int n = 0;
 			while (connection.isOpen()) {
-				Thread.sleep(100);
+				Thread.sleep(10);
 				if (n++ > 200) {
 					break;
 				}
@@ -191,14 +197,15 @@ public class TcpNioConnectionTests {
 			fail("Unexpected exception " + e);
 		}
 		done.countDown();
+		factory.stop();
 		serverSocket.get().close();
 	}
 
 	@Test
 	public void testMemoryLeak() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
-		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<ServerSocket>();
-		Executors.newSingleThreadExecutor().execute(() -> {
+		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
+		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
 				logger.debug(testName.getMethodName() + " starting server for " + server.getLocalPort());
@@ -247,7 +254,7 @@ public class TcpNioConnectionTests {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(nullPublisher);
 		factory.setNioHarvestInterval(100);
-		Map<SocketChannel, TcpNioConnection> connections = new HashMap<SocketChannel, TcpNioConnection>();
+		Map<SocketChannel, TcpNioConnection> connections = new HashMap<>();
 		SocketChannel chan1 = mock(SocketChannel.class);
 		SocketChannel chan2 = mock(SocketChannel.class);
 		SocketChannel chan3 = mock(SocketChannel.class);
@@ -334,6 +341,9 @@ public class TcpNioConnectionTests {
 		catch (ExecutionException e) {
 			assertEquals("Timed out waiting for buffer space", e.getCause().getMessage());
 		}
+		finally {
+			exec.shutdownNow();
+		}
 	}
 
 	@Test
@@ -375,6 +385,8 @@ public class TcpNioConnectionTests {
 		});
 		future.get(60, TimeUnit.SECONDS);
 		assertTrue(messageLatch.await(10, TimeUnit.SECONDS));
+
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -463,19 +475,14 @@ public class TcpNioConnectionTests {
 				.getPropertyValue("channelInputStream");
 		final CountDownLatch latch = new CountDownLatch(1);
 		final byte[] out = new byte[4];
-		ExecutorService exec = Executors.newSingleThreadExecutor();
-		exec.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					stream.read(out);
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-				latch.countDown();
+		this.executor.execute(() -> {
+			try {
+				stream.read(out);
 			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			latch.countDown();
 		});
 		Thread.sleep(1000);
 		assertEquals(0x00, out[0]);
@@ -599,11 +606,18 @@ public class TcpNioConnectionTests {
 		assertThat(threadName.get(), containsString("assembler"));
 
 		factory.stop();
+
+		cleanupCompositeExecutor(compositeExec);
+	}
+
+	private void cleanupCompositeExecutor(CompositeExecutor compositeExec) throws Exception {
+		TestUtils.getPropertyValue(compositeExec, "primaryTaskExecutor", DisposableBean.class).destroy();
+		TestUtils.getPropertyValue(compositeExec, "secondaryTaskExecutor", DisposableBean.class).destroy();
 	}
 
 	@Test
 	public void testAllMessagesDelivered() throws Exception {
-		final int numberOfSockets = 100;
+		final int numberOfSockets = 10;
 		TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(0);
 		factory.setApplicationEventPublisher(nullPublisher);
 
@@ -611,16 +625,11 @@ public class TcpNioConnectionTests {
 
 		factory.setTaskExecutor(compositeExec);
 		final CountDownLatch latch = new CountDownLatch(numberOfSockets * 4);
-		factory.registerListener(new TcpListener() {
-
-			@Override
-			public boolean onMessage(Message<?> message) {
-				if (!(message instanceof ErrorMessage)) {
-					latch.countDown();
-				}
-				return false;
+		factory.registerListener(message -> {
+			if (!(message instanceof ErrorMessage)) {
+				latch.countDown();
 			}
-
+			return false;
 		});
 		factory.start();
 		TestingUtilities.waitListening(factory, null);
@@ -637,7 +646,7 @@ public class TcpNioConnectionTests {
 				}
 				catch (ConnectException e) {
 				}
-				Thread.sleep(100);
+				Thread.sleep(1);
 			}
 			assertTrue("Could not open socket to localhost:" + port, n < 100);
 			sockets[i] = socket;
@@ -646,7 +655,7 @@ public class TcpNioConnectionTests {
 			sockets[i].getOutputStream().write("foo1 and...".getBytes());
 			sockets[i].getOutputStream().flush();
 		}
-		Thread.sleep(100);
+		Thread.sleep(1);
 		for (int i = 0; i < numberOfSockets; i++) {
 			sockets[i].getOutputStream().write(("...foo2\r\nbar1 and...").getBytes());
 			sockets[i].getOutputStream().flush();
@@ -659,7 +668,7 @@ public class TcpNioConnectionTests {
 			sockets[i].getOutputStream().write("foo3 and...".getBytes());
 			sockets[i].getOutputStream().flush();
 		}
-		Thread.sleep(100);
+		Thread.sleep(1);
 		for (int i = 0; i < numberOfSockets; i++) {
 			sockets[i].getOutputStream().write(("...foo4\r\nbar3 and...").getBytes());
 			sockets[i].getOutputStream().flush();
@@ -672,6 +681,8 @@ public class TcpNioConnectionTests {
 		assertTrue("latch is still " + latch.getCount(), latch.await(60, TimeUnit.SECONDS));
 
 		factory.stop();
+
+		cleanupCompositeExecutor(compositeExec);
 	}
 
 	private CompositeExecutor compositeExecutor() {
@@ -791,6 +802,8 @@ public class TcpNioConnectionTests {
 		assertThat(Arrays.asList(stackTrace).toString(), not(containsString("ChannelInputStream.getNextBuffer")));
 		socket.close();
 		factory.stop();
+
+		te.shutdown();
 	}
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {
