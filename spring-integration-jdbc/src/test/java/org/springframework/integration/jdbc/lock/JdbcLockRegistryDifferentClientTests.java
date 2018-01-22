@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -97,9 +98,7 @@ public class JdbcLockRegistryDifferentClientTests {
 
 	@Test
 	public void testSecondThreadLoses() throws Exception {
-
 		for (int i = 0; i < 100; i++) {
-
 			final JdbcLockRegistry registry1 = this.registry;
 			final JdbcLockRegistry registry2 = this.child.getBean(JdbcLockRegistry.class);
 			final Lock lock1 = registry1.obtain("foo");
@@ -108,45 +107,38 @@ public class JdbcLockRegistryDifferentClientTests {
 			final CountDownLatch latch2 = new CountDownLatch(1);
 			final CountDownLatch latch3 = new CountDownLatch(1);
 			lock1.lockInterruptibly();
-			Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-				@Override
-				public void run() {
-					Lock lock2 = registry2.obtain("foo");
-					try {
-						latch1.countDown();
-						lock2.lockInterruptibly();
-						latch2.await(10, TimeUnit.SECONDS);
-						locked.set(true);
-					}
-					catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-					finally {
-						lock2.unlock();
-						latch3.countDown();
-					}
-				}
-			});
+			new SimpleAsyncTaskExecutor()
+					.execute(() -> {
+						Lock lock2 = registry2.obtain("foo");
+						try {
+							latch1.countDown();
+							lock2.lockInterruptibly();
+							latch2.await(10, TimeUnit.SECONDS);
+							locked.set(true);
+						}
+						catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+						}
+						finally {
+							lock2.unlock();
+							latch3.countDown();
+						}
+					});
 			assertTrue(latch1.await(10, TimeUnit.SECONDS));
 			assertFalse(locked.get());
 			lock1.unlock();
 			latch2.countDown();
 			assertTrue(latch3.await(10, TimeUnit.SECONDS));
 			assertTrue(locked.get());
-
 		}
-
 	}
 
 	@Test
 	public void testBothLock() throws Exception {
-
 		for (int i = 0; i < 100; i++) {
-
 			final JdbcLockRegistry registry1 = this.registry;
 			final JdbcLockRegistry registry2 = this.child.getBean(JdbcLockRegistry.class);
-			final List<String> locked = new ArrayList<String>();
+			final List<String> locked = new ArrayList<>();
 			final CountDownLatch latch = new CountDownLatch(2);
 			ExecutorService pool = Executors.newFixedThreadPool(2);
 			pool.execute(new Runnable() {
@@ -201,9 +193,8 @@ public class JdbcLockRegistryDifferentClientTests {
 			// eventually they both get the lock and release it
 			assertTrue(locked.contains("1"));
 			assertTrue(locked.contains("2"));
-
+			pool.shutdownNow();
 		}
-
 	}
 
 	@Test
@@ -214,17 +205,16 @@ public class JdbcLockRegistryDifferentClientTests {
 
 	private void testOnlyOneLock(String id) throws Exception {
 		for (int i = 0; i < 100; i++) {
-
-			final List<String> locked = new ArrayList<String>();
+			final BlockingQueue<String> locked = new LinkedBlockingQueue<>();
 			final CountDownLatch latch = new CountDownLatch(20);
 			ExecutorService pool = Executors.newFixedThreadPool(6);
 			ArrayList<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>();
+			final DefaultLockRepository client = (id == null) ?
+					new DefaultLockRepository(this.dataSource) :
+					new DefaultLockRepository(this.dataSource, id);
+			client.afterPropertiesSet();
+			this.context.getAutowireCapableBeanFactory().autowireBean(client);
 			for (int j = 0; j < 20; j++) {
-				final DefaultLockRepository client = (id == null) ?
-						new DefaultLockRepository(this.dataSource) :
-						new DefaultLockRepository(this.dataSource, id);
-				client.afterPropertiesSet();
-				this.context.getAutowireCapableBeanFactory().autowireBean(client);
 				Callable<Boolean> task = new Callable<Boolean>() {
 
 					@Override
@@ -256,12 +246,10 @@ public class JdbcLockRegistryDifferentClientTests {
 			pool.invokeAll(tasks);
 
 			assertTrue(latch.await(10, TimeUnit.SECONDS));
-			// eventually they both get the lock and release it
 			assertEquals(1, locked.size());
 			assertTrue(locked.contains("done"));
-
+			pool.shutdownNow();
 		}
-
 	}
 
 	@Test
@@ -271,39 +259,36 @@ public class JdbcLockRegistryDifferentClientTests {
 		final DefaultLockRepository client2 = new DefaultLockRepository(dataSource);
 		client2.afterPropertiesSet();
 		Lock lock1 = new JdbcLockRegistry(client1).obtain("foo");
-		final BlockingQueue<Integer> data = new LinkedBlockingQueue<Integer>();
+		final BlockingQueue<Integer> data = new LinkedBlockingQueue<>();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
-		Executors.newSingleThreadExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				Lock lock2 = new JdbcLockRegistry(client2).obtain("foo");
-				try {
-					latch1.countDown();
-					StopWatch stopWatch = new StopWatch();
-					stopWatch.start();
-					lock2.lockInterruptibly();
-					stopWatch.stop();
-					data.add(4);
-					Thread.sleep(10);
-					data.add(5);
-					Thread.sleep(10);
-					data.add(6);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				finally {
-					lock2.unlock();
-				}
-			}
-		});
+		new SimpleAsyncTaskExecutor()
+				.execute(() -> {
+					Lock lock2 = new JdbcLockRegistry(client2).obtain("foo");
+					try {
+						latch1.countDown();
+						StopWatch stopWatch = new StopWatch();
+						stopWatch.start();
+						lock2.lockInterruptibly();
+						stopWatch.stop();
+						data.add(4);
+						Thread.sleep(10);
+						data.add(5);
+						Thread.sleep(10);
+						data.add(6);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+					finally {
+						lock2.unlock();
+					}
+				});
 		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		data.add(1);
-		Thread.sleep(1000);
+		Thread.sleep(100);
 		data.add(2);
-		Thread.sleep(1000);
+		Thread.sleep(100);
 		data.add(3);
 		lock1.unlock();
 		for (int i = 0; i < 6; i++) {
