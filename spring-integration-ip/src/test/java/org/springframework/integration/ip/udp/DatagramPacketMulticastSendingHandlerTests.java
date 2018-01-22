@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +45,8 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class DatagramPacketMulticastSendingHandlerTests {
@@ -100,7 +102,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				}
 			}
 		};
-		Executor executor = Executors.newFixedThreadPool(2);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
 		executor.execute(catcher);
 		executor.execute(catcher);
 		assertTrue(listening.await(10000, TimeUnit.MILLISECONDS));
@@ -112,6 +114,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		assertTrue(received.await(10000, TimeUnit.MILLISECONDS));
 		handler.stop();
 		socket.close();
+		executor.shutdownNow();
 	}
 
 	@Test
@@ -177,7 +180,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 				}
 			}
 		};
-		Executor executor = Executors.newFixedThreadPool(2);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
 		executor.execute(catcher);
 		executor.execute(catcher);
 		assertTrue(listening.await(10000, TimeUnit.MILLISECONDS));
@@ -195,6 +198,7 @@ public class DatagramPacketMulticastSendingHandlerTests {
 		assertTrue(ackSent.await(10000, TimeUnit.MILLISECONDS));
 		handler.stop();
 		socket.close();
+		executor.shutdownNow();
 	}
 
 	public void waitAckListening(UnicastSendingMessageHandler handler) throws InterruptedException {

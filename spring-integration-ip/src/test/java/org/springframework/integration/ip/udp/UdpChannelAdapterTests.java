@@ -299,6 +299,7 @@ public class UdpChannelAdapterTests {
 		assertNotNull(receivedMessage);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
 		adapter.stop();
+		handler.stop();
 	}
 
 	@Test
@@ -309,6 +310,8 @@ public class UdpChannelAdapterTests {
 //		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.setOutputChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		channel.subscribe(handler);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);

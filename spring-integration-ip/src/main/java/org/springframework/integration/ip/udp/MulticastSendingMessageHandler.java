@@ -100,56 +100,51 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	@Override
-	protected DatagramSocket getSocket() throws IOException {
-		if (this.getTheSocket() == null) {
-			synchronized (this) {
-				createSocket();
-			}
+	protected synchronized DatagramSocket getSocket() throws IOException {
+		if (getTheSocket() == null) {
+			createSocket();
 		}
-		return this.getTheSocket();
+		return getTheSocket();
 	}
 
 	private void createSocket() throws IOException {
-		if (this.getTheSocket() == null) {
-			MulticastSocket socket;
-			if (this.isAcknowledge()) {
-				int ackPort = this.getAckPort();
-				if (this.localAddress == null) {
-					socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
-				}
-				else {
-					InetAddress whichNic = InetAddress.getByName(this.localAddress);
-					socket = new MulticastSocket(new InetSocketAddress(whichNic, ackPort));
-				}
-				if (getSoReceiveBufferSize() > 0) {
-					socket.setReceiveBufferSize(this.getSoReceiveBufferSize());
-				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Listening for acks on port: " + socket.getLocalPort());
-				}
-				setSocket(socket);
-				updateAckAddress();
+		MulticastSocket socket;
+		if (this.isAcknowledge()) {
+			int ackPort = this.getAckPort();
+			if (this.localAddress == null) {
+				socket = ackPort == 0 ? new MulticastSocket() : new MulticastSocket(ackPort);
 			}
 			else {
-				socket = new MulticastSocket();
-				setSocket(socket);
-			}
-			if (this.timeToLive >= 0) {
-				socket.setTimeToLive(this.timeToLive);
-			}
-			setSocketAttributes(socket);
-			if (this.localAddress != null) {
 				InetAddress whichNic = InetAddress.getByName(this.localAddress);
-				socket.setInterface(whichNic);
+				socket = new MulticastSocket(new InetSocketAddress(whichNic, ackPort));
 			}
-			this.multicastSocket = socket;
+			if (getSoReceiveBufferSize() > 0) {
+				socket.setReceiveBufferSize(this.getSoReceiveBufferSize());
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("Listening for acks on port: " + socket.getLocalPort());
+			}
+			setSocket(socket);
+			updateAckAddress();
+		}
+		else {
+			socket = new MulticastSocket();
+			setSocket(socket);
+		}
+		if (this.timeToLive >= 0) {
+			socket.setTimeToLive(this.timeToLive);
+		}
+		setSocketAttributes(socket);
+		this.multicastSocket = socket;
+		if (this.localAddress != null) {
+			InetAddress whichNic = InetAddress.getByName(this.localAddress);
+			socket.setInterface(whichNic);
 		}
 	}
 
 
 	/**
 	 * If acknowledge = true; how many acks needed for success.
-	 *
 	 * @param minAcksForSuccess The minimum number of acks that will represent success.
 	 */
 	public void setMinAcksForSuccess(int minAcksForSuccess) {
@@ -158,7 +153,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	/**
 	 * Set the underlying {@link MulticastSocket} time to live property.
-	 *
 	 * @param timeToLive {@link MulticastSocket#setTimeToLive(int)}
 	 */
 	public void setTimeToLive(int timeToLive) {
