@@ -125,13 +125,11 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	@Override
-	protected DatagramSocket getSocket() throws IOException {
-		if (this.getTheSocket() == null) {
-			synchronized (this) {
-				createSocket();
-			}
+	protected synchronized DatagramSocket getSocket() throws IOException {
+		if (getTheSocket() == null) {
+			createSocket();
 		}
-		return this.getTheSocket();
+		return getTheSocket();
 	}
 
 	private void createSocket() throws IOException {
@@ -174,7 +172,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	/**
 	 * If acknowledge = true; how many acks needed for success.
-	 *
 	 * @param minAcksForSuccess The minimum number of acks that will represent success.
 	 */
 	public void setMinAcksForSuccess(int minAcksForSuccess) {
@@ -183,7 +180,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	/**
 	 * Set the underlying {@link MulticastSocket} time to live property.
-	 *
 	 * @param timeToLive {@link MulticastSocket#setTimeToLive(int)}
 	 */
 	public void setTimeToLive(int timeToLive) {

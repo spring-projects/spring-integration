@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2017 the original author or authors.
+ * Copyright 2001-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,8 +83,8 @@ public class UnicastSendingMessageHandler extends
 
 	private volatile int ackCounter = 1;
 
-	private volatile Map<String, CountDownLatch> ackControl = Collections
-			.synchronizedMap(new HashMap<String, CountDownLatch>());
+	private volatile Map<String, CountDownLatch> ackControl =
+			Collections.synchronizedMap(new HashMap<String, CountDownLatch>());
 
 	private volatile int soReceiveBufferSize = -1;
 
@@ -282,12 +282,7 @@ public class UnicastSendingMessageHandler extends
 			throw e;
 		}
 		catch (Exception e) {
-			try {
-				this.socket.close();
-			}
-			catch (Exception e1) {
-			}
-			this.socket = null;
+			closeSocketIfNeeded();
 			throw new MessageHandlingException(message, "failed to send UDP packet", e);
 		}
 		finally {
@@ -512,7 +507,7 @@ public class UnicastSendingMessageHandler extends
 		}
 		catch (IOException e) {
 			if (this.socket != null && !this.socket.isClosed()) {
-				logger.error("Error on UDP Acknowledge thread:" + e.getMessage());
+				logger.error("Error on UDP Acknowledge thread: " + e.getMessage());
 			}
 		}
 		finally {
@@ -530,7 +525,11 @@ public class UnicastSendingMessageHandler extends
 
 	private void closeSocketIfNeeded() {
 		if (this.socket != null) {
-			this.socket.close();
+			try {
+				this.socket.close();
+			}
+			catch (Exception e) {
+			}
 			this.socket = null;
 		}
 	}
