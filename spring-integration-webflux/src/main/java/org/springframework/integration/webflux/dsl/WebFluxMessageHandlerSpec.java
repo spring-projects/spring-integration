@@ -35,6 +35,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Shiliang Li
  * @author Artem Bilan
+ * @author Abhijit Sarkar
  *
  * @since 5.0
  *
@@ -67,8 +68,9 @@ public class WebFluxMessageHandlerSpec
 	 * @since 5.0.1
 	 * @see WebFluxRequestExecutingMessageHandler#setReplyPayloadToFlux(boolean)
 	 */
-	public void replyPayloadToFlux(boolean replyPayloadToFlux) {
+	public WebFluxMessageHandlerSpec replyPayloadToFlux(boolean replyPayloadToFlux) {
 		this.target.setReplyPayloadToFlux(replyPayloadToFlux);
+		return this;
 	}
 
 	/**
@@ -78,8 +80,9 @@ public class WebFluxMessageHandlerSpec
 	 * @since 5.0.1
 	 * @see WebFluxRequestExecutingMessageHandler#setBodyExtractor(BodyExtractor)
 	 */
-	public void bodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
+	public WebFluxMessageHandlerSpec bodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
 		this.target.setBodyExtractor(bodyExtractor);
+		return this;
 	}
 
 	@Override
@@ -91,5 +94,4 @@ public class WebFluxMessageHandlerSpec
 	protected WebFluxMessageHandlerSpec expectReply(boolean expectReply) {
 		return super.expectReply(expectReply);
 	}
-
 }
