@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2017 the original author or authors.
+ * Copyright 2001-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,12 +282,7 @@ public class UnicastSendingMessageHandler extends
 			throw e;
 		}
 		catch (Exception e) {
-			try {
-				this.socket.close();
-			}
-			catch (Exception e1) {
-			}
-			this.socket = null;
+			closeSocketIfNeeded();
 			throw new MessageHandlingException(message, "failed to send UDP packet", e);
 		}
 		finally {
@@ -512,7 +507,7 @@ public class UnicastSendingMessageHandler extends
 		}
 		catch (IOException e) {
 			if (this.socket != null && !this.socket.isClosed()) {
-				logger.error("Error on UDP Acknowledge thread:" + e.getMessage());
+				logger.error("Error on UDP Acknowledge thread: " + e.getMessage());
 			}
 		}
 		finally {
@@ -528,7 +523,7 @@ public class UnicastSendingMessageHandler extends
 		this.taskExecutor.execute(this);
 	}
 
-	private void closeSocketIfNeeded() {
+	protected void closeSocketIfNeeded() {
 		if (this.socket != null) {
 			this.socket.close();
 			this.socket = null;

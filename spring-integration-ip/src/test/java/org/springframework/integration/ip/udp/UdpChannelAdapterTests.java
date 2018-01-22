@@ -302,6 +302,8 @@ public class UdpChannelAdapterTests {
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(0);
 		adapter.setOutputChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
 		channel.subscribe(handler);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);
