@@ -35,6 +35,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Shiliang Li
  * @author Artem Bilan
+ * @author Abhijit Sarkar
  *
  * @since 5.0
  *
@@ -64,22 +65,26 @@ public class WebFluxMessageHandlerSpec
 	 * Defaults to {@code false} - simple value is pushed downstream.
 	 * Makes sense when {@code expectedResponseType} is configured.
 	 * @param replyPayloadToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
+	 * @return the spec
 	 * @since 5.0.1
 	 * @see WebFluxRequestExecutingMessageHandler#setReplyPayloadToFlux(boolean)
 	 */
-	public void replyPayloadToFlux(boolean replyPayloadToFlux) {
+	public WebFluxMessageHandlerSpec replyPayloadToFlux(boolean replyPayloadToFlux) {
 		this.target.setReplyPayloadToFlux(replyPayloadToFlux);
+		return this;
 	}
 
 	/**
 	 * Specify a {@link BodyExtractor} as an alternative to the {@code expectedResponseType}
 	 * to allow to get low-level access to the received {@link ClientHttpResponse}.
 	 * @param bodyExtractor the {@link BodyExtractor} to use.
+	 * @return the spec
 	 * @since 5.0.1
 	 * @see WebFluxRequestExecutingMessageHandler#setBodyExtractor(BodyExtractor)
 	 */
-	public void bodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
+	public WebFluxMessageHandlerSpec bodyExtractor(BodyExtractor<?, ClientHttpResponse> bodyExtractor) {
 		this.target.setBodyExtractor(bodyExtractor);
+		return this;
 	}
 
 	@Override

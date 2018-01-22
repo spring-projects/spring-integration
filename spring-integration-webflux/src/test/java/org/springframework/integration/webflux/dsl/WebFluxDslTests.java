@@ -26,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Collections;
 
+import javax.annotation.Resource;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,19 +35,24 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.http.dsl.Http;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
@@ -76,6 +83,7 @@ import reactor.test.StepVerifier;
 /**
  * @author Artem Bilan
  * @author Shiliang Li
+ * @author Abhijit Sarkar
  *
  * @since 5.0
  */
@@ -88,7 +96,15 @@ public class WebFluxDslTests {
 	private WebApplicationContext wac;
 
 	@Autowired
-	private WebFluxRequestExecutingMessageHandler serviceInternalReactiveGatewayHandler;
+	@Qualifier("webFluxWithReplyPayloadToFlux.handler")
+	private WebFluxRequestExecutingMessageHandler webFluxWithReplyPayloadToFlux;
+
+	@Resource(name = "org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler#1")
+	private WebFluxRequestExecutingMessageHandler httpReactiveProxyFlow;
+
+	@Autowired
+	@Qualifier("webFluxFlowWithReplyPayloadToFlux.input")
+	private MessageChannel webFluxFlowWithReplyPayloadToFluxInput;
 
 	private MockMvc mockMvc;
 
@@ -107,6 +123,48 @@ public class WebFluxDslTests {
 	}
 
 	@Test
+	public void testWebFluxFlowWithReplyPayloadToFlux() {
+		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
+			response.setStatusCode(HttpStatus.OK);
+			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+
+			DataBufferFactory bufferFactory = response.bufferFactory();
+			return response.writeWith(
+					Flux.just(bufferFactory.wrap("FOO".getBytes()),
+							bufferFactory.wrap("BAR".getBytes())))
+					.then(Mono.defer(response::setComplete));
+		});
+
+		WebClient webClient = WebClient.builder()
+				.clientConnector(httpConnector)
+				.build();
+
+		new DirectFieldAccessor(this.webFluxWithReplyPayloadToFlux)
+				.setPropertyValue("webClient", webClient);
+
+		QueueChannel replyChannel = new QueueChannel();
+
+		Message<String> testMessage =
+				MessageBuilder.withPayload("test")
+						.setReplyChannel(replyChannel)
+						.build();
+
+		this.webFluxFlowWithReplyPayloadToFluxInput.send(testMessage);
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertNotNull(receive);
+		assertThat(receive.getPayload(), instanceOf(Flux.class));
+
+		@SuppressWarnings("unchecked")
+		Flux<String> response = (Flux<String>) receive.getPayload();
+
+		StepVerifier.create(response)
+				.expectNext("FOO", "BAR")
+				.verifyComplete();
+	}
+
+	@Test
 	public void testHttpReactiveProxyFlow() throws Exception {
 		ClientHttpConnector httpConnector = new HttpHandlerConnector((request, response) -> {
 			response.setStatusCode(HttpStatus.OK);
@@ -120,7 +178,7 @@ public class WebFluxDslTests {
 				.clientConnector(httpConnector)
 				.build();
 
-		new DirectFieldAccessor(this.serviceInternalReactiveGatewayHandler)
+		new DirectFieldAccessor(this.httpReactiveProxyFlow)
 				.setPropertyValue("webClient", webClient);
 
 		this.mockMvc.perform(
@@ -198,6 +256,16 @@ public class WebFluxDslTests {
 					.and()
 					.csrf().disable()
 					.anonymous().disable();
+		}
+
+		@Bean
+		public IntegrationFlow webFluxFlowWithReplyPayloadToFlux() {
+			return f -> f
+					.handle(WebFlux.outboundGateway("http://www.springsource.org/spring-integration")
+									.httpMethod(HttpMethod.GET)
+									.replyPayloadToFlux(true)
+									.expectedResponseType(String.class),
+							e -> e.id("webFluxWithReplyPayloadToFlux"));
 		}
 
 		@Bean
