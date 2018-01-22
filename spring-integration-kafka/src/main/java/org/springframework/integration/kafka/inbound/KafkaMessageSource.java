@@ -47,6 +47,7 @@ import org.springframework.integration.support.AbstractIntegrationMessageBuilder
 import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.integration.support.AcknowledgmentCallbackFactory;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.converter.KafkaMessageHeaders;
@@ -115,17 +116,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 		Assert.notNull(consumerFactory, "'consumerFactory' must not be null");
 		Assert.notNull(ackCallbackFactory, "'ackCallbackFactory' must not be null");
-		this.consumerFactory = consumerFactory;
+		this.consumerFactory = fixOrRejectConsumerFactory(consumerFactory);
 		this.ackCallbackFactory = ackCallbackFactory;
 		this.topics = topics;
-		Object maxPoll = consumerFactory.getConfigurationProperties().get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
-		if (maxPoll == null || (maxPoll instanceof Number && ((Number) maxPoll).intValue() != 1)
-				|| (maxPoll instanceof String && Integer.parseInt((String) maxPoll) != 1)) {
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("It is advisable to set " + ConsumerConfig.MAX_POLL_RECORDS_CONFIG
-					+ " to 1 to avoid having to seek after each record");
-			}
-		}
 	}
 
 	protected String getGroupId() {
@@ -221,6 +214,36 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		this.rawMessageHeader = rawMessageHeader;
 	}
 
+	private ConsumerFactory<K, V> fixOrRejectConsumerFactory(ConsumerFactory<K, V> suppliedConsumerFactory) {
+		Object maxPoll = suppliedConsumerFactory.getConfigurationProperties()
+				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
+		if (maxPoll == null || (maxPoll instanceof Number && ((Number) maxPoll).intValue() != 1)
+				|| (maxPoll instanceof String && Integer.parseInt((String) maxPoll) != 1)) {
+			if (!suppliedConsumerFactory.getClass().getName().equals(DefaultKafkaConsumerFactory.class.getName())) {
+				throw new IllegalArgumentException("Custom consumer factory is not configured with '"
+						+ ConsumerConfig.MAX_POLL_RECORDS_CONFIG + " = 1'");
+			}
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("'" + ConsumerConfig.MAX_POLL_RECORDS_CONFIG
+					+ "' has been forced to from " + (maxPoll == null ? "unspecified" : maxPoll)
+					+ "to 1, to avoid having to seek after each record");
+			}
+			Map<String, Object> configs = new HashMap<>(suppliedConsumerFactory.getConfigurationProperties());
+			configs.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
+			DefaultKafkaConsumerFactory<K, V> fixedConsumerFactory = new DefaultKafkaConsumerFactory<>(configs);
+			if (suppliedConsumerFactory.getKeyDeserializer() != null) {
+				fixedConsumerFactory.setKeyDeserializer(suppliedConsumerFactory.getKeyDeserializer());
+			}
+			if (suppliedConsumerFactory.getValueDeserializer() != null) {
+				fixedConsumerFactory.setValueDeserializer(suppliedConsumerFactory.getValueDeserializer());
+			}
+			return fixedConsumerFactory;
+		}
+		else {
+			return suppliedConsumerFactory;
+		}
+	}
+
 	@Override
 	protected synchronized Object doReceive() {
 		if (this.consumer == null) {
@@ -240,9 +263,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			}
 			record = records.iterator().next();
 			topicPartition = new TopicPartition(record.topic(), record.partition());
-			if (records.count() > 1) {
-				this.consumer.seek(topicPartition, record.offset() + 1);
-			}
 		}
 		KafkaAckInfo<K, V> ackInfo = new KafkaAckInfoImpl(record, topicPartition);
 		AcknowledgmentCallback ackCallback = this.ackCallbackFactory.createCallback(ackInfo);

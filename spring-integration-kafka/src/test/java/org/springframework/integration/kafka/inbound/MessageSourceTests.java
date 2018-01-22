@@ -17,15 +17,16 @@
 package org.springframework.integration.kafka.inbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -42,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -56,7 +58,9 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.integration.support.AcknowledgmentCallback.Status;
 import org.springframework.integration.support.StaticMessageHeaderAccessor;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
@@ -87,16 +91,13 @@ public class MessageSourceTests {
 		willAnswer(i -> paused.get()).given(consumer).paused();
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Arrays.asList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo"),
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Arrays.asList(
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar"),
-				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "baz")));
+				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
 		Map<TopicPartition, List<ConsumerRecord>> records3 = new LinkedHashMap<>();
 		records3.put(topicPartition, Arrays.asList(
-				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "baz"),
-				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "qux")));
+				new ConsumerRecord("foo", 0, 2L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "baz")));
 		Map<TopicPartition, List<ConsumerRecord>> records4 = new LinkedHashMap<>();
 		records4.put(topicPartition, Collections.singletonList(
 				new ConsumerRecord("foo", 0, 3L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "qux")));
@@ -107,6 +108,8 @@ public class MessageSourceTests {
 		ConsumerRecords cr5 = new ConsumerRecords(Collections.emptyMap());
 		given(consumer.poll(anyLong())).willReturn(cr1, cr2, cr3, cr4, cr5);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
+		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
+				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
 		source.setRawMessageHeader(true);
@@ -136,19 +139,16 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).pause(anyCollection());
-		inOrder.verify(consumer).seek(any(TopicPartition.class), eq(1L));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).pause(anyCollection());
-		inOrder.verify(consumer).seek(any(TopicPartition.class), eq(2L));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).pause(anyCollection());
-		inOrder.verify(consumer).seek(any(TopicPartition.class), eq(3L));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).resume(anyCollection());
@@ -206,6 +206,8 @@ public class MessageSourceTests {
 		ConsumerRecords cr7 = new ConsumerRecords(Collections.emptyMap());
 		given(consumer.poll(anyLong())).willReturn(cr1, cr2, cr3, cr4, cr5, cr6, cr7);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
+		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
+				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
 
@@ -274,8 +276,7 @@ public class MessageSourceTests {
 		willAnswer(i -> paused.get()).given(consumer).paused();
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Arrays.asList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo"),
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
@@ -284,6 +285,8 @@ public class MessageSourceTests {
 		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap());
 		given(consumer.poll(anyLong())).willReturn(cr1, cr1, cr2, cr2, cr3);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
+		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
+				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
 
@@ -310,13 +313,11 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).pause(anyCollection());
-		inOrder.verify(consumer).seek(topicPartition, 1L); // returned 2 - seek after poll
 		inOrder.verify(consumer).seek(topicPartition, 0L); // rollback
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).pause(anyCollection());
-		inOrder.verify(consumer).seek(topicPartition, 1L); // seek after poll
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).resume(anyCollection());
@@ -363,6 +364,8 @@ public class MessageSourceTests {
 		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap());
 		given(consumer.poll(anyLong())).willReturn(cr1, cr2, cr1, cr2, cr3);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
+		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
+				.getConfigurationProperties();
 		given(consumerFactory.createConsumer(isNull(), anyString(), isNull())).willReturn(consumer);
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
 
@@ -397,7 +400,6 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).pause(anyCollection());
-		inOrder.verify(consumer).seek(topicPartition, 1L); // returned 2 - seek after poll
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).pause(anyCollection());   // in flight
@@ -418,7 +420,6 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).pause(anyCollection());
-		inOrder.verify(consumer).seek(topicPartition, 1L); // seek after poll
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).resume(anyCollection());
@@ -431,6 +432,27 @@ public class MessageSourceTests {
 		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
 		inOrder.verifyNoMoreInteractions();
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testMaxPollRecords() {
+		KafkaMessageSource source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(Collections.emptyMap()));
+		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
+				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
+		source = new KafkaMessageSource(new DefaultKafkaConsumerFactory<>(
+				Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2)));
+		assertThat((TestUtils.getPropertyValue(source, "consumerFactory.configs", Map.class)
+				.get(ConsumerConfig.MAX_POLL_RECORDS_CONFIG))).isEqualTo(1);
+		try {
+			new KafkaMessageSource((new DefaultKafkaConsumerFactory(Collections.emptyMap()) {
+
+			}));
+			fail("Expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage()).contains(ConsumerConfig.MAX_POLL_RECORDS_CONFIG);
+		}
 	}
 
 }
