@@ -96,5 +96,4 @@ public class WebFluxMessageHandlerSpec
 	protected WebFluxMessageHandlerSpec expectReply(boolean expectReply) {
 		return super.expectReply(expectReply);
 	}
-
 }
