@@ -262,6 +262,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		synchronized (this.consumerMonitor) {
 			if (this.consumer != null) {
 				this.consumer.close(30, TimeUnit.SECONDS);
+				this.consumer = null;
 			}
 		}
 		this.running = false;
@@ -307,8 +308,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	}
 
 	protected void createConsumer() {
-		this.consumer = this.consumerFactory.createConsumer(this.groupId, this.clientId, null);
 		synchronized (this.consumerMonitor) {
+			this.consumer = this.consumerFactory.createConsumer(this.groupId, this.clientId, null);
 			this.consumer.subscribe(Arrays.asList(this.topics), new ConsumerRebalanceListener() {
 
 				@Override
@@ -332,6 +333,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 				}
 
 			});
+			this.running = true;
 		}
 	}
 
