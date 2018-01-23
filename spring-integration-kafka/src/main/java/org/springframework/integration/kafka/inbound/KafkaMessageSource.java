@@ -41,6 +41,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -75,9 +76,11 @@ import org.springframework.util.Assert;
  *
  */
 public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
-		implements DisposableBean {
+		implements DisposableBean, Lifecycle {
 
 	private static final long DEFAULT_POLL_TIMEOUT = 50L;
+
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private final ConsumerFactory<K, V> consumerFactory;
 
@@ -105,7 +108,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private volatile Consumer<K, V> consumer;
 
-	private volatile Collection<TopicPartition> partitions;
+	private volatile boolean running;
 
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory, String... topics) {
 		this(consumerFactory, new KafkaAckCallbackFactory<>(), topics);
@@ -245,6 +248,26 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	}
 
 	@Override
+	public synchronized boolean isRunning() {
+		return this.running;
+	}
+
+	@Override
+	public synchronized void start() {
+		this.running = true;
+	}
+
+	@Override
+	public synchronized void stop() {
+		synchronized (this.consumerMonitor) {
+			if (this.consumer != null) {
+				this.consumer.close(30, TimeUnit.SECONDS);
+			}
+		}
+		this.running = false;
+	}
+
+	@Override
 	protected synchronized Object doReceive() {
 		if (this.consumer == null) {
 			createConsumer();
@@ -252,12 +275,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		ConsumerRecord<K, V> record;
 		TopicPartition topicPartition;
 		synchronized (this.consumerMonitor) {
-			Set<TopicPartition> paused = this.consumer.paused();
-			if (paused.size() > 0) {
-				this.consumer.resume(paused);
-			}
 			ConsumerRecords<K, V> records = this.consumer.poll(this.pollTimeout);
-			this.consumer.pause(this.partitions);
 			if (records == null || records.count() == 0) {
 				return null;
 			}
@@ -295,7 +313,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 				@Override
 				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-					KafkaMessageSource.this.partitions = Collections.emptyList();
+					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
+						KafkaMessageSource.this.logger.info("Partitions revoked: " + partitions);
+					}
 					if (KafkaMessageSource.this.rebalanceListener != null) {
 						KafkaMessageSource.this.rebalanceListener.onPartitionsRevoked(partitions);
 					}
@@ -303,7 +323,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 				@Override
 				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-					KafkaMessageSource.this.partitions = new ArrayList<>(partitions);
+					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
+						KafkaMessageSource.this.logger.info("Partitions assigned: " + partitions);
+					}
 					if (KafkaMessageSource.this.rebalanceListener != null) {
 						KafkaMessageSource.this.rebalanceListener.onPartitionsAssigned(partitions);
 					}

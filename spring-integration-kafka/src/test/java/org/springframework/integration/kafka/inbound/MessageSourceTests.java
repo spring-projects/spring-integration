@@ -136,29 +136,15 @@ public class MessageSourceTests {
 		source.destroy();
 		InOrder inOrder = inOrder(consumer);
 		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
-		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(4L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -212,10 +198,15 @@ public class MessageSourceTests {
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
 
 		Message<?> received1 = source.receive();
+		consumer.paused(); // need some other interaction with mock between polls for InOrder
 		Message<?> received2 = source.receive();
+		consumer.paused(); // need some other interaction with mock between polls for InOrder
 		Message<?> received3 = source.receive();
+		consumer.paused(); // need some other interaction with mock between polls for InOrder
 		Message<?> received4 = source.receive();
+		consumer.paused(); // need some other interaction with mock between polls for InOrder
 		Message<?> received5 = source.receive();
+		consumer.paused(); // need some other interaction with mock between polls for InOrder
 		Message<?> received6 = source.receive();
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received3)
 				.acknowledge(Status.ACCEPT);
@@ -233,27 +224,17 @@ public class MessageSourceTests {
 		source.destroy();
 		InOrder inOrder = inOrder(consumer);
 		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
+		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
-		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(6L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -310,28 +291,15 @@ public class MessageSourceTests {
 		source.destroy();
 		assertThat(received).isNull();
 		InOrder inOrder = inOrder(consumer);
-		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).seek(topicPartition, 0L); // rollback
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).seek(topicPartition, 1L); // rollback
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
 		inOrder.verifyNoMoreInteractions();
 	}
@@ -354,8 +322,7 @@ public class MessageSourceTests {
 		willAnswer(i -> paused.get()).given(consumer).paused();
 		Map<TopicPartition, List<ConsumerRecord>> records1 = new LinkedHashMap<>();
 		records1.put(topicPartition, Arrays.asList(
-				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo"),
-				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
+				new ConsumerRecord("foo", 0, 0L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "foo")));
 		ConsumerRecords cr1 = new ConsumerRecords(records1);
 		Map<TopicPartition, List<ConsumerRecord>> records2 = new LinkedHashMap<>();
 		records2.put(topicPartition, Collections.singletonList(
@@ -370,6 +337,7 @@ public class MessageSourceTests {
 		KafkaMessageSource source = new KafkaMessageSource(consumerFactory, "foo");
 
 		Message<?> received1 = source.receive();
+		consumer.paused(); // need some other interaction with mock between polls for InOrder
 		Message<?> received2 = source.receive(); // inflight
 		assertThat(received1.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		AcknowledgmentCallback ack1 = StaticMessageHeaderAccessor.getAcknowledgmentCallback(received1);
@@ -397,12 +365,9 @@ public class MessageSourceTests {
 		source.destroy();
 		assertThat(received1).isNull();
 		InOrder inOrder = inOrder(consumer, log1, log2);
+		inOrder.verify(consumer).poll(anyLong());
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());   // in flight
 		inOrder.verify(consumer).seek(topicPartition, 0L); // rollback
 		inOrder.verify(log1).isWarnEnabled();
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
@@ -416,20 +381,11 @@ public class MessageSourceTests {
 		assertThat(captor.getValue())
 				.contains("Cannot commit offset for ConsumerRecord")
 				.contains("; an earlier offset was rolled back");
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
-		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).resume(anyCollection());
 		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).pause(anyCollection());
 		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
 		inOrder.verifyNoMoreInteractions();
 	}
