@@ -54,7 +54,6 @@ import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.transformer.DecodingTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -87,6 +86,11 @@ public class TransformerTests {
 	@Qualifier("enricherInput3")
 	private FixedSubscriberChannel enricherInput3;
 
+	@Autowired
+	@Qualifier("enricherErrorChannel")
+	private PollableChannel enricherErrorChannel;
+
+
 
 	@Test
 	public void testContentEnricher() {
@@ -104,6 +108,11 @@ public class TransformerTests {
 		assertEquals("Bar Bar", result.getName());
 		assertNotNull(result.getDate());
 		assertThat(new Date(), Matchers.greaterThanOrEqualTo(result.getDate()));
+
+		this.enricherInput.send(new GenericMessage<>(new TestPojo("junk")));
+
+		Message<?> errorMessage = this.enricherErrorChannel.receive(10_000);
+		assertNotNull(errorMessage);
 	}
 
 	@Test
@@ -238,9 +247,15 @@ public class TransformerTests {
 	public static class ContextConfiguration {
 
 		@Bean
+		public PollableChannel enricherErrorChannel() {
+			return new QueueChannel();
+		}
+
+		@Bean
 		public IntegrationFlow enricherFlow() {
 			return IntegrationFlows.from("enricherInput", true)
 					.enrich(e -> e.requestChannel("enrichChannel")
+							.errorChannel(enricherErrorChannel())
 							.requestPayloadExpression("payload")
 							.shouldClonePayload(false)
 							.propertyExpression("name", "payload['name']")
@@ -275,7 +290,12 @@ public class TransformerTests {
 		@Bean
 		public IntegrationFlow enrichFlow() {
 			return IntegrationFlows.from("enrichChannel")
-					.<TestPojo, Map<?, ?>>transform(p -> Collections.singletonMap("name", p.getName() + " Bar"))
+					.<TestPojo, Map<?, ?>>transform(p -> {
+						if ("junk".equals(p.getName())) {
+							throw new RuntimeException("intentional");
+						}
+						return Collections.singletonMap("name", p.getName() + " Bar");
+					})
 					.get();
 		}
 
@@ -298,10 +318,8 @@ public class TransformerTests {
 
 		@Bean
 		public IntegrationFlow decodingFlow() {
-			// TODO: Stored in an unnecessary variable to work around an eclipse type inference issue.
-			DecodingTransformer<Integer> transformer = Transformers.decoding(new MyCodec(), m -> Integer.class);
 			return f -> f
-					.transform(transformer)
+					.transform(Transformers.decoding(new MyCodec(), m -> Integer.class))
 					.channel("codecReplyChannel");
 		}
 
