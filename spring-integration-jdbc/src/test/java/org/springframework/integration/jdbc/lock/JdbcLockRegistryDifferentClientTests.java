@@ -199,46 +199,35 @@ public class JdbcLockRegistryDifferentClientTests {
 
 	@Test
 	public void testOnlyOneLock() throws Exception {
-		testOnlyOneLock(null);
-		testOnlyOneLock("AABBCCDD");
-	}
-
-	private void testOnlyOneLock(String id) throws Exception {
 		for (int i = 0; i < 100; i++) {
 			final BlockingQueue<String> locked = new LinkedBlockingQueue<>();
 			final CountDownLatch latch = new CountDownLatch(20);
-			ExecutorService pool = Executors.newFixedThreadPool(6);
-			ArrayList<Callable<Boolean>> tasks = new ArrayList<Callable<Boolean>>();
-			final DefaultLockRepository client = (id == null) ?
-					new DefaultLockRepository(this.dataSource) :
-					new DefaultLockRepository(this.dataSource, id);
-			client.afterPropertiesSet();
-			this.context.getAutowireCapableBeanFactory().autowireBean(client);
-			for (int j = 0; j < 20; j++) {
-				Callable<Boolean> task = new Callable<Boolean>() {
+			ExecutorService pool = Executors.newFixedThreadPool(20);
+			ArrayList<Callable<Boolean>> tasks = new ArrayList<>();
 
-					@Override
-					public Boolean call() {
-						Lock lock = new JdbcLockRegistry(client).obtain("foo");
-						try {
-							if (locked.isEmpty() && lock.tryLock()) {
-								if (locked.isEmpty()) {
-									locked.add("done");
-									return true;
-								}
+			for (int j = 0; j < 20; j++) {
+				Callable<Boolean> task = () -> {
+					DefaultLockRepository client = new DefaultLockRepository(this.dataSource);
+					client.afterPropertiesSet();
+					Lock lock = new JdbcLockRegistry(client).obtain("foo");
+					try {
+						if (locked.isEmpty() && lock.tryLock(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
+							if (locked.isEmpty()) {
+								locked.add("done");
+								return true;
 							}
 						}
-						finally {
-							try {
-								lock.unlock();
-							}
-							catch (Exception e) {
-								// ignore
-							}
-							latch.countDown();
-						}
-						return false;
 					}
+					finally {
+						try {
+							lock.unlock();
+						}
+						catch (Exception e) {
+							// ignore
+						}
+						latch.countDown();
+					}
+					return false;
 				};
 				tasks.add(task);
 			}
