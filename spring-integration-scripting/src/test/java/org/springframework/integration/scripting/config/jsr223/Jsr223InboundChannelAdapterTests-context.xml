@@ -13,13 +13,10 @@
 
 	<inbound-channel-adapter channel="inbound-channel-adapter-channel">
 		<poller max-messages-per-poll="1" fixed-delay="100"/>
-		<script:script lang="ruby">
+		<script:script lang="javascript">
 			<![CDATA[
-			require "java"
-			java_import 'java.util.Date'
-
-			Date.new
-			]]>
+					(function(){ return new (Java.type('java.util.Date'))(); })();
+				]]>
 		</script:script>
 		<header name="foo" value="bar"/>
 	</inbound-channel-adapter>
