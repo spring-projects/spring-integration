@@ -79,9 +79,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
@@ -252,7 +252,7 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 			basePackageClasses = StompMessageHandlerWebSocketIntegrationTests.class,
 			useDefaultFilters = false,
 			includeFilters = @ComponentScan.Filter(IntegrationTestController.class))
-	static class ServerConfig extends AbstractWebSocketMessageBrokerConfigurer {
+	static class ServerConfig implements WebSocketMessageBrokerConfigurer {
 
 		@Bean
 		public DefaultHandshakeHandler handshakeHandler() {

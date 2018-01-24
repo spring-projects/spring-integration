@@ -77,9 +77,9 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.server.HandshakeInterceptor;
@@ -321,7 +321,7 @@ public class StompInboundChannelAdapterWebSocketIntegrationTests {
 
 	@Configuration
 	@EnableWebSocketMessageBroker
-	static class ServerConfig extends AbstractWebSocketMessageBrokerConfigurer {
+	static class ServerConfig implements WebSocketMessageBrokerConfigurer {
 
 		@Bean
 		public DefaultHandshakeHandler handshakeHandler() {
