@@ -97,6 +97,7 @@ public class AsyncGatewayTests {
 		this.gateway2.start();
 		this.gateway2.handleMessage(MessageBuilder.withPayload("foo").setErrorChannel(errors).build());
 		JmsTemplate template = new JmsTemplate(this.ccf);
+		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest3");
 		assertNotNull(received);
 		org.springframework.messaging.Message<?> error = errors.receive(10000);
@@ -117,6 +118,7 @@ public class AsyncGatewayTests {
 		this.gateway2.start();
 		this.gateway2.handleMessage(MessageBuilder.withPayload("foo").setErrorChannel(errors).build());
 		JmsTemplate template = new JmsTemplate(this.ccf);
+		template.setReceiveTimeout(10000);
 		final Message received = template.receive("asyncTest3");
 		assertNotNull(received);
 		org.springframework.messaging.Message<?> error = errors.receive(1000);
@@ -130,8 +132,10 @@ public class AsyncGatewayTests {
 
 		@Bean
 		public CachingConnectionFactory ccf() {
-			return new CachingConnectionFactory(
+			CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(
 					new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+			cachingConnectionFactory.setCacheConsumers(false);
+			return cachingConnectionFactory;
 		}
 
 		@Bean
