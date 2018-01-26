@@ -182,6 +182,17 @@ Only files matching this regular expression will be picked up by this adapter.
                   </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
+			<xsd:attribute name="scan-each-poll" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set this flag if you want to make sure the internal queue is
+						refreshed with the latest content of the input directory on each poll.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 

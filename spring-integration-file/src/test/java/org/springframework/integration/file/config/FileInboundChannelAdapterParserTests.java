@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.file.config;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -80,7 +81,7 @@ public class FileInboundChannelAdapterParserTests {
 
 	@Before
 	public void init() {
-		accessor = new DirectFieldAccessor(inputDirPollerSource);
+		this.accessor = new DirectFieldAccessor(inputDirPollerSource);
 	}
 
 	@Test
@@ -100,8 +101,9 @@ public class FileInboundChannelAdapterParserTests {
 	@Test
 	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) accessor.getPropertyValue("directory");
+		File actual = (File) this.accessor.getPropertyValue("directory");
 		assertEquals("'directory' should be set", expected, actual);
+		assertThat(this.accessor.getPropertyValue("scanEachPoll"), is(Boolean.TRUE));
 	}
 
 	@Test
