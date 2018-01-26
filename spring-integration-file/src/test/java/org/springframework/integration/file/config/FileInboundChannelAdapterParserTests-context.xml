@@ -22,6 +22,7 @@
 							 ignore-hidden="false"
 							 auto-startup="false"
 							 use-watch-service="true"
+							 scan-each-poll="true"
 							 watch-events="MODIFY, DELETE"> <!-- CREATE by default -->
 		<integration:poller fixed-rate="5000">
 			<integration:transactional synchronization-factory="syncFactory"/>

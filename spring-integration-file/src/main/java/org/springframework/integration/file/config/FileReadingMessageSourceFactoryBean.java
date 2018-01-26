@@ -70,7 +70,6 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 
 	private final Object initializationMonitor = new Object();
 
-
 	public void setDirectory(File directory) {
 		this.directory = directory;
 	}

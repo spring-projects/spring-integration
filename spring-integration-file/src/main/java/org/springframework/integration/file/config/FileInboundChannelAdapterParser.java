@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-size");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "scan-each-poll");
 		String filterBeanName = this.registerFilter(element, parserContext);
 		String lockerBeanName = registerLocker(element, parserContext);
 		if (filterBeanName != null) {
