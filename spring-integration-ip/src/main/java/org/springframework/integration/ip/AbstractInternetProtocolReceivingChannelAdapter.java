@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.Assert;
@@ -33,27 +35,30 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public abstract class AbstractInternetProtocolReceivingChannelAdapter
-		extends MessageProducerSupport implements SchedulingAwareRunnable, CommonSocketOptions {
+		extends MessageProducerSupport
+		implements ApplicationEventPublisherAware, SchedulingAwareRunnable, CommonSocketOptions {
 
 	private final int port;
 
-	private volatile int soTimeout = 0;
+	private ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile int soReceiveBufferSize = -1;
+	private int soTimeout = 0;
 
-	private volatile int receiveBufferSize = 2048;
+	private int soReceiveBufferSize = -1;
+
+	private int receiveBufferSize = 2048;
+
+	private String localAddress;
+
+	private Executor taskExecutor;
+
+	private boolean taskExecutorSet;
+
+	private int poolSize = 5;
 
 	private volatile boolean active;
 
 	private volatile boolean listening;
-
-	private volatile String localAddress;
-
-	private volatile Executor taskExecutor;
-
-	private volatile boolean taskExecutorSet;
-
-	private volatile int poolSize = 5;
 
 
 	public AbstractInternetProtocolReceivingChannelAdapter(int port) {
@@ -180,6 +185,15 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	 */
 	public Executor getTaskExecutor() {
 		return this.taskExecutor;
+	}
+
+	protected ApplicationEventPublisher getApplicationEventPublisher() {
+		return this.applicationEventPublisher;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	/**

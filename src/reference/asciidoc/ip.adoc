@@ -181,6 +181,13 @@ public IntegrationFlow udpIn() {
 }
 ----
 
+==== Server Listening Events
+
+Starting with _version 5.0.2_, a `UdpServerListeningEvent` is emitted when an inbound adapter is started and has begun listening.
+This is useful when the adapter is configured to listen on port 0, meaning that the operating system chooses the port.
+It can also be used instead of polling `isListening()`, if you need to wait before starting some other process that will
+connect to the socket.
+
 ==== Advanced Outbound Configuration
 
 The `destination-expression` and `socket-expression` options are available
