@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp.connection;
+package org.springframework.integration.ip.udp;
 
 import org.springframework.integration.ip.event.IpIntegrationEvent;
 
@@ -25,15 +25,15 @@ import org.springframework.integration.ip.event.IpIntegrationEvent;
  * before starting some other process to connect to the socket.
  *
  * @author Gary Russell
- * @since 4.3
+ * @since 5.0.2
  */
 @SuppressWarnings("serial")
-public class TcpConnectionServerListeningEvent extends IpIntegrationEvent {
+public class UdpServerListeningEvent extends IpIntegrationEvent {
 
 	private final int port;
 
-	public TcpConnectionServerListeningEvent(TcpServerConnectionFactory connectionFactory, int port) {
-		super(connectionFactory);
+	public UdpServerListeningEvent(UnicastReceivingChannelAdapter adapter, int port) {
+		super(adapter);
 		this.port = port;
 	}
 

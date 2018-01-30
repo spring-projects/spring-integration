@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
@@ -43,6 +48,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.serializer.TcpCodecs;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
+import org.springframework.integration.ip.udp.UdpServerListeningEvent;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
@@ -76,6 +82,9 @@ public class IpIntegrationTests {
 
 	@Autowired
 	private QueueChannel udpIn;
+
+	@Autowired
+	private Config config;
 
 	@Test
 	public void testTcpAdapters() throws Exception {
@@ -119,8 +128,9 @@ public class IpIntegrationTests {
 	}
 
 	@Test
-	public void testUdp() {
-		TestingUtilities.waitListening(this.udpInbound, null);
+	public void testUdp() throws Exception {
+		assertTrue(this.config.listeningLatch.await(10, TimeUnit.SECONDS));
+		assertEquals(this.udpInbound.getPort(), this.config.serverPort);
 		Message<String> outMessage = MessageBuilder.withPayload("foo")
 				.setHeader("udp_dest", "udp://localhost:" + this.udpInbound.getPort())
 				.build();
@@ -147,6 +157,10 @@ public class IpIntegrationTests {
 	@Configuration
 	@EnableIntegration
 	public static class Config {
+
+		private final CountDownLatch listeningLatch = new CountDownLatch(1);
+
+		private volatile int serverPort;
 
 		@Bean
 		public AbstractServerConnectionFactory server1() {
@@ -179,6 +193,14 @@ public class IpIntegrationTests {
 		@Bean
 		public IntegrationFlow outUdpAdapter() {
 			return f -> f.handle(Udp.outboundAdapter(m -> m.getHeaders().get("udp_dest")));
+		}
+
+		@Bean
+		public ApplicationListener<UdpServerListeningEvent> events() {
+			return (ApplicationListener<UdpServerListeningEvent>) event -> {
+				this.serverPort = event.getPort();
+				this.listeningLatch.countDown();
+			};
 		}
 
 	}
