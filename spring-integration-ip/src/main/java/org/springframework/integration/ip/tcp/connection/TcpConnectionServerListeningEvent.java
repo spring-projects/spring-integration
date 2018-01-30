@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import org.springframework.integration.ip.event.IpIntegrationEvent;
-import org.springframework.util.Assert;
 
 /**
  * {@link IpIntegrationEvent} emitted when a server begins listening. Useful
@@ -35,7 +34,6 @@ public class TcpConnectionServerListeningEvent extends IpIntegrationEvent {
 
 	public TcpConnectionServerListeningEvent(TcpServerConnectionFactory connectionFactory, int port) {
 		super(connectionFactory);
-		Assert.notNull(connectionFactory, "'connectionFactory' cannot be null");
 		this.port = port;
 	}
 

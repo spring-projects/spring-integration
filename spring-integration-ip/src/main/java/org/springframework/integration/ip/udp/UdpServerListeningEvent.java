@@ -17,7 +17,6 @@
 package org.springframework.integration.ip.udp;
 
 import org.springframework.integration.ip.event.IpIntegrationEvent;
-import org.springframework.util.Assert;
 
 /**
  * {@link IpIntegrationEvent} emitted when a server begins listening. Useful
@@ -35,7 +34,6 @@ public class UdpServerListeningEvent extends IpIntegrationEvent {
 
 	public UdpServerListeningEvent(UnicastReceivingChannelAdapter adapter, int port) {
 		super(adapter);
-		Assert.notNull(adapter, "'adapter' cannot be null");
 		this.port = port;
 	}
 
