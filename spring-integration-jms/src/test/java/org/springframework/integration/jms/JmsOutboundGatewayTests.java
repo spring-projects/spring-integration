@@ -167,6 +167,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 	public void testConnectionBreakOnReplyMessageIdCorrelation() throws Exception {
 		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		connectionFactory1.setCacheConsumers(false);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setConnectionFactory(connectionFactory1);
 		String requestQ = "requests1";
@@ -183,6 +184,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		exec.execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		connectionFactory2.setCacheConsumers(false);
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
 		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
@@ -208,6 +210,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 	public void testConnectionBreakOnReplyCustomCorrelation() throws Exception {
 		CachingConnectionFactory connectionFactory1 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		connectionFactory1.setCacheConsumers(false);
 		final JmsOutboundGateway gateway = new JmsOutboundGateway();
 		gateway.setConnectionFactory(connectionFactory1);
 		String requestQ = "requests2";
@@ -225,6 +228,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 		exec.execute(() -> gateway.handleMessage(new GenericMessage<String>("foo")));
 		CachingConnectionFactory connectionFactory2 = new CachingConnectionFactory(
 				new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false"));
+		connectionFactory2.setCacheConsumers(false);
 		JmsTemplate template = new JmsTemplate(connectionFactory2);
 		template.setReceiveTimeout(10000);
 		template.afterPropertiesSet();
