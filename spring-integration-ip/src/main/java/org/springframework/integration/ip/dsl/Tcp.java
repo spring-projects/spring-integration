@@ -31,13 +31,19 @@ public final class Tcp {
 
 	/**
 	 * Boolean indicating the connection factory should use NIO.
+	 *
+	 * @deprecated This isn't used anymore within the framework and will be removed in a future release.
 	 */
+	@Deprecated
 	public static final boolean NIO = true;
 
 	/**
 	 * Boolean indicating the connection factory should not use NIO
 	 * (default).
+	 *
+	 * @deprecated This isn't used anymore within the framework and will be removed in a future release.
 	 */
+	@Deprecated
 	public static final boolean NET = false;
 
 	private Tcp() {
@@ -50,7 +56,7 @@ public final class Tcp {
 	 * @return the spec.
 	 */
 	public static TcpServerConnectionFactorySpec nioServer(int port) {
-		return new TcpServerConnectionFactorySpec(port, NIO);
+		return new TcpServerConnectionFactorySpec(port, true);
 	}
 
 	/**
@@ -59,7 +65,7 @@ public final class Tcp {
 	 * @return the spec.
 	 */
 	public static TcpServerConnectionFactorySpec netServer(int port) {
-		return new TcpServerConnectionFactorySpec(port, NET);
+		return new TcpServerConnectionFactorySpec(port, false);
 	}
 
 	/**
@@ -69,7 +75,7 @@ public final class Tcp {
 	 * @return the spec.
 	 */
 	public static TcpClientConnectionFactorySpec nioClient(String host, int port) {
-		return new TcpClientConnectionFactorySpec(host, port, NIO);
+		return new TcpClientConnectionFactorySpec(host, port, true);
 	}
 
 	/**
@@ -79,7 +85,7 @@ public final class Tcp {
 	 * @return the spec.
 	 */
 	public static TcpClientConnectionFactorySpec netClient(String host, int port) {
-		return new TcpClientConnectionFactorySpec(host, port, NET);
+		return new TcpClientConnectionFactorySpec(host, port, false);
 	}
 
 	/**
