@@ -32,7 +32,7 @@ public class UdpServerListeningEvent extends IpIntegrationEvent {
 
 	private final int port;
 
-	public UdpServerListeningEvent(UnicastReceivingChannelAdapter adapter, int port) {
+	public UdpServerListeningEvent(Object adapter, int port) {
 		super(adapter);
 		this.port = port;
 	}

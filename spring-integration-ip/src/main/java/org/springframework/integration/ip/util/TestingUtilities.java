@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.ip.util;
 
+import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 
 /**
  * Convenience class providing methods for testing IP components.
@@ -73,7 +73,7 @@ public final class TestingUtilities {
 	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
 	 * @throws IllegalStateException If the server does not start listening in time.
 	 */
-	public static void waitListening(UnicastReceivingChannelAdapter adapter, Long delay)
+	public static void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter, Long delay)
 		throws IllegalStateException {
 		if (delay == null) {
 			delay = 100L;
