@@ -23,6 +23,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractConnectionFacto
  * Factory methods for TCP.
  *
  * @author Gary Russell
+ * @author Tim Ysewyn
  * @since 5.0
  *
  */
@@ -37,7 +38,7 @@ public final class Tcp {
 	 * Boolean indicating the connection factory should not use NIO
 	 * (default).
 	 */
-	public static final boolean NET = true;
+	public static final boolean NET = false;
 
 	private Tcp() {
 		super();

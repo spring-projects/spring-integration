@@ -28,6 +28,10 @@ import org.junit.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.messaging.Message;
@@ -35,6 +39,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Tim Ysewyn
  * @since 5.0
  *
  */
@@ -64,6 +69,24 @@ public class ConnectionFacforyTests {
 		assertEquals("foo", received.get().getPayload());
 		client.stop();
 		server.stop();
+	}
+
+	@Test
+	public void shouldReturnNioFlavor() throws Exception {
+		AbstractServerConnectionFactory server = Tcp.nioServer(0).get();
+		assertTrue(server instanceof TcpNioServerConnectionFactory);
+
+		AbstractClientConnectionFactory client = Tcp.nioClient("localhost", server.getPort()).get();
+		assertTrue(client instanceof TcpNioClientConnectionFactory);
+	}
+
+	@Test
+	public void shouldReturnNetFlavor() throws Exception {
+		AbstractServerConnectionFactory server = Tcp.netServer(0).get();
+		assertTrue(server instanceof TcpNetServerConnectionFactory);
+
+		AbstractClientConnectionFactory client = Tcp.netClient("localhost", server.getPort()).get();
+		assertTrue(client instanceof TcpNetClientConnectionFactory);
 	}
 
 }
