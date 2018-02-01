@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,16 +45,17 @@ import org.springframework.util.CollectionUtils;
  * with basic properties.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
 public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements OrderlyShutdownCapable {
 
 	protected static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
-			HttpRequestHandlingEndpointSupport.class.getClassLoader());
+			BaseHttpInboundEndpoint.class.getClassLoader());
 
 	protected static final boolean romeToolsPresent = ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
-							HttpRequestHandlingEndpointSupport.class.getClassLoader());
+			BaseHttpInboundEndpoint.class.getClassLoader());
 
 	protected static final List<HttpMethod> nonReadableBodyHttpMethods =
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
