@@ -88,8 +88,9 @@ subprojects { subproject ->
 
 	ext {
 		activeMqVersion = '5.15.2'
-		aspectjVersion = '1.8.13'
 		apacheSshdVersion = '1.6.0'
+		aspectjVersion = '1.8.13'
+		assertjVersion = '2.6.0'
 		boonVersion = '0.34'
 		commonsDbcp2Version = '2.1.1'
 		commonsIoVersion = '2.4'
@@ -119,6 +120,7 @@ subprojects { subproject ->
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
 		log4jVersion = '2.10.0'
+		micrometerVersion = '1.0.0-rc.8'
 		mockitoVersion = '2.11.0'
 		mysqlVersion = '6.0.6'
 		pahoMqttClientVersion = '1.2.0'
@@ -272,6 +274,7 @@ project('spring-integration-test-support') {
 		compile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
+		compile "org.assertj:assertj-core:$assertjVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
@@ -316,6 +319,7 @@ project('spring-integration-core') {
 		}
 		compile("io.fastjson:boon:$boonVersion", optional)
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
+		compile "io.micrometer:micrometer-core:$micrometerVersion"
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"

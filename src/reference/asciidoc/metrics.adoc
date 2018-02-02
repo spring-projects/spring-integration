@@ -63,6 +63,7 @@ Default `false`.
 
 <3> Enable or disable statistical metrics for components not matching one of the patterns in <5>.
 Only applied if you have not explicitly configured the setting in a bean definition.
+Ignored if <<micrometer-integration, Micrometer>> is being used.
 Default 'false'.
 
 <4> A comma-delimited list of patterns for beans for which counts should be enabled; negate the pattern with `!`.
@@ -75,6 +76,7 @@ with `!`.
 First match wins (positive or negative).
 In the unlikely event that you have a bean name starting with `!`, escape the `!` in the pattern: `\!foo` positively
 matches a bean named `!foo`.
+Ignored if <<micrometer-integration, Micrometer>> is being used.
 Stats implies counts.
 
 <6> A reference to a `MetricsFactory`.
@@ -93,8 +95,36 @@ When JMX is enabled (see <<jmx>>), these metrics are also exposed by the `Integr
 `defaultLoggingEnabled`, `defaultCountsEnabled`, and `defaultStatsEnabled` are only applied if you have not explicitly configured the corresponding setting in a bean definition.
 ====
 
+Starting with _version 5.0.2_, the framework will automatically detect if there is a single `MetricsFactory` bean in the application context and use it instead of the default metrics factory.
+
+[[micrometer-integration]]
+==== Micrometer Integration
+
+Starting with _version 5.0.2_, adding a `MicrometerMetricsFactory` to the application context will switch to using https://micrometer.io/[Micrometer] metrics instead of the inbuilt metrics.
+Simply add the bean, configured with a `MeterRegistry` implementation.
+
+[source, java]
+----
+@Bean
+public MicrometerMetricsFactory metricsFactory(MeterRegistry meterRegistry) {
+    return new MicrometerMetricsFactory(meterRegistry);
+}
+----
+
+For each `MessageHandler` and `MessageChannel`, a timer and errorCounter are registered.
+For each `MessageSource`, a counter is registered.
+
+This only applies to objects that extend `AbstractMessageHandler`, `AbstractMessageChannel` and `AbstractMessageSource` respectively (which is the case for most framework components).
+
+The factory provides mechanisms to customize the `Meter` names and tags; refer to the Javadocs for more information.
+
+With Micrometer metrics, the `statsEnabled` flag takes no effect, since statistics capture is delegated to Micrometer.
+The `countsEnabled` flag controls whether the Micrometer `Meter` s are updated when processing each message.
+
 [[mgmt-channel-features]]
 ==== MessageChannel Metric Features
+
+This only applies if <<micrometer-integration, Micrometer>> is not being used.
 
 Message channels report metrics according to their concrete type.
 If you are looking at a `DirectChannel`, you will see statistics for the send operation.
@@ -143,6 +173,8 @@ Error ratio is 1 - success ratio.
 
 [[mgmt-handler-features]]
 ==== MessageHandler Metric Features
+
+This only applies if <<micrometer-integration, Micrometer>> is not being used.
 
 The following table shows the statistics maintained for message handlers.
 Some metrics are simple counters (message count and error count), and one is an estimate of averages of send duration.
@@ -198,14 +230,16 @@ In the case of the rate we interpret `i` as the elapsed time, or a combination o
 [[mgmt-metrics-factory]]
 ==== Metrics Factory
 
-A new strategy interface `MetricsFactory` has been introduced allowing you to provide custom channel metrics for your
+A strategy interface `MetricsFactory` has been introduced allowing you to provide custom channel metrics for your
 `MessageChannel` s and `MessageHandler` s.
 By default, a `DefaultMetricsFactory` provides default implementation of `MessageChannelMetrics` and
-`MessageHandlerMetrics` which are described in the next bullet.
+`MessageHandlerMetrics` which are described above.
 To override the default `MetricsFactory` configure it as described above, by providing a reference to your
 `MetricsFactory` bean instance.
 You can either customize the default implementations as described in the next bullet, or provide completely different
 implementations by extending `AbstractMessageChannelMetrics` and/or `AbstractMessageHandlerMetrics`.
+
+Also see <<micrometer-integration>>.
 
 In addition to the default metrics factory described above, the framework provides the `AggregatingMetricsFactory`.
 This factory creates `AggregatingMessageChannelMetrics` and `AggregatingMessageHandlerMetrics`.

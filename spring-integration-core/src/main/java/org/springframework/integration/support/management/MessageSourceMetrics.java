@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.integration.support.management;
 
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
+
+import io.micrometer.core.instrument.Counter;
 
 /**
  * @author Dave Syer
@@ -46,5 +48,14 @@ public interface MessageSourceMetrics extends IntegrationManagement {
 	void setManagedType(String source);
 
 	String getManagedType();
+
+	/**
+	 * Set a micrometer counter to count messages produced.
+	 * @param counter the counter.
+	 * @since 5.0.2
+	 */
+	default void setCounter(Counter counter) {
+		// no op
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,12 @@ package org.springframework.integration.support.management;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
+
 /**
  * Abstract base class for channel metrics implementations.
  *
@@ -32,10 +38,36 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 
 	protected final String name;
 
+	private final Timer timer;
+
+	private final Counter errorCounter;
+
 	private volatile boolean fullStatsEnabled;
 
+	/**
+	 * Construct an instance with the provided name.
+	 * @param name the name.
+	 */
 	public AbstractMessageChannelMetrics(String name) {
+		this(name, null, null);
+	}
+
+	/**
+	 * Construct an instance with the provided name, timer and error counter.
+	 * A non-null timer requires a non-null error counter. When a timer is provided,
+	 * Micrometer metrics are used and the legacy metrics are not maintained.
+	 * @param name the name.
+	 * @param timer the timer.
+	 * @param errorCounter the error counter.
+	 * @since 5.0.2
+	 */
+	public AbstractMessageChannelMetrics(String name, Timer timer, Counter errorCounter) {
+		if (timer != null) {
+			Assert.notNull(errorCounter, "'errorCounter' cannot be null if a timer is provided");
+		}
 		this.name = name;
+		this.timer = timer;
+		this.errorCounter = errorCounter;
 	}
 
 	/**
@@ -71,6 +103,26 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * Reset all counters/statistics.
 	 */
 	public abstract void reset();
+
+	/**
+	 * Return the timer if Micrometer metrics are being used.
+	 * @return the timer, or null to indicate Micrometer is not being used.
+	 * @since 5.0.2
+	 */
+	@Nullable
+	public Timer getTimer() {
+		return this.timer;
+	}
+
+	/**
+	 * Return the error counter if Micrometer metrics are being used.
+	 * @return the counter or null if Micrometer is not being used.
+	 * @since 5.0.2
+	 */
+	@Nullable
+	public Counter getErrorCounter() {
+		return this.errorCounter;
+	}
 
 	public abstract int getSendCount();
 

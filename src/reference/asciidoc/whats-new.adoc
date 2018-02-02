@@ -300,3 +300,9 @@ The `JdbcMessageChannelStore` now provides setter for the `ChannelMessageStorePr
 The `ExpressionEvaluatingSqlParameterSourceFactory` now provides setter for the sqlParameterTypes allowing users to customize sql types of the parameters.
 
 See <<jdbc>> for more information.
+
+
+==== Metrics Changes
+
+http://micrometer.io/[Micrometer] application monitoring is now supported (since _version 5.0.2_).
+See <<micrometer-integration>> for more information.

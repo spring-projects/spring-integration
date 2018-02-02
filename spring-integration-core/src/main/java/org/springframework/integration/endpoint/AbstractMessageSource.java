@@ -33,6 +33,8 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.CollectionUtils;
 
+import io.micrometer.core.instrument.Counter;
+
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -51,11 +53,13 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private volatile Map<String, Expression> headerExpressions = Collections.emptyMap();
 
-	private volatile String beanName;
+	private String beanName;
 
-	private volatile String managedType;
+	private String managedType;
 
-	private volatile String managedName;
+	private String managedName;
+
+	private Counter counter;
 
 	private volatile boolean countsEnabled;
 
@@ -116,6 +120,11 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
 		this.managementOverrides.loggingConfigured = true;
+	}
+
+	@Override
+	public void setCounter(Counter counter) {
+		this.counter = counter;
 	}
 
 	@Override
@@ -182,7 +191,12 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 					.build();
 		}
 		if (this.countsEnabled && message != null) {
-			this.messageCount.incrementAndGet();
+			if (this.counter != null) {
+				this.counter.increment();
+			}
+			else {
+				this.messageCount.incrementAndGet();
+			}
 		}
 		return message;
 	}

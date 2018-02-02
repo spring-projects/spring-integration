@@ -20,6 +20,8 @@ import org.springframework.context.Lifecycle;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
+import io.micrometer.core.instrument.Counter;
+
 /**
  * A {@link MessageSourceMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
  * be used to start and stop polling endpoints, for instance, in a live system.
@@ -122,6 +124,11 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 	@Override
 	public ManagementOverrides getOverrides() {
 		return this.delegate.getOverrides();
+	}
+
+	@Override
+	public void setCounter(Counter counter) {
+		this.delegate.setCounter(counter);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,16 +136,31 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
 			if (countsEnabled) {
-				start = handlerMetrics.beforeHandle();
+				if (handlerMetrics.getTimer() != null) {
+					final Message<?> messageToSend = message;
+					handlerMetrics.getTimer().recordCallable(() -> {
+						handleMessageInternal(messageToSend);
+						return null;
+					});
+				}
+				else {
+					start = handlerMetrics.beforeHandle();
+					handleMessageInternal(message);
+					handlerMetrics.afterHandle(start, true);
+				}
 			}
-			this.handleMessageInternal(message);
-			if (countsEnabled) {
-				handlerMetrics.afterHandle(start, true);
+			else {
+				handleMessageInternal(message);
 			}
 		}
 		catch (Exception e) {
 			if (countsEnabled) {
-				handlerMetrics.afterHandle(start, false);
+				if (handlerMetrics.getErrorCounter() != null) {
+					handlerMetrics.getErrorCounter().increment();
+				}
+				else {
+					handlerMetrics.afterHandle(start, false);
+				}
 			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
