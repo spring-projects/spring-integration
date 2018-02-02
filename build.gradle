@@ -105,7 +105,7 @@ subprojects { subproject ->
 		hibernateVersion = '5.2.10.Final'
 		hsqldbVersion = '2.4.0'
 		h2Version = '1.4.196'
-		jackson2Version = '2.9.1'
+		jackson2Version = '2.9.4'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.6.0'
 		jedisVersion = '2.9.0'

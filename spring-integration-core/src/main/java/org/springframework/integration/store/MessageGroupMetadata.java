@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.store;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -92,8 +91,13 @@ public class MessageGroupMetadata implements Serializable {
 		return null;
 	}
 
+	/**
+	 * Obtain a {@link LinkedList} copy of the {@link #messageIds}
+	 * stored in the group.
+	 * @return the list of messages ids stored in the group
+	 */
 	public List<UUID> getMessageIds() {
-		return Collections.unmodifiableList(this.messageIds);
+		return new LinkedList<UUID>(this.messageIds);
 	}
 
 	void complete() {
