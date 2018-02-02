@@ -26,7 +26,9 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.GenericMessageListenerContainer;
 import org.springframework.kafka.listener.config.ContainerProperties;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.TopicPartitionInitialOffset;
 
 /**
@@ -34,6 +36,7 @@ import org.springframework.kafka.support.TopicPartitionInitialOffset;
  *
  * @author Artem Bilan
  * @author Nasko Vasilev
+ * @author Gary Russell
  *
  * @since 3.0
  */
@@ -47,8 +50,8 @@ public final class Kafka {
 	 * @param <S> the {@link KafkaProducerMessageHandlerSpec} extension type.
 	 * @return the KafkaProducerMessageHandlerSpec.
 	 */
-	public static <K, V, S extends KafkaProducerMessageHandlerSpec<K, V, S>> KafkaProducerMessageHandlerSpec<K, V, S>
-			outboundChannelAdapter(KafkaTemplate<K, V> kafkaTemplate) {
+	public static <K, V, S extends KafkaProducerMessageHandlerSpec<K, V, S>> KafkaProducerMessageHandlerSpec<K, V, S> outboundChannelAdapter(
+			KafkaTemplate<K, V> kafkaTemplate) {
 
 		return new KafkaProducerMessageHandlerSpec<>(kafkaTemplate);
 	}
@@ -61,8 +64,8 @@ public final class Kafka {
 	 * @return the KafkaProducerMessageHandlerSpec.
 	 * @see <a href="https://kafka.apache.org/documentation.html#producerconfigs">Kafka Producer Configs</a>
 	 */
-	public static <K, V> KafkaProducerMessageHandlerSpec.KafkaProducerMessageHandlerTemplateSpec<K, V>
-			outboundChannelAdapter(ProducerFactory<K, V> producerFactory) {
+	public static <K, V> KafkaProducerMessageHandlerSpec.KafkaProducerMessageHandlerTemplateSpec<K, V> outboundChannelAdapter(
+			ProducerFactory<K, V> producerFactory) {
 
 		return new KafkaProducerMessageHandlerSpec.KafkaProducerMessageHandlerTemplateSpec<>(producerFactory);
 	}
@@ -77,8 +80,8 @@ public final class Kafka {
 	 * @return the spec.
 	 * @since 3.0.1
 	 */
-	public static <K, V> KafkaInboundChannelAdapterSpec<K, V>
-			inboundChannelAdapter(ConsumerFactory<K, V> consumerFactory, String... topics) {
+	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory, String... topics) {
 
 		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, topics);
 	}
@@ -94,9 +97,9 @@ public final class Kafka {
 	 * @return the spec.
 	 * @since 3.0.1
 	 */
-	public static <K, V> KafkaInboundChannelAdapterSpec<K, V>
-			inboundChannelAdapter(ConsumerFactory<K, V> consumerFactory,
-					KafkaAckCallbackFactory<K, V> ackCallbackFactory, String... topics) {
+	public static <K, V> KafkaInboundChannelAdapterSpec<K, V> inboundChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory,
+			KafkaAckCallbackFactory<K, V> ackCallbackFactory, String... topics) {
 
 		return new KafkaInboundChannelAdapterSpec<>(consumerFactory, ackCallbackFactory, topics);
 	}
@@ -109,8 +112,7 @@ public final class Kafka {
 	 * @param <S> the {@link KafkaMessageDrivenChannelAdapterSpec} extension type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.
 	 */
-	public static <K, V, S extends KafkaMessageDrivenChannelAdapterSpec<K, V, S>>
-		KafkaMessageDrivenChannelAdapterSpec<K, V, S> messageDrivenChannelAdapter(
+	public static <K, V, S extends KafkaMessageDrivenChannelAdapterSpec<K, V, S>> KafkaMessageDrivenChannelAdapterSpec<K, V, S> messageDrivenChannelAdapter(
 			AbstractMessageListenerContainer<K, V> listenerContainer) {
 
 		return messageDrivenChannelAdapter(listenerContainer, KafkaMessageDrivenChannelAdapter.ListenerMode.record);
@@ -125,8 +127,7 @@ public final class Kafka {
 	 * @param <A> the {@link KafkaMessageDrivenChannelAdapterSpec} extension type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.
 	 */
-	public static <K, V, A extends KafkaMessageDrivenChannelAdapterSpec<K, V, A>>
-		KafkaMessageDrivenChannelAdapterSpec<K, V, A> messageDrivenChannelAdapter(
+	public static <K, V, A extends KafkaMessageDrivenChannelAdapterSpec<K, V, A>> KafkaMessageDrivenChannelAdapterSpec<K, V, A> messageDrivenChannelAdapter(
 			AbstractMessageListenerContainer<K, V> listenerContainer,
 			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
 
@@ -143,8 +144,8 @@ public final class Kafka {
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
 	public static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-		messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties) {
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties) {
 
 		return messageDrivenChannelAdapter(consumerFactory, containerProperties,
 				KafkaMessageDrivenChannelAdapter.ListenerMode.record);
@@ -161,12 +162,12 @@ public final class Kafka {
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
 	public static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-		messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties,
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties,
 			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
 
 		return messageDrivenChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<>(consumerFactory,
+				new KafkaMessageListenerContainerSpec<>(consumerFactory,
 						containerProperties), listenerMode);
 	}
 
@@ -180,8 +181,8 @@ public final class Kafka {
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
 	public static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-		messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory,
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory,
 			TopicPartitionInitialOffset... topicPartitions) {
 
 		return messageDrivenChannelAdapter(consumerFactory, KafkaMessageDrivenChannelAdapter.ListenerMode.record,
@@ -199,13 +200,13 @@ public final class Kafka {
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
 	public static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-		messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory,
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory,
 			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode,
 			TopicPartitionInitialOffset... topicPartitions) {
 
 		return messageDrivenChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<>(consumerFactory,
+				new KafkaMessageListenerContainerSpec<>(consumerFactory,
 						topicPartitions), listenerMode);
 	}
 
@@ -219,8 +220,8 @@ public final class Kafka {
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
 	public static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-			messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, String... topics) {
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory, String... topics) {
 
 		return messageDrivenChannelAdapter(consumerFactory, KafkaMessageDrivenChannelAdapter.ListenerMode.record,
 				topics);
@@ -237,12 +238,12 @@ public final class Kafka {
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
 	public static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-		messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory,
-			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode, String... topics) {
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory, KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode,
+			String... topics) {
 
 		return messageDrivenChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<>(consumerFactory,
+				new KafkaMessageListenerContainerSpec<>(consumerFactory,
 						topics), listenerMode);
 	}
 
@@ -256,8 +257,8 @@ public final class Kafka {
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
 	public static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-			messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory, Pattern topicPattern) {
 
 		return messageDrivenChannelAdapter(consumerFactory, KafkaMessageDrivenChannelAdapter.ListenerMode.record,
 				topicPattern);
@@ -274,20 +275,108 @@ public final class Kafka {
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec.
 	 */
 	public static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-		messageDrivenChannelAdapter(ConsumerFactory<K, V> consumerFactory,
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			ConsumerFactory<K, V> consumerFactory,
 			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode, Pattern topicPattern) {
 
 		return messageDrivenChannelAdapter(
-				new KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<>(consumerFactory,
+				new KafkaMessageListenerContainerSpec<>(consumerFactory,
 						topicPattern),
 				listenerMode);
 	}
 
+	/**
+	 * Create an initial {@link KafkaProducerMessageHandlerSpec}.
+	 * @param kafkaTemplate the {@link ReplyingKafkaTemplate} to use
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type (request).
+	 * @param <R> the Kafka message value type (reply).
+	 * @param <S> the {@link KafkaOutboundGatewaySpec} extension type.
+	 * @return the KafkaGatewayMessageHandlerSpec.
+	 * @since 3.0.2
+	 */
+	public static <K, V, R, S extends KafkaOutboundGatewaySpec<K, V, R, S>> KafkaOutboundGatewaySpec<K, V, R, S> outboundGateway(
+			ReplyingKafkaTemplate<K, V, R> kafkaTemplate) {
+
+		return new KafkaOutboundGatewaySpec<>(kafkaTemplate);
+	}
+
+	/**
+	 * Create an initial {@link KafkaProducerMessageHandlerSpec} with ProducerFactory.
+	 * @param producerFactory the {@link ProducerFactory} Java 8 Lambda.
+	 * @param replyContainer a listener container for replies.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type (request).
+	 * @param <R> the Kafka message value type (reply).
+	 * @return the KafkaGatewayMessageHandlerSpec.
+	 * @since 3.0.2
+	 */
+	public static <K, V, R> KafkaOutboundGatewaySpec.KafkaGatewayMessageHandlerTemplateSpec<K, V, R> outboundGateway(
+			ProducerFactory<K, V> producerFactory, GenericMessageListenerContainer<K, R> replyContainer) {
+
+		return new KafkaOutboundGatewaySpec.KafkaGatewayMessageHandlerTemplateSpec<>(producerFactory,
+				replyContainer);
+	}
+
+	/**
+	 * Create an initial {@link KafkaInboundGatewaySpec} with the provided container and
+	 * template.
+	 * @param container the container.
+	 * @param template the template.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type (request).
+	 * @param <R> the Kafka message value type (reply).
+	 * @param <S> the {@link KafkaInboundGatewaySpec} extension type.
+	 * @return the spec.
+	 * @since 3.0.2
+	 */
+	public static <K, V, R, S extends KafkaInboundGatewaySpec<K, V, R, S>> KafkaInboundGatewaySpec<K, V, R, S> inboundGateway(
+			AbstractMessageListenerContainer<K, V> container, KafkaTemplate<K, R> template) {
+
+		return new KafkaInboundGatewaySpec<>(container, template);
+	}
+
+	/**
+	 * Create an initial {@link KafkaInboundGatewaySpec} with the provided consumer factory,
+	 * container properties and producer factory.
+	 * @param consumerFactory the consumer factory.
+	 * @param containerProperties the container properties.
+	 * @param producerFactory the producer factory.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type (request).
+	 * @param <R> the Kafka message value type (reply).
+	 * @return the spec.
+	 * @since 3.0.2
+	 */
+	public static <K, V, R> KafkaInboundGatewaySpec.KafkaInboundGatewayListenerContainerSpec<K, V, R> inboundGateway(
+			ConsumerFactory<K, V> consumerFactory, ContainerProperties containerProperties,
+			ProducerFactory<K, R> producerFactory) {
+
+		return inboundGateway(
+				new KafkaMessageListenerContainerSpec<>(consumerFactory, containerProperties),
+				new KafkaTemplateSpec<>(producerFactory));
+	}
+
+	/**
+	 * Create an initial {@link KafkaInboundGatewaySpec} with the provided container and
+	 * template specs.
+	 * @param containerSpec the container spec.
+	 * @param templateSpec the template spec.
+	 * @param <K> the Kafka message key type.
+	 * @param <V> the Kafka message value type (request).
+	 * @param <R> the Kafka message value type (reply).
+	 * @return the spec.
+	 * @since 3.0.2
+	 */
+	public static <K, V, R> KafkaInboundGatewaySpec.KafkaInboundGatewayListenerContainerSpec<K, V, R> inboundGateway(
+			KafkaMessageListenerContainerSpec<K, V> containerSpec, KafkaTemplateSpec<K, R> templateSpec) {
+
+		return new KafkaInboundGatewaySpec.KafkaInboundGatewayListenerContainerSpec<>(containerSpec, templateSpec);
+	}
+
 	private static <K, V>
-	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V>
-		messageDrivenChannelAdapter(KafkaMessageDrivenChannelAdapterSpec.KafkaMessageListenerContainerSpec<K, V> spec,
-			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
+	KafkaMessageDrivenChannelAdapterSpec.KafkaMessageDrivenChannelAdapterListenerContainerSpec<K, V> messageDrivenChannelAdapter(
+			KafkaMessageListenerContainerSpec<K, V> spec, KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
 
 		return new KafkaMessageDrivenChannelAdapterSpec
 				.KafkaMessageDrivenChannelAdapterListenerContainerSpec<>(spec, listenerMode);

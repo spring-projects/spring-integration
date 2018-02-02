@@ -19,6 +19,7 @@ package org.springframework.integration.kafka.dsl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,13 +51,17 @@ import org.springframework.integration.kafka.outbound.KafkaProducerMessageHandle
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.GenericMessageListenerContainer;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -64,6 +71,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
@@ -88,8 +96,13 @@ public class KafkaDslTests {
 
 	private static final String TEST_TOPIC3 = "test-topic3";
 
+	private static final String TEST_TOPIC4 = "test-topic4";
+
+	private static final String TEST_TOPIC5 = "test-topic5";
+
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3);
+	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3,
+			TEST_TOPIC4, TEST_TOPIC5);
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -129,6 +142,9 @@ public class KafkaDslTests {
 
 	@Autowired
 	private ContextConfiguration config;
+
+	@Autowired
+	private Gate gate;
 
 	@Test
 	public void testKafkaAdapters() throws Exception {
@@ -191,15 +207,24 @@ public class KafkaDslTests {
 		assertThat(this.kafkaTemplateTopic2).isNotNull();
 
 		this.kafkaTemplateTopic1.send(TEST_TOPIC3, "foo");
-		assertThat(this.config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(this.config.sourceFlowLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.config.fromSource).isEqualTo("foo");
+	}
+
+	@Test
+	public void testGateways() throws Exception {
+		assertThat(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS));
+		assertThat(this.gate.exchange(TEST_TOPIC4, "foo")).isEqualTo("FOO");
 	}
 
 	@Configuration
 	@EnableIntegration
+	@EnableKafka
 	public static class ContextConfiguration {
 
-		private final CountDownLatch latch = new CountDownLatch(1);
+		private final CountDownLatch sourceFlowLatch = new CountDownLatch(1);
+
+		private final CountDownLatch replyContainerLatch = new CountDownLatch(1);
 
 		private Object fromSource;
 
@@ -301,12 +326,59 @@ public class KafkaDslTests {
 							e -> e.poller(Pollers.fixedDelay(100)))
 					.handle(p -> {
 						this.fromSource = p.getPayload();
-						this.latch.countDown();
+						this.sourceFlowLatch.countDown();
 					})
 					.get();
 		}
 
 
+		@Bean
+		public IntegrationFlow outboundGateFlow() {
+			return IntegrationFlows.from(Gate.class)
+					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
+								.configureKafkaTemplate(t -> t.replyTimeout(30_000)))
+					.get();
+		}
+
+		private GenericMessageListenerContainer<Integer, String> replyContainer() {
+			ContainerProperties containerProperties = new ContainerProperties(TEST_TOPIC5);
+			containerProperties.setGroupId("outGate");
+			containerProperties.setConsumerRebalanceListener(new ConsumerRebalanceListener() {
+
+				@Override
+				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
+					// empty
+				}
+
+				@Override
+				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+					ContextConfiguration.this.replyContainerLatch.countDown();
+				}
+
+			});
+			return new KafkaMessageListenerContainer<>(consumerFactory(), containerProperties);
+		}
+
+		@Bean
+		public IntegrationFlow serverGateway() {
+			return IntegrationFlows
+					.from(Kafka.inboundGateway(consumerFactory(), containerProperties(),
+							producerFactory()))
+					.<String, String>transform(String::toUpperCase)
+					.get();
+		}
+
+		private ContainerProperties containerProperties() {
+			ContainerProperties containerProperties = new ContainerProperties(TEST_TOPIC4);
+			containerProperties.setGroupId("inGateGroup");
+			return containerProperties;
+		}
+
 	}
 
+	public interface Gate {
+
+		String exchange(@Header(KafkaHeaders.TOPIC) String topic, String out);
+
+	}
 }
