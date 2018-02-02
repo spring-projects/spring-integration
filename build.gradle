@@ -319,7 +319,7 @@ project('spring-integration-core') {
 		}
 		compile("io.fastjson:boon:$boonVersion", optional)
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
-		compile("io.micrometer:micrometer-core:$micrometerVersion", optional)
+		compile "io.micrometer:micrometer-core:$micrometerVersion"
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
