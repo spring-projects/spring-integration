@@ -432,19 +432,20 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 					return false;
 				}
 			}
-			if (channelMetrics.getTimer() != null && countsEnabled) {
-				final Message<?> messageToSend = message;
-				sent = channelMetrics.getTimer().recordCallable(() -> doSend(messageToSend, timeout));
-			}
-			else {
-				if (countsEnabled) {
-					metrics = channelMetrics.beforeSend();
+			if (countsEnabled) {
+				if (channelMetrics.getTimer() != null) {
+					final Message<?> messageToSend = message;
+					sent = channelMetrics.getTimer().recordCallable(() -> doSend(messageToSend, timeout));
 				}
-				sent = doSend(message, timeout);
-				if (countsEnabled) {
+				else {
+					metrics = channelMetrics.beforeSend();
+					sent = doSend(message, timeout);
 					channelMetrics.afterSend(metrics, sent);
 					metricsProcessed = true;
 				}
+			}
+			else {
+				sent = doSend(message, timeout);
 			}
 
 			if (debugEnabled) {

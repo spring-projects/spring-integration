@@ -135,29 +135,22 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
-			if (handlerMetrics.getTimer() != null && countsEnabled) {
-				final Message<?> messageToSend = message;
-				handlerMetrics.getTimer().record(() -> {
-					try {
+			if (countsEnabled) {
+				if (handlerMetrics.getTimer() != null) {
+					final Message<?> messageToSend = message;
+					handlerMetrics.getTimer().recordCallable(() -> {
 						handleMessageInternal(messageToSend);
-					}
-					catch (Exception e) {
-						if (e instanceof MessagingException) {
-							throw (MessagingException) e;
-						}
-						throw new MessageHandlingException(messageToSend,
-								"error occurred in message handler [" + this + "]", e);
-					}
-				});
-			}
-			else {
-				if (countsEnabled) {
-					start = handlerMetrics.beforeHandle();
+						return null;
+					});
 				}
-				handleMessageInternal(message);
-				if (countsEnabled) {
+				else {
+					start = handlerMetrics.beforeHandle();
+					handleMessageInternal(message);
 					handlerMetrics.afterHandle(start, true);
 				}
+			}
+			else {
+				handleMessageInternal(message);
 			}
 		}
 		catch (Exception e) {

@@ -30,11 +30,15 @@ import org.springframework.util.Assert;
 import io.micrometer.core.instrument.MeterRegistry;
 
 /**
- * Micrometer implementation.
+ * Micrometer implementation of a {@link MetricsFactory}. Configures the resulting
+ * channel, and handler metrics to use Micrometer metrics instead of the legacy Spring
+ * Integration metrics. Also implements {@link MessageSourceMetricsConfigurer}, which is
+ * used to inject a counter into all message source beans that implement
+ * {@link MessageSourceMetrics}.
  *
  * @author Gary Russell
  * @since 5.0.2
- *
+ * @see org.springframework.integration.support.management.IntegrationManagementConfigurer
  */
 public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMetricsConfigurer {
 
@@ -42,21 +46,26 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 
 	private final MeterRegistry meterRegistry;
 
+	private Function<String, String> timerNameProvider = n -> n + ".timer";
+
+	private Function<String, String> counterNameProvider = n -> n + ".counter";
+
+	private Function<String, String> errorCounterNameProvider = n -> n + ".errorCounter";
+
+	private Function<String, String[]> timerTagProvider = NO_TAGS;
+
+	private Function<String, String[]> counterTagProvider = NO_TAGS;
+
+	private Function<String, String[]> errorCounterTagProvider = NO_TAGS;
+
+	/**
+	 * Construct an instance with the provided {@link MeterRegistry}.
+	 * @param meterRegistry the registry.
+	 */
 	public MicrometerMetricsFactory(MeterRegistry meterRegistry) {
+		Assert.notNull(meterRegistry, "'meterRegistry' cannot be null");
 		this.meterRegistry = meterRegistry;
 	}
-
-	public Function<String, String> timerNameProvider = n -> n + ".timer";
-
-	public Function<String, String> counterNameProvider = n -> n + ".counter";
-
-	public Function<String, String> errorCounterNameProvider = n -> n + ".errorCounter";
-
-	public Function<String, String[]> timerTagProvider = NO_TAGS;
-
-	public Function<String, String[]> counterTagProvider = NO_TAGS;
-
-	public Function<String, String[]> errorCounterTagProvider = NO_TAGS;
 
 	/**
 	 * Provide a function to generate a timer name for the bean name.
@@ -106,6 +115,16 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	public void setCounterTagProvider(Function<String, String[]> counterTagProvider) {
 		Assert.notNull(counterTagProvider, "'counterTagProvider' cannot be null");
 		this.counterTagProvider = counterTagProvider;
+	}
+
+	/**
+	 * Provide a function to generate error counter tags for the bean name.
+	 * Default: no tags.
+	 * @param counterTagProvider the counterTagProvider to set
+	 */
+	public void setErrorCounterTagProvider(Function<String, String[]> counterTagProvider) {
+		Assert.notNull(counterTagProvider, "'counterTagProvider' cannot be null");
+		this.errorCounterTagProvider = counterTagProvider;
 	}
 
 	@Override

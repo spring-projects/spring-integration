@@ -274,6 +274,7 @@ project('spring-integration-test-support') {
 		compile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group: 'org.hamcrest', module: 'hamcrest-core'
 		}
+		compile "org.assertj:assertj-core:$assertjVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
@@ -318,9 +319,8 @@ project('spring-integration-core') {
 		}
 		compile("io.fastjson:boon:$boonVersion", optional)
 		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
-		compile "io.micrometer:micrometer-core:$micrometerVersion"
+		compile("io.micrometer:micrometer-core:$micrometerVersion", optional)
 
-		testCompile "org.assertj:assertj-core:$assertjVersion"
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 		testCompile ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson2Version")
