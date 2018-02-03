@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,15 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		updateNotPropagatedHeaders(headers, false);
 	}
 
-	private void updateNotPropagatedHeaders(String[] headers, boolean merge) {
+	/**
+	 * Set or replace not propagated headers. Exposed so that subclasses can set specific
+	 * headers in a constructor, since {@link #setNotPropagatedHeaders(String...)} is not
+	 * final.
+	 * @param headers Header patterns to not propagate.
+	 * @param merge true to merge with existing patterns; false to replace.
+	 * @since 5.0.2
+	 */
+	protected final void updateNotPropagatedHeaders(String[] headers, boolean merge) {
 		Set<String> headerPatterns = new HashSet<>();
 
 		if (merge && this.notPropagatedHeaders != null) {
