@@ -236,7 +236,13 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 
 	@SuppressWarnings("unchecked")
 	private void configureChannelMetrics(String name, MessageChannelMetrics bean) {
-		AbstractMessageChannelMetrics metrics = this.metricsFactory.createChannelMetrics(name);
+		AbstractMessageChannelMetrics metrics;
+		if (bean instanceof PollableChannelManagement) {
+			metrics = this.metricsFactory.createPollableChannelMetrics(name);
+		}
+		else {
+			metrics = this.metricsFactory.createChannelMetrics(name);
+		}
 		Assert.state(metrics != null, "'metrics' must not be null");
 		ManagementOverrides overrides = bean.getOverrides();
 		Boolean enabled = PatternMatchUtils.smartMatch(name, this.enabledCountsPatterns);
