@@ -141,6 +141,7 @@ public class MicrometerMetricsTests {
 					break;
 				case "badPoll.receiveErrorCounter":
 					assertThat(((Counter) meter).count()).isEqualTo(1L);
+					break;
 				default:
 			}
 		}
