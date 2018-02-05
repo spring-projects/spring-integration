@@ -42,9 +42,9 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 
 	private final Counter errorCounter;
 
-	protected final Counter receiveCounter;
+	private final Counter receiveCounter;
 
-	protected final Counter receiveErrorCounter;
+	private final Counter receiveErrorCounter;
 
 	private volatile boolean fullStatsEnabled;
 
@@ -139,6 +139,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @return the counter or null if Micrometer is not being used.
 	 * @since 5.0.2
 	 */
+	@Nullable
 	public Counter getReceiveCounter() {
 		return this.receiveCounter;
 	}
@@ -148,6 +149,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @return the counter or null if Micrometer is not being used.
 	 * @since 5.0.2
 	 */
+	@Nullable
 	public Counter getReceiveErrorCounter() {
 		return this.receiveErrorCounter;
 	}

@@ -242,7 +242,7 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 				this.counterTagProvider.apply(name)));
 	}
 
-	private <T> void registerComponentGauges() {
+	private void registerComponentGauges() {
 		Gauge.Builder<?> builder = Gauge.builder("spring.integration.channels", this,
 				(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size());
 		builder.tags(this.componentCountTagProvider.apply("channels"))
