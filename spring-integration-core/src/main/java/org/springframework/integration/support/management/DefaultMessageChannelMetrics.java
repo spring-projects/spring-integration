@@ -64,7 +64,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 * @param name the name.
 	 */
 	public DefaultMessageChannelMetrics(String name) {
-		this(name, null, null);
+		this(name, null, null, null, (Counter) null);
 	}
 
 	/**
@@ -75,7 +75,8 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 * @param errorCounter a counter.
 	 * @since 5.0.2
 	 */
-	public DefaultMessageChannelMetrics(String name, Timer timer, Counter errorCounter) {
+	public DefaultMessageChannelMetrics(String name, Timer timer, Counter errorCounter, Counter receiveCounter,
+			Counter receiveErrorCounter) {
 		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.),
 			new ExponentialMovingAverageRate(
 					ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
@@ -83,7 +84,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 					ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
 			new ExponentialMovingAverageRate(
 					ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
-			timer, errorCounter);
+			timer, errorCounter, receiveCounter, receiveErrorCounter);
 	}
 
 	/**
@@ -100,7 +101,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
 			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
 			ExponentialMovingAverageRate sendRate) {
-		this(name, sendDuration, sendErrorRate, sendSuccessRatio, sendRate, null, null);
+		this(name, sendDuration, sendErrorRate, sendSuccessRatio, sendRate, null, null, null, null);
 	}
 
 	/**
@@ -113,13 +114,16 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 * @param sendSuccessRatio an {@link ExponentialMovingAverageRatio} for calculating the success ratio.
 	 * @param sendRate an {@link ExponentialMovingAverageRate} for calculating the send rate.
 	 * @param timer a timer.
-	 * @param errorCounter a counter.
+	 * @param errorCounter a counter for sends.
+	 * @param receiveCounter a counter for receives.
+	 * @param receiveErrorCounter a counter for receive errors.
 	 * @since 5.0.2
 	 */
 	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
 			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
-			ExponentialMovingAverageRate sendRate, Timer timer, Counter errorCounter) {
-		super(name, timer, errorCounter);
+			ExponentialMovingAverageRate sendRate, Timer timer, Counter errorCounter, Counter receiveCounter,
+			Counter receiveErrorCounter) {
+		super(name, timer, errorCounter, receiveCounter, receiveErrorCounter);
 		this.sendDuration = sendDuration;
 		this.sendErrorRate = sendErrorRate;
 		this.sendSuccessRatio = sendSuccessRatio;
@@ -251,12 +255,22 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	@Override
 	public void afterReceive() {
-		this.receiveCount.incrementAndGet();
+		if (getReceiveCounter() != null) {
+			getReceiveCounter().increment();
+		}
+		else {
+			this.receiveCount.incrementAndGet();
+		}
 	}
 
 	@Override
 	public void afterError() {
-		this.receiveErrorCount.incrementAndGet();
+		if (getReceiveErrorCounter() != null) {
+			getReceiveErrorCounter().increment();
+		}
+		else {
+			this.receiveErrorCount.incrementAndGet();
+		}
 	}
 
 	@Override

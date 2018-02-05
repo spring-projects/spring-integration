@@ -42,6 +42,10 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 
 	private final Counter errorCounter;
 
+	private final Counter receiveCounter;
+
+	private final Counter receiveErrorCounter;
+
 	private volatile boolean fullStatsEnabled;
 
 	/**
@@ -49,25 +53,31 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @param name the name.
 	 */
 	public AbstractMessageChannelMetrics(String name) {
-		this(name, null, null);
+		this(name, null, null, null, null);
 	}
 
 	/**
-	 * Construct an instance with the provided name, timer and error counter.
+	 * Construct an instance with the provided name, timer, error counter, receive counter
+	 * and receive error counter.
 	 * A non-null timer requires a non-null error counter. When a timer is provided,
 	 * Micrometer metrics are used and the legacy metrics are not maintained.
 	 * @param name the name.
 	 * @param timer the timer.
 	 * @param errorCounter the error counter.
+	 * @param receiveCounter the receive counter.
+	 * @param receiveErrorCounter the receive error counter.
 	 * @since 5.0.2
 	 */
-	public AbstractMessageChannelMetrics(String name, Timer timer, Counter errorCounter) {
+	public AbstractMessageChannelMetrics(String name, Timer timer, Counter errorCounter, Counter receiveCounter,
+			Counter receiveErrorCounter) {
 		if (timer != null) {
 			Assert.notNull(errorCounter, "'errorCounter' cannot be null if a timer is provided");
 		}
 		this.name = name;
 		this.timer = timer;
 		this.errorCounter = errorCounter;
+		this.receiveCounter = receiveCounter;
+		this.receiveErrorCounter = receiveErrorCounter;
 	}
 
 	/**
@@ -122,6 +132,26 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	@Nullable
 	public Counter getErrorCounter() {
 		return this.errorCounter;
+	}
+
+	/**
+	 * Return the receive counter if Micrometer metrics are being used.
+	 * @return the counter or null if Micrometer is not being used.
+	 * @since 5.0.2
+	 */
+	@Nullable
+	public Counter getReceiveCounter() {
+		return this.receiveCounter;
+	}
+
+	/**
+	 * Return the receive error counter if Micrometer metrics are being used.
+	 * @return the counter or null if Micrometer is not being used.
+	 * @since 5.0.2
+	 */
+	@Nullable
+	public Counter getReceiveErrorCounter() {
+		return this.receiveErrorCounter;
 	}
 
 	public abstract int getSendCount();

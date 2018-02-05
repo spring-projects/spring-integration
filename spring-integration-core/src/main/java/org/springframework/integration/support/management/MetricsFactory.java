@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 package org.springframework.integration.support.management;
-
 
 /**
  * Factories implementing this interface provide metric objects for message channels and
@@ -33,6 +32,17 @@ public interface MetricsFactory {
 	 * @return the metrics.
 	 */
 	AbstractMessageChannelMetrics createChannelMetrics(String name);
+
+	/**
+	 * Factory method to create an {@link AbstractMessageChannelMetrics} for
+	 * a pollable channel.
+	 * @param name the name.
+	 * @return the metrics.
+	 * @since 5.0.2
+	 */
+	default AbstractMessageChannelMetrics createPollableChannelMetrics(String name) {
+		return createChannelMetrics(name);
+	}
 
 	/**
 	 * Factory method to create an {@link AbstractMessageHandlerMetrics}.
