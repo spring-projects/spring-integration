@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import org.springframework.util.StringUtils;
  *
  */
 public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
-	implements Lifecycle {
+		implements Lifecycle {
 
 	private String exchangeName;
 
@@ -98,6 +98,11 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 
 	private volatile boolean running;
 
+	/**
+	 * Set a custom {@link AmqpHeaderMapper} for mapping request and reply headers.
+	 * Defaults to {@link DefaultAmqpHeaderMapper#outboundMapper()}.
+	 * @param headerMapper the {@link AmqpHeaderMapper} to use.
+	 */
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
@@ -121,12 +126,17 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		this.headersMappedLast = headersMappedLast;
 	}
 
+	/**
+	 * Configure an AMQP exchange name for sending messages.
+	 * @param exchangeName the exchange name for sending messages.
+	 */
 	public void setExchangeName(String exchangeName) {
 		Assert.notNull(exchangeName, "exchangeName must not be null");
 		this.exchangeName = exchangeName;
 	}
 
 	/**
+	 * Configure a SpEL expression to evaluate an exchange name at runtime.
 	 * @param exchangeNameExpression the expression to use.
 	 * @since 4.3
 	 */
@@ -143,6 +153,10 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		this.exchangeNameExpression = EXPRESSION_PARSER.parseExpression(exchangeNameExpression);
 	}
 
+	/**
+	 * Configure an AMQP routing key for sending messages.
+	 * @param routingKey the routing key to use
+	 */
 	public void setRoutingKey(String routingKey) {
 		Assert.notNull(routingKey, "routingKey must not be null");
 		this.routingKey = routingKey;
@@ -166,6 +180,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	/**
+	 * Set a SpEL expression to evaluate confirm correlation at runtime.
 	 * @param confirmCorrelationExpression the expression to use.
 	 * @since 4.3
 	 */
@@ -174,6 +189,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	/**
+	 * Set a SpEL expression to evaluate confirm correlation at runtime.
 	 * @param confirmCorrelationExpression the String in SpEL syntax.
 	 * @since 4.3
 	 */

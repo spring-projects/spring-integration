@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.dsl;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -75,7 +76,7 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 * @see MessageProducerSupport#setOutputChannel(MessageChannel)
 	 */
 	public S outputChannel(MessageChannel outputChannel) {
-		target.setOutputChannel(outputChannel);
+		this.target.setOutputChannel(outputChannel);
 		return _this();
 	}
 
@@ -87,7 +88,7 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 * @see MessageProducerSupport#setOutputChannelName(String)
 	 */
 	public S outputChannel(String outputChannel) {
-		target.setOutputChannelName(outputChannel);
+		this.target.setOutputChannelName(outputChannel);
 		return _this();
 	}
 
@@ -98,7 +99,7 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 * @see MessageProducerSupport#setErrorChannel(MessageChannel)
 	 */
 	public S errorChannel(MessageChannel errorChannel) {
-		target.setErrorChannel(errorChannel);
+		this.target.setErrorChannel(errorChannel);
 		return _this();
 	}
 
@@ -109,7 +110,44 @@ public abstract class MessageProducerSpec<S extends MessageProducerSpec<S, P>, P
 	 * @see MessageProducerSupport#setErrorChannelName(String)
 	 */
 	public S errorChannel(String errorChannel) {
-		target.setErrorChannelName(errorChannel);
+		this.target.setErrorChannelName(errorChannel);
+		return _this();
+	}
+
+	/**
+	 * Configure the default timeout value to use for send operations.
+	 * May be overridden for individual messages.
+	 * @param sendTimeout the send timeout in milliseconds
+	 * @return the spec.
+	 * @since 5.0.2
+	 * @see MessageProducerSupport#setSendTimeout
+	 */
+	public S sendTimeout(long sendTimeout) {
+		this.target.setSendTimeout(sendTimeout);
+		return _this();
+	}
+
+	/**
+	 * Whether component should be tracked or not by message history.
+	 * @param shouldTrack the tracking flag
+	 * @return the spec.
+	 * @since 5.0.2
+	 * @see MessageProducerSupport#setShouldTrack(boolean)
+	 */
+	public S shouldTrack(boolean shouldTrack) {
+		this.target.setShouldTrack(shouldTrack);
+		return _this();
+	}
+
+	/**
+	 * Set an {@link ErrorMessageStrategy} to use to build an error message when a exception occurs.
+	 * @param errorMessageStrategy the {@link ErrorMessageStrategy}.
+	 * @return the spec.
+	 * @since 5.0.2
+	 * @see MessageProducerSupport#setErrorMessageStrategy(ErrorMessageStrategy)
+	 */
+	public S errorMessageStrategy(ErrorMessageStrategy errorMessageStrategy) {
+		this.target.setErrorMessageStrategy(errorMessageStrategy);
 		return _this();
 	}
 

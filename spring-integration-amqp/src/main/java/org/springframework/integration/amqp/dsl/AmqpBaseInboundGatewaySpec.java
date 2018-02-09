@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  * A base {@link MessagingGatewaySpec} implementation for {@link AmqpInboundGateway} endpoint options.
@@ -29,6 +31,7 @@ import org.springframework.integration.dsl.MessagingGatewaySpec;
  * @param <S> the target {@link AmqpBaseInboundGatewaySpec} implementation type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  *
  * @see AmqpInboundGateway
@@ -60,6 +63,7 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	 * {@link org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper}.
 	 * @param headerMapper the headerMapper.
 	 * @return the spec.
+	 * @see AmqpInboundGateway#setHeaderMapper(AmqpHeaderMapper)
 	 */
 	public S headerMapper(AmqpHeaderMapper headerMapper) {
 		this.target.setHeaderMapper(headerMapper);
@@ -70,7 +74,7 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	 * Only applies if the default header mapper is used.
 	 * @param headers the headers.
 	 * @return the spec.
-	 * @see org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper#setRequestHeaderNames(String[])
+	 * @see DefaultAmqpHeaderMapper#setRequestHeaderNames(String[])
 	 */
 	public S mappedRequestHeaders(String... headers) {
 		this.headerMapper.setRequestHeaderNames(headers);
@@ -81,7 +85,7 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	 * Only applies if the default header mapper is used.
 	 * @param headers the headers.
 	 * @return the spec.
-	 * @see org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper#setReplyHeaderNames(String[])
+	 * @see DefaultAmqpHeaderMapper#setReplyHeaderNames(String[])
 	 */
 	public S mappedReplyHeaders(String... headers) {
 		this.headerMapper.setReplyHeaderNames(headers);
@@ -106,6 +110,30 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	 */
 	public S defaultReplyTo(String defaultReplyTo) {
 		this.target.setDefaultReplyTo(defaultReplyTo);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link RetryTemplate} to use for retrying a message delivery within the
+	 * adapter.
+	 * @param retryTemplate the template.
+	 * @return the spec.
+	 * @since 5.0.2
+	 * @see AmqpInboundGateway#setRetryTemplate(RetryTemplate)
+	 */
+	public S retryTemplate(RetryTemplate retryTemplate) {
+		this.target.setRetryTemplate(retryTemplate);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link RecoveryCallback} when using retry within the adapter.
+	 * @param recoveryCallback the callback.
+	 * @since 5.0.2
+	 * @see AmqpInboundGateway#setRecoveryCallback(RecoveryCallback)
+	 */
+	public S recoveryCallback(RecoveryCallback<?> recoveryCallback) {
+		this.target.setRecoveryCallback(recoveryCallback);
 		return _this();
 	}
 
