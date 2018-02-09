@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,6 +212,38 @@ public class LockRegistryLeaderInitiatorTests {
 
 		Throwable throwable = throwableAtomicReference.get();
 		assertNull(throwable);
+	}
+
+	@Test
+	public void testExceptionFromLock() throws Exception {
+		Lock mockLock = mock(Lock.class);
+
+		AtomicBoolean exceptionThrown = new AtomicBoolean();
+
+		willAnswer(invocation -> {
+			if (!exceptionThrown.getAndSet(true)) {
+				throw new RuntimeException("lock is broken");
+			}
+			else {
+				return true;
+			}
+		}).given(mockLock).tryLock(anyLong(), any(TimeUnit.class));
+
+		LockRegistry registry = lockKey -> mockLock;
+
+		CountDownLatch onGranted = new CountDownLatch(1);
+
+		LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(registry);
+
+		initiator.setLeaderEventPublisher(new CountingPublisher(onGranted));
+
+		initiator.start();
+
+		assertTrue(onGranted.await(10, TimeUnit.SECONDS));
+		assertTrue(initiator.getContext().isLeader());
+		assertTrue(exceptionThrown.get());
+
+		initiator.stop();
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {

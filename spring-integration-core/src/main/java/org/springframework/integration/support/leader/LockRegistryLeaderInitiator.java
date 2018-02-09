@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -312,7 +312,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		@Override
 		public Void call() throws Exception {
 			try {
-				while (LockRegistryLeaderInitiator.this.running) {
+				while (isRunning()) {
 					try {
 						// We always try to acquire the lock, in case it expired
 						// TODO obtain(this.lockKey) because of INT-4248. Should be fixed in 5.0
@@ -330,27 +330,41 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							// should release it
 							LockRegistryLeaderInitiator.this.locks.obtain(this.lockKey)
 									.unlock();
-							// Give it a chance to expire.
-							Thread.sleep(LockRegistryLeaderInitiator.this.heartBeatMillis);
+							if (isRunning()) {
+								// Give it a chance to expire.
+								Thread.sleep(LockRegistryLeaderInitiator.this.heartBeatMillis);
+							}
 						}
 						else {
 							this.locked = false;
 							// We were not able to acquire it, therefore not leading any more
 							handleRevoked();
-							// Try again quickly in case the lock holder dropped it
-							Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+							if (isRunning()) {
+								// Try again quickly in case the lock holder dropped it
+								Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+							}
 						}
 					}
-					catch (InterruptedException e) {
+					catch (Exception e) {
 						if (this.locked) {
 							LockRegistryLeaderInitiator.this.locks.obtain(this.lockKey)
 									.unlock();
 							this.locked = false;
 							// The lock was broken and we are no longer leader
 							handleRevoked();
-							// Give it a chance to elect some other leader.
-							Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+							if (isRunning()) {
+								// Give it a chance to elect some other leader.
+								Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+							}
+						}
+
+						if (e instanceof InterruptedException) {
 							Thread.currentThread().interrupt();
+							if (isRunning()) {
+								logger.warn("Restarting LeaderSelector because of error.", e);
+								LockRegistryLeaderInitiator.this.future =
+										LockRegistryLeaderInitiator.this.executorService.submit(this);
+							}
 							return null;
 						}
 					}
@@ -405,11 +419,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		public void yield() {
 			if (LockRegistryLeaderInitiator.this.future != null) {
 				LockRegistryLeaderInitiator.this.future.cancel(true);
-				if (isRunning()) {
-					LockRegistryLeaderInitiator.this.future =
-							LockRegistryLeaderInitiator.this.executorService
-									.submit(LockRegistryLeaderInitiator.this.leaderSelector);
-				}
 			}
 		}
 
