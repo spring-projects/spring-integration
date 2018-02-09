@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
@@ -36,7 +35,6 @@ import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -51,14 +49,6 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 public class JdbcLockRegistryLeaderInitiatorTests {
 
 	public static EmbeddedDatabase dataSource;
-
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories("org.springframework.integration",
-							"org.springframework.integration.jdbc",
-							"org.springframework.jdbc",
-							"org.apache.derby");
 
 	@BeforeClass
 	public static void init() {
