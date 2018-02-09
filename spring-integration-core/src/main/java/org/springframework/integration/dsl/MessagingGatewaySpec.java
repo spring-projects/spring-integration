@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,6 +173,18 @@ public abstract class MessagingGatewaySpec<S extends MessagingGatewaySpec<S, G>,
 	 */
 	public S replyMapper(OutboundMessageMapper<?> replyMapper) {
 		this.target.setReplyMapper(replyMapper);
+		return _this();
+	}
+
+	/**
+	 * Whether component should be tracked or not by message history.
+	 * @param shouldTrack the tracking flag
+	 * @return the spec.
+	 * @since 5.0.2
+	 * @see MessagingGatewaySupport#setShouldTrack(boolean)
+	 */
+	public S shouldTrack(boolean shouldTrack) {
+		this.target.setShouldTrack(shouldTrack);
 		return _this();
 	}
 

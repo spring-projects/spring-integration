@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.dsl.MessageProducerSpec;
+import org.springframework.retry.RecoveryCallback;
+import org.springframework.retry.support.RetryTemplate;
 
 /**
  * The base {@link MessageProducerSpec} implementation for a {@link AmqpInboundChannelAdapter}.
@@ -28,6 +30,7 @@ import org.springframework.integration.dsl.MessageProducerSpec;
  * @param <S> the target {@link AmqpBaseInboundChannelAdapterSpec} implementation type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class AmqpBaseInboundChannelAdapterSpec<S extends AmqpBaseInboundChannelAdapterSpec<S>>
@@ -71,6 +74,30 @@ public class AmqpBaseInboundChannelAdapterSpec<S extends AmqpBaseInboundChannelA
 	 */
 	public S mappedRequestHeaders(String... headers) {
 		this.headerMapper.setRequestHeaderNames(headers);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link RetryTemplate} to use for retrying a message delivery within the
+	 * adapter.
+	 * @param retryTemplate the template.
+	 * @return the spec.
+	 * @since 5.0.2
+	 * @see AmqpInboundChannelAdapter#setRetryTemplate(RetryTemplate)
+	 */
+	public S retryTemplate(RetryTemplate retryTemplate) {
+		this.target.setRetryTemplate(retryTemplate);
+		return _this();
+	}
+
+	/**
+	 * Set a {@link RecoveryCallback} when using retry within the adapter.
+	 * @param recoveryCallback the callback.
+	 * @since 5.0.2
+	 * @see AmqpInboundChannelAdapter#setRecoveryCallback(RecoveryCallback)
+	 */
+	public S recoveryCallback(RecoveryCallback<?> recoveryCallback) {
+		this.target.setRecoveryCallback(recoveryCallback);
 		return _this();
 	}
 
