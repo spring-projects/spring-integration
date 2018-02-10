@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Glenn Renfro
+ * @author Kiel Boatman
  *
  * @since 4.3.1
  */
@@ -73,12 +74,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	private final Object lifecycleMonitor = new Object();
 
 	/**
-	 * Executor service for running leadership daemon.
-	 */
-	private final ExecutorService executorService =
-			Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
-
-	/**
 	 * A lock registry. The locks it manages should be global (whatever that means for the
 	 * system) and expiring, in case the holder dies without notifying anyone.
 	 */
@@ -92,6 +87,17 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	private final Candidate candidate;
 
+	/**
+	 * Executor service for running leadership daemon.
+	 */
+	private ExecutorService executorService =
+			Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
+
+	/**
+	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and
+	 * thus should not be shutdown when {@link #destroy()} is called
+	 */
+	private boolean executorServiceExplicitlySet;
 
 	/**
 	 * Time in milliseconds to wait in between attempts to re-acquire the lock, once it is
@@ -125,26 +131,26 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	private LeaderEventPublisher leaderEventPublisher;
 
 	/**
-	 * Future returned by submitting an {@link LeaderSelector} to
-	 * {@link #executorService}. This is used to cancel leadership.
-	 */
-	private volatile Future<?> future;
-
-	/**
 	 * @see SmartLifecycle
 	 */
-	private volatile boolean autoStartup = true;
+	private boolean autoStartup = true;
 
 	/**
 	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
 	 */
-	private volatile int phase;
+	private int phase;
 
 	/**
 	 * Flag that indicates whether the leadership election for this {@link #candidate} is
 	 * running.
 	 */
 	private volatile boolean running;
+
+	/**
+	 * Future returned by submitting an {@link LeaderSelector} to
+	 * {@link #executorService}. This is used to cancel leadership.
+	 */
+	private volatile Future<?> future;
 
 	/**
 	 * Create a new leader initiator with the provided lock registry and a default
@@ -168,9 +174,15 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		this.candidate = candidate;
 	}
 
-	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
+	/**
+	 * Set the {@link ExecutorService}, where is not provided then a default of
+	 * single thread Executor will be used.
+	 * @param executorService the executor service
+	 * @since 5.0.2
+	 */
+	public void setExecutorService(ExecutorService executorService) {
+		this.executorService = executorService;
+		this.executorServiceExplicitlySet = true;
 	}
 
 	public void setHeartBeatMillis(long heartBeatMillis) {
@@ -182,11 +194,16 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	/**
-	 * Sets the {@link LeaderEventPublisher}.
+	 * Set the {@link LeaderEventPublisher}.
 	 * @param leaderEventPublisher the event publisher
 	 */
 	public void setLeaderEventPublisher(LeaderEventPublisher leaderEventPublisher) {
 		this.leaderEventPublisher = leaderEventPublisher;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	/**
@@ -272,9 +289,11 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		stop();
-		this.executorService.shutdown();
+		if (!this.executorServiceExplicitlySet) {
+			this.executorService.shutdown();
+		}
 	}
 
 	@Override

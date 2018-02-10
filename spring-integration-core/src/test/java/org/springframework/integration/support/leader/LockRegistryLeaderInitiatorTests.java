@@ -17,6 +17,7 @@
 package org.springframework.integration.support.leader;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -30,6 +31,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,20 +51,22 @@ import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Dave Syer
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Glenn Renfro
+ * @author Kiel Boatman
  *
  * @since 4.3.1
  */
 public class LockRegistryLeaderInitiatorTests {
 
-	private CountDownLatch granted;
+	private CountDownLatch granted = new CountDownLatch(1);
 
-	private CountDownLatch revoked;
+	private CountDownLatch revoked = new CountDownLatch(1);
 
 	private final LockRegistry registry = new DefaultLockRegistry();
 
@@ -70,8 +75,6 @@ public class LockRegistryLeaderInitiatorTests {
 
 	@Before
 	public void init() {
-		this.granted = new CountDownLatch(1);
-		this.revoked = new CountDownLatch(1);
 		this.initiator.setLeaderEventPublisher(new CountingPublisher(this.granted, this.revoked));
 	}
 
@@ -105,6 +108,7 @@ public class LockRegistryLeaderInitiatorTests {
 	public void competing() throws Exception {
 		LockRegistryLeaderInitiator another =
 				new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
+
 		CountDownLatch other = new CountDownLatch(1);
 		another.setLeaderEventPublisher(new CountingPublisher(other));
 		this.initiator.start();
@@ -139,9 +143,7 @@ public class LockRegistryLeaderInitiatorTests {
 	public void testExceptionFromEvent() throws Exception {
 		CountDownLatch onGranted = new CountDownLatch(1);
 
-		LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
-
-		initiator.setLeaderEventPublisher(new DefaultLeaderEventPublisher() {
+		this.initiator.setLeaderEventPublisher(new DefaultLeaderEventPublisher() {
 
 			@Override
 			public void publishOnGranted(Object source, Context context, String role) {
@@ -155,12 +157,12 @@ public class LockRegistryLeaderInitiatorTests {
 
 		});
 
-		initiator.start();
+		this.initiator.start();
 
 		assertTrue(onGranted.await(10, TimeUnit.SECONDS));
 		assertTrue(initiator.getContext().isLeader());
 
-		initiator.stop();
+		this.initiator.stop();
 	}
 
 	@Test
@@ -177,6 +179,7 @@ public class LockRegistryLeaderInitiatorTests {
 		// set up first initiator instance using first LockRegistry
 		LockRegistryLeaderInitiator first =
 				new LockRegistryLeaderInitiator(firstRegistry, new DefaultCandidate());
+
 		CountDownLatch firstGranted = new CountDownLatch(1);
 		CountDownLatch firstRevoked = new CountDownLatch(1);
 		CountDownLatch firstAquireLockFailed = new CountDownLatch(1);
@@ -193,6 +196,7 @@ public class LockRegistryLeaderInitiatorTests {
 		// set up second initiator instance using second LockRegistry
 		LockRegistryLeaderInitiator second =
 				new LockRegistryLeaderInitiator(secondRegistry, new DefaultCandidate());
+
 		CountDownLatch secondGranted = new CountDownLatch(1);
 		CountDownLatch secondRevoked = new CountDownLatch(1);
 		CountDownLatch secondAquireLockFailed = new CountDownLatch(1);
@@ -246,20 +250,20 @@ public class LockRegistryLeaderInitiatorTests {
 		given(registry.obtain(anyString()))
 				.willReturn(lock);
 
-		LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(registry);
+		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(registry);
 
 		willAnswer(invocation -> {
-			initiator.stop();
+			another.stop();
 			return false;
 		})
 				.given(lock)
 				.tryLock(anyLong(), eq(TimeUnit.MILLISECONDS));
 
-		new DirectFieldAccessor(initiator).setPropertyValue("executorService",
+		new DirectFieldAccessor(another).setPropertyValue("executorService",
 				new ExecutorServiceAdapter(
 						new SyncTaskExecutor()));
 
-		initiator.start();
+		another.start();
 
 		Throwable throwable = throwableAtomicReference.get();
 		assertNull(throwable);
@@ -284,17 +288,40 @@ public class LockRegistryLeaderInitiatorTests {
 
 		CountDownLatch onGranted = new CountDownLatch(1);
 
-		LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(registry);
+		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(registry);
 
-		initiator.setLeaderEventPublisher(new CountingPublisher(onGranted));
+		another.setLeaderEventPublisher(new CountingPublisher(onGranted));
 
-		initiator.start();
+		another.start();
 
 		assertTrue(onGranted.await(10, TimeUnit.SECONDS));
-		assertTrue(initiator.getContext().isLeader());
+		assertTrue(another.getContext().isLeader());
 		assertTrue(exceptionThrown.get());
 
-		initiator.stop();
+		another.stop();
+	}
+
+	@Test
+	public void shouldShutdownInternalExecutorService() {
+		this.initiator.start();
+		this.initiator.destroy();
+
+		ExecutorService executorService =
+				TestUtils.getPropertyValue(this.initiator, "executorService", ExecutorService.class);
+
+		assertTrue(executorService.isShutdown());
+	}
+
+	@Test
+	public void doNotShutdownProvidedExecutorService() {
+		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(this.registry);
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		another.setExecutorService(executorService);
+
+		another.start();
+		another.destroy();
+
+		assertFalse(executorService.isShutdown());
 	}
 
 	private static class CountingPublisher implements LeaderEventPublisher {
