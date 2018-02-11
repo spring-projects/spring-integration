@@ -57,7 +57,6 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Glenn Renfro
- * @author Kiel Boatman
  *
  * @since 4.3.1
  */
@@ -76,7 +75,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	/**
 	 * Executor service for running leadership daemon.
 	 */
-	private final ExecutorService executorService;
+	private final ExecutorService executorService =
+			Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
 
 	/**
 	 * A lock registry. The locks it manages should be global (whatever that means for the
@@ -162,33 +162,10 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * @param candidate leadership election candidate
 	 */
 	public LockRegistryLeaderInitiator(LockRegistry locks, Candidate candidate) {
-		this(locks, candidate, Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-")));
-	}
-
-	/**
-	 * Create a new leader initiator. The candidate implementation is provided by the user
-	 * to listen for leadership events and carry out business actions.
-	 * @param locks lock registry
-	 * @param executorService for running leadership election daemon
-	 */
-	public LockRegistryLeaderInitiator(LockRegistry locks, ExecutorService executorService) {
-		this(locks, new DefaultCandidate(), executorService);
-	}
-
-	/**
-	 * Create a new leader initiator. The candidate implementation is provided by the user
-	 * to listen for leadership events and carry out business actions.
-	 * @param locks lock registry
-	 * @param candidate leadership election candidate
-	 * @param executorService for running leadership election daemon
-	 */
-	public LockRegistryLeaderInitiator(LockRegistry locks, Candidate candidate, ExecutorService executorService) {
 		Assert.notNull(locks, "'locks' must not be null");
 		Assert.notNull(candidate, "'candidate' must not be null");
-		Assert.notNull(executorService, "'executorService' must not be null");
 		this.locks = locks;
 		this.candidate = candidate;
-		this.executorService = executorService;
 	}
 
 	@Override

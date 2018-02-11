@@ -30,7 +30,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -49,7 +48,6 @@ import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * @author Dave Syer
@@ -78,40 +76,17 @@ public class LockRegistryLeaderInitiatorTests {
 	}
 
 	@Test
-	public void startAndStopWithRegistryAndCandidate() throws Exception {
-		startStopAndVerifyInitiatorLeadership(this.initiator);
-	}
-
-	@Test
-	public void startAndStopWithRegistryCandidateAndExecutorService() throws Exception {
-		startStopAndVerifyInitiatorLeadership(
-				new LockRegistryLeaderInitiator(this.registry,
-						new DefaultCandidate(),
-						Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-")))
-		);
-	}
-
-	@Test
-	public void startAndStopWithRegistryAndExecutorService() throws Exception {
-		startStopAndVerifyInitiatorLeadership(
-				new LockRegistryLeaderInitiator(this.registry,
-						Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-")))
-		);
-	}
-
-	private void startStopAndVerifyInitiatorLeadership(LockRegistryLeaderInitiator leaderInitiator) throws Exception {
-		leaderInitiator.setLeaderEventPublisher(new CountingPublisher(this.granted, this.revoked));
-
-		assertThat(leaderInitiator.getContext().isLeader(), is(false));
-		leaderInitiator.start();
-		assertThat(leaderInitiator.isRunning(), is(true));
+	public void startAndStop() throws Exception {
+		assertThat(this.initiator.getContext().isLeader(), is(false));
+		this.initiator.start();
+		assertThat(this.initiator.isRunning(), is(true));
 		assertTrue(this.granted.await(10, TimeUnit.SECONDS));
-		assertThat(leaderInitiator.getContext().isLeader(), is(true));
+		assertThat(this.initiator.getContext().isLeader(), is(true));
 		Thread.sleep(200L);
-		assertThat(leaderInitiator.getContext().isLeader(), is(true));
-		leaderInitiator.stop();
+		assertThat(this.initiator.getContext().isLeader(), is(true));
+		this.initiator.stop();
 		assertTrue(this.revoked.await(10, TimeUnit.SECONDS));
-		assertThat(leaderInitiator.getContext().isLeader(), is(false));
+		assertThat(this.initiator.getContext().isLeader(), is(false));
 	}
 
 	@Test
