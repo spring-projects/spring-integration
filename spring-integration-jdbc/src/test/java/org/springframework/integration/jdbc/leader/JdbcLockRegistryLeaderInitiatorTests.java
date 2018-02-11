@@ -74,6 +74,7 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 			LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(
 					new JdbcLockRegistry(lockRepository),
 					new DefaultCandidate("foo", "bar"));
+			initiator.afterPropertiesSet();
 			initiator.setLeaderEventPublisher(countingPublisher);
 			initiators.add(initiator);
 		}
