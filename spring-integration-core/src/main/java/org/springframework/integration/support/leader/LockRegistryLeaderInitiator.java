@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
@@ -57,10 +58,11 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Glenn Renfro
+ * @author Kiel Boatman
  *
  * @since 4.3.1
  */
-public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
+public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware, InitializingBean {
 
 	public static final long DEFAULT_HEART_BEAT_TIME = 500L;
 
@@ -73,10 +75,15 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	private final Object lifecycleMonitor = new Object();
 
 	/**
+	 * flag to denote whether the executor service should be shutdown when {@link #destroy()} is called
+	 * when a {@link ExecutorService} is provided via the setter then this should not be invoked
+	 */
+	private boolean shutdownExecutorService;
+
+	/**
 	 * Executor service for running leadership daemon.
 	 */
-	private final ExecutorService executorService =
-			Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
+	private ExecutorService executorService;
 
 	/**
 	 * A lock registry. The locks it manages should be global (whatever that means for the
@@ -169,6 +176,14 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (this.executorService == null) {
+			this.executorService = Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
+			this.shutdownExecutorService = true;
+		}
+	}
+
+	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
@@ -183,10 +198,20 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 	/**
 	 * Sets the {@link LeaderEventPublisher}.
+	 *
 	 * @param leaderEventPublisher the event publisher
 	 */
 	public void setLeaderEventPublisher(LeaderEventPublisher leaderEventPublisher) {
 		this.leaderEventPublisher = leaderEventPublisher;
+	}
+
+	/**
+	 * Sets the {@link ExecutorService}
+	 *
+	 * @param executorService the executor service
+	 */
+	public void setExecutorService(ExecutorService executorService) {
+		this.executorService = executorService;
 	}
 
 	/**
@@ -274,7 +299,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	@Override
 	public void destroy() throws Exception {
 		stop();
-		this.executorService.shutdown();
+		if (this.shutdownExecutorService) {
+			this.executorService.shutdown();
+		}
 	}
 
 	@Override
