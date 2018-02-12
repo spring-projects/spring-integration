@@ -77,7 +77,6 @@ public class LockRegistryLeaderInitiatorTests {
 	public void init() throws Exception {
 		this.granted = new CountDownLatch(1);
 		this.revoked = new CountDownLatch(1);
-		this.initiator.afterPropertiesSet();
 		this.initiator.setLeaderEventPublisher(new CountingPublisher(this.granted, this.revoked));
 	}
 
@@ -111,7 +110,6 @@ public class LockRegistryLeaderInitiatorTests {
 	public void competing() throws Exception {
 		LockRegistryLeaderInitiator another =
 				new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
-		another.afterPropertiesSet();
 
 		CountDownLatch other = new CountDownLatch(1);
 		another.setLeaderEventPublisher(new CountingPublisher(other));
@@ -128,7 +126,6 @@ public class LockRegistryLeaderInitiatorTests {
 	public void competingWithErrorPublish() throws Exception {
 		LockRegistryLeaderInitiator another =
 				new LockRegistryLeaderInitiator(this.registry, new DefaultCandidate());
-		another.afterPropertiesSet();
 
 		CountDownLatch other = new CountDownLatch(1);
 		CountDownLatch failedAcquireLatch = new CountDownLatch(1);
@@ -184,7 +181,6 @@ public class LockRegistryLeaderInitiatorTests {
 		// set up first initiator instance using first LockRegistry
 		LockRegistryLeaderInitiator first =
 				new LockRegistryLeaderInitiator(firstRegistry, new DefaultCandidate());
-		first.afterPropertiesSet();
 
 		CountDownLatch firstGranted = new CountDownLatch(1);
 		CountDownLatch firstRevoked = new CountDownLatch(1);
@@ -202,7 +198,6 @@ public class LockRegistryLeaderInitiatorTests {
 		// set up second initiator instance using second LockRegistry
 		LockRegistryLeaderInitiator second =
 				new LockRegistryLeaderInitiator(secondRegistry, new DefaultCandidate());
-		second.afterPropertiesSet();
 
 		CountDownLatch secondGranted = new CountDownLatch(1);
 		CountDownLatch secondRevoked = new CountDownLatch(1);
@@ -258,7 +253,6 @@ public class LockRegistryLeaderInitiatorTests {
 				.willReturn(lock);
 
 		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(registry);
-		another.afterPropertiesSet();
 
 		willAnswer(invocation -> {
 			another.stop();
@@ -297,7 +291,6 @@ public class LockRegistryLeaderInitiatorTests {
 		CountDownLatch onGranted = new CountDownLatch(1);
 
 		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(registry);
-		another.afterPropertiesSet();
 
 		another.setLeaderEventPublisher(new CountingPublisher(onGranted));
 
@@ -327,7 +320,6 @@ public class LockRegistryLeaderInitiatorTests {
 		LockRegistryLeaderInitiator another = new LockRegistryLeaderInitiator(registry);
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		another.setExecutorService(executorService);
-		another.afterPropertiesSet();
 
 		another.start();
 		another.destroy();

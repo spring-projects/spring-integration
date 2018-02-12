@@ -27,7 +27,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
@@ -62,7 +61,7 @@ import org.springframework.util.Assert;
  *
  * @since 4.3.1
  */
-public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware, InitializingBean {
+public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBean, ApplicationEventPublisherAware {
 
 	public static final long DEFAULT_HEART_BEAT_TIME = 500L;
 
@@ -73,17 +72,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	private static final Context NULL_CONTEXT = () -> false;
 
 	private final Object lifecycleMonitor = new Object();
-
-	/**
-	 * flag to denote whether the executor service should be shutdown when {@link #destroy()} is called
-	 * when a {@link ExecutorService} is provided via the setter then this should not be invoked
-	 */
-	private boolean shutdownExecutorService;
-
-	/**
-	 * Executor service for running leadership daemon.
-	 */
-	private ExecutorService executorService;
 
 	/**
 	 * A lock registry. The locks it manages should be global (whatever that means for the
@@ -99,6 +87,17 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	private final Candidate candidate;
 
+	/**
+	 * flag to denote whether the {@link ExecutorService} was provided via the setter and
+	 * thus should not be shutdown when {@link #destroy()} is called
+	 */
+	private boolean executorServiceExplicitlySet;
+
+	/**
+	 * Executor service for running leadership daemon.
+	 */
+	private ExecutorService executorService =
+			Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
 
 	/**
 	 * Time in milliseconds to wait in between attempts to re-acquire the lock, once it is
@@ -175,12 +174,14 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		this.candidate = candidate;
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		if (this.executorService == null) {
-			this.executorService = Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
-			this.shutdownExecutorService = true;
-		}
+	/**
+	 * Sets the {@link ExecutorService}
+	 * @param executorService the executor service
+	 * @since 5.0.2
+	 */
+	public void setExecutorService(ExecutorService executorService) {
+		this.executorService = executorService;
+		this.executorServiceExplicitlySet = true;
 	}
 
 	@Override
@@ -198,20 +199,10 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 	/**
 	 * Sets the {@link LeaderEventPublisher}.
-	 *
 	 * @param leaderEventPublisher the event publisher
 	 */
 	public void setLeaderEventPublisher(LeaderEventPublisher leaderEventPublisher) {
 		this.leaderEventPublisher = leaderEventPublisher;
-	}
-
-	/**
-	 * Sets the {@link ExecutorService}
-	 *
-	 * @param executorService the executor service
-	 */
-	public void setExecutorService(ExecutorService executorService) {
-		this.executorService = executorService;
 	}
 
 	/**
@@ -299,7 +290,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	@Override
 	public void destroy() throws Exception {
 		stop();
-		if (this.shutdownExecutorService) {
+		if (!this.executorServiceExplicitlySet) {
 			this.executorService.shutdown();
 		}
 	}

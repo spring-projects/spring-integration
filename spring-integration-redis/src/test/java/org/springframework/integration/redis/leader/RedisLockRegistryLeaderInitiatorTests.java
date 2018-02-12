@@ -55,7 +55,6 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 			LockRegistryLeaderInitiator initiator =
 					new LockRegistryLeaderInitiator(registry, new DefaultCandidate("foo", "bar"));
 			initiator.setLeaderEventPublisher(countingPublisher);
-			initiator.afterPropertiesSet();
 			initiators.add(initiator);
 		}
 
