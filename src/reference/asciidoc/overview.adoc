@@ -273,6 +273,106 @@ If you need to send a messages during startup, implement `ApplicationListener` a
 Alternatively, implement `SmartLifecycle`, put your bean in a late phase, and send the messages from the `start()` method.
 
 
+[[shaded]]
+=== Considerations When using Packaged (e.g. Shaded) Jars
+
+Spring Integration bootstraps certain features using Spring Framework's `SpringFactories` mechanism to load several `IntegrationConfigurationInitializer` classes.
+This includes the `-core` jar as well as certain others such as `-http`, `-jmx`, etc.
+The information for this process is stored in a file `META-INF/spring.factories` in each jar.
+
+Some developers prefer to repackage their application and all dependencies into a single jar using well-known tools, such as the https://maven.apache.org/plugins/maven-shade-plugin/[Apache Maven Shade Plugin].
+
+At the time of writing, the shade plugin does not merge the `spring.factories` files; you just get one which appears to be the first one encountered by the plugin when it extracts the jar contents.
+This mostly defeats the Spring Integration bootstrapping mechanism so you will need to take further action to ensure the framework is configured properly.
+
+The following are two examples of how to work around this issue.
+
+**Manually fix `spring.factories`**
+
+"Unjar" the jar
+
+ - `mkdir temp`
+ - `cd temp`
+ - `jar xf ../myApp.jar`
+
+Edit the `META-INF/spring.factories` file to include initializers for all required modules
+
+As of 5.0, the `-core` `spring.factories` looks like this:
+
+[source]
+----
+org.springframework.integration.config.IntegrationConfigurationInitializer=\
+org.springframework.integration.config.GlobalChannelInterceptorInitializer,\
+org.springframework.integration.config.IntegrationConverterInitializer,\
+org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer,\
+org.springframework.integration.config.dsl.DslIntegrationConfigurationInitializer
+----
+
+And the `-jmx` file looks like this:
+
+[source]
+----
+org.springframework.integration.config.IntegrationConfigurationInitializer=\
+org.springframework.integration.jmx.config.JmxIntegrationConfigurationInitializer
+----
+
+So the merged file would be:
+
+[source]
+----
+org.springframework.integration.config.IntegrationConfigurationInitializer=\
+org.springframework.integration.config.GlobalChannelInterceptorInitializer,\
+org.springframework.integration.config.IntegrationConverterInitializer,\
+org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer,\
+org.springframework.integration.config.dsl.DslIntegrationConfigurationInitializer,\
+org.springframework.integration.jmx.config.JmxIntegrationConfigurationInitializer
+----
+
+"ReJar" the jar
+
+- `jar cf ../myAppFixed.jar .`
+
+
+**Or, add a `BeanFactoryPostProcessor` `@Bean`, to perform the same functions as the initializers**
+
+[source, java]
+----
+@Bean
+public static BeanFactoryPostProcessor dslInitializer() {
+    return new BeanFactoryPostProcessor() {
+
+        @Override
+        public void postProcessBeanFactory(ConfigurableListableBeanFactory bf) throws BeansException {
+            // core
+            new GlobalChannelInterceptorInitializer().initialize(bf);
+            new IntegrationConverterInitializer().initialize(bf);
+            new IdempotentReceiverAutoProxyCreatorInitializer().initialize(bf);
+            new DslIntegrationConfigurationInitializer().initialize(bf);
+            // groovy
+            new GroovyIntegrationConfigurationInitializer().initialize(bf);
+            // http
+            new HttpIntegrationConfigurationInitializer().initialize(bf);
+            // jmx
+            new JmxIntegrationConfigurationInitializer().initialize(bf);
+            // security
+            new SecurityIntegrationConfigurationInitializer().initialize(bf);
+            // webflux
+            new WebFluxIntegrationConfigurationInitializer().initialize(bf);
+            // websocket
+            new WebSocketIntegrationConfigurationInitializer().initialize(bf);
+            // ws
+            new WsIntegrationConfigurationInitializer().initialize(bf);
+        }
+
+    };
+}
+----
+
+Obviously, you would only include the initializers for the modules you are using in your application.
+
+IMPORTANT: https://docs.spring.io/spring-boot/docs/1.5.10.RELEASE/reference/html/executable-jar.html[Spring Boot's executable jar mechanism] takes a different approach in that it nests the jars, thus retaining each `spring.factories` file on the class path. So, with a Spring Boot application, this work around is not needed.
+
+
 [[programming-tips]]
 === Programming Tips and Tricks
 
