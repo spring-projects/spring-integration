@@ -93,6 +93,7 @@ public class AmqpBaseInboundChannelAdapterSpec<S extends AmqpBaseInboundChannelA
 	/**
 	 * Set a {@link RecoveryCallback} when using retry within the adapter.
 	 * @param recoveryCallback the callback.
+	 * @return the spec.
 	 * @since 5.0.2
 	 * @see AmqpInboundChannelAdapter#setRecoveryCallback(RecoveryCallback)
 	 */

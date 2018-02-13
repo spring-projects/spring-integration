@@ -129,6 +129,7 @@ public class AmqpBaseInboundGatewaySpec<S extends AmqpBaseInboundGatewaySpec<S>>
 	/**
 	 * Set a {@link RecoveryCallback} when using retry within the adapter.
 	 * @param recoveryCallback the callback.
+	 * @return the spec.
 	 * @since 5.0.2
 	 * @see AmqpInboundGateway#setRecoveryCallback(RecoveryCallback)
 	 */
