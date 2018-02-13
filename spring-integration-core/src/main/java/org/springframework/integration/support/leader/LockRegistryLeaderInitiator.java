@@ -175,8 +175,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	/**
-	 * Sets the {@link ExecutorService}, where is not provided then a default of
-	 * single thread Executor will be used
+	 * Set the {@link ExecutorService}, where is not provided then a default of
+	 * single thread Executor will be used.
 	 * @param executorService the executor service
 	 * @since 5.0.2
 	 */
@@ -199,7 +199,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	/**
-	 * Sets the {@link LeaderEventPublisher}.
+	 * Set the {@link LeaderEventPublisher}.
 	 * @param leaderEventPublisher the event publisher
 	 */
 	public void setLeaderEventPublisher(LeaderEventPublisher leaderEventPublisher) {
