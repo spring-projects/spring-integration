@@ -273,6 +273,86 @@ If you need to send a messages during startup, implement `ApplicationListener` a
 Alternatively, implement `SmartLifecycle`, put your bean in a late phase, and send the messages from the `start()` method.
 
 
+[[shaded]]
+=== Considerations When using Packaged (e.g. Shaded) Jars
+
+Spring Integration bootstraps certain features using Spring Framework's `SpringFactories` mechanism to load several `IntegrationConfigurationInitializer` classes.
+This includes the `-core` jar as well as certain others such as `-http`, `-jmx`, etc.
+The information for this process is stored in a file `META-INF/spring.factories` in each jar.
+
+Some developers prefer to repackage their application and all dependencies into a single jar using well-known tools, such as the https://maven.apache.org/plugins/maven-shade-plugin/[Apache Maven Shade Plugin].
+
+By default, the shade plugin will not merge the `spring.factories` files when producing the shaded jar.
+
+In addition to `spring.factories`, there are other `META-INF` files (`spring.handlers`, `spring.schemas`) used for XML configuration.
+These also need to be merged.
+
+IMPORTANT: https://docs.spring.io/spring-boot/docs/current/reference/html/executable-jar.html[Spring Boot's executable jar mechanism] takes a different approach in that it nests the jars, thus retaining each `spring.factories` file on the class path.
+So, with a Spring Boot application, nothing more is needed, if you use its default executable jar format.
+
+Even if you are not using Spring Boot, you can still use tooling provided by Boot to enhance the shade plugin by adding transformers for the above mentioned files.
+
+The following is an example configuration for the plugin at the time of writing.
+You may wish to consult the current https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-starters/spring-boot-starter-parent/pom.xml[spring-boot-starter-parent pom] to see the current settings that boot uses.
+
+.pom.xml
+[source, xml]
+----
+...
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <configuration>
+                <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+                <createDependencyReducedPom>true</createDependencyReducedPom>
+            </configuration>
+            <dependencies>
+                <dependency> <1>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring.boot.version}</version>
+                </dependency>
+            </dependencies>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <transformers> <2>
+                            <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/spring.handlers</resource>
+                            </transformer>
+                            <transformer
+                                implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">
+                                <resource>META-INF/spring.factories</resource>
+                            </transformer>
+                            <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/spring.schemas</resource>
+                            </transformer>
+                            <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                        </transformers>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+...
+----
+
+Specifically,
+
+<1> add the `spring-boot-maven-plugin` as a dependency
+
+<2> configure the transformers
+
+Add a property for `${spring.boot.version}` or use a version explicitly there.
+
 [[programming-tips]]
 === Programming Tips and Tricks
 
