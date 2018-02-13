@@ -202,7 +202,7 @@ See also <<programming-tips>> for more information.
 
 === Integration Graph Controller
 
-If your application is WEB-based (or built on top of Spring Boot using an embedded web container) and the Spring Integration HTTP module (see <<http>>) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.
+If your application is WEB-based (or built on top of Spring Boot using an embedded web container) and the Spring Integration HTTP or WebFlux module (see <<http>> and <<webflux>>) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.
 For this purpose, the `@EnableIntegrationGraphController` `@Configuration` class annotation and the `<int-http:graph-controller/>` XML element, are available in the HTTP module.
 Together with the `@EnableWebMvc` annotation (or `<mvc:annotation-driven/>` for xml definitions), this configuration registers an `IntegrationGraphController` `@RestController` where its `@RequestMapping.path` can be configured on the `@EnableIntegrationGraphController` annotation or `<int-http:graph-controller/>` element.
 The default path is `/integration`.
@@ -242,8 +242,8 @@ For more sophistication, you can configure the CORS mappings using standard Spri
 [source,java]
 ----
 @Configuration
-@EnableWebMvc
-@EnableWebSecurity
+@EnableWebMvc // or @EnableWebFlux
+@EnableWebSecurity // or @EnableWebFluxSecurity
 @EnableIntegration
 @EnableIntegrationGraphController(path = "/testIntegration", allowedOrigins="http://localhost:9090")
 public class IntegrationConfiguration extends WebSecurityConfigurerAdapter {

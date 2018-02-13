@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.http.support.HttpContextUtils;
 import org.springframework.integration.webflux.inbound.IntegrationHandlerResultHandler;
 import org.springframework.integration.webflux.inbound.WebFluxIntegrationRequestMappingHandlerMapping;
 import org.springframework.integration.webflux.support.WebFluxContextUtils;
@@ -66,7 +67,7 @@ public class WebFluxIntegrationConfigurationInitializer implements IntegrationCo
 	 * the HTTP server components.
 	 */
 	private void registerReactiveRequestMappingHandlerMappingIfNecessary(BeanDefinitionRegistry registry) {
-		if (WebFluxContextUtils.WEB_FLUX_PRESENT &&
+		if (HttpContextUtils.WEB_FLUX_PRESENT &&
 				!registry.containsBeanDefinition(WebFluxContextUtils.HANDLER_MAPPING_BEAN_NAME)) {
 			BeanDefinitionBuilder requestMappingBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(WebFluxIntegrationRequestMappingHandlerMapping.class);

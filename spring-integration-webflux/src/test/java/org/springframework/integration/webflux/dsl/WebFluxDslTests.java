@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,9 +129,7 @@ public class WebFluxDslTests {
 			response.getHeaders().setContentType(MediaType.TEXT_PLAIN);
 
 			DataBufferFactory bufferFactory = response.bufferFactory();
-			return response.writeWith(
-					Flux.just(bufferFactory.wrap("FOO".getBytes()),
-							bufferFactory.wrap("BAR".getBytes())))
+			return response.writeWith(Mono.just(bufferFactory.wrap("FOO\nBAR\n".getBytes())))
 					.then(Mono.defer(response::setComplete));
 		});
 
@@ -198,7 +196,7 @@ public class WebFluxDslTests {
 	@SuppressWarnings("unchecked")
 	public void testHttpReactivePost() {
 		this.webTestClient.post().uri("/reactivePost")
-				.body(Flux.just("foo", "bar", "baz"), String.class)
+				.body(Mono.just("foo\nbar\nbaz"), String.class)
 				.exchange()
 				.expectStatus().isAccepted();
 

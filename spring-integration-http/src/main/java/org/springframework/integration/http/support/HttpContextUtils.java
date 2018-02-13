@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,13 +39,23 @@ public final class HttpContextUtils {
 	}
 
 	/**
-	 * The {@code boolean} flag to indicate if the
-	 * {@code org.springframework.web.servlet.DispatcherServlet}
-	 * is present in the CLASSPATH to allow to register the Integration server components,
+	 * A {@code boolean} flag to indicate if the
+	 * {@code org.springframework.web.servlet.DispatcherServlet} is present in the
+	 * CLASSPATH to allow the registration of Integration server components,
 	 * e.g. {@code IntegrationGraphController}.
 	 */
 	public static final boolean WEB_MVC_PRESENT =
 			ClassUtils.isPresent("org.springframework.web.servlet.DispatcherServlet",
+					HttpContextUtils.class.getClassLoader());
+
+	/**
+	 * A {@code boolean} flag to indicate if the
+	 * {@code org.springframework.web.reactive.DispatcherHandler} is present in the
+	 * CLASSPATH to allow the registration of Integration server reactive components,
+	 * e.g. {@code IntegrationGraphController}.
+	 */
+	public static final boolean WEB_FLUX_PRESENT =
+			ClassUtils.isPresent("org.springframework.web.reactive.DispatcherHandler",
 					HttpContextUtils.class.getClassLoader());
 
 	/**
