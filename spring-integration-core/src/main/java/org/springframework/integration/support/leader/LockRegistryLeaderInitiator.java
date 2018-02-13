@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Glenn Renfro
+ * @author Kiel Boatman
  *
  * @since 4.3.1
  */
@@ -73,12 +74,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	private final Object lifecycleMonitor = new Object();
 
 	/**
-	 * Executor service for running leadership daemon.
-	 */
-	private final ExecutorService executorService =
-			Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
-
-	/**
 	 * A lock registry. The locks it manages should be global (whatever that means for the
 	 * system) and expiring, in case the holder dies without notifying anyone.
 	 */
@@ -92,6 +87,17 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 */
 	private final Candidate candidate;
 
+	/**
+	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and
+	 * thus should not be shutdown when {@link #destroy()} is called
+	 */
+	private boolean executorServiceExplicitlySet;
+
+	/**
+	 * Executor service for running leadership daemon.
+	 */
+	private ExecutorService executorService =
+			Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-"));
 
 	/**
 	 * Time in milliseconds to wait in between attempts to re-acquire the lock, once it is
@@ -168,6 +174,17 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 		this.candidate = candidate;
 	}
 
+	/**
+	 * Set the {@link ExecutorService}, where is not provided then a default of
+	 * single thread Executor will be used.
+	 * @param executorService the executor service
+	 * @since 5.0.2
+	 */
+	public void setExecutorService(ExecutorService executorService) {
+		this.executorService = executorService;
+		this.executorServiceExplicitlySet = true;
+	}
+
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -182,7 +199,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	/**
-	 * Sets the {@link LeaderEventPublisher}.
+	 * Set the {@link LeaderEventPublisher}.
 	 * @param leaderEventPublisher the event publisher
 	 */
 	public void setLeaderEventPublisher(LeaderEventPublisher leaderEventPublisher) {
@@ -274,7 +291,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	@Override
 	public void destroy() throws Exception {
 		stop();
-		this.executorService.shutdown();
+		if (!this.executorServiceExplicitlySet) {
+			this.executorService.shutdown();
+		}
 	}
 
 	@Override
