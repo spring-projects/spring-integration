@@ -309,7 +309,7 @@ public class LockRegistryLeaderInitiatorTests {
 		this.initiator.start();
 		this.initiator.destroy();
 
-		ExecutorService executorService = (ExecutorService) TestUtils.getPropertyValue(this.initiator, "executorService");
+		ExecutorService executorService = TestUtils.getPropertyValue(this.initiator, "executorService", ExecutorService.class);
 
 		assertTrue(executorService.isShutdown());
 	}

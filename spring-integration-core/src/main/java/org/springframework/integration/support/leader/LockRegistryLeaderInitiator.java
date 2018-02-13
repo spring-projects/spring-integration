@@ -88,7 +88,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	private final Candidate candidate;
 
 	/**
-	 * flag to denote whether the {@link ExecutorService} was provided via the setter and
+	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and
 	 * thus should not be shutdown when {@link #destroy()} is called
 	 */
 	private boolean executorServiceExplicitlySet;
@@ -175,7 +175,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	/**
-	 * Sets the {@link ExecutorService}
+	 * Sets the {@link ExecutorService}, where is not provided then a default of
+	 * single thread Executor will be used
 	 * @param executorService the executor service
 	 * @since 5.0.2
 	 */
