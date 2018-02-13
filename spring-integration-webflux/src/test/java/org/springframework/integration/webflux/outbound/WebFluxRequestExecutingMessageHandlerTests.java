@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,10 +198,7 @@ public class WebFluxRequestExecutingMessageHandlerTests {
 
 			DataBufferFactory bufferFactory = response.bufferFactory();
 
-			Flux<DataBuffer> data =
-					Flux.just(bufferFactory.wrap("foo".getBytes()),
-							bufferFactory.wrap("bar".getBytes()),
-							bufferFactory.wrap("baz".getBytes()));
+			Mono<DataBuffer> data = Mono.just(bufferFactory.wrap("foo\nbar\nbaz".getBytes()));
 
 			return response.writeWith(data)
 					.then(Mono.defer(response::setComplete));

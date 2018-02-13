@@ -16,7 +16,7 @@
 
 package org.springframework.integration.webflux.support;
 
-import org.springframework.util.ClassUtils;
+import org.springframework.integration.http.support.HttpContextUtils;
 
 /**
  * Utility class for accessing WebFlux integration components
@@ -36,10 +36,11 @@ public final class WebFluxContextUtils {
 	 * The {@code boolean} flag to indicate if the
 	 * {@code org.springframework.web.reactive.result.method.RequestMappingInfo}
 	 * is present in the CLASSPATH to allow to register the Integration server reactive components.
+	 * @deprecated since 5.0.2 in favor of {@link HttpContextUtils#WEB_FLUX_PRESENT}.
+	 * Will be removed in the 5.1.
 	 */
-	public static final boolean WEB_FLUX_PRESENT =
-			ClassUtils.isPresent("org.springframework.web.reactive.result.method.RequestMappingInfo",
-					WebFluxContextUtils.class.getClassLoader());
+	@Deprecated
+	public static final boolean WEB_FLUX_PRESENT = HttpContextUtils.WEB_FLUX_PRESENT;
 
 	/**
 	 * The name for the infrastructure

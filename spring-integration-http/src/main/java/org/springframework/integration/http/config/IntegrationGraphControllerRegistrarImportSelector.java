@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,13 @@ class IntegrationGraphControllerRegistrarImportSelector implements ImportSelecto
 
 	@Override
 	public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-		if (HttpContextUtils.WEB_MVC_PRESENT) {
+		if (HttpContextUtils.WEB_MVC_PRESENT || HttpContextUtils.WEB_FLUX_PRESENT) {
 			return new String[] { IntegrationGraphControllerRegistrar.class.getName() };
 		}
 		else {
 			logger.warn("The 'IntegrationGraphController' isn't registered with the application context because" +
-					" there is no 'org.springframework.web.servlet.DispatcherServlet' in the classpath.");
+					" there is no 'org.springframework.web.servlet.DispatcherServlet' or" +
+					" 'org.springframework.web.reactive.DispatcherHandler' in the classpath.");
 			return new String[0];
 		}
 	}
