@@ -91,6 +91,12 @@ public class InboundGatewayTests {
 
 	@Test
 	public void testInbound() throws Exception {
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler1", "false", embeddedKafka);
+		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
+		Consumer<Integer, String> consumer = cf2.createConsumer();
+		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic2);
+
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "false", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<Integer, String>(props);
@@ -141,11 +147,6 @@ public class InboundGatewayTests {
 		assertThat(headers.get("testHeader")).isEqualTo("testValue");
 		reply.send(MessageBuilder.withPayload("FOO").copyHeaders(headers).build());
 
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler1", "false", embeddedKafka);
-		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
-		Consumer<Integer, String> consumer = cf2.createConsumer();
-		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic2);
 		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic2);
 		assertThat(record).has(partition(1));
 		assertThat(record).has(value("FOO"));
@@ -155,6 +156,12 @@ public class InboundGatewayTests {
 
 	@Test
 	public void testInboundErrorRecover() throws Exception {
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", embeddedKafka);
+		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
+		Consumer<Integer, String> consumer = cf2.createConsumer();
+		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic4);
+
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test2", "false", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<Integer, String>(props);
@@ -215,11 +222,6 @@ public class InboundGatewayTests {
 		assertThat(headers.get(KafkaHeaders.REPLY_TOPIC)).isEqualTo(topic4);
 		assertThat(headers.get("testHeader")).isEqualTo("testValue");
 
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler2", "false", embeddedKafka);
-		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
-		Consumer<Integer, String> consumer = cf2.createConsumer();
-		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic4);
 		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic4);
 		assertThat(record).has(partition(1));
 		assertThat(record).has(value("ERROR"));
@@ -229,6 +231,12 @@ public class InboundGatewayTests {
 
 	@Test
 	public void testInboundRetryErrorRecover() throws Exception {
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler3", "false", embeddedKafka);
+		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
+		Consumer<Integer, String> consumer = cf2.createConsumer();
+		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic6);
+
 		Map<String, Object> props = KafkaTestUtils.consumerProps("test3", "false", embeddedKafka);
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<Integer, String>(props);
@@ -297,11 +305,6 @@ public class InboundGatewayTests {
 		assertThat(headers.get(KafkaHeaders.REPLY_TOPIC)).isEqualTo(topic6);
 		assertThat(headers.get("testHeader")).isEqualTo("testValue");
 
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("replyHandler3", "false", embeddedKafka);
-		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-		ConsumerFactory<Integer, String> cf2 = new DefaultKafkaConsumerFactory<>(consumerProps);
-		Consumer<Integer, String> consumer = cf2.createConsumer();
-		embeddedKafka.consumeFromAnEmbeddedTopic(consumer, topic6);
 		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic6);
 		assertThat(record).has(partition(1));
 		assertThat(record).has(value("ERROR"));
