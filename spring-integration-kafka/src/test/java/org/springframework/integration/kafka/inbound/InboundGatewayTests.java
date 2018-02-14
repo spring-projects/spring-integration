@@ -86,7 +86,7 @@ public class InboundGatewayTests {
 			topic6);
 
 	@Rule
-	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.debug().categories("org.apache.kafka.clients",
+	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace().categories("org.apache.kafka.clients",
 			"org.springframework.kafka", "org.springframework.integration");
 
 	@Test
