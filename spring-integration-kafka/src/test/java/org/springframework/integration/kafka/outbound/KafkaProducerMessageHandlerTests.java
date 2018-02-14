@@ -18,6 +18,10 @@ package org.springframework.integration.kafka.outbound;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.springframework.kafka.test.assertj.KafkaConditions.key;
 import static org.springframework.kafka.test.assertj.KafkaConditions.partition;
@@ -33,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.Callback;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
@@ -40,8 +46,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.mockito.InOrder;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.FunctionExpression;
@@ -67,6 +75,7 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.SettableListenableFuture;
 
@@ -375,6 +384,25 @@ public class KafkaProducerMessageHandlerTests {
 		template.stop();
 		// discard from the test consumer
 		KafkaTestUtils.getSingleRecord(consumer, topic6);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testTransaction() {
+		ProducerFactory pf = mock(ProducerFactory.class);
+		given(pf.transactionCapable()).willReturn(true);
+		Producer producer = mock(Producer.class);
+		given(pf.createProducer()).willReturn(producer);
+		ListenableFuture future = mock(ListenableFuture.class);
+		willReturn(future).given(producer).send(any(ProducerRecord.class), any(Callback.class));
+		KafkaTemplate template = new KafkaTemplate(pf);
+		KafkaProducerMessageHandler handler = new KafkaProducerMessageHandler(template);
+		handler.setTopicExpression(new LiteralExpression("bar"));
+		handler.handleMessage(new GenericMessage<>("foo"));
+		InOrder inOrder = inOrder(producer);
+		inOrder.verify(producer).beginTransaction();
+		inOrder.verify(producer).send(any(ProducerRecord.class), any(Callback.class));
+		inOrder.verify(producer).commitTransaction();
 	}
 
 }
