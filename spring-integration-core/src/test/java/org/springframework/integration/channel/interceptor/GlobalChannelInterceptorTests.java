@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.integration.channel.interceptor;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -31,9 +33,11 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -54,7 +58,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class GlobalChannelInterceptorTests {
 
 	@Autowired
-	ApplicationContext applicationContext;
+	ConfigurableApplicationContext applicationContext;
 
 	@Autowired
 	@Qualifier("inputC")
@@ -143,6 +147,18 @@ public class GlobalChannelInterceptorTests {
 		assertTrue(interceptorNames.contains("interceptor-eleven"));
 	}
 
+	@Test
+	public void testDynamicMessageChannelBeanWithAutoGlobalChannelInterceptor() {
+		DirectChannel testChannel = new DirectChannel();
+		ConfigurableListableBeanFactory beanFactory = this.applicationContext.getBeanFactory();
+		beanFactory.initializeBean(testChannel, "testChannel");
+
+		List<ChannelInterceptor> channelInterceptors = testChannel.getChannelInterceptors();
+
+		assertEquals(2, channelInterceptors.size());
+		assertThat(channelInterceptors.get(0), instanceOf(SampleInterceptor.class));
+		assertThat(channelInterceptors.get(0), instanceOf(SampleInterceptor.class));
+	}
 
 	public static class SampleInterceptor extends ChannelInterceptorAdapter {
 
