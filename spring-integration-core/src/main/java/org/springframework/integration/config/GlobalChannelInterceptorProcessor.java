@@ -23,6 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -38,6 +39,8 @@ import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
 import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.util.PatternMatchUtils;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
@@ -45,7 +48,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Will apply global interceptors to channels (&lt;channel-interceptor&gt;).
+ * This class applies global interceptors ({@code <channel-interceptor>} or {@code @GlobalChannelInterceptor})
+ * to message channels beans.
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher
@@ -55,7 +59,7 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-final class GlobalChannelInterceptorProcessor
+public final class GlobalChannelInterceptorProcessor
 		implements BeanFactoryAware, SmartInitializingSingleton, BeanPostProcessor {
 
 	private static final Log logger = LogFactory.getLog(GlobalChannelInterceptorProcessor.class);
@@ -101,7 +105,12 @@ final class GlobalChannelInterceptorProcessor
 			}
 		}
 
-		this.singletonsInstantiated = true;
+		// TODO Remove this logic in 5.1
+		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+
+		this.singletonsInstantiated =
+				Boolean.parseBoolean(integrationProperties.getProperty(
+						IntegrationProperties.POST_PROCESS_DYNAMIC_BEANS));
 	}
 
 	@Override
@@ -118,9 +127,11 @@ final class GlobalChannelInterceptorProcessor
 	}
 
 	/**
-	 * Adds any interceptor whose pattern matches against the channel's name.
+	 * Add any interceptor whose pattern matches against the channel's name.
+	 * @param channel the message channel to add interceptors.
+	 * @param beanName the message channel bean name to match the pattern.
 	 */
-	private void addMatchingInterceptors(ChannelInterceptorAware channel, String beanName) {
+	public void addMatchingInterceptors(ChannelInterceptorAware channel, String beanName) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Applying global interceptors on channel '" + beanName + "'");
 		}
