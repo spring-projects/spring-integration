@@ -223,6 +223,7 @@ spring.integration.taskScheduler.poolSize=10 <4>
 spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
 spring.integration.readOnly.headers= <6>
 spring.integration.endpoints.noAutoStartup= <7>
+spring.integration.postProcessDynamicBeans=false <8>
 ----
 
 <1> When true, `input-channel` s will be automatically declared as `DirectChannel` s when not explicitly found in the
@@ -245,10 +246,15 @@ expecting a reply - because the sending thread has timed out, or already receive
 The list is used by the `DefaultMessageBuilderFactory` bean and propagated to the `IntegrationMessageHeaderAccessor` instances (see <<message-header-accessor>>), used to build messages via `MessageBuilder` (see <<message-builder>>).
 By default only `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are not copied during message building.
 _Since version 4.3.2_
+
 <7> A comma-separated list of `AbstractEndpoint` bean names patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) which should not be started automatically during application startup.
 These endpoints can be started later manually by their bean name via `Control Bus` (see <<control-bus>>), by their role using the `SmartLifecycleRoleController` (see <<endpoint-roles>>) or via simple `Lifecycle` bean injection.
 The effect of this global property can be explicitly overridden by specifying `auto-startup` XML or `autoStartup` annotation attribute, or via call to the `AbstractEndpoint.setAutoStartup()` in bean definition.
 _Since version 4.3.12_
+
+<8> A boolean flag to indicate that `BeanPostProcessor` s should post-process beans registered at runtime, e.g. message channels created via `IntegrationFlowContext` can be supplied with global channel interceptors.
+_Since version 4.3.15_
+
 
 These properties can be overridden by adding a file `/META-INF/spring.integration.properties` to the classpath.
 It is not necessary to provide all the properties, just those that you want to override.
@@ -438,7 +444,7 @@ With this endpoint using the default poller:
 public class AnnotationService {
 
     @Transformer(inputChannel = "aPollableChannel", outputChannel = "output"
-                           poller = @Poller("myPoller")
+                           poller = @Poller("myPoller"))
     public String handle(String payload) {
          ...
     }
@@ -586,7 +592,7 @@ public class MyFlowConfiguration {
     public Supplier<String> pojoSupplier() {
         return () -> "foo";
     }
-	
+
     @Bean
     @InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
     public Supplier<Message<String>> messageSupplier() {
