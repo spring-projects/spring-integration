@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
@@ -47,7 +48,7 @@ import org.springframework.util.StringUtils;
  *
  */
 public class IntegrationManagementConfigurer implements SmartInitializingSingleton, ApplicationContextAware,
-		BeanNameAware {
+		BeanNameAware, BeanPostProcessor {
 
 	private static final Log logger = LogFactory.getLog(IntegrationManagementConfigurer.class);
 
@@ -58,6 +59,8 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	private final Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
 
 	private final Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
+
+	private final Map<String, MessageSourceMetricsConfigurer> sourceConfigurers = new HashMap<>();
 
 	private ApplicationContext applicationContext;
 
@@ -76,6 +79,8 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	private String[] enabledCountsPatterns = { };
 
 	private String[] enabledStatsPatterns = { };
+
+	private volatile boolean singletonsInstantiated;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -212,8 +217,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		if (this.metricsFactory == null) {
 			this.metricsFactory = new DefaultMetricsFactory();
 		}
-		Map<String, MessageSourceMetricsConfigurer> sourceConfigurers = this.applicationContext
-				.getBeansOfType(MessageSourceMetricsConfigurer.class);
+		this.sourceConfigurers.putAll(this.applicationContext.getBeansOfType(MessageSourceMetricsConfigurer.class));
 		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
@@ -221,17 +225,31 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 				bean.setLoggingEnabled(this.defaultLoggingEnabled);
 			}
 			String name = entry.getKey();
-			if (bean instanceof MessageChannelMetrics) {
-				configureChannelMetrics(name, (MessageChannelMetrics) bean);
-			}
-			else if (bean instanceof MessageHandlerMetrics) {
-				configureHandlerMetrics(name, (MessageHandlerMetrics) bean);
-			}
-			else if (bean instanceof MessageSourceMetrics) {
-				configureSourceMetrics(name, (MessageSourceMetrics) bean);
-				sourceConfigurers.values().forEach(c -> c.configure((MessageSourceMetrics) bean, name));
-			}
+			doConfigureMetrics(bean, name);
 		}
+		this.singletonsInstantiated = true;
+	}
+
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+		if (this.singletonsInstantiated) {
+			return doConfigureMetrics(bean, beanName);
+		}
+		return bean;
+	}
+
+	private Object doConfigureMetrics(Object bean, String name) {
+		if (bean instanceof MessageChannelMetrics) {
+			configureChannelMetrics(name, (MessageChannelMetrics) bean);
+		}
+		else if (bean instanceof MessageHandlerMetrics) {
+			configureHandlerMetrics(name, (MessageHandlerMetrics) bean);
+		}
+		else if (bean instanceof MessageSourceMetrics) {
+			configureSourceMetrics(name, (MessageSourceMetrics) bean);
+			this.sourceConfigurers.values().forEach(c -> c.configure((MessageSourceMetrics) bean, name));
+		}
+		return bean;
 	}
 
 	@SuppressWarnings("unchecked")
