@@ -25,16 +25,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.AbstractPollableChannel;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
@@ -58,6 +63,9 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class MicrometerMetricsTests {
+
+	@Autowired
+	private ConfigurableApplicationContext context;
 
 	@Autowired
 	private MeterRegistry meterRegistry;
@@ -146,6 +154,20 @@ public class MicrometerMetricsTests {
 				default:
 			}
 		}
+		BeanDefinitionRegistry beanFactory = (BeanDefinitionRegistry) this.context.getBeanFactory();
+		beanFactory.registerBeanDefinition("newChannel",
+				BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class).getRawBeanDefinition());
+		DirectChannel newChannel = this.context.getBean("newChannel", DirectChannel.class);
+		assertThat(this.meterRegistry.getMeters().size()).isEqualTo(24);
+		Timer timer = meterRegistry.get("newChannel.timer").timer();
+		assertThat(timer).isSameAs(TestUtils.getPropertyValue(newChannel, "channelMetrics.timer"));
+		beanFactory.removeBeanDefinition("newChannel");
+		// verify that the meter registry reuses the existing timer
+		beanFactory.registerBeanDefinition("newChannel",
+				BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class).getRawBeanDefinition());
+		newChannel = this.context.getBean("newChannel", DirectChannel.class);
+		assertThat(this.meterRegistry.getMeters().size()).isEqualTo(24);
+		assertThat(timer).isSameAs(TestUtils.getPropertyValue(newChannel, "channelMetrics.timer"));
 	}
 
 	@Configuration
