@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
@@ -54,7 +55,8 @@ import org.springframework.util.StringUtils;
  *
  * @since 2.0
  */
-final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, SmartInitializingSingleton {
+final class GlobalChannelInterceptorProcessor
+		implements BeanFactoryAware, SmartInitializingSingleton, BeanPostProcessor {
 
 	private static final Log logger = LogFactory.getLog(GlobalChannelInterceptorProcessor.class);
 
@@ -66,6 +68,8 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors = new LinkedHashSet<>();
 
 	private ListableBeanFactory beanFactory;
+
+	private volatile boolean singletonsInstantiated;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -96,6 +100,21 @@ final class GlobalChannelInterceptorProcessor implements BeanFactoryAware, Smart
 				addMatchingInterceptors(entry.getValue(), entry.getKey());
 			}
 		}
+
+		this.singletonsInstantiated = true;
+	}
+
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		return bean;
+	}
+
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+		if (this.singletonsInstantiated && bean instanceof ChannelInterceptorAware) {
+			addMatchingInterceptors((ChannelInterceptorAware) bean, beanName);
+		}
+		return bean;
 	}
 
 	/**
