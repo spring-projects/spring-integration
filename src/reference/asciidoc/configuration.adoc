@@ -208,6 +208,7 @@ spring.integration.messagingTemplate.throwExceptionOnLateReply=false <5>
 spring.integration.messagingAnnotations.require.componentAnnotation=false <6>
 spring.integration.readOnly.headers= <7>
 spring.integration.endpoints.noAutoStartup= <8>
+spring.integration.postProcessDynamicBeans=false <9>
 ----
 
 <1> When true, `input-channel` s will be automatically declared as `DirectChannel` s when not explicitly found in the
@@ -236,6 +237,10 @@ _Since version 4.3.2_
 These endpoints can be started later manually by their bean name via `Control Bus` (see <<control-bus>>), by their role using the `SmartLifecycleRoleController` (see <<endpoint-roles>>) or via simple `Lifecycle` bean injection.
 The effect of this global property can be explicitly overridden by specifying `auto-startup` XML or `autoStartup` annotation attribute, or via call to the `AbstractEndpoint.setAutoStartup()` in bean definition.
 _Since version 4.3.12_
+
+<9> A boolean flag to indicate that `BeanPostProcessor` s should post-process beans registered at runtime, e.g. message channels created via `IntegrationFlowContext` can be supplied with global channel interceptors.
+_Since version 4.3.15_
+
 
 These properties can be overridden by adding a file `/META-INF/spring.integration.properties` to the classpath.
 It is not necessary to provide all the properties, just those that you want to override.
@@ -429,7 +434,7 @@ With this endpoint using the default poller:
 public class AnnotationService {
 
 	@Transformer(inputChannel = "aPollableChannel", outputChannel = "output"
-						poller = @Poller("myPoller")
+						poller = @Poller("myPoller"))
 	public String handle(String payload) {
 		...
 	}
