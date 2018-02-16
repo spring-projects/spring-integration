@@ -409,7 +409,7 @@ inChannel.send(new GenericMessage<String>("5"));
 ----
 
 Typically this would be a perfectly legal operation, however since we are using Datatype Channel the result of such operation would generate an exception:
-[source,java]
+[source]
 ----
 Exception in thread "main" org.springframework.integration.MessageDeliveryException:
 Channel 'numberChannel'
