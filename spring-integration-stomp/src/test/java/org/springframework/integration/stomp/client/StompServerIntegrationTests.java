@@ -80,7 +80,7 @@ public class StompServerIntegrationTests {
 	public Log4j2LevelAdjuster adjuster =
 			Log4j2LevelAdjuster.trace()
 					.categories("org.springframework",
-							"org.springframework.integration.stomp",
+							"org.springframework.integration",
 							"org.apache.activemq.broker",
 							"reactor.ipc",
 							"io.netty");
