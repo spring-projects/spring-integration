@@ -45,6 +45,7 @@ import org.springframework.util.ErrorHandler;
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Kiel Boatman
  */
 @SuppressWarnings("unchecked")
 public class PollingConsumerEndpointTests {
@@ -63,13 +64,14 @@ public class PollingConsumerEndpointTests {
 
 	private final TestErrorHandler errorHandler = new TestErrorHandler();
 
-	private final PollableChannel channelMock = Mockito.mock(PollableChannel.class);
+	private PollableChannel channelMock;
 
 	private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 
 
 	@Before
 	public void init() throws Exception {
+		channelMock = Mockito.mock(PollableChannel.class);
 		consumer.counter.set(0);
 		trigger.reset();
 		endpoint = new PollingConsumer(channelMock, consumer);
@@ -81,7 +83,6 @@ public class PollingConsumerEndpointTests {
 		endpoint.setReceiveTimeout(-1);
 		endpoint.afterPropertiesSet();
 		taskScheduler.afterPropertiesSet();
-		Mockito.reset(channelMock);
 	}
 
 	@After
