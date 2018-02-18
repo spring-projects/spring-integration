@@ -316,7 +316,20 @@ public class ConnectionEventTests {
 
 	@Test
 	public void testFailConnect() {
-		TcpNetClientConnectionFactory ccf = new TcpNetClientConnectionFactory("junkjunk", 1234);
+		AbstractClientConnectionFactory ccf = new AbstractClientConnectionFactory("junkjunk", 1234) {
+
+			@Override
+			protected boolean isActive() {
+				return true;
+			}
+
+			@Override
+			protected TcpConnectionSupport buildNewConnection() throws Exception {
+				throw new UnknownHostException("Mocking for test ");
+			}
+
+		};
+
 		final AtomicReference<ApplicationEvent> failEvent = new AtomicReference<ApplicationEvent>();
 		ccf.setApplicationEventPublisher(new ApplicationEventPublisher() {
 
