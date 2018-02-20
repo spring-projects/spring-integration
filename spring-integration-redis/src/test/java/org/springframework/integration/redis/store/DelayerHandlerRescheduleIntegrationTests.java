@@ -60,8 +60,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 	@Rule
 	public Log4j2LevelAdjuster adjuster =
 			Log4j2LevelAdjuster.trace()
-					.categories("org.springframework.integration",
-							"org.springframework.data.redis");
+					.categories(true, "org.springframework.data.redis");
 
 	@Test
 	@RedisAvailable
