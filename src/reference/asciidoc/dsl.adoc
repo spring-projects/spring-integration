@@ -206,12 +206,15 @@ The `Pollers` builder factory can be used to configure common bean definitions o
 [source,java]
 ----
 @Bean(name = PollerMetadata.DEFAULT_POLLER)
-public PollerMetadata poller() {
-    return Pollers.fixedRate(500).get();
+public PollerSpec poller() {
+    return Pollers.fixedRate(500)
+        .errorChannel("myErrors");
 }
 ----
 
 See `Pollers` and `PollerSpec` Java Docs for more information.
+
+IMPORTANT: If you use the DSL to construct a `PollerSpec` as a `@Bean`, do not call the `get()` method in the bean definition; the `PollerSpec` is a `FactoryBean` that will generate the `PollerMetadata` object from the specification and initialize all of its properties as needed.
 
 [[java-dsl-endpoints]]
 === DSL and Endpoint Configuration
