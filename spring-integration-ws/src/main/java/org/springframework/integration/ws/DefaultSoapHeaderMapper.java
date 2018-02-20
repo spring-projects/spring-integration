@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,10 +114,12 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 	@Override
 	protected void populateStandardHeaders(Map<String, Object> headers, SoapMessage target) {
 		String soapAction = getHeaderIfAvailable(headers, WebServiceHeaders.SOAP_ACTION, String.class);
-		if (!StringUtils.hasText(soapAction)) {
-			soapAction = "\"\"";
+		if (StringUtils.hasText(soapAction)) {
+			target.setSoapAction(soapAction);
 		}
-		target.setSoapAction(soapAction);
+		else if (!StringUtils.hasText(target.getSoapAction())) {
+			target.setSoapAction("\"\"");
+		}
 	}
 
 	@Override
