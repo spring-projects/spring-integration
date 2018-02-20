@@ -79,8 +79,7 @@ public class AsyncAmqpGatewayTests {
 	@Rule
 	public Log4j2LevelAdjuster adjuster =
 			Log4j2LevelAdjuster.trace()
-					.categories("org.springframework.integration",
-							"org.springframework.amqp");
+					.categories(true, "org.springframework.amqp");
 
 	@AfterClass
 	public static void tearDown() {

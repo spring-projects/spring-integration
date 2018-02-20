@@ -75,7 +75,7 @@ public class JmsOutboundGatewayTests extends ActiveMQMultiContextTests {
 	@Rule
 	public Log4j2LevelAdjuster adjuster =
 			Log4j2LevelAdjuster.trace()
-					.categories("org.springframework.integration", "org.springframework.jms", "org.apache");
+					.categories(true, "org.springframework.jms", "org.apache");
 
 	@Test
 	public void testContainerBeanNameWhenNoGatewayBeanName() {

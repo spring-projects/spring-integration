@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -74,8 +75,9 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 	private SourcePollingChannelAdapter adapter;
 
 	@Rule
-	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.debug()
-		.categories("org.springframework.integration", "org.apache.commons");
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.debug()
+					.categories(true, "org.apache.commons");
 
 	@SuppressWarnings("unchecked")
 	@Test
