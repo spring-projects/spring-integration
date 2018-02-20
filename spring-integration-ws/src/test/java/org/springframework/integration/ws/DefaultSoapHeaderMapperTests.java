@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 
 import org.junit.Test;
@@ -48,12 +47,15 @@ import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapHeaderElement;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.saaj.SaajSoapMessage;
+import org.springframework.ws.transport.TransportConstants;
 import org.springframework.xml.namespace.QNameUtils;
 import org.springframework.xml.transform.StringSource;
 
 /**
  * @author Gary Russell
  * @author Mauro Molinari
+ * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
@@ -100,20 +102,20 @@ public class DefaultSoapHeaderMapperTests {
 	@Test
 	public void testRealSoapHeader() throws Exception {
 		String soap =
-			"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">"
-				+ "<soapenv:Header>"
-					+ "<auth>"
+				"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">"
+						+ "<soapenv:Header>"
+						+ "<auth>"
 						+ "<username>user</username>"
 						+ "<password>pass</password>"
-					+ "</auth>"
-					+ "<bar>BAR</bar>"
-					+ "<baz>BAZ</baz>"
-					+ "<qux>qux</qux>"
-				+ "</soapenv:Header>"
-				+ "<soapenv:Body>"
-					+ "<foo>foo</foo>"
-				+ "</soapenv:Body>"
-			+ "</soapenv:Envelope>";
+						+ "</auth>"
+						+ "<bar>BAR</bar>"
+						+ "<baz>BAZ</baz>"
+						+ "<qux>qux</qux>"
+						+ "</soapenv:Header>"
+						+ "<soapenv:Body>"
+						+ "<foo>foo</foo>"
+						+ "</soapenv:Body>"
+						+ "</soapenv:Envelope>";
 		SOAPMessage message = MessageFactory.newInstance()
 				.createMessage(new MimeHeaders(), new ByteArrayInputStream(soap.getBytes("UTF-8")));
 		SoapMessage soapMessage = new SaajSoapMessage(message);
@@ -175,7 +177,7 @@ public class DefaultSoapHeaderMapperTests {
 	}
 
 	@Test
-	public void testFromHeadersToRequest() throws SOAPException, TransformerException {
+	public void testFromHeadersToRequest() throws SOAPException {
 		DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
 		mapper.setReplyHeaderNames("foo", "auth", "myHeader");
 
@@ -224,6 +226,30 @@ public class DefaultSoapHeaderMapperTests {
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 		transformer.transform(message.getEnvelope().getSource(), stringResult);
 		System. out. println(stringResult.toString());*/
+	}
+
+
+	@Test
+	public void testDoNotOverriderSoapAction() throws Exception {
+		MimeHeaders mimeHeaders = new MimeHeaders();
+
+		String testSoapAction = "fooAction";
+
+		mimeHeaders.setHeader(TransportConstants.HEADER_SOAP_ACTION, testSoapAction);
+
+		String soap =
+				"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"></soapenv:Envelope>";
+
+		SOAPMessage message = MessageFactory.newInstance()
+				.createMessage(mimeHeaders, new ByteArrayInputStream(soap.getBytes()));
+
+		SaajSoapMessage soapMessage = new SaajSoapMessage(message);
+
+		DefaultSoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
+
+		headerMapper.fromHeadersToRequest(new MessageHeaders(null), soapMessage);
+
+		assertEquals(testSoapAction, soapMessage.getSoapAction());
 	}
 
 }
