@@ -62,6 +62,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -84,6 +85,7 @@ import reactor.test.StepVerifier;
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Abhijit Sarkar
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -231,13 +233,14 @@ public class WebFluxDslTests {
 	@EnableIntegration
 	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
 
+		@Override
 		@Bean
 		public UserDetailsService userDetailsService() {
 			InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
 
 			manager.createUser(
-					User.withDefaultPasswordEncoder()
-							.username("guest")
+					User.withUsername("guest")
+							.passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
 							.password("guest")
 							.roles("ADMIN")
 							.build());

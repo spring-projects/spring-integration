@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -57,7 +58,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
@@ -65,6 +65,7 @@ import org.springframework.web.context.WebApplicationContext;
 /**
  * @author Artem Bilan
  * @author Shiliang Li
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -118,20 +119,21 @@ public class HttpDslTests {
 	@EnableIntegration
 	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
 
+		@Override
 		@Bean
 		public UserDetailsService userDetailsService() {
 			InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
 
 			manager.createUser(
-					User.withDefaultPasswordEncoder()
-							.username("admin")
+					User.withUsername("admin")
+							.passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
 							.password("admin")
 							.roles("ADMIN")
 							.build());
 
 			manager.createUser(
-					User.withDefaultPasswordEncoder()
-							.username("user")
+					User.withUsername("user")
+							.passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
 							.password("user")
 							.roles("USER")
 							.build());
@@ -174,7 +176,7 @@ public class HttpDslTests {
 					.from(Http.inboundGateway("/service")
 							.requestMapping(r -> r.params("name"))
 							.errorChannel("httpProxyErrorFlow.input"))
-					.handle(Http.<MultiValueMap<String, String>>outboundGateway("/service/internal?{params}")
+					.handle(Http.outboundGateway("/service/internal?{params}")
 									.uriVariable("params", "payload")
 									.expectedResponseType(String.class),
 							e -> e.id("serviceInternalGateway"))
