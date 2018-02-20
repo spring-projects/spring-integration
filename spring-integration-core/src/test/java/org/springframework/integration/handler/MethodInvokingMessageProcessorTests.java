@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,11 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -41,6 +43,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
@@ -56,6 +59,9 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelEvaluationException;
@@ -64,6 +70,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.support.MessageBuilder;
@@ -78,6 +85,9 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 /**
@@ -896,7 +906,7 @@ public class MethodInvokingMessageProcessorTests {
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), equalTo(
 					"UseSpelInvoker.compilerMode: Object of class [java.lang.Object] "
-					+ "must be an instance of class java.lang.String"));
+							+ "must be an instance of class java.lang.String"));
 		}
 
 		// Check other CTORs
@@ -916,7 +926,7 @@ public class MethodInvokingMessageProcessorTests {
 		SingleMethodJsonWithSpELBean bean = new SingleMethodJsonWithSpELBean();
 		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
 				SingleMethodJsonWithSpELBean.class.getDeclaredMethod("foo",
-				SingleMethodJsonWithSpELBean.Foo.class),
+						SingleMethodJsonWithSpELBean.Foo.class),
 				false);
 		Message<?> message = new GenericMessage<>("{\"bar\":\"bar\"}",
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
@@ -978,6 +988,87 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals("FOO", result);
 	}
 
+
+	@Test
+	public void testCollectionArgument() throws JsonProcessingException {
+
+		class A {
+
+			@SuppressWarnings("unused")
+			public String myMethod(List<Employee<Person>> msg) {
+				return msg.stream()
+						.map(Employee::getEntity)
+						.map(Person::getName)
+						.collect(Collectors.joining(","));
+			}
+
+		}
+
+		ApplicationContext applicationContext = new AnnotationConfigApplicationContext(TestConfiguration.class);
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new A(), "myMethod");
+		processor.setBeanFactory(applicationContext);
+
+		List<Employee<Person>> testData =
+				Arrays.asList(
+						new Employee<>(new Person("Foo")),
+						new Employee<>(new Person("Bar")));
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		byte[] value = objectMapper.writeValueAsBytes(testData);
+
+		String result = (String) processor.processMessage(new GenericMessage<>(value));
+
+		assertEquals("Foo,Bar", result);
+	}
+
+	public static class Employee<T> {
+
+		private T entity;
+
+		public Employee() {
+		}
+
+		public Employee(T entity) {
+			this.entity = entity;
+		}
+
+		public void setEntity(T entity) {
+			this.entity = entity;
+		}
+
+		public T getEntity() {
+			return this.entity;
+		}
+
+	}
+
+	public static class Person {
+
+		private String name;
+
+		public Person() {
+		}
+
+		public Person(String name) {
+			this.name = name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+	}
+
+	@Configuration
+	@EnableIntegration
+	public static class TestConfiguration {
+
+	}
 
 	public interface Foo {
 

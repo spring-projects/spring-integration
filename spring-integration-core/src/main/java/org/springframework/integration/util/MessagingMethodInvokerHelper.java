@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -577,17 +577,19 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		PayloadsArgumentResolver payloadsArgumentResolver = new PayloadsArgumentResolver();
 		payloadsArgumentResolver.setBeanFactory(getBeanFactory());
 
-		CollectionArgumentResolver collectionArgumentResolver =
-				new CollectionArgumentResolver(this.canProcessMessageList);
-		collectionArgumentResolver.setBeanFactory(getBeanFactory());
-
 		MapArgumentResolver mapArgumentResolver = new MapArgumentResolver();
 		mapArgumentResolver.setBeanFactory(getBeanFactory());
 
 		List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
 		customArgumentResolvers.add(payloadExpressionArgumentResolver);
 		customArgumentResolvers.add(payloadsArgumentResolver);
-		customArgumentResolvers.add(collectionArgumentResolver);
+
+		if (this.canProcessMessageList) {
+			CollectionArgumentResolver collectionArgumentResolver = new CollectionArgumentResolver(true);
+			collectionArgumentResolver.setBeanFactory(getBeanFactory());
+			customArgumentResolvers.add(collectionArgumentResolver);
+		}
+
 		customArgumentResolvers.add(mapArgumentResolver);
 
 		this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
