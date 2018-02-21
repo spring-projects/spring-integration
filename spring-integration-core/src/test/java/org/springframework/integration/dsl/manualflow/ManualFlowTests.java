@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,6 +71,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import reactor.core.publisher.Flux;
 
 /**
  * @author Artem Bilan
@@ -354,6 +358,37 @@ public class ManualFlowTests {
 		flowRegistration.destroy();
 
 		assertTrue(this.roleController.getEndpointsRunningStatus(testRole).isEmpty());
+	}
+
+	@Test
+	public void testDynaSubFlowCreation() {
+		Flux<Message<?>> messageFlux =
+				Flux.just("1,2,3,4")
+						.map(v -> v.split(","))
+						.flatMapIterable(Arrays::asList)
+						.map(Integer::parseInt)
+						.map(GenericMessage::new);
+
+		QueueChannel resultChannel = new QueueChannel();
+
+		IntegrationFlow integrationFlow = IntegrationFlows
+				.from(messageFlux)
+				.<Integer, Boolean>route(p -> p % 2 == 0, m -> m
+						.subFlowMapping(true, sf -> sf.<Integer, String>transform(em -> "even:" + em))
+						.subFlowMapping(false, sf -> sf.<Integer, String>transform(em -> "odd:" + em))
+						.defaultOutputToParentFlow()
+				)
+				.channel(resultChannel)
+				.get();
+
+		this.integrationFlowContext.registration(integrationFlow).register();
+
+		for (int i = 0; i < 4; i++) {
+			Message<?> receive = resultChannel.receive(10_000);
+			assertNotNull(receive);
+		}
+
+		assertNull(resultChannel.receive(0));
 	}
 
 	@Configuration
