@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -535,7 +535,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * {@link org.springframework.integration.handler.MessageProcessor} from provided {@link MessageProcessorSpec}.
 	 * <pre class="code">
 	 * {@code
-	 *  .transform(Scripts.script("classpath:myScript.py").valiable("foo", bar()))
+	 *  .transform(Scripts.script("classpath:myScript.py").variable("foo", bar()))
 	 * }
 	 * </pre>
 	 * @param messageProcessorSpec the {@link MessageProcessorSpec} to use.
@@ -552,7 +552,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * <pre class="code">
 	 * {@code
-	 *  .transform(Scripts.script("classpath:myScript.py").valiable("foo", bar()),
+	 *  .transform(Scripts.script("classpath:myScript.py").variable("foo", bar()),
 	 *           e -> e.autoStartup(false))
 	 * }
 	 * </pre>
@@ -1973,7 +1973,16 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 		BridgeHandler bridgeHandler = new BridgeHandler();
 		boolean registerSubflowBridge = false;
-		Map<Object, String> componentsToRegister = routerSpec.getComponentsToRegister();
+
+		Map<Object, String> componentsToRegister = null;
+		Map<Object, String> routerComponents = routerSpec.getComponentsToRegister();
+		if (routerComponents != null) {
+			componentsToRegister = new LinkedHashMap<>(routerComponents);
+			routerComponents.clear();
+		}
+
+		register(routerSpec, null);
+
 		if (!CollectionUtils.isEmpty(componentsToRegister)) {
 			for (Map.Entry<Object, String> entry : componentsToRegister.entrySet()) {
 				Object component = entry.getKey();
@@ -1990,12 +1999,6 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				}
 			}
 		}
-
-		if (componentsToRegister != null) {
-			componentsToRegister.clear();
-		}
-
-		register(routerSpec, null);
 
 		if (routerSpec.isDefaultToParentFlow()) {
 			routerSpec.defaultOutputChannel(new FixedSubscriberChannel(bridgeHandler));
