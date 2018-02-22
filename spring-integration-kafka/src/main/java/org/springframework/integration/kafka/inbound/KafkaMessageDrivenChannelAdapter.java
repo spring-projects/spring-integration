@@ -26,7 +26,6 @@ import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.endpoint.Pausable;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
@@ -67,8 +66,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  */
-public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport implements OrderlyShutdownCapable,
-		Pausable {
+public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSupport implements OrderlyShutdownCapable {
 
 	private static final ThreadLocal<AttributeAccessor> attributesHolder = new ThreadLocal<>();
 
@@ -226,11 +224,6 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	@Override
-	public String getComponentType() {
-		return "kafka:message-driven-channel-adapter";
-	}
-
-	@Override
 	protected void onInit() {
 		super.onInit();
 
@@ -287,13 +280,8 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 	}
 
 	@Override
-	public void pause() {
-		this.messageListenerContainer.pause();
-	}
-
-	@Override
-	public void resume() {
-		this.messageListenerContainer.resume();
+	public String getComponentType() {
+		return "kafka:message-driven-channel-adapter";
 	}
 
 	@Override
@@ -446,8 +434,7 @@ public class KafkaMessageDrivenChannelAdapter<K, V> extends MessageProducerSuppo
 		@Override
 			public void onMessage(List<ConsumerRecord<K, V>> records, Acknowledgment acknowledgment,
 					Consumer<?, ?> consumer) {
-
-			Message<?> message = null;
+				Message<?> message = null;
 			try {
 				message = toMessagingMessage(records, acknowledgment, consumer);
 				setAttributesIfNecessary(records, message);
