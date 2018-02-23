@@ -1017,7 +1017,12 @@ public class MethodInvokingMessageProcessorTests {
 		ObjectMapper objectMapper = new ObjectMapper();
 		byte[] value = objectMapper.writeValueAsBytes(testData);
 
-		String result = (String) processor.processMessage(new GenericMessage<>(value));
+		Message<?> testMessage =
+				MessageBuilder.withPayload(value)
+						.setHeader(MessageHeaders.CONTENT_TYPE, "application/json")
+						.build();
+
+		String result = (String) processor.processMessage(testMessage);
 
 		assertEquals("Foo,Bar", result);
 	}
