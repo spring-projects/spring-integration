@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,6 +203,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		if (isShuttingDown()) {
 			if (logger.isInfoEnabled()) {
 				logger.info("New connection from " + channel.socket().getInetAddress().getHostAddress()
+						+ ":" + channel.socket().getPort()
 						+ " rejected; the server is in the process of shutting down.");
 			}
 			channel.close();
@@ -226,7 +227,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 				connection.publishConnectionOpenEvent();
 			}
 			catch (Exception e) {
-				logger.error("Exception accepting new connection", e);
+				logger.error("Exception accepting new connection from "
+						+ channel.socket().getInetAddress().getHostAddress()
+						+ ":" + channel.socket().getPort(), e);
 				channel.close();
 			}
 		}
