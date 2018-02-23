@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +55,7 @@ import org.springframework.integration.dsl.IntegrationFlowAdapter;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducerSpec;
+import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
@@ -389,6 +391,31 @@ public class ManualFlowTests {
 		}
 
 		assertNull(resultChannel.receive(0));
+	}
+
+	@Test
+	public void testRegistrationDuplicationRejected() {
+		String testId = "testId";
+
+		StandardIntegrationFlow testFlow =
+				IntegrationFlows.from(Supplier.class)
+						.get();
+
+		this.integrationFlowContext
+				.registration(testFlow)
+				.id(testId)
+				.register();
+
+		try {
+			this.integrationFlowContext
+					.registration(testFlow)
+					.id(testId)
+					.register();
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalArgumentException.class));
+			assertThat(e.getMessage(), containsString("with flowId '" + testId + "' is already registered."));
+		}
 	}
 
 	@Configuration

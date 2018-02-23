@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
- * A public API for dynamic (manual) registration of {@link IntegrationFlow},
+ * A public API for dynamic (manual) registration of {@link IntegrationFlow}s,
  * not via standard bean registration phase.
  * <p>
  * The bean of this component is provided via framework automatically.
@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  * <p>
  * The typical use-case, and, therefore algorithm, is:
  * <ul>
- * <li> create {@link IntegrationFlow} depending of the business logic
+ * <li> create an {@link IntegrationFlow} instance depending of the business logic
  * <li> register that {@link IntegrationFlow} in this {@link IntegrationFlowContext},
  * with optional {@code id} and {@code autoStartup} flag
  * <li> obtain a {@link MessagingTemplate} for that {@link IntegrationFlow}
@@ -97,6 +97,11 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 		if (flowId == null) {
 			flowId = generateBeanName(integrationFlow, null);
 			builder.id(flowId);
+		}
+		else if (this.registry.containsKey(flowId)) {
+			throw new IllegalArgumentException("An IntegrationFlow '" + this.registry.get(flowId) +
+					"' with flowId '" + flowId + "' is already registered.\n" +
+					"An existing IntegrationFlowRegistration must be destroyed before overriding.");
 		}
 		IntegrationFlow theFlow = (IntegrationFlow) registerBean(integrationFlow, flowId, null);
 		builder.integrationFlowRegistration.setIntegrationFlow(theFlow);
@@ -209,31 +214,66 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 
 		private boolean autoStartup = true;
 
-		private IntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
+		IntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
 			this.integrationFlowRegistration = new IntegrationFlowRegistration(integrationFlow);
 			this.integrationFlowRegistration.setBeanFactory(IntegrationFlowContext.this.beanFactory);
 			this.integrationFlowRegistration.setIntegrationFlowContext(IntegrationFlowContext.this);
 		}
 
+		/**
+		 * Specify an {@code id} for the {@link IntegrationFlow} to register.
+		 * Must be unique per context.
+		 * The registration with this {@code id} must be destroyed before reusing for
+		 * a new {@link IntegrationFlow} instance.
+		 * @param id the id for the {@link IntegrationFlow} to register
+		 * @return the current builder instance
+		 */
 		public IntegrationFlowRegistrationBuilder id(String id) {
 			this.integrationFlowRegistration.setId(id);
 			return this;
 		}
 
+		/**
+		 * The {@code boolean} flag to indication if an {@link IntegrationFlow} must be started
+		 * automatically after registration. Defaults to {@code true}.
+		 * @param autoStartup start or not the {@link IntegrationFlow} automatically after registration.
+		 * @return the current builder instance
+		 */
 		public IntegrationFlowRegistrationBuilder autoStartup(boolean autoStartup) {
 			this.autoStartup = autoStartup;
 			return this;
 		}
 
+		/**
+		 * Add an object which will be registered as an {@link IntegrationFlow} dependant bean in the
+		 * application context. Usually it is some support component, which needs an application context.
+		 * For example dynamically created connection factories or header mappers for AMQP, JMS, TCP etc.
+		 * @param bean an additional arbitrary bean to register into the application context.
+		 * @return the current builder instance
+		 */
 		public IntegrationFlowRegistrationBuilder addBean(Object bean) {
 			return addBean(null, bean);
 		}
 
+		/**
+		 * Add an object which will be registered as an {@link IntegrationFlow} dependant bean in the
+		 * application context. Usually it is some support component, which needs an application context.
+		 * For example dynamically created connection factories or header mappers for AMQP, JMS, TCP etc.
+		 * @param name the name for the bean to register.
+		 * @param bean an additional arbitrary bean to register into the application context.
+		 * @return the current builder instance
+		 */
 		public IntegrationFlowRegistrationBuilder addBean(String name, Object bean) {
 			this.additionalBeans.put(bean, name);
 			return this;
 		}
 
+		/**
+		 * Register an {@link IntegrationFlow} and all the dependant and support components
+		 * in the application context and return an associated {@link IntegrationFlowRegistration}
+		 * control object.
+		 * @return the {@link IntegrationFlowRegistration} instance.
+		 */
 		public IntegrationFlowRegistration register() {
 			IntegrationFlowContext.this.register(this);
 			return this.integrationFlowRegistration;
