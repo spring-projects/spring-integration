@@ -314,22 +314,26 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	/*
-	 * If there's a single method, the content is JSON, the payload is a
-	 * String or byte[], the parameter doesn't match the payload,
-	 * and there is a Json Object Mapper on the CP,
-	 * convert.
+	 * If there's a single method, it is SpEL only, the content is JSON,
+	 * the payload is a String or byte[], the parameter doesn't match the payload,
+	 * and there is a Json Object Mapper on the CP, convert.
 	 */
-	private Message<?> possiblyConvert(Message<?> message) throws Exception {
-		if (this.handlerMethod != null && this.handlerMethod.getTargetParameterType() != null &&
-				this.jsonObjectMapper != null) {
-			Class<?> type = this.handlerMethod.getTargetParameterType();
+	private Message<?> possiblyConvert(Message<?> message) {
+		if (this.handlerMethod != null &&
+				this.handlerMethod.exclusiveMethodParameter != null &&
+				this.jsonObjectMapper != null &&
+				this.handlerMethod.spelOnly) {
+
+			Class<?> type = this.handlerMethod.targetParameterType;
 			if ((message.getPayload() instanceof String && !type.equals(String.class)
 					|| message.getPayload() instanceof byte[] && !type.equals(byte[].class))
 					&& contentTypeIsJson(message)) {
 
 				try {
+					Object payload = this.jsonObjectMapper.fromJson(message.getPayload(), type);
+
 					return getMessageBuilderFactory()
-							.withPayload(this.jsonObjectMapper.fromJson(message.getPayload(), type))
+							.withPayload(payload)
 							.copyHeaders(message.getHeaders())
 							.build();
 				}
@@ -1013,6 +1017,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		private volatile Class<?> targetParameterType = Void.class;
 
+		private MethodParameter exclusiveMethodParameter;
+
 		private volatile boolean messageMethod;
 
 		private volatile boolean spelOnly;
@@ -1020,8 +1026,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		private volatile UseSpelInvoker useSpelInvoker;
 
 		private volatile boolean initialized;
-
 		// The number of times InvocableHandlerMethod was attempted and failed - enables us to eventually
+
 		// give up trying to call it when it just doesn't seem to be possible.
 		// Switching to spelOnly afterwards forever.
 		private volatile int failedAttempts = 0;
@@ -1220,6 +1226,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		private void setExclusiveTargetParameterType(TypeDescriptor targetParameterType,
 				MethodParameter methodParameter) {
+
 			if (this.targetParameterTypeDescriptor != null) {
 				throw new IneligibleMethodException("Found more than one parameter type candidate: [" +
 						this.targetParameterTypeDescriptor + "] and [" + targetParameterType + "]");
@@ -1233,6 +1240,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			else {
 				this.targetParameterType = targetParameterType.getObjectType();
 			}
+
+			this.exclusiveMethodParameter = methodParameter;
 		}
 	}
 
