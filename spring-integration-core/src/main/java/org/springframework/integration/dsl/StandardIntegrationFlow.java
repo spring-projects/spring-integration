@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.context.SmartLifecycle;
  * However, when we register an {@link IntegrationFlow} dynamically using the
  * {@link org.springframework.integration.dsl.context.IntegrationFlowContext} API,
  * the lifecycle processor from the application context is not involved;
- * therefore we should control the lifecyle of the beans manually, or rely on the
+ * therefore we should control the lifecycle of the beans manually, or rely on the
  * {@link org.springframework.integration.dsl.context.IntegrationFlowContext} API.
  * Its created registration <b>is</b> {@code autoStartup} by default and
  * starts the flow when it is registered. If you disable the registration's auto-
@@ -146,6 +146,11 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		return 0;
 	}
 
+	@Override
+	public String toString() {
+		return "StandardIntegrationFlow{integrationComponents=" + this.integrationComponents + '}';
+	}
+
 	private static final class AggregatingCallback implements Runnable {
 
 		private final AtomicInteger count;
@@ -165,6 +170,5 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		}
 
 	}
-
 
 }
