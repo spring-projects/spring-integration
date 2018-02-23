@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,22 +140,31 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				if (isShuttingDown()) {
 					if (logger.isInfoEnabled()) {
 						logger.info("New connection from " + socket.getInetAddress().getHostAddress()
+								+ ":" + socket.getPort()
 								+ " rejected; the server is in the process of shutting down.");
 					}
 					socket.close();
 				}
 				else {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
+						logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress()
+								+ ":" + socket.getPort());
 					}
-					setSocketAttributes(socket);
-					TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, true,
-							isLookupHost(), getApplicationEventPublisher(), getComponentName());
-					connection = wrapConnection(connection);
-					initializeConnection(connection, socket);
-					getTaskExecutor().execute(connection);
-					harvestClosedConnections();
-					connection.publishConnectionOpenEvent();
+					try {
+						setSocketAttributes(socket);
+						TcpConnectionSupport connection = this.tcpNetConnectionSupport.createNewConnection(socket, true,
+								isLookupHost(), getApplicationEventPublisher(), getComponentName());
+						connection = wrapConnection(connection);
+						initializeConnection(connection, socket);
+						getTaskExecutor().execute(connection);
+						harvestClosedConnections();
+						connection.publishConnectionOpenEvent();
+					}
+					catch (Exception e) {
+						this.logger.error("Failed to create and configure a TcpConnection for the new socket: "
+								+ socket.getInetAddress().getHostAddress() + ":" + socket.getPort(), e);
+						socket.close();
+					}
 				}
 			}
 		}
@@ -167,6 +176,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			else if (isActive()) {
 				logger.error("Error on ServerSocket; port = " + getPort(), e);
 				publishServerExceptionEvent(e);
+				try {
+					this.serverSocket.close();
+				}
+				catch (IOException e1) {
+					// empty
+				}
 			}
 		}
 		finally {
