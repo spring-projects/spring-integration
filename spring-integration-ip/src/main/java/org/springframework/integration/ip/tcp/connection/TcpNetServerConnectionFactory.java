@@ -163,7 +163,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 					catch (Exception e) {
 						this.logger.error("Failed to create and configure a TcpConnection for the new socket: "
 								+ socket.getInetAddress().getHostAddress() + ":" + socket.getPort(), e);
-						socket.close();
+						try {
+							socket.close();
+						}
+						catch (IOException e1) {
+							// empty
+						}
 					}
 				}
 			}
