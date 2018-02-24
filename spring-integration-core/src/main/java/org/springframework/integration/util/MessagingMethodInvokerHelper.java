@@ -308,48 +308,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	public T process(Message<?> message) throws Exception {
-		Message<?> messageToProcess = possiblyConvert(message);
-		ParametersWrapper parameters = new ParametersWrapper(messageToProcess);
+		ParametersWrapper parameters = new ParametersWrapper(message);
 		return processInternal(parameters);
-	}
-
-	/*
-	 * If there's a single method, it is SpEL only, the content is JSON,
-	 * the payload is a String or byte[], the parameter doesn't match the payload,
-	 * and there is a Json Object Mapper on the CP, convert.
-	 */
-	private Message<?> possiblyConvert(Message<?> message) {
-		if (this.handlerMethod != null &&
-				this.handlerMethod.exclusiveMethodParameter != null &&
-				this.jsonObjectMapper != null &&
-				this.handlerMethod.spelOnly) {
-
-			Class<?> type = this.handlerMethod.targetParameterType;
-			if ((message.getPayload() instanceof String && !type.equals(String.class)
-					|| message.getPayload() instanceof byte[] && !type.equals(byte[].class))
-					&& contentTypeIsJson(message)) {
-
-				try {
-					Object payload = this.jsonObjectMapper.fromJson(message.getPayload(), type);
-
-					return getMessageBuilderFactory()
-							.withPayload(payload)
-							.copyHeaders(message.getHeaders())
-							.build();
-				}
-				catch (Exception e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Failed to convert from JSON", e);
-					}
-				}
-			}
-		}
-		return message;
-	}
-
-	private boolean contentTypeIsJson(Message<?> message) {
-		Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
-		return contentType != null && contentType.toString().contains("json");
 	}
 
 	public T process(Collection<Message<?>> messages, Map<String, Object> headers) throws Exception {
@@ -649,6 +609,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	@SuppressWarnings("unchecked")
 	private T invokeExpression(Expression expression, ParametersWrapper parameters) throws Exception {
 		try {
+
+			convertJsonPayloadIfNecessary(parameters);
 			return (T) evaluateExpression(expression, parameters);
 		}
 		catch (Exception e) {
@@ -664,6 +626,52 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				throw new IllegalStateException("Cannot process message", evaluationException);
 			}
 		}
+	}
+
+	/*
+	 * If there's a single method, it is SpEL only, the content is JSON,
+	 * the payload is a String or byte[], the parameter doesn't match the payload,
+	 * and there is a Json Object Mapper on the CP, convert.
+	 */
+	private void convertJsonPayloadIfNecessary(ParametersWrapper parameters) {
+		if (parameters.message != null &&
+				this.handlerMethod != null &&
+				this.handlerMethod.exclusiveMethodParameter != null &&
+				this.jsonObjectMapper != null) {
+
+			Class<?> type = this.handlerMethod.targetParameterType;
+			if ((parameters.getPayload() instanceof String && !type.equals(String.class)
+					|| parameters.getPayload() instanceof byte[] && !type.equals(byte[].class))
+					&& contentTypeIsJson(parameters.message)) {
+
+				try {
+					Object targetPayload = this.jsonObjectMapper.fromJson(parameters.getPayload(), type);
+
+					if (this.handlerMethod.targetParameterTypeDescriptor.isAssignableTo(messageTypeDescriptor)) {
+						parameters.message =
+								getMessageBuilderFactory()
+										.withPayload(targetPayload)
+										.copyHeaders(parameters.getHeaders())
+										.build();
+					}
+					else {
+						parameters.payload = targetPayload;
+					}
+
+
+				}
+				catch (Exception e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Failed to convert from JSON", e);
+					}
+				}
+			}
+		}
+	}
+
+	private boolean contentTypeIsJson(Message<?> message) {
+		Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		return contentType != null && contentType.toString().contains("json");
 	}
 
 	private Map<String, Map<Class<?>, HandlerMethod>> findHandlerMethodsForTarget(final Object targetObject,
@@ -1247,13 +1255,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	public static class ParametersWrapper {
 
-		private final Object payload;
-
 		private final Collection<Message<?>> messages;
 
 		private final Map<String, Object> headers;
 
-		private final Message<?> message;
+		private Message<?> message;
+
+		private Object payload;
 
 		ParametersWrapper(Message<?> message) {
 			this.message = message;
@@ -1263,10 +1271,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 
 		ParametersWrapper(Collection<Message<?>> messages, Map<String, Object> headers) {
-			this.payload = null;
 			this.messages = messages;
 			this.headers = headers;
-			this.message = null;
 		}
 
 		/**
