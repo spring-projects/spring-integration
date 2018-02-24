@@ -1034,8 +1034,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		private volatile UseSpelInvoker useSpelInvoker;
 
 		private volatile boolean initialized;
-
 		// The number of times InvocableHandlerMethod was attempted and failed - enables us to eventually
+
 		// give up trying to call it when it just doesn't seem to be possible.
 		// Switching to spelOnly afterwards forever.
 		private volatile int failedAttempts = 0;
