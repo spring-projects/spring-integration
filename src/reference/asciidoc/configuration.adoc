@@ -580,7 +580,7 @@ public class MyFlowConfiguration {
 }
 ----
 
-Starting with _version 5.0_, support is also provided for `@Bean` annotated `InboundChannelAdapter`s that return `java.util.function.Supplier` which can produce either a POJO or a `Message`:
+Starting with _version 5.0_, a support is also provided for a `@Bean` annotated with the `InboundChannelAdapter` that return `java.util.function.Supplier` which can produce either a POJO or a `Message`:
 [source,java]
 ----
 @Configuration
@@ -602,11 +602,8 @@ public class MyFlowConfiguration {
 
 The meta-annotation rules work on `@Bean` methods as well (`@MyServiceActivator` above can be applied to a `@Bean` definition).
 
-NOTE: When using these annotations on consumer `@Bean` definitions, if the bean definition returns an appropriate
-`MessageHandler` (depending on the annotation type), attributes such as `outputChannel`, `requiresReply` etc,
-must be set on the `MessageHandler` `@Bean` definition itself.
-The only annotation attributes used are `adviceChain`, `autoStartup`, `inputChannel`, `phase`, `poller`,
-all other attributes are for the handler.
+NOTE: When using these annotations on consumer `@Bean` definitions, if the bean definition returns an appropriate `MessageHandler` (depending on the annotation type), attributes such as `outputChannel`, `requiresReply`, `order` etc, must be set on the `MessageHandler` `@Bean` definition itself.
+The only annotation attributes used are `adviceChain`, `autoStartup`, `inputChannel`, `phase`, `poller`, all other attributes are for the handler.
 
 NOTE: The bean names are generated with this algorithm:
 * The `MessageHandler` (`MessageSource`) `@Bean` gets its own standard name from the method name or `name` attribute on
