@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  */
 public class SocketSupportTests {
@@ -354,15 +356,18 @@ Certificate fingerprints:
 		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
 		client.setTcpSocketFactorySupport(clientTcpSocketFactorySupport);
-		client.start();
 
-		TcpConnection connection = client.getConnection();
-		connection.send(new GenericMessage<String>("Hello, world!"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
-
-		client.stop();
-		server.stop();
+		try {
+			client.start();
+			TcpConnection connection = client.getConnection();
+			connection.send(new GenericMessage<String>("Hello, world!"));
+			assertTrue(latch.await(10, TimeUnit.SECONDS));
+			assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
+		}
+		finally {
+			client.stop();
+			server.stop();
+		}
 	}
 
 	@Test
@@ -428,7 +433,8 @@ Certificate fingerprints:
 				assertThat(e.getMessage(),
 						anyOf(
 								containsString("Socket closed during SSL Handshake"),
-								containsString("Broken pipe")));
+								containsString("Broken pipe"),
+								containsString("Connection reset by peer")));
 			}
 		}
 	}
@@ -465,15 +471,18 @@ Certificate fingerprints:
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
 				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
-		client.start();
 
-		TcpConnection connection = client.getConnection();
-		connection.send(new GenericMessage<String>("Hello, world!"));
-		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
-
-		client.stop();
-		server.stop();
+		try {
+			client.start();
+			TcpConnection connection = client.getConnection();
+			connection.send(new GenericMessage<String>("Hello, world!"));
+			assertTrue(latch.await(10, TimeUnit.SECONDS));
+			assertEquals("Hello, world!", new String((byte[]) messages.get(0).getPayload()));
+		}
+		finally {
+			client.stop();
+			server.stop();
+		}
 	}
 
 	@Test
