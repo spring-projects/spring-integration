@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -83,17 +85,28 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	@Autowired
 	private MessageChannel routingSlip;
 
+	@Autowired
+	@Qualifier("service-activator")
+	private AbstractEndpoint serviceActivator;
+
 	@Before
 	public void clear() {
 		Service.reset(1);
 		for (MessageGroup group : messageStore) {
 			messageStore.removeMessageGroup(group.getGroupId());
 		}
+
+		this.serviceActivator.start();
+	}
+
+	@After
+	public void tearDown() {
+		this.serviceActivator.stop();
 	}
 
 	@Test
 	public void testSendAndActivate() throws Exception {
-		input.send(new GenericMessage<String>("foo"));
+		input.send(new GenericMessage<>("foo"));
 		Service.await(10000);
 		assertEquals(1, Service.messages.size());
 	}
@@ -101,7 +114,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	@Test
 	public void testSendAndActivateWithRollback() throws Exception {
 		Service.fail = true;
-		input.send(new GenericMessage<String>("foo"));
+		input.send(new GenericMessage<>("foo"));
 		Service.await(10000);
 		assertThat(Service.messages.size(), Matchers.greaterThanOrEqualTo(1));
 		// After a rollback in the poller the message is still waiting to be delivered
@@ -128,28 +141,24 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	@Repeat(2)
 	public void testTransactionalSendAndReceive() throws Exception {
 
-		boolean result = new TransactionTemplate(transactionManager).execute(new TransactionCallback<Boolean>() {
+		boolean result = new TransactionTemplate(transactionManager).execute(status -> {
 
-			@Override
-			public Boolean doInTransaction(TransactionStatus status) {
+			synchronized (storeLock) {
 
-				synchronized (storeLock) {
-
-					boolean result = input.send(new GenericMessage<String>("foo"), 500L);
-					// This will time out because the transaction has not committed yet
-					try {
-						Service.await(3000);
-						fail("Expected timeout");
-					}
-					catch (Exception e) {
-						// expected
-					}
-
-					return result;
-
+				boolean result1 = input.send(new GenericMessage<>("foo"), 100L);
+				// This will time out because the transaction has not committed yet
+				try {
+					Service.await(100);
+					fail("Expected timeout");
+				}
+				catch (Exception e) {
+					// expected
 				}
 
+				return result1;
+
 			}
+
 		});
 
 		assertTrue("Could not send message", result);
@@ -184,7 +193,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	}
 
 	@Test
-	public void testSameTransactionSendAndReceive() throws Exception {
+	public void testSameTransactionSendAndReceive() {
 
 		final StopWatch stopWatch = new StopWatch();
 		DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
@@ -239,7 +248,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	@Test
 	public void testWithRoutingSlip() {
 		try {
-			this.routingSlip.send(new GenericMessage<String>("foo"));
+			this.routingSlip.send(new GenericMessage<>("foo"));
 			fail("MessageDeliveryException expected");
 		}
 		catch (Exception e) {
@@ -255,7 +264,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 		private static boolean fail = false;
 
-		private static List<String> messages = new CopyOnWriteArrayList<String>();
+		private static List<String> messages = new CopyOnWriteArrayList<>();
 
 		private static CountDownLatch latch;
 
