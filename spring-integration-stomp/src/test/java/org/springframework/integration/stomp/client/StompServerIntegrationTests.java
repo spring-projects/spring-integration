@@ -60,9 +60,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.stomp.ReactorNettyTcpStompClient;
 import org.springframework.messaging.simp.stomp.StompCommand;
-import org.springframework.messaging.simp.stomp.StompReactorNettyCodec;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.messaging.tcp.reactor.ReactorNettyTcpClient;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.SocketUtils;
 
@@ -97,12 +95,7 @@ public class StompServerIntegrationTests {
 		activeMQBroker.getSystemUsage().getTempUsage().setLimit(1024 * 1024 * 5);
 		activeMQBroker.start();
 
-
-// 	TODO until Reactor Bismuth-SR7	stompClient = new ReactorNettyTcpStompClient("127.0.0.1", port);
-		stompClient = new ReactorNettyTcpStompClient(
-				new ReactorNettyTcpClient<>(options -> options.disablePool().host("127.0.0.1").port(port),
-						new StompReactorNettyCodec()));
-
+		stompClient = new ReactorNettyTcpStompClient("127.0.0.1", port);
 		stompClient.setMessageConverter(new PassThruMessageConverter());
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.afterPropertiesSet();

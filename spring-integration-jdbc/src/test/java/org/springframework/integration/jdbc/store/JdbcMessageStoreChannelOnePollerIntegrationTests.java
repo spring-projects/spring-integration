@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -42,6 +44,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StopWatch;
 
+/**
+ * @author Dave Syer
+ * @author Gary Russell
+ * @author Artem Bilan
+ */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext // close at the end after class
@@ -63,50 +70,59 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 	@Autowired
 	private PlatformTransactionManager transactionManager;
 
+	@Autowired
+	@Qualifier("service-relay")
+	private AbstractEndpoint serviceRelay;
+
 	@Before
 	public void clear() {
-		for (MessageGroup group : messageStore) {
-			messageStore.removeMessageGroup(group.getGroupId());
+		for (MessageGroup group : this.messageStore) {
+			this.messageStore.removeMessageGroup(group.getGroupId());
 		}
 	}
 
-	@Test
-	// @Repeat(50)
-	public void testSameTransactionDifferentChannelSendAndReceive() throws Exception {
+	@After
+	public void tearDown() {
+		this.serviceRelay.stop();
+	}
 
+	@Test
+	public void testSameTransactionDifferentChannelSendAndReceive() throws Exception {
 		Service.reset(1);
-		assertNull(durable.receive(100L));
-		assertNull(relay.receive(100L));
+		assertNull(this.durable.receive(100L));
+		assertNull(this.relay.receive(100L));
 		final StopWatch stopWatch = new StopWatch();
 
-		boolean result = new TransactionTemplate(transactionManager).execute(status -> {
+		boolean result =
+				new TransactionTemplate(this.transactionManager)
+						.execute(status -> {
 
-			synchronized (storeLock) {
+							synchronized (this.storeLock) {
 
-				boolean result1 = relay.send(new GenericMessage<String>("foo"), 500L);
-				// This will time out because the transaction has not committed yet
-				try {
-					Service.await(10000);
-					fail("Expected timeout");
-				}
-				catch (Exception e) {
-					// expected
-				}
+								boolean result1 = this.relay.send(new GenericMessage<>("foo"), 500L);
+								// This will time out because the transaction has not committed yet
+								try {
+									Service.await(100);
+									fail("Expected timeout");
+								}
+								catch (Exception e) {
+									// expected
+								}
 
-				try {
-					stopWatch.start();
-					// It hasn't arrive yet because we are still in the sending transaction
-					assertNull(durable.receive(100L));
-				}
-				finally {
-					stopWatch.stop();
-				}
+								try {
+									stopWatch.start();
+									// It hasn't arrive yet because we are still in the sending transaction
+									assertNull(this.durable.receive(100L));
+								}
+								finally {
+									stopWatch.stop();
+								}
 
-				return result1;
+								return result1;
 
-			}
+							}
 
-		});
+						});
 
 		assertTrue("Could not send message", result);
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
@@ -124,20 +140,21 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 		 *
 		 * With the storeLock: It doesn't deadlock as long as the lock is injected into the poller as well.
 		 */
-		new TransactionTemplate(transactionManager).execute(status -> {
-			synchronized (storeLock) {
+		new TransactionTemplate(this.transactionManager)
+				.execute(status -> {
+					synchronized (this.storeLock) {
 
-				try {
-					stopWatch.start();
-					durable.receive(100L);
-					return null;
-				}
-				finally {
-					stopWatch.stop();
-				}
+						try {
+							stopWatch.start();
+							this.durable.receive(100L);
+							return null;
+						}
+						finally {
+							stopWatch.stop();
+						}
 
-			}
-		});
+					}
+				});
 
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
 		assertTrue("Timed out waiting for receive", stopWatch.getTotalTimeMillis() < 10000);
@@ -145,6 +162,7 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 	}
 
 	public static class Service {
+
 		private static boolean fail = false;
 
 		private static List<String> messages = new CopyOnWriteArrayList<String>();
@@ -171,6 +189,7 @@ public class JdbcMessageStoreChannelOnePollerIntegrationTests {
 			}
 			return input;
 		}
+
 	}
 
 }
