@@ -27,6 +27,8 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.util.CollectionUtils;
 
+import io.micrometer.core.instrument.Counter;
+
 /**
  * Base class for all pollable channels.
  *
@@ -104,6 +106,15 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 			}
 			Message<?> message = this.doReceive(timeout);
 			if (countsEnabled && message != null) {
+				if (getMeterRegistry() != null) {
+					Counter.builder(RECEIVE_COUNTER_NAME)
+						.tag("name", getComponentName())
+						.tag("type", "channel")
+						.tag("result", "success")
+						.tag("exception", "none")
+						.description("Messages received")
+						.register(getMeterRegistry()).increment();
+				}
 				getMetrics().afterReceive();
 				counted = true;
 			}
@@ -121,6 +132,15 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		}
 		catch (RuntimeException e) {
 			if (countsEnabled && !counted) {
+				if (getMeterRegistry() != null) {
+					Counter.builder(RECEIVE_COUNTER_NAME)
+						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+						.tag("type", "channel")
+						.tag("result", "failure")
+						.tag("exception", e.getClass().getSimpleName())
+						.description("Messages received")
+						.register(getMeterRegistry()).increment();
+				}
 				getMetrics().afterError();
 			}
 			if (!CollectionUtils.isEmpty(interceptorStack)) {

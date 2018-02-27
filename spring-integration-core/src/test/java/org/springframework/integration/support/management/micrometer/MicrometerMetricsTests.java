@@ -19,8 +19,6 @@ package org.springframework.integration.support.management.micrometer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import java.util.List;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -39,7 +37,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
@@ -47,11 +44,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
@@ -104,81 +97,63 @@ public class MicrometerMetricsTests {
 		catch (RuntimeException e) {
 			assertThat(e.getMessage()).isEqualTo("badPoll");
 		}
-		List<Meter> meters = this.meterRegistry.getMeters();
-		assertThat(meters.size()).isEqualTo(22);
-		for (Meter meter : meters) {
-			String name = meter.getId().getName();
-			switch (name) {
-				case "channel.timer":
-				case "micrometerMetricsTests.Config.service.serviceActivator.handler.timer":
-				case "queue.timer":
-					assertThat(((Timer) meter).count()).isEqualTo(2L);
-					break;
-				case "badPoll.timer":
-					assertThat(((Timer) meter).count()).isEqualTo(1L);
-					break;
-				case "source.counter":
-				case "channel.errorCounter":
-				case "micrometerMetricsTests.Config.service.serviceActivator.handler.errorCounter":
-					assertThat(((Counter) meter).count()).isEqualTo(1L);
-					break;
-				case "queue.receive.counter":
-					assertThat(((Counter) meter).count()).isEqualTo(1L);
-					break;
-				case "spring.integration.channels":
-					assertThat(((Gauge) meter).measure().iterator().next().getValue()).isEqualTo(5.0);
-					break;
-				case "spring.integration.handlers":
-					assertThat(((Gauge) meter).measure().iterator().next().getValue()).isEqualTo(2.0);
-					break;
-				case "spring.integration.sources":
-					assertThat(((Gauge) meter).measure().iterator().next().getValue()).isEqualTo(1.0);
-					break;
-				case "errorChannel.timer":
-				case "nullChannel.timer":
-				case "_org.springframework.integration.errorLogger.handler.timer":
-					assertThat(((Timer) meter).count()).isEqualTo(0L);
-					break;
-				case "queue.errorCounter":
-				case "nullChannel.errorCounter":
-				case "queue.receive.errorCounter":
-				case "_org.springframework.integration.errorLogger.handler.errorCounter":
-				case "errorChannel.errorCounter":
-				case "badPoll.errorCounter":
-				case "badPoll.receiveCounter":
-					assertThat(((Counter) meter).count()).isEqualTo(0L);
-					break;
-				case "badPoll.receiveErrorCounter":
-					assertThat(((Counter) meter).count()).isEqualTo(1L);
-					break;
-				default:
-			}
-		}
+		MeterRegistry registry = this.meterRegistry;
+		assertThat(registry.get("spring.integration.channels").gauge().value()).isEqualTo(5);
+		assertThat(registry.get("spring.integration.handlers").gauge().value()).isEqualTo(2);
+		assertThat(registry.get("spring.integration.sources").gauge().value()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.receive")
+				.tag("name", "source")
+				.tag("result", "success")
+				.counter().count()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.receive")
+				.tag("name", "badPoll")
+				.tag("result", "failure")
+				.counter().count()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.send")
+				.tag("name", "micrometerMetricsTests.Config.service.serviceActivator.handler")
+				.tag("result", "success")
+				.timer().count()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.send")
+				.tag("name", "channel")
+				.tag("result", "success")
+				.timer().count()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.send")
+				.tag("name", "channel")
+				.tag("result", "failure")
+				.timer().count()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.send")
+				.tag("name", "micrometerMetricsTests.Config.service.serviceActivator.handler")
+				.tag("result", "failure")
+				.timer().count()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.receive")
+				.tag("name", "queue")
+				.tag("result", "success")
+				.counter().count()).isEqualTo(1);
+
 		BeanDefinitionRegistry beanFactory = (BeanDefinitionRegistry) this.context.getBeanFactory();
 		beanFactory.registerBeanDefinition("newChannel",
 				BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class).getRawBeanDefinition());
 		DirectChannel newChannel = this.context.getBean("newChannel", DirectChannel.class);
-		assertThat(this.meterRegistry.getMeters().size()).isEqualTo(24);
-		Timer timer = meterRegistry.get("newChannel.timer").timer();
-		assertThat(timer).isSameAs(TestUtils.getPropertyValue(newChannel, "channelMetrics.timer"));
-		beanFactory.removeBeanDefinition("newChannel");
-		// verify that the meter registry reuses the existing timer
-		beanFactory.registerBeanDefinition("newChannel",
-				BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class).getRawBeanDefinition());
-		newChannel = this.context.getBean("newChannel", DirectChannel.class);
-		assertThat(this.meterRegistry.getMeters().size()).isEqualTo(24);
-		assertThat(timer).isSameAs(TestUtils.getPropertyValue(newChannel, "channelMetrics.timer"));
+		newChannel.setBeanName("newChannel");
+		newChannel.subscribe(m -> { });
+		newChannel.send(new GenericMessage<>("foo"));
+		assertThat(registry.get("spring.integration.send")
+				.tag("name", "newChannel")
+				.tag("result", "success")
+				.timer().count()).isEqualTo(1);
 	}
 
 	@Configuration
 	@EnableIntegration
 	@EnableIntegrationManagement
 	public static class Config {
-
-		@Bean
-		public MicrometerMetricsFactory metricsFactory(MeterRegistry meterRegistry) {
-			return new MicrometerMetricsFactory(meterRegistry);
-		}
 
 		@Bean
 		public MeterRegistry meterRegistry() {

@@ -36,6 +36,9 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Sample;
 import reactor.core.CoreSubscriber;
 
 /**
@@ -71,6 +74,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	private volatile boolean loggingEnabled = true;
 
+	private MeterRegistry meterRegistry;
+
 	@Override
 	public boolean isLoggingEnabled() {
 		return this.loggingEnabled;
@@ -80,6 +85,11 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	public void setLoggingEnabled(boolean loggingEnabled) {
 		this.loggingEnabled = loggingEnabled;
 		this.managementOverrides.loggingConfigured = true;
+	}
+
+	@Override
+	public void registerMeterRegistry(MeterRegistry meterRegistry) {
+		this.meterRegistry = meterRegistry;
 	}
 
 	@Override
@@ -131,36 +141,44 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		MetricsContext start = null;
 		boolean countsEnabled = this.countsEnabled;
 		AbstractMessageHandlerMetrics handlerMetrics = this.handlerMetrics;
+		Sample sample = null;
+		if (countsEnabled && this.meterRegistry != null) {
+			sample = Timer.start(this.meterRegistry);
+		}
 		try {
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 			}
 			if (countsEnabled) {
-				if (handlerMetrics.getTimer() != null) {
-					final Message<?> messageToSend = message;
-					handlerMetrics.getTimer().recordCallable(() -> {
-						handleMessageInternal(messageToSend);
-						return null;
-					});
+				start = handlerMetrics.beforeHandle();
+				handleMessageInternal(message);
+				if (this.meterRegistry != null) {
+					sample.stop(Timer.builder(SEND_TIMER_NAME)
+							.tag("type", "handler")
+							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+							.tag("result", "success")
+							.tag("exception", "none")
+							.description("Subflow process time")
+							.register(this.meterRegistry));
 				}
-				else {
-					start = handlerMetrics.beforeHandle();
-					handleMessageInternal(message);
-					handlerMetrics.afterHandle(start, true);
-				}
+				handlerMetrics.afterHandle(start, true);
 			}
 			else {
 				handleMessageInternal(message);
 			}
 		}
 		catch (Exception e) {
+			if (sample != null) {
+				sample.stop(Timer.builder(SEND_TIMER_NAME)
+						.tag("type", "handler")
+						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+						.tag("result", "failure")
+						.tag("exception", e.getClass().getSimpleName())
+						.description("Subflow process time")
+						.register(this.meterRegistry));
+			}
 			if (countsEnabled) {
-				if (handlerMetrics.getErrorCounter() != null) {
-					handlerMetrics.getErrorCounter().increment();
-				}
-				else {
-					handlerMetrics.afterHandle(start, false);
-				}
+				handlerMetrics.afterHandle(start, false);
 			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
