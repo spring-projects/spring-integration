@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -31,6 +33,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".
@@ -59,6 +64,8 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	private String beanName;
 
+	private MeterRegistry meterRegistry;
+
 	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
@@ -84,6 +91,11 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	@Override
 	public String getComponentType() {
 		return "channel";
+	}
+
+	@Override
+	public void registerMeterRegistry(MeterRegistry registry) {
+		this.meterRegistry = registry;
 	}
 
 	@Override
@@ -215,6 +227,15 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 			this.logger.debug("message sent to null channel: " + message);
 		}
 		if (this.countsEnabled) {
+			if (this.meterRegistry != null) {
+				Timer.builder(SEND_TIMER_NAME)
+						.tag("type", "channel")
+						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+						.tag("result", "success")
+						.tag("exception", "none")
+						.description("Subflow process time")
+						.register(this.meterRegistry).record(0, TimeUnit.MILLISECONDS);
+			}
 			this.channelMetrics.afterSend(this.channelMetrics.beforeSend(), true);
 		}
 		return true;

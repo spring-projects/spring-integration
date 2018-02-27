@@ -34,6 +34,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.CollectionUtils;
 
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 
 /**
  * @author Mark Fisher
@@ -65,9 +66,16 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private volatile boolean loggingEnabled = true;
 
+	private MeterRegistry meterRegistry;
+
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = (headerExpressions != null)
 				? headerExpressions : Collections.emptyMap();
+	}
+
+	@Override
+	public void registerMeterRegistry(MeterRegistry registry) {
+		this.meterRegistry = registry;
 	}
 
 	@Override
@@ -191,12 +199,16 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 					.build();
 		}
 		if (this.countsEnabled && message != null) {
-			if (this.counter != null) {
-				this.counter.increment();
+			if (this.meterRegistry != null) {
+				Counter.builder(RECEIVE_COUNTER_NAME)
+					.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+					.tag("type", "source")
+					.tag("result", "success")
+					.tag("exception", "none")
+					.description("Messages received")
+					.register(this.meterRegistry).increment();
 			}
-			else {
-				this.messageCount.incrementAndGet();
-			}
+			this.messageCount.incrementAndGet();
 		}
 		return message;
 	}

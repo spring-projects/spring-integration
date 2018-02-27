@@ -48,6 +48,10 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Sample;
+
 /**
  * Base class for {@link MessageChannel} implementations providing common
  * properties such as the channel name. Also provides the common functionality
@@ -86,6 +90,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics();
 
+	private MeterRegistry meterRegistry;
+
 	public AbstractMessageChannel() {
 		this.interceptors = new ChannelInterceptorList(logger);
 	}
@@ -98,6 +104,15 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
+	}
+
+	@Override
+	public void registerMeterRegistry(MeterRegistry registry) {
+		this.meterRegistry = registry;
+	}
+
+	protected MeterRegistry getMeterRegistry() {
+		return this.meterRegistry;
 	}
 
 	@Override
@@ -417,6 +432,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		boolean countsEnabled = this.countsEnabled;
 		ChannelInterceptorList interceptors = this.interceptors;
 		AbstractMessageChannelMetrics channelMetrics = this.channelMetrics;
+		Sample sample = null;
+		if (this.meterRegistry != null) {
+			sample = Timer.start(this.meterRegistry);
+		}
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
@@ -433,16 +452,22 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				}
 			}
 			if (countsEnabled) {
-				if (channelMetrics.getTimer() != null) {
-					final Message<?> messageToSend = message;
-					sent = channelMetrics.getTimer().recordCallable(() -> doSend(messageToSend, timeout));
+				metrics = channelMetrics.beforeSend();
+				if (this.meterRegistry != null) {
+					sample = Timer.start(this.meterRegistry);
 				}
-				else {
-					metrics = channelMetrics.beforeSend();
-					sent = doSend(message, timeout);
-					channelMetrics.afterSend(metrics, sent);
-					metricsProcessed = true;
+				sent = doSend(message, timeout);
+				if (sample != null) {
+					sample.stop(Timer.builder(SEND_TIMER_NAME)
+							.tag("type", "channel")
+							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+							.tag("result", sent ? "success" : "failure")
+							.tag("exception", "none")
+							.description("Subflow process time")
+							.register(this.meterRegistry));
 				}
+				channelMetrics.afterSend(metrics, sent);
+				metricsProcessed = true;
 			}
 			else {
 				sent = doSend(message, timeout);
@@ -459,12 +484,16 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 		catch (Exception e) {
 			if (countsEnabled && !metricsProcessed) {
-				if (channelMetrics.getErrorCounter() != null) {
-					channelMetrics.getErrorCounter().increment();
+				if (sample != null) {
+					sample.stop(Timer.builder(SEND_TIMER_NAME)
+							.tag("type", "channel")
+							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+							.tag("result", "failure")
+							.tag("exception", e.getClass().getSimpleName())
+							.description("Subflow process time")
+							.register(this.meterRegistry));
 				}
-				else {
-					channelMetrics.afterSend(metrics, false);
-				}
+				channelMetrics.afterSend(metrics, false);
 			}
 			if (interceptorStack != null) {
 				interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);

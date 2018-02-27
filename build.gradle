@@ -120,7 +120,7 @@ subprojects { subproject ->
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
 		log4jVersion = '2.10.0'
-		micrometerVersion = '1.0.0'
+		micrometerVersion = '1.0.1'
 		mockitoVersion = '2.11.0'
 		mysqlVersion = '6.0.6'
 		pahoMqttClientVersion = '1.2.0'

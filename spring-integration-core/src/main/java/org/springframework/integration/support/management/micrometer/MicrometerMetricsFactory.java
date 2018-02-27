@@ -48,8 +48,11 @@ import io.micrometer.core.instrument.MeterRegistry;
  *
  * @since 5.0.2
  *
+ * @deprecated - micrometer metrics are now in-built.
+ *
  * @see org.springframework.integration.support.management.IntegrationManagementConfigurer
  */
+@Deprecated
 public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMetricsConfigurer,
 		ApplicationContextAware, SmartInitializingSingleton {
 
