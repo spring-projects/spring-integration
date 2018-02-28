@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -64,7 +65,7 @@ public class StreamTransformerParserTests {
 	@Test
 	public void directChannelWithStringMessage() {
 		this.directInput.send(new GenericMessage<InputStream>(new ByteArrayInputStream("foo".getBytes())));
-		Message<?> result = output.receive(0);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertArrayEquals("foo".getBytes(), (byte[]) result.getPayload());
 	}
@@ -72,7 +73,7 @@ public class StreamTransformerParserTests {
 	@Test
 	public void queueChannelWithStringMessage() {
 		this.queueInput.send(new GenericMessage<InputStream>(new ByteArrayInputStream("foo".getBytes())));
-		Message<?> result = output.receive(3000);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertArrayEquals("foo".getBytes(), (byte[]) result.getPayload());
 	}
@@ -80,7 +81,7 @@ public class StreamTransformerParserTests {
 	@Test
 	public void charset() {
 		this.charsetChannel.send(new GenericMessage<InputStream>(new ByteArrayInputStream("foo".getBytes())));
-		Message<?> result = output.receive(0);
+		Message<?> result = output.receive(10000);
 		assertNotNull(result);
 		assertEquals("foo", result.getPayload());
 	}
