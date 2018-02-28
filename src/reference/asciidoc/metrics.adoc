@@ -144,7 +144,7 @@ The `Timer` Meters for operations on message handlers have the following name/ta
 The `Counter` meters for message sources have the following names/tags:
 
 - `name` : `spring.integration.receive`
-- `tag` : `type:channel`
+- `tag` : `type:source`
 - `tag` : `name:<componentName>`
 - `tag` : `result:success`
 - `tag` : `exception:none`
