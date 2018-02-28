@@ -267,13 +267,10 @@ subprojects { subproject ->
 project('spring-integration-test-support') {
 	description = 'Spring Integration Test Support - **No SI Dependencies Allowed**'
 	dependencies {
-		compile ("junit:junit:$junitVersion") {
-			exclude group: 'org.hamcrest', module: 'hamcrest-core'
-		}
-		compile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-		compile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group: 'org.hamcrest', module: 'hamcrest-core'
-		}
+		compile "org.hamcrest:hamcrest-core:$hamcrestVersion"
+		compile "org.hamcrest:hamcrest-library:$hamcrestVersion"
+		compile "junit:junit:$junitVersion"
+		compile "org.mockito:mockito-core:$mockitoVersion"
 		compile "org.assertj:assertj-core:$assertjVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-messaging:$springVersion"
