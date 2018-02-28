@@ -24,6 +24,8 @@ import io.micrometer.core.instrument.Counter;
 /**
  * @author Dave Syer
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public interface MessageSourceMetrics extends IntegrationManagement {
@@ -53,7 +55,10 @@ public interface MessageSourceMetrics extends IntegrationManagement {
 	 * Set a micrometer counter to count messages produced.
 	 * @param counter the counter.
 	 * @since 5.0.2
+	 * @deprecated in favor of built-in counter registration via {@code MeterRegistry} callbacks.
+	 * Will be remove in the next release.
 	 */
+	@Deprecated
 	default void setCounter(Counter counter) {
 		// no op
 	}

@@ -50,11 +50,12 @@ import reactor.core.CoreSubscriber;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @IntegrationManagedResource
-public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler,
-		MessageHandlerMetrics, ConfigurableMetricsAware<AbstractMessageHandlerMetrics>, TrackableComponent, Orderable,
-		CoreSubscriber<Message<?>> {
+public abstract class AbstractMessageHandler extends IntegrationObjectSupport
+		implements MessageHandler, MessageHandlerMetrics, ConfigurableMetricsAware<AbstractMessageHandlerMetrics>,
+		TrackableComponent, Orderable, CoreSubscriber<Message<?>> {
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
@@ -75,6 +76,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 	private volatile boolean loggingEnabled = true;
 
 	private MeterRegistry meterRegistry;
+
+	private Timer successTimer;
 
 	@Override
 	public boolean isLoggingEnabled() {
@@ -147,19 +150,13 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		}
 		try {
 			if (this.shouldTrack) {
-				message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
+				message = MessageHistory.write(message, this, getMessageBuilderFactory());
 			}
 			if (countsEnabled) {
 				start = handlerMetrics.beforeHandle();
 				handleMessageInternal(message);
 				if (this.meterRegistry != null) {
-					sample.stop(Timer.builder(SEND_TIMER_NAME)
-							.tag("type", "handler")
-							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-							.tag("result", "success")
-							.tag("exception", "none")
-							.description("Subflow process time")
-							.register(this.meterRegistry));
+					sample.stop(sendTimer());
 				}
 				handlerMetrics.afterHandle(start, true);
 			}
@@ -169,13 +166,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		}
 		catch (Exception e) {
 			if (sample != null) {
-				sample.stop(Timer.builder(SEND_TIMER_NAME)
-						.tag("type", "handler")
-						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-						.tag("result", "failure")
-						.tag("exception", e.getClass().getSimpleName())
-						.description("Subflow process time")
-						.register(this.meterRegistry));
+				sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
 			}
 			if (countsEnabled) {
 				handlerMetrics.afterHandle(start, false);
@@ -185,6 +176,23 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 			}
 			throw new MessageHandlingException(message, "error occurred in message handler [" + this + "]", e);
 		}
+	}
+
+	private Timer sendTimer() {
+		if (this.successTimer == null) {
+			this.successTimer = buildSendTimer(true, "none");
+		}
+		return this.successTimer;
+	}
+
+	private Timer buildSendTimer(boolean success, String exception) {
+		return Timer.builder(SEND_TIMER_NAME)
+				.tag("type", "handler")
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("result", success ? "success" : "failure")
+				.tag("exception", exception)
+				.description("Send processing time")
+				.register(this.meterRegistry);
 	}
 
 	@Override

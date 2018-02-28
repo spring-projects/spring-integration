@@ -124,7 +124,7 @@ public MessageChannel priorityChannel() {
 }
 ----
 
-The same `MessageChannels` builder factory can be used in the `channel()` EIP-method from `IntegrationFlowBuilder` to wire endpoints similar to an`input-channel`/`output-channel` pair in the XML configuration.
+The same `MessageChannels` builder factory can be used in the `channel()` EIP-method from `IntegrationFlowBuilder` to wire endpoints similar to an `input-channel`/`output-channel` pair in the XML configuration.
 By default endpoints are wired via `DirectChannel` s where the bean name is based on the pattern: `[IntegrationFlow.beanName].channel#[channelNameIndex]`.
 This rule is applied for unnamed channels produced by inline `MessageChannels` builder factory usage, too.
 However all `MessageChannels` methods have a `channelId` -aware variant to create the bean names for `MessageChannel` s.

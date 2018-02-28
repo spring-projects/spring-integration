@@ -306,3 +306,5 @@ See <<jdbc>> for more information.
 
 http://micrometer.io/[Micrometer] application monitoring is now supported (since _version 5.0.2_).
 See <<micrometer-integration>> for more information.
+
+IMPORTANT: Changes were made to the Micrometer `Meters` in _version 5.0.3_ to make them more suitable for use in dimensional systems.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import io.micrometer.core.instrument.Timer;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artyem Bilan
  */
 @IntegrationManagedResource
 public class NullChannel implements PollableChannel, MessageChannelMetrics,
@@ -65,6 +66,8 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	private String beanName;
 
 	private MeterRegistry meterRegistry;
+
+	private Timer successTimer;
 
 	@Override
 	public void setBeanName(String beanName) {
@@ -222,28 +225,35 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	}
 
 	@Override
+	public boolean send(Message<?> message, long timeout) {
+		return send(message);
+	}
+
+	@Override
 	public boolean send(Message<?> message) {
 		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
 			this.logger.debug("message sent to null channel: " + message);
 		}
 		if (this.countsEnabled) {
 			if (this.meterRegistry != null) {
-				Timer.builder(SEND_TIMER_NAME)
-						.tag("type", "channel")
-						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-						.tag("result", "success")
-						.tag("exception", "none")
-						.description("Subflow process time")
-						.register(this.meterRegistry).record(0, TimeUnit.MILLISECONDS);
+				sendTimer().record(0, TimeUnit.MILLISECONDS);
 			}
 			this.channelMetrics.afterSend(this.channelMetrics.beforeSend(), true);
 		}
 		return true;
 	}
 
-	@Override
-	public boolean send(Message<?> message, long timeout) {
-		return this.send(message);
+	private Timer sendTimer() {
+		if (this.successTimer == null) {
+			this.successTimer = Timer.builder(SEND_TIMER_NAME)
+					.tag("type", "channel")
+					.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+					.tag("result", "success")
+					.tag("exception", "none")
+					.description("Subflow process time")
+					.register(this.meterRegistry);
+		}
+		return this.successTimer;
 	}
 
 	@Override
