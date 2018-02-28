@@ -32,6 +32,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.AbstractPollableChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
@@ -75,6 +76,9 @@ public class MicrometerMetricsTests {
 	@Autowired
 	private PollableChannel badPoll;
 
+	@Autowired
+	private NullChannel nullChannel;
+
 	@Test
 	public void testSend() {
 		GenericMessage<String> message = new GenericMessage<>("foo");
@@ -97,6 +101,7 @@ public class MicrometerMetricsTests {
 		catch (RuntimeException e) {
 			assertThat(e.getMessage()).isEqualTo("badPoll");
 		}
+		nullChannel.send(message);
 		MeterRegistry registry = this.meterRegistry;
 		assertThat(registry.get("spring.integration.channels").gauge().value()).isEqualTo(5);
 		assertThat(registry.get("spring.integration.handlers").gauge().value()).isEqualTo(2);
@@ -136,6 +141,11 @@ public class MicrometerMetricsTests {
 				.tag("name", "queue")
 				.tag("result", "success")
 				.counter().count()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.send")
+				.tag("name", "nullChannel")
+				.tag("result", "success")
+				.timer().count()).isEqualTo(1);
 
 		BeanDefinitionRegistry beanFactory = (BeanDefinitionRegistry) this.context.getBeanFactory();
 		beanFactory.registerBeanDefinition("newChannel",

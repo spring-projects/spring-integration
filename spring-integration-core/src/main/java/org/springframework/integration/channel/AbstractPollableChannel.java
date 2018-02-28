@@ -42,6 +42,8 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 
 	private volatile int executorInterceptorsSize;
 
+	private Counter receiveCounter;
+
 	@Override
 	public int getReceiveCount() {
 		return getMetrics().getReceiveCount();
@@ -107,13 +109,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 			Message<?> message = this.doReceive(timeout);
 			if (countsEnabled && message != null) {
 				if (getMeterRegistry() != null) {
-					Counter.builder(RECEIVE_COUNTER_NAME)
-						.tag("name", getComponentName())
-						.tag("type", "channel")
-						.tag("result", "success")
-						.tag("exception", "none")
-						.description("Messages received")
-						.register(getMeterRegistry()).increment();
+					incrementReceiveCounter();
 				}
 				getMetrics().afterReceive();
 				counted = true;
@@ -148,6 +144,19 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 			}
 			throw e;
 		}
+	}
+
+	private void incrementReceiveCounter() {
+		if (this.receiveCounter == null) {
+			this.receiveCounter = Counter.builder(RECEIVE_COUNTER_NAME)
+				.tag("name", getComponentName())
+				.tag("type", "channel")
+				.tag("result", "success")
+				.tag("exception", "none")
+				.description("Messages received")
+				.register(getMeterRegistry());
+		}
+		this.receiveCounter.increment();
 	}
 
 	@Override

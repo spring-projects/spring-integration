@@ -76,6 +76,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	private MeterRegistry meterRegistry;
 
+	private Timer successTimer;
+
 	@Override
 	public boolean isLoggingEnabled() {
 		return this.loggingEnabled;
@@ -153,13 +155,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 				start = handlerMetrics.beforeHandle();
 				handleMessageInternal(message);
 				if (this.meterRegistry != null) {
-					sample.stop(Timer.builder(SEND_TIMER_NAME)
-							.tag("type", "handler")
-							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-							.tag("result", "success")
-							.tag("exception", "none")
-							.description("Subflow process time")
-							.register(this.meterRegistry));
+					sample.stop(sendTimer());
 				}
 				handlerMetrics.afterHandle(start, true);
 			}
@@ -174,7 +170,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 						.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 						.tag("result", "failure")
 						.tag("exception", e.getClass().getSimpleName())
-						.description("Subflow process time")
+						.description("Send processing time")
 						.register(this.meterRegistry));
 			}
 			if (countsEnabled) {
@@ -185,6 +181,19 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 			}
 			throw new MessageHandlingException(message, "error occurred in message handler [" + this + "]", e);
 		}
+	}
+
+	private Timer sendTimer() {
+		if (this.successTimer == null) {
+			this.successTimer = Timer.builder(SEND_TIMER_NAME)
+				.tag("type", "handler")
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("result", "success")
+				.tag("exception", "none")
+				.description("Send processing time")
+				.register(this.meterRegistry);
+		}
+		return this.successTimer;
 	}
 
 	@Override

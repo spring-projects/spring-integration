@@ -92,6 +92,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private MeterRegistry meterRegistry;
 
+	private Timer successTimer;
+
+	private Timer failureTimer;
+
 	public AbstractMessageChannel() {
 		this.interceptors = new ChannelInterceptorList(logger);
 	}
@@ -458,13 +462,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				}
 				sent = doSend(message, timeout);
 				if (sample != null) {
-					sample.stop(Timer.builder(SEND_TIMER_NAME)
-							.tag("type", "channel")
-							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-							.tag("result", sent ? "success" : "failure")
-							.tag("exception", "none")
-							.description("Subflow process time")
-							.register(this.meterRegistry));
+					sample.stop(sendTimer(sent));
 				}
 				channelMetrics.afterSend(metrics, sent);
 				metricsProcessed = true;
@@ -490,7 +488,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 							.tag("result", "failure")
 							.tag("exception", e.getClass().getSimpleName())
-							.description("Subflow process time")
+							.description("Send processing time")
 							.register(this.meterRegistry));
 				}
 				channelMetrics.afterSend(metrics, false);
@@ -503,6 +501,33 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 			throw new MessageDeliveryException(message,
 					"failed to send Message to channel '" + this.getComponentName() + "'", e);
+		}
+	}
+
+	private Timer sendTimer(boolean sent) {
+		if (sent) {
+			if (this.successTimer == null) {
+				this.successTimer = Timer.builder(SEND_TIMER_NAME)
+					.tag("type", "channel")
+					.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+					.tag("result", "success")
+					.tag("exception", "none")
+					.description("Send processing time")
+					.register(this.meterRegistry);
+			}
+			return this.successTimer;
+		}
+		else {
+			if (this.failureTimer == null) {
+				this.failureTimer = Timer.builder(SEND_TIMER_NAME)
+					.tag("type", "channel")
+					.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+					.tag("result", "failure")
+					.tag("exception", "none")
+					.description("Send processing time")
+					.register(this.meterRegistry);
+			}
+			return this.failureTimer;
 		}
 	}
 

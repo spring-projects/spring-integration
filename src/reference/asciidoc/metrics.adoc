@@ -63,7 +63,6 @@ Default `false`.
 
 <3> Enable or disable statistical metrics for components not matching one of the patterns in <5>.
 Only applied if you have not explicitly configured the setting in a bean definition.
-Ignored if <<micrometer-integration, Micrometer>> is being used.
 Default 'false'.
 
 <4> A comma-delimited list of patterns for beans for which counts should be enabled; negate the pattern with `!`.
@@ -76,7 +75,6 @@ with `!`.
 First match wins (positive or negative).
 In the unlikely event that you have a bean name starting with `!`, escape the `!` in the pattern: `\!foo` positively
 matches a bean named `!foo`.
-Ignored if <<micrometer-integration, Micrometer>> is being used.
 Stats implies counts.
 
 <6> A reference to a `MetricsFactory`.
@@ -100,31 +98,62 @@ Starting with _version 5.0.2_, the framework will automatically detect if there 
 [[micrometer-integration]]
 ==== Micrometer Integration
 
-Starting with _version 5.0.2_, adding a `MicrometerMetricsFactory` to the application context will switch to using https://micrometer.io/[Micrometer] metrics instead of the inbuilt metrics.
-Simply add the bean, configured with a `MeterRegistry` implementation.
+Starting with _version 5.0.3_, the presence of a  https://micrometer.io/[Micrometer] `MeterRegistry` in the application context will trigger support for Micrometer metrics in addition to the inbuilt metrics (inbuilt metrics will be removed in a future release).
 
-[source, java]
-----
-@Bean
-public MicrometerMetricsFactory metricsFactory(MeterRegistry meterRegistry) {
-    return new MicrometerMetricsFactory(meterRegistry);
-}
-----
+IMPORTANT: Micrometer was first supported in _version 5.0.2_, but changes were made to the Micrometer `Meters` in _version 5.0.3_ to make them more suitable for use in dimensional systems.
 
-For each `MessageHandler` and `MessageChannel`, a timer and errorCounter are registered.
+Simply add a `MeterRegistry` bean of choice to the application context.
+
+For each `MessageHandler` and `MessageChannel`, timers are registered.
 For each `MessageSource`, a counter is registered.
 
 This only applies to objects that extend `AbstractMessageHandler`, `AbstractMessageChannel` and `AbstractMessageSource` respectively (which is the case for most framework components).
 
-The factory provides mechanisms to customize the `Meter` names and tags; refer to the Javadocs for more information.
-
 With Micrometer metrics, the `statsEnabled` flag takes no effect, since statistics capture is delegated to Micrometer.
 The `countsEnabled` flag controls whether the Micrometer `Meter` s are updated when processing each message.
+
+The `Timer` Meters for send operations on message channels have the following name/tags:
+
+- `name` : `spring.integration.send`
+- `tag` : `type:channel`
+- `tag` : `name:<componentName>`
+- `tag` : `result:(success|failure)`
+- `tag` : `exception:(none|exception simple class name)`
+- `description` : `Send processing time`
+
+(A `failure` result with a `none` exception means the channel `send()` operation returned `false`).
+
+The `Timer` Meters for receive operations on pollable message channels have the following names/tags:
+
+- `name` : `spring.integration.receive`
+- `tag` : `type:channel`
+- `tag` : `name:<componentName>`
+- `tag` : `result:(success|failure)`
+- `tag` : `exception:(none|exception simple class name)`
+- `description` : `Messages received`
+
+The `Timer` Meters for operations on message handlers have the following name/tags:
+
+- `name` : `spring.integration.send`
+- `tag` : `type:handler`
+- `tag` : `name:<componentName>`
+- `tag` : `result:(success|failure)`
+- `tag` : `exception:(none|exception simple class name)`
+- `description` : `Send processing time`
+
+The `Counter` meters for message sources have the following names/tags:
+
+- `name` : `spring.integration.receive`
+- `tag` : `type:source`
+- `tag` : `name:<componentName>`
+- `tag` : `result:success`
+- `tag` : `exception:none`
+- `description` : `Messages received`
 
 [[mgmt-channel-features]]
 ==== MessageChannel Metric Features
 
-This only applies if <<micrometer-integration, Micrometer>> is not being used.
+These legacy metrics will be removed in a future release; see <<micrometer-integration>>.
 
 Message channels report metrics according to their concrete type.
 If you are looking at a `DirectChannel`, you will see statistics for the send operation.
@@ -174,7 +203,7 @@ Error ratio is 1 - success ratio.
 [[mgmt-handler-features]]
 ==== MessageHandler Metric Features
 
-This only applies if <<micrometer-integration, Micrometer>> is not being used.
+These legacy metrics will be removed in a future release; see <<micrometer-integration>>.
 
 The following table shows the statistics maintained for message handlers.
 Some metrics are simple counters (message count and error count), and one is an estimate of averages of send duration.
