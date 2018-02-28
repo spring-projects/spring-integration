@@ -60,13 +60,13 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private String managedName;
 
-	private Counter counter;
-
 	private volatile boolean countsEnabled;
 
 	private volatile boolean loggingEnabled = true;
 
 	private MeterRegistry meterRegistry;
+
+	private Counter receiveCounter;
 
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = (headerExpressions != null)
@@ -131,8 +131,8 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
+	@Deprecated
 	public void setCounter(Counter counter) {
-		this.counter = counter;
 	}
 
 	@Override
@@ -200,17 +200,24 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		}
 		if (this.countsEnabled && message != null) {
 			if (this.meterRegistry != null) {
-				Counter.builder(RECEIVE_COUNTER_NAME)
-					.tag("name", getComponentName() == null ? "unknown" : getComponentName())
-					.tag("type", "source")
-					.tag("result", "success")
-					.tag("exception", "none")
-					.description("Messages received")
-					.register(this.meterRegistry).increment();
+				incrementReceiveCounter();
 			}
 			this.messageCount.incrementAndGet();
 		}
 		return message;
+	}
+
+	private void incrementReceiveCounter() {
+		if (this.receiveCounter == null) {
+			this.receiveCounter = Counter.builder(RECEIVE_COUNTER_NAME)
+				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+				.tag("type", "source")
+				.tag("result", "success")
+				.tag("exception", "none")
+				.description("Messages received")
+				.register(this.meterRegistry);
+		}
+		this.receiveCounter.increment();
 	}
 
 	private Map<String, Object> evaluateHeaders() {
