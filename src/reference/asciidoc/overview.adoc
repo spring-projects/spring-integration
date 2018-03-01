@@ -211,6 +211,167 @@ image::images/target-endpoint.jpg[align="center", scaledwidth=100%]
 
 NOTE: As discussed in <<overview-components-channel, Message Channel>> above, channels can be _Pollable_ or _Subscribable_; in this diagram, this is depicted by the "clock" symbol and the solid arrow (poll) and the dotted arrow (subscribe).
 
+[[endpoint-bean-names]]
+==== Endpoint Bean Names
+
+Consuming endpoints (anything with an `inputChannel`) consist of two beans, the consumer and message handler.
+The consumer has a reference to the message handler and invokes it as messages arrive.
+
+When configuring with XML:
+
+[source, xml]
+----
+<int:service-activator id = "someService" ... />
+----
+
+the bean names will be as follows:
+
+- Consumer: `someService` (the `id`)
+- Handler: `someService.handler`
+
+When using EIP annotations, the names depend on several factors.
+
+**When Annotating POJO Methods**
+
+[source, java]
+----
+@Component
+public class SomeComponent {
+
+    @ServiceActivator(inputChannel = ...)
+    public String someMethod(...) {
+        ...
+    }
+
+}
+----
+
+the bean names will be as follows:
+
+- Consumer: `someComponent.someMethod.serviceActivator`
+- Handler: `someComponent.someMethod.serviceActivator.handler`
+
+Starting with _version 5.0.4_, these names can be modified using the `@EndpointId` annotation:
+
+[source, java]
+----
+@Component
+public class SomeComponent {
+
+    @EndpointId("someService")
+    @ServiceActivator(inputChannel = ...)
+    public String someMethod(...) {
+        ...
+    }
+
+}
+----
+
+the bean names will be as follows:
+
+- Consumer: `someService`
+- Handler: `someService.handler`
+
+i.e. `@EndpointId` creates names as created by the `id` attribute with XML configuration.
+
+
+**When Annotating @Beans**
+
+[source, java]
+----
+@Configuratiom
+public class SomeConfiguration {
+
+    @Bean
+    @ServiceActivator(inputChannel = ...)
+    public MessageHandler someHandler() {
+        ...
+    }
+
+}
+----
+
+the bean names will be as follows:
+
+- Consumer: `someConfiguration.someHandler.serviceActivator`
+- Handler: `someHandler` (the `@Bean` name)
+
+Starting with _version 5.0.4_, these names can be modified using the `@EndpointId` annotation:
+
+[source, java]
+----
+@Configuratiom
+public class SomeConfiguration {
+
+    @Bean("someService.handler")
+    @EndpointId("someService")
+    @ServiceActivator(inputChannel = ...)
+    public MessageHandler someHandler() {
+        ...
+    }
+
+}
+----
+
+- Consumer: `someService`
+- Handler: `someService.handler`
+
+i.e. `@EndpointId` creates names as created by the `id` attribute with XML configuration, as long as you use the convention of appending `.handler` to the `@Bean` name.
+
+There is one special case where a third bean is created; for architectural reasons, if a `MessageHandler` `@Bean` does not define an `AbstractReplyProducingMessageHandler`, the framework wraps the provided bean in a `ReplyProducingMessageHandlerWrapper`.
+This wrapper supports request handler advice handling as well as emitting the normal 'produced no reply' debug log messages.
+Its bean name is the handler bean name plus `.wrapper` (when there is an `@EndpointId`, otherwise it's the normal generated handler name).
+
+**Message Sources**
+
+Similarly <<pollable-message-source, Pollable Message Sources>> create two beans, a `SourcePollingChannelAdapter` (SPCA) and a `MessageSource`.
+
+When configuring with XML:
+
+[source, xml]
+----
+<int:inbound-channel-adapter id = "someAdapter" ... />
+----
+
+the bean names will be as follows:
+
+- SPCA: `someAdapter` (the `id`)
+- Handler: `someAdapter.source`
+
+Using `@EndpointId` with Java configuration:
+
+[source, java]
+----
+@EndpointId("someAdapter")
+@InboundChannelAdapter(channel = "channel3", poller = @Poller(fixedDelay = "5000"))
+public String pojoSource() {
+    ...
+}
+----
+
+the bean names will be as follows:
+
+- SPCA: `someAdapter`
+- Handler: `someAdapter.source`
+
+[source, java]
+----
+@Bean("someAdapter.source")
+@EndpointId("someAdapter")
+@InboundChannelAdapter(channel = "channel3", poller = @Poller(fixedDelay = "5000"))
+public MessageSource<?> source() {
+    return () -> {
+        ...
+    };
+}
+----
+
+the bean names will be as follows:
+
+- SPCA: `someAdapter`
+- Handler: `someAdapter.source` (as long as you use the convention of appending `.source` to the `@Bean` name)
+
+
 [[configuration-enable-integration]]
 === Configuration and @EnableIntegration
 

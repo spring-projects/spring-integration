@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.AbstractPollableChannel;
@@ -38,7 +39,9 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -68,6 +71,9 @@ public class MicrometerMetricsTests {
 	private AbstractMessageChannel channel;
 
 	@Autowired
+	private AbstractMessageChannel channel2;
+
+	@Autowired
 	private MessageSource<?> source;
 
 	@Autowired
@@ -90,6 +96,7 @@ public class MicrometerMetricsTests {
 		catch (MessagingException e) {
 			assertThat(e.getCause().getMessage()).isEqualTo("testErrorCount");
 		}
+		this.channel2.send(message);
 		this.queue.send(message);
 		this.queue.send(message);
 		this.queue.receive();
@@ -103,8 +110,8 @@ public class MicrometerMetricsTests {
 		}
 		nullChannel.send(message);
 		MeterRegistry registry = this.meterRegistry;
-		assertThat(registry.get("spring.integration.channels").gauge().value()).isEqualTo(5);
-		assertThat(registry.get("spring.integration.handlers").gauge().value()).isEqualTo(2);
+		assertThat(registry.get("spring.integration.channels").gauge().value()).isEqualTo(6);
+		assertThat(registry.get("spring.integration.handlers").gauge().value()).isEqualTo(3);
 		assertThat(registry.get("spring.integration.sources").gauge().value()).isEqualTo(1);
 
 		assertThat(registry.get("spring.integration.receive")
@@ -118,7 +125,12 @@ public class MicrometerMetricsTests {
 				.counter().count()).isEqualTo(1);
 
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "micrometerMetricsTests.Config.service.serviceActivator.handler")
+				.tag("name", "eipBean.handler")
+				.tag("result", "success")
+				.timer().count()).isEqualTo(1);
+
+		assertThat(registry.get("spring.integration.send")
+				.tag("name", "eipMethod.handler")
 				.tag("result", "success")
 				.timer().count()).isEqualTo(1);
 
@@ -133,7 +145,7 @@ public class MicrometerMetricsTests {
 				.timer().count()).isEqualTo(1);
 
 		assertThat(registry.get("spring.integration.send")
-				.tag("name", "micrometerMetricsTests.Config.service.serviceActivator.handler")
+				.tag("name", "eipMethod.handler")
 				.tag("result", "failure")
 				.timer().count()).isEqualTo(1);
 
@@ -171,10 +183,25 @@ public class MicrometerMetricsTests {
 		}
 
 		@ServiceActivator(inputChannel = "channel")
+		@EndpointId("eipMethod")
 		public void service(String in) {
 			if ("bar".equals(in)) {
 				throw new RuntimeException("testErrorCount");
 			}
+		}
+
+		@Bean("eipBean.handler")
+		@EndpointId("eipBean")
+		@ServiceActivator(inputChannel = "channel2")
+		public MessageHandler replyingHandler() {
+			return new AbstractReplyProducingMessageHandler() {
+
+				@Override
+				protected Object handleRequestMessage(Message<?> requestMessage) {
+					return null;
+				}
+
+			};
 		}
 
 		@Bean

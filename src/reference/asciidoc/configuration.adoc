@@ -598,6 +598,7 @@ public class MyFlowConfiguration {
     public Supplier<Message<String>> messageSupplier() {
         return () -> new GenericMessage<>("foo");
     }
+}
 ----
 
 The meta-annotation rules work on `@Bean` methods as well (`@MyServiceActivator` above can be applied to a `@Bean` definition).
@@ -612,12 +613,13 @@ This works like there is no Messaging Annotation on the `@Bean` method.
 * The `AbstractEndpoint` bean name is generated with the pattern:
 `[configurationComponentName].[methodName].[decapitalizedAnnotationClassShortName]`.
 For example the endpoint (`SourcePollingChannelAdapter`) for the `consoleSource()` definition above gets a bean name like:
-`myFlowConfiguration.consoleSource.inboundChannelAdapter`.
+`myFlowConfiguration.consoleSource.inboundChannelAdapter`. Also see <<endpoint-bean-names>>.
 
 IMPORTANT: When using these annotations on `@Bean` definitions, the `inputChannel` must reference a declared bean; channels are not automatically declared in this case.
 
 NOTE: With Java & Annotation configuration we can use any `@Conditional` (e.g. `@Profile`) definition on the `@Bean`
 method level, meaning to skip the bean registration by some condition reason:
+
 [source,java]
 ----
 @Bean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyProducingMessageHandlerWrapper;
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -176,6 +177,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 		if (!handlerExists) {
 			String handlerBeanName = generateHandlerBeanName(beanName, method);
+			if (handler instanceof ReplyProducingMessageHandlerWrapper
+					&& StringUtils.hasText(MessagingAnnotationPostProcessor.endpointIdValue(method))) {
+				handlerBeanName = handlerBeanName + ".wrapper";
+			}
 			this.beanFactory.registerSingleton(handlerBeanName, handler);
 			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
 		}
@@ -417,12 +422,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	protected String generateHandlerBeanName(String originalBeanName, Method method) {
-		String baseName = originalBeanName + "." + method.getName() + "."
-				+ ClassUtils.getShortNameAsProperty(this.annotationType);
-		String name = baseName;
-		int count = 1;
-		while (this.beanFactory.containsBean(name)) {
-			name = baseName + "#" + (++count);
+		String name = MessagingAnnotationPostProcessor.endpointIdValue(method);
+		if (!StringUtils.hasText(name)) {
+			String baseName = originalBeanName + "." + method.getName() + "."
+					+ ClassUtils.getShortNameAsProperty(this.annotationType);
+			name = baseName;
+			int count = 1;
+			while (this.beanFactory.containsBean(name)) {
+				name = baseName + "#" + (++count);
+			}
 		}
 		return name + IntegrationConfigUtils.HANDLER_ALIAS_SUFFIX;
 	}

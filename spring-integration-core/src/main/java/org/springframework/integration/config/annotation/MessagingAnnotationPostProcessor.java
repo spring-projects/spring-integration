@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
+import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Role;
@@ -55,8 +56,6 @@ import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -76,8 +75,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
-
-	private final MultiValueMap<String, String> lazyLifecycleRoles = new LinkedMultiValueMap<String, String>();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -255,14 +252,22 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	protected String generateBeanName(String originalBeanName, Method method,
 			Class<? extends Annotation> annotationType) {
-		String baseName = originalBeanName + "." + method.getName() + "."
-				+ ClassUtils.getShortNameAsProperty(annotationType);
-		String name = baseName;
-		int count = 1;
-		while (this.beanFactory.containsBean(name)) {
-			name = baseName + "#" + (++count);
+		String name = endpointIdValue(method);
+		if (!StringUtils.hasText(name)) {
+			String baseName = originalBeanName + "." + method.getName() + "."
+					+ ClassUtils.getShortNameAsProperty(annotationType);
+			name = baseName;
+			int count = 1;
+			while (this.beanFactory.containsBean(name)) {
+				name = baseName + "#" + (++count);
+			}
 		}
 		return name;
+	}
+
+	public static String endpointIdValue(Method method) {
+		EndpointId endpointId = AnnotationUtils.findAnnotation(method, EndpointId.class);
+		return endpointId != null ? endpointId.value() : null;
 	}
 
 	protected Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> getPostProcessors() {
