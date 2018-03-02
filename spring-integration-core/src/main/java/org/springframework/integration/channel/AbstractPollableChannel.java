@@ -100,7 +100,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 				logger.trace("preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getSize() > 0) {
-				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+				interceptorStack = new ArrayDeque<>();
 
 				if (!interceptorList.preReceive(this, interceptorStack)) {
 					return null;

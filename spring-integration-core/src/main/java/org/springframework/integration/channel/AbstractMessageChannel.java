@@ -177,12 +177,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * payload type does not match directly, but the 'conversionService' is
 	 * available, then type conversion will be attempted in the order of the
 	 * elements provided in this array.
-	 * <p>
-	 * If this property is not set explicitly, any Message payload type will be
+	 * <p> If this property is not set explicitly, any Message payload type will be
 	 * accepted.
-	 *
 	 * @param datatypes The supported data types.
-	 *
 	 * @see #setMessageConverter(MessageConverter)
 	 */
 	public void setDatatypes(Class<?>... datatypes) {
@@ -193,7 +190,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	/**
 	 * Set the list of channel interceptors. This will clear any existing
 	 * interceptors.
-	 *
 	 * @param interceptors The list of interceptors.
 	 */
 	@Override
@@ -204,7 +200,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	/**
 	 * Add a channel interceptor to the end of the list.
-	 *
 	 * @param interceptor The interceptor.
 	 */
 	@Override
@@ -214,7 +209,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	/**
 	 * Add a channel interceptor to the specified index of the list.
-	 *
 	 * @param index The index to add interceptor.
 	 * @param interceptor The interceptor.
 	 */
@@ -227,16 +221,13 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * Specify the {@link MessageConverter} to use when trying to convert to
 	 * one of this channel's supported datatypes (in order) for a Message whose payload
 	 * does not already match.
-	 * <p>
-	 * <b>Note:</b> only the {@link MessageConverter#fromMessage(Message, Class)}
+	 * <p> <b>Note:</b> only the {@link MessageConverter#fromMessage(Message, Class)}
 	 * method is used. If the returned object is not a {@link Message}, the inbound
 	 * headers will be copied; if the returned object is a {@code Message}, it is
 	 * expected that the converter will have fully populated the headers; no
 	 * further action is performed by the channel. If {@code null} is returned,
 	 * conversion to the next datatype (if any) will be attempted.
-	 *
 	 * Defaults to a {@link DefaultDatatypeChannelMessageConverter}.
-	 *
 	 * @param messageConverter The message converter.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
@@ -263,7 +254,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	/**
 	 * Exposes the interceptor list for subclasses.
-	 *
 	 * @return The channel interceptor list.
 	 */
 	protected ChannelInterceptorList getInterceptors() {
@@ -396,9 +386,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * Send a message on this channel. If the channel is at capacity, this
 	 * method will block until either space becomes available or the sending
 	 * thread is interrupted.
-	 *
 	 * @param message the Message to send
-	 *
 	 * @return <code>true</code> if the message is sent successfully or
 	 * <code>false</code> if the sending thread is interrupted.
 	 */
@@ -413,10 +401,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * is interrupted. If the specified timeout is 0, the method will return
 	 * immediately. If less than zero, it will block indefinitely (see
 	 * {@link #send(Message)}).
-	 *
 	 * @param message the Message to send
 	 * @param timeout the timeout in milliseconds
-	 *
 	 * @return <code>true</code> if the message is sent successfully,
 	 * <code>false</code> if the message cannot be sent within the allotted
 	 * time or the sending thread is interrupted.
@@ -437,9 +423,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		ChannelInterceptorList interceptors = this.interceptors;
 		AbstractMessageChannelMetrics channelMetrics = this.channelMetrics;
 		Sample sample = null;
-		if (this.meterRegistry != null) {
-			sample = Timer.start(this.meterRegistry);
-		}
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
@@ -559,7 +542,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * must return immediately with or without success). A negative timeout
 	 * value indicates that the method should block until either the message is
 	 * accepted or the blocking thread is interrupted.
-	 *
 	 * @param message The message.
 	 * @param timeout The timeout.
 	 * @return true if the send was successful.

@@ -155,7 +155,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 			if (countsEnabled) {
 				start = handlerMetrics.beforeHandle();
 				handleMessageInternal(message);
-				if (this.meterRegistry != null) {
+				if (sample != null) {
 					sample.stop(sendTimer());
 				}
 				handlerMetrics.afterHandle(start, true);
