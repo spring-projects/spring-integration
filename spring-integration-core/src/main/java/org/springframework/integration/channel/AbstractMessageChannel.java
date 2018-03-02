@@ -457,9 +457,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 			if (countsEnabled) {
 				metrics = channelMetrics.beforeSend();
-				if (this.meterRegistry != null) {
-					sample = Timer.start(this.meterRegistry);
-				}
 				sent = doSend(message, timeout);
 				if (sample != null) {
 					sample.stop(sendTimer(sent));
