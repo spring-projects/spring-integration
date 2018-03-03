@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,7 +145,8 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 				success = true; // we have a winner.
 			}
 			catch (Exception e) {
-				RuntimeException runtimeException = this.wrapExceptionIfNecessary(message, e);
+				@SuppressWarnings("deprecation")
+				RuntimeException runtimeException = wrapExceptionIfNecessary(message, e);
 				exceptions.add(runtimeException);
 				this.handleExceptions(exceptions, message, !handlerIterator.hasNext());
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
@@ -27,6 +29,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.GenericMessage;
@@ -34,10 +37,11 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class BridgeHandlerTests {
 
-	private BridgeHandler handler = new BridgeHandler();
+	private final BridgeHandler handler = new BridgeHandler();
 
 	@Factory
 	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
@@ -55,10 +59,16 @@ public class BridgeHandlerTests {
 		assertThat(reply, sameExceptImmutableHeaders(request));
 	}
 
-	@Test(expected = DestinationResolutionException.class)
+	@Test
 	public void missingOutputChannelVerifiedAtRuntime() {
 		Message<?> request = new GenericMessage<String>("test");
-		handler.handleMessage(request);
+		try {
+			handler.handleMessage(request);
+			fail("Expected exception");
+		}
+		catch (MessageHandlingException e) {
+			assertThat(e.getCause(), instanceOf(DestinationResolutionException.class));
+		}
 	}
 
 	@Test(timeout = 1000)
