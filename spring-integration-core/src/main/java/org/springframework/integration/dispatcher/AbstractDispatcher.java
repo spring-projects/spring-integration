@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,6 +123,23 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return false;
 	}
 
+	/**
+	 * If the exception is not a {@link MessagingException} or does not have a
+	 * {@link MessagingException#getFailedMessage() failedMessage}, wrap it in a new
+	 * {@link MessagingException} with the message. There is some inconsistency here in
+	 * that {@link MessagingException}s are wrapped in a {@link MessagingException} whereas
+	 * {@link Exception}s are wrapped in {@link MessageDeliveryException}. It is retained
+	 * for backwards compatibility and will be resolved in 5.1.
+	 * It also does not wrap other {@link RuntimeException}s.
+	 * TODO: Remove this in favor of
+	 * {@code #wrapInDeliveryExceptionIfNecessary(Message, Supplier, Exception)} in 5.1.
+	 * @deprecated in favor of
+	 * {@code IntegrationUtils#wrapInDeliveryExceptionIfNecessary(Message, Supplier, Exception)}
+	 * @param message the message.
+	 * @param e the exception.
+	 * @return the wrapper, if necessary, or the original exception.
+	 */
+	@Deprecated
 	protected RuntimeException wrapExceptionIfNecessary(Message<?> message, Exception e) {
 		RuntimeException runtimeException = (e instanceof RuntimeException)
 				? (RuntimeException) e

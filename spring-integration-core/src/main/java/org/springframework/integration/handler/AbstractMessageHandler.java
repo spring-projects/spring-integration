@@ -30,9 +30,9 @@ import org.springframework.integration.support.management.MessageHandlerMetrics;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -171,10 +171,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 			if (countsEnabled) {
 				handlerMetrics.afterHandle(start, false);
 			}
-			if (e instanceof MessagingException) {
-				throw (MessagingException) e;
-			}
-			throw new MessageHandlingException(message, "error occurred in message handler [" + this + "]", e);
+			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
+					() -> "error occurred in message handler [" + this + "]", e);
 		}
 	}
 

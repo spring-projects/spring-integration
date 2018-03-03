@@ -91,7 +91,7 @@ public class TcpOutboundGatewayTests {
 
 	private static final Log logger = LogFactory.getLog(TcpOutboundGatewayTests.class);
 
-	private AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
 
 	@ClassRule
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
@@ -730,7 +730,7 @@ public class TcpOutboundGatewayTests {
 			fail("expected failure");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause(), instanceOf(EOFException.class));
+			assertThat(e.getCause().getCause(), instanceOf(EOFException.class));
 		}
 		assertEquals(0, TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size());
 		Message<?> reply = replyChannel.receive(0);
@@ -839,7 +839,7 @@ public class TcpOutboundGatewayTests {
 			fail("expected failure");
 		}
 		catch (Exception e) {
-			assertThat(e.getCause(), instanceOf(SocketTimeoutException.class));
+			assertThat(e.getCause().getCause(), instanceOf(SocketTimeoutException.class));
 		}
 		assertEquals(0, TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class).size());
 		Message<?> reply = replyChannel.receive(0);

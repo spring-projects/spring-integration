@@ -39,10 +39,10 @@ import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
@@ -473,11 +473,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			if (interceptorStack != null) {
 				interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
 			}
-			if (e instanceof MessagingException) {
-				throw (MessagingException) e;
-			}
-			throw new MessageDeliveryException(message,
-					"failed to send Message to channel '" + this.getComponentName() + "'", e);
+			throw IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
+					() -> "failed to send Message to channel '" + this.getComponentName() + "'", e);
 		}
 	}
 
