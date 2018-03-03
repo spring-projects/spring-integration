@@ -27,8 +27,11 @@ import org.springframework.integration.support.management.ConfigurableMetricsAwa
 import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageHandlerMetrics;
+import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.support.management.MetricsContext;
+import org.springframework.integration.support.management.SampleFacade;
 import org.springframework.integration.support.management.Statistics;
+import org.springframework.integration.support.management.TimerFacade;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
@@ -36,9 +39,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Timer.Sample;
 import reactor.core.CoreSubscriber;
 
 /**
@@ -75,9 +75,9 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 
 	private volatile boolean loggingEnabled = true;
 
-	private MeterRegistry meterRegistry;
+	private MetricsCaptor metricsCaptor;
 
-	private Timer successTimer;
+	private TimerFacade successTimer;
 
 	@Override
 	public boolean isLoggingEnabled() {
@@ -90,9 +90,10 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		this.managementOverrides.loggingConfigured = true;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void registerMeterRegistry(MeterRegistry meterRegistry) {
-		this.meterRegistry = meterRegistry;
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
+		this.metricsCaptor = metricsCaptor;
 	}
 
 	@Override
@@ -144,9 +145,9 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		MetricsContext start = null;
 		boolean countsEnabled = this.countsEnabled;
 		AbstractMessageHandlerMetrics handlerMetrics = this.handlerMetrics;
-		Sample sample = null;
-		if (countsEnabled && this.meterRegistry != null) {
-			sample = Timer.start(this.meterRegistry);
+		SampleFacade sample = null;
+		if (countsEnabled && this.metricsCaptor != null) {
+			sample = this.metricsCaptor.start();
 		}
 		try {
 			if (this.shouldTrack) {
@@ -176,21 +177,21 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		}
 	}
 
-	private Timer sendTimer() {
+	private TimerFacade sendTimer() {
 		if (this.successTimer == null) {
 			this.successTimer = buildSendTimer(true, "none");
 		}
 		return this.successTimer;
 	}
 
-	private Timer buildSendTimer(boolean success, String exception) {
-		return Timer.builder(SEND_TIMER_NAME)
+	private TimerFacade buildSendTimer(boolean success, String exception) {
+		return this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "handler")
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 				.tag("result", success ? "success" : "failure")
 				.tag("exception", exception)
 				.description("Send processing time")
-				.register(this.meterRegistry);
+				.build();
 	}
 
 	@Override

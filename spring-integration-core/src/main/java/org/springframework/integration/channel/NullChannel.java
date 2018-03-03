@@ -28,14 +28,13 @@ import org.springframework.integration.support.management.ConfigurableMetricsAwa
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageChannelMetrics;
+import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.support.management.Statistics;
+import org.springframework.integration.support.management.TimerFacade;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".
@@ -65,9 +64,9 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	private String beanName;
 
-	private MeterRegistry meterRegistry;
+	private MetricsCaptor metricsCaptor;
 
-	private Timer successTimer;
+	private TimerFacade successTimer;
 
 	@Override
 	public void setBeanName(String beanName) {
@@ -97,8 +96,8 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	}
 
 	@Override
-	public void registerMeterRegistry(MeterRegistry registry) {
-		this.meterRegistry = registry;
+	public void registerMetricsCaptor(MetricsCaptor registry) {
+		this.metricsCaptor = registry;
 	}
 
 	@Override
@@ -235,7 +234,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 			this.logger.debug("message sent to null channel: " + message);
 		}
 		if (this.countsEnabled) {
-			if (this.meterRegistry != null) {
+			if (this.metricsCaptor != null) {
 				sendTimer().record(0, TimeUnit.MILLISECONDS);
 			}
 			this.channelMetrics.afterSend(this.channelMetrics.beforeSend(), true);
@@ -243,15 +242,15 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 		return true;
 	}
 
-	private Timer sendTimer() {
+	private TimerFacade sendTimer() {
 		if (this.successTimer == null) {
-			this.successTimer = Timer.builder(SEND_TIMER_NAME)
+			this.successTimer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 					.tag("type", "channel")
 					.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 					.tag("result", "success")
 					.tag("exception", "none")
 					.description("Subflow process time")
-					.register(this.meterRegistry);
+					.build();
 		}
 		return this.successTimer;
 	}

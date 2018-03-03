@@ -26,21 +26,19 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
+import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
 import org.springframework.integration.util.PatternMatchUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
 
 
 /**
@@ -61,11 +59,11 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 
 	public static final String MANAGEMENT_CONFIGURER_NAME = "integrationManagementConfigurer";
 
-	private final Map<String, MessageChannelMetrics> channelsByName = new HashMap<String, MessageChannelMetrics>();
+	private final Map<String, MessageChannelMetrics> channelsByName = new HashMap<>();
 
-	private final Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
+	private final Map<String, MessageHandlerMetrics> handlersByName = new HashMap<>();
 
-	private final Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
+	private final Map<String, MessageSourceMetrics> sourcesByName = new HashMap<>();
 
 	private final Map<String, MessageSourceMetricsConfigurer> sourceConfigurers = new HashMap<>();
 
@@ -89,7 +87,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 
 	private volatile boolean singletonsInstantiated;
 
-	private MeterRegistry meterRegistry;
+	private MetricsCaptor metricsCaptor;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -214,15 +212,13 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		try {
-			this.meterRegistry = this.applicationContext.getBean(MeterRegistry.class);
+		if (ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry",
+				IntegrationManagementConfigurer.class.getClassLoader())) {
+			this.metricsCaptor = MicrometerMetricsCaptor.loadCaptor(this.applicationContext);
 		}
-		catch (NoSuchBeanDefinitionException e) {
-			// no op
-		}
-		if (this.meterRegistry != null) {
-			injectRegistry(this.meterRegistry);
-			registerComponentGauges(this.meterRegistry);
+		if (this.metricsCaptor != null) {
+			injectCaptor();
+			registerComponentGauges();
 		}
 		if (this.metricsFactory == null && StringUtils.hasText(this.metricsFactoryBeanName)) {
 			this.metricsFactory = this.applicationContext.getBean(this.metricsFactoryBeanName, MetricsFactory.class);
@@ -249,17 +245,14 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		this.singletonsInstantiated = true;
 	}
 
-	/**
-	 * @param registry
-	 */
-	private void injectRegistry(MeterRegistry registry) {
+	private void injectCaptor() {
 		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
 			if (!bean.getOverrides().loggingConfigured) {
 				bean.setLoggingEnabled(this.defaultLoggingEnabled);
 			}
-			bean.registerMeterRegistry(registry);
+			bean.registerMetricsCaptor(this.metricsCaptor);
 		}
 	}
 
@@ -267,7 +260,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (this.singletonsInstantiated) {
 			if (bean instanceof IntegrationManagement) {
-				((IntegrationManagement) bean).registerMeterRegistry(this.meterRegistry);
+				((IntegrationManagement) bean).registerMetricsCaptor(this.metricsCaptor);
 			}
 			return doConfigureMetrics(bean, beanName);
 		}
@@ -370,21 +363,21 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		this.sourcesByName.put(bean.getManagedName() != null ? bean.getManagedName() : name, bean);
 	}
 
-	private void registerComponentGauges(MeterRegistry meterRegistry) {
-		Gauge.builder("spring.integration.channels", this,
+	private void registerComponentGauges() {
+		this.metricsCaptor.gaugeBuilder("spring.integration.channels", this,
 				(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size())
 				.description("The number of message channels")
-				.register(meterRegistry);
+				.build();
 
-		Gauge.builder("spring.integration.handlers", this,
+		this.metricsCaptor.gaugeBuilder("spring.integration.handlers", this,
 				(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size())
 				.description("The number of message handlers")
-				.register(meterRegistry);
+				.build();
 
-		Gauge.builder("spring.integration.sources", this,
+		this.metricsCaptor.gaugeBuilder("spring.integration.sources", this,
 				(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size())
 				.description("The number of message sources")
-				.register(meterRegistry);
+				.build();
 	}
 
 	public String[] getChannelNames() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,13 @@
 
 package org.springframework.integration.support.management;
 
-import org.springframework.jmx.export.annotation.ManagedAttribute;
-
-
 /**
- * Base interface containing methods to control complete statistics gathering.
- *
  * @author Gary Russell
- * @since 4.2
+ * @since 5.0.4
  *
  */
-public interface IntegrationStatsManagement extends IntegrationManagement {
+public interface SampleFacade {
 
-	@ManagedAttribute(description = "Enable all statistics")
-	void setStatsEnabled(boolean statsEnabled);
-
-	@ManagedAttribute
-	boolean isStatsEnabled();
+	void stop(TimerFacade timer);
 
 }
