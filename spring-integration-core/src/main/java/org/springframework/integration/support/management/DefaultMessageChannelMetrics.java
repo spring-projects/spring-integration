@@ -18,9 +18,6 @@ package org.springframework.integration.support.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
-
 /**
  * Default implementation; use the full constructor to customize the moving averages.
  *
@@ -65,7 +62,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 * @param name the name.
 	 */
 	public DefaultMessageChannelMetrics(String name) {
-		this(name, null, null, null, (Counter) null);
+		this(name, null, null, null, (CounterFacade) null);
 	}
 
 	/**
@@ -78,8 +75,8 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 * @param receiveErrorCounter a counter for receive errors.
 	 * @since 5.0.2
 	 */
-	public DefaultMessageChannelMetrics(String name, Timer timer, Counter errorCounter, Counter receiveCounter,
-			Counter receiveErrorCounter) {
+	public DefaultMessageChannelMetrics(String name, TimerFacade<Object> timer, CounterFacade errorCounter, CounterFacade receiveCounter,
+			CounterFacade receiveErrorCounter) {
 
 		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.),
 				new ExponentialMovingAverageRate(
@@ -126,8 +123,8 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 */
 	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
 			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
-			ExponentialMovingAverageRate sendRate, Timer timer, Counter errorCounter, Counter receiveCounter,
-			Counter receiveErrorCounter) {
+			ExponentialMovingAverageRate sendRate, TimerFacade<Object> timer, CounterFacade errorCounter, CounterFacade receiveCounter,
+			CounterFacade receiveErrorCounter) {
 
 		super(name, timer, errorCounter, receiveCounter, receiveErrorCounter);
 		this.sendDuration = sendDuration;

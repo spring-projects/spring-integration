@@ -18,8 +18,8 @@ package org.springframework.integration.support.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
+import org.springframework.integration.support.management.CounterFacade;
+import org.springframework.integration.support.management.TimerFacade;
 
 /**
  * Default implementation; use the full constructor to customize the moving averages.
@@ -60,7 +60,7 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	 * @param errorCounter a counter.
 	 * @since 5.0.2
 	 */
-	public DefaultMessageHandlerMetrics(String name, Timer timer, Counter errorCounter) {
+	public DefaultMessageHandlerMetrics(String name, TimerFacade timer, CounterFacade errorCounter) {
 		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.), timer,
 				errorCounter);
 	}
@@ -87,8 +87,8 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	 * @param errorCounter a counter.
 	 * @since 5.0.2
 	 */
-	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration, Timer timer,
-			Counter errorCounter) {
+	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration, TimerFacade timer,
+			CounterFacade errorCounter) {
 		super(name, timer, errorCounter);
 		this.duration = duration;
 	}

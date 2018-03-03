@@ -26,15 +26,14 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.management.CounterFacade;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageSourceMetrics;
+import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.CollectionUtils;
-
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 
 /**
  * @author Mark Fisher
@@ -64,9 +63,9 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private volatile boolean loggingEnabled = true;
 
-	private MeterRegistry meterRegistry;
+	private MetricsCaptor<?> metricsCaptor;
 
-	private Counter receiveCounter;
+	private CounterFacade receiveCounter;
 
 	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = (headerExpressions != null)
@@ -74,8 +73,8 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public void registerMeterRegistry(MeterRegistry registry) {
-		this.meterRegistry = registry;
+	public void registerMetricsCaptor(MetricsCaptor<?> metricsCaptor) {
+		this.metricsCaptor = metricsCaptor;
 	}
 
 	@Override
@@ -194,7 +193,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 					.build();
 		}
 		if (this.countsEnabled && message != null) {
-			if (this.meterRegistry != null) {
+			if (this.metricsCaptor != null) {
 				incrementReceiveCounter();
 			}
 			this.messageCount.incrementAndGet();
@@ -204,13 +203,13 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private void incrementReceiveCounter() {
 		if (this.receiveCounter == null) {
-			this.receiveCounter = Counter.builder(RECEIVE_COUNTER_NAME)
+			this.receiveCounter = this.metricsCaptor.counterBuilder(RECEIVE_COUNTER_NAME)
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 				.tag("type", "source")
 				.tag("result", "success")
 				.tag("exception", "none")
 				.description("Messages received")
-				.register(this.meterRegistry);
+				.build();
 		}
 		this.receiveCounter.increment();
 	}

@@ -22,9 +22,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
-
 /**
  * Abstract base class for channel metrics implementations.
  *
@@ -39,13 +36,13 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 
 	protected final String name;
 
-	private final Timer timer;
+	private final TimerFacade<Object> timer;
 
-	private final Counter errorCounter;
+	private final CounterFacade errorCounter;
 
-	private final Counter receiveCounter;
+	private final CounterFacade receiveCounter;
 
-	private final Counter receiveErrorCounter;
+	private final CounterFacade receiveErrorCounter;
 
 	private volatile boolean fullStatsEnabled;
 
@@ -69,8 +66,8 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @param receiveErrorCounter the receive error counter.
 	 * @since 5.0.2
 	 */
-	public AbstractMessageChannelMetrics(String name, Timer timer, Counter errorCounter, Counter receiveCounter,
-			Counter receiveErrorCounter) {
+	public AbstractMessageChannelMetrics(String name, TimerFacade<Object> timer, CounterFacade errorCounter, CounterFacade receiveCounter,
+			CounterFacade receiveErrorCounter) {
 
 		if (timer != null) {
 			Assert.notNull(errorCounter, "'errorCounter' cannot be null if a timer is provided");
@@ -122,7 +119,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @since 5.0.2
 	 */
 	@Nullable
-	public Timer getTimer() {
+	public TimerFacade<Object> getTimer() {
 		return this.timer;
 	}
 
@@ -132,7 +129,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @since 5.0.2
 	 */
 	@Nullable
-	public Counter getErrorCounter() {
+	public CounterFacade getErrorCounter() {
 		return this.errorCounter;
 	}
 
@@ -142,7 +139,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @since 5.0.2
 	 */
 	@Nullable
-	public Counter getReceiveCounter() {
+	public CounterFacade getReceiveCounter() {
 		return this.receiveCounter;
 	}
 
@@ -152,7 +149,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @since 5.0.2
 	 */
 	@Nullable
-	public Counter getReceiveErrorCounter() {
+	public CounterFacade getReceiveErrorCounter() {
 		return this.receiveErrorCounter;
 	}
 

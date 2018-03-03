@@ -20,14 +20,13 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import org.springframework.integration.support.management.CounterFacade;
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.util.CollectionUtils;
-
-import io.micrometer.core.instrument.Counter;
 
 /**
  * Base class for all pollable channels.
@@ -42,7 +41,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 
 	private volatile int executorInterceptorsSize;
 
-	private Counter receiveCounter;
+	private CounterFacade receiveCounter;
 
 	@Override
 	public int getReceiveCount() {
@@ -108,7 +107,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 			}
 			Message<?> message = this.doReceive(timeout);
 			if (countsEnabled && message != null) {
-				if (getMeterRegistry() != null) {
+				if (getMetricsCaptor() != null) {
 					incrementReceiveCounter();
 				}
 				getMetrics().afterReceive();
@@ -128,14 +127,14 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		}
 		catch (RuntimeException e) {
 			if (countsEnabled && !counted) {
-				if (getMeterRegistry() != null) {
-					Counter.builder(RECEIVE_COUNTER_NAME)
+				if (getMetricsCaptor() != null) {
+					getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
 							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 							.tag("type", "channel")
 							.tag("result", "failure")
 							.tag("exception", e.getClass().getSimpleName())
 							.description("Messages received")
-							.register(getMeterRegistry())
+							.build()
 							.increment();
 				}
 				getMetrics().afterError();
@@ -149,13 +148,13 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 
 	private void incrementReceiveCounter() {
 		if (this.receiveCounter == null) {
-			this.receiveCounter = Counter.builder(RECEIVE_COUNTER_NAME)
+			this.receiveCounter = getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
 					.tag("name", getComponentName())
 					.tag("type", "channel")
 					.tag("result", "success")
 					.tag("exception", "none")
 					.description("Messages received")
-					.register(getMeterRegistry());
+					.build();
 		}
 		this.receiveCounter.increment();
 	}

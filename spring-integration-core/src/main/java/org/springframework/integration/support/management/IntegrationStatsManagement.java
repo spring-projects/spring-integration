@@ -18,8 +18,8 @@ package org.springframework.integration.support.management;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
+import org.springframework.integration.support.management.CounterFacade;
+import org.springframework.integration.support.management.TimerFacade;
 
 
 /**
@@ -42,7 +42,7 @@ public interface IntegrationStatsManagement extends IntegrationManagement {
 	 * @param timer the timer.
 	 * @since 5.0.2
 	 */
-	default void setTimer(Timer timer) {
+	default void setTimer(TimerFacade timer) {
 		// no op
 	}
 
@@ -51,7 +51,7 @@ public interface IntegrationStatsManagement extends IntegrationManagement {
 	 * @param counter the counter.
 	 * @since 5.0.2
 	 */
-	default void setErrorCounter(Counter counter) {
+	default void setErrorCounter(CounterFacade counter) {
 		// no op
 	}
 

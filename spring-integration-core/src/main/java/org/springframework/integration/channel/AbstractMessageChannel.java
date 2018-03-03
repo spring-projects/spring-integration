@@ -36,8 +36,10 @@ import org.springframework.integration.support.management.ConfigurableMetricsAwa
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageChannelMetrics;
+import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
+import org.springframework.integration.support.management.TimerFacade;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
@@ -47,10 +49,6 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Timer.Sample;
 
 /**
  * Base class for {@link MessageChannel} implementations providing common
@@ -90,11 +88,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics();
 
-	private MeterRegistry meterRegistry;
+	private MetricsCaptor<Object> metricsCaptor;
 
-	private Timer successTimer;
+	private TimerFacade<Object> successTimer;
 
-	private Timer failureTimer;
+	private TimerFacade<Object> failureTimer;
 
 	public AbstractMessageChannel() {
 		this.interceptors = new ChannelInterceptorList(logger);
@@ -110,13 +108,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		this.shouldTrack = shouldTrack;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void registerMeterRegistry(MeterRegistry registry) {
-		this.meterRegistry = registry;
+	public void registerMetricsCaptor(MetricsCaptor<?> metricsCaptor) {
+		this.metricsCaptor = (MetricsCaptor<Object>) metricsCaptor;
 	}
 
-	protected MeterRegistry getMeterRegistry() {
-		return this.meterRegistry;
+	protected MetricsCaptor<Object> getMetricsCaptor() {
+		return this.metricsCaptor;
 	}
 
 	@Override
@@ -422,7 +421,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		boolean countsEnabled = this.countsEnabled;
 		ChannelInterceptorList interceptors = this.interceptors;
 		AbstractMessageChannelMetrics channelMetrics = this.channelMetrics;
-		Sample sample = null;
+		Object sample = null;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
@@ -440,12 +439,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 			if (countsEnabled) {
 				metrics = channelMetrics.beforeSend();
-				if (this.meterRegistry != null) {
-					sample = Timer.start(this.meterRegistry);
+				if (this.metricsCaptor != null) {
+					sample = this.metricsCaptor.start();
 				}
 				sent = doSend(message, timeout);
 				if (sample != null) {
-					sample.stop(sendTimer(sent));
+					sendTimer(sent).stop(sample);
 				}
 				channelMetrics.afterSend(metrics, sent);
 				metricsProcessed = true;
@@ -466,7 +465,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		catch (Exception e) {
 			if (countsEnabled && !metricsProcessed) {
 				if (sample != null) {
-					sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
+					buildSendTimer(false, e.getClass().getSimpleName()).stop(sample);
 				}
 				channelMetrics.afterSend(metrics, false);
 			}
@@ -478,7 +477,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
-	private Timer sendTimer(boolean sent) {
+	private TimerFacade<Object> sendTimer(boolean sent) {
 		if (sent) {
 			if (this.successTimer == null) {
 				this.successTimer = buildSendTimer(true, "none");
@@ -493,14 +492,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
-	private Timer buildSendTimer(boolean success, String exception) {
-		return Timer.builder(SEND_TIMER_NAME)
+	private TimerFacade<Object> buildSendTimer(boolean success, String exception) {
+		return this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "channel")
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 				.tag("result", success ? "success" : "failure")
 				.tag("exception", exception)
 				.description("Send processing time")
-				.register(this.meterRegistry);
+				.build();
 	}
 
 	private Message<?> convertPayloadIfNecessary(Message<?> message) {

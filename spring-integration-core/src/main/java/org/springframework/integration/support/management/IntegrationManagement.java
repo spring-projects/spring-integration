@@ -19,8 +19,6 @@ package org.springframework.integration.support.management;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
-import io.micrometer.core.instrument.MeterRegistry;
-
 /**
  * Base interface for Integration managed components.
  *
@@ -59,11 +57,11 @@ public interface IntegrationManagement {
 	ManagementOverrides getOverrides();
 
 	/**
-	 * Inject a micrometer {@link MeterRegistry}
+	 * Inject a micrometer {@link MetricsCaptor}
 	 * @param registry the registry.
 	 * @since 5.0.3
 	 */
-	default void registerMeterRegistry(MeterRegistry registry) {
+	default void registerMetricsCaptor(MetricsCaptor<?> registry) {
 		// no op
 	}
 

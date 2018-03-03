@@ -20,8 +20,8 @@ import org.springframework.context.Lifecycle;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
+import org.springframework.integration.support.management.CounterFacade;
+import org.springframework.integration.support.management.TimerFacade;
 
 /**
  * A {@link MessageHandlerMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
@@ -191,12 +191,12 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 	}
 
 	@Override
-	public void setTimer(Timer timer) {
+	public void setTimer(TimerFacade timer) {
 		this.delegate.setTimer(timer);
 	}
 
 	@Override
-	public void setErrorCounter(Counter counter) {
+	public void setErrorCounter(CounterFacade counter) {
 		this.delegate.setErrorCounter(counter);
 	}
 
