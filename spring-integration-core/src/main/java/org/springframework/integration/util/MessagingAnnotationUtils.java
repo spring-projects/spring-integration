@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
@@ -115,6 +116,17 @@ public final class MessagingAnnotationUtils {
 			}
 		}
 		return match;
+	}
+
+	/**
+	 * Return the {@link EndpointId#value()} property, if present.
+	 * @param method the methods.
+	 * @return the id, or null.
+	 * @since 5.0.4
+	 */
+	public static String endpointIdValue(Method method) {
+		EndpointId endpointId = AnnotationUtils.findAnnotation(method, EndpointId.class);
+		return endpointId != null ? endpointId.value() : null;
 	}
 
 	private static Class<?> getTargetClass(Object targetObject) {

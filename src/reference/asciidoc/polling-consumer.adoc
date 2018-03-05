@@ -22,6 +22,7 @@ You can find a description of the pattern on the book's website at:
 
 http://www.enterpriseintegrationpatterns.com/PollingConsumer.html[http://www.enterpriseintegrationpatterns.com/PollingConsumer.html]
 
+[[pollable-message-source]]
 ==== Pollable Message Source
 
 Furthermore, in Spring Integration a second variation of the Polling Consumer pattern exists.
