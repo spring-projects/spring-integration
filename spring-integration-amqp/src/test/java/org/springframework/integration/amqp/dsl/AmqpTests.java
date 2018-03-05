@@ -21,10 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.AfterClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.AnonymousQueue;
@@ -35,7 +33,8 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.junit.BrokerRunning;
+import org.springframework.amqp.rabbit.junit.RabbitAvailable;
+import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +57,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Artem Bilan
@@ -66,14 +65,11 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 5.0
  */
-@RunWith(SpringRunner.class)
+@SpringJUnitConfig
+@RabbitAvailable(queues = { "amqpOutboundInput", "amqpReplyChannel", "asyncReplies",
+							"defaultReplyTo", "si.dsl.test", "testTemplateChannelTransacted" })
 @DirtiesContext
 public class AmqpTests {
-
-	@ClassRule
-	public static BrokerRunning brokerRunning =
-			BrokerRunning.isRunningWithEmptyQueues("amqpOutboundInput", "amqpReplyChannel", "asyncReplies",
-					"defaultReplyTo", "si.dsl.test", "testTemplateChannelTransacted");
 
 	@Autowired
 	private ConnectionFactory rabbitConnectionFactory;
@@ -95,9 +91,9 @@ public class AmqpTests {
 	@Autowired
 	private Lifecycle asyncOutboundGateway;
 
-	@AfterClass
+	@AfterAll
 	public static void tearDown() {
-		brokerRunning.removeTestQueues();
+		RabbitAvailableCondition.getBrokerRunning().removeTestQueues();
 	}
 
 	@Test
