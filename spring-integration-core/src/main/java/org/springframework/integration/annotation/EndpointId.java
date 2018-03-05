@@ -18,13 +18,12 @@ package org.springframework.integration.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * When used alongside an EIP annotation (and no {@code @Bean}) specifies the bean name of
+ * When used alongside an EIP annotation (and no {@code @Bean}), specifies the bean name of
  * the consumer bean with the handler bean being {@code id.handler} (for a consuming
  * endpoint) or {@code id.source} for a message source (e.g. inbound channel adapter).
  * <p>
@@ -34,6 +33,8 @@ import java.lang.annotation.Target;
  * {@code foo.handler} when using {@code @EndpointId("foo"}. This will align with
  * conventions in the framework. Similarly, for a message source, use
  * {@code @Bean("bar.source"} and {@code @EndpointId("bar")}.
+ * <p>
+ * <b>This is not allowed if there are multiple EIP annotations on the same method.</b>
  *
  * @author Gary Russell
  *
@@ -41,13 +42,12 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
 public @interface EndpointId {
 
 	/**
 	 * @return the id
 	 */
-	String value() default "";
+	String value();
 
 }

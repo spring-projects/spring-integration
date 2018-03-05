@@ -147,7 +147,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					}
 				}
 			}
-
+			if (StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))
+					&& annotationChains.keySet().size() > 1) {
+				throw new IllegalStateException("@EndpointId on " + method.toGenericString()
+						+ " can only have one EIP annotation, found: " + annotationChains.keySet().size());
+			}
 			for (Entry<Class<? extends Annotation>, List<Annotation>> entry : annotationChains.entrySet()) {
 				Class<? extends Annotation> annotationType = entry.getKey();
 				List<Annotation> annotations = entry.getValue();
@@ -221,7 +225,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		List<Annotation> annotationChain = new LinkedList<Annotation>();
 		Set<Annotation> visited = new HashSet<Annotation>();
 		for (Annotation ann : annotations) {
-			this.recursiveFindAnnotation(annotationType, ann, annotationChain, visited);
+			recursiveFindAnnotation(annotationType, ann, annotationChain, visited);
 			if (annotationChain.size() > 0) {
 				Collections.reverse(annotationChain);
 				return annotationChain;
@@ -240,7 +244,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			if (!ann.equals(metaAnn) && !visited.contains(metaAnn)
 					&& !(metaAnn.annotationType().getPackage().getName().startsWith("java.lang"))) {
 				visited.add(metaAnn); // prevent infinite recursion if the same annotation is found again
-				if (this.recursiveFindAnnotation(annotationType, metaAnn, annotationChain, visited)) {
+				if (recursiveFindAnnotation(annotationType, metaAnn, annotationChain, visited)) {
 					annotationChain.add(ann);
 					return true;
 				}
