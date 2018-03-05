@@ -116,7 +116,10 @@ subprojects { subproject ->
 		jrubyVersion = '9.1.5.0'
 		jschVersion = '0.1.54'
 		jsonpathVersion = '2.4.0'
-		junitVersion = '4.12'
+		junit4Version = '4.12'
+		junitJupiterVersion = '5.1.0'
+		junitPlatformVersion = '1.1.0'
+		junitVintageVersion = '5.1.0'
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
 		log4jVersion = '2.10.0'
@@ -160,6 +163,16 @@ subprojects { subproject ->
 		if (!(subproject.name ==~ /.*-test.*/)) {
 			testCompile project(":spring-integration-test-support")
 		}
+
+		testCompile "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+		testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+		testRuntime "org.junit.platform:junit-platform-launcher:$junitPlatformVersion"
+
+		// To support JUnit 4 tests
+		testRuntime "org.junit.vintage:junit-vintage-engine:$junitVintageVersion"
+
+		// To avoid compiler warnings about @API annotations in JUnit code
+		testCompileOnly 'org.apiguardian:apiguardian-api:1.0.0'
 
 		testRuntime "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
 		testRuntime "org.apache.logging.log4j:log4j-jcl:$log4jVersion"
@@ -269,7 +282,9 @@ project('spring-integration-test-support') {
 	dependencies {
 		compile "org.hamcrest:hamcrest-core:$hamcrestVersion"
 		compile "org.hamcrest:hamcrest-library:$hamcrestVersion"
-		compile "junit:junit:$junitVersion"
+		compile "junit:junit:$junit4Version"
+		compile ("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion", optional)
+		compileOnly 'org.apiguardian:apiguardian-api:1.0.0'
 		compile "org.mockito:mockito-core:$mockitoVersion"
 		compile "org.assertj:assertj-core:$assertjVersion"
 		compile "org.springframework:spring-context:$springVersion"
