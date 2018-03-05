@@ -178,7 +178,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (!handlerExists) {
 			String handlerBeanName = generateHandlerBeanName(beanName, method);
 			if (handler instanceof ReplyProducingMessageHandlerWrapper
-					&& StringUtils.hasText(MessagingAnnotationPostProcessor.endpointIdValue(method))) {
+					&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
 				handlerBeanName = handlerBeanName + ".wrapper";
 			}
 			this.beanFactory.registerSingleton(handlerBeanName, handler);
@@ -422,7 +422,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	protected String generateHandlerBeanName(String originalBeanName, Method method) {
-		String name = MessagingAnnotationPostProcessor.endpointIdValue(method);
+		String name = MessagingAnnotationUtils.endpointIdValue(method);
 		if (!StringUtils.hasText(name)) {
 			String baseName = originalBeanName + "." + method.getName() + "."
 					+ ClassUtils.getShortNameAsProperty(this.annotationType);

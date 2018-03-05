@@ -43,7 +43,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
-import org.springframework.integration.annotation.EndpointId;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Role;
@@ -252,7 +251,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	protected String generateBeanName(String originalBeanName, Method method,
 			Class<? extends Annotation> annotationType) {
-		String name = endpointIdValue(method);
+		String name = MessagingAnnotationUtils.endpointIdValue(method);
 		if (!StringUtils.hasText(name)) {
 			String baseName = originalBeanName + "." + method.getName() + "."
 					+ ClassUtils.getShortNameAsProperty(annotationType);
@@ -263,11 +262,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			}
 		}
 		return name;
-	}
-
-	public static String endpointIdValue(Method method) {
-		EndpointId endpointId = AnnotationUtils.findAnnotation(method, EndpointId.class);
-		return endpointId != null ? endpointId.value() : null;
 	}
 
 	protected Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> getPostProcessors() {
