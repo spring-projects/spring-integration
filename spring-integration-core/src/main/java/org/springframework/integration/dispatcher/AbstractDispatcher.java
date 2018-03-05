@@ -133,11 +133,11 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * It also does not wrap other {@link RuntimeException}s.
 	 * TODO: Remove this in favor of
 	 * {@code #wrapInDeliveryExceptionIfNecessary(Message, Supplier, Exception)} in 5.1.
-	 * @deprecated in favor of
-	 * {@code IntegrationUtils#wrapInDeliveryExceptionIfNecessary(Message, Supplier, Exception)}
 	 * @param message the message.
 	 * @param e the exception.
 	 * @return the wrapper, if necessary, or the original exception.
+	 * @deprecated in favor of
+	 * {@code IntegrationUtils#wrapInDeliveryExceptionIfNecessary(Message, Supplier, Exception)}
 	 */
 	@Deprecated
 	protected RuntimeException wrapExceptionIfNecessary(Message<?> message, Exception e) {
