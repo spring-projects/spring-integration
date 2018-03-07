@@ -207,7 +207,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 		@SuppressWarnings("unused")
 		private final Gauge gauge;
 
-		public MicroGauge(Gauge gauge) {
+		MicroGauge(Gauge gauge) {
 			this.gauge = gauge;
 		}
 
