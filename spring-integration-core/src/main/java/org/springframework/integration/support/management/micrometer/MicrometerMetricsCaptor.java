@@ -42,24 +42,24 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	private final MeterRegistry meterRegistry;
 
-		public MicrometerMetricsCaptor(MeterRegistry meterRegistry) {
+	public MicrometerMetricsCaptor(MeterRegistry meterRegistry) {
 		Assert.notNull(meterRegistry, "meterRgistry cannot be null");
 		this.meterRegistry = meterRegistry;
 	}
 
 	@Override
 	public TimerBuilder timerBuilder(String name) {
-		return new MicroTimerBuilder(name);
+		return new MicroTimerBuilder(this.meterRegistry, name);
 	}
 
 	@Override
 	public CounterBuilder counterBuilder(String name) {
-		return new MicroCounterBuilder(name);
+		return new MicroCounterBuilder(this.meterRegistry, name);
 	}
 
 	@Override
 	public GaugeBuilder gaugeBuilder(String name, Object obj, ToDoubleFunction<Object> f) {
-		return new MicroGaugeBuilder(name, obj, f);
+		return new MicroGaugeBuilder(this.meterRegistry, name, obj, f);
 	}
 
 	@Override
@@ -82,11 +82,14 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	private class MicroTimerBuilder implements TimerBuilder {
+	private static class MicroTimerBuilder implements TimerBuilder {
+
+		private final MeterRegistry meterRegistry;
 
 		private final Timer.Builder builder;
 
-		MicroTimerBuilder(String name) {
+		MicroTimerBuilder(MeterRegistry meterRegistry, String name) {
+			this.meterRegistry = meterRegistry;
 			this.builder = Timer.builder(name);
 		}
 
@@ -104,22 +107,17 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public MicroTimer build() {
-			return new MicroTimer(this.builder.register(MicrometerMetricsCaptor.this.meterRegistry));
+			return new MicroTimer(this.builder.register(this.meterRegistry));
 		}
 
 	}
 
-	private class MicroTimer implements TimerFacade {
+	private static class MicroTimer implements TimerFacade {
 
 		private final Timer timer;
 
 		MicroTimer(Timer timer) {
 			this.timer = timer;
-		}
-
-		@Override
-		public SampleFacade start(MetricsCaptor captor) {
-			return new MicroSample(Timer.start(MicrometerMetricsCaptor.this.meterRegistry));
 		}
 
 		@Override
@@ -129,11 +127,14 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	private class MicroCounterBuilder implements CounterBuilder {
+	private static class MicroCounterBuilder implements CounterBuilder {
+
+		private final MeterRegistry meterRegistry;
 
 		private final Counter.Builder builder;
 
-		MicroCounterBuilder(String name) {
+		MicroCounterBuilder(MeterRegistry meterRegistry, String name) {
+			this.meterRegistry = meterRegistry;
 			this.builder = Counter.builder(name);
 		}
 
@@ -151,12 +152,12 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public CounterFacade build() {
-			return new MicroCounter(this.builder.register(MicrometerMetricsCaptor.this.meterRegistry));
+			return new MicroCounter(this.builder.register(this.meterRegistry));
 		}
 
 	}
 
-	private class MicroCounter implements CounterFacade {
+	private static class MicroCounter implements CounterFacade {
 
 		private final Counter counter;
 
@@ -171,11 +172,14 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	private class MicroGaugeBuilder implements GaugeBuilder {
+	private static class MicroGaugeBuilder implements GaugeBuilder {
+
+		private final MeterRegistry meterRegistry;
 
 		private final Gauge.Builder<Object> builder;
 
-		MicroGaugeBuilder(String name, Object obj, ToDoubleFunction<Object> f) {
+		MicroGaugeBuilder(MeterRegistry meterRegistry, String name, Object obj, ToDoubleFunction<Object> f) {
+			this.meterRegistry = meterRegistry;
 			this.builder = Gauge.builder(name, obj, f);
 		}
 
@@ -193,13 +197,19 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public GaugeFacade build() {
-			this.builder.register(MicrometerMetricsCaptor.this.meterRegistry);
-			return new MicroGauge();
+			return new MicroGauge(this.builder.register(this.meterRegistry));
 		}
 
 	}
 
-	private class MicroGauge implements GaugeFacade {
+	private static class MicroGauge implements GaugeFacade {
+
+		@SuppressWarnings("unused")
+		private final Gauge gauge;
+
+		public MicroGauge(Gauge gauge) {
+			this.gauge = gauge;
+		}
 
 	}
 

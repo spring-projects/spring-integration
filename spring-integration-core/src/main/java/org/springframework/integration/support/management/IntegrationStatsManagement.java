@@ -34,22 +34,4 @@ public interface IntegrationStatsManagement extends IntegrationManagement {
 	@ManagedAttribute
 	boolean isStatsEnabled();
 
-	/**
-	 * Set a micrometer timer to time operations.
-	 * @param timer the timer.
-	 * @since 5.0.2
-	 */
-	default void setTimer(TimerFacade timer) {
-		// no op
-	}
-
-	/**
-	 * Set a micrometer counter to count errors.
-	 * @param counter the counter.
-	 * @since 5.0.2
-	 */
-	default void setErrorCounter(CounterFacade counter) {
-		// no op
-	}
-
 }

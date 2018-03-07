@@ -187,14 +187,4 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		return this.delegate.getOverrides();
 	}
 
-	@Override
-	public void setTimer(TimerFacade timer) {
-		this.delegate.setTimer(timer);
-	}
-
-	@Override
-	public void setErrorCounter(CounterFacade counter) {
-		this.delegate.setErrorCounter(counter);
-	}
-
 }

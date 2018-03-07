@@ -25,9 +25,6 @@ import java.util.concurrent.TimeUnit;
  */
 public interface TimerFacade {
 
-	SampleFacade start(MetricsCaptor captor);
-
 	void record(long time, TimeUnit unit);
 
 }
-
