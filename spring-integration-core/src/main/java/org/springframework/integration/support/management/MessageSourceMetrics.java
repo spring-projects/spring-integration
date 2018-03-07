@@ -19,8 +19,6 @@ package org.springframework.integration.support.management;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 
-import org.springframework.integration.support.management.CounterFacade;
-
 /**
  * @author Dave Syer
  * @author Gary Russell

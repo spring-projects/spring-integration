@@ -32,6 +32,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 
 /**
+ * The Micrometer implementation of {@link MetricsCaptor}.
+ *
  * @author Gary Russell
  * @since 5.0.4
  *
@@ -69,7 +71,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		private final Timer.Sample sample;
 
-		public MicroSample(Timer.Sample sample) {
+		MicroSample(Timer.Sample sample) {
 			this.sample = sample;
 		}
 
@@ -102,7 +104,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public MicroTimer build() {
-			return new MicroTimer(this.builder.register(meterRegistry));
+			return new MicroTimer(this.builder.register(MicrometerMetricsCaptor.this.meterRegistry));
 		}
 
 	}
@@ -149,7 +151,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public CounterFacade build() {
-			return new MicroCounter(this.builder.register(meterRegistry));
+			return new MicroCounter(this.builder.register(MicrometerMetricsCaptor.this.meterRegistry));
 		}
 
 	}
@@ -191,7 +193,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public GaugeFacade build() {
-			this.builder.register(meterRegistry);
+			this.builder.register(MicrometerMetricsCaptor.this.meterRegistry);
 			return new MicroGauge();
 		}
 

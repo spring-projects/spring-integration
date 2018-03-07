@@ -18,9 +18,6 @@ package org.springframework.integration.support.management;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 
-import org.springframework.integration.support.management.CounterFacade;
-import org.springframework.integration.support.management.TimerFacade;
-
 
 /**
  * Base interface containing methods to control complete statistics gathering.

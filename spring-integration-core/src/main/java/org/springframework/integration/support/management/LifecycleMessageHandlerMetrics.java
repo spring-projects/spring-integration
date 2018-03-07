@@ -20,9 +20,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 
-import org.springframework.integration.support.management.CounterFacade;
-import org.springframework.integration.support.management.TimerFacade;
-
 /**
  * A {@link MessageHandlerMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
  * be used to stop and start polling endpoints, for instance, in a live system.
