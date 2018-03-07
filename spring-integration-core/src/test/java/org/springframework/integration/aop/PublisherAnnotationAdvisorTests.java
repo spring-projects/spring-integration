@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,26 +29,26 @@ import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.annotation.Payload;
 
 /**
  * @author Mark Fisher
+ * @author Jeff Maxwell
+ *
  * @since 2.0
  */
 public class PublisherAnnotationAdvisorTests {
 
 	private final StaticApplicationContext context = new StaticApplicationContext();
 
-
 	@Before
 	public void setup() {
 		context.registerSingleton("testChannel", QueueChannel.class);
 		context.registerSingleton("testMetaChannel", QueueChannel.class);
 	}
-
 
 	@Test
 	public void annotationAtMethodLevelOnVoidReturnWithParamAnnotation() {
@@ -120,6 +120,75 @@ public class PublisherAnnotationAdvisorTests {
 		assertEquals("foo", message.getPayload());
 	}
 
+	@Test
+	public void annotationViaValueAtMethodLevelOnVoidReturnWithParamAnnotation() {
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
+		advisor.setBeanFactory(context);
+		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
+		ProxyFactory pf = new ProxyFactory(new AnnotationViaValueAtMethodLevelTestBeanImpl());
+		pf.addAdvisor(advisor);
+		TestVoidBean proxy = (TestVoidBean) pf.getProxy();
+		proxy.testVoidMethod("foo");
+		Message<?> message = testChannel.receive(0);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
+
+	@Test
+	public void annotationViaValueAtMethodLevel() {
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
+		advisor.setBeanFactory(context);
+		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
+		ProxyFactory pf = new ProxyFactory(new AnnotationViaValueAtMethodLevelTestBeanImpl());
+		pf.addAdvisor(advisor);
+		TestBean proxy = (TestBean) pf.getProxy();
+		proxy.test();
+		Message<?> message = testChannel.receive(0);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
+
+	@Test
+	public void annotationViaValueAtClassLevel() {
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
+		advisor.setBeanFactory(context);
+		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
+		ProxyFactory pf = new ProxyFactory(new AnnotationViaValueAtClassLevelTestBeanImpl());
+		pf.addAdvisor(advisor);
+		TestBean proxy = (TestBean) pf.getProxy();
+		proxy.test();
+		Message<?> message = testChannel.receive(0);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
+
+	@Test
+	public void metaAnnotationViaValueAtMethodLevel() {
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
+		advisor.setBeanFactory(context);
+		QueueChannel testMetaChannel = context.getBean("testMetaChannel", QueueChannel.class);
+		ProxyFactory pf = new ProxyFactory(new MetaAnnotationViaValueAtMethodLevelTestBeanImpl());
+		pf.addAdvisor(advisor);
+		TestBean proxy = (TestBean) pf.getProxy();
+		proxy.test();
+		Message<?> message = testMetaChannel.receive(0);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
+
+	@Test
+	public void metaAnnotationViaValueAtClassLevel() {
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
+		advisor.setBeanFactory(context);
+		QueueChannel testMetaChannel = context.getBean("testMetaChannel", QueueChannel.class);
+		ProxyFactory pf = new ProxyFactory(new MetaAnnotationViaValueAtClassLevelTestBeanImpl());
+		pf.addAdvisor(advisor);
+		TestBean proxy = (TestBean) pf.getProxy();
+		proxy.test();
+		Message<?> message = testMetaChannel.receive(0);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
 
 	interface TestBean {
 
@@ -127,58 +196,114 @@ public class PublisherAnnotationAdvisorTests {
 
 	}
 
-
 	interface TestVoidBean {
 
 		void testVoidMethod(String s);
 
 	}
 
-
 	static class AnnotationAtMethodLevelTestBeanImpl implements TestBean, TestVoidBean {
 
+		@Override
 		@Publisher(channel = "testChannel")
 		public String test() {
 			return "foo";
 		}
 
+		@Override
 		@Publisher(channel = "testChannel")
-		public void testVoidMethod(@Payload String s) { }
-	}
+		public void testVoidMethod(@Payload String s) {
+		}
 
+	}
 
 	@Publisher(channel = "testChannel")
 	static class AnnotationAtClassLevelTestBeanImpl implements TestBean {
 
+		@Override
 		public String test() {
 			return "foo";
 		}
 
 	}
 
-
-	@Target({ElementType.METHOD, ElementType.TYPE})
+	@Target({ ElementType.METHOD, ElementType.TYPE })
 	@Retention(RetentionPolicy.RUNTIME)
 	@Publisher(channel = "testMetaChannel")
 	public @interface TestMetaPublisher {
-	}
 
+	}
 
 	static class MetaAnnotationAtMethodLevelTestBeanImpl implements TestBean {
 
+		@Override
 		@TestMetaPublisher
 		public String test() {
 			return "foo";
 		}
-	}
 
+	}
 
 	@TestMetaPublisher
 	static class MetaAnnotationAtClassLevelTestBeanImpl implements TestBean {
 
+		@Override
 		public String test() {
 			return "foo";
 		}
+
+	}
+
+	static class AnnotationViaValueAtMethodLevelTestBeanImpl implements TestBean, TestVoidBean {
+
+		@Override
+		@Publisher("testChannel")
+		public String test() {
+			return "foo";
+		}
+
+		@Override
+		@Publisher("testChannel")
+		public void testVoidMethod(@Payload String s) {
+		}
+
+	}
+
+	@Publisher("testChannel")
+	static class AnnotationViaValueAtClassLevelTestBeanImpl implements TestBean {
+
+		@Override
+		public String test() {
+			return "foo";
+		}
+
+	}
+
+	@Target({ ElementType.METHOD, ElementType.TYPE })
+	@Retention(RetentionPolicy.RUNTIME)
+	@Publisher("testMetaChannel")
+	public @interface TestMetaPublisherViaValue {
+
+	}
+
+	static class MetaAnnotationViaValueAtMethodLevelTestBeanImpl implements TestBean {
+
+		@Override
+		@TestMetaPublisherViaValue
+		public String test() {
+			return "foo";
+		}
+
+	}
+
+	@TestMetaPublisherViaValue
+	static class MetaAnnotationViaValueAtClassLevelTestBeanImpl implements TestBean {
+
+		@Override
+		public String test() {
+			return "foo";
+		}
+
 	}
 
 }
