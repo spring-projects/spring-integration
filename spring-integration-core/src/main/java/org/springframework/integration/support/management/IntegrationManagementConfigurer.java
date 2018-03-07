@@ -86,7 +86,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 
 	private volatile boolean singletonsInstantiated;
 
-	private MetricsCaptor<Object> metricsCaptor;
+	private MetricsCaptor metricsCaptor;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -206,7 +206,6 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		this.defaultLoggingEnabled = defaultLoggingEnabled;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void afterSingletonsInstantiated() {
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");

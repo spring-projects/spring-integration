@@ -57,11 +57,11 @@ public interface IntegrationManagement {
 	ManagementOverrides getOverrides();
 
 	/**
-	 * Inject a micrometer {@link MetricsCaptor}
-	 * @param registry the registry.
+	 * Inject a {@link MetricsCaptor}
+	 * @param captor the captor.
 	 * @since 5.0.3
 	 */
-	default void registerMetricsCaptor(MetricsCaptor<?> registry) {
+	default void registerMetricsCaptor(MetricsCaptor captor) {
 		// no op
 	}
 

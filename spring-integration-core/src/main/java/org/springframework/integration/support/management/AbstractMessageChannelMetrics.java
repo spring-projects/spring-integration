@@ -19,9 +19,6 @@ package org.springframework.integration.support.management;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-
 /**
  * Abstract base class for channel metrics implementations.
  *
@@ -36,14 +33,6 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 
 	protected final String name;
 
-	private final TimerFacade<Object> timer;
-
-	private final CounterFacade errorCounter;
-
-	private final CounterFacade receiveCounter;
-
-	private final CounterFacade receiveErrorCounter;
-
 	private volatile boolean fullStatsEnabled;
 
 	/**
@@ -51,32 +40,7 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * @param name the name.
 	 */
 	public AbstractMessageChannelMetrics(String name) {
-		this(name, null, null, null, null);
-	}
-
-	/**
-	 * Construct an instance with the provided name, timer, error counter, receive counter
-	 * and receive error counter.
-	 * A non-null timer requires a non-null error counter. When a timer is provided,
-	 * Micrometer metrics are used and the legacy metrics are not maintained.
-	 * @param name the name.
-	 * @param timer the timer.
-	 * @param errorCounter the error counter.
-	 * @param receiveCounter the receive counter.
-	 * @param receiveErrorCounter the receive error counter.
-	 * @since 5.0.2
-	 */
-	public AbstractMessageChannelMetrics(String name, TimerFacade<Object> timer, CounterFacade errorCounter, CounterFacade receiveCounter,
-			CounterFacade receiveErrorCounter) {
-
-		if (timer != null) {
-			Assert.notNull(errorCounter, "'errorCounter' cannot be null if a timer is provided");
-		}
 		this.name = name;
-		this.timer = timer;
-		this.errorCounter = errorCounter;
-		this.receiveCounter = receiveCounter;
-		this.receiveErrorCounter = receiveErrorCounter;
 	}
 
 	/**
@@ -112,46 +76,6 @@ public abstract class AbstractMessageChannelMetrics implements ConfigurableMetri
 	 * Reset all counters/statistics.
 	 */
 	public abstract void reset();
-
-	/**
-	 * Return the timer if Micrometer metrics are being used.
-	 * @return the timer, or null to indicate Micrometer is not being used.
-	 * @since 5.0.2
-	 */
-	@Nullable
-	public TimerFacade<Object> getTimer() {
-		return this.timer;
-	}
-
-	/**
-	 * Return the error counter if Micrometer metrics are being used.
-	 * @return the counter or null if Micrometer is not being used.
-	 * @since 5.0.2
-	 */
-	@Nullable
-	public CounterFacade getErrorCounter() {
-		return this.errorCounter;
-	}
-
-	/**
-	 * Return the receive counter if Micrometer metrics are being used.
-	 * @return the counter or null if Micrometer is not being used.
-	 * @since 5.0.2
-	 */
-	@Nullable
-	public CounterFacade getReceiveCounter() {
-		return this.receiveCounter;
-	}
-
-	/**
-	 * Return the receive error counter if Micrometer metrics are being used.
-	 * @return the counter or null if Micrometer is not being used.
-	 * @since 5.0.2
-	 */
-	@Nullable
-	public CounterFacade getReceiveErrorCounter() {
-		return this.receiveErrorCounter;
-	}
 
 	public abstract int getSendCount();
 

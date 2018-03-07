@@ -18,9 +18,6 @@ package org.springframework.integration.support.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.integration.support.management.CounterFacade;
-import org.springframework.integration.support.management.TimerFacade;
-
 /**
  * Default implementation; use the full constructor to customize the moving averages.
  *
@@ -50,19 +47,7 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	 * @param name the name.
 	 */
 	public DefaultMessageHandlerMetrics(String name) {
-		this(name, null, null);
-	}
-
-	/**
-	 * Construct an instance with the default moving average window (10).
-	 * @param name the name.
-	 * @param timer a timer.
-	 * @param errorCounter a counter.
-	 * @since 5.0.2
-	 */
-	public DefaultMessageHandlerMetrics(String name, TimerFacade timer, CounterFacade errorCounter) {
-		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.), timer,
-				errorCounter);
+		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.));
 	}
 
 	/**
@@ -74,22 +59,7 @@ public class DefaultMessageHandlerMetrics extends AbstractMessageHandlerMetrics 
 	 * @since 4.2
 	 */
 	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration) {
-		this(name, duration, null, null);
-	}
-
-	/**
-	 * Construct an instance with the supplied {@link ExponentialMovingAverage} calculating
-	 * the duration of processing by the message handler (and any downstream synchronous
-	 * endpoints).
-	 * @param name the name.
-	 * @param duration an {@link ExponentialMovingAverage} for calculating the duration.
-	 * @param timer a timer.
-	 * @param errorCounter a counter.
-	 * @since 5.0.2
-	 */
-	public DefaultMessageHandlerMetrics(String name, ExponentialMovingAverage duration, TimerFacade timer,
-			CounterFacade errorCounter) {
-		super(name, timer, errorCounter);
+		super(name);
 		this.duration = duration;
 	}
 

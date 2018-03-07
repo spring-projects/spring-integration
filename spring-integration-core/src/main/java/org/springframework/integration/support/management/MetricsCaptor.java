@@ -25,23 +25,23 @@ import org.springframework.lang.Nullable;
  * @since 5.0.4
  *
  */
-public interface MetricsCaptor<T> {
+public interface MetricsCaptor {
 
-	TimerBuilder<T> timerBuilder(String name);
+	TimerBuilder timerBuilder(String name);
 
 	CounterBuilder counterBuilder(String name);
 
 	GaugeBuilder gaugeBuilder(String name, @Nullable Object obj, ToDoubleFunction<Object> f);
 
-	T start();
+	SampleFacade start();
 
-	interface TimerBuilder<T> {
+	interface TimerBuilder {
 
-		TimerBuilder<T> tag(String key, String value);
+		TimerBuilder tag(String key, String value);
 
-		TimerBuilder<T> description(String desc);
+		TimerBuilder description(String desc);
 
-		TimerFacade<T> build();
+		TimerFacade build();
 
 	}
 

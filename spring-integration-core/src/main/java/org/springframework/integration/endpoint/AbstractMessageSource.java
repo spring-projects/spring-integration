@@ -63,7 +63,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 
 	private volatile boolean loggingEnabled = true;
 
-	private MetricsCaptor<?> metricsCaptor;
+	private MetricsCaptor metricsCaptor;
 
 	private CounterFacade receiveCounter;
 
@@ -73,7 +73,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	}
 
 	@Override
-	public void registerMetricsCaptor(MetricsCaptor<?> metricsCaptor) {
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
 		this.metricsCaptor = metricsCaptor;
 	}
 

@@ -29,6 +29,7 @@ import org.springframework.integration.support.management.IntegrationManagedReso
 import org.springframework.integration.support.management.MessageHandlerMetrics;
 import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.support.management.MetricsContext;
+import org.springframework.integration.support.management.SampleFacade;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TimerFacade;
 import org.springframework.integration.support.management.TrackableComponent;
@@ -74,9 +75,9 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 
 	private volatile boolean loggingEnabled = true;
 
-	private MetricsCaptor<Object> metricsCaptor;
+	private MetricsCaptor metricsCaptor;
 
-	private TimerFacade<Object> successTimer;
+	private TimerFacade successTimer;
 
 	@Override
 	public boolean isLoggingEnabled() {
@@ -91,8 +92,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void registerMetricsCaptor(MetricsCaptor<?> metricsCaptor) {
-		this.metricsCaptor = (MetricsCaptor<Object>) metricsCaptor;
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
+		this.metricsCaptor = metricsCaptor;
 	}
 
 	@Override
@@ -144,7 +145,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		MetricsContext start = null;
 		boolean countsEnabled = this.countsEnabled;
 		AbstractMessageHandlerMetrics handlerMetrics = this.handlerMetrics;
-		Object sample = null;
+		SampleFacade sample = null;
 		if (countsEnabled && this.metricsCaptor != null) {
 			sample = this.metricsCaptor.start();
 		}
@@ -156,7 +157,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 				start = handlerMetrics.beforeHandle();
 				handleMessageInternal(message);
 				if (sample != null) {
-					sendTimer().stop(sample);
+					sample.stop(sendTimer());
 				}
 				handlerMetrics.afterHandle(start, true);
 			}
@@ -166,7 +167,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		}
 		catch (Exception e) {
 			if (sample != null) {
-				buildSendTimer(false, e.getClass().getSimpleName()).stop(sample);
+				sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
 			}
 			if (countsEnabled) {
 				handlerMetrics.afterHandle(start, false);
@@ -176,14 +177,14 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		}
 	}
 
-	private TimerFacade<Object> sendTimer() {
+	private TimerFacade sendTimer() {
 		if (this.successTimer == null) {
 			this.successTimer = buildSendTimer(true, "none");
 		}
 		return this.successTimer;
 	}
 
-	private TimerFacade<Object> buildSendTimer(boolean success, String exception) {
+	private TimerFacade buildSendTimer(boolean success, String exception) {
 		return this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "handler")
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())

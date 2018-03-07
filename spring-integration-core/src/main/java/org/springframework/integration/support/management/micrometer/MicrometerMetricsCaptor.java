@@ -22,6 +22,7 @@ import java.util.function.ToDoubleFunction;
 import org.springframework.integration.support.management.CounterFacade;
 import org.springframework.integration.support.management.GaugeFacade;
 import org.springframework.integration.support.management.MetricsCaptor;
+import org.springframework.integration.support.management.SampleFacade;
 import org.springframework.integration.support.management.TimerFacade;
 import org.springframework.util.Assert;
 
@@ -29,14 +30,13 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Timer.Sample;
 
 /**
  * @author Gary Russell
  * @since 5.0.4
  *
  */
-public class MicrometerMetricsCaptor implements MetricsCaptor<Timer.Sample> {
+public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	private final MeterRegistry meterRegistry;
 
@@ -46,63 +46,78 @@ public class MicrometerMetricsCaptor implements MetricsCaptor<Timer.Sample> {
 	}
 
 	@Override
-	public TimerBuilder<Sample> timerBuilder(String name) {
-		return new MuTimerBuilder(name);
+	public TimerBuilder timerBuilder(String name) {
+		return new MicroTimerBuilder(name);
 	}
 
 	@Override
 	public CounterBuilder counterBuilder(String name) {
-		return new MuCounterBuilder(name);
+		return new MicroCounterBuilder(name);
 	}
 
 	@Override
 	public GaugeBuilder gaugeBuilder(String name, Object obj, ToDoubleFunction<Object> f) {
-		return new MuGaugeBuilder(name, obj, f);
+		return new MicroGaugeBuilder(name, obj, f);
 	}
 
 	@Override
-	public Sample start() {
-		return Timer.start(this.meterRegistry);
+	public SampleFacade start() {
+		return new MicroSample(Timer.start(this.meterRegistry));
 	}
 
-	private class MuTimerBuilder implements TimerBuilder<Timer.Sample> {
+	private class MicroSample implements SampleFacade {
+
+		private final Timer.Sample sample;
+
+		public MicroSample(Timer.Sample sample) {
+			this.sample = sample;
+		}
+
+		@Override
+		public void stop(TimerFacade timer) {
+			this.sample.stop(((MicroTimer) timer).timer);
+		}
+
+	}
+
+	private class MicroTimerBuilder implements TimerBuilder {
 
 		private final Timer.Builder builder;
 
-		MuTimerBuilder(String name) {
+		MicroTimerBuilder(String name) {
 			this.builder = Timer.builder(name);
 		}
 
 		@Override
-		public MuTimerBuilder tag(String key, String value) {
+		public MicroTimerBuilder tag(String key, String value) {
 			this.builder.tag(key, value);
 			return this;
 		}
 
 		@Override
-		public MuTimerBuilder description(String desc) {
+		public MicroTimerBuilder description(String desc) {
 			this.builder.description(desc);
 			return this;
 		}
 
 		@Override
-		public MuTimer build() {
-			return new MuTimer(this.builder.register(meterRegistry));
+		public MicroTimer build() {
+			return new MicroTimer(this.builder.register(meterRegistry));
 		}
 
 	}
 
-	private class MuTimer implements TimerFacade<Timer.Sample> {
+	private class MicroTimer implements TimerFacade {
 
 		private final Timer timer;
 
-		MuTimer(Timer timer) {
+		MicroTimer(Timer timer) {
 			this.timer = timer;
 		}
 
 		@Override
-		public void stop(Sample sample) {
-			sample.stop(this.timer);
+		public SampleFacade start(MetricsCaptor captor) {
+			return new MicroSample(Timer.start(MicrometerMetricsCaptor.this.meterRegistry));
 		}
 
 		@Override
@@ -112,11 +127,11 @@ public class MicrometerMetricsCaptor implements MetricsCaptor<Timer.Sample> {
 
 	}
 
-	private class MuCounterBuilder implements CounterBuilder {
+	private class MicroCounterBuilder implements CounterBuilder {
 
 		private final Counter.Builder builder;
 
-		MuCounterBuilder(String name) {
+		MicroCounterBuilder(String name) {
 			this.builder = Counter.builder(name);
 		}
 
@@ -134,16 +149,16 @@ public class MicrometerMetricsCaptor implements MetricsCaptor<Timer.Sample> {
 
 		@Override
 		public CounterFacade build() {
-			return new MuCounter(this.builder.register(meterRegistry));
+			return new MicroCounter(this.builder.register(meterRegistry));
 		}
 
 	}
 
-	private class MuCounter implements CounterFacade {
+	private class MicroCounter implements CounterFacade {
 
 		private final Counter counter;
 
-		MuCounter(Counter counter) {
+		MicroCounter(Counter counter) {
 			this.counter = counter;
 		}
 
@@ -154,11 +169,11 @@ public class MicrometerMetricsCaptor implements MetricsCaptor<Timer.Sample> {
 
 	}
 
-	private class MuGaugeBuilder implements GaugeBuilder {
+	private class MicroGaugeBuilder implements GaugeBuilder {
 
 		private final Gauge.Builder<Object> builder;
 
-		MuGaugeBuilder(String name, Object obj, ToDoubleFunction<Object> f) {
+		MicroGaugeBuilder(String name, Object obj, ToDoubleFunction<Object> f) {
 			this.builder = Gauge.builder(name, obj, f);
 		}
 
@@ -177,12 +192,12 @@ public class MicrometerMetricsCaptor implements MetricsCaptor<Timer.Sample> {
 		@Override
 		public GaugeFacade build() {
 			this.builder.register(meterRegistry);
-			return new MuGauge();
+			return new MicroGauge();
 		}
 
 	}
 
-	private class MuGauge implements GaugeFacade {
+	private class MicroGauge implements GaugeFacade {
 
 	}
 

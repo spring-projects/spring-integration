@@ -30,7 +30,6 @@ import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.integration.support.management.MessageSourceMetricsConfigurer;
 import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.support.management.MetricsFactory;
-import org.springframework.integration.support.management.TimerFacade;
 import org.springframework.util.Assert;
 
 /**
@@ -54,10 +53,10 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 
 	/**
 	 * Construct an instance with the provided {@link MetricsCaptor}.
-	 * @param meterRegistry the registry.
+	 * @param captor the registry.
 	 */
-	public MicrometerMetricsFactory(MetricsCaptor<?> meterRegistry) {
-		Assert.notNull(meterRegistry, "'meterRegistry' cannot be null");
+	public MicrometerMetricsFactory(MetricsCaptor captor) {
+		Assert.notNull(captor, "'meterRegistry' cannot be null");
 	}
 
 	@Override
@@ -168,20 +167,17 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 
 	@Override
 	public AbstractMessageChannelMetrics createChannelMetrics(String name) {
-		return new DefaultMessageChannelMetrics(name,
-				(TimerFacade<Object>) null, null, null, null);
+		return new DefaultMessageChannelMetrics(name);
 	}
 
 	@Override
 	public AbstractMessageChannelMetrics createPollableChannelMetrics(String name) {
-		return new DefaultMessageChannelMetrics(name,
-				(TimerFacade<Object>) null, null, null, null);
+		return new DefaultMessageChannelMetrics(name);
 	}
 
 	@Override
 	public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
-		return new DefaultMessageHandlerMetrics(name,
-				(TimerFacade<Object>) null, null);
+		return new DefaultMessageHandlerMetrics(name);
 	}
 
 	@Override

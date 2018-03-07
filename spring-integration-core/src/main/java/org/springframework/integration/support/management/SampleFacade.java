@@ -16,18 +16,13 @@
 
 package org.springframework.integration.support.management;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * @author Gary Russell
  * @since 5.0.4
  *
  */
-public interface TimerFacade {
+public interface SampleFacade {
 
-	SampleFacade start(MetricsCaptor captor);
-
-	void record(long time, TimeUnit unit);
+	void stop(TimerFacade timer);
 
 }
-

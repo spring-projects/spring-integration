@@ -64,9 +64,9 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	private String beanName;
 
-	private MetricsCaptor<Object> metricsCaptor;
+	private MetricsCaptor metricsCaptor;
 
-	private TimerFacade<Object> successTimer;
+	private TimerFacade successTimer;
 
 	@Override
 	public void setBeanName(String beanName) {
@@ -95,10 +95,9 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 		return "channel";
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public void registerMetricsCaptor(MetricsCaptor<?> registry) {
-		this.metricsCaptor = (MetricsCaptor<Object>) registry;
+	public void registerMetricsCaptor(MetricsCaptor registry) {
+		this.metricsCaptor = registry;
 	}
 
 	@Override
@@ -243,7 +242,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 		return true;
 	}
 
-	private TimerFacade<Object> sendTimer() {
+	private TimerFacade sendTimer() {
 		if (this.successTimer == null) {
 			this.successTimer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 					.tag("type", "channel")

@@ -38,6 +38,7 @@ import org.springframework.integration.support.management.IntegrationManagedReso
 import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.support.management.MetricsContext;
+import org.springframework.integration.support.management.SampleFacade;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TimerFacade;
 import org.springframework.integration.support.management.TrackableComponent;
@@ -88,11 +89,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics();
 
-	private MetricsCaptor<Object> metricsCaptor;
+	private MetricsCaptor metricsCaptor;
 
-	private TimerFacade<Object> successTimer;
+	private TimerFacade successTimer;
 
-	private TimerFacade<Object> failureTimer;
+	private TimerFacade failureTimer;
 
 	public AbstractMessageChannel() {
 		this.interceptors = new ChannelInterceptorList(logger);
@@ -108,13 +109,12 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		this.shouldTrack = shouldTrack;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public void registerMetricsCaptor(MetricsCaptor<?> metricsCaptor) {
-		this.metricsCaptor = (MetricsCaptor<Object>) metricsCaptor;
+	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
+		this.metricsCaptor = metricsCaptor;
 	}
 
-	protected MetricsCaptor<Object> getMetricsCaptor() {
+	protected MetricsCaptor getMetricsCaptor() {
 		return this.metricsCaptor;
 	}
 
@@ -421,7 +421,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		boolean countsEnabled = this.countsEnabled;
 		ChannelInterceptorList interceptors = this.interceptors;
 		AbstractMessageChannelMetrics channelMetrics = this.channelMetrics;
-		Object sample = null;
+		SampleFacade sample = null;
 		try {
 			if (this.datatypes.length > 0) {
 				message = this.convertPayloadIfNecessary(message);
@@ -444,7 +444,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				}
 				sent = doSend(message, timeout);
 				if (sample != null) {
-					sendTimer(sent).stop(sample);
+					sample.stop(sendTimer(sent));
 				}
 				channelMetrics.afterSend(metrics, sent);
 				metricsProcessed = true;
@@ -465,7 +465,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		catch (Exception e) {
 			if (countsEnabled && !metricsProcessed) {
 				if (sample != null) {
-					buildSendTimer(false, e.getClass().getSimpleName()).stop(sample);
+					sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
 				}
 				channelMetrics.afterSend(metrics, false);
 			}
@@ -477,7 +477,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
-	private TimerFacade<Object> sendTimer(boolean sent) {
+	private TimerFacade sendTimer(boolean sent) {
 		if (sent) {
 			if (this.successTimer == null) {
 				this.successTimer = buildSendTimer(true, "none");
@@ -492,7 +492,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 	}
 
-	private TimerFacade<Object> buildSendTimer(boolean success, String exception) {
+	private TimerFacade buildSendTimer(boolean success, String exception) {
 		return this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "channel")
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
