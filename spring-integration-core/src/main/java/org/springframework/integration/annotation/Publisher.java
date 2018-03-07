@@ -21,21 +21,21 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.core.annotation.AliasFor;
+
 /**
- * Annotation to indicate that a method, or all public methods if applied at
- * class-level, should publish Messages.
+ * Annotation to indicate that a method, or all public methods if applied at class-level,
+ * should publish Messages.
  * <p>
  * By default, the Message will be constructed from the return value of the method
- * invocation
- * and sent to a channel specified by the {@link #channel()} attribute.
- * However, a combination of both @Payload and @Header annotations
- * can be used to further manage the message structure. See the reference manual for
- * examples.
+ * invocation and sent to a channel specified by the {@link #channel()} attribute.
+ * However, a combination of both @Payload and @Header annotations can be used to further
+ * manage the message structure. See the reference manual for examples.
  * <p>
  * Note: unlike @Gateway, this annotation is used to generate an AOP Advice for an
- * existing service and its method implementation. The message sending is a side effect
- * of the real method invocation and is invoked after the method returns.
- * The advised method(s) are not aware of the messaging interaction.
+ * existing service and its method implementation. The message sending is a side effect of
+ * the real method invocation and is invoked after the method returns. The advised
+ * method(s) are not aware of the messaging interaction.
  * <p>
  * The XML equivalent is {@code <int:publishing-interceptor>}
  *
@@ -44,13 +44,22 @@ import java.lang.annotation.Target;
  * @since 2.0
  * @see org.springframework.integration.aop.MessagePublishingInterceptor
  */
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Publisher {
 
 	/**
+	 * Alias for the {@link #channel()} attribute.
+	 * @return The name of the Message Channel to which Messages will be published.
+	 * @since 5.0.4
+	 */
+	@AliasFor("channel")
+	String value() default "";
+
+	/**
 	 * @return The name of the Message Channel to which Messages will be published.
 	 */
+	@AliasFor("value")
 	String channel() default "";
 
 }
