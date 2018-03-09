@@ -19,6 +19,9 @@ package org.springframework.integration.support.management.micrometer;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ToDoubleFunction;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.support.management.CounterFacade;
 import org.springframework.integration.support.management.GaugeFacade;
 import org.springframework.integration.support.management.MetricsCaptor;
@@ -39,6 +42,8 @@ import io.micrometer.core.instrument.Timer;
  *
  */
 public class MicrometerMetricsCaptor implements MetricsCaptor {
+
+	public static final String MICROMETER_CAPTOR_NAME = "integrationMicrometerMetricsCaptor";
 
 	private final MeterRegistry meterRegistry;
 
@@ -80,6 +85,28 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 			this.sample.stop(((MicroTimer) timer).timer);
 		}
 
+	}
+
+	/**
+	 * Add a MicrometerMetricsCaptor to the context if there's a MeterRegistry.
+	 * @param applicationContext the application context.
+	 * @return the instance.
+	 */
+	public static MetricsCaptor loadCaptor(ApplicationContext applicationContext) {
+		try {
+			MeterRegistry registry = applicationContext.getBean(MeterRegistry.class);
+			if (applicationContext instanceof GenericApplicationContext
+					&& !applicationContext.containsBean(MICROMETER_CAPTOR_NAME)) {
+				((GenericApplicationContext) applicationContext).registerBean(MICROMETER_CAPTOR_NAME,
+						MicrometerMetricsCaptor.class,
+						() -> new MicrometerMetricsCaptor(registry));
+				return applicationContext.getBean(MicrometerMetricsCaptor.class);
+			}
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			return null;
+		}
+		return null;
 	}
 
 	private static class MicroTimerBuilder implements TimerBuilder {
