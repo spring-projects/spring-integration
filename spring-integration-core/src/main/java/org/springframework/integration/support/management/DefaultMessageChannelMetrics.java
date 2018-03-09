@@ -18,9 +18,6 @@ package org.springframework.integration.support.management;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
-
 /**
  * Default implementation; use the full constructor to customize the moving averages.
  *
@@ -65,30 +62,13 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 	 * @param name the name.
 	 */
 	public DefaultMessageChannelMetrics(String name) {
-		this(name, null, null, null, (Counter) null);
-	}
-
-	/**
-	 * Construct an instance with default metrics with {@code window=10, period=1 second,
-	 * lapsePeriod=1 minute}.
-	 * @param name the name.
-	 * @param timer a timer.
-	 * @param errorCounter a counter.
-	 * @param receiveCounter a counter for receives.
-	 * @param receiveErrorCounter a counter for receive errors.
-	 * @since 5.0.2
-	 */
-	public DefaultMessageChannelMetrics(String name, Timer timer, Counter errorCounter, Counter receiveCounter,
-			Counter receiveErrorCounter) {
-
 		this(name, new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW, 1000000.),
 				new ExponentialMovingAverageRate(
 						ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
 				new ExponentialMovingAverageRatio(
 						ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
 				new ExponentialMovingAverageRate(
-						ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true),
-				timer, errorCounter, receiveCounter, receiveErrorCounter);
+						ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW, true));
 	}
 
 	/**
@@ -106,30 +86,7 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
 			ExponentialMovingAverageRate sendRate) {
 
-		this(name, sendDuration, sendErrorRate, sendSuccessRatio, sendRate, null, null, null, null);
-	}
-
-	/**
-	 * Construct an instance with the supplied metrics. For proper representation of metrics, the
-	 * supplied sendDuration must have a {@code factor=1000000.} and the the other arguments
-	 * must be created with the {@code millis} constructor argument set to true.
-	 * @param name the name.
-	 * @param sendDuration an {@link ExponentialMovingAverage} for calculating the send duration.
-	 * @param sendErrorRate an {@link ExponentialMovingAverageRate} for calculating the send error rate.
-	 * @param sendSuccessRatio an {@link ExponentialMovingAverageRatio} for calculating the success ratio.
-	 * @param sendRate an {@link ExponentialMovingAverageRate} for calculating the send rate.
-	 * @param timer a timer.
-	 * @param errorCounter a counter for sends.
-	 * @param receiveCounter a counter for receives.
-	 * @param receiveErrorCounter a counter for receive errors.
-	 * @since 5.0.2
-	 */
-	public DefaultMessageChannelMetrics(String name, ExponentialMovingAverage sendDuration,
-			ExponentialMovingAverageRate sendErrorRate, ExponentialMovingAverageRatio sendSuccessRatio,
-			ExponentialMovingAverageRate sendRate, Timer timer, Counter errorCounter, Counter receiveCounter,
-			Counter receiveErrorCounter) {
-
-		super(name, timer, errorCounter, receiveCounter, receiveErrorCounter);
+		super(name);
 		this.sendDuration = sendDuration;
 		this.sendErrorRate = sendErrorRate;
 		this.sendSuccessRatio = sendSuccessRatio;
@@ -261,22 +218,12 @@ public class DefaultMessageChannelMetrics extends AbstractMessageChannelMetrics 
 
 	@Override
 	public void afterReceive() {
-		if (getReceiveCounter() != null) {
-			getReceiveCounter().increment();
-		}
-		else {
-			this.receiveCount.incrementAndGet();
-		}
+		this.receiveCount.incrementAndGet();
 	}
 
 	@Override
 	public void afterError() {
-		if (getReceiveErrorCounter() != null) {
-			getReceiveErrorCounter().increment();
-		}
-		else {
-			this.receiveErrorCount.incrementAndGet();
-		}
+		this.receiveErrorCount.incrementAndGet();
 	}
 
 	@Override

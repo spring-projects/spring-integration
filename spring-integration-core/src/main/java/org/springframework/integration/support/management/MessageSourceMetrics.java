@@ -19,8 +19,6 @@ package org.springframework.integration.support.management;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 
-import io.micrometer.core.instrument.Counter;
-
 /**
  * @author Dave Syer
  * @author Gary Russell
@@ -59,7 +57,7 @@ public interface MessageSourceMetrics extends IntegrationManagement {
 	 * Will be remove in the next release.
 	 */
 	@Deprecated
-	default void setCounter(Counter counter) {
+	default void setCounter(CounterFacade counter) {
 		// no op
 	}
 

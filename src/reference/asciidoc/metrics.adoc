@@ -101,8 +101,10 @@ Starting with _version 5.0.2_, the framework will automatically detect if there 
 Starting with _version 5.0.3_, the presence of a  https://micrometer.io/[Micrometer] `MeterRegistry` in the application context will trigger support for Micrometer metrics in addition to the inbuilt metrics (inbuilt metrics will be removed in a future release).
 
 IMPORTANT: Micrometer was first supported in _version 5.0.2_, but changes were made to the Micrometer `Meters` in _version 5.0.3_ to make them more suitable for use in dimensional systems.
+Further changes were made in 5.0.4; if using Micrometer, a minimum of version 5.0.4 is recommended since some of the changes in 5.0.4 were breaking API changes.
 
 Simply add a `MeterRegistry` bean of choice to the application context.
+If the `IntegrationManagementConfigurer` detects exactly one `MeterRegistry` bean, it will configure a `MicrometerMetricsCaptor` bean with name `integrationMicrometerMetricsCaptor`.
 
 For each `MessageHandler` and `MessageChannel`, timers are registered.
 For each `MessageSource`, a counter is registered.

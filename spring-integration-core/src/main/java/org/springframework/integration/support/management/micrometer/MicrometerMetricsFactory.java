@@ -22,20 +22,15 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.DefaultMessageHandlerMetrics;
 import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.integration.support.management.MessageSourceMetricsConfigurer;
+import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.support.management.MetricsFactory;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
 
 /**
  * Micrometer implementation of a {@link MetricsFactory}. Configures the resulting
@@ -56,52 +51,20 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMetricsConfigurer,
 		ApplicationContextAware, SmartInitializingSingleton {
 
-	private static final Function<String, String[]> NO_TAGS = n -> new String[0];
-
-	private final MeterRegistry meterRegistry;
-
-	private ApplicationContext applicationContext;
-
-	private Function<String, String> timerNameProvider = n -> n + ".timer";
-
-	private Function<String, String> counterNameProvider = n -> n + ".counter";
-
-	private Function<String, String> errorCounterNameProvider = n -> n + ".errorCounter";
-
-	private Function<String, String> receiveCounterNameProvider = n -> n + ".receive.counter";
-
-	private Function<String, String> receiveErrorCounterNameProvider = n -> n + ".receive.errorCounter";
-
-	private Function<String, String[]> timerTagProvider = NO_TAGS;
-
-	private Function<String, String[]> counterTagProvider = NO_TAGS;
-
-	private Function<String, String[]> errorCounterTagProvider = NO_TAGS;
-
-	private Function<String, String[]> receiveCounterTagProvider = NO_TAGS;
-
-	private Function<String, String[]> receiveErrorCounterTagProvider = NO_TAGS;
-
-	private Function<String, String[]> componentCountTagProvider = NO_TAGS;
-
 	/**
-	 * Construct an instance with the provided {@link MeterRegistry}.
-	 * @param meterRegistry the registry.
+	 * Construct an instance with the provided {@link MetricsCaptor}.
+	 * @param captor the registry.
 	 */
-	public MicrometerMetricsFactory(MeterRegistry meterRegistry) {
-		Assert.notNull(meterRegistry, "'meterRegistry' cannot be null");
-		this.meterRegistry = meterRegistry;
+	public MicrometerMetricsFactory(MetricsCaptor captor) {
+		Assert.notNull(captor, "'meterRegistry' cannot be null");
 	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
 	}
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		Assert.notNull(this.applicationContext, "An application context is required");
-		registerComponentGauges();
 	}
 
 	/**
@@ -111,7 +74,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setTimerNameProvider(Function<String, String> timerNameProvider) {
 		Assert.notNull(timerNameProvider, "'timerNameProvider' cannot be null");
-		this.timerNameProvider = timerNameProvider;
 	}
 
 	/**
@@ -121,7 +83,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setCounterNameProvider(Function<String, String> counterNameProvider) {
 		Assert.notNull(counterNameProvider, "'counterNameProvider' cannot be null");
-		this.counterNameProvider = counterNameProvider;
 	}
 
 	/**
@@ -131,7 +92,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setErrorCounterNameProvider(Function<String, String> errorCounterNameProvider) {
 		Assert.notNull(errorCounterNameProvider, "'errorCounterNameProvider' cannot be null");
-		this.errorCounterNameProvider = errorCounterNameProvider;
 	}
 
 	/**
@@ -141,7 +101,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setReceiveCounterNameProvider(Function<String, String> counterNameProvider) {
 		Assert.notNull(counterNameProvider, "'counterNameProvider' cannot be null");
-		this.receiveCounterNameProvider = counterNameProvider;
 	}
 
 	/**
@@ -151,7 +110,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setReceiveErrorCounterNameProvider(Function<String, String> errorCounterNameProvider) {
 		Assert.notNull(errorCounterNameProvider, "'errorCounterNameProvider' cannot be null");
-		this.receiveErrorCounterNameProvider = errorCounterNameProvider;
 	}
 
 	/**
@@ -161,7 +119,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setTimerTagProvider(Function<String, String[]> timerTagProvider) {
 		Assert.notNull(timerTagProvider, "'timerTagProvider' cannot be null");
-		this.timerTagProvider = timerTagProvider;
 	}
 
 	/**
@@ -171,7 +128,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setCounterTagProvider(Function<String, String[]> counterTagProvider) {
 		Assert.notNull(counterTagProvider, "'counterTagProvider' cannot be null");
-		this.counterTagProvider = counterTagProvider;
 	}
 
 	/**
@@ -181,7 +137,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setErrorCounterTagProvider(Function<String, String[]> counterTagProvider) {
 		Assert.notNull(counterTagProvider, "'counterTagProvider' cannot be null");
-		this.errorCounterTagProvider = counterTagProvider;
 	}
 
 	/**
@@ -191,7 +146,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setReceiveCounterTagProvider(Function<String, String[]> counterTagProvider) {
 		Assert.notNull(counterTagProvider, "'counterTagProvider' cannot be null");
-		this.receiveCounterTagProvider = counterTagProvider;
 	}
 
 	/**
@@ -201,7 +155,6 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 */
 	public void setReceiveErrorCounterTagProvider(Function<String, String[]> counterTagProvider) {
 		Assert.notNull(counterTagProvider, "'counterTagProvider' cannot be null");
-		this.receiveErrorCounterTagProvider = counterTagProvider;
 	}
 
 	/**
@@ -210,61 +163,25 @@ public class MicrometerMetricsFactory implements MetricsFactory, MessageSourceMe
 	 * @param componentCountTagProvider the componentCountTagProvider to set
 	 */
 	public void setComponentCountTagProvider(Function<String, String[]> componentCountTagProvider) {
-		this.componentCountTagProvider = componentCountTagProvider;
 	}
 
 	@Override
 	public AbstractMessageChannelMetrics createChannelMetrics(String name) {
-		return new DefaultMessageChannelMetrics(name,
-				this.meterRegistry.timer(this.timerNameProvider.apply(name), this.timerTagProvider.apply(name)),
-				this.meterRegistry.counter(this.errorCounterNameProvider.apply(name),
-						this.errorCounterTagProvider.apply(name)), null, null);
+		return new DefaultMessageChannelMetrics(name);
 	}
 
 	@Override
 	public AbstractMessageChannelMetrics createPollableChannelMetrics(String name) {
-		return new DefaultMessageChannelMetrics(name,
-				this.meterRegistry.timer(this.timerNameProvider.apply(name), this.timerTagProvider.apply(name)),
-				this.meterRegistry.counter(this.errorCounterNameProvider.apply(name),
-						this.errorCounterTagProvider.apply(name)),
-				this.meterRegistry.counter(this.receiveCounterNameProvider.apply(name),
-						this.receiveCounterTagProvider.apply(name)),
-				this.meterRegistry.counter(this.receiveErrorCounterNameProvider.apply(name),
-						this.receiveErrorCounterTagProvider.apply(name)));
+		return new DefaultMessageChannelMetrics(name);
 	}
 
 	@Override
 	public AbstractMessageHandlerMetrics createHandlerMetrics(String name) {
-		return new DefaultMessageHandlerMetrics(name,
-				this.meterRegistry.timer(this.timerNameProvider.apply(name), this.timerTagProvider.apply(name)),
-				this.meterRegistry.counter(this.errorCounterNameProvider.apply(name),
-						this.errorCounterTagProvider.apply(name)));
+		return new DefaultMessageHandlerMetrics(name);
 	}
 
 	@Override
 	public void configure(MessageSourceMetrics metrics, String name) {
-		metrics.setCounter(this.meterRegistry.counter(this.counterNameProvider.apply(name),
-				this.counterTagProvider.apply(name)));
-	}
-
-	private void registerComponentGauges() {
-		Gauge.Builder<?> builder = Gauge.builder("spring.integration.channels", this,
-				(c) -> this.applicationContext.getBeansOfType(MessageChannel.class).size());
-		builder.tags(this.componentCountTagProvider.apply("channels"))
-				.description("The Number of Message Channels")
-				.register(this.meterRegistry);
-
-		builder = Gauge.builder("spring.integration.handlers", this,
-				(c) -> this.applicationContext.getBeansOfType(MessageHandler.class).size());
-		builder.tags(this.componentCountTagProvider.apply("handlers"))
-				.description("The Number of Message Handlers")
-				.register(this.meterRegistry);
-
-		builder = Gauge.builder("spring.integration.sources", this,
-				(c) -> this.applicationContext.getBeansOfType(MessageSource.class).size());
-		builder.tags(this.componentCountTagProvider.apply("sources"))
-				.description("The number of Message Sources")
-				.register(this.meterRegistry);
 	}
 
 }

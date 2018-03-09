@@ -19,9 +19,6 @@ package org.springframework.integration.support.management;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Timer;
-
 /**
  * Abstract base class for handler metrics implementations.
  *
@@ -35,20 +32,10 @@ public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetri
 
 	protected final String name;
 
-	private final Timer timer;
-
-	private final Counter errorCounter;
-
 	private volatile boolean fullStatsEnabled;
 
 	public AbstractMessageHandlerMetrics(String name) {
-		this(name, null, null);
-	}
-
-	public AbstractMessageHandlerMetrics(String name, Timer timer, Counter errorCounter) {
 		this.name = name;
-		this.timer = timer;
-		this.errorCounter = errorCounter;
 	}
 
 	/**
@@ -78,14 +65,6 @@ public abstract class AbstractMessageHandlerMetrics implements ConfigurableMetri
 	public abstract void afterHandle(MetricsContext context, boolean success);
 
 	public abstract void reset();
-
-	public Timer getTimer() {
-		return this.timer;
-	}
-
-	public Counter getErrorCounter() {
-		return this.errorCounter;
-	}
 
 	public abstract long getHandleCountLong();
 
