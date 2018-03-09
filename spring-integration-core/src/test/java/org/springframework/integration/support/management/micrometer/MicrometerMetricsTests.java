@@ -182,12 +182,6 @@ public class MicrometerMetricsTests {
 			return new SimpleMeterRegistry();
 		}
 
-		// TODO: register this automatically if Micrometer is present
-		@Bean
-		public MicrometerMetricsCaptor captor() {
-			return new MicrometerMetricsCaptor(meterRegistry());
-		}
-
 		@ServiceActivator(inputChannel = "channel")
 		@EndpointId("eipMethod")
 		public void service(String in) {

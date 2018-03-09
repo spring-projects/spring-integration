@@ -43,7 +43,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 	private final MeterRegistry meterRegistry;
 
 	public MicrometerMetricsCaptor(MeterRegistry meterRegistry) {
-		Assert.notNull(meterRegistry, "meterRgistry cannot be null");
+		Assert.notNull(meterRegistry, "meterRegistry cannot be null");
 		this.meterRegistry = meterRegistry;
 	}
 
