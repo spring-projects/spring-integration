@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,14 @@ import org.springframework.util.ObjectUtils;
  * The Gateway component implementation to perform Redis commands with provided arguments and to return command result.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	private static final byte[][] EMPTY_ARGS = new byte[0][];
 
 	private final RedisTemplate<?, ?> redisTemplate;
 
@@ -131,7 +134,7 @@ public class RedisOutboundGateway extends AbstractReplyProducingMessageHandler {
 			}
 		}
 
-		final byte[][] actualArgs = args;
+		final byte[][] actualArgs = args != null ? args : EMPTY_ARGS;
 
 		return this.redisTemplate.execute(
 				(RedisCallback<Object>) connection -> connection.execute(command, actualArgs));
