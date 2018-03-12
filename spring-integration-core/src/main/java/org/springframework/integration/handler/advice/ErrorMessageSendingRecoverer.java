@@ -17,8 +17,8 @@
 package org.springframework.integration.handler.advice;
 
 import org.springframework.core.AttributeAccessor;
+import org.springframework.integration.core.ErrorMessagePublisher;
 import org.springframework.integration.support.DefaultErrorMessageStrategy;
-import org.springframework.integration.support.ErrorMessagePublisher;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.messaging.Message;

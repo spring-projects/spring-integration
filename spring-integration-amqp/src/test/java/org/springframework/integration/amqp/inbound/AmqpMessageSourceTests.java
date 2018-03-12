@@ -34,9 +34,9 @@ import org.junit.Test;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
-import org.springframework.integration.support.AcknowledgmentCallback.Status;
-import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 
 import com.rabbitmq.client.AMQP.BasicProperties;

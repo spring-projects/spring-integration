@@ -29,9 +29,9 @@ import java.util.Collections;
 import org.junit.Test;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.AcknowledgmentCallback;
+import org.springframework.integration.acks.AcknowledgmentCallback.Status;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.AcknowledgmentCallback;
-import org.springframework.integration.support.AcknowledgmentCallback.Status;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.GenericMessage;
 

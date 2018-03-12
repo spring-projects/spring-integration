@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support;
+package org.springframework.integration.acks;
 
 /**
  * A factory for creating {@link AcknowledgmentCallback}s.

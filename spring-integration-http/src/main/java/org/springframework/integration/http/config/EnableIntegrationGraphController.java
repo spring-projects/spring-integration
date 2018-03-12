@@ -25,7 +25,6 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.integration.http.management.IntegrationGraphController;
-import org.springframework.integration.http.support.HttpContextUtils;
 
 /**
  * Enables the {@link IntegrationGraphController} if

@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.annotation.ImportSelector;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.integration.http.support.HttpContextUtils;
 
 /**
  * @author Artem Bilan

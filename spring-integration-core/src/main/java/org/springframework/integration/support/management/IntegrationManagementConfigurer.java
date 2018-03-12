@@ -32,12 +32,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
-import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
-import org.springframework.integration.util.PatternMatchUtils;
+import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 
@@ -212,10 +210,7 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		if (ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry",
-				IntegrationManagementConfigurer.class.getClassLoader())) {
-			this.metricsCaptor = MicrometerMetricsCaptor.loadCaptor(this.applicationContext);
-		}
+		this.metricsCaptor = MetricsCaptorLoader.loadCaptor(this.applicationContext);
 		if (this.metricsCaptor != null) {
 			injectCaptor();
 			registerComponentGauges();

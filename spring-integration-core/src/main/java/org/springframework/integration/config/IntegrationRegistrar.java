@@ -49,6 +49,7 @@ import org.springframework.integration.config.annotation.MessagingAnnotationPost
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.handler.support.CollectionArgumentResolver;
+import org.springframework.integration.handler.support.HandlerMethodArgumentResolversHolder;
 import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;

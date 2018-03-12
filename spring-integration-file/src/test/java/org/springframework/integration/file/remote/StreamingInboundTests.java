@@ -41,13 +41,13 @@ import org.junit.rules.ExpectedException;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.splitter.FileSplitter;
-import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;

@@ -49,7 +49,7 @@ public @interface GlobalChannelInterceptor {
 	 * A leading '!' negates the pattern match.
 	 * Default is "*" (all channels).
 	 * @return The pattern.
-	 * @see org.springframework.integration.util.PatternMatchUtils#smartMatch(String, String...)
+	 * @see org.springframework.integration.support.utils.PatternMatchUtils#smartMatch(String, String...)
 	 */
 	String[] patterns() default "*";
 

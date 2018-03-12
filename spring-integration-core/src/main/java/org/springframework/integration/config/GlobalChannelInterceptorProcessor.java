@@ -41,7 +41,7 @@ import org.springframework.integration.channel.interceptor.GlobalChannelIntercep
 import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
-import org.springframework.integration.util.PatternMatchUtils;
+import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;

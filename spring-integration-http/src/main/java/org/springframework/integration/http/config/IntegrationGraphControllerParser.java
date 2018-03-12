@@ -25,7 +25,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.type.StandardAnnotationMetadata;
-import org.springframework.integration.http.support.HttpContextUtils;
 
 /**
  * The {@link BeanDefinitionParser} for the {@code <int-http:graph-controller>} component.

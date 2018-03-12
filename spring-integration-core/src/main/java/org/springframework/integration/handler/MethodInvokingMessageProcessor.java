@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.integration.util.MessagingMethodInvokerHelper;
+import org.springframework.integration.handler.support.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 

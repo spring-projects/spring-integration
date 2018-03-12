@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.support.management.MessageSourceManagement;
+
 /**
  * A message source that can limit the number of remote objects it fetches.
  *

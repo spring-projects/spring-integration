@@ -37,7 +37,6 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.http.management.IntegrationGraphController;
-import org.springframework.integration.http.support.HttpContextUtils;
 import org.springframework.integration.support.management.graph.IntegrationGraphServer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

@@ -238,7 +238,7 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * running, to avoid one instance from "grabbing" all the files.
 	 * @param maxFetchSize the max fetch size.
 	 * @return the spec.
-	 * @see org.springframework.integration.endpoint.MessageSourceManagement#setMaxFetchSize(int)
+	 * @see org.springframework.integration.support.management.MessageSourceManagement#setMaxFetchSize(int)
 	 */
 	public S maxFetchSize(int maxFetchSize) {
 		this.target.setMaxFetchSize(maxFetchSize);
