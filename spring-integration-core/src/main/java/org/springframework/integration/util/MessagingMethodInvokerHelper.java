@@ -1241,9 +1241,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 			this.targetParameterTypeDescriptor = targetParameterType;
 			if (Message.class.isAssignableFrom(targetParameterType.getObjectType())) {
-				methodParameter.increaseNestingLevel();
-				this.targetParameterType = methodParameter.getNestedParameterType();
-				methodParameter.decreaseNestingLevel();
+				this.targetParameterType = methodParameter.nested().getNestedParameterType();
 			}
 			else {
 				this.targetParameterType = targetParameterType.getObjectType();
