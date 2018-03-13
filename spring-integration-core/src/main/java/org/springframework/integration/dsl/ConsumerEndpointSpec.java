@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,10 +56,6 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	protected ConsumerEndpointSpec(H messageHandler) {
 		super(messageHandler);
-		this.endpointFactoryBean.setAdviceChain(this.adviceChain);
-		if (messageHandler instanceof AbstractReplyProducingMessageHandler) {
-			((AbstractReplyProducingMessageHandler) messageHandler).setAdviceChain(this.adviceChain);
-		}
 	}
 
 	@Override
@@ -270,6 +266,10 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	@Override
 	protected Tuple2<ConsumerEndpointFactoryBean, H> doGet() {
+		this.endpointFactoryBean.setAdviceChain(this.adviceChain);
+		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
+			((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
+		}
 		this.endpointFactoryBean.setHandler(this.handler);
 		return super.doGet();
 	}
