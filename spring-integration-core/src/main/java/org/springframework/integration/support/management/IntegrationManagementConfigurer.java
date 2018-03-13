@@ -216,11 +216,12 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		if (ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry",
 				classLoader)) {
 			try {
+				// Use reflection to avoid a package tangle with ...management.micrometer
 				Class<?> captor = ClassUtils.forName(
 						"org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor",
 						classLoader);
 				Method method = captor.getDeclaredMethod("loadCaptor", ApplicationContext.class);
-				this.metricsCaptor = (MetricsCaptor) method.invoke(null, applicationContext);
+				this.metricsCaptor = (MetricsCaptor) method.invoke(null, this.applicationContext);
 			}
 			catch (Exception e) {
 				// no op
