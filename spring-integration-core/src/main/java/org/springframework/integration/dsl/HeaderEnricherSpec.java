@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,14 +55,11 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 
 	private final Map<String, HeaderValueMessageProcessor<?>> headerToAdd = new HashMap<>();
 
-	private boolean defaultOverwrite = false;
-
-	private boolean shouldSkipNulls = true;
-
-	private MessageProcessor<?> messageProcessor;
+	private final HeaderEnricher headerEnricher = new HeaderEnricher(this.headerToAdd);
 
 	HeaderEnricherSpec() {
 		super(null);
+		this.handler = new MessageTransformingHandler(this.headerEnricher);
 	}
 
 	/**
@@ -73,7 +70,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see HeaderEnricher#setDefaultOverwrite(boolean)
 	 */
 	public HeaderEnricherSpec defaultOverwrite(boolean defaultOverwrite) {
-		this.defaultOverwrite = defaultOverwrite;
+		this.headerEnricher.setDefaultOverwrite(defaultOverwrite);
 		return _this();
 	}
 
@@ -83,7 +80,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see HeaderEnricher#setShouldSkipNulls(boolean)
 	 */
 	public HeaderEnricherSpec shouldSkipNulls(boolean shouldSkipNulls) {
-		this.shouldSkipNulls = shouldSkipNulls;
+		this.headerEnricher.setShouldSkipNulls(shouldSkipNulls);
 		return _this();
 	}
 
@@ -97,7 +94,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see HeaderEnricher#setMessageProcessor(MessageProcessor)
 	 */
 	public HeaderEnricherSpec messageProcessor(MessageProcessor<?> messageProcessor) {
-		this.messageProcessor = messageProcessor;
+		this.headerEnricher.setMessageProcessor(messageProcessor);
 		return _this();
 	}
 
@@ -110,7 +107,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 * @see #messageProcessor(MessageProcessor)
 	 */
 	public HeaderEnricherSpec messageProcessor(String expression) {
-		return messageProcessor(new ExpressionEvaluatingMessageProcessor<>(PARSER.parseExpression(expression)));
+		return messageProcessor(new ExpressionEvaluatingMessageProcessor<>(expression));
 	}
 
 	/**
@@ -371,6 +368,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 */
 	public <P> HeaderEnricherSpec headerFunction(String name, Function<Message<P>, Object> function,
 			Boolean overwrite) {
+
 		return headerExpression(name, new FunctionExpression<>(function), overwrite);
 	}
 
@@ -391,6 +389,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 	 */
 	public <V> HeaderEnricherSpec header(String headerName,
 			HeaderValueMessageProcessor<V> headerValueMessageProcessor) {
+
 		Assert.hasText(headerName, "'headerName' must not be empty");
 		this.headerToAdd.put(headerName, headerValueMessageProcessor);
 		return _this();
@@ -432,14 +431,7 @@ public class HeaderEnricherSpec extends ConsumerEndpointSpec<HeaderEnricherSpec,
 
 	@Override
 	protected Tuple2<ConsumerEndpointFactoryBean, MessageTransformingHandler> doGet() {
-		HeaderEnricher headerEnricher = new HeaderEnricher(new HashMap<>(this.headerToAdd));
-		headerEnricher.setDefaultOverwrite(this.defaultOverwrite);
-		headerEnricher.setShouldSkipNulls(this.shouldSkipNulls);
-		headerEnricher.setMessageProcessor(this.messageProcessor);
-
-		this.componentsToRegister.put(headerEnricher, null);
-
-		this.handler = new MessageTransformingHandler(headerEnricher);
+		this.componentsToRegister.put(this.headerEnricher, null);
 		return super.doGet();
 	}
 

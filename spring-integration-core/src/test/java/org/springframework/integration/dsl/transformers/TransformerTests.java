@@ -51,6 +51,7 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.handler.advice.IdempotentReceiverInterceptor;
 import org.springframework.integration.selector.MetadataStoreSelector;
 import org.springframework.integration.support.MessageBuilder;
@@ -89,7 +90,6 @@ public class TransformerTests {
 	@Autowired
 	@Qualifier("enricherErrorChannel")
 	private PollableChannel enricherErrorChannel;
-
 
 
 	@Test
@@ -218,6 +218,9 @@ public class TransformerTests {
 	@Autowired
 	private PollableChannel idempotentDiscardChannel;
 
+	@Autowired
+	private PollableChannel adviceChannel;
+
 	@Test
 	public void transformWithHeader() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -240,6 +243,7 @@ public class TransformerTests {
 		}
 
 		assertNotNull(this.idempotentDiscardChannel.receive(10000));
+		assertNotNull(this.adviceChannel.receive(10000));
 	}
 
 	@Configuration
@@ -328,7 +332,7 @@ public class TransformerTests {
 			return f -> f
 					.enrichHeaders(h -> h
 							.header("Foo", "Bar")
-							.advice(idempotentReceiverInterceptor()))
+							.advice(idempotentReceiverInterceptor(), requestHandlerAdvice()))
 					.transform(new PojoTransformer());
 		}
 
@@ -344,6 +348,26 @@ public class TransformerTests {
 			idempotentReceiverInterceptor.setDiscardChannelName("idempotentDiscardChannel");
 			idempotentReceiverInterceptor.setThrowExceptionOnRejection(true);
 			return idempotentReceiverInterceptor;
+		}
+
+		@Bean
+		public AbstractRequestHandlerAdvice requestHandlerAdvice() {
+			return new AbstractRequestHandlerAdvice() {
+
+				@Override
+				protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message)
+						throws Exception {
+
+					adviceChannel().send(message);
+					return callback.execute();
+				}
+
+			};
+		}
+
+		@Bean
+		public PollableChannel adviceChannel() {
+			return new QueueChannel();
 		}
 
 		@Bean
