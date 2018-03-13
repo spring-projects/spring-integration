@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management;
+package org.springframework.integration.support.management.metrics;
 
 import java.util.function.ToDoubleFunction;
 
