@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management;
+package org.springframework.integration.support.management.metrics;
 
 /**
  * @author Gary Russell
  * @since 5.0.4
  *
  */
-public interface SampleFacade {
-
-	void stop(TimerFacade timer);
+public interface GaugeFacade {
 
 }

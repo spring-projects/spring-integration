@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management;
 
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 

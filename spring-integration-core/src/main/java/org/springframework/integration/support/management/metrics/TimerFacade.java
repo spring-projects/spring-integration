@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management;
+package org.springframework.integration.support.management.metrics;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Gary Russell
  * @since 5.0.4
  *
  */
-public interface CounterFacade {
+public interface TimerFacade {
 
-	void increment();
+	void record(long time, TimeUnit unit);
 
 }

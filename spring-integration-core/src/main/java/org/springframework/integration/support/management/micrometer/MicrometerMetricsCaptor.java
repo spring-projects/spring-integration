@@ -22,11 +22,11 @@ import java.util.function.ToDoubleFunction;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.support.management.CounterFacade;
-import org.springframework.integration.support.management.GaugeFacade;
-import org.springframework.integration.support.management.MetricsCaptor;
-import org.springframework.integration.support.management.SampleFacade;
-import org.springframework.integration.support.management.TimerFacade;
+import org.springframework.integration.support.management.metrics.CounterFacade;
+import org.springframework.integration.support.management.metrics.GaugeFacade;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.management.metrics.SampleFacade;
+import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.util.Assert;
 
 import io.micrometer.core.instrument.Counter;

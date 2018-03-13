@@ -36,12 +36,12 @@ import org.springframework.integration.support.management.ConfigurableMetricsAwa
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.integration.support.management.MessageChannelMetrics;
-import org.springframework.integration.support.management.MetricsCaptor;
 import org.springframework.integration.support.management.MetricsContext;
-import org.springframework.integration.support.management.SampleFacade;
 import org.springframework.integration.support.management.Statistics;
-import org.springframework.integration.support.management.TimerFacade;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.metrics.MetricsCaptor;
+import org.springframework.integration.support.management.metrics.SampleFacade;
+import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
