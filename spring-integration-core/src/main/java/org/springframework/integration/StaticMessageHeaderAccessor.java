@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support;
+package org.springframework.integration;
 
 import java.io.Closeable;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;

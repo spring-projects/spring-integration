@@ -16,9 +16,10 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.acks.AckUtils;
+import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.AckUtils;
-import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
@@ -48,7 +49,7 @@ public class MessageSourcePollingTemplate implements PollingOperations {
 		Assert.notNull(handler, "'handler' cannot be null");
 		Message<?> message = this.source.receive();
 		if (message != null) {
-			AcknowledgmentCallback ackCallback = AckUtils.getAckCallback(message);
+			AcknowledgmentCallback ackCallback = StaticMessageHeaderAccessor.getAcknowledgmentCallback(message);
 			try {
 				handler.handleMessage(message);
 				AckUtils.autoAck(ackCallback);

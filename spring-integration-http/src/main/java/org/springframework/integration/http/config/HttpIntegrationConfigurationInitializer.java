@@ -27,7 +27,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.http.inbound.IntegrationRequestMappingHandlerMapping;
-import org.springframework.integration.http.support.HttpContextUtils;
 
 /**
  * The HTTP Integration infrastructure {@code beanFactory} initializer.

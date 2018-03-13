@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.support.management;
 
-import org.springframework.integration.support.management.IntegrationManagedResource;
-import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 /**

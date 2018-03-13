@@ -16,7 +16,7 @@
 
 package org.springframework.integration.webflux.support;
 
-import org.springframework.integration.http.support.HttpContextUtils;
+import org.springframework.integration.http.config.HttpContextUtils;
 
 /**
  * Utility class for accessing WebFlux integration components

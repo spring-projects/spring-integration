@@ -20,7 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.InputStream;
 
-import org.springframework.integration.support.StaticMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;

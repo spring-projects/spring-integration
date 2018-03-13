@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.util;
+package org.springframework.integration.support.utils;
 
 /**
  * Utility methods for pattern matching.

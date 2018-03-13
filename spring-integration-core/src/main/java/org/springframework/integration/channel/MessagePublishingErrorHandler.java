@@ -17,7 +17,7 @@
 package org.springframework.integration.channel;
 
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.support.ErrorMessagePublisher;
+import org.springframework.integration.core.ErrorMessagePublisher;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.messaging.Message;

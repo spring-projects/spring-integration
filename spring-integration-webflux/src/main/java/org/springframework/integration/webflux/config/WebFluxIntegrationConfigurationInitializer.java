@@ -28,7 +28,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.http.support.HttpContextUtils;
+import org.springframework.integration.http.config.HttpContextUtils;
 import org.springframework.integration.webflux.inbound.IntegrationHandlerResultHandler;
 import org.springframework.integration.webflux.inbound.WebFluxIntegrationRequestMappingHandlerMapping;
 import org.springframework.integration.webflux.support.WebFluxContextUtils;

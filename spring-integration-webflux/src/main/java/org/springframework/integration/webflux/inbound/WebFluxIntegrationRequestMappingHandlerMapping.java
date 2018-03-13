@@ -21,10 +21,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.integration.http.config.HttpContextUtils;
 import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
 import org.springframework.integration.http.inbound.CrossOrigin;
 import org.springframework.integration.http.inbound.RequestMapping;
-import org.springframework.integration.http.support.HttpContextUtils;
 import org.springframework.integration.webflux.support.WebFluxContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;

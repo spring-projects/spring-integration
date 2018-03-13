@@ -167,4 +167,29 @@ public interface RemoteFileOperations<F> {
 	 */
 	Session<F> getSession();
 
+	/**
+	 * Callback for using the same session for multiple
+	 * RemoteFileTemplate operations.
+
+	 * @param <F> the type the operations accepts.
+	 * @param <T> the type the callback returns.
+	 *
+	 * @since 5.1
+	 */
+	@FunctionalInterface
+	public interface OperationsCallback<F, T> {
+
+		/**
+		 * Execute any number of operations using a dedicated remote
+		 * session as long as those operations are performed
+		 * on the template argument and on the calling thread.
+		 * The session will be closed when the callback exits.
+		 *
+		 * @param operations the RemoteFileOperations.
+		 * @return the result of operations.
+		 */
+		T doInOperations(RemoteFileOperations<F> operations);
+
+	}
+
 }

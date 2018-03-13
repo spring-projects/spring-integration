@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,8 +33,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
-import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
-import org.springframework.integration.util.PatternMatchUtils;
+import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
@@ -212,9 +212,20 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
+		ClassLoader classLoader = IntegrationManagementConfigurer.class.getClassLoader();
 		if (ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry",
-				IntegrationManagementConfigurer.class.getClassLoader())) {
-			this.metricsCaptor = MicrometerMetricsCaptor.loadCaptor(this.applicationContext);
+				classLoader)) {
+			try {
+				// Use reflection to avoid a package tangle with ...management.micrometer
+				Class<?> captor = ClassUtils.forName(
+						"org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor",
+						classLoader);
+				Method method = captor.getDeclaredMethod("loadCaptor", ApplicationContext.class);
+				this.metricsCaptor = (MetricsCaptor) method.invoke(null, this.applicationContext);
+			}
+			catch (Exception e) {
+				// no op
+			}
 		}
 		if (this.metricsCaptor != null) {
 			injectCaptor();

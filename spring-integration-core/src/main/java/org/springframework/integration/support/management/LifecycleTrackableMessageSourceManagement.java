@@ -17,7 +17,6 @@
 package org.springframework.integration.support.management;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.endpoint.MessageSourceManagement;
 
 /**
  * An extension to {@link LifecycleTrackableMessageSourceMetrics} for sources

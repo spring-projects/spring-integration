@@ -23,8 +23,8 @@ import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.handler.support.MessagingMethodInvokerHelper;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
-import org.springframework.integration.util.MessagingMethodInvokerHelper;
 import org.springframework.messaging.Message;
 
 /**

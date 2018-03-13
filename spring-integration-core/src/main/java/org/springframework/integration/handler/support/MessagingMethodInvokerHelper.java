@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.util;
+package org.springframework.integration.handler.support;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -70,15 +70,16 @@ import org.springframework.integration.annotation.Default;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
-import org.springframework.integration.config.HandlerMethodArgumentResolversHolder;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.handler.support.CollectionArgumentResolver;
-import org.springframework.integration.handler.support.MapArgumentResolver;
-import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
-import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
+import org.springframework.integration.util.AnnotatedMethodFilter;
+import org.springframework.integration.util.ClassUtils;
+import org.springframework.integration.util.FixedMethodFilter;
+import org.springframework.integration.util.MessagingAnnotationUtils;
+import org.springframework.integration.util.UniqueMethodFilter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
