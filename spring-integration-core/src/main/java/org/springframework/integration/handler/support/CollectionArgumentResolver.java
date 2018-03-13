@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Object value = message.getPayload();
 
 		if (this.canProcessMessageList) {
@@ -75,8 +75,7 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 
 			Collection<Message<?>> messages = (Collection<Message<?>>) value;
 
-			parameter.increaseNestingLevel();
-			if (Message.class.isAssignableFrom(parameter.getNestedParameterType())) {
+			if (Message.class.isAssignableFrom(parameter.nested().getNestedParameterType())) {
 				value = messages;
 			}
 			else {
@@ -84,7 +83,6 @@ public class CollectionArgumentResolver extends AbstractExpressionEvaluator
 						.map(Message::getPayload)
 						.collect(Collectors.toList());
 			}
-			parameter.decreaseNestingLevel();
 		}
 
 		if (Iterator.class.isAssignableFrom(parameter.getParameterType())) {
