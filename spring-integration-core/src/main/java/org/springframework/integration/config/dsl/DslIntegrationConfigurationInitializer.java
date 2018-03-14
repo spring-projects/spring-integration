@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.dsl.context.StandardIntegrationFlowContext;
 import org.springframework.util.Assert;
 
 /**
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  * {@link IntegrationComponentSpec#get()}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 5.0
  *
  * @see org.springframework.integration.config.IntegrationConfigurationBeanFactoryPostProcessor
@@ -58,7 +60,7 @@ public class DslIntegrationConfigurationInitializer implements IntegrationConfig
 			registry.registerBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME,
 					new RootBeanDefinition(IntegrationFlowBeanPostProcessor.class));
 			registry.registerBeanDefinition(INTEGRATION_FLOW_CONTEXT_BEAN_NAME,
-					new RootBeanDefinition(IntegrationFlowContext.class));
+					new RootBeanDefinition(StandardIntegrationFlowContext.class));
 		}
 	}
 

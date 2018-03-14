@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,29 @@
 
 package org.springframework.integration.dsl.context;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
+import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 
 /**
  * Instances of this classes are returned as a result of
- * {@link IntegrationFlowContext#registration(IntegrationFlow)} invocation
+ * {@link StandardIntegrationFlowContext#registration(IntegrationFlow)} invocation
  * and provide an API for some useful {@link IntegrationFlow} options and its lifecycle.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  *
  * @see IntegrationFlowContext
  */
-public class IntegrationFlowRegistration {
+class StandardIntegrationFlowRegistration implements IntegrationFlowRegistration {
 
 	private IntegrationFlow integrationFlow;
 
@@ -49,34 +52,41 @@ public class IntegrationFlowRegistration {
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	IntegrationFlowRegistration(IntegrationFlow integrationFlow) {
+	StandardIntegrationFlowRegistration(IntegrationFlow integrationFlow) {
 		this.integrationFlow = integrationFlow;
 	}
 
-	void setBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		this.beanFactory = beanFactory; // NOSONAR (synchronization)
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 	}
 
-	void setIntegrationFlowContext(IntegrationFlowContext integrationFlowContext) {
+	@Override
+	public void setIntegrationFlowContext(IntegrationFlowContext integrationFlowContext) {
 		this.integrationFlowContext = integrationFlowContext;
 	}
 
-	void setId(String id) {
+	@Override
+	public void setId(String id) {
 		this.id = id;
 	}
 
-	void setIntegrationFlow(IntegrationFlow integrationFlow) {
+	@Override
+	public void setIntegrationFlow(IntegrationFlow integrationFlow) {
 		this.integrationFlow = integrationFlow;
 	}
 
+	@Override
 	public String getId() {
 		return this.id;
 	}
 
+	@Override
 	public IntegrationFlow getIntegrationFlow() {
 		return this.integrationFlow;
 	}
 
+	@Override
 	public MessageChannel getInputChannel() {
 		if (this.inputChannel == null) {
 			if (this.integrationFlow instanceof StandardIntegrationFlow) {
@@ -110,6 +120,7 @@ public class IntegrationFlowRegistration {
 	 * {@link IllegalStateException} is thrown.
 	 * @return the {@link MessagingTemplate} instance
 	 */
+	@Override
 	public MessagingTemplate getMessagingTemplate() {
 		if (this.messagingTemplate == null) {
 			this.messagingTemplate = new MessagingTemplate(getInputChannel()) {
@@ -131,6 +142,7 @@ public class IntegrationFlowRegistration {
 		return this.messagingTemplate;
 	}
 
+	@Override
 	public void start() {
 		if (this.integrationFlow instanceof Lifecycle) {
 			((Lifecycle) this.integrationFlow).start();
@@ -143,6 +155,7 @@ public class IntegrationFlowRegistration {
 		}
 	}
 
+	@Override
 	public void stop() {
 		if (this.integrationFlow instanceof Lifecycle) {
 			((Lifecycle) this.integrationFlow).stop();
@@ -153,6 +166,7 @@ public class IntegrationFlowRegistration {
 	 * Destroy the {@link IntegrationFlow} bean (as well as all its dependant beans)
 	 * and clean up all the local cache for it.
 	 */
+	@Override
 	public void destroy() {
 		this.integrationFlowContext.remove(this.id);
 	}

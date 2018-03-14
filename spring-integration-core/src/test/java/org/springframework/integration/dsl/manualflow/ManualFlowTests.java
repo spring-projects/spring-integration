@@ -58,7 +58,7 @@ import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
-import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
+import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.SmartLifecycleRoleController;
