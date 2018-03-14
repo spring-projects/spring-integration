@@ -44,7 +44,7 @@ import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
-import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
+import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;
