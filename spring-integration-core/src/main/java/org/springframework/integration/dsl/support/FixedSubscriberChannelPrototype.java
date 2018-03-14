@@ -28,7 +28,7 @@ import org.springframework.messaging.MessageChannel;
  * @author Artem Bilan
  * @since 5.0
  *
- * @see org.springframework.integration.config.dsl.IntegrationFlowBeanPostProcessor
+ * @see org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor
  */
 public class FixedSubscriberChannelPrototype implements MessageChannel {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.dsl;
+package org.springframework.integration.dsl.context;
 
 import java.beans.Introspector;
 
@@ -24,8 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
-import org.springframework.integration.dsl.context.IntegrationFlowContext;
-import org.springframework.integration.dsl.context.StandardIntegrationFlowContext;
+import org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor;
 import org.springframework.util.Assert;
 
 /**

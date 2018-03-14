@@ -2,4 +2,4 @@ org.springframework.integration.config.IntegrationConfigurationInitializer=\
 org.springframework.integration.config.GlobalChannelInterceptorInitializer,\
 org.springframework.integration.config.IntegrationConverterInitializer,\
 org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer,\
-org.springframework.integration.config.dsl.DslIntegrationConfigurationInitializer
+org.springframework.integration.dsl.context.DslIntegrationConfigurationInitializer

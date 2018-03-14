@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  *
  * @since 5.0
  *
- * @see org.springframework.integration.config.dsl.IntegrationFlowBeanPostProcessor
+ * @see org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor
  */
 public class MessageChannelReference implements MessageChannel {
 
