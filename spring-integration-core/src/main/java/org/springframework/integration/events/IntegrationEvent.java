@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.event;
+package org.springframework.integration.events;
 
 import org.springframework.context.ApplicationEvent;
 

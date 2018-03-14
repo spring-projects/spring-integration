@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mail.event;
 
-import org.springframework.integration.event.IntegrationEvent;
+import org.springframework.integration.events.IntegrationEvent;
 
 /**
  * @author Gary Russell

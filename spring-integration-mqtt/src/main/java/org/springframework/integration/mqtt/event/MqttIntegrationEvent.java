@@ -16,7 +16,7 @@
 
 package org.springframework.integration.mqtt.event;
 
-import org.springframework.integration.event.IntegrationEvent;
+import org.springframework.integration.events.IntegrationEvent;
 
 /**
  * Base class for Mqtt Events.
