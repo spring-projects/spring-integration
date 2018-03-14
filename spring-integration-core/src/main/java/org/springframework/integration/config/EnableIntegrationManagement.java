@@ -24,7 +24,6 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 import org.springframework.integration.support.management.IntegrationManagement;
-import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 
 /**
  * Enables default configuring of management in Spring Integration components in an existing application.

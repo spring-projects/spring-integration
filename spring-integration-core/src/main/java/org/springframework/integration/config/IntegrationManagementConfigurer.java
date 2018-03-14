@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management;
+package org.springframework.integration.config;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,7 +31,18 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
+import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
+import org.springframework.integration.support.management.ConfigurableMetricsAware;
+import org.springframework.integration.support.management.DefaultMetricsFactory;
+import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.integration.support.management.IntegrationManagement.ManagementOverrides;
+import org.springframework.integration.support.management.MessageChannelMetrics;
+import org.springframework.integration.support.management.MessageHandlerMetrics;
+import org.springframework.integration.support.management.MessageSourceMetrics;
+import org.springframework.integration.support.management.MessageSourceMetricsConfigurer;
+import org.springframework.integration.support.management.MetricsFactory;
+import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.micrometer.MicrometerMetricsCaptor;
 import org.springframework.integration.support.utils.PatternMatchUtils;

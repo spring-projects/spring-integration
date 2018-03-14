@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Role;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
