@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management.graph;
+package org.springframework.integration.graph;
+
+import org.springframework.messaging.MessageHandler;
 
 /**
- * Represents nodes that can natively handle errors.
+ * Represents an endpoint that has a discard channel and can emit errors
+ * (pollable endpoint).
  *
  * @author Gary Russell
  * @since 4.3
  *
  */
-public class ErrorCapableEndpointNode extends EndpointNode implements ErrorCapableNode {
+public class ErrorCapableDiscardingMessageHandlerNode extends DiscardingMessageHandlerNode implements ErrorCapableNode {
 
 	private final String errors;
 
-	protected ErrorCapableEndpointNode(int nodeId, String name, Object nodeObject, String output, String errors,
-			Stats stats) {
-		super(nodeId, name, nodeObject, output, stats);
+	public ErrorCapableDiscardingMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
+			String output, String discards, String errors) {
+		super(nodeId, name, handler, input, output, discards);
 		this.errors = errors;
 	}
 

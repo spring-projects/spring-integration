@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management.graph;
+package org.springframework.integration.graph;
 
 import java.util.Collection;
 

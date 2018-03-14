@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management.graph;
-
-import java.util.List;
-
-import org.springframework.integration.handler.CompositeMessageHandler;
+package org.springframework.integration.graph;
 
 /**
- * Represents a composite message handler that can emit error messages
- * (pollable endpoint).
+ * Represents nodes that can natively handle errors.
  *
  * @author Gary Russell
  * @since 4.3
  *
  */
-public class ErrorCapableCompositeMessageHandlerNode extends CompositeMessageHandlerNode implements ErrorCapableNode {
+public class ErrorCapableEndpointNode extends EndpointNode implements ErrorCapableNode {
 
 	private final String errors;
 
-	public ErrorCapableCompositeMessageHandlerNode(int nodeId, String name, CompositeMessageHandler handler, String input,
-			String output, String errors, List<InnerHandler> handlers) {
-		super(nodeId, name, handler, input, output, handlers);
+	protected ErrorCapableEndpointNode(int nodeId, String name, Object nodeObject, String output, String errors,
+			Stats stats) {
+		super(nodeId, name, nodeObject, output, stats);
 		this.errors = errors;
 	}
 

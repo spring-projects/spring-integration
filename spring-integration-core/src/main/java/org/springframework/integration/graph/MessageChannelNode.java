@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management.graph;
+package org.springframework.integration.graph;
 
 import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.Statistics;

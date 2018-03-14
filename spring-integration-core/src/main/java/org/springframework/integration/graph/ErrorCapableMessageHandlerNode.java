@@ -14,43 +14,30 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.support.management.graph;
+package org.springframework.integration.graph;
+
+import org.springframework.messaging.MessageHandler;
 
 /**
- * Represents a link between nodes.
+ * Represents a message handler that can produce errors (pollable).
  *
  * @author Gary Russell
  * @since 4.3
  *
  */
-public class LinkNode {
+public class ErrorCapableMessageHandlerNode extends MessageHandlerNode implements ErrorCapableNode {
 
-	private final int from;
+	private final String errors;
 
-	private final int to;
-
-	private final Type type;
-
-	public LinkNode(int from, int to, Type type) {
-		this.from = from;
-		this.to = to;
-		this.type = type;
+	public ErrorCapableMessageHandlerNode(int nodeId, String name, MessageHandler handler, String input,
+			String output, String errors) {
+		super(nodeId, name, handler, input, output);
+		this.errors = errors;
 	}
 
-	public int getFrom() {
-		return this.from;
-	}
-
-	public int getTo() {
-		return this.to;
-	}
-
-	public Type getType() {
-		return this.type;
-	}
-
-	public enum Type {
-		input, output, error, discard, route
+	@Override
+	public String getErrors() {
+		return this.errors;
 	}
 
 }
