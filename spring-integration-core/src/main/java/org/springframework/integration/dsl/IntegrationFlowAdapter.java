@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.messaging.MessageChannel;

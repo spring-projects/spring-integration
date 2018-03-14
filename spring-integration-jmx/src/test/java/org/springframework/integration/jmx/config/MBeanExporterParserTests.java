@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
@@ -39,7 +40,6 @@ import org.springframework.integration.support.management.DefaultMessageHandlerM
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.ExponentialMovingAverageRate;
 import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
-import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.MessageHandlerMetrics;
 import org.springframework.integration.support.management.MetricsFactory;
@@ -53,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -64,7 +65,7 @@ public class MBeanExporterParserTests {
 	private ApplicationContext context;
 
 	@Test
-	public void testMBeanExporterExists() throws InterruptedException {
+	public void testMBeanExporterExists() {
 		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
 		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
 		Properties properties = TestUtils.getPropertyValue(exporter, "objectNameStaticProperties", Properties.class);

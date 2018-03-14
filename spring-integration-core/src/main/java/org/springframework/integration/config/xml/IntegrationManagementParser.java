@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.support.management.IntegrationManagementConfigurer;
+import org.springframework.integration.config.IntegrationManagementConfigurer;
 
 /**
  * Parser for the &lt;management/&gt; element.
@@ -37,6 +37,7 @@ public class IntegrationManagementParser extends AbstractBeanDefinitionParser {
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
+
 		return IntegrationManagementConfigurer.MANAGEMENT_CONFIGURER_NAME;
 	}
 

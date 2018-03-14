@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.http.management;
 
+import org.springframework.integration.graph.Graph;
+import org.springframework.integration.graph.IntegrationGraphServer;
 import org.springframework.integration.http.config.HttpContextUtils;
-import org.springframework.integration.support.management.graph.Graph;
-import org.springframework.integration.support.management.graph.IntegrationGraphServer;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

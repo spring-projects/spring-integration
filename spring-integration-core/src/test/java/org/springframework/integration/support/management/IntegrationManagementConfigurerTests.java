@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
+import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.router.RecipientListRouter;
@@ -44,6 +45,7 @@ import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Gary Russell
+ *
  * @since 4.2
  *
  */

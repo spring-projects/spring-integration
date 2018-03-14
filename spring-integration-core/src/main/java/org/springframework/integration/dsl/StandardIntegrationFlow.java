@@ -60,7 +60,7 @@ import org.springframework.context.SmartLifecycle;
  * @since 5.0
  *
  * @see IntegrationFlows
- * @see org.springframework.integration.config.dsl.IntegrationFlowBeanPostProcessor
+ * @see org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor
  * @see org.springframework.integration.dsl.context.IntegrationFlowContext
  */
 public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {

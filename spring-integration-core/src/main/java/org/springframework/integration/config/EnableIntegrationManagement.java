@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 import org.springframework.integration.support.management.IntegrationManagement;
-import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 
 /**
  * Enables default configuring of management in Spring Integration components in an existing application.
@@ -33,6 +32,7 @@ import org.springframework.integration.support.management.IntegrationManagementC
  * bean is defined under the name {@code integrationManagementConfigurer}.
  *
  * @author Gary Russell
+ *
  * @since 4.2
  */
 @Target(ElementType.TYPE)

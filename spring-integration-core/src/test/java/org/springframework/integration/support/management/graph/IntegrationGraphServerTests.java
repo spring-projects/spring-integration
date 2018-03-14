@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.graph.Graph;
+import org.springframework.integration.graph.IntegrationGraphServer;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.HeaderValueRouter;
 import org.springframework.integration.router.RecipientListRouter;
@@ -69,6 +71,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.3
  *
  */

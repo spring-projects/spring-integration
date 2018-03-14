@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Role;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -42,6 +41,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.2
  */
 @Configuration

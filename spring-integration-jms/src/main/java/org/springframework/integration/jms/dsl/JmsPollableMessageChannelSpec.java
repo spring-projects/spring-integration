@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import javax.jms.Destination;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.integration.dsl.channel.MessageChannelSpec;
+import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -33,6 +33,7 @@ import org.springframework.jms.support.destination.DestinationResolver;
  * @param <S> the target {@link JmsPollableMessageChannelSpec} implementation type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSpec<S>>

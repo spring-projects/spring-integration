@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
-import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
+import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -61,6 +61,7 @@ import com.jcraft.jsch.ChannelSftp;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  *
  */

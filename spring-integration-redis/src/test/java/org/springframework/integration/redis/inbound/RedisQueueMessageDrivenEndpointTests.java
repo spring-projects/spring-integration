@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.event.IntegrationEvent;
+import org.springframework.integration.events.IntegrationEvent;
 import org.springframework.integration.redis.event.RedisExceptionEvent;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -77,6 +77,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Rainer Frey
+ *
  * @since 3.0
  */
 @ContextConfiguration
@@ -99,11 +100,11 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testInt3014Default() throws Exception {
+	public void testInt3014Default() {
 
 		String queueName = "si.test.redisQueueInboundChannelAdapterTests";
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -142,11 +143,11 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testInt3014ExpectMessageTrue() throws Exception {
+	public void testInt3014ExpectMessageTrue() {
 
 		final String queueName = "si.test.redisQueueInboundChannelAdapterTests2";
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -193,7 +194,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testInt3017IntegrationInbound() throws Exception {
+	public void testInt3017IntegrationInbound() {
 
 		String payload = new Date().toString();
 
@@ -211,7 +212,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testInt3017IntegrationSymmetrical() throws Exception {
+	public void testInt3017IntegrationSymmetrical() {
 		UUID payload = UUID.randomUUID();
 		Message<UUID> message = MessageBuilder.withPayload(payload)
 				.setHeader("redis_queue", "si.test.Int3017IntegrationSymmetrical")
@@ -230,7 +231,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	public void testInt3442ProperlyStop() throws Exception {
 		final String queueName = "si.test.testInt3442ProperlyStopTest";
 
-		final RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		final RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -283,7 +284,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 		String queueName = "test.si.Int3196Recovery";
 		QueueChannel channel = new QueueChannel();
 
-		final List<ApplicationEvent> exceptionEvents = new ArrayList<ApplicationEvent>();
+		final List<ApplicationEvent> exceptionEvents = new ArrayList<>();
 
 		final CountDownLatch exceptionsLatch = new CountDownLatch(2);
 
@@ -309,7 +310,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 			assertThat(exceptionEvent, Matchers.instanceOf(RedisExceptionEvent.class));
 			assertSame(endpoint, exceptionEvent.getSource());
 			assertThat(((IntegrationEvent) exceptionEvent).getCause().getClass(),
-					Matchers.isIn(Arrays.<Class<? extends Throwable>>asList(RedisSystemException.class, RedisConnectionFailureException.class)));
+					Matchers.isIn(Arrays.asList(RedisSystemException.class, RedisConnectionFailureException.class)));
 		}
 
 		((InitializingBean) this.connectionFactory).afterPropertiesSet();
@@ -335,11 +336,11 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	@SuppressWarnings("unchecked")
-	public void testInt3932ReadFromLeft() throws Exception {
+	public void testInt3932ReadFromLeft() {
 
 		String queueName = "si.test.redisQueueInboundChannelAdapterTests3932";
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(this.connectionFactory);
 		redisTemplate.setEnableDefaultSerializer(false);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());

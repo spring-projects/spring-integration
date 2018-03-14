@@ -46,8 +46,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.dsl.channel.MessageChannelSpec;
-import org.springframework.integration.dsl.channel.WireTapSpec;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.expression.ControlBusMethodFilter;
@@ -111,7 +109,7 @@ import reactor.util.function.Tuple2;
  *
  * @since 5.0
  *
- * @see org.springframework.integration.config.dsl.IntegrationFlowBeanPostProcessor
+ * @see org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor
  */
 public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinition<B>> {
 
@@ -190,7 +188,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * fluent API.
 	 * @param messageChannelSpec the {@link MessageChannelSpec} to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see org.springframework.integration.dsl.channel.MessageChannels
+	 * @see org.springframework.integration.dsl.MessageChannels
 	 */
 	public B channel(MessageChannelSpec<?, ?> messageChannelSpec) {
 		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");
@@ -201,7 +199,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the provided {@link MessageChannel} instance
 	 * at the current {@link IntegrationFlow} chain position.
 	 * The {@code messageChannel} can be an existing bean, or fresh instance, in which case
-	 * the {@link org.springframework.integration.config.dsl.IntegrationFlowBeanPostProcessor}
+	 * the {@link org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor}
 	 * will populate it as a bean with a generated name.
 	 * @param messageChannel the {@link MessageChannel} to populate.
 	 * @return the current {@link IntegrationFlowDefinition}.

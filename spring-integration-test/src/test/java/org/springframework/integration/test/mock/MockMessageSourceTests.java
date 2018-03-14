@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
-import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
+import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;

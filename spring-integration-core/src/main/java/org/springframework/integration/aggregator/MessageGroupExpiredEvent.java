@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package org.springframework.integration.aggregator;
 
 import java.util.Date;
 
-import org.springframework.integration.event.IntegrationEvent;
+import org.springframework.integration.events.IntegrationEvent;
 import org.springframework.integration.support.context.NamedComponent;
 
 /**
  * Event representing the expiration of a message group.
  *
  * @author Gary Russell
+ *
  * @since 4.0.1
  */
 public class MessageGroupExpiredEvent extends IntegrationEvent {

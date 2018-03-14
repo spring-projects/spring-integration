@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +42,8 @@ import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.integration.support.management.IntegrationManagementConfigurer;
-import org.springframework.jmx.support.RegistrationPolicy;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -56,6 +55,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 @Configuration
@@ -103,7 +103,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public IntegrationMBeanExporter mbeanExporter() {
 		IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
-		exporter.setRegistrationPolicy(this.attributes.<RegistrationPolicy>getEnum("registration"));
+		exporter.setRegistrationPolicy(this.attributes.getEnum("registration"));
 		setupDomain(exporter);
 		setupServer(exporter);
 		setupComponentNamePatterns(exporter);
@@ -152,7 +152,7 @@ public class IntegrationMBeanExportConfiguration implements ImportAware, Environ
 	}
 
 	private void setupComponentNamePatterns(IntegrationMBeanExporter exporter) {
-		List<String> patterns = new ArrayList<String>();
+		List<String> patterns = new ArrayList<>();
 		String[] managedComponents = this.attributes.getStringArray("managedComponents");
 		for (String managedComponent : managedComponents) {
 			String pattern = this.environment.resolvePlaceholders(managedComponent);
