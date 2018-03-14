@@ -46,8 +46,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.dsl.channel.MessageChannelSpec;
-import org.springframework.integration.dsl.channel.WireTapSpec;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.expression.ControlBusMethodFilter;
@@ -190,7 +188,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * fluent API.
 	 * @param messageChannelSpec the {@link MessageChannelSpec} to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
-	 * @see org.springframework.integration.dsl.channel.MessageChannels
+	 * @see org.springframework.integration.dsl.MessageChannels
 	 */
 	public B channel(MessageChannelSpec<?, ?> messageChannelSpec) {
 		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");

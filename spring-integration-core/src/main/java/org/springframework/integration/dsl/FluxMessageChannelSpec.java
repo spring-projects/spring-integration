@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl.channel;
+package org.springframework.integration.dsl;
 
-import org.springframework.integration.channel.RendezvousChannel;
+import org.springframework.integration.channel.FluxMessageChannel;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
-public class RendezvousChannelSpec extends MessageChannelSpec<RendezvousChannelSpec, RendezvousChannel> {
+public class FluxMessageChannelSpec extends MessageChannelSpec<FluxMessageChannelSpec, FluxMessageChannel> {
 
-	RendezvousChannelSpec() {
-		this.channel = new RendezvousChannel();
+	FluxMessageChannelSpec() {
+		this.channel = new FluxMessageChannel();
 	}
 
 }

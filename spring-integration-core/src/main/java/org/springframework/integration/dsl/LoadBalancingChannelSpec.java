@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl.channel;
+package org.springframework.integration.dsl;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;

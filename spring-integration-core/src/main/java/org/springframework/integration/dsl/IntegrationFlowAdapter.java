@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.messaging.MessageChannel;

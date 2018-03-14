@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl.channel;
+package org.springframework.integration.dsl;
 
 import java.util.Comparator;
 

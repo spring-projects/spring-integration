@@ -19,14 +19,6 @@ package org.springframework.integration.dsl;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.dsl.channel.DirectChannelSpec;
-import org.springframework.integration.dsl.channel.ExecutorChannelSpec;
-import org.springframework.integration.dsl.channel.FluxMessageChannelSpec;
-import org.springframework.integration.dsl.channel.MessageChannels;
-import org.springframework.integration.dsl.channel.PriorityChannelSpec;
-import org.springframework.integration.dsl.channel.PublishSubscribeChannelSpec;
-import org.springframework.integration.dsl.channel.QueueChannelSpec;
-import org.springframework.integration.dsl.channel.RendezvousChannelSpec;
 import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.messaging.Message;

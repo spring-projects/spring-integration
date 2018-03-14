@@ -24,7 +24,6 @@ import org.reactivestreams.Publisher;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototype;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -90,7 +89,7 @@ public final class IntegrationFlows {
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
 	 * @param messageChannelSpec the MessageChannelSpec to populate {@link MessageChannel} instance.
 	 * @return new {@link IntegrationFlowBuilder}.
-	 * @see org.springframework.integration.dsl.channel.MessageChannels
+	 * @see org.springframework.integration.dsl.MessageChannels
 	 */
 	public static IntegrationFlowBuilder from(MessageChannelSpec<?, ?> messageChannelSpec) {
 		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");

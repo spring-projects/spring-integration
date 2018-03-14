@@ -20,8 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.dsl.channel.PublishSubscribeChannelSpec;
-
 /**
  * @author Artem Bilan
  *

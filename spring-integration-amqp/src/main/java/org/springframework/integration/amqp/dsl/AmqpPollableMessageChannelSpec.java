@@ -26,7 +26,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
 import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
-import org.springframework.integration.dsl.channel.MessageChannelSpec;
+import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.util.Assert;
 
 /**

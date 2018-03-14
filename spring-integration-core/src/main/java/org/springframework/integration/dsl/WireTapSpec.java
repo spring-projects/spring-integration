@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl.channel;
+package org.springframework.integration.dsl;
 
 import java.util.Collections;
 import java.util.Map;
@@ -22,8 +22,6 @@ import java.util.Map;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.dsl.ComponentsRegistration;
-import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
