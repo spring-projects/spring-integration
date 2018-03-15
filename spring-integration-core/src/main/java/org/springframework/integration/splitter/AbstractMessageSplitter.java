@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.splitter;
 
+import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,6 +43,7 @@ import reactor.core.publisher.Flux;
  * @author Mark Fisher
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Ruslan Stelmachenko
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
@@ -227,9 +229,20 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	protected void produceOutput(Object result, Message<?> requestMessage) {
 		if (result instanceof Iterator<?>) {
 			Iterator<?> iterator = (Iterator<?>) result;
-			while (iterator.hasNext()) {
-				super.produceOutput(iterator.next(), requestMessage);
-
+			try {
+				while (iterator.hasNext()) {
+					super.produceOutput(iterator.next(), requestMessage);
+				}
+			}
+			finally {
+				if (iterator instanceof Closeable) {
+					try {
+						((Closeable) iterator).close();
+					}
+					catch (Exception e) {
+						// ignored
+					}
+				}
 			}
 		}
 		else {
