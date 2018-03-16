@@ -29,7 +29,7 @@ import java.util.function.Function;
  * @author Ruslan Stelmachenko
  * @since 4.1
  */
-public class FunctionIterator<T, V> implements Iterator<V>, Closeable {
+public class FunctionIterator<T, V> implements CloseableIterator<V> {
 
 	private final Iterator<T> iterator;
 

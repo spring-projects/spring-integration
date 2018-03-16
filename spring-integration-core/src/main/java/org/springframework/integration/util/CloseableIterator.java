@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,7 @@ import java.util.Iterator;
  *
  * @author Ruslan Stelmachenko
  *
- * @since 4.3.15, 5.0.4
+ * @since 4.3.15
  */
 public interface CloseableIterator<E> extends Iterator<E>, Closeable {
-
-	/**
-	 * Closes this iterator and releases any system resources associated
-	 * with it. If the iterator is already closed then invoking this
-	 * method has no effect.
-	 */
-	@Override
-	void close();
-
 }
