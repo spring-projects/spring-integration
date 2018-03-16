@@ -172,7 +172,7 @@ public class StreamingInboundTests {
 		assertNull(out.receive(0));
 
 		// close by list, splitter
-		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource(), times(2)).close();
+		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource(), times(3)).close();
 
 		receivedStream = streamer.receive();
 		splitter.handleMessage(receivedStream);
@@ -187,7 +187,7 @@ public class StreamingInboundTests {
 		assertNull(out.receive(0));
 
 		// close by splitter
-		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource(), times(3)).close();
+		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource(), times(5)).close();
 	}
 
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {
