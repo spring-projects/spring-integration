@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.util;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -23,9 +25,10 @@ import java.util.Iterator;
  * {@link #iterator} to a new object applying the {@link #function} on {@link #next()}.
  *
  * @author Artem Bilan
+ * @author Ruslan Stelmachenko
  * @since 4.1
  */
-public final class FunctionIterator<T, V> implements Iterator<V> {
+public final class FunctionIterator<T, V> implements CloseableIterator<V> {
 
 	private final Iterator<T> iterator;
 
@@ -55,5 +58,11 @@ public final class FunctionIterator<T, V> implements Iterator<V> {
 		return this.function.apply(this.iterator.next());
 	}
 
-}
+	@Override
+	public void close() throws IOException {
+		if (this.iterator instanceof Closeable) {
+			((Closeable) this.iterator).close();
+		}
+	}
 
+}

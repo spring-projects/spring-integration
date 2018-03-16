@@ -22,6 +22,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayInputStream;
@@ -116,7 +117,9 @@ public class StreamingInboundTests {
 		assertEquals("foo", received.getHeaders().get(FileHeaders.REMOTE_FILE));
 		assertNull(out.receive(0));
 
-		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource()).close();
+
+		// close by list, splitter
+		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource(), times(2)).close();
 
 		receivedStream = streamer.receive();
 		splitter.handleMessage(receivedStream);
@@ -130,7 +133,9 @@ public class StreamingInboundTests {
 		assertEquals("bar", received.getHeaders().get(FileHeaders.REMOTE_FILE));
 		assertNull(out.receive(0));
 
-		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource()).close();
+
+		// close by splitter
+		verify(new IntegrationMessageHeaderAccessor(receivedStream).getCloseableResource(), times(2)).close();
 	}
 
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {

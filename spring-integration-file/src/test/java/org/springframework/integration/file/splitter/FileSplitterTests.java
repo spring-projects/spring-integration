@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +47,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.file.FileHeaders;
@@ -66,6 +68,8 @@ import org.springframework.util.FileCopyUtils;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ruslan Stelmachenko
+ *
  * @since 4.1.2
  */
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class)
@@ -262,6 +266,24 @@ public class FileSplitterTests {
 		assertEquals(FileSplitter.FileMarker.Mark.END, fileMarker.getMark());
 		assertEquals(file.getAbsolutePath(), fileMarker.getFilePath());
 		assertEquals(2, fileMarker.getLineCount());
+	}
+
+	@Test
+	public void testFileReaderClosedOnException() throws Exception {
+		DirectChannel outputChannel = new DirectChannel();
+		outputChannel.subscribe(message -> {
+			throw new RuntimeException();
+		});
+		FileSplitter splitter = new FileSplitter(true, true);
+		splitter.setOutputChannel(outputChannel);
+		FileReader fileReader = Mockito.spy(new FileReader(file));
+		try {
+			splitter.handleMessage(new GenericMessage<Reader>(fileReader));
+		}
+		catch (RuntimeException e) {
+			// ignore
+		}
+		Mockito.verify(fileReader).close();
 	}
 
 	@Configuration

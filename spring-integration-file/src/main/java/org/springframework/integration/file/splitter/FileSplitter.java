@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
+import org.springframework.integration.util.CloseableIterator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -61,6 +62,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Ruslan Stelmachenko
+ *
  * @since 4.1.2
  */
 public class FileSplitter extends AbstractMessageSplitter {
@@ -208,7 +211,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		};
 
-		Iterator<Object> iterator = new Iterator<Object>() {
+		Iterator<Object> iterator = new CloseableIterator<Object>() {
 
 			boolean markers = FileSplitter.this.markers;
 
@@ -228,7 +231,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 			public boolean hasNext() {
 				this.hasNextCalled = true;
 				try {
-					if (this.line == null && !this.done) {
+					if (!this.done && this.line == null) {
 						this.line = bufferedReader.readLine();
 					}
 					boolean ready = !this.done && this.line != null;
@@ -245,8 +248,8 @@ public class FileSplitter extends AbstractMessageSplitter {
 				}
 				catch (IOException e) {
 					try {
-						bufferedReader.close();
 						this.done = true;
+						bufferedReader.close();
 					}
 					catch (IOException e1) {
 						// ignored
@@ -298,6 +301,17 @@ public class FileSplitter extends AbstractMessageSplitter {
 				}
 				return getMessageBuilderFactory().withPayload(payload)
 						.setHeader(FileHeaders.MARKER, fileMarker.mark.name());
+			}
+
+			@Override
+			public void close() {
+				try {
+					this.done = true;
+					bufferedReader.close();
+				}
+				catch (IOException e) {
+					// ignored
+				}
 			}
 
 		};
