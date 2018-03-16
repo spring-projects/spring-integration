@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.AbstractMessageHandlerMetrics;
@@ -39,7 +40,6 @@ import org.springframework.integration.support.management.DefaultMessageHandlerM
 import org.springframework.integration.support.management.ExponentialMovingAverage;
 import org.springframework.integration.support.management.ExponentialMovingAverageRate;
 import org.springframework.integration.support.management.ExponentialMovingAverageRatio;
-import org.springframework.integration.support.management.IntegrationManagementConfigurer;
 import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.MessageHandlerMetrics;
 import org.springframework.integration.support.management.MetricsFactory;

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.stream;
 
-import org.springframework.integration.event.IntegrationEvent;
+import org.springframework.integration.events.IntegrationEvent;
 
 /**
  * Application event published when EOF is detected on a stream.

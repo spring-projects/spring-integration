@@ -16,9 +16,9 @@
 
 package org.springframework.integration.http.management;
 
+import org.springframework.integration.graph.Graph;
+import org.springframework.integration.graph.IntegrationGraphServer;
 import org.springframework.integration.http.config.HttpContextUtils;
-import org.springframework.integration.support.management.graph.Graph;
-import org.springframework.integration.support.management.graph.IntegrationGraphServer;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

@@ -18,7 +18,7 @@ package org.springframework.integration.aggregator;
 
 import java.util.Date;
 
-import org.springframework.integration.event.IntegrationEvent;
+import org.springframework.integration.events.IntegrationEvent;
 import org.springframework.integration.support.context.NamedComponent;
 
 /**
