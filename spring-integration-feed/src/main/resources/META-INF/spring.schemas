@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/feed/spring-integration-feed-5.0.xsd=org/springframework/integration/feed/config/spring-integration-feed-5.0.xsd
-http\://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd=org/springframework/integration/feed/config/spring-integration-feed-5.0.xsd
+http\://www.springframework.org/schema/integration/feed/spring-integration-feed-5.1.xsd=org/springframework/integration/feed/config/spring-integration-feed-5.1.xsd
+http\://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd=org/springframework/integration/feed/config/spring-integration-feed-5.1.xsd

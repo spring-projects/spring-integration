@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/syslog/spring-integration-syslog-5.0.xsd=org/springframework/integration/syslog/config/spring-integration-syslog-5.0.xsd
-http\://www.springframework.org/schema/integration/syslog/spring-integration-syslog.xsd=org/springframework/integration/syslog/config/spring-integration-syslog-5.0.xsd
+http\://www.springframework.org/schema/integration/syslog/spring-integration-syslog-5.1.xsd=org/springframework/integration/syslog/config/spring-integration-syslog-5.1.xsd
+http\://www.springframework.org/schema/integration/syslog/spring-integration-syslog.xsd=org/springframework/integration/syslog/config/spring-integration-syslog-5.1.xsd

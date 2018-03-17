@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/sftp/spring-integration-sftp-5.0.xsd=org/springframework/integration/sftp/config/spring-integration-sftp-5.0.xsd
-http\://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd=org/springframework/integration/sftp/config/spring-integration-sftp-5.0.xsd
+http\://www.springframework.org/schema/integration/sftp/spring-integration-sftp-5.1.xsd=org/springframework/integration/sftp/config/spring-integration-sftp-5.1.xsd
+http\://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd=org/springframework/integration/sftp/config/spring-integration-sftp-5.1.xsd
