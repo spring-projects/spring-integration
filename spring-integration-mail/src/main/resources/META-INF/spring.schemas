@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/mail/spring-integration-mail-5.0.xsd=org/springframework/integration/mail/config/spring-integration-mail-5.0.xsd
-http\://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd=org/springframework/integration/mail/config/spring-integration-mail-5.0.xsd
+http\://www.springframework.org/schema/integration/mail/spring-integration-mail-5.1.xsd=org/springframework/integration/mail/config/spring-integration-mail-5.1.xsd
+http\://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd=org/springframework/integration/mail/config/spring-integration-mail-5.1.xsd

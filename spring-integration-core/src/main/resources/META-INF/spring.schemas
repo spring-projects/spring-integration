@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/spring-integration-5.0.xsd=org/springframework/integration/config/spring-integration-5.0.xsd
-http\://www.springframework.org/schema/integration/spring-integration.xsd=org/springframework/integration/config/spring-integration-5.0.xsd
+http\://www.springframework.org/schema/integration/spring-integration-5.1.xsd=org/springframework/integration/config/spring-integration-5.1.xsd
+http\://www.springframework.org/schema/integration/spring-integration.xsd=org/springframework/integration/config/spring-integration-5.1.xsd

@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/websocket/spring-integration-websocket-5.0.xsd=org/springframework/integration/websocket/config/spring-integration-websocket-5.0.xsd
-http\://www.springframework.org/schema/integration/websocket/spring-integration-websocket.xsd=org/springframework/integration/websocket/config/spring-integration-websocket-5.0.xsd
+http\://www.springframework.org/schema/integration/websocket/spring-integration-websocket-5.1.xsd=org/springframework/integration/websocket/config/spring-integration-websocket-5.1.xsd
+http\://www.springframework.org/schema/integration/websocket/spring-integration-websocket.xsd=org/springframework/integration/websocket/config/spring-integration-websocket-5.1.xsd

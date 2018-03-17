@@ -1,2 +1,2 @@
-http\://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp-5.0.xsd=org/springframework/integration/xmpp/config/spring-integration-xmpp-5.0.xsd
-http\://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd=org/springframework/integration/xmpp/config/spring-integration-xmpp-5.0.xsd
+http\://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp-5.1.xsd=org/springframework/integration/xmpp/config/spring-integration-xmpp-5.1.xsd
+http\://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd=org/springframework/integration/xmpp/config/spring-integration-xmpp-5.1.xsd
