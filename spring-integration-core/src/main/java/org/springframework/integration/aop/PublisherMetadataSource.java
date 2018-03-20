@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,11 @@ package org.springframework.integration.aop;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Strategy for determining the channel name, payload expression, and header expressions
@@ -25,6 +30,8 @@ import java.util.Map;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 interface PublisherMetadataSource {
@@ -36,6 +43,11 @@ interface PublisherMetadataSource {
 	String RETURN_VALUE_VARIABLE_NAME = "return";
 
 	String EXCEPTION_VARIABLE_NAME = "exception";
+
+	ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+
+	Expression RETURN_VALUE_EXPRESSION =
+			EXPRESSION_PARSER.parseExpression("#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME);
 
 
 	/**
@@ -50,20 +62,50 @@ interface PublisherMetadataSource {
 	/**
 	 * Returns the expression string to be evaluated for creating the Message
 	 * payload.
-	 *
 	 * @param method The Method.
 	 * @return The payload expression.
+	 * @deprecated since 5.0.4 in favor of {@link #getExpressionForPayload(Method)}
 	 */
+	@Deprecated
 	String getPayloadExpression(Method method);
+
+	/**
+	 * Returns the SpEL expression to be evaluated for creating the Message
+	 * payload.
+	 * @param method the Method.
+	 * @return rhe payload expression.
+	 * @since 5.0.4
+	 */
+	@SuppressWarnings("deprecation")
+	default Expression getExpressionForPayload(Method method) {
+		return EXPRESSION_PARSER.parseExpression(getPayloadExpression(method));
+	}
 
 	/**
 	 * Returns the map of expression strings to be evaluated for any headers
 	 * that should be set on the published Message. The keys in the Map are
 	 * header names, the values are the expression strings.
-	 *
+	 * @param method The Method.
+	 * @return The header expressions.
+	 * @deprecated since 5.0.4 in favor of {@link #getExpressionsForHeaders(Method)}
+	 */
+	@Deprecated
+	Map<String, String> getHeaderExpressions(Method method);
+
+	/**
+	 * Returns the map of expression strings to be evaluated for any headers
+	 * that should be set on the published Message. The keys in the Map are
+	 * header names, the values are the expression strings.
 	 * @param method The Method.
 	 * @return The header expressions.
 	 */
-	Map<String, String> getHeaderExpressions(Method method);
+	@SuppressWarnings("deprecation")
+	default Map<String, Expression> getExpressionsForHeaders(Method method) {
+		return getHeaderExpressions(method)
+				.entrySet()
+				.stream()
+				.collect(Collectors.toMap(Map.Entry::getKey,
+						e -> EXPRESSION_PARSER.parseExpression(e.getValue())));
+	}
 
 }
