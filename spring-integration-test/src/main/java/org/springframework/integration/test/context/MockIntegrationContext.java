@@ -139,8 +139,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 
 		if (mockMessageHandler instanceof MessageProducer) {
 			if (targetMessageHandler instanceof MessageProducer) {
-				MessageChannel outputChannel = TestUtils.getPropertyValue(targetMessageHandler, "outputChannel",
-						MessageChannel.class);
+				MessageChannel outputChannel = ((MessageProducer) targetMessageHandler).getOutputChannel();
 				((MessageProducer) mockMessageHandler).setOutputChannel(outputChannel);
 			}
 			else {
