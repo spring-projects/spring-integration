@@ -400,6 +400,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							}
 							return null;
 						}
+						else if (logger.isDebugEnabled()) {
+							logger.debug("Error acquiring the lock. " + (isRunning() ? "Retrying..." : ""), e);
+						}
 					}
 				}
 			}
