@@ -52,11 +52,13 @@
 
 	<!--Sync scenario-->
 
-	<gateway id="gateway" default-request-channel="gatewayAuction"/>
+	<gateway id="gateway" default-request-channel="gatewayAuction" default-reply-timeout="10000" />
 
-	<scatter-gather input-channel="gatewayAuction" scatter-channel="auctionChannel">
+	<scatter-gather input-channel="gatewayAuction" output-channel="bridgeChannel" scatter-channel="auctionChannel">
 		<gatherer release-strategy-expression="messages.^[payload gt 5] != null or size() == 3"/>
 	</scatter-gather>
+
+	<bridge input-channel="bridgeChannel"/>
 
 	<chain input-channel="scatterGatherWithinChain" output-channel="output">
 		<scatter-gather scatter-channel="auctionChannel"/>
