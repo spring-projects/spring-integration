@@ -49,6 +49,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;
@@ -86,10 +87,16 @@ public class MockMessageHandlerTests {
 	private MessageChannel pojoServiceChannel;
 
 	@Autowired
+	private MessageChannel startChannel;
+
+	@Autowired
 	private MessageChannel rawChannel;
 
 	@Autowired
 	private QueueChannel results;
+
+	@Autowired
+	private ArgumentCaptor<Message<?>> argumentCaptorForOutputTest;
 
 	@Autowired
 	private ArgumentCaptor<Message<?>> messageArgumentCaptor;
@@ -209,6 +216,23 @@ public class MockMessageHandlerTests {
 		}
 	}
 
+	/**
+	 * Test whether the output channel is working after the target service activator is substituted.
+	 */
+	@Test
+	public void testHandlerSubstitutionWithOutputChannel() {
+		mockIntegrationContext.substituteMessageHandlerFor("mockMessageHandlerTests.Config.mockService.serviceActivator", new ServiceActivatingHandler(new Object(){
+			public String handle(String payload){
+				return payload;
+			}
+		}, "handle"));
+		Message<String> message = MessageBuilder.withPayload("bar").build();
+		startChannel.send(message);
+		startChannel.send(message);
+		List<Message<?>> list = argumentCaptorForOutputTest.getAllValues();
+		assertEquals(2, list.size());
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -252,6 +276,28 @@ public class MockMessageHandlerTests {
 		public EventDrivenConsumer rawHandlerConsumer() {
 			return new EventDrivenConsumer(rawChannel(),
 					new ExpressionEvaluatingMessageHandler(new ValueExpression<>("test")));
+		}
+
+		@Bean
+		public MessageChannel startChannel() {
+			return new DirectChannel();
+		}
+
+		@ServiceActivator(inputChannel = "startChannel", outputChannel = "nextChannel")
+		public String mockService(String payload) {
+			return payload + "test";
+		}
+
+		@Bean
+		public ArgumentCaptor<Message<?>> argumentCaptorForOutputTest() {
+			return MockIntegration.messageArgumentCaptor();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "nextChannel")
+		public MessageHandler handleNextInput() {
+			return mockMessageHandler(argumentCaptorForOutputTest())
+					.handleNextAndReply(m -> null);
 		}
 
 	}
