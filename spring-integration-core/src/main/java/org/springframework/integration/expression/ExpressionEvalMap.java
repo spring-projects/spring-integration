@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -60,11 +61,12 @@ import org.springframework.util.Assert;
  * </p>
  *
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
-	public static final EvaluationCallback SIMPLE_CALLBACK = expression -> expression.getValue();
+	public static final EvaluationCallback SIMPLE_CALLBACK = Expression::getValue;
 
 	private final Map<String, ?> original;
 
@@ -101,8 +103,19 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	}
 
 	@Override
+	public Set<Map.Entry<String, Object>> entrySet() {
+		return this.original.entrySet()
+				.stream()
+				.map(e -> new SimpleImmutableEntry<>(e.getKey(), get(e.getKey())))
+				.collect(Collectors.toSet());
+	}
+
+	@Override
 	public Collection<Object> values() {
-		throw new UnsupportedOperationException();
+		return this.original.values()
+				.stream()
+				.map(this::get)
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -136,8 +149,8 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	}
 
 	@Override
-	public Set<Map.Entry<String, Object>> entrySet() {
-		throw new UnsupportedOperationException();
+	public String toString() {
+		return this.original.toString();
 	}
 
 	@Override
@@ -165,10 +178,6 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public String toString() {
-		return this.original.toString();
-	}
 
 	public static ExpressionEvalMapBuilder from(Map<String, ?> expressions) {
 		Assert.notNull(expressions, "'expressions' must not be null.");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ package org.springframework.integration.aop;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.expression.Expression;
 
 /**
  * Simple implementation of {@link PublisherMetadataSource} that allows for
@@ -25,38 +28,63 @@ import java.util.Map;
  * array of header key=value expressions.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class SimplePublisherMetadataSource implements PublisherMetadataSource {
 
 	private volatile String channelName;
 
-	private volatile String payloadExpression;
+	private volatile Expression payloadExpression;
 
-	private volatile Map<String, String> headerExpressions;
+	private volatile Map<String, Expression> headerExpressions;
 
 
 	public void setChannelName(String channelName) {
 		this.channelName = channelName;
 	}
 
+	@Override
 	public String getChannelName(Method method) {
 		return this.channelName;
 	}
 
 	public void setPayloadExpression(String payloadExpression) {
-		this.payloadExpression = payloadExpression;
+		this.payloadExpression = EXPRESSION_PARSER.parseExpression(payloadExpression);
 	}
 
+	@Override
+	@Deprecated
 	public String getPayloadExpression(Method method) {
+		return this.payloadExpression.getExpressionString();
+	}
+
+	@Override
+	public Expression getExpressionForPayload(Method method) {
 		return this.payloadExpression;
 	}
 
 	public void setHeaderExpressions(Map<String, String> headerExpressions) {
-		this.headerExpressions = headerExpressions;
+		this.headerExpressions =
+				headerExpressions.entrySet()
+						.stream()
+						.collect(Collectors.toMap(Map.Entry::getKey,
+								e -> EXPRESSION_PARSER.parseExpression(e.getValue())));
 	}
 
+	@Override
+	@Deprecated
 	public Map<String, String> getHeaderExpressions(Method method) {
+		return this.headerExpressions
+				.entrySet()
+				.stream()
+				.collect(Collectors.toMap(Map.Entry::getKey,
+						e -> e.getValue().getExpressionString()));
+	}
+
+	@Override
+	public Map<String, Expression> getExpressionsForHeaders(Method method) {
 		return this.headerExpressions;
 	}
 

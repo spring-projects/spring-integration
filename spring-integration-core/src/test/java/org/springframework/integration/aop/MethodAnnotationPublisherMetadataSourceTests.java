@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,15 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.expression.Expression;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MethodAnnotationPublisherMetadataSourceTests {
@@ -44,26 +47,26 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	public void channelNameAndExplicitReturnValuePayload() {
 		Method method = getMethod("methodWithChannelAndExplicitReturnAsPayload");
 		String channelName = source.getChannelName(method);
-		String payloadExpression = source.getPayloadExpression(method);
+		Expression payloadExpression = source.getExpressionForPayload(method);
 		assertEquals("foo", channelName);
-		assertEquals("#return", payloadExpression);
+		assertEquals("#return", payloadExpression.getExpressionString());
 	}
 
 	@Test
 	public void channelNameAndEmptyPayloadAnnotation() {
 		Method method = getMethod("methodWithChannelAndEmptyPayloadAnnotation");
 		String channelName = source.getChannelName(method);
-		String payloadExpression = source.getPayloadExpression(method);
+		Expression payloadExpression = source.getExpressionForPayload(method);
 		assertEquals("foo", channelName);
-		assertEquals("#return", payloadExpression);
+		assertEquals("#return", payloadExpression.getExpressionString());
 	}
 
 	@Test
 	public void payloadButNoHeaders() {
 		Method method = getMethod("methodWithPayloadAnnotation", String.class, int.class);
-		String expressionString = source.getPayloadExpression(method);
+		String expressionString = source.getExpressionForPayload(method).getExpressionString();
 		assertEquals("testExpression1", expressionString);
-		Map<String, String> headerMap = source.getHeaderExpressions(method);
+		Map<String, Expression> headerMap = source.getExpressionsForHeaders(method);
 		assertNotNull(headerMap);
 		assertEquals(0, headerMap.size());
 	}
@@ -71,20 +74,20 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	@Test
 	public void payloadAndHeaders() {
 		Method method = getMethod("methodWithHeaderAnnotations", String.class, String.class, String.class);
-		String expressionString = source.getPayloadExpression(method);
+		String expressionString = source.getExpressionForPayload(method).getExpressionString();
 		assertEquals("testExpression2", expressionString);
-		Map<String, String> headerMap = source.getHeaderExpressions(method);
+		Map<String, Expression> headerMap = source.getExpressionsForHeaders(method);
 		assertNotNull(headerMap);
 		assertEquals(2, headerMap.size());
-		assertEquals("#args[1]", headerMap.get("foo"));
-		assertEquals("#args[2]", headerMap.get("bar"));
+		assertEquals("#args[1]", headerMap.get("foo").getExpressionString());
+		assertEquals("#args[2]", headerMap.get("bar").getExpressionString());
 	}
 
 	@Test
 	public void voidReturnWithValidPayloadExpression() {
 		Method method = getMethod("methodWithVoidReturnAndMethodNameAsPayload");
 		String channelName = source.getChannelName(method);
-		String payloadExpression = source.getPayloadExpression(method);
+		String payloadExpression = source.getExpressionForPayload(method).getExpressionString();
 		assertEquals("foo", channelName);
 		assertEquals("#method", payloadExpression);
 	}
@@ -92,20 +95,20 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void voidReturnWithInvalidPayloadExpression() {
 		Method method = getMethod("methodWithVoidReturnAndReturnValueAsPayload");
-		source.getPayloadExpression(method);
+		source.getExpressionForPayload(method);
 	}
 
 	@Test
 	public void voidReturnAndParameterPayloadAnnotation() {
 		Method method = getMethod("methodWithVoidReturnAndParameterPayloadAnnotation", String.class);
-		String payloadExpression = source.getPayloadExpression(method);
+		String payloadExpression = source.getExpressionForPayload(method).getExpressionString();
 		assertEquals("#args[0]", payloadExpression);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void voidReturnAndNoPayloadAnnotation() {
 		Method method = getMethod("methodWithVoidReturnAndNoPayloadAnnotation", String.class);
-		source.getPayloadExpression(method);
+		source.getExpressionForPayload(method);
 	}
 
 	@Test
@@ -184,8 +187,10 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	@Publisher
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface CustomPublisher {
+
 		@AliasFor(annotation = Publisher.class, attribute = "channel")
 		String custom();
+
 	}
 
 	@CustomPublisher(custom = "foo")
@@ -194,8 +199,10 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 
 	@CustomPublisher(custom = "bar")
 	public class TestClass {
+
 		public void methodWithAnnotationOnTheDeclaringClass() {
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,10 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.ParseException;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.expression.ExpressionEvalMap;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
@@ -45,7 +42,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * A {@link MethodInterceptor} that publishes Messages to a channel. The
@@ -56,13 +52,12 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public class MessagePublishingInterceptor implements MethodInterceptor, BeanFactoryAware {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
-	private final ExpressionParser parser = new SpelExpressionParser();
 
 	private volatile PublisherMetadataSource metadataSource;
 
@@ -119,14 +114,13 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 
 	@Override
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
-		Assert.notNull(this.metadataSource, "PublisherMetadataSource is required.");
 		final StandardEvaluationContext context = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		final Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
 		String[] argumentNames = this.resolveArgumentNames(method);
 		context.setVariable(PublisherMetadataSource.METHOD_NAME_VARIABLE_NAME, method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
-			Map<Object, Object> argumentMap = new HashMap<Object, Object>();
+			Map<Object, Object> argumentMap = new HashMap<>();
 			for (int i = 0; i < argumentNames.length; i++) {
 				if (invocation.getArguments().length <= i) {
 					break;
@@ -155,18 +149,17 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		return this.parameterNameDiscoverer.getParameterNames(method);
 	}
 
-	private void publishMessage(Method method, StandardEvaluationContext context) throws Exception {
-		String payloadExpressionString = this.metadataSource.getPayloadExpression(method);
-		if (!StringUtils.hasText(payloadExpressionString)) {
-			payloadExpressionString = "#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME;
+	private void publishMessage(Method method, StandardEvaluationContext context) {
+		Expression payloadExpression = this.metadataSource.getExpressionForPayload(method);
+		if (payloadExpression == null) {
+			payloadExpression = PublisherMetadataSource.RETURN_VALUE_EXPRESSION;
 		}
-		Expression expression = this.parser.parseExpression(payloadExpressionString);
-		Object result = expression.getValue(context);
+		Object result = payloadExpression.getValue(context);
 		if (result != null) {
 			AbstractIntegrationMessageBuilder<?> builder = (result instanceof Message<?>)
 					? getMessageBuilderFactory().fromMessage((Message<?>) result)
 					: getMessageBuilderFactory().withPayload(result);
-			Map<String, Object> headers = this.evaluateHeaders(method, context);
+			Map<String, Object> headers = evaluateHeaders(method, context);
 			if (headers != null) {
 				builder.copyHeaders(headers);
 			}
@@ -197,26 +190,15 @@ public class MessagePublishingInterceptor implements MethodInterceptor, BeanFact
 		}
 	}
 
-	private Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context)
-			throws ParseException, EvaluationException {
+	private Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context) {
 
-		Map<String, String> headerExpressionMap = this.metadataSource.getHeaderExpressions(method);
+		Map<String, Expression> headerExpressionMap = this.metadataSource.getExpressionsForHeaders(method);
 		if (headerExpressionMap != null) {
-			Map<String, Object> headers = new HashMap<String, Object>();
-			for (Map.Entry<String, String> headerExpressionEntry : headerExpressionMap.entrySet()) {
-				String headerExpression = headerExpressionEntry.getValue();
-				if (StringUtils.hasText(headerExpression)) {
-					Expression expression = this.parser.parseExpression(headerExpression);
-					Object result = expression.getValue(context);
-					if (result != null) {
-						headers.put(headerExpressionEntry.getKey(), result);
-					}
-				}
-			}
-			if (headers.size() > 0) {
-				return headers;
-			}
+			return ExpressionEvalMap.from(headerExpressionMap)
+					.usingEvaluationContext(context)
+					.build();
 		}
+
 		return null;
 	}
 
