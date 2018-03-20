@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.expression.Expression;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
@@ -37,6 +38,8 @@ import org.springframework.messaging.core.DestinationResolver;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MessagePublishingInterceptorTests {
@@ -124,12 +127,25 @@ public class MessagePublishingInterceptorTests {
 		}
 
 		@Override
+		@Deprecated
 		public String getPayloadExpression(Method method) {
-			return "'test-' + #return";
+			return getExpressionForPayload(method)
+					.getExpressionString();
 		}
 
 		@Override
+		public Expression getExpressionForPayload(Method method) {
+			return EXPRESSION_PARSER.parseExpression("'test-' + #return");
+		}
+
+		@Override
+		@Deprecated
 		public Map<String, String> getHeaderExpressions(Method method) {
+			return null;
+		}
+
+		@Override
+		public Map<String, Expression> getExpressionsForHeaders(Method method) {
 			return null;
 		}
 
@@ -137,6 +153,7 @@ public class MessagePublishingInterceptorTests {
 		public String getChannelName(Method method) {
 			return "c";
 		}
+
 	}
 
 }

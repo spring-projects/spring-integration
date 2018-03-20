@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,26 @@
 
 package org.springframework.integration.aop;
 
-import org.junit.Assert;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.annotation.Publisher;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.integration.annotation.Publisher;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -48,27 +51,32 @@ public class AnnotationConfigRegistrationTests {
 	@Autowired
 	private QueueChannel defaultChannel;
 
+	@Autowired
+	private PublisherAnnotationBeanPostProcessor publisherAnnotationBeanPostProcessor;
+
 
 	@Test // INT-1200
 	public void verifyInterception() {
 		String name = testBean.setName("John", "Doe", 123);
-		Assert.assertNotNull(name);
+		assertThat(name).isNotNull();
 		Message<?> message = annotationConfigRegistrationTest.receive(0);
-		Assert.assertNotNull(message);
-		Assert.assertEquals("John DoeDoe", message.getPayload());
-		Assert.assertEquals(123, message.getHeaders().get("x"));
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("John DoeDoe");
+		assertThat(message.getHeaders().get("x")).isEqualTo(123);
+
+		assertThat(TestUtils.getPropertyValue(this.publisherAnnotationBeanPostProcessor,
+				"advisor.metadataSource.metadataCacheLimit"))
+				.isEqualTo(50);
 	}
 
 	@Test
 	public void defaultChannel() {
 		String result = testBean.exclaim("hello");
-		Assert.assertNotNull(result);
-		Assert.assertEquals("HELLO!!!", result);
+		assertThat(result).isEqualTo("HELLO!!!");
 		Message<?> message = defaultChannel.receive(0);
-		Assert.assertNotNull(message);
-		Assert.assertEquals("HELLO!!!", message.getPayload());
+		assertThat(message).isNotNull();
+		assertThat(message.getPayload()).isEqualTo("HELLO!!!");
 	}
-
 
 	public static class TestBean {
 
@@ -82,6 +90,7 @@ public class AnnotationConfigRegistrationTests {
 		public String exclaim(String s) {
 			return s.toUpperCase() + "!!!";
 		}
+
 	}
 
 }
