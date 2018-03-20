@@ -60,6 +60,7 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 	private final MessagePublishingInterceptor interceptor;
 
 	@SafeVarargs
+	@SuppressWarnings("varargs")
 	public PublisherAnnotationAdvisor(Class<? extends Annotation>... publisherAnnotationTypes) {
 		this.publisherAnnotationTypes = new HashSet<>(Arrays.asList(publisherAnnotationTypes));
 		this.metadataSource = new MethodAnnotationPublisherMetadataSource(this.publisherAnnotationTypes);
