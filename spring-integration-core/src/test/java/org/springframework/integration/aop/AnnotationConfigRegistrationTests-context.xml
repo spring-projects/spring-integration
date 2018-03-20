@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd"
-	   xmlns:si="http://www.springframework.org/schema/integration">
+	xmlns:si="http://www.springframework.org/schema/integration">
 
-	<bean id="testBean" class="org.springframework.integration.aop.AnnotationConfigRegistrationTests$TestBean"/>
+	<bean id="testBean" class="org.springframework.integration.aop.AnnotationConfigRegistrationTests$TestBean" />
 
 	<si:channel id="annotationConfigRegistrationTest">
-		<si:queue/>
+		<si:queue />
 	</si:channel>
 
 	<si:channel id="defaultChannel">
-		<si:queue/>
+		<si:queue />
 	</si:channel>
 
-	<si:annotation-config default-publisher-channel="defaultChannel" metadata-cache-limit="50"/>
+	<si:annotation-config default-publisher-channel="defaultChannel"/>
 
 </beans>

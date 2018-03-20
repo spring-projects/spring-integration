@@ -20,7 +20,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,47 +47,13 @@ import org.springframework.util.StringUtils;
  */
 public class MethodAnnotationPublisherMetadataSource implements PublisherMetadataSource {
 
-	private static final int DEFAULT_CACHE_LIMIT = 100;
-
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
-	private int metadataCacheLimit = DEFAULT_CACHE_LIMIT;
+	private final Map<Method, String> channels = new HashMap<>();
 
-	@SuppressWarnings("serial")
-	private final Map<Method, String> channels =
-			Collections.synchronizedMap(
-					new LinkedHashMap<Method, String>(DEFAULT_CACHE_LIMIT, 0.75f, true) {
+	private final Map<Method, Expression> payloadExpressions = new HashMap<>();
 
-						@Override
-						protected boolean removeEldestEntry(Map.Entry<Method, String> eldest) {
-							return this.size() > MethodAnnotationPublisherMetadataSource.this.metadataCacheLimit;
-						}
-
-					});
-
-	@SuppressWarnings("serial")
-	private final Map<Method, Expression> payloadExpressions =
-			Collections.synchronizedMap(
-					new LinkedHashMap<Method, Expression>(DEFAULT_CACHE_LIMIT, 0.75f, true) {
-
-						@Override
-						protected boolean removeEldestEntry(Map.Entry<Method, Expression> eldest) {
-							return this.size() > MethodAnnotationPublisherMetadataSource.this.metadataCacheLimit;
-						}
-
-					});
-
-	@SuppressWarnings("serial")
-	private final Map<Method, Map<String, Expression>> headersExpressions =
-			Collections.synchronizedMap(
-					new LinkedHashMap<Method, Map<String, Expression>>(DEFAULT_CACHE_LIMIT, 0.75f, true) {
-
-						@Override
-						protected boolean removeEldestEntry(Map.Entry<Method, Map<String, Expression>> eldest) {
-							return this.size() > MethodAnnotationPublisherMetadataSource.this.metadataCacheLimit;
-						}
-
-					});
+	private final Map<Method, Map<String, Expression>> headersExpressions = new HashMap<>();
 
 	private final Set<Class<? extends Annotation>> annotationTypes;
 
@@ -108,17 +73,6 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 	public void setChannelAttributeName(String channelAttributeName) {
 		Assert.hasText(channelAttributeName, "channelAttributeName must not be empty");
 		this.channelAttributeName = channelAttributeName;
-	}
-
-	/**
-	 * Set a limit for how many entries are retained in the caches
-	 * for parsed metadata for the method.
-	 * When the limit is exceeded, the oldest entry is discarded.
-	 * @param metadataCacheLimit the limit. Default to 100.
-	 * @since 5.0.4
-	 */
-	public void setMetadataCacheLimit(int metadataCacheLimit) {
-		this.metadataCacheLimit = metadataCacheLimit;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,12 +49,7 @@ import org.springframework.util.ClassUtils;
 public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		implements BeanPostProcessor, BeanClassLoaderAware, BeanFactoryAware, InitializingBean, Ordered {
 
-	private final Set<Class<?>> nonApplicableCache =
-			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(256));
-
 	private volatile String defaultChannelName;
-
-	private volatile Integer metadataCacheLimit;
 
 	private volatile PublisherAnnotationAdvisor advisor;
 
@@ -64,6 +59,9 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
+	private final Set<Class<?>> nonApplicableCache =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(256));
+
 	/**
 	 * Set the default channel where Messages should be sent if the annotation
 	 * itself does not provide a channel.
@@ -72,15 +70,6 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 	 */
 	public void setDefaultChannelName(String defaultChannelName) {
 		this.defaultChannelName = defaultChannelName;
-	}
-
-	/**
-	 * Specify a limit for the method metadata cache.
-	 * @param metadataCacheLimit the cache limit to use.
-	 * @since 5.0.4
-	 */
-	public void setMetadataCacheLimit(int metadataCacheLimit) {
-		this.metadataCacheLimit = metadataCacheLimit;
 	}
 
 	@Override
@@ -107,9 +96,11 @@ public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
 		this.advisor = new PublisherAnnotationAdvisor();
 		this.advisor.setBeanFactory(this.beanFactory);
 		this.advisor.setDefaultChannelName(this.defaultChannelName);
-		if (this.metadataCacheLimit != null) {
-			this.advisor.setMetadataCacheLimit(this.metadataCacheLimit);
-		}
+	}
+
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		return bean;
 	}
 
 	@Override

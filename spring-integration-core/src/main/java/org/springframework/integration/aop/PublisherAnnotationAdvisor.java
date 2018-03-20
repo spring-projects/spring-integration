@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,18 +55,16 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 
 	private final Set<Class<? extends Annotation>> publisherAnnotationTypes;
 
-	private final MethodAnnotationPublisherMetadataSource metadataSource;
-
 	private final MessagePublishingInterceptor interceptor;
 
-	@SafeVarargs
-	@SuppressWarnings("varargs")
+	@SuppressWarnings("unchecked")
 	public PublisherAnnotationAdvisor(Class<? extends Annotation>... publisherAnnotationTypes) {
 		this.publisherAnnotationTypes = new HashSet<>(Arrays.asList(publisherAnnotationTypes));
-		this.metadataSource = new MethodAnnotationPublisherMetadataSource(this.publisherAnnotationTypes);
-		this.interceptor = new MessagePublishingInterceptor(this.metadataSource);
+		PublisherMetadataSource metadataSource = new MethodAnnotationPublisherMetadataSource(this.publisherAnnotationTypes);
+		this.interceptor = new MessagePublishingInterceptor(metadataSource);
 	}
 
+	@SuppressWarnings("unchecked")
 	public PublisherAnnotationAdvisor() {
 		this(Publisher.class);
 	}
@@ -79,15 +77,6 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 	 */
 	public void setDefaultChannelName(String defaultChannelName) {
 		this.interceptor.setDefaultChannelName(defaultChannelName);
-	}
-
-	/**
-	 * A limit for the method metadata cache in the {@link #metadataSource}.
-	 * @param metadataCacheLimit the cache limit to use.
-	 * @since 5.0.4
-	 */
-	public void setMetadataCacheLimit(int metadataCacheLimit) {
-		this.metadataSource.setMetadataCacheLimit(metadataCacheLimit);
 	}
 
 	@Override
@@ -148,8 +137,8 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		 * @param methodAnnotationType the annotation type to look for at the method level
 		 * (can be <code>null</code>)
 		 */
-		MetaAnnotationMatchingPointcut(Class<? extends Annotation> classAnnotationType,
-				Class<? extends Annotation> methodAnnotationType) {
+		MetaAnnotationMatchingPointcut(
+				Class<? extends Annotation> classAnnotationType, Class<? extends Annotation> methodAnnotationType) {
 
 			Assert.isTrue((classAnnotationType != null || methodAnnotationType != null),
 					"Either Class annotation type or Method annotation type needs to be specified (or both)");
@@ -179,7 +168,6 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 		public MethodMatcher getMethodMatcher() {
 			return this.methodMatcher;
 		}
-
 	}
 
 
@@ -209,7 +197,6 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 			return (specificMethod != method &&
 					(AnnotationUtils.getAnnotation(specificMethod, this.annotationType) != null));
 		}
-
 	}
 
 }
