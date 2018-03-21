@@ -49,7 +49,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
-import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.context.MockIntegrationContext;
 import org.springframework.integration.test.context.SpringIntegrationTest;
@@ -292,7 +291,7 @@ public class MockMessageHandlerTests {
 		@ServiceActivator(inputChannel = "nextChannel")
 		public MessageHandler handleNextInput() {
 			return mockMessageHandler(argumentCaptorForOutputTest())
-					.handleNext(m -> {});
+					.handleNext(m -> { });
 		}
 
 	}
