@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,10 @@ import org.springframework.util.ObjectUtils;
  * annotation and can be autowired into test class.
  *
  * @author Artem Bilan
+ * @author Yicheng Feng
  *
  * @since 5.0
+ *
  * @see SpringIntegrationTest
  */
 public class MockIntegrationContext implements BeanFactoryAware {
@@ -139,8 +141,7 @@ public class MockIntegrationContext implements BeanFactoryAware {
 
 		if (mockMessageHandler instanceof MessageProducer) {
 			if (targetMessageHandler instanceof MessageProducer) {
-				MessageChannel outputChannel = TestUtils.getPropertyValue(targetMessageHandler, "outputChannel",
-						MessageChannel.class);
+				MessageChannel outputChannel = ((MessageProducer) targetMessageHandler).getOutputChannel();
 				((MessageProducer) mockMessageHandler).setOutputChannel(outputChannel);
 			}
 			else {
