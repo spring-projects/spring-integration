@@ -75,11 +75,6 @@ public class IntegrationFlowBeanPostProcessor
 	}
 
 	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
-	}
-
-	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof StandardIntegrationFlow) {
 			return processStandardIntegrationFlow((StandardIntegrationFlow) bean, beanName);

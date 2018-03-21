@@ -21,7 +21,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -89,19 +88,9 @@ class StandardIntegrationFlowRegistration implements IntegrationFlowRegistration
 	@Override
 	public MessageChannel getInputChannel() {
 		if (this.inputChannel == null) {
-			if (this.integrationFlow instanceof StandardIntegrationFlow) {
-				StandardIntegrationFlow integrationFlow = (StandardIntegrationFlow) this.integrationFlow;
-				Object next = integrationFlow.getIntegrationComponents().keySet().iterator().next();
-				if (next instanceof MessageChannel) {
-					this.inputChannel = (MessageChannel) next;
-				}
-				else {
-					throw new IllegalStateException("The 'IntegrationFlow' [" + integrationFlow + "] " +
-							"doesn't start with 'MessageChannel' for direct message sending.");
-				}
-			}
-			else {
-				throw new IllegalStateException("Only 'StandardIntegrationFlow' instances " +
+			this.inputChannel = this.integrationFlow.getInputChannel();
+			if (this.inputChannel == null) {
+				throw new IllegalStateException("Only 'IntegrationFlow' instances started from the 'MessageChannel' " +
 						"(e.g. extracted from 'IntegrationFlow' Lambdas) can be used " +
 						"for direct 'send' operation. " +
 						"But [" + this.integrationFlow + "] ins't one of them.\n" +

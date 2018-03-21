@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.dsl;
 
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.util.Assert;
 
 /**
  * A {@link ConsumerEndpointSpec} implementation for the {@link MessageFilter}.
@@ -87,12 +85,7 @@ public final class FilterEndpointSpec extends ConsumerEndpointSpec<FilterEndpoin
 	 * @return the endpoint spec.
 	 */
 	public FilterEndpointSpec discardFlow(IntegrationFlow discardFlow) {
-		Assert.notNull(discardFlow, "'discardFlow' must not be null");
-		DirectChannel channel = new DirectChannel();
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
-		discardFlow.configure(flowBuilder);
-		this.componentsToRegister.put(flowBuilder.get(), null);
-		return discardChannel(channel);
+		return discardChannel(obtainInputChannelFromFlow(discardFlow));
 	}
 
 	/**

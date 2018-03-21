@@ -266,7 +266,7 @@ public class IntegrationFlowTests {
 		catch (Exception e) {
 			assertThat(e, instanceOf(BeanCreationException.class));
 			assertThat(e.getMessage(), containsString("'.fixedSubscriberChannel()' " +
-					"can't be the last EIP-method in the IntegrationFlow definition"));
+					"can't be the last EIP-method in the 'IntegrationFlow' definition"));
 		}
 		finally {
 			if (context != null) {
