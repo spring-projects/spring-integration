@@ -334,11 +334,25 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B wireTap(IntegrationFlow flow, Consumer<WireTapSpec> wireTapConfigurer) {
-		DirectChannel wireTapChannel = new DirectChannel();
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(wireTapChannel);
-		flow.configure(flowBuilder);
-		addComponent(flowBuilder.get());
+		MessageChannel wireTapChannel = obtainInputChannelFromFlow(flow);
+
 		return wireTap(wireTapChannel, wireTapConfigurer);
+	}
+
+	private MessageChannel obtainInputChannelFromFlow(IntegrationFlow flow) {
+		Assert.notNull(flow, "'flow' must not be null");
+		MessageChannel messageChannel = flow.getInputChannel();
+		if (messageChannel == null) {
+			messageChannel = new DirectChannel();
+			IntegrationFlowDefinition<?> flowBuilder = IntegrationFlows.from(messageChannel);
+			flow.configure(flowBuilder);
+			addComponent(flowBuilder.get());
+		}
+		else {
+			addComponent(flow);
+		}
+
+		return messageChannel;
 	}
 
 	/**
@@ -2164,11 +2178,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B gateway(IntegrationFlow flow, Consumer<GatewayEndpointSpec> endpointConfigurer) {
-		Assert.notNull(flow, "'flow' must not be null");
-		final DirectChannel requestChannel = new DirectChannel();
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(requestChannel);
-		flow.configure(flowBuilder);
-		addComponent(flowBuilder.get());
+		MessageChannel requestChannel = obtainInputChannelFromFlow(flow);
+
 		return gateway(requestChannel, endpointConfigurer);
 	}
 
@@ -2700,9 +2711,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		if (this.integrationFlow == null) {
 			if (this.currentMessageChannel instanceof FixedSubscriberChannelPrototype) {
 				throw new BeanCreationException("The 'currentMessageChannel' (" + this.currentMessageChannel
-						+ ") is a prototype for FixedSubscriberChannel which can't be created without MessageHandler "
+						+ ") is a prototype for 'FixedSubscriberChannel' which can't be created without 'MessageHandler' "
 						+ "constructor argument. That means that '.fixedSubscriberChannel()' can't be the last "
-						+ "EIP-method in the IntegrationFlow definition.");
+						+ "EIP-method in the 'IntegrationFlow' definition.");
 			}
 
 			if (this.integrationComponents.size() == 1) {

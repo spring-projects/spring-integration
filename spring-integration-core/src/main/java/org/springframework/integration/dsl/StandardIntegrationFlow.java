@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.context.SmartLifecycle;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * The standard implementation of the {@link IntegrationFlow} interface instantiated
@@ -69,10 +70,33 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	private final List<SmartLifecycle> lifecycles = new LinkedList<>();
 
+	private MessageChannel inputChannel;
+
 	private boolean running;
 
 	StandardIntegrationFlow(Map<Object, String> integrationComponents) {
 		this.integrationComponents = new LinkedHashMap<>(integrationComponents);
+	}
+
+	@Override
+	public void configure(IntegrationFlowDefinition<?> flow) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public MessageChannel getInputChannel() {
+		if (this.inputChannel == null) {
+			this.inputChannel =
+					this.integrationComponents.keySet()
+							.stream()
+							.filter(MessageChannel.class::isInstance)
+							.map(MessageChannel.class::cast)
+							.findFirst()
+							.orElseThrow(() -> new IllegalStateException("The 'IntegrationFlow' [" + this + "] " +
+									"doesn't start with 'MessageChannel' for direct message sending."));
+		}
+
+		return this.inputChannel;
 	}
 
 	public void setIntegrationComponents(Map<Object, String> integrationComponents) {
@@ -82,11 +106,6 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 
 	public Map<Object, String> getIntegrationComponents() {
 		return Collections.unmodifiableMap(this.integrationComponents);
-	}
-
-	@Override
-	public void configure(IntegrationFlowDefinition<?> flow) {
-		throw new UnsupportedOperationException();
 	}
 
 	@Override

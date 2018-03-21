@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.dsl;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
@@ -25,7 +24,6 @@ import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -204,8 +202,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public <P> RecipientListRouterSpec recipientFlow(GenericSelector<P> selector, IntegrationFlow subFlow) {
-		Assert.notNull(subFlow, "'subFlow' must not be null");
-		DirectChannel channel = populateSubFlow(subFlow);
+		MessageChannel channel = obtainInputChannelFromFlow(subFlow);
 		return recipient(channel, selector);
 	}
 
@@ -213,7 +210,6 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * Adds a subflow that will be invoked as a recipient.
 	 * @param subFlow the subflow.
 	 * @return the router spec.
-	 * @since 1.2
 	 */
 	public RecipientListRouterSpec recipientFlow(IntegrationFlow subFlow) {
 		return recipientFlow((String) null, subFlow);
@@ -235,20 +231,10 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @param expression the expression.
 	 * @param subFlow the subflow.
 	 * @return the router spec.
-	 * @since 1.2
 	 */
 	public RecipientListRouterSpec recipientFlow(Expression expression, IntegrationFlow subFlow) {
-		Assert.notNull(subFlow, "'subFlow' must not be null");
-		DirectChannel channel = populateSubFlow(subFlow);
+		MessageChannel channel = obtainInputChannelFromFlow(subFlow);
 		return recipient(channel, expression);
-	}
-
-	private DirectChannel populateSubFlow(IntegrationFlow subFlow) {
-		DirectChannel channel = new DirectChannel();
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
-		subFlow.configure(flowBuilder);
-		this.componentsToRegister.put(flowBuilder.get(), null);
-		return channel;
 	}
 
 }
