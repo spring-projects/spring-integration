@@ -554,12 +554,16 @@ public class RouterTests {
 		}
 
 		@Bean
+		public IntegrationFlow upperCase() {
+			return f -> f
+					.<String>handle((p, h) -> p.toUpperCase());
+		}
+
+		@Bean
 		public IntegrationFlow routeSubflowToReplyChannelFlow() {
 			return f -> f
 					.<Boolean>route("true", m -> m
-							.subFlowMapping(true, sf -> sf
-									.<String>handle((p, h) -> p.toUpperCase())
-							)
+							.subFlowMapping(true, upperCase())
 					);
 		}
 

@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.dsl.channel.PublishSubscribeChannelSpec;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
@@ -44,11 +46,21 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 		return super.id(id);
 	}
 
-	public PublishSubscribeSpec subscribe(IntegrationFlow flow) {
+	public PublishSubscribeSpec subscribe(IntegrationFlow subFlow) {
+		Assert.notNull(subFlow, "'subFlow' must not be null");
+
 		IntegrationFlowBuilder flowBuilder =
 				IntegrationFlows.from(this.channel)
 						.bridge();
-		flow.configure(flowBuilder);
+
+		MessageChannel subFlowInput = subFlow.getInputChannel();
+
+		if (subFlowInput == null) {
+			subFlow.configure(flowBuilder);
+		}
+		else {
+			flowBuilder.channel(subFlowInput);
+		}
 		this.subscriberFlows.put(flowBuilder.get(), null);
 		return _this();
 	}

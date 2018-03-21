@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.integration.dsl;
 
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.util.Assert;
 
 /**
  * A {@link MessageHandlerSpec} for {@link AbstractMessageRouter}s.
@@ -64,7 +62,6 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 	 * Specify a {@link MessageChannel} bean name as a default output from the router.
 	 * @param channelName the {@link MessageChannel} bean name.
 	 * @return the router spec.
-	 * @since 1.2
 	 * @see AbstractMessageRouter#setDefaultOutputChannelName(String)
 	 */
 	public S defaultOutputChannel(String channelName) {
@@ -76,7 +73,6 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 	 * Specify a {@link MessageChannel} as a default output from the router.
 	 * @param channel the {@link MessageChannel} to use.
 	 * @return the router spec.
-	 * @since 1.2
 	 * @see AbstractMessageRouter#setDefaultOutputChannel(MessageChannel)
 	 */
 	public S defaultOutputChannel(MessageChannel channel) {
@@ -88,17 +84,9 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 	 * Specify an {@link IntegrationFlow} as an output from the router when no any other mapping has matched.
 	 * @param subFlow the {@link IntegrationFlow} for default mapping.
 	 * @return the router spec.
-	 * @since 1.2
 	 */
 	public S defaultSubFlowMapping(IntegrationFlow subFlow) {
-		Assert.notNull(subFlow, "'subFlow' must not be null");
-		DirectChannel channel = new DirectChannel();
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
-		subFlow.configure(flowBuilder);
-
-		this.componentsToRegister.put(flowBuilder, null);
-
-		return defaultOutputChannel(channel);
+		return defaultOutputChannel(obtainInputChannelFromFlow(subFlow, false));
 	}
 
 	/**
@@ -106,7 +94,6 @@ public class AbstractRouterSpec<S extends AbstractRouterSpec<S, R>, R extends Ab
 	 * Use the next, after router, parent flow {@link MessageChannel} as a
 	 * {@link AbstractMessageRouter#setDefaultOutputChannel(MessageChannel)} of this router.
 	 * @return the router spec.
-	 * @since 1.2
 	 */
 	public S defaultOutputToParentFlow() {
 		this.defaultToParentFlow = true;

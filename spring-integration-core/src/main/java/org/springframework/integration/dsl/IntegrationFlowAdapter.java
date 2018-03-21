@@ -70,6 +70,12 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 	}
 
 	@Override
+	public MessageChannel getInputChannel() {
+		assertTargetIntegrationFlow();
+		return this.targetIntegrationFlow.getInputChannel();
+	}
+
+	@Override
 	public void start() {
 		assertTargetIntegrationFlow();
 		if (!this.running.getAndSet(true)) {

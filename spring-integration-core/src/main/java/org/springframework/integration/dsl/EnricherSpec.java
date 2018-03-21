@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
@@ -48,10 +47,9 @@ import reactor.util.function.Tuple2;
  */
 public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnricher> {
 
-	private final Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+	private final Map<String, Expression> propertyExpressions = new HashMap<>();
 
-	private final Map<String, HeaderValueMessageProcessor<?>> headerExpressions =
-			new HashMap<String, HeaderValueMessageProcessor<?>>();
+	private final Map<String, HeaderValueMessageProcessor<?>> headerExpressions = new HashMap<>();
 
 	EnricherSpec() {
 		super(new ContentEnricher());
@@ -167,15 +165,7 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * @return the enricher spec
 	 */
 	public EnricherSpec requestSubFlow(IntegrationFlow subFlow) {
-		Assert.notNull(subFlow, "'subFlow' must not be null");
-
-		DirectChannel requestChannel = new DirectChannel();
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(requestChannel);
-		subFlow.configure(flowBuilder);
-
-		this.componentsToRegister.put(flowBuilder.get(), null);
-
-		return requestChannel(requestChannel);
+		return requestChannel(obtainInputChannelFromFlow(subFlow));
 	}
 
 	/**
@@ -196,7 +186,7 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * @see ContentEnricher#setPropertyExpressions(Map)
 	 */
 	public <V> EnricherSpec property(String key, V value) {
-		this.propertyExpressions.put(key, new ValueExpression<V>(value));
+		this.propertyExpressions.put(key, new ValueExpression<>(value));
 		return _this();
 	}
 
@@ -234,7 +224,7 @@ public class EnricherSpec extends ConsumerEndpointSpec<EnricherSpec, ContentEnri
 	 * @see ContentEnricher#setHeaderExpressions(Map)
 	 */
 	public <V> EnricherSpec header(String name, V value) {
-		return this.header(name, value, null);
+		return header(name, value, null);
 	}
 
 	/**

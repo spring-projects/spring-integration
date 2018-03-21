@@ -21,11 +21,11 @@ import java.util.Map;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.management.MappingMessageRouterManagement;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -149,17 +149,16 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 	 */
 	public RouterSpec<K, R> subFlowMapping(K key, IntegrationFlow subFlow) {
 		Assert.notNull(key, "'key' must not be null");
-		Assert.notNull(subFlow, "'subFlow' must not be null");
 		Assert.state(!(StringUtils.hasText(this.prefix) || StringUtils.hasText(this.suffix)),
 				"The 'prefix'('suffix') and 'subFlowMapping' are mutually exclusive");
 
-		DirectChannel channel = new DirectChannel();
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(channel);
-		subFlow.configure(flowBuilder);
+		MessageChannel channel = obtainInputChannelFromFlow(subFlow, false);
 
-		this.componentsToRegister.put(flowBuilder, null);
+		Assert.isInstanceOf(NamedComponent.class, channel,
+				() -> "The routing channel '" + channel +
+						"' from the flow '" + subFlow + "' must be instance of 'NamedComponent'.");
 
-		this.mappingProvider.addMapping(key, channel);
+		this.mappingProvider.addMapping(key, (NamedComponent) channel);
 		return _this();
 	}
 

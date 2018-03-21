@@ -376,11 +376,16 @@ public class TransformerTests {
 		}
 
 		@Bean
-		public IntegrationFlow replyProducingSubFlowEnricher(SomeService someService) {
+		public IntegrationFlow someServiceFlow() {
+			return f -> f
+					.<String>handle((p, h) -> someService().someServiceMethod(p));
+		}
+
+		@Bean
+		public IntegrationFlow replyProducingSubFlowEnricher() {
 			return f -> f
 					.enrich(e -> e.<TestPojo>requestPayload(p -> p.getPayload().getName())
-							.requestSubFlow(sf -> sf
-									.<String>handle((p, h) -> someService.someServiceMethod(p)))
+							.requestSubFlow(someServiceFlow())
 							.<String>headerFunction("foo", Message::getPayload)
 							.propertyFunction("name", Message::getPayload))
 					.channel("subFlowTestReplyChannel");
