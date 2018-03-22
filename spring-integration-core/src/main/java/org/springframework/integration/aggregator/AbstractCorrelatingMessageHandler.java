@@ -20,12 +20,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 
@@ -98,9 +97,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 
-	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new HashMap<>();
+	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new ConcurrentHashMap<>();
 
-	private final Set<Object> groupIds =  new HashSet<>();
+	private final Set<Object> groupIds =  ConcurrentHashMap.newKeySet();
 
 	private MessageGroupProcessor outputProcessor;
 
