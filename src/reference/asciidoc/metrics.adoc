@@ -152,6 +152,13 @@ The `Counter` meters for message sources have the following names/tags:
 - `tag` : `exception:none`
 - `description` : `Messages received`
 
+In addition, there are three `Gauge` Meters:
+
+`spring.integration.channels` - the number of `MessageChannels` in the application.
+`spring.integration.handlers` - the number of `MessageHandlers` in the application.
+`spring.integration.sources` - the number of `MessageSources` in the application.
+
+
 [[mgmt-channel-features]]
 ==== MessageChannel Metric Features
 
