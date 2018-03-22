@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package org.springframework.integration.support;
 
 import static org.hamcrest.Matchers.hasEntry;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -30,6 +32,8 @@ import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Stuart Williams
+ * @author Nathan Kurtyka
+ *
  * @since 4.2
  */
 public class MutableMessageTests {
@@ -49,8 +53,8 @@ public class MutableMessageTests {
 		MutableMessage<Object> mutableMessage = new MutableMessage<>(payload, headerMap);
 		MutableMessageHeaders headers = mutableMessage.getHeaders();
 
-		assertThat(headers.getRawHeaders(), hasEntry(MessageHeaders.ID, (Object) uuid));
-		assertThat(headers.getRawHeaders(), hasEntry(MessageHeaders.TIMESTAMP, (Object) timestamp));
+		assertThat(headers.getRawHeaders(), hasEntry(MessageHeaders.ID, uuid));
+		assertThat(headers.getRawHeaders(), hasEntry(MessageHeaders.TIMESTAMP, timestamp));
 	}
 
 	@Test
@@ -69,7 +73,38 @@ public class MutableMessageTests {
 		headers.remove("eep");
 		headers.putAll(additional);
 
-		assertThat(headers.getRawHeaders(), hasEntry("foo", (Object) "bar"));
+		assertThat(headers.getRawHeaders(), hasEntry("foo", "bar"));
+	}
+
+	@Test
+	public void testMessageHeaderIsSerializable() {
+
+		Object payload = new Object();
+
+		UUID uuid = UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
+		Long timestamp = System.currentTimeMillis();
+
+		// UUID as String; timestamp as String
+		Map<String, Object> headerMapStrings = new HashMap<>();
+		headerMapStrings.put(MessageHeaders.ID, uuid.toString());
+		headerMapStrings.put(MessageHeaders.TIMESTAMP, timestamp.toString());
+		MutableMessage<Object> mutableMessageStrings = new MutableMessage<>(payload, headerMapStrings);
+		assertEquals(uuid, mutableMessageStrings.getHeaders().getId());
+		assertEquals(timestamp, mutableMessageStrings.getHeaders().getTimestamp());
+
+		// UUID as byte[]; timestamp as Long
+		Map<String, Object> headerMapByte = new HashMap<>();
+		byte[] uuidAsBytes =
+				ByteBuffer.allocate(16)
+						.putLong(uuid.getMostSignificantBits())
+						.putLong(uuid.getLeastSignificantBits())
+						.array();
+
+		headerMapByte.put(MessageHeaders.ID, uuidAsBytes);
+		headerMapByte.put(MessageHeaders.TIMESTAMP, timestamp);
+		MutableMessage<Object> mutableMessageBytes = new MutableMessage<>(payload, headerMapByte);
+		assertEquals(uuid, mutableMessageBytes.getHeaders().getId());
+		assertEquals(timestamp, mutableMessageBytes.getHeaders().getTimestamp());
 	}
 
 }
