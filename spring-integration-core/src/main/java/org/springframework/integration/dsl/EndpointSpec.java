@@ -143,10 +143,28 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		Assert.state(this.handler != null, "'this.handler' must not be null.");
 	}
 
+	/**
+	 * Try to get a {@link MessageChannel} as an input for the provided {@link IntegrationFlow}
+	 * or create one and wrap the provided flow to a new one.
+	 * @param subFlow the {@link IntegrationFlow} to extract input channel.
+	 * @return the input channel of the flow of create one
+	 * @since 5.0.4
+	 */
 	protected MessageChannel obtainInputChannelFromFlow(IntegrationFlow subFlow) {
 		return obtainInputChannelFromFlow(subFlow, true);
 	}
 
+	/**
+	 * Try to get a {@link MessageChannel} as an input for the provided {@link IntegrationFlow}
+	 * or create one and wrap the provided flow to a new one.
+	 * @param subFlow the {@link IntegrationFlow} to extract input channel.
+	 * @param evaluateInternalBuilder true if an internal {@link IntegrationFlowDefinition} should be
+	 * evaluated to an {@link IntegrationFlow} component or left as a builder in the {@link #componentsToRegister}
+	 * for future use-case. For example the builder is used for router configurations to retain beans
+	 * registration order for parent-child dependencies.
+	 * @return the input channel of the flow of create one
+	 * @since 5.0.4
+	 */
 	protected MessageChannel obtainInputChannelFromFlow(IntegrationFlow subFlow, boolean evaluateInternalBuilder) {
 		Assert.notNull(subFlow, "'subFlow' must not be null");
 		MessageChannel messageChannel = subFlow.getInputChannel();
