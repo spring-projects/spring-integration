@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -199,6 +202,8 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 	public static class AmqpAckCallback implements AcknowledgmentCallback {
 
+		private static Log logger = LogFactory.getLog(AmqpAckCallback.class);
+
 		private final AmqpAckInfo ackInfo;
 
 		private boolean acknowledged;
@@ -235,6 +240,9 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 		@Override
 		public void acknowledge(Status status) {
 			Assert.notNull(status, "'status' cannot be null");
+			if (logger.isTraceEnabled()) {
+				logger.trace("acknowledge(" + status.name() + ") for " + this);
+			}
 			try {
 				long deliveryTag = this.ackInfo.getGetResponse().getEnvelope().getDeliveryTag();
 				switch (status) {
@@ -262,6 +270,12 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 				RabbitUtils.closeConnection(this.ackInfo.getConnection());
 				this.acknowledged = true;
 			}
+		}
+
+		@Override
+		public String toString() {
+			return "AmqpAckCallback [ackInfo=" + this.ackInfo + ", acknowledged=" + this.acknowledged
+					+ ", autoAckEnabled=" + this.autoAckEnabled + "]";
 		}
 
 	}
@@ -300,6 +314,12 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 		public GetResponse getGetResponse() {
 			return this.getResponse;
+		}
+
+		@Override
+		public String toString() {
+			return "AmqpAckInfo [connection=" + this.connection + ", channel=" + this.channel + ", transacted="
+					+ this.transacted + ", getResponse=" + this.getResponse + "]";
 		}
 
 	}

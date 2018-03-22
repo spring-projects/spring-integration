@@ -58,6 +58,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.AcknowledgmentCallback;
 import org.springframework.integration.support.AcknowledgmentCallback.Status;
 import org.springframework.messaging.handler.annotation.Header;
@@ -132,8 +133,9 @@ public class AmqpMessageSourceIntegrationTests {
 		assertThat(this.config.fromDsl, equalTo("bar"));
 		assertThat(this.config.fromInterceptedSource, equalTo("BAZ"));
 		assertNull(template.receive(NOAUTOACK_QUEUE));
+		assertThat(this.config.requeueLatch.getCount(), equalTo(1L));
 		this.config.callback.acknowledge(Status.REQUEUE);
-		assertNotNull(template.receive(NOAUTOACK_QUEUE, 10_000));
+		assertTrue(this.config.requeueLatch.await(10, TimeUnit.SECONDS));
 	}
 
 	@Configuration
@@ -141,6 +143,8 @@ public class AmqpMessageSourceIntegrationTests {
 	public static class Config {
 
 		private final CountDownLatch latch = new CountDownLatch(5);
+
+		private final CountDownLatch requeueLatch = new CountDownLatch(2);
 
 		private volatile String received;
 
@@ -174,7 +178,18 @@ public class AmqpMessageSourceIntegrationTests {
 		@InboundChannelAdapter(channel = "noAutoAck", poller = @Poller(fixedDelay = "100"), autoStartup = "false")
 		@Bean
 		public MessageSource<?> noAutoAckSource() {
-			return new AmqpMessageSource(connectionFactory(), NOAUTOACK_QUEUE);
+			return new AmqpMessageSource(connectionFactory(), NOAUTOACK_QUEUE) {
+
+				@Override
+				protected AbstractIntegrationMessageBuilder<Object> doReceive() {
+					AbstractIntegrationMessageBuilder<Object> builder = super.doReceive();
+					if (builder != null) {
+						Config.this.requeueLatch.countDown();
+					}
+					return builder;
+				}
+
+			};
 		}
 
 		@ServiceActivator(inputChannel = "noAutoAck")
