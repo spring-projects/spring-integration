@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -101,7 +102,31 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * @param lifecycle the {@link SmartLifecycle}.
 	 */
 	public final void addLifecycleToRole(String role, SmartLifecycle lifecycle) {
-		this.lifecycles.add(role, lifecycle);
+		List<SmartLifecycle> lifecycles = this.lifecycles.get(role);
+		if (CollectionUtils.isEmpty(lifecycles)) {
+			this.lifecycles.add(role, lifecycle);
+		}
+		else {
+			lifecycles
+					.stream()
+					.filter(e ->
+							e == lifecycle ||
+									(e instanceof NamedComponent && lifecycle instanceof NamedComponent
+											&& ((NamedComponent) e).getComponentName()
+											.equals(((NamedComponent) lifecycle).getComponentName())))
+					.findFirst()
+					.ifPresent(e -> {
+						throw new IllegalArgumentException("Cannot add the Lifecycle '" +
+								(lifecycle instanceof NamedComponent
+										? ((NamedComponent) lifecycle).getComponentName()
+										: lifecycle)
+								+ "' to the role '" + role + "' because a Lifecycle with the name '"
+								+ (e instanceof NamedComponent ? ((NamedComponent) e).getComponentName() : e)
+								+ "' is already present.");
+					});
+
+			lifecycles.add(lifecycle);
+		}
 	}
 
 	/**
