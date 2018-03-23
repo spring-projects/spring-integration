@@ -526,6 +526,7 @@ Changes in Spring 3.1 can cause some issues with escaped characters, such as '?'
 For this reason, it is recommended that if you wish to generate the URL entirely at runtime, you use the 'url-expression' attribute.
 =====
 
+[[mapping-uri-variables]]
 ==== Mapping URI Variables
 
 If your URL contains URI variables, you can map them using the `uri-variable` sub-element.
@@ -583,6 +584,15 @@ public class UriVariablesBean {
 NOTE: The `uri-variables-expression` must evaluate to a `Map`.
 The values of the Map must be instances of `String` or `Expression`.
 This Map is provided to an `ExpressionEvalMap` for further resolution of URI variable placeholders using those expressions in the context of the outbound `Message`.
+
+IMPORTANT
+====
+The `uriVariablesExpression` property provides a very powerful mechanism for evaluating URI variables.
+It is anticipated that simple expressions like the example above will be used.
+However, you could also configure something like this `"@uriVariablesBean.populate(#root)"` with an expression in the returned map being `variables.put("foo", EXPRESSION_PARSER.parseExpression(message.getHeaders().get("bar", String.class)));`, where the expression is dynamically provided in the message header `bar`.
+Since the header may come from an untrusted source, the HTTP outbound endpoints use a `SimpleEvaluationContext` when evaluating these expressions; allowing only a subset of SpEL features to be used.
+If you trust your message sources and wish to use the restricted SpEL constructs, set the `trustedSpel` property of the outbound endpoint to `true`.
+====
 
 Scenarios when we need to supply a dynamic set of URI variables on per message basis can be achieved with the custom `url-expression` and some utilities for building and encoding URL parameters:
 

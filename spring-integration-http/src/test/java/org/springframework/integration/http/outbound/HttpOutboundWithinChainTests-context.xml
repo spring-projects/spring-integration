@@ -8,8 +8,9 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<si:chain input-channel="httpOutboundChannelAdapterWithinChain">
-		<outbound-channel-adapter url="http://localhost/test1/%2f" encode-uri="false" rest-template="restTemplate"/>
+	<si:chain id="chain" input-channel="httpOutboundChannelAdapterWithinChain">
+		<outbound-channel-adapter id="adapter" url="http://localhost/test1/%2f" encode-uri="false" rest-template="restTemplate"
+			trusted-spel="true" />
 	</si:chain>
 
 	<beans:bean id="restTemplate" class="org.mockito.Mockito" factory-method="spy">
@@ -22,6 +23,7 @@
 		<outbound-gateway url="http://localhost:51235/%2f/testApps?param={param}"
 						  rest-template="restTemplate"
 						  encode-uri="false"
+						  trusted-spel="true"
 						  expected-response-type-expression="T (org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandlerTests).testParameterizedTypeReference()">
 			<uri-variable name="param" expression="T(java.net.URLEncoder).encode('http Outbound Gateway Within Chain', 'UTF-8')"/>
 						  </outbound-gateway>

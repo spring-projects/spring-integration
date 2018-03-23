@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.http.outbound;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -132,13 +134,15 @@ public class UriVariableExpressionTests {
 		handler.setUriVariablesExpression(new SpelExpressionParser().parseExpression("headers.uriVariables"));
 		handler.afterPropertiesSet();
 
-		Map<String, String> expressions = new HashMap<String, String>();
+		Map<String, Object> expressions = new HashMap<String, Object>();
 		expressions.put("foo", "bar");
 
 		Map<String, ?> expressionsMap = ExpressionEvalMap.from(expressions).usingSimpleCallback().build();
 
 		try {
-			handler.handleMessage(MessageBuilder.withPayload("test").setHeader("uriVariables", expressionsMap).build());
+			handler.handleMessage(MessageBuilder.withPayload("test")
+					.setHeader("uriVariables", expressionsMap)
+					.build());
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
@@ -146,6 +150,42 @@ public class UriVariableExpressionTests {
 		}
 
 		assertEquals("http://test/bar", uriHolder.get().toString());
+
+		expressions.put("foo", new SpelExpressionParser().parseExpression("'bar'.toUpperCase()"));
+		try {
+			handler.handleMessage(MessageBuilder.withPayload("test")
+					.setHeader("uriVariables", expressions)
+					.build());
+			fail("Exception expected.");
+		}
+		catch (Exception e) {
+			assertEquals("intentional", e.getCause().getMessage());
+		}
+
+		assertEquals("http://test/BAR", uriHolder.get().toString());
+
+		expressions.put("foo", new SpelExpressionParser().parseExpression("T(Integer).valueOf('42')"));
+		try {
+			handler.handleMessage(MessageBuilder.withPayload("test")
+					.setHeader("uriVariables", expressions)
+					.build());
+			fail("Exception expected.");
+		}
+		catch (Exception e) {
+			assertThat(e.getCause().getMessage(), containsString("Type cannot be found"));
+		}
+
+		handler.setTrustedSpel(true);
+		try {
+			handler.handleMessage(MessageBuilder.withPayload("test")
+					.setHeader("uriVariables", expressions)
+					.build());
+			fail("Exception expected.");
+		}
+		catch (Exception e) {
+			assertEquals("intentional", e.getCause().getMessage());
+		}
+		assertEquals("http://test/42", uriHolder.get().toString());
 	}
 
 }
