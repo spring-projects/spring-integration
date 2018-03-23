@@ -29,7 +29,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
+import org.springframework.expression.spel.support.DataBindingPropertyAccessor;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.SimpleEvaluationContext.Builder;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -70,7 +70,7 @@ public final class ExpressionUtils {
 			BeanFactory beanFactory, boolean simple) {
 		if (simple) {
 			Builder ecBuilder = SimpleEvaluationContext.forPropertyAccessors(
-					new MapAccessor(), new ReflectivePropertyAccessor());
+					new MapAccessor(), DataBindingPropertyAccessor.forReadOnlyAccess());
 			if (conversionService != null) {
 				ecBuilder.withConversionService(conversionService);
 			}
