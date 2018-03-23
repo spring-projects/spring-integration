@@ -397,6 +397,18 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="trusted-spel">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set to 'true' if you trust SpEL expressions that might be evaluated to generate
+						URI variables.
+						The default value is 'false'.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -487,6 +499,18 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attributeGroup ref="httpOutboundCommonAttributes"/>
+					<xsd:attribute name="trusted-spel">
+						<xsd:annotation>
+							<xsd:documentation>
+								Set to 'true' if you trust SpEL expressions that might be evaluated to generate
+								URI variables.
+								The default value is 'false'.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

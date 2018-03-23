@@ -30,8 +30,10 @@ import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -87,7 +89,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final RestTemplate restTemplate;
 
-	private volatile StandardEvaluationContext evaluationContext;
+	private StandardEvaluationContext evaluationContext;
+
+	private SimpleEvaluationContext simpleEvaluationContext;
+
+	private boolean trustedSpel;
 
 	private final Expression uriExpression;
 
@@ -110,7 +116,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
 	private volatile Expression uriVariablesExpression;
-
 
 
 	/**
@@ -338,6 +343,17 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		this.transferCookies = transferCookies;
 	}
 
+	/**
+	 * Set to true if you trust the source of SpEL expressions used to evaluate URI
+	 * variables. Default is false, which means a {@link SimpleEvaluationContext} is used
+	 * for evaluating such expressions, which restricts the use of some SpEL capabilities.
+	 * @param trustedSpel true to trust.
+	 * @since 4.3.15.
+	 */
+	public void setTrustedSpel(boolean trustedSpel) {
+		this.trustedSpel = trustedSpel;
+	}
+
 	@Override
 	public String getComponentType() {
 		return (this.expectReply ? "http:outbound-gateway" : "http:outbound-channel-adapter");
@@ -346,6 +362,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.simpleEvaluationContext = ExpressionUtils.createSimpleEvaluationContext(this.getBeanFactory());
 	}
 
 	@Override
@@ -562,7 +579,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * If all keys and values are Strings, we'll consider the Map to be form data.
 	 */
 	private boolean isFormData(Map<Object, ?> map) {
-		for (Object	 key : map.keySet()) {
+		for (Object key : map.keySet()) {
 			if (!(key instanceof String)) {
 				return false;
 			}
@@ -599,7 +616,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 							|| expectedResponseType instanceof String
 							|| expectedResponseType instanceof ParameterizedTypeReference,
 					"'expectedResponseType' can be an instance of 'Class<?>', 'String' or 'ParameterizedTypeReference<?>'; "
-					+ "evaluation resulted in a" + expectedResponseType.getClass() + ".");
+							+ "evaluation resulted in a" + expectedResponseType.getClass() + ".");
 			if (expectedResponseType instanceof String && StringUtils.hasText((String) expectedResponseType)) {
 				expectedResponseType = ClassUtils.forName((String) expectedResponseType,
 						getApplicationContext().getClassLoader());
@@ -612,20 +629,24 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private Map<String, ?> determineUriVariables(Message<?> requestMessage) {
 		Map<String, ?> expressions;
 
+		EvaluationContext evaluationContextToUse = this.evaluationContext;
 		if (this.uriVariablesExpression != null) {
 			Object expressionsObject = this.uriVariablesExpression.getValue(this.evaluationContext, requestMessage);
 			Assert.state(expressionsObject instanceof Map,
 					"The 'uriVariablesExpression' evaluation must result in a 'Map'.");
 			expressions = (Map<String, ?>) expressionsObject;
+			if (!this.trustedSpel) {
+				evaluationContextToUse = this.simpleEvaluationContext;
+			}
 		}
 		else {
 			expressions = this.uriVariableExpressions;
 		}
 
 		return ExpressionEvalMap.from(expressions)
-					.usingEvaluationContext(this.evaluationContext)
-					.withRoot(requestMessage)
-					.build();
+				.usingEvaluationContext(evaluationContextToUse)
+				.withRoot(requestMessage)
+				.build();
 
 	}
 

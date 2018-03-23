@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload", "extractPayload");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "trusted-spel");
 
 		HttpAdapterParsingUtils.setExpectedResponseOrExpression(element, parserContext, builder);
 

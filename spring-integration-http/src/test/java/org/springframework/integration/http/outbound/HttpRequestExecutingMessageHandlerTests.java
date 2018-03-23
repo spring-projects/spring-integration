@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package org.springframework.integration.http.outbound;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -708,6 +710,9 @@ public class HttpRequestExecutingMessageHandlerTests {
 		channel.send(MessageBuilder.withPayload("test").build());
 		Mockito.verify(restTemplate).exchange(Mockito.eq(new URI("http://localhost/test1/%2f")),
 				Mockito.eq(HttpMethod.POST), Mockito.any(HttpEntity.class), Mockito.<Class<Object>>eq(null));
+		HttpRequestExecutingMessageHandler handler = ctx.getBean("chain$child.adapter.handler",
+				HttpRequestExecutingMessageHandler.class);
+		assertThat(TestUtils.getPropertyValue(handler, "trustedSpel"), equalTo(Boolean.TRUE));
 		ctx.close();
 	}
 

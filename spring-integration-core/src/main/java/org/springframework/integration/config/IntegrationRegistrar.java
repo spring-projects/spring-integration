@@ -194,6 +194,17 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 							".expression.IntegrationEvaluationContextAwareBeanPostProcessor");
 			BeanDefinitionReaderUtils.registerWithGeneratedName(integrationEvalContextBPP, registry);
 		}
+		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME)) {
+			BeanDefinitionBuilder integrationEvaluationContextBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(IntegrationSimpleEvaluationContextFactoryBean.class);
+			integrationEvaluationContextBuilder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+
+			BeanDefinitionHolder integrationEvaluationContextHolder =
+					new BeanDefinitionHolder(integrationEvaluationContextBuilder.getBeanDefinition(),
+							IntegrationContextUtils.INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME);
+
+			BeanDefinitionReaderUtils.registerBeanDefinition(integrationEvaluationContextHolder, registry);
+		}
 	}
 
 	/**
