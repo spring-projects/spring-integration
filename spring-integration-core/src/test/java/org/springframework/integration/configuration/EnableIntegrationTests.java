@@ -101,6 +101,7 @@ import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.config.IntegrationConverter;
 import org.springframework.integration.config.SpelFunctionFactoryBean;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -706,7 +707,8 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testIntegrationEvaluationContextCustomization() {
-		EvaluationContext evaluationContext = this.context.getBean(EvaluationContext.class);
+		EvaluationContext evaluationContext = this.context
+				.getBean(IntegrationContextUtils.INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, EvaluationContext.class);
 		List<?> propertyAccessors = TestUtils.getPropertyValue(evaluationContext, "propertyAccessors", List.class);
 		assertEquals(4, propertyAccessors.size());
 		assertThat(propertyAccessors.get(0), instanceOf(JsonPropertyAccessor.class));
