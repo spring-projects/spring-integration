@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,6 +31,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Stuart Williams
  * @author David Turanski
  * @author Artem Bilan
+ * @author Nathan Kurtyka
  *
  * @since 4.2
  */
@@ -38,13 +40,7 @@ public class MutableMessageHeaders extends MessageHeaders {
 	private static final long serialVersionUID = 3084692953798643018L;
 
 	public MutableMessageHeaders(@Nullable Map<String, Object> headers) {
-		this(headers,
-				(headers != null ?
-						(UUID) headers.get(MessageHeaders.ID)
-						: null),
-				(headers != null ?
-						(Long) headers.get(MessageHeaders.TIMESTAMP)
-						: null));
+		super(headers, MutableMessageHeaders.extractId(headers), MutableMessageHeaders.extractTimestamp(headers));
 	}
 
 	protected MutableMessageHeaders(@Nullable Map<String, Object> headers, @Nullable UUID id, @Nullable Long timestamp) {
@@ -74,6 +70,31 @@ public class MutableMessageHeaders extends MessageHeaders {
 	@Override
 	public Object remove(Object key) {
 		return super.getRawHeaders().remove(key);
+	}
+
+	private static UUID extractId(@Nullable Map<String, Object> headers) {
+		if (headers != null && headers.containsKey(MessageHeaders.ID)) {
+			Object id = headers.get(MessageHeaders.ID);
+			if (id instanceof String) {
+				return UUID.fromString((String) id);
+			}
+			else if (id instanceof byte[]) {
+				ByteBuffer bb = ByteBuffer.wrap((byte[]) id);
+				return new UUID(bb.getLong(), bb.getLong());
+			}
+			else {
+				return (UUID) id;
+			}
+		}
+		return null;
+	}
+
+	private static Long extractTimestamp(@Nullable Map<String, Object> headers) {
+		if (headers != null && headers.containsKey(MessageHeaders.TIMESTAMP)) {
+			Object timestamp = headers.get(MessageHeaders.TIMESTAMP);
+			return (timestamp instanceof String) ? Long.parseLong((String) timestamp) : (Long) timestamp;
+		}
+		return null;
 	}
 
 }
