@@ -236,6 +236,10 @@ The `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty s
 
 See <<http-header-mapping>> for more information.
 
+`uriVariablesExpression` now uses a `SimpleEvaluationContext` by default (since 5.0.4).
+
+See <<mapping-uri-variables>> for more information.
+
 ==== MQTT Changes
 
 Inbound messages are now mapped with headers `RECEIVED_TOPIC`, `RECEIVED_QOS` and `RECEIVED_RETAINED` to avoid inadvertent propagation to outbound messages when an application is relaying messages.

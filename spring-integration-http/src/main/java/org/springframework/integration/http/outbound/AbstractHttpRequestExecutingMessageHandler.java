@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ import java.util.function.Supplier;
 import javax.xml.transform.Source;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -68,6 +70,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Artem Bilan
  * @author Wallace Wadge
  * @author Shiliang Li
+ *
  * @since 5.0
  */
 public abstract class AbstractHttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
@@ -77,9 +80,13 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<>();
 
-	private volatile StandardEvaluationContext evaluationContext;
-
 	private final Expression uriExpression;
+
+	private StandardEvaluationContext evaluationContext;
+
+	private SimpleEvaluationContext simpleEvaluationContext;
+
+	private boolean trustedSpel;
 
 	private volatile boolean encodeUri = true;
 
@@ -247,9 +254,21 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 		this.transferCookies = transferCookies;
 	}
 
+	/**
+	 * Set to true if you trust the source of SpEL expressions used to evaluate URI
+	 * variables. Default is false, which means a {@link SimpleEvaluationContext} is used
+	 * for evaluating such expressions, which restricts the use of some SpEL capabilities.
+	 * @param trustedSpel true to trust.
+	 * @since 4.3.15.
+	 */
+	public void setTrustedSpel(boolean trustedSpel) {
+		this.trustedSpel = trustedSpel;
+	}
+
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.simpleEvaluationContext = ExpressionUtils.createSimpleEvaluationContext(this.getBeanFactory());
 	}
 
 	@Override
@@ -526,18 +545,22 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 	private Map<String, ?> determineUriVariables(Message<?> requestMessage) {
 		Map<String, ?> expressions;
 
+		EvaluationContext evaluationContextToUse = this.evaluationContext;
 		if (this.uriVariablesExpression != null) {
 			Object expressionsObject = this.uriVariablesExpression.getValue(this.evaluationContext, requestMessage);
 			Assert.state(expressionsObject instanceof Map,
 					"The 'uriVariablesExpression' evaluation must result in a 'Map'.");
 			expressions = (Map<String, ?>) expressionsObject;
+			if (!this.trustedSpel) {
+				evaluationContextToUse = this.simpleEvaluationContext;
+			}
 		}
 		else {
 			expressions = this.uriVariableExpressions;
 		}
 
 		return ExpressionEvalMap.from(expressions)
-				.usingEvaluationContext(this.evaluationContext)
+				.usingEvaluationContext(evaluationContextToUse)
 				.withRoot(requestMessage)
 				.build();
 

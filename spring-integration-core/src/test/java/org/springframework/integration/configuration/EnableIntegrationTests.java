@@ -75,6 +75,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.BridgeFrom;
 import org.springframework.integration.annotation.BridgeTo;
@@ -706,7 +707,7 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testIntegrationEvaluationContextCustomization() {
-		EvaluationContext evaluationContext = this.context.getBean(EvaluationContext.class);
+		EvaluationContext evaluationContext = this.context.getBean(StandardEvaluationContext.class);
 		List<?> propertyAccessors = TestUtils.getPropertyValue(evaluationContext, "propertyAccessors", List.class);
 		assertEquals(4, propertyAccessors.size());
 		assertThat(propertyAccessors.get(0), instanceOf(JsonPropertyAccessor.class));

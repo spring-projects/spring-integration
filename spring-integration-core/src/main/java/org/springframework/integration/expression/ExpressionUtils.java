@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.DataBindingPropertyAccessor;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.expression.spel.support.SimpleEvaluationContext.Builder;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -55,31 +58,20 @@ public final class ExpressionUtils {
 	}
 
 	/**
-	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
-	 * property accessor property and the supplied {@link ConversionService} in its
-	 * conversionService property.
-	 * @param conversionService the conversion service.
-	 * @return the evaluation context.
+	 * Used to create a context with no BeanFactory, usually in tests.
+	 * @return The evaluation context.
 	 */
-	private static StandardEvaluationContext createStandardEvaluationContext(ConversionService conversionService,
-			BeanFactory beanFactory) {
-		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-		evaluationContext.addPropertyAccessor(new MapAccessor());
-		if (conversionService != null) {
-			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
-		}
-		if (beanFactory != null) {
-			evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-		}
-		return evaluationContext;
+	public static StandardEvaluationContext createStandardEvaluationContext() {
+		return (StandardEvaluationContext) doCreateContext(null, false);
 	}
 
 	/**
 	 * Used to create a context with no BeanFactory, usually in tests.
 	 * @return The evaluation context.
+	 * @since 4.3.15
 	 */
-	public static StandardEvaluationContext createStandardEvaluationContext() {
-		return doCreateContext(null);
+	public static SimpleEvaluationContext createSimpleEvaluationContext() {
+		return (SimpleEvaluationContext) doCreateContext(null, true);
 	}
 
 	/**
@@ -92,22 +84,73 @@ public final class ExpressionUtils {
 		if (beanFactory == null) {
 			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
 		}
-		return doCreateContext(beanFactory);
+		return (StandardEvaluationContext) doCreateContext(beanFactory, false);
 	}
 
-	private static StandardEvaluationContext doCreateContext(BeanFactory beanFactory) {
+	/**
+	 * Obtains the context from the beanFactory if not null; emits a warning if the beanFactory
+	 * is null.
+	 * @param beanFactory The bean factory.
+	 * @return The evaluation context.
+	 * @since 4.3.15
+	 */
+	public static SimpleEvaluationContext createSimpleEvaluationContext(BeanFactory beanFactory) {
+		if (beanFactory == null) {
+			logger.warn("Creating EvaluationContext with no beanFactory", new RuntimeException("No beanFactory"));
+		}
+		return (SimpleEvaluationContext) doCreateContext(beanFactory, true);
+	}
+
+	private static EvaluationContext doCreateContext(BeanFactory beanFactory, boolean simple) {
 		ConversionService conversionService = null;
-		StandardEvaluationContext evaluationContext = null;
+		EvaluationContext evaluationContext = null;
 		if (beanFactory != null) {
-			evaluationContext = IntegrationContextUtils.getEvaluationContext(beanFactory);
+			evaluationContext =
+					simple
+							? IntegrationContextUtils.getSimpleEvaluationContext(beanFactory)
+							: IntegrationContextUtils.getEvaluationContext(beanFactory);
 		}
 		if (evaluationContext == null) {
 			if (beanFactory != null) {
 				conversionService = IntegrationUtils.getConversionService(beanFactory);
 			}
-			evaluationContext = createStandardEvaluationContext(conversionService, beanFactory);
+			evaluationContext = createEvaluationContext(conversionService, beanFactory, simple);
 		}
 		return evaluationContext;
+	}
+
+	/**
+	 * Create a {@link StandardEvaluationContext} with a {@link MapAccessor} in its
+	 * property accessor property and the supplied {@link ConversionService} in its
+	 * conversionService property.
+	 * @param conversionService the conversion service.
+	 * @param beanFactory the bean factory.
+	 * @param simple true if simple.
+	 * @return the evaluation context.
+	 */
+	private static EvaluationContext createEvaluationContext(ConversionService conversionService,
+			BeanFactory beanFactory, boolean simple) {
+
+		if (simple) {
+			Builder ecBuilder = SimpleEvaluationContext.forPropertyAccessors(
+					new MapAccessor(), DataBindingPropertyAccessor.forReadOnlyAccess())
+					.withInstanceMethods();
+			if (conversionService != null) {
+				ecBuilder.withConversionService(conversionService);
+			}
+			return ecBuilder.build();
+		}
+		else {
+			StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+			evaluationContext.addPropertyAccessor(new MapAccessor());
+			if (conversionService != null) {
+				evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+			}
+			if (beanFactory != null) {
+				evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+			}
+			return evaluationContext;
+		}
 	}
 
 	/**
