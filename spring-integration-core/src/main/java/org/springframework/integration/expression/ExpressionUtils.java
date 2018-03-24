@@ -70,7 +70,8 @@ public final class ExpressionUtils {
 			BeanFactory beanFactory, boolean simple) {
 		if (simple) {
 			Builder ecBuilder = SimpleEvaluationContext.forPropertyAccessors(
-					new MapAccessor(), DataBindingPropertyAccessor.forReadOnlyAccess());
+					new MapAccessor(), DataBindingPropertyAccessor.forReadOnlyAccess())
+					.withInstanceMethods();
 			if (conversionService != null) {
 				ecBuilder.withConversionService(conversionService);
 			}

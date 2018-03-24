@@ -80,6 +80,7 @@ public class IntegrationSimpleEvaluationContextFactoryBean extends AbstractEvalu
 		SimpleEvaluationContext evaluationContext =
 				SimpleEvaluationContext.forPropertyAccessors(accessorArray)
 				.withTypeConverter(getTypeConverter())
+				.withInstanceMethods()
 				.build();
 		for (Entry<String, Method> functionEntry : getFunctions().entrySet()) {
 			evaluationContext.setVariable(functionEntry.getKey(), functionEntry.getValue());

@@ -140,7 +140,9 @@ public class UriVariableExpressionTests {
 		Map<String, ?> expressionsMap = ExpressionEvalMap.from(expressions).usingSimpleCallback().build();
 
 		try {
-			handler.handleMessage(MessageBuilder.withPayload("test").setHeader("uriVariables", expressionsMap).build());
+			handler.handleMessage(MessageBuilder.withPayload("test")
+					.setHeader("uriVariables", expressionsMap)
+					.build());
 			fail("Exception expected.");
 		}
 		catch (Exception e) {
@@ -148,6 +150,19 @@ public class UriVariableExpressionTests {
 		}
 
 		assertEquals("http://test/bar", uriHolder.get().toString());
+
+		expressions.put("foo", new SpelExpressionParser().parseExpression("'bar'.toUpperCase()"));
+		try {
+			handler.handleMessage(MessageBuilder.withPayload("test")
+					.setHeader("uriVariables", expressions)
+					.build());
+			fail("Exception expected.");
+		}
+		catch (Exception e) {
+			assertEquals("intentional", e.getCause().getMessage());
+		}
+
+		assertEquals("http://test/BAR", uriHolder.get().toString());
 
 		expressions.put("foo", new SpelExpressionParser().parseExpression("T(Integer).valueOf('42')"));
 		try {
