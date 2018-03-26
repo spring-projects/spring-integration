@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,8 @@ public class FtpInboundChannelAdapterParserTests {
 				.getExpressionString());
 		assertNotNull(TestUtils.getPropertyValue(fisync, "localFilenameGeneratorExpression"));
 		assertTrue(TestUtils.getPropertyValue(fisync, "preserveTimestamp", Boolean.class));
-		assertEquals(".foo", TestUtils.getPropertyValue(fisync, "temporaryFileSuffix", String.class));
+		assertEquals("#root + '.foo'", TestUtils.getPropertyValue(fisync,
+				"temporaryFileNameHelper.temporaryFileNameExpression.expression", String.class));
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals("", remoteFileSeparator);

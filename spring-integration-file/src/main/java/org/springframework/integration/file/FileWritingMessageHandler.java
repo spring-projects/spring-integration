@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.file.support.FileNameHelper;
 import org.springframework.integration.file.support.FileUtils;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageTriggerAction;
@@ -117,9 +118,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private final Map<String, FileState> fileStates = new HashMap<String, FileState>();
 
-	private volatile String temporaryFileSuffix = ".writing";
+	private FileNameHelper temporaryFileNameHelper = new FileNameHelper();
 
-	private volatile boolean temporaryFileSuffixSet = false;
+	private volatile boolean temporaryFileNameExpressionSet = false;
 
 	private volatile FileExistsMode fileExistsMode = FileExistsMode.REPLACE;
 
@@ -204,8 +205,22 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null"); // empty string is OK
-		this.temporaryFileSuffix = temporaryFileSuffix;
-		this.temporaryFileSuffixSet = true;
+		this.temporaryFileNameHelper = FileNameHelper.defaultForSuffix(temporaryFileSuffix);
+		this.temporaryFileNameExpressionSet = true;
+	}
+
+	/**
+	 * By default, every file that is in the process of being transferred will
+	 * appear in the file system with a temporary name, which by default is
+	 * {@code #root.writing}. This can be changed by setting this property.
+	 * The root object for the evaluation is the final file name.
+	 * @param temporaryFileNameExpression The temporary file suffix.
+	 * @since 5.1
+	 */
+	public void setTemporaryFileNameExpression(String temporaryFileNameExpression) {
+		Assert.isTrue(StringUtils.hasText(temporaryFileNameExpression), "'temporaryFileSuffix' must have a value");
+		this.temporaryFileNameHelper = new FileNameHelper(temporaryFileNameExpression);
+		this.temporaryFileNameExpressionSet = true;
 	}
 
 
@@ -268,7 +283,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	protected String getTemporaryFileSuffix() {
-		return this.temporaryFileSuffix;
+		return this.temporaryFileNameHelper.toTempFile("", this.evaluationContext);
 	}
 
 	/**
@@ -453,7 +468,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}
 
-		Assert.state(!(this.temporaryFileSuffixSet
+		Assert.state(!(this.temporaryFileNameExpressionSet
 						&& (FileExistsMode.APPEND.equals(this.fileExistsMode)
 						|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode))),
 				"'temporaryFileSuffix' can not be set when appending to an existing file");
@@ -530,7 +545,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		final File destinationDirectoryToUse = evaluateDestinationDirectoryExpression(requestMessage);
 
-		File tempFile = new File(destinationDirectoryToUse, generatedFileName + this.temporaryFileSuffix);
+		String tempFileName = this.temporaryFileNameHelper.toTempFile(generatedFileName, this.evaluationContext);
+		File tempFile = new File(destinationDirectoryToUse, tempFileName);
 		File resultFile = new File(destinationDirectoryToUse, generatedFileName);
 
 		boolean exists = resultFile.exists();
@@ -544,7 +560,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			timestamp = ((File) payload).lastModified();
 		}
 		boolean ignore = (FileExistsMode.IGNORE.equals(this.fileExistsMode)
-				&& (exists || (StringUtils.hasText(this.temporaryFileSuffix) && tempFile.exists())))
+				&& (exists || (!generatedFileName.equals(tempFileName) && tempFile.exists())))
 				|| ((exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(this.fileExistsMode))
 				&& (timestamp instanceof Number
 				&& ((Number) timestamp).longValue() == resultFile.lastModified()));
@@ -682,7 +698,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			};
 			whileLockedProcessor.doWhileLocked();
-			cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
+			cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile, tempFile);
 			return resultFile;
 		}
 		else {
@@ -714,7 +730,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				catch (IOException ex) {
 				}
 			}
-			cleanUpAfterCopy(tempFile, resultFile, originalFile);
+			cleanUpAfterCopy(tempFile, resultFile, originalFile, tempFile);
 			return resultFile;
 		}
 	}
@@ -758,7 +774,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		};
 		whileLockedProcessor.doWhileLocked();
-		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
+		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile, tempFile);
 		return resultFile;
 	}
 
@@ -803,7 +819,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		};
 		whileLockedProcessor.doWhileLocked();
 
-		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
+		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile, tempFile);
 		return resultFile;
 	}
 
@@ -828,10 +844,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return fileToWriteTo;
 	}
 
-	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile) throws IOException {
+	private void cleanUpAfterCopy(File fileToWriteTo, File resultFile, File originalFile, File tempFile) throws IOException {
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode)
 				&& !FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)
-				&& StringUtils.hasText(this.temporaryFileSuffix)) {
+				&& !tempFile.getName().equals(resultFile.getName())) {
 			this.renameTo(fileToWriteTo, resultFile);
 		}
 

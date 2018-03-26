@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.integration.file.remote.session.CachingSessionFactory
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.file.support.FileNameHelper;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -76,7 +77,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private final AtomicInteger activeTemplateCallbacks = new AtomicInteger();
 
-	private volatile String temporaryFileSuffix = ".writing";
+	private FileNameHelper temporaryFileNameHelper = new FileNameHelper();
 
 	private volatile boolean autoCreateDirectory = false;
 
@@ -96,7 +97,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private volatile String remoteFileSeparator = "/";
 
-	private volatile boolean hasExplicitlySetSuffix;
+	private volatile boolean hasTempFileExpression;
 
 	private volatile BeanFactory beanFactory;
 
@@ -178,9 +179,15 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	/**
 	 * @return the temporary file suffix.
+	 * @deprecated use {@link #getTemporaryFileNameHelper()}.
 	 */
+	@Deprecated
 	public String getTemporaryFileSuffix() {
-		return this.temporaryFileSuffix;
+		return this.temporaryFileNameHelper.toTempFile("");
+	}
+
+	public FileNameHelper getTemporaryFileNameHelper() {
+		return this.temporaryFileNameHelper;
 	}
 
 	/**
@@ -227,8 +234,21 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null");
-		this.hasExplicitlySetSuffix = true;
-		this.temporaryFileSuffix = temporaryFileSuffix;
+		this.hasTempFileExpression = true;
+		this.temporaryFileNameHelper = FileNameHelper.defaultForSuffix(temporaryFileSuffix);
+	}
+
+	/**
+	 * Set the temporary suffix to use when transferring files to the remote system.
+	 * Default ".writing".
+	 * @param temporaryFileNameExpression the suffix
+	 * @see #setUseTemporaryFileName(boolean)
+	 */
+	public void setTemporaryFileNameExpression(String temporaryFileNameExpression) {
+		Assert.isTrue(StringUtils.hasText(temporaryFileNameExpression),
+				"'temporaryFileNameExpression' must have a value");
+		this.hasTempFileExpression = true;
+		this.temporaryFileNameHelper = new FileNameHelper("#root" + temporaryFileNameExpression);
 	}
 
 
@@ -258,7 +278,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			Assert.hasText(this.remoteFileSeparator,
 					"'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
 		}
-		if (this.hasExplicitlySetSuffix && !this.useTemporaryFileName) {
+		if (this.hasTempFileExpression && !this.useTemporaryFileName) {
 			this.logger.warn("Since 'use-temporary-file-name' is set to 'false' " +
 					"the value of 'temporary-file-suffix' has no effect");
 		}
@@ -539,7 +559,8 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
 		// write remote file first with temporary file extension if enabled
 
-		String tempFilePath = tempRemoteFilePath + (this.useTemporaryFileName ? this.temporaryFileSuffix : "");
+		String tempFilePath = this.useTemporaryFileName ? this.temporaryFileNameHelper.toTempFile(tempRemoteFilePath)
+				: tempRemoteFilePath;
 
 		if (this.autoCreateDirectory) {
 			try {

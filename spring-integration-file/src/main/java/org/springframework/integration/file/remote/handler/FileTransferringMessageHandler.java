@@ -22,6 +22,7 @@ import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.integration.file.support.FileNameHelper;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -119,12 +120,21 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		setTemporaryRemoteDirectoryExpression(EXPRESSION_PARSER.parseExpression(temporaryRemoteDirectoryExpression));
 	}
 
+	/**
+	 * @return the temporary file suffix.
+	 * @deprecated use {@link #getTemporaryFileNameHelper()}.
+	 */
+	@Deprecated
 	protected String getTemporaryFileSuffix() {
 		return this.remoteFileTemplate.getTemporaryFileSuffix();
 	}
 
 	protected boolean isUseTemporaryFileName() {
 		return this.remoteFileTemplate.isUseTemporaryFileName();
+	}
+
+	protected FileNameHelper getTemporaryFileNameHelper() {
+		return this.remoteFileTemplate.getTemporaryFileNameHelper();
 	}
 
 	/**

@@ -46,6 +46,7 @@ import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.support.FileNameHelper;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -82,7 +83,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
-	private volatile String temporaryFileSuffix = ".writing";
+	private volatile FileNameHelper temporaryFileNameHelper = new FileNameHelper();
 
 	private volatile Expression localFilenameGeneratorExpression;
 
@@ -154,7 +155,18 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 * @param temporaryFileSuffix the file suffix.
 	 */
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
-		this.temporaryFileSuffix = temporaryFileSuffix;
+		this.temporaryFileNameHelper = FileNameHelper.defaultForSuffix(temporaryFileSuffix);
+	}
+
+	/**
+	 * Set a temporary file name expression to be used while transferring files. The
+	 * root object for the evaluation is the final file name.
+	 * Default "#root.writing".
+	 * @param temporaryFileNameExpression the file suffix.
+	 * @since 5.1
+	 */
+	public void setTemporaryFileNameExpression(String temporaryFileNameExpression) {
+		this.temporaryFileNameHelper = new FileNameHelper(temporaryFileNameExpression);
 	}
 
 	/**
@@ -245,8 +257,22 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
 
+	/**
+	 * Return the temporary file suffix.
+	 * @return the suffix.
+	 * @deprecated use {@link #getTemporaryFileNameHelper()}
+	 */
+	@Deprecated
 	protected String getTemporaryFileSuffix() {
-		return this.temporaryFileSuffix;
+		return this.temporaryFileNameHelper.toTempFile("", this.evaluationContext);
+	}
+
+	protected FileNameHelper getTemporaryFileNameHelper() {
+		return this.temporaryFileNameHelper;
+	}
+
+	protected EvaluationContext getEvaluationContext() {
+		return this.evaluationContext;
 	}
 
 	@Override
@@ -365,7 +391,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			boolean renamed = false;
 
 			if (transfer) {
-				String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
+				String tempFileName = this.temporaryFileNameHelper.toTempFile(localFile.getAbsolutePath(),
+						this.evaluationContext);
 				File tempFile = new File(tempFileName);
 
 				OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile));

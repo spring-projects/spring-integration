@@ -697,7 +697,7 @@ public class RemoteFileOutboundGatewayTests {
 			assertEquals("test remove .writing", e.getCause().getMessage());
 			@SuppressWarnings("unchecked")
 			RemoteFileTemplate template = new RemoteFileTemplate(sessionFactory);
-			File outFile = new File(this.tmpDir + "/f1" + template.getTemporaryFileSuffix());
+			File outFile = new File(this.tmpDir + "/" + template.getTemporaryFileNameHelper().toTempFile("f1"));
 			assertFalse(outFile.exists());
 		}
 	}
