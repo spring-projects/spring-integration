@@ -216,6 +216,10 @@ With this release, the content type of such requests is considered to be `applic
 by RFC 2616.
 See <<http-inbound>> for more information.
 
+`uriVariablesExpression` now uses a `SimpleEvaluationContext` by default (since 4.3.15).
+
+See <<mapping-uri-variables>> for more information.
+
 ==== SFTP Changes
 
 ===== Factory Bean

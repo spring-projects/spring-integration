@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.context;
 import java.util.Properties;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.metadata.MetadataStore;
@@ -47,6 +48,8 @@ public abstract class IntegrationContextUtils {
 	public static final String CONVERTER_REGISTRAR_BEAN_NAME = "converterRegistrar";
 
 	public static final String INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME = "integrationEvaluationContext";
+
+	public static final String INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME = "integrationSimpleEvaluationContext";
 
 	public static final String INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME = "integrationHeaderChannelRegistry";
 
@@ -131,10 +134,21 @@ public abstract class IntegrationContextUtils {
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
-	 * @return the instance of {@link StandardEvaluationContext} bean whose name is "integrationEvaluationContext" .
+	 * @return the instance of {@link StandardEvaluationContext} bean whose name is
+	 * {@value #INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME}.
 	 */
 	public static StandardEvaluationContext getEvaluationContext(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, INTEGRATION_EVALUATION_CONTEXT_BEAN_NAME, StandardEvaluationContext.class);
+	}
+
+	/**
+	 * @param beanFactory BeanFactory for lookup, must not be null.
+	 * @return the instance of {@link SimpleEvaluationContext} bean whose name is
+	 * {@value #INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME}.
+	 * @since 4.3.15
+	 */
+	public static SimpleEvaluationContext getSimpleEvaluationContext(BeanFactory beanFactory) {
+		return getBeanOfType(beanFactory, INTEGRATION_SIMPLE_EVALUATION_CONTEXT_BEAN_NAME, SimpleEvaluationContext.class);
 	}
 
 	private static <T> T getBeanOfType(BeanFactory beanFactory, String beanName, Class<T> type) {
