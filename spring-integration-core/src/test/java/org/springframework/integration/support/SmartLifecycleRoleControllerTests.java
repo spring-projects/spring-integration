@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,6 +25,7 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -51,6 +53,18 @@ public class SmartLifecycleRoleControllerTests {
 		inOrder.verify(lc1).start();
 		inOrder.verify(lc1).stop();
 		inOrder.verify(lc2).stop();
+	}
+
+	@Test
+	public void testAllEndpointsRunning() {
+		ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("simple-adapter-role-context.xml", getClass());
+
+		SmartLifecycleRoleController lifecycleRoleController = context.getBean(SmartLifecycleRoleController.class);
+		lifecycleRoleController.stopLifecyclesInRole("myAdapterRole");
+		lifecycleRoleController.startLifecyclesInRole("myAdapterRole");
+
+		assertTrue(lifecycleRoleController.allEndpointsRunning("myAdapterRole"));
 	}
 
 }
