@@ -6,10 +6,11 @@
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration/jdbc
 			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
-	
-	<inbound-channel-adapter id="jdbcAdapter" query="select * from item where status=2" channel="target" 
-			data-source="dataSource" auto-startup="#{systemProperties['autostart']?:false}"/>
-		
+
 	<beans:import  resource="jdbcInboundChannelAdapterCommonConfig.xml" />
+
+	<inbound-channel-adapter id="jdbcAdapter" query="select * from item where status=2" channel="target"
+			data-source="dataSource" auto-startup="#{systemProperties['autostart']?:false}"/>
+
 
 </beans:beans>
