@@ -9,12 +9,13 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/jdbc
 			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
-	
-	<si:message-history/>
-	
-	<inbound-channel-adapter id="jdbcAdapter" query="select * from item where status=2" channel="target" 
-			data-source="dataSource" />
-		
+
 	<beans:import  resource="jdbcInboundChannelAdapterCommonConfig.xml" />
+
+	<si:message-history/>
+
+	<inbound-channel-adapter id="jdbcAdapter" query="select * from item where status=2" channel="target"
+			data-source="dataSource" />
+
 
 </beans:beans>
