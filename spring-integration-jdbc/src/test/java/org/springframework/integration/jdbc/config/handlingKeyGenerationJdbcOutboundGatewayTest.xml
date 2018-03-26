@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration/jdbc" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:si="http://www.springframework.org/schema/integration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/jdbc
 			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
+
+	<beans:import resource="jdbcOutboundChannelAdapterCommonConfig.xml" />
 
 	<si:channel id="output">
 		<si:queue />
@@ -26,7 +26,5 @@
 					  data-source="dataSource"
 					  request-prepared-statement-setter="messagePreparedStatementSetter"
 					  keys-generated="true" />
-
-	<beans:import resource="jdbcOutboundChannelAdapterCommonConfig.xml" />
 
 </beans:beans>

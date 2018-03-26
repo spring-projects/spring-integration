@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Gunnar Hillert
+ *
  * @since 2.0
  *
  */
@@ -104,7 +105,7 @@ public class JdbcOutboundGatewayParserTests {
 		assertNotNull(reply);
 
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
-		Object id = payload.get("SCOPE_IDENTITY()");
+		Object id = payload.get("ID");
 		assertNotNull(id);
 
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from BARS");
@@ -119,7 +120,7 @@ public class JdbcOutboundGatewayParserTests {
 		assertNotNull(reply);
 
 		payload = (Map<String, ?>) reply.getPayload();
-		id = payload.get("SCOPE_IDENTITY()");
+		id = payload.get("ID");
 		assertNotNull(id);
 		map = this.jdbcTemplate.queryForMap("SELECT * from BARS");
 		assertEquals("Wrong id", id, map.get("ID"));
