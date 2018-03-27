@@ -40,6 +40,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 import reactor.core.CoreSubscriber;
+import reactor.core.publisher.Operators;
 
 /**
  * Base class for MessageHandler implementations that provides basic validation
@@ -207,7 +208,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 
 	@Override
 	public void onError(Throwable throwable) {
-
+		Operators.onErrorDropped(throwable, currentContext());
 	}
 
 	@Override

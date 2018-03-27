@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,13 @@ import org.springframework.util.ErrorHandler;
 
 import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
-import reactor.core.publisher.BaseSubscriber;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Operators;
 
 
 /**
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class ReactiveStreamsConsumer extends AbstractEndpoint implements IntegrationConsumer {
@@ -72,7 +74,11 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		Assert.notNull(inputChannel, "'inputChannel' must not be null");
 		Assert.notNull(subscriber, "'subscriber' must not be null");
 
-		this.publisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
+		this.publisher =
+				Flux.from(MessageChannelReactiveUtils.toPublisher(inputChannel))
+						.errorStrategyContinue((e, m) -> this.errorHandler.handleError(e))
+						.doOnSubscribe(s -> this.subscription = s);
+
 		this.subscriber = subscriber;
 		this.lifecycleDelegate = subscriber instanceof Lifecycle ? (Lifecycle) subscriber : null;
 		if (subscriber instanceof MessageHandlerSubscriber) {
@@ -124,34 +130,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		if (this.lifecycleDelegate != null) {
 			this.lifecycleDelegate.start();
 		}
-		this.publisher.subscribe(new BaseSubscriber<Message<?>>() {
-
-			private final Subscriber<Message<?>> delegate = ReactiveStreamsConsumer.this.subscriber;
-
-			public void hookOnSubscribe(Subscription s) {
-				this.delegate.onSubscribe(s);
-				ReactiveStreamsConsumer.this.subscription = s;
-			}
-
-			public void hookOnNext(Message<?> message) {
-				try {
-					this.delegate.onNext(message);
-				}
-				catch (Exception e) {
-					ReactiveStreamsConsumer.this.errorHandler.handleError(e);
-					hookOnError(e);
-				}
-			}
-
-			public void hookOnError(Throwable t) {
-				this.delegate.onError(t);
-			}
-
-			public void hookOnComplete() {
-				this.delegate.onComplete();
-			}
-
-		});
+		this.publisher.subscribe(this.subscriber);
 	}
 
 	@Override
@@ -168,11 +147,11 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	private static final class MessageHandlerSubscriber
 			implements CoreSubscriber<Message<?>>, Disposable, Lifecycle {
 
+		private final MessageHandler messageHandler;
+
 		private final Consumer<Message<?>> consumer;
 
 		private Subscription subscription;
-
-		private MessageHandler messageHandler;
 
 		MessageHandlerSubscriber(MessageHandler messageHandler) {
 			Assert.notNull(messageHandler, "'messageHandler' must not be null");
@@ -192,7 +171,8 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		}
 
 		@Override
-		public void onError(Throwable t) {
+		public void onError(Throwable throwable) {
+			Operators.onErrorDropped(throwable, currentContext());
 		}
 
 		@Override
