@@ -409,7 +409,7 @@ public class FileReadingJavaApplication {
                   .from(s -> s.file(new File(INBOUND_PATH))
                               .patternFilter("*.txt"),
                           e -> e.poller(Pollers.fixedDelay(1000)))
-                  .transform(Transformers.fileToString())
+                  .transform(Files.toStringTransformer())
                   .channel("processFileChannel")
                   .get();
         }

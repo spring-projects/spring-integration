@@ -98,7 +98,7 @@ This maps the following headers:
 - `mail_lineCount` - A line count (if available).
 - `mail_receivedDate` - The received date (if available).
 - `mail_size` - The mail size (if available).
-- `mail_expunged` - A boolen indicating if the message is expunged.
+- `mail_expunged` - A boolean indicating if the message is expunged.
 - `mail_raw` - A `MultiValueMap` containing all the mail headers and their values.
 - `mail_contentType` - The content type of the original mail message.
 - `contentType` - The payload content type (see below).
@@ -146,7 +146,7 @@ and with the Java DSL:
 [source, java]
 ----
    ...
-   .transform(Transformers.fromMail())
+   .transform(Mail.toStringTransformer())
    ...
 ----
 
