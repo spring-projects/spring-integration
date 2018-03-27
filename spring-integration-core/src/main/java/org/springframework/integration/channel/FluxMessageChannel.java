@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
@@ -51,11 +53,33 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private FluxSink<Message<?>> sink;
 
+	private ErrorHandler errorHandler;
+
 	public FluxMessageChannel() {
 		this.flux =
 				Flux.<Message<?>>create(emitter -> this.sink = emitter, FluxSink.OverflowStrategy.IGNORE)
+						.errorStrategyContinue((e, m) -> this.errorHandler.handleError(e))
 						.publish()
 						.autoConnect();
+	}
+
+	/**
+	 * Specify an {@link ErrorHandler} to handle errors during {@link Subscriber#onNext(Object)}.
+	 * By default the {@link MessagePublishingErrorHandler} is used.
+	 * @param errorHandler the callback to handle errors during {@link Subscriber#onNext(Object)}
+	 * @since 5.1
+	 */
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (this.errorHandler == null) {
+			Assert.notNull(getBeanFactory(), "BeanFactory is required");
+			this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
+		}
 	}
 
 	@Override
