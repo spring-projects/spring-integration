@@ -1298,7 +1298,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
 	 * {@code
-	 *  .split(s -> s.applySequence(false).get().getT2().setDelimiters(","))
+	 *  .split(s -> s.applySequence(false).delimiters(","))
 	 * }
 	 * </pre>
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options
