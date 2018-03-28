@@ -515,6 +515,7 @@ For `MessageHandler` s that produce a reply (`AbstractReplyProducingMessageHandl
 For other message handlers, the advice is applied to `MessageHandler.handleMessage()`.
 
 There are some circumstances where, even if a message handler is an `AbstractReplyProducingMessageHandler`, the advice must be applied to the `handleMessage` method - for example, the <<idempotent-receiver, Idempotent Receiver>> might return `null` and this would cause an exception if the handler's `replyRequired` property is true.
+Another example is the `BoundRabbitChannelAdvice` - see <<amqp-strict-ordering>>.
 
 Starting with _version 4.3.1_, a new `HandleMessageAdvice` and the `AbstractHandleMessageAdvice` base implementation have been introduced.
 `Advice` s that implement `HandleMessageAdvice` will always be applied to the `handleMessage()` method, regardless of the handler type.
