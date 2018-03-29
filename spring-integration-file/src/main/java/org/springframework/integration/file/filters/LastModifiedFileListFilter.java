@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,18 +30,17 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
-public class LastModifiedFileListFilter implements FileListFilter<File> {
+public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<File> {
 
 	private static final long DEFAULT_AGE = 60;
 
 	private volatile long age = DEFAULT_AGE;
 
-	public long getAge() {
-		return this.age;
-	}
+	private DiscardCallback<File> discardCallback;
 
 	public LastModifiedFileListFilter() {
 	}
@@ -67,6 +66,10 @@ public class LastModifiedFileListFilter implements FileListFilter<File> {
 		setAge(age, TimeUnit.SECONDS);
 	}
 
+	public long getAge() {
+		return this.age;
+	}
+
 	/**
 	 * Set the age that files have to be before being passed by this filter.
 	 * If {@link File#lastModified()} plus age is greater than the current time, the file
@@ -80,12 +83,20 @@ public class LastModifiedFileListFilter implements FileListFilter<File> {
 	}
 
 	@Override
+	public void addDiscardCallback(DiscardCallback<File> discardCallback) {
+		this.discardCallback = discardCallback;
+	}
+
+	@Override
 	public List<File> filterFiles(File[] files) {
-		List<File> list = new ArrayList<File>();
+		List<File> list = new ArrayList<>();
 		long now = System.currentTimeMillis() / 1000;
 		for (File file : files) {
 			if (file.lastModified() / 1000 + this.age <= now) {
 				list.add(file);
+			}
+			else if (this.discardCallback != null) {
+				this.discardCallback.discardFile(file);
 			}
 		}
 		return list;
