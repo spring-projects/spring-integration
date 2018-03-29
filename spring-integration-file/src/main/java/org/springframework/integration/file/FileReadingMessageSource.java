@@ -29,8 +29,8 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
@@ -49,6 +49,7 @@ import org.springframework.integration.aggregator.ResequencingMessageGroupProces
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -435,11 +436,19 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<>();
 
+		private final Set<File> filesToPoll = ConcurrentHashMap.newKeySet();
+
 		private WatchService watcher;
 
-		private Collection<File> initialFiles;
-
 		private WatchEvent.Kind<?>[] kinds;
+
+		@Override
+		public void setFilter(FileListFilter<File> filter) {
+			if (filter instanceof DiscardAwareFileListFilter) {
+				((DiscardAwareFileListFilter<File>) filter).addDiscardCallback(this.filesToPoll::add);
+			}
+			super.setFilter(filter);
+		}
 
 		@Override
 		public void start() {
@@ -456,9 +465,9 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 				this.kinds[i] = FileReadingMessageSource.this.watchEvents[i].kind;
 			}
 
-			final Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath(), null);
+			Set<File> initialFiles = walkDirectory(FileReadingMessageSource.this.directory.toPath(), null);
 			initialFiles.addAll(filesFromEvents());
-			this.initialFiles = initialFiles;
+			this.filesToPoll.addAll(initialFiles);
 		}
 
 		@Override
@@ -481,18 +490,22 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 		@Override
 		protected File[] listEligibleFiles(File directory) {
 			Assert.state(this.watcher != null, "The WatchService has'nt been started");
-			if (this.initialFiles != null) {
-				File[] initial = this.initialFiles.toArray(new File[this.initialFiles.size()]);
-				this.initialFiles = null;
-				return initial;
+
+			Set<File> files = new LinkedHashSet<>();
+
+			for (Iterator<File> iterator = this.filesToPoll.iterator(); iterator.hasNext(); ) {
+				files.add(iterator.next());
+				iterator.remove();
 			}
-			Collection<File> files = filesFromEvents();
+
+			files.addAll(filesFromEvents());
+
 			return files.toArray(new File[files.size()]);
 		}
 
 		private Set<File> filesFromEvents() {
 			WatchKey key = this.watcher.poll();
-			Set<File> files = new LinkedHashSet<File>();
+			Set<File> files = new LinkedHashSet<>();
 			while (key != null) {
 				File parentDir = ((Path) key.watchable()).toAbsolutePath().toFile();
 				for (WatchEvent<?> event : key.pollEvents()) {

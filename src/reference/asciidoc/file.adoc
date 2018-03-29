@@ -130,6 +130,17 @@ For this purpose all the XML components for file handling (local and remote), al
         auto-startup="false"/>
 ----
 
+Starting with _version 5.0.5_, a `DiscardAwareFileListFilter` is provided for implementations when there is an interest in the event of the rejected files.
+For this purpose such a filter implementation should be supplied with a callback via `addDiscardCallback(Consumer<File>)`.
+In the Framework this functionality is used from the `FileReadingMessageSource.WatchServiceDirectoryScanner` in combination with `LastModifiedFileListFilter`.
+Unlike the regular `DirectoryScanner`, the `WatchService` provides files for processing according the events on the target file system.
+At the moment of polling an internal queue with those files, the `LastModifiedFileListFilter` may discard them because they are too young in regards to its configured `age`.
+Therefore we lose the file for the future possible considerations.
+The discard callback hook allows us to retain the file in the internal queue, so it is available to be checked against the `age` in the subsequent polls.
+The `CompositeFileListFilter` also implements a `DiscardAwareFileListFilter` and populates provided discard callback to all its `DiscardAwareFileListFilter` delegates.
+
+NOTE: Since `CompositeFileListFilter` matches the files against all delegates, the `discardCallback` may be called several times for the same file.
+
 *Message Headers*
 
 Starting with _version 5.0_ the `FileReadingMessageSource`, in addition to the `payload` as a polled `File`, populates these headers to the outbound `Message`:
