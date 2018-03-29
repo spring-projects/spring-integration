@@ -9,6 +9,10 @@ If you are interested in more details, please see the Issue Tracker tickets that
 [[x5.1-new-components]]
 === New Components
 
+==== AmqpDedicatedChannelAdvice
+
+See <<amqp-strict-ordering>>.
+
 [[x5.1-general]]
 === General Changes
 

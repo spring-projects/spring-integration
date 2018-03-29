@@ -1504,6 +1504,58 @@ Negated patterns get priority, so a list such as
 IMPORTANT: If you have a user defined header that begins with `!` that you *do* wish to map, you need to escape it with
 `\` thus: `STANDARD_REQUEST_HEADERS,\!myBangHeader` and it *WILL* be mapped.
 
+[[amqp-strict-ordering]]
+=== Strict Message Ordering
+
+==== Inbound
+
+If you require strict ordering of inbound messages, you must configure the inbound listener container's `prefetchCount` property to `1`.
+This is because if a message fails and is redelivered, it will arrive after existing prefetched messages.
+Since Spring AMQP _version 2.0_, the `prefetchCount` defaults to `250` for improved performance.
+Strict ordering requirements come at the cost of decreased performance.
+
+==== Outbound
+
+Consider the following simple integration flow:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow flow(RabbitTemplate template) {
+    return IntegrationFlows.from(Gateway.class)
+            .split(s -> s.delimiters(","))
+            .<String, String>transform(String::toUpperCase)
+            .handle(Amqp.outboundAdapter(template).routingKey("rk"))
+            .get();
+}
+----
+
+Let's say we send a message `a,b,c` to the gateway, while it is likely that messages `A`, `B`, `C` will be sent in order, there is no guarantee.
+This is because the template "borrows" a channel from the cache for each send and there is no guarantee that the same channel will be used for each.
+One solution is to start a transaction before the splitter, but transactions are very expensive in RabbitMQ and can reduce performance several hundred fold.
+
+To solve this problem in a more efficient manner, starting with _version 5.1_, Spring Integration provides the `BoundRabbitChannelAdvice` which is a `HandleMessageAdvice` - see <<handle-message-advice>>.
+When applied before the splitter, this ensures that all downstream operations are performed on the same channel and, optionally, can wait until publisher confirms for all sent messages are received (if the connection factory is configured for confirms).
+
+[source, java]
+----
+@Bean
+public IntegrationFlow flow(RabbitTemplate template) {
+    return IntegrationFlows.from(Gateway.class)
+            .split(s -> s.delimiters(",")
+                    .advice(new BoundRabbitChannelAdvice(template, Duration.ofSeconds(10))))
+            .<String, String>transform(String::toUpperCase)
+            .handle(Amqp.outboundAdapter(template).routingKey("rk"))
+            .get();
+}
+----
+
+Notice that the same `RabbitTemplate` (which implements `RabbitOperations`) is used in the advice and the outbound adapter.
+The advice runs the downstream flow within the template's `invoke` method so that all operations run on the same channel.
+If the optional timeout is provided, when the flow completes, the advice calls the `waitForConfirmsOrDie` method, which will throw an exception if the confirms are not received within the specified time.
+
+IMPORTANT: There must be no thread handoffs in the downstream flow (`QueueChannel`, `ExecutorChannel`, etc).
+
 === AMQP Samples
 
 To experiment with the AMQP adapters, check out the samples available in the Spring Integration Samples Git repository at:
