@@ -39,7 +39,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.file.filters.ChainFileListFilter;
 import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.LastModifiedFileListFilter;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -75,6 +77,7 @@ public class WatchServiceDirectoryScannerTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testWatchServiceDirectoryScanner() throws Exception {
 		FileReadingMessageSource fileReadingMessageSource = new FileReadingMessageSource();
 		fileReadingMessageSource.setDirectory(folder.getRoot());
@@ -86,7 +89,7 @@ public class WatchServiceDirectoryScannerTests {
 
 		final CountDownLatch removeFileLatch = new CountDownLatch(1);
 
-		FileSystemPersistentAcceptOnceFileListFilter filter =
+		FileSystemPersistentAcceptOnceFileListFilter fileSystemPersistentAcceptOnceFileListFilter =
 				new FileSystemPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "test") {
 
 					@Override
@@ -97,14 +100,24 @@ public class WatchServiceDirectoryScannerTests {
 
 				};
 
-		fileReadingMessageSource.setFilter(filter);
+		LastModifiedFileListFilter fileLastModifiedFileListFilter = new LastModifiedFileListFilter();
+
+		ChainFileListFilter<File> fileChainFileListFilter = new ChainFileListFilter<>();
+		fileChainFileListFilter.addFilters(fileLastModifiedFileListFilter, fileSystemPersistentAcceptOnceFileListFilter);
+
+		fileReadingMessageSource.setFilter(fileChainFileListFilter);
 		fileReadingMessageSource.afterPropertiesSet();
 		fileReadingMessageSource.start();
 		DirectoryScanner scanner = fileReadingMessageSource.getScanner();
 		assertThat(scanner.getClass().getName(),
 				containsString("FileReadingMessageSource$WatchServiceDirectoryScanner"));
 
+		// Files are skipped by the LastModifiedFileListFilter
 		List<File> files = scanner.listFiles(folder.getRoot());
+		assertEquals(0, files.size());
+		// Consider all the files as one day old
+		fileLastModifiedFileListFilter.setAge(-60 * 60 * 24);
+		files = scanner.listFiles(folder.getRoot());
 		assertEquals(3, files.size());
 		assertTrue(files.contains(top1));
 		assertTrue(files.contains(foo1));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -32,26 +33,33 @@ import org.springframework.util.Assert;
 /**
  * Simple {@link FileListFilter} that predicates its matches against <b>all</b> of the
  * configured {@link FileListFilter}.
+ * <p>
+ * Note: when {@link #discardCallback} is provided, it is populated to all the
+ * {@link DiscardAwareFileListFilter} delegates. In this case, since this filter
+ * matches the files against all delegates, the {@link #discardCallback} may be
+ * called several times for the same file.
+ *
  * @param <F> The type that will be filtered.
  *
  * @author Iwein Fuld
  * @author Josh Long
  * @author Gary Russell
  * @author Artem Bilan
- *
- *
  */
-public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>, Closeable {
+public class CompositeFileListFilter<F>
+		implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>, DiscardAwareFileListFilter<F>, Closeable {
 
 	protected final Set<FileListFilter<F>> fileFilters; // NOSONAR
 
+	private Consumer<F> discardCallback;
+
 
 	public CompositeFileListFilter() {
-		this.fileFilters = new LinkedHashSet<FileListFilter<F>>();
+		this.fileFilters = new LinkedHashSet<>();
 	}
 
 	public CompositeFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
-		this.fileFilters = new LinkedHashSet<FileListFilter<F>>(fileFilters);
+		this.fileFilters = new LinkedHashSet<>(fileFilters);
 	}
 
 
@@ -65,7 +73,7 @@ public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, 
 	}
 
 	public CompositeFileListFilter<F> addFilter(FileListFilter<F> filter) {
-		return this.addFilters(Collections.singletonList(filter));
+		return addFilters(Collections.singletonList(filter));
 	}
 
 	/**
@@ -73,7 +81,7 @@ public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, 
 	 * @return this CompositeFileFilter instance with the added filters
 	 * @see #addFilters(Collection)
 	 */
-	@SuppressWarnings("unchecked") //For JDK7
+	@SuppressWarnings("unchecked")
 	public CompositeFileListFilter<F> addFilters(FileListFilter<F>... filters) {
 		return addFilters(Arrays.asList(filters));
 	}
@@ -87,7 +95,10 @@ public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, 
 	 * @return this CompositeFileListFilter instance with the added filters
 	 */
 	public CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
-		for (FileListFilter<? extends F> elf : filtersToAdd) {
+		for (FileListFilter<F> elf : filtersToAdd) {
+			if (elf instanceof DiscardAwareFileListFilter) {
+				((DiscardAwareFileListFilter<F>) elf).addDiscardCallback(this.discardCallback);
+			}
 			if (elf instanceof InitializingBean) {
 				try {
 					((InitializingBean) elf).afterPropertiesSet();
@@ -101,6 +112,17 @@ public class CompositeFileListFilter<F> implements ReversibleFileListFilter<F>, 
 		return this;
 	}
 
+	@Override
+	public void addDiscardCallback(Consumer<F> discardCallback) {
+		this.discardCallback = discardCallback;
+		if (this.discardCallback != null) {
+			this.fileFilters
+					.stream()
+					.filter(DiscardAwareFileListFilter.class::isInstance)
+					.map(f -> (DiscardAwareFileListFilter<F>) f)
+					.forEach(f -> f.addDiscardCallback(discardCallback));
+		}
+	}
 
 	@Override
 	public List<F> filterFiles(F[] files) {
