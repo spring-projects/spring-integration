@@ -77,6 +77,7 @@ public class WatchServiceDirectoryScannerTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testWatchServiceDirectoryScanner() throws Exception {
 		FileReadingMessageSource fileReadingMessageSource = new FileReadingMessageSource();
 		fileReadingMessageSource.setDirectory(folder.getRoot());
@@ -115,7 +116,7 @@ public class WatchServiceDirectoryScannerTests {
 		List<File> files = scanner.listFiles(folder.getRoot());
 		assertEquals(0, files.size());
 		// Consider all the files as one day old
-		fileLastModifiedFileListFilter.setAge(- 60 * 60 * 24);
+		fileLastModifiedFileListFilter.setAge(-60 * 60 * 24);
 		files = scanner.listFiles(folder.getRoot());
 		assertEquals(3, files.size());
 		assertTrue(files.contains(top1));
