@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,6 @@ package org.springframework.integration.endpoint;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
@@ -33,12 +29,11 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.support.MessagingExceptionWrapper;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ErrorHandler;
 
@@ -46,131 +41,132 @@ import org.springframework.util.ErrorHandler;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Kiel Boatman
+ * @author Artem Bilan
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class PollingConsumerEndpointTests {
 
-	private PollingConsumer endpoint;
-
-	private final TestTrigger trigger = new TestTrigger();
+	private final OnlyOnceTrigger trigger = new OnlyOnceTrigger();
 
 	private final TestConsumer consumer = new TestConsumer();
 
-	@SuppressWarnings("rawtypes")
-	private final Message message = new GenericMessage<String>("test");
+	private final Message message = new GenericMessage<>("test");
 
-	@SuppressWarnings("rawtypes")
-	private final Message badMessage = new GenericMessage<String>("bad");
+	private final Message badMessage = new GenericMessage<>("bad");
 
 	private final TestErrorHandler errorHandler = new TestErrorHandler();
 
-	private PollableChannel channelMock;
-
 	private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+
+	private PollingConsumer endpoint;
+
+	private PollableChannel channelMock;
 
 
 	@Before
-	public void init() throws Exception {
-		channelMock = Mockito.mock(PollableChannel.class);
-		consumer.counter.set(0);
-		trigger.reset();
-		endpoint = new PollingConsumer(channelMock, consumer);
-		taskScheduler.setPoolSize(5);
-		endpoint.setErrorHandler(errorHandler);
-		endpoint.setTaskScheduler(taskScheduler);
-		endpoint.setTrigger(trigger);
-		endpoint.setBeanFactory(mock(BeanFactory.class));
-		endpoint.setReceiveTimeout(-1);
-		endpoint.afterPropertiesSet();
-		taskScheduler.afterPropertiesSet();
+	public void init() {
+		this.channelMock = mock(PollableChannel.class);
+		this.endpoint = new PollingConsumer(this.channelMock, this.consumer);
+		this.taskScheduler.setPoolSize(5);
+		this.endpoint.setErrorHandler(this.errorHandler);
+		this.endpoint.setTaskScheduler(this.taskScheduler);
+		this.endpoint.setTrigger(this.trigger);
+		this.endpoint.setBeanFactory(mock(BeanFactory.class));
+		this.endpoint.setReceiveTimeout(-1);
+		this.endpoint.afterPropertiesSet();
+		this.taskScheduler.afterPropertiesSet();
 	}
 
 	@After
-	public void stop() throws Exception {
+	public void stop() {
 		taskScheduler.destroy();
 	}
 
 
 	@Test
 	public void singleMessage() {
-		Mockito.when(channelMock.receive()).thenReturn(message);
-		endpoint.setMaxMessagesPerPoll(1);
-		endpoint.start();
-		trigger.await();
-		endpoint.stop();
-		assertEquals(1, consumer.counter.get());
+		Mockito.when(this.channelMock.receive()).thenReturn(this.message);
+		this.endpoint.setMaxMessagesPerPoll(1);
+		this.endpoint.start();
+		this.trigger.await();
+		this.endpoint.stop();
+		assertEquals(1, this.consumer.counter.get());
 	}
 
 	@Test
 	public void multipleMessages() {
-		Mockito.when(channelMock.receive()).thenReturn(message, message, message, message, message);
-		endpoint.setMaxMessagesPerPoll(5);
-		endpoint.start();
-		trigger.await();
-		endpoint.stop();
-		assertEquals(5, consumer.counter.get());
+		Mockito.when(this.channelMock.receive())
+				.thenReturn(this.message, this.message, this.message, this.message, this.message);
+		this.endpoint.setMaxMessagesPerPoll(5);
+		this.endpoint.start();
+		this.trigger.await();
+		this.endpoint.stop();
+		assertEquals(5, this.consumer.counter.get());
 	}
 
 	@Test
-	public void multipleMessages_underrun() {
-		Mockito.when(channelMock.receive()).thenReturn(message, message, message, message, message, null);
-		endpoint.setMaxMessagesPerPoll(6);
-		endpoint.start();
-		trigger.await();
-		endpoint.stop();
-		assertEquals(5, consumer.counter.get());
+	public void multipleMessages_under_run() {
+		Mockito.when(this.channelMock.receive())
+				.thenReturn(this.message, this.message, this.message, this.message, this.message, null);
+		this.endpoint.setMaxMessagesPerPoll(6);
+		this.endpoint.start();
+		this.trigger.await();
+		this.endpoint.stop();
+		assertEquals(5, this.consumer.counter.get());
 	}
 
 	@Test
-	public void heavierLoadTest() throws Exception {
+	public void heavierLoadTest() {
 		for (int i = 0; i < 1000; i++) {
-			this.init();
-			this.multipleMessages();
-			this.stop();
+			init();
+			this.trigger.reset();
+			this.consumer.counter.set(0);
+			multipleMessages();
+			stop();
 		}
 	}
 
 	@Test(expected = MessageRejectedException.class)
 	public void rejectedMessage() throws Throwable {
-		Mockito.when(channelMock.receive()).thenReturn(badMessage);
-		endpoint.start();
-		trigger.await();
-		endpoint.stop();
-		assertEquals(1, consumer.counter.get());
-		errorHandler.throwLastErrorIfAvailable();
+		Mockito.when(this.channelMock.receive()).thenReturn(this.badMessage);
+		this.endpoint.start();
+		this.trigger.await();
+		this.endpoint.stop();
+		assertEquals(1, this.consumer.counter.get());
+		this.errorHandler.throwLastErrorIfAvailable();
 	}
 
 	@Test(expected = MessageRejectedException.class)
 	public void droppedMessage_onePerPoll() throws Throwable {
-		Mockito.when(channelMock.receive()).thenReturn(badMessage);
-		endpoint.setMaxMessagesPerPoll(10);
-		endpoint.start();
-		trigger.await();
-		endpoint.stop();
-		assertEquals(1, consumer.counter.get());
-		errorHandler.throwLastErrorIfAvailable();
+		Mockito.when(this.channelMock.receive()).thenReturn(this.badMessage);
+		this.endpoint.setMaxMessagesPerPoll(10);
+		this.endpoint.start();
+		this.trigger.await();
+		this.endpoint.stop();
+		assertEquals(1, this.consumer.counter.get());
+		this.errorHandler.throwLastErrorIfAvailable();
 	}
 
 	@Test
 	public void blockingSourceTimedOut() {
 		// we don't need to await the timeout, returning null suffices
-		Mockito.when(channelMock.receive()).thenReturn(null);
-		endpoint.setReceiveTimeout(1);
-		endpoint.start();
-		trigger.await();
-		endpoint.stop();
-		assertEquals(0, consumer.counter.get());
+		Mockito.when(this.channelMock.receive()).thenReturn(null);
+		this.endpoint.setReceiveTimeout(1);
+		this.endpoint.start();
+		this.trigger.await();
+		this.endpoint.stop();
+		assertEquals(0, this.consumer.counter.get());
 	}
 
 	@Test
 	public void blockingSourceNotTimedOut() {
-		Mockito.when(channelMock.receive(Mockito.eq(1L))).thenReturn(message);
-		endpoint.setReceiveTimeout(1);
-		endpoint.setMaxMessagesPerPoll(1);
-		endpoint.start();
-		trigger.await();
-		endpoint.stop();
-		assertEquals(1, consumer.counter.get());
+		Mockito.when(this.channelMock.receive(Mockito.eq(1L))).thenReturn(this.message);
+		this.endpoint.setReceiveTimeout(1);
+		this.endpoint.setMaxMessagesPerPoll(1);
+		this.endpoint.start();
+		this.trigger.await();
+		this.endpoint.stop();
+		assertEquals(1, this.consumer.counter.get());
 	}
 
 
@@ -187,45 +183,6 @@ public class PollingConsumerEndpointTests {
 			this.counter.incrementAndGet();
 			if ("bad".equals(message.getPayload().toString())) {
 				throw new MessageRejectedException(message, "intentional test failure");
-			}
-		}
-	}
-
-
-	private static class TestTrigger implements Trigger {
-
-		private final AtomicBoolean hasRun = new AtomicBoolean();
-
-		private volatile CountDownLatch latch = new CountDownLatch(1);
-
-
-		TestTrigger() {
-			super();
-		}
-
-		@Override
-		public Date nextExecutionTime(TriggerContext triggerContext) {
-			if (!this.hasRun.getAndSet(true)) {
-				return new Date();
-			}
-			this.latch.countDown();
-			return null;
-		}
-
-		public void reset() {
-			this.latch = new CountDownLatch(1);
-			this.hasRun.set(false);
-		}
-
-		public void await() {
-			try {
-				this.latch.await(5000, TimeUnit.MILLISECONDS);
-				if (latch.getCount() != 0) {
-					throw new RuntimeException("test latch.await() did not count down");
-				}
-			}
-			catch (InterruptedException e) {
-				throw new RuntimeException("test latch.await() interrupted");
 			}
 		}
 	}
@@ -252,6 +209,7 @@ public class PollingConsumerEndpointTests {
 			this.lastError = null;
 			throw t;
 		}
+
 	}
 
 }
