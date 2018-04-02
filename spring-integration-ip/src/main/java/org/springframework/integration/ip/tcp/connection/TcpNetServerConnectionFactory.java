@@ -33,6 +33,8 @@ import org.springframework.util.Assert;
  * a {@link ServerSocket}. Must have a {@link TcpListener} registered.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -181,12 +183,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			else if (isActive()) {
 				logger.error("Error on ServerSocket; port = " + getPort(), e);
 				publishServerExceptionEvent(e);
-				try {
-					this.serverSocket.close();
-				}
-				catch (IOException e1) {
-					// empty
-				}
+				stop();
 			}
 		}
 		finally {
@@ -223,7 +220,8 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		try {
 			this.serverSocket.close();
 		}
-		catch (IOException e) { }
+		catch (IOException e) {
+		}
 		this.serverSocket = null;
 		super.stop();
 	}
