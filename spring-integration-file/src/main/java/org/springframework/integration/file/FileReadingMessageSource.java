@@ -30,14 +30,13 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -437,7 +436,7 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 
 		private final ConcurrentMap<Path, WatchKey> pathKeys = new ConcurrentHashMap<>();
 
-		private final BlockingQueue<File> filesToPoll = new LinkedBlockingQueue<>();
+		private final Set<File> filesToPoll = ConcurrentHashMap.newKeySet();
 
 		private WatchService watcher;
 
@@ -493,7 +492,12 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 			Assert.state(this.watcher != null, "The WatchService has'nt been started");
 
 			Set<File> files = new LinkedHashSet<>();
-			this.filesToPoll.drainTo(files);
+
+			for (Iterator<File> iterator = this.filesToPoll.iterator(); iterator.hasNext(); ) {
+				files.add(iterator.next());
+				iterator.remove();
+			}
+
 			files.addAll(filesFromEvents());
 
 			return files.toArray(new File[files.size()]);

@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -32,21 +33,25 @@ import org.springframework.util.Assert;
 /**
  * Simple {@link FileListFilter} that predicates its matches against <b>all</b> of the
  * configured {@link FileListFilter}.
+ * <p>
+ * Note: when {@link #discardCallback} is provided, it is populated to all the
+ * {@link DiscardAwareFileListFilter} delegates. In this case, since this filter
+ * matches the files against all delegates, the {@link #discardCallback} may be
+ * called several times for the same file.
+ *
  * @param <F> The type that will be filtered.
  *
  * @author Iwein Fuld
  * @author Josh Long
  * @author Gary Russell
  * @author Artem Bilan
- *
- *
  */
 public class CompositeFileListFilter<F>
 		implements ReversibleFileListFilter<F>, ResettableFileListFilter<F>, DiscardAwareFileListFilter<F>, Closeable {
 
 	protected final Set<FileListFilter<F>> fileFilters; // NOSONAR
 
-	private DiscardCallback<F> discardCallback;
+	private Consumer<F> discardCallback;
 
 
 	public CompositeFileListFilter() {
@@ -108,7 +113,7 @@ public class CompositeFileListFilter<F>
 	}
 
 	@Override
-	public void addDiscardCallback(DiscardCallback<F> discardCallback) {
+	public void addDiscardCallback(Consumer<F> discardCallback) {
 		this.discardCallback = discardCallback;
 		if (this.discardCallback != null) {
 			this.fileFilters

@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * The {@link FileListFilter} implementation to filter those files which
@@ -27,6 +28,9 @@ import java.util.concurrent.TimeUnit;
  * with the current time.
  * <p>
  * The resolution is done in seconds.
+ * <p>
+ * When {@link #discardCallback} is provided, it called for all the
+ * rejected files.
  *
  * @author Gary Russell
  * @author Artem Bilan
@@ -40,7 +44,7 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 
 	private volatile long age = DEFAULT_AGE;
 
-	private DiscardCallback<File> discardCallback;
+	private Consumer<File> discardCallback;
 
 	public LastModifiedFileListFilter() {
 	}
@@ -83,7 +87,7 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 	}
 
 	@Override
-	public void addDiscardCallback(DiscardCallback<File> discardCallback) {
+	public void addDiscardCallback(Consumer<File> discardCallback) {
 		this.discardCallback = discardCallback;
 	}
 
@@ -96,7 +100,7 @@ public class LastModifiedFileListFilter implements DiscardAwareFileListFilter<Fi
 				list.add(file);
 			}
 			else if (this.discardCallback != null) {
-				this.discardCallback.discardFile(file);
+				this.discardCallback.accept(file);
 			}
 		}
 		return list;

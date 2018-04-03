@@ -16,20 +16,18 @@
 
 package org.springframework.integration.file.filters;
 
+import java.util.function.Consumer;
+
 /**
+ * The {@link FileListFilter} modification which can accept a {@link Consumer}
+ * which can be called when filter discards the file.
+ *
  * @author Artem Bilan
  *
  * @since 5.0.4
  */
 public interface DiscardAwareFileListFilter<F> extends FileListFilter<F> {
 
-	void addDiscardCallback(DiscardCallback<F> discardCallback);
-
-	@FunctionalInterface
-	interface DiscardCallback<F> {
-
-		void discardFile(F file);
-
-	}
+	void addDiscardCallback(Consumer<F> discardCallback);
 
 }
