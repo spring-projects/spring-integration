@@ -35,7 +35,7 @@ allprojects {
 			maven { url 'https://repo.spring.io/libs-snapshot' }
 		}
 		maven { url 'https://repo.spring.io/libs-milestone' }
-//		maven { url 'https://repo.spring.io/libs-staging-local' }
+		maven { url 'https://repo.spring.io/libs-staging-local' }
 	}
 
 	ext.javadocLinks = [
@@ -133,16 +133,16 @@ subprojects { subproject ->
 		romeToolsVersion = '1.8.0'
 		servletApiVersion = '4.0.0'
 		smackVersion = '4.2.2'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.2.RELEASE'
-		springDataJpaVersion = '2.0.5.RELEASE'
-		springDataMongoVersion = '2.0.5.RELEASE'
-		springDataRedisVersion = '2.0.5.RELEASE'
-		springGemfireVersion = '2.0.5.RELEASE'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.0.3.RELEASE'
+		springDataJpaVersion = '2.0.6.RELEASE'
+		springDataMongoVersion = '2.0.6.RELEASE'
+		springDataRedisVersion = '2.0.6.RELEASE'
+		springGemfireVersion = '2.0.6.RELEASE'
 		springSecurityVersion = '5.0.3.RELEASE'
 		springSocialTwitterVersion = '1.1.2.RELEASE'
 		springRetryVersion = '1.2.2.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.5.BUILD-SNAPSHOT'
-		springWsVersion = '3.0.0.RELEASE'
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.0.5.RELEASE'
+		springWsVersion = '3.0.1.RELEASE'
 		tomcatVersion = "8.5.23"
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.10'
