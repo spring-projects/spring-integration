@@ -24,7 +24,7 @@ import java.util.function.Consumer;
  *
  * @author Artem Bilan
  *
- * @since 5.0.4
+ * @since 5.0.5
  */
 public interface DiscardAwareFileListFilter<F> extends FileListFilter<F> {
 
