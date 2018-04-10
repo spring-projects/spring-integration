@@ -19,3 +19,17 @@ See <<amqp-strict-ordering>>.
 ==== Java DSL
 
 The `IntegrationFlowContext` is now an interface and `IntegrationFlowRegistration` is an inner interface of the `IntegrationFlowContext`.
+
+==== Dispatcher Exceptions
+
+Exceptions caught and re-thrown by `AbstractDispatcher` are now more consistent:
+
+- A `MessagingException` of any kind, with a `failedMessage` property, is re-thrown unchanged
+- All other exceptions are wrapped in a `MessageDeliveryException` with the `failedMessage` property set
+
+Previously:
+
+- A `MessagingException` of any kind, with a `failedMessage` property, was re-thrown unchanged
+- A `MessagingException`, with no `failedMessage` property, was wrapped in a `MessagingException` with the `failedMessage` property set
+- Other `RuntimeException` s were re-thrown unchanged
+- Checked exceptions were wrapped in a `MessageDeliveryException` with the `failedMessage` property set

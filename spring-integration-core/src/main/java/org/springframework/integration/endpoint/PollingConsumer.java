@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,14 +135,12 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
 				triggerAfterMessageHandled(theMessage, ex, interceptorStack);
 			}
-			// TODO: In 5.1 remove this; adding the failed message to the text is redundant
-			final Message<?> messageForText = theMessage;
 			throw IntegrationUtils.wrapInDeliveryExceptionIfNecessary(theMessage,
-					() -> "Failed to handle " + messageForText + " to " + this + " in " + this.handler, ex);
+					() -> "Failed to handle message to " + this + " in " + this.handler, ex);
 		}
 		catch (Error ex) { //NOSONAR - ok, we re-throw below
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
-				String description = "Failed to handle " + theMessage + " to " + this + " in " + this.handler;
+				String description = "Failed to handle message to " + this + " in " + this.handler;
 				triggerAfterMessageHandled(theMessage,
 						new MessageDeliveryException(theMessage, description, ex),
 						interceptorStack);

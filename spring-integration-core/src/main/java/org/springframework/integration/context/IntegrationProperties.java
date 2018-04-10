@@ -77,13 +77,6 @@ public final class IntegrationProperties {
 	 */
 	public static final String ENDPOINTS_NO_AUTO_STARTUP = INTEGRATION_PROPERTIES_PREFIX + "endpoints.noAutoStartup";
 
-	/**
-	 * Whether {@link org.springframework.beans.factory.config.BeanPostProcessor}s should process beans registered at runtime.
-	 * Will be removed in 5.1.
-	 */
-	public static final String POST_PROCESS_DYNAMIC_BEANS = INTEGRATION_PROPERTIES_PREFIX + "postProcessDynamicBeans";
-
-
 	private static Properties defaults;
 
 	static {

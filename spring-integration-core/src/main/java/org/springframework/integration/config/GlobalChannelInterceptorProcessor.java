@@ -23,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -39,8 +38,6 @@ import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
 import org.springframework.integration.channel.interceptor.VetoCapableInterceptor;
-import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.support.utils.PatternMatchUtils;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
@@ -105,12 +102,7 @@ public final class GlobalChannelInterceptorProcessor
 			}
 		}
 
-		// TODO Remove this logic in 5.1
-		Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-
-		this.singletonsInstantiated =
-				Boolean.parseBoolean(integrationProperties.getProperty(
-						IntegrationProperties.POST_PROCESS_DYNAMIC_BEANS));
+		this.singletonsInstantiated = true;
 	}
 
 	@Override
