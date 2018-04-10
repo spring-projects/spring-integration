@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package org.springframework.integration.webflux.support;
 
-import org.springframework.integration.http.config.HttpContextUtils;
-
 /**
  * Utility class for accessing WebFlux integration components
  * from the {@link org.springframework.beans.factory.BeanFactory}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -31,16 +30,6 @@ public final class WebFluxContextUtils {
 	private WebFluxContextUtils() {
 		super();
 	}
-
-	/**
-	 * The {@code boolean} flag to indicate if the
-	 * {@code org.springframework.web.reactive.result.method.RequestMappingInfo}
-	 * is present in the CLASSPATH to allow to register the Integration server reactive components.
-	 * @deprecated since 5.0.2 in favor of {@link HttpContextUtils#WEB_FLUX_PRESENT}.
-	 * Will be removed in the 5.1.
-	 */
-	@Deprecated
-	public static final boolean WEB_FLUX_PRESENT = HttpContextUtils.WEB_FLUX_PRESENT;
 
 	/**
 	 * The name for the infrastructure

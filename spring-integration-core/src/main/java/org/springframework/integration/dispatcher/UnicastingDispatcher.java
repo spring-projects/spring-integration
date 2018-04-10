@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.MessageDispatchingException;
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -145,8 +146,8 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 				success = true; // we have a winner.
 			}
 			catch (Exception e) {
-				@SuppressWarnings("deprecation")
-				RuntimeException runtimeException = wrapExceptionIfNecessary(message, e);
+				RuntimeException runtimeException = IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
+						() -> "Dispatcher failed to deliver Message", e);
 				exceptions.add(runtimeException);
 				this.handleExceptions(exceptions, message, !handlerIterator.hasNext());
 			}

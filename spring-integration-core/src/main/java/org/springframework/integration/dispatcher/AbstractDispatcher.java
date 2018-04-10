@@ -21,10 +21,9 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -117,39 +116,11 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 				return true;
 			}
 			catch (Exception e) {
-				throw wrapExceptionIfNecessary(message, e);
+				throw IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
+						() -> "Dispatcher failed to deliver Message", e);
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * If the exception is not a {@link MessagingException} or does not have a
-	 * {@link MessagingException#getFailedMessage() failedMessage}, wrap it in a new
-	 * {@link MessagingException} with the message. There is some inconsistency here in
-	 * that {@link MessagingException}s are wrapped in a {@link MessagingException} whereas
-	 * {@link Exception}s are wrapped in {@link MessageDeliveryException}. It is retained
-	 * for backwards compatibility and will be resolved in 5.1.
-	 * It also does not wrap other {@link RuntimeException}s.
-	 * TODO: Remove this in favor of
-	 * {@code #wrapInDeliveryExceptionIfNecessary(Message, Supplier, Exception)} in 5.1.
-	 * @param message the message.
-	 * @param e the exception.
-	 * @return the wrapper, if necessary, or the original exception.
-	 * @deprecated in favor of
-	 * {@code IntegrationUtils#wrapInDeliveryExceptionIfNecessary(Message, Supplier, Exception)}
-	 */
-	@Deprecated
-	protected RuntimeException wrapExceptionIfNecessary(Message<?> message, Exception e) {
-		RuntimeException runtimeException = (e instanceof RuntimeException)
-				? (RuntimeException) e
-				: new MessageDeliveryException(message,
-						"Dispatcher failed to deliver Message.", e);
-		if (e instanceof MessagingException &&
-				((MessagingException) e).getFailedMessage() == null) {
-			runtimeException = new MessagingException(message, "Dispatcher failed to deliver Message", e);
-		}
-		return runtimeException;
 	}
 
 	@Override

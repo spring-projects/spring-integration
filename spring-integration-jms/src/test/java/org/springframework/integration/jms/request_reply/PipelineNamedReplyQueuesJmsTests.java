@@ -29,10 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -58,11 +55,6 @@ public class PipelineNamedReplyQueuesJmsTests extends ActiveMQMultiContextTests 
 
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
-
-	@Before
-	public void setLogLevel() {
-		LogManager.getLogger(getClass()).setLevel(Level.INFO);
-	}
 
 	@After
 	public void tearDown() {

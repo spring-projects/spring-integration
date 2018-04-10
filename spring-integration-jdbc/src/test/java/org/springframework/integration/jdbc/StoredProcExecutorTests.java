@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -52,7 +53,7 @@ import com.google.common.cache.CacheStats;
  */
 public class StoredProcExecutorTests {
 
-	private static final Logger LOGGER = Logger.getLogger(StoredProcExecutorTests.class);
+	private static final Log LOGGER = LogFactory.getLog(StoredProcExecutorTests.class);
 
 	@Test
 	public void testStoredProcExecutorWithNullDataSource() {
