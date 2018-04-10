@@ -22,10 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -66,20 +62,6 @@ public class InterceptedSharedConnectionTests {
 
 	@Autowired
 	Listener listener;
-
-	private static Level existingLogLevel;
-
-	// temporary hooks to investigate CI failures
-	@BeforeClass
-	public static void setup() {
-		existingLogLevel = LogManager.getLogger("org.springframework.integration").getLevel();
-		LogManager.getLogger("org.springframework.integration").setLevel(Level.DEBUG);
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		LogManager.getLogger("org.springframework.integration").setLevel(existingLogLevel);
-	}
 
 	/**
 	 * Tests a loopback. The client-side outbound adapter sends a message over
