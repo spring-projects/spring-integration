@@ -485,7 +485,6 @@ project('spring-integration-jmx') {
 		compile project(":spring-integration-core")
 		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
 		testCompile "com.hazelcast:hazelcast:$hazelcastVersion"
-		testRuntime 'log4j:log4j:1.2.17' // Needed by hazelcast
 	}
 }
 

@@ -250,7 +250,7 @@ public class IdempotentReceiverIntegrationTests {
 
 		@Bean
 		public HazelcastInstance hazelcastInstance() {
-			return Hazelcast.newHazelcastInstance(new Config().setProperty("hazelcast.logging.type", "log4j"));
+			return Hazelcast.newHazelcastInstance(new Config().setProperty("hazelcast.logging.type", "slf4j"));
 		}
 
 
