@@ -18,6 +18,7 @@ package org.springframework.integration.dsl.manualflow;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -191,8 +192,12 @@ public class ManualFlowTests {
 		assertFalse(this.beanFactory.containsBean(flowRegistration.getId() + BeanFactoryHandler.class.getName() + "#0"));
 
 		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
-		Thread.sleep(100);
-		assertEquals(0, taskScheduler.getActiveCount());
+
+		int n = 0;
+		while (taskScheduler.getActiveCount() > 0 && n++ < 100) {
+			Thread.sleep(100);
+		}
+		assertThat(n, lessThan(100));
 
 		assertTrue(additionalBean.destroyed);
 	}

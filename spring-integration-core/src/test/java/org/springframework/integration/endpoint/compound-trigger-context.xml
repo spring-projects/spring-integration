@@ -22,8 +22,8 @@
 		<constructor-arg ref="primary" />
 	</bean>
 
-	<bean id="primary" class="org.springframework.scheduling.support.CronTrigger">
-		<constructor-arg value="*/1 * * * * *" />
+	<bean id="primary" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<constructor-arg value="10" />
 	</bean>
 
 	<bean id="secondary" class="org.springframework.scheduling.support.PeriodicTrigger">

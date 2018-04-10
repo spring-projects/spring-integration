@@ -17,6 +17,7 @@
 package org.springframework.integration.dispatcher;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -42,6 +43,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RoundRobinDispatcherConcurrentTests {
@@ -68,7 +70,7 @@ public class RoundRobinDispatcherConcurrentTests {
 	private Message<?> message;
 
 	@Before
-	public void initialize() throws Exception {
+	public void initialize() {
 		dispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
 		executor.setCorePoolSize(10);
 		executor.setMaxPoolSize(10);
@@ -80,7 +82,7 @@ public class RoundRobinDispatcherConcurrentTests {
 		this.executor.shutdown();
 	}
 
-	@Test(timeout = 1000)
+	@Test
 	public void noHandlerExhaustion() throws Exception {
 		dispatcher.addHandler(handler1);
 		dispatcher.addHandler(handler2);
@@ -106,7 +108,7 @@ public class RoundRobinDispatcherConcurrentTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		allDone.await();
+		assertTrue(allDone.await(10, TimeUnit.SECONDS));
 		assertFalse("not all messages were accepted", failed.get());
 		verify(handler1, times(TOTAL_EXECUTIONS / 4)).handleMessage(message);
 		verify(handler2, times(TOTAL_EXECUTIONS / 4)).handleMessage(message);
@@ -114,7 +116,7 @@ public class RoundRobinDispatcherConcurrentTests {
 		verify(handler4, times(TOTAL_EXECUTIONS / 4)).handleMessage(message);
 	}
 
-	@Test(timeout = 2000)
+	@Test
 	public void unlockOnFailure() throws Exception {
 		// dispatcher has no subscribers (shouldn't lead to deadlock)
 		final CountDownLatch start = new CountDownLatch(1);
@@ -140,7 +142,7 @@ public class RoundRobinDispatcherConcurrentTests {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		allDone.await();
+		assertTrue(allDone.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -152,30 +154,28 @@ public class RoundRobinDispatcherConcurrentTests {
 		final CountDownLatch allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
-		Runnable messageSenderTask = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					start.await();
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-				if (!dispatcher.dispatch(message)) {
-					failed.set(true);
-				}
-				else {
-					allDone.countDown();
-				}
+		Runnable messageSenderTask = () -> {
+			try {
+				start.await();
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			if (!dispatcher.dispatch(message)) {
+				failed.set(true);
+			}
+			else {
+				allDone.countDown();
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			executor.execute(messageSenderTask);
 		}
 		start.countDown();
-		allDone.await(5000, TimeUnit.MILLISECONDS);
+		assertTrue(allDone.await(10, TimeUnit.SECONDS));
 		assertFalse("not all messages were accepted", failed.get());
 		verify(handler1, times(TOTAL_EXECUTIONS / 2)).handleMessage(message);
 		verify(handler2, times(TOTAL_EXECUTIONS)).handleMessage(message);
 	}
+
 }

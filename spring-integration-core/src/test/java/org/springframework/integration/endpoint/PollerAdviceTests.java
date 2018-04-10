@@ -25,13 +25,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -42,7 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.Joinpoint;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -66,7 +63,6 @@ import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.scheduling.PollSkipAdvice;
 import org.springframework.integration.scheduling.SimplePollSkipStrategy;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompoundTrigger;
@@ -94,14 +90,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class PollerAdviceTests {
 
-	@Rule
-	public Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.trace();
-
 	@Autowired
 	private MessageChannel control;
 
 	@Autowired
 	private SimplePollSkipStrategy skipper;
+
+	@Autowired
+	private ThreadPoolTaskScheduler threadPoolTaskScheduler;
+
+	@Autowired
+	private BeanFactory beanFactory;
 
 	@Test
 	public void testDefaultDontSkip() throws Exception {
@@ -111,19 +110,9 @@ public class PollerAdviceTests {
 			latch.countDown();
 			return null;
 		});
-		adapter.setTrigger(new Trigger() {
-
-			private boolean done;
-
-			@Override
-			public Date nextExecutionTime(TriggerContext triggerContext) {
-				Date date = done ? null : new Date(System.currentTimeMillis() + 10);
-				done = true;
-				return date;
-			}
-		});
+		adapter.setTrigger(new OnlyOnceTrigger());
 		configure(adapter);
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		PollSkipAdvice advice = new PollSkipAdvice();
 		adviceChain.add(advice);
 		adapter.setAdviceChain(adviceChain);
@@ -153,18 +142,7 @@ public class PollerAdviceTests {
 		}
 		CountDownLatch latch = new CountDownLatch(1);
 		adapter.setSource(new LocalSource(latch));
-		class OneAndDone10msTrigger implements Trigger {
-
-			private boolean done;
-
-			@Override
-			public Date nextExecutionTime(TriggerContext triggerContext) {
-				Date date = done ? null : new Date(System.currentTimeMillis() + 10);
-				done = true;
-				return date;
-			}
-		}
-		adapter.setTrigger(new OneAndDone10msTrigger());
+		adapter.setTrigger(new OnlyOnceTrigger());
 		configure(adapter);
 		List<Advice> adviceChain = new ArrayList<>();
 		SimplePollSkipStrategy skipper = new SimplePollSkipStrategy();
@@ -179,7 +157,7 @@ public class PollerAdviceTests {
 		skipper.reset();
 		latch = new CountDownLatch(1);
 		adapter.setSource(new LocalSource(latch));
-		adapter.setTrigger(new OneAndDone10msTrigger());
+		adapter.setTrigger(new OnlyOnceTrigger());
 		adapter.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		adapter.stop();
@@ -276,7 +254,7 @@ public class PollerAdviceTests {
 	public void testActiveIdleAdvice() throws Exception {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		final CountDownLatch latch = new CountDownLatch(5);
-		final LinkedList<Long> triggerPeriods = new LinkedList<Long>();
+		final LinkedList<Long> triggerPeriods = new LinkedList<>();
 		final DynamicPeriodicTrigger trigger = new DynamicPeriodicTrigger(10);
 		adapter.setSource(() -> {
 			triggerPeriods.add(trigger.getPeriod());
@@ -307,7 +285,7 @@ public class PollerAdviceTests {
 	public void testCompoundTriggerAdvice() throws Exception {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		final CountDownLatch latch = new CountDownLatch(5);
-		final LinkedList<Object> overridePresent = new LinkedList<Object>();
+		final LinkedList<Object> overridePresent = new LinkedList<>();
 		final CompoundTrigger compoundTrigger = new CompoundTrigger(new PeriodicTrigger(10));
 		Trigger override = spy(new PeriodicTrigger(5));
 		final CompoundTriggerAdvice advice = new CompoundTriggerAdvice(compoundTrigger, override);
@@ -336,10 +314,8 @@ public class PollerAdviceTests {
 
 	private void configure(SourcePollingChannelAdapter adapter) {
 		adapter.setOutputChannel(new NullChannel());
-		adapter.setBeanFactory(mock(BeanFactory.class));
-		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-		scheduler.afterPropertiesSet();
-		adapter.setTaskScheduler(scheduler);
+		adapter.setBeanFactory(this.beanFactory);
+		adapter.setTaskScheduler(this.threadPoolTaskScheduler);
 	}
 
 	@Test
