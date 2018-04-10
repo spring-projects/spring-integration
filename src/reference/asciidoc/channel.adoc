@@ -294,6 +294,9 @@ Starting with _Spring Framework 4.1_ and Spring Integration 4.1, the `ChannelInt
 They are invoked after `send()/receive()` calls, regardless of any exception that is raised, thus allowing for resource cleanup.
 Note, the Channel invokes these methods on the ChannelInterceptor List in the reverse order of the initial `preSend()/preReceive()` calls.
 
+Starting with _version 5.1_, global channel interceptors are now applied to channels registered dynamically - such as via the `IntegrationFlowContext` when using the Java DSL, or beans that are initialized using `beanFactory.initializeBean()`.
+Previously, interceptors were not applied when beans were created after the application context was refreshed.
+
 [[channel-template]]
 ==== MessagingTemplate
 

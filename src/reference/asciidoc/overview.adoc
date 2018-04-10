@@ -413,6 +413,9 @@ This annotation is an analogue of the `<int:channel-interceptor>` xml element (s
 `@GlobalChannelInterceptor` annotations can be placed at the class level (with a `@Component` stereotype annotation), or on `@Bean` methods within `@Configuration` classes.
 In either case, the bean *must* be a `ChannelInterceptor`.
 
+Starting with _version 5.1_, global channel interceptors are now applied to channels registered dynamically - such as via the `IntegrationFlowContext` when using the Java DSL, or beans that are initialized using `beanFactory.initializeBean()`.
+Previously, interceptors were not applied when beans were created after the application context was refreshed.
+
 The `@IntegrationConverter` annotation has been introduced to mark `Converter`, `GenericConverter` or `ConverterFactory` beans as candidate converters for `integrationConversionService`.
 This annotation is an analogue of the `<int:converter>` xml element (see <<payload-type-conversion>>).
 `@IntegrationConverter` annotations can be placed at the class level (with a `@Component` stereotype annotation), or on `@Bean` methods within `@Configuration` classes.

@@ -33,3 +33,8 @@ Previously:
 - A `MessagingException`, with no `failedMessage` property, was wrapped in a `MessagingException` with the `failedMessage` property set
 - Other `RuntimeException` s were re-thrown unchanged
 - Checked exceptions were wrapped in a `MessageDeliveryException` with the `failedMessage` property set
+
+==== Global Channel Interceptors
+
+Global channel interceptors are now applied to channels registered dynamically - such as via the `IntegrationFlowContext` when using the Java DSL, or beans that are initialized using `beanFactory.initializeBean()`.
+Previously, interceptors were not applied when beans were created after the application context was refreshed.
