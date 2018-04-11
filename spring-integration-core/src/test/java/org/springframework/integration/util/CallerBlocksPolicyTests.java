@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0.3
  *
  */
@@ -46,9 +47,9 @@ public class CallerBlocksPolicyTests {
 		te.setCorePoolSize(1);
 		te.setMaxPoolSize(1);
 		te.setQueueCapacity(0);
-		te.setRejectedExecutionHandler(new CallerBlocksPolicy(1000));
+		te.setRejectedExecutionHandler(new CallerBlocksPolicy(10));
 		te.initialize();
-		final AtomicReference<Throwable> e = new AtomicReference<Throwable>();
+		final AtomicReference<Throwable> e = new AtomicReference<>();
 		final CountDownLatch latch = new CountDownLatch(1);
 		Runnable task = new Runnable() {
 
@@ -82,19 +83,15 @@ public class CallerBlocksPolicyTests {
 		final CountDownLatch latch = new CountDownLatch(3);
 		te.execute(() -> {
 			try {
-				Runnable foo = new Runnable() {
-
-					@Override
-					public void run() {
-						try {
-							Thread.sleep(1000);
-						}
-						catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							throw new RuntimeException();
-						}
-						latch.countDown();
+				Runnable foo = () -> {
+					try {
+						Thread.sleep(10);
 					}
+					catch (InterruptedException e1) {
+						Thread.currentThread().interrupt();
+						throw new RuntimeException();
+					}
+					latch.countDown();
 				};
 				te.execute(foo);
 				te.execute(foo); // this one will be queued
