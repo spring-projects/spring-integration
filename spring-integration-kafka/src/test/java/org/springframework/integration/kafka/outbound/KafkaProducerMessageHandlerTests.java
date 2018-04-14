@@ -61,8 +61,8 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -315,7 +315,9 @@ public class KafkaProducerMessageHandlerTests {
 			}
 
 		});
-		KafkaMessageListenerContainer<Integer, String> container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
+		KafkaMessageListenerContainer<Integer, String> container =
+				new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
+
 		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		ReplyingKafkaTemplate<Integer, String, String> template = new ReplyingKafkaTemplate<>(producerFactory, container);

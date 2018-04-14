@@ -27,8 +27,9 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.ErrorHandler;
-import org.springframework.kafka.listener.config.ContainerProperties;
+import org.springframework.kafka.listener.GenericErrorHandler;
 import org.springframework.kafka.support.TopicPartitionInitialOffset;
 
 /**
@@ -88,8 +89,8 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	 * @return the spec.
 	 * @see ErrorHandler
 	 */
-	public KafkaMessageListenerContainerSpec<K, V> errorHandler(ErrorHandler errorHandler) {
-		this.target.getContainerProperties().setErrorHandler(errorHandler);
+	public KafkaMessageListenerContainerSpec<K, V> errorHandler(GenericErrorHandler<?> errorHandler) {
+		this.target.setGenericErrorHandler(errorHandler);
 		return this;
 	}
 
@@ -105,11 +106,11 @@ public class KafkaMessageListenerContainerSpec<K, V>
 	 * <li>MANUAL: Listener is responsible for acking - use a
 	 * {@link AcknowledgingMessageListener}.
 	 * </ul>
-	 * @param ackMode the {@link AbstractMessageListenerContainer.AckMode}; default BATCH.
+	 * @param ackMode the {@link ContainerProperties.AckMode}; default BATCH.
 	 * @return the spec.
-	 * @see AbstractMessageListenerContainer.AckMode
+	 * @see ContainerProperties.AckMode
 	 */
-	public KafkaMessageListenerContainerSpec<K, V> ackMode(AbstractMessageListenerContainer.AckMode ackMode) {
+	public KafkaMessageListenerContainerSpec<K, V> ackMode(ContainerProperties.AckMode ackMode) {
 		this.target.getContainerProperties().setAckMode(ackMode);
 		return this;
 	}
@@ -127,8 +128,8 @@ public class KafkaMessageListenerContainerSpec<K, V>
 
 	/**
 	 * Set the number of outstanding record count after which offsets should be
-	 * committed when {@link AbstractMessageListenerContainer.AckMode#COUNT}
-	 * or {@link AbstractMessageListenerContainer.AckMode#COUNT_TIME} is being used.
+	 * committed when {@link ContainerProperties.AckMode#COUNT}
+	 * or {@link ContainerProperties.AckMode#COUNT_TIME} is being used.
 	 * @param count the count
 	 * @return the spec.
 	 * @see ContainerProperties#setAckCount(int)
@@ -140,8 +141,8 @@ public class KafkaMessageListenerContainerSpec<K, V>
 
 	/**
 	 * Set the time (ms) after which outstanding offsets should be committed when
-	 * {@link AbstractMessageListenerContainer.AckMode#TIME} or
-	 * {@link AbstractMessageListenerContainer.AckMode#COUNT_TIME} is being used.
+	 * {@link ContainerProperties.AckMode#TIME} or
+	 * {@link ContainerProperties.AckMode#COUNT_TIME} is being used.
 	 * Should be larger than zero.
 	 * @param millis the time
 	 * @return the spec.

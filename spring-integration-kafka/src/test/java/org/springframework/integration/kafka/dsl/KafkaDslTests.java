@@ -57,11 +57,10 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.GenericMessageListenerContainer;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListenerContainer;
-import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -246,7 +245,7 @@ public class KafkaDslTests {
 					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
 							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
 							.configureListenerContainer(c ->
-									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL)
+									c.ackMode(ContainerProperties.AckMode.MANUAL)
 											.id("topic1ListenerContainer"))
 							.recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
 									new RawRecordHeaderErrorMessageStrategy()))
@@ -266,7 +265,7 @@ public class KafkaDslTests {
 					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
 							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2)
 							.configureListenerContainer(c ->
-									c.ackMode(AbstractMessageListenerContainer.AckMode.MANUAL))
+									c.ackMode(ContainerProperties.AckMode.MANUAL))
 							.recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
 									new RawRecordHeaderErrorMessageStrategy()))
 							.retryTemplate(new RetryTemplate())
@@ -336,7 +335,7 @@ public class KafkaDslTests {
 		public IntegrationFlow outboundGateFlow() {
 			return IntegrationFlows.from(Gate.class)
 					.handle(Kafka.outboundGateway(producerFactory(), replyContainer())
-								.configureKafkaTemplate(t -> t.replyTimeout(30_000)))
+							.configureKafkaTemplate(t -> t.replyTimeout(30_000)))
 					.get();
 		}
 

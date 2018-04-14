@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,11 @@ import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAd
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.adapter.FilteringMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
-import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.context.ContextConfiguration;
@@ -73,7 +73,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 	private RecoveryCallback<?> recoveryCallback;
 
 	@Test
-	public void testKafkaMessageDrivenChannelAdapterParser() throws Exception {
+	public void testKafkaMessageDrivenChannelAdapterParser() {
 		assertThat(this.kafkaListener.isAutoStartup()).isFalse();
 		assertThat(this.kafkaListener.isRunning()).isFalse();
 		assertThat(this.kafkaListener.getPhase()).isEqualTo(100);
@@ -94,7 +94,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 	}
 
 	@Test
-	public void testKafkaBatchMessageDrivenChannelAdapterParser() throws Exception {
+	public void testKafkaBatchMessageDrivenChannelAdapterParser() {
 		assertThat(this.kafkaBatchListener.isAutoStartup()).isFalse();
 		assertThat(this.kafkaBatchListener.isRunning()).isFalse();
 		assertThat(this.kafkaBatchListener.getPhase()).isEqualTo(100);
@@ -112,7 +112,7 @@ public class KafkaMessageDrivenChannelAdapterParserTests {
 	@SuppressWarnings("unchecked")
 	public void testKafkaMessageDrivenChannelAdapterOptions() {
 		DefaultKafkaConsumerFactory<Integer, String> cf =
-				new DefaultKafkaConsumerFactory<>(Collections.<String, Object>emptyMap());
+				new DefaultKafkaConsumerFactory<>(Collections.emptyMap());
 		ContainerProperties containerProps = new ContainerProperties("foo");
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);

@@ -55,9 +55,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.support.AcknowledgmentCallback;
-import org.springframework.integration.support.AcknowledgmentCallback.Status;
-import org.springframework.integration.support.StaticMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -118,19 +117,19 @@ public class MessageSourceTests {
 		assertThat(received).isNotNull();
 		assertThat(received.getHeaders().get(KafkaHeaders.RAW_DATA)).isInstanceOf(ConsumerRecord.class);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();
 		assertThat(received).isNotNull();
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();
 		assertThat(received).isNotNull();
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();
 		assertThat(received).isNotNull();
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();
 		assertThat(received).isNull();
 		source.destroy();
@@ -209,17 +208,17 @@ public class MessageSourceTests {
 		consumer.paused(); // need some other interaction with mock between polls for InOrder
 		Message<?> received6 = source.receive();
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received3)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received2)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received5)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received1)
-				.acknowledge(Status.ACCEPT); // should commit offset 3 (received 3)
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT); // should commit offset 3 (received 3)
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received6)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received4)
-				.acknowledge(Status.ACCEPT); // should commit offset 6 (received 6).
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT); // should commit offset 6 (received 6).
 		assertThat(source.receive()).isNull();
 		source.destroy();
 		InOrder inOrder = inOrder(consumer);
@@ -274,19 +273,19 @@ public class MessageSourceTests {
 		Message<?> received = source.receive();
 		assertThat(received.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
-				.acknowledge(Status.REQUEUE);
+				.acknowledge(AcknowledgmentCallback.Status.REQUEUE);
 		received = source.receive();
 		assertThat(received.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();
 		assertThat(received.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(1L);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
-				.acknowledge(Status.REQUEUE);
+				.acknowledge(AcknowledgmentCallback.Status.REQUEUE);
 		received = source.receive();
 		assertThat(received.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(1L);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received = source.receive();
 		source.destroy();
 		assertThat(received).isNull();
@@ -345,22 +344,22 @@ public class MessageSourceTests {
 		new DirectFieldAccessor(ack1).setPropertyValue("logger", log1);
 		given(log1.isWarnEnabled()).willReturn(true);
 		willDoNothing().given(log1).warn(any());
-		ack1.acknowledge(Status.REQUEUE);
+		ack1.acknowledge(AcknowledgmentCallback.Status.REQUEUE);
 		assertThat(received2.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(1L);
 		AcknowledgmentCallback ack2 = StaticMessageHeaderAccessor.getAcknowledgmentCallback(received2);
 		Log log2 = spy(KafkaTestUtils.getPropertyValue(ack1, "logger", Log.class));
 		new DirectFieldAccessor(ack2).setPropertyValue("logger", log2);
 		given(log2.isWarnEnabled()).willReturn(true);
 		willDoNothing().given(log2).warn(any());
-		ack2.acknowledge(Status.ACCEPT);
+		ack2.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received1 = source.receive();
 		assertThat(received1.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(0L);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received1)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received2 = source.receive();
 		assertThat(received2.getHeaders().get(KafkaHeaders.OFFSET)).isEqualTo(1L);
 		StaticMessageHeaderAccessor.getAcknowledgmentCallback(received2)
-				.acknowledge(Status.ACCEPT);
+				.acknowledge(AcknowledgmentCallback.Status.ACCEPT);
 		received1 = source.receive();
 		source.destroy();
 		assertThat(received1).isNull();
