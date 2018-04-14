@@ -48,21 +48,20 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter.ListenerMode;
 import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessageStrategy;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.listener.AbstractMessageListenerContainer.AckMode;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -466,7 +465,7 @@ public class MessageDrivenAdapterTests {
 		TopicPartitionInitialOffset[] topicPartition = new TopicPartitionInitialOffset[] {
 				new TopicPartitionInitialOffset("foo", 0) };
 		ContainerProperties containerProps = new ContainerProperties(topicPartition);
-		containerProps.setAckMode(AckMode.RECORD);
+		containerProps.setAckMode(ContainerProperties.AckMode.RECORD);
 		containerProps.setClientId("clientId");
 		containerProps.setIdleEventInterval(100L);
 		KafkaMessageListenerContainer<Integer, String> container =

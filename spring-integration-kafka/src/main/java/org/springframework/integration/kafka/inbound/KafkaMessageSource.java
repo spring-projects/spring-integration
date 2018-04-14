@@ -43,10 +43,10 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.acks.AcknowledgmentCallback;
+import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.AcknowledgmentCallback;
-import org.springframework.integration.support.AcknowledgmentCallbackFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.Acknowledgment;
@@ -73,6 +73,8 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Mark Norkin
+ * @author Artem Bilan
+ *
  * @since 3.0.1
  *
  */
@@ -229,8 +231,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			}
 			if (this.logger.isWarnEnabled()) {
 				this.logger.warn("'" + ConsumerConfig.MAX_POLL_RECORDS_CONFIG
-					+ "' has been forced to from " + (maxPoll == null ? "unspecified" : maxPoll)
-					+ "to 1, to avoid having to seek after each record");
+						+ "' has been forced to from " + (maxPoll == null ? "unspecified" : maxPoll)
+						+ "to 1, to avoid having to seek after each record");
 			}
 			Map<String, Object> configs = new HashMap<>(suppliedConsumerFactory.getConfigurationProperties());
 			configs.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
@@ -349,7 +351,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	/**
 	 * AcknowledgmentCallbackFactory for KafkaAckInfo.
-	 *
 	 * @param <K> the key type.
 	 * @param <V> the value type.
 	 *
@@ -365,7 +366,6 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	/**
 	 * AcknowledgmentCallback for Kafka.
-	 *
 	 * @param <K> the key type.
 	 * @param <V> the value type.
 	 *
@@ -395,15 +395,15 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 				try {
 					ConsumerRecord<K, V> record = this.ackInfo.getRecord();
 					switch (status) {
-					case ACCEPT:
-					case REJECT:
-						commitIfPossible(record);
-						break;
-					case REQUEUE:
-						rollback(record);
-						break;
-					default:
-						break;
+						case ACCEPT:
+						case REJECT:
+							commitIfPossible(record);
+							break;
+						case REQUEUE:
+							rollback(record);
+							break;
+						default:
+							break;
 					}
 				}
 				catch (WakeupException e) {
@@ -424,12 +424,12 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			if (inflight.size() > 1) {
 				List<Long> rewound =
 						inflight.stream()
-							.filter(i -> i.getRecord().offset() > record.offset())
-							.map(i -> {
-								i.setRolledBack(true);
-								return i.getRecord().offset();
-							})
-							.collect(Collectors.toList());
+								.filter(i -> i.getRecord().offset() > record.offset())
+								.map(i -> {
+									i.setRolledBack(true);
+									return i.getRecord().offset();
+								})
+								.collect(Collectors.toList());
 				if (rewound.size() > 0 && this.logger.isWarnEnabled()) {
 					this.logger.warn("Rolled back " + record + " later in-flight offsets "
 							+ rewound + " will also be re-fetched");
