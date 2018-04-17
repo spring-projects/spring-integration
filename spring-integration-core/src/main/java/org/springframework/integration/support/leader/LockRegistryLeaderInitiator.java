@@ -381,8 +381,15 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 					}
 					catch (Exception e) {
 						if (this.locked) {
-							this.lock.unlock();
 							this.locked = false;
+							try {
+								this.lock.unlock();
+							}
+							catch (Exception e1) {
+								logger.debug("Could not unlock - treat as broken. " +
+										"Revoking " + (isRunning() ? " and retrying..." : "..."), e);
+
+							}
 							// The lock was broken and we are no longer leader
 							handleRevoked();
 							if (isRunning()) {
@@ -408,11 +415,16 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			}
 			finally {
 				if (this.locked) {
-					this.lock.unlock();
+					this.locked = false;
+					try {
+						this.lock.unlock();
+					}
+					catch (Exception e) {
+						logger.debug("Could not unlock during stop - treat as broken. Revoking...", e);
+					}
 					// We are stopping, therefore not leading any more
 					handleRevoked();
 				}
-				this.locked = false;
 			}
 			return null;
 		}
