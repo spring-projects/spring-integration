@@ -10,7 +10,7 @@
 	</int:channel>
 
 	<int:gateway id="sampleGateway"
-			service-interface="org.springframework.integration.gateway.GatewayInterfaceTests.Bar"
+			service-interface="org.springframework.integration.gateway.GatewayInterfaceTests$Bar"
 			default-request-channel="requestChannelBaz"
 			error-channel="errorChannel">
 		<int:default-header name="name" expression="#gatewayMethod.name"/>
@@ -34,9 +34,14 @@
 	<int:channel id="requestChannelBaz"/>
 
 	<int:gateway id="customMappedGateway"
-			service-interface="org.springframework.integration.gateway.GatewayInterfaceTests.Baz"
+			service-interface="org.springframework.integration.gateway.GatewayInterfaceTests$Baz"
 			default-request-channel="requestChannelBaz" mapper="mapper"/>
 
 	<bean id="mapper" class="org.springframework.integration.gateway.GatewayInterfaceTests$BazMapper"/>
+
+	<int:gateway id="sampleGateway2"
+				 service-interface="org.springframework.integration.gateway.GatewayInterfaceTests$NoArgumentsGateway"
+				 default-request-channel="requestChannelBar"
+				 default-payload-expression="'foo'"/>
 
 </beans>
