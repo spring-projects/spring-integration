@@ -167,6 +167,35 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 		initiator1.stop();
 	}
 
+	@Test
+	public void testLostConnection() throws InterruptedException {
+		CountDownLatch granted = new CountDownLatch(1);
+		CountingPublisher countingPublisher = new CountingPublisher(granted);
+
+		DefaultLockRepository lockRepository = new DefaultLockRepository(dataSource);
+		lockRepository.afterPropertiesSet();
+		LockRegistryLeaderInitiator initiator = new LockRegistryLeaderInitiator(new JdbcLockRegistry(lockRepository));
+		initiator.setLeaderEventPublisher(countingPublisher);
+
+		initiator.start();
+
+		assertThat(granted.await(10, TimeUnit.SECONDS), is(true));
+
+		destroy();
+
+		assertThat(countingPublisher.revoked.await(10, TimeUnit.SECONDS), is(true));
+
+		granted = new CountDownLatch(1);
+		countingPublisher = new CountingPublisher(granted);
+		initiator.setLeaderEventPublisher(countingPublisher);
+
+		init();
+
+		assertThat(granted.await(10, TimeUnit.SECONDS), is(true));
+
+		initiator.stop();
+	}
+
 	private static class CountingPublisher implements LeaderEventPublisher {
 
 		private final CountDownLatch granted;
