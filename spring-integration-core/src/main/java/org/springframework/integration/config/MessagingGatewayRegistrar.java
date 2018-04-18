@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,28 +100,33 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 		if (hasDefaultHeaders || hasDefaultPayloadExpression) {
 			BeanDefinitionBuilder methodMetadataBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodMetadata.class);
+
 			if (hasDefaultPayloadExpression) {
 				methodMetadataBuilder.addPropertyValue("payloadExpression", defaultPayloadExpression);
 			}
-			Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
-			for (Map<String, Object> header : defaultHeaders) {
-				String headerValue = (String) header.get("value");
-				String headerExpression = (String) header.get("expression");
-				boolean hasValue = StringUtils.hasText(headerValue);
 
-				if (hasValue == StringUtils.hasText(headerExpression)) {
-					throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' " +
-							"is required on a gateway's header.");
+			if (hasDefaultHeaders) {
+				Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
+				for (Map<String, Object> header : defaultHeaders) {
+					String headerValue = (String) header.get("value");
+					String headerExpression = (String) header.get("expression");
+					boolean hasValue = StringUtils.hasText(headerValue);
+
+					if (hasValue == StringUtils.hasText(headerExpression)) {
+						throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' " +
+								"is required on a gateway's header.");
+					}
+
+					BeanDefinition expressionDef =
+							new RootBeanDefinition(hasValue ? LiteralExpression.class : ExpressionFactoryBean.class);
+					expressionDef.getConstructorArgumentValues()
+							.addGenericArgumentValue(hasValue ? headerValue : headerExpression);
+
+					headerExpressions.put((String) header.get("name"), expressionDef);
 				}
-
-				BeanDefinition expressionDef =
-						new RootBeanDefinition(hasValue ? LiteralExpression.class : ExpressionFactoryBean.class);
-				expressionDef.getConstructorArgumentValues()
-						.addGenericArgumentValue(hasValue ? headerValue : headerExpression);
-
-				headerExpressions.put((String) header.get("name"), expressionDef);
+				methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
 			}
-			methodMetadataBuilder.addPropertyValue("headerExpressions", headerExpressions);
+
 			gatewayProxyBuilder.addPropertyValue("globalMethodMetadata", methodMetadataBuilder.getBeanDefinition());
 		}
 
