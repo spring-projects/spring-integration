@@ -11,7 +11,6 @@ addons:
     - mongodb-3.0-precise
     packages:
     - mongodb-org-server
-    - oracle-java8-installer
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
