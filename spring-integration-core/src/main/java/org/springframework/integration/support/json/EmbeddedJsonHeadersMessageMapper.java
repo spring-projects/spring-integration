@@ -167,7 +167,7 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 		else {
 			Message<?> messageToEncode = message;
 
-			if (!allHeaders) {
+			if (!this.allHeaders) {
 				if (!headersToEncode.containsKey(MessageHeaders.ID)) {
 					headersToEncode.put(MessageHeaders.ID, MessageHeaders.ID_VALUE_NONE);
 				}
@@ -183,17 +183,17 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 	}
 
 	private Map<String, Object> pruneHeaders(MessageHeaders messageHeaders) {
-		Map<String, Object> headersToEmbed =
-				messageHeaders
-						.entrySet()
-						.stream()
-						.filter(e ->
-								Boolean.TRUE.equals(this.caseSensitive
-										? PatternMatchUtils.smartMatch(e.getKey(), this.headerPatterns)
-										: PatternMatchUtils.smartMatchIgnoreCase(e.getKey(), this.headerPatterns)))
-						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		return messageHeaders
+				.entrySet()
+				.stream()
+				.filter(e -> matchHeader(e.getKey()))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	}
 
-		return headersToEmbed;
+	private boolean matchHeader(String header) {
+		return Boolean.TRUE.equals(this.caseSensitive
+				? PatternMatchUtils.smartMatch(header, this.headerPatterns)
+				: PatternMatchUtils.smartMatchIgnoreCase(header, this.headerPatterns));
 	}
 
 	private byte[] fromBytesPayload(byte[] payload, Map<String, Object> headersToEncode) throws Exception {
