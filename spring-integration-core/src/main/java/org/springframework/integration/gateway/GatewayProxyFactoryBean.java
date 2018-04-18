@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -454,10 +454,15 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		boolean hasPayloadExpression =
 				method.isAnnotationPresent(org.springframework.integration.annotation.Payload.class)
 						|| method.isAnnotationPresent(Payload.class);
-		if (!hasPayloadExpression && this.methodMetadataMap != null) {
+		if (!hasPayloadExpression) {
 			// check for the method metadata next
-			GatewayMethodMetadata metadata = this.methodMetadataMap.get(method.getName());
-			hasPayloadExpression = (metadata != null) && StringUtils.hasText(metadata.getPayloadExpression());
+			if (this.methodMetadataMap != null) {
+				GatewayMethodMetadata metadata = this.methodMetadataMap.get(method.getName());
+				hasPayloadExpression = (metadata != null) && StringUtils.hasText(metadata.getPayloadExpression());
+			}
+			else if (this.globalMethodMetadata != null) {
+				hasPayloadExpression = StringUtils.hasText(this.globalMethodMetadata.getPayloadExpression());
+			}
 		}
 		if (paramCount == 0 && !hasPayloadExpression) {
 			if (shouldReply) {
