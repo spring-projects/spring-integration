@@ -31,7 +31,7 @@
 
 	<jdbc:embedded-database id="dataSource" type="H2"/>
 
-	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+	<jdbc:initialize-database data-source="dataSource">
 		<jdbc:script location="classpath:org/springframework/integration/jdbc/config/outboundPollerSchema.sql"/>
 	</jdbc:initialize-database>
 

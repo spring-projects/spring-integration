@@ -7,8 +7,7 @@
 
 	<jdbc:embedded-database id="dataSource" type="DERBY" />
 
-	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS" >
-		<jdbc:script location="classpath:derby-stored-procedures-drops.sql"/>
+	<jdbc:initialize-database data-source="dataSource">
 		<jdbc:script location="classpath:derby-stored-procedures.sql"/>
 	</jdbc:initialize-database>
 

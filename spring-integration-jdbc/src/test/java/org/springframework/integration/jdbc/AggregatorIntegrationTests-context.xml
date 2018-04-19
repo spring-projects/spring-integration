@@ -20,9 +20,7 @@
 
 	<jdbc:embedded-database id="dataSource" type="DERBY"/>
 
-	<jdbc:initialize-database data-source="dataSource"
-							  ignore-failures="ALL">
-		<jdbc:script location="${int.drop.script}"/>
+	<jdbc:initialize-database data-source="dataSource">
 		<jdbc:script location="${int.schema.script}"/>
 	</jdbc:initialize-database>
 

@@ -16,7 +16,7 @@
 		<property name="password" value="" />
 	</bean>
 
-	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+	<jdbc:initialize-database data-source="dataSource">
 		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-drop-hsqldb.sql"/>
 		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-hsqldb.sql"/>
 	</jdbc:initialize-database>
