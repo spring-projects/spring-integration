@@ -98,7 +98,7 @@ public class MonitorTests {
 		new DirectFieldAccessor(this.next).setPropertyValue("channelMetrics", channelMetrics);
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.input);
-		messagingTemplate.setReceiveTimeout(10000);
+		messagingTemplate.setReceiveTimeout(100000);
 		Integer active = messagingTemplate.convertSendAndReceive("foo", Integer.class);
 		assertEquals(1, active.intValue());
 		assertTrue(afterSendLatch.await(10, TimeUnit.SECONDS));
@@ -111,7 +111,7 @@ public class MonitorTests {
 		assertEquals(1, this.next.getSendCount());
 		assertThat(this.next.getSendDuration().getMax(), greaterThan(99.0));
 		assertThat(this.next.getSendDuration().getMax(), lessThan(10000.0));
-		Message<?> fromInbound = this.output.receive(10000);
+		Message<?> fromInbound = this.output.receive(100000);
 		assertNotNull(fromInbound);
 		assertEquals(0, fromInbound.getPayload());
 		fromInbound = this.output.receive(10000);

@@ -312,7 +312,9 @@ public class PollerAdviceTests {
 		Trigger override = spy(new PeriodicTrigger(5));
 		final CompoundTriggerAdvice advice = new CompoundTriggerAdvice(compoundTrigger, override);
 		adapter.setSource(() -> {
-			overridePresent.add(TestUtils.getPropertyValue(compoundTrigger, "override"));
+			synchronized (overridePresent) {
+				overridePresent.add(TestUtils.getPropertyValue(compoundTrigger, "override"));
+			}
 			Message<Object> m = null;
 			if (latch.getCount() % 2 == 0) {
 				m = new GenericMessage<>("foo");
@@ -327,8 +329,10 @@ public class PollerAdviceTests {
 		adapter.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		adapter.stop();
-		while (overridePresent.size() > 5) {
-			overridePresent.removeLast();
+		synchronized (overridePresent) {
+			while (overridePresent.size() > 5) {
+				overridePresent.removeLast();
+			}
 		}
 		assertThat(overridePresent, contains(null, override, null, override, null));
 		verify(override, atLeast(2)).nextExecutionTime(any(TriggerContext.class));
