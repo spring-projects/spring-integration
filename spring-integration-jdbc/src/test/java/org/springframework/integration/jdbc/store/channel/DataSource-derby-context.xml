@@ -16,7 +16,7 @@
 		/> <property name="username" value="int" /> <property name="password" value="int"
 		/> </bean> -->
 
-	<jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
+	<jdbc:initialize-database data-source="dataSource">
 		<jdbc:script location="classpath:org/springframework/integration/jdbc/schema-derby.sql" />
 	</jdbc:initialize-database>
 

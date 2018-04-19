@@ -11,8 +11,7 @@
 
 	<jdbc:embedded-database id="dataSource" type="DERBY"/>
 
-	<jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
-		<jdbc:script location="${int.drop.script}"/>
+	<jdbc:initialize-database data-source="dataSource">
 		<jdbc:script location="${int.schema.script}"/>
 	</jdbc:initialize-database>
 
@@ -32,7 +31,7 @@
 	<bean id="lockClient" class="org.springframework.integration.jdbc.lock.DefaultLockRepository">
 		<constructor-arg name="dataSource" ref="dataSource"/>
 	</bean>
-	
+
 	<tx:annotation-driven/>
 
 </beans>
