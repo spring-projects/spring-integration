@@ -119,7 +119,7 @@ public class MqttAdapterTests {
 		factory.setConnectionTimeout(23);
 		factory.setKeepAliveInterval(45);
 		factory.setPassword("pass");
-		SocketFactory socketFactory = mock(SocketFactory.class);
+		SocketFactory socketFactory = SocketFactory.getDefault();
 		factory.setSocketFactory(socketFactory);
 		Properties props = new Properties();
 		factory.setSslProperties(props);
@@ -150,7 +150,7 @@ public class MqttAdapterTests {
 		factory.setPassword("pass");
 		MemoryPersistence persistence = new MemoryPersistence();
 		factory.setPersistence(persistence);
-		final SocketFactory socketFactory = mock(SocketFactory.class);
+		final SocketFactory socketFactory = SocketFactory.getDefault();
 		factory.setSocketFactory(socketFactory);
 		final Properties props = new Properties();
 		factory.setSslProperties(props);
@@ -211,7 +211,7 @@ public class MqttAdapterTests {
 		factory.setPassword("pass");
 		MemoryPersistence persistence = new MemoryPersistence();
 		factory.setPersistence(persistence);
-		final SocketFactory socketFactory = mock(SocketFactory.class);
+		final SocketFactory socketFactory = SocketFactory.getDefault();
 		factory.setSocketFactory(socketFactory);
 		final Properties props = new Properties();
 		factory.setSslProperties(props);
@@ -427,7 +427,7 @@ public class MqttAdapterTests {
 		factory.setPassword("pass");
 		MemoryPersistence persistence = new MemoryPersistence();
 		factory.setPersistence(persistence);
-		final SocketFactory socketFactory = mock(SocketFactory.class);
+		final SocketFactory socketFactory = SocketFactory.getDefault();
 		factory.setSocketFactory(socketFactory);
 		final Properties props = new Properties();
 		factory.setSslProperties(props);
@@ -477,7 +477,7 @@ public class MqttAdapterTests {
 		factory.setPassword("pass");
 		MemoryPersistence persistence = new MemoryPersistence();
 		factory.setPersistence(persistence);
-		final SocketFactory socketFactory = mock(SocketFactory.class);
+		final SocketFactory socketFactory = SocketFactory.getDefault();
 		factory.setSocketFactory(socketFactory);
 		final Properties props = new Properties();
 		factory.setSslProperties(props);

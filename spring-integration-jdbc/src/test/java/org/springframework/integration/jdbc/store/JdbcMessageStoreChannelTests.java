@@ -18,6 +18,7 @@ package org.springframework.integration.jdbc.store;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.List;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
