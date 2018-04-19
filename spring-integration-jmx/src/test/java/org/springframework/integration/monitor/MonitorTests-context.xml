@@ -20,7 +20,7 @@
 	<bean id="testTrigger" class="org.springframework.integration.test.util.OnlyOnceTrigger"/>
 
 	<int:bridge input-channel="input" output-channel="next">
-		<int:poller trigger="testTrigger" receive-timeout="10000" />
+		<int:poller trigger="testTrigger" receive-timeout="100000" />
 	</int:bridge>
 
 	<int:service-activator input-channel="next">
@@ -29,7 +29,7 @@
 
 	<int:inbound-channel-adapter channel="pubsub">
 		<bean class="org.springframework.integration.monitor.MonitorTests$TestSource" />
-		<int:poller fixed-delay="500" />
+		<int:poller fixed-delay="50" />
 	</int:inbound-channel-adapter>
 
 	<int:publish-subscribe-channel id="pubsub" />
