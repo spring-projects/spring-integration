@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -44,6 +46,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 @ContextConfiguration
@@ -56,6 +59,14 @@ public class AggregatorIntegrationTests {
 
 	@Autowired
 	private MessageGroupStore messageGroupStore;
+
+	@Autowired
+	private AggregatingMessageHandler aggregatingMessageHandler;
+
+	@After
+	public void tearDown() {
+		this.aggregatingMessageHandler.stop();
+	}
 
 	@Test
 	public void testTransactionalAggregatorGroupTimeout() throws InterruptedException {

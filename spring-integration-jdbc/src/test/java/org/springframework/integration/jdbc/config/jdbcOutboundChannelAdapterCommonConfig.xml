@@ -11,7 +11,7 @@
 
 	<jdbc:embedded-database type="H2" id="dataSource"/>
 
-	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+	<jdbc:initialize-database data-source="dataSource">
 		<jdbc:script location="classpath:org/springframework/integration/jdbc/config/outboundSchema.sql"/>
 	</jdbc:initialize-database>
 
