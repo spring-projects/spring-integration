@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,25 @@
 
 package org.springframework.integration.support.json;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.Map;
 
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  *
  */
@@ -40,17 +44,31 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 	public void testEmbedAll() throws Exception {
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper();
 		GenericMessage<String> message = new GenericMessage<>("foo");
-		assertThat(mapper.toMessage(mapper.fromMessage(message)), equalTo(message));
-
+		assertThat(mapper.toMessage(mapper.fromMessage(message))).isEqualTo(message);
 	}
 
 	@Test
 	public void testEmbedSome() throws Exception {
-		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper("id");
+		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper(MessageHeaders.ID);
 		GenericMessage<String> message = new GenericMessage<>("foo");
-		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));
-		assertThat(decoded.getPayload(), equalTo(message.getPayload()));
-		assertThat(decoded.getHeaders().getId(), equalTo(message.getHeaders().getId()));
+		byte[] encodedMessage = mapper.fromMessage(message);
+		Message<?> decoded = mapper.toMessage(encodedMessage);
+		assertThat(decoded.getPayload()).isEqualTo(message.getPayload());
+		assertThat(decoded.getHeaders().getTimestamp()).isNotEqualTo(message.getHeaders().getTimestamp());
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		Map<String, Object> encodedMessageToCheck =
+				objectMapper.readValue(encodedMessage, new TypeReference<Map<String, Object>>() {
+
+				});
+
+		Object headers = encodedMessageToCheck.get("headers");
+		assertThat(headers).isNotNull();
+		assertThat(headers).isInstanceOf(Map.class);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> headersToCheck = (Map<String, Object>) headers;
+		assertThat(headersToCheck).doesNotContainKey(MessageHeaders.TIMESTAMP);
 	}
 
 	@Test
@@ -64,13 +82,13 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 		byte[] headerBytes = new byte[headerLen];
 		bb.get(headerBytes);
 		String headers = new String(headerBytes);
-		assertThat(headers, containsString(message.getHeaders().getId().toString()));
-		assertThat(headers, containsString(String.valueOf(message.getHeaders().getTimestamp())));
-		assertThat(bb.getInt(), equalTo(3));
-		assertThat(bb.remaining(), equalTo(3));
-		assertThat((char) bb.get(), equalTo('f'));
-		assertThat((char) bb.get(), equalTo('o'));
-		assertThat((char) bb.get(), equalTo('o'));
+		assertThat(headers).contains(message.getHeaders().getId().toString());
+		assertThat(headers).contains(String.valueOf(message.getHeaders().getTimestamp()));
+		assertThat(bb.getInt()).isEqualTo(3);
+		assertThat(bb.remaining()).isEqualTo(3);
+		assertThat((char) bb.get()).isEqualTo('f');
+		assertThat((char) bb.get()).isEqualTo('o');
+		assertThat((char) bb.get()).isEqualTo('o');
 	}
 
 	@Test
@@ -83,13 +101,14 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 		byte[] headerBytes = new byte[headerLen];
 		bb.get(headerBytes);
 		String headers = new String(headerBytes);
-		assertThat(headers, containsString(message.getHeaders().getId().toString()));
-		assertThat(headers, not(containsString("bar")));
-		assertThat(bb.getInt(), equalTo(3));
-		assertThat(bb.remaining(), equalTo(3));
-		assertThat((char) bb.get(), equalTo('f'));
-		assertThat((char) bb.get(), equalTo('o'));
-		assertThat((char) bb.get(), equalTo('o'));
+		assertThat(headers).contains(message.getHeaders().getId().toString());
+		assertThat(headers).doesNotContain(MessageHeaders.TIMESTAMP);
+		assertThat(headers).doesNotContain("bar");
+		assertThat(bb.getInt()).isEqualTo(3);
+		assertThat(bb.remaining()).isEqualTo(3);
+		assertThat((char) bb.get()).isEqualTo('f');
+		assertThat((char) bb.get()).isEqualTo('o');
+		assertThat((char) bb.get()).isEqualTo('o');
 	}
 
 	@Test
@@ -99,10 +118,10 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
 		byte[] mappedBytes = mapper.fromMessage(message);
 		String mapped = new String(mappedBytes);
-		assertThat(mapped, containsString("[B\",\"Zm9v"));
+		assertThat(mapped).contains("[B\",\"Zm9v");
 		@SuppressWarnings("unchecked")
 		Message<byte[]> decoded = (Message<byte[]>) mapper.toMessage(mappedBytes);
-		assertThat(new String(decoded.getPayload()), equalTo("foo"));
+		assertThat(new String(decoded.getPayload())).isEqualTo("foo");
 
 	}
 
@@ -111,7 +130,35 @@ public class EmbeddedJsonHeadersMessageMapperTests {
 		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper();
 		GenericMessage<byte[]> message = new GenericMessage<>("foo".getBytes());
 		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));
-		assertThat(decoded, equalTo(message));
+		assertThat(decoded).isEqualTo(message);
+	}
+
+	@Test
+	public void testDontMapIdButOthers() throws Exception {
+		EmbeddedJsonHeadersMessageMapper mapper = new EmbeddedJsonHeadersMessageMapper("!" + MessageHeaders.ID, "*");
+		GenericMessage<String> message = new GenericMessage<>("foo",  Collections.singletonMap("bar", "baz"));
+		byte[] encodedMessage = mapper.fromMessage(message);
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		Map<String, Object> encodedMessageToCheck =
+				objectMapper.readValue(encodedMessage, new TypeReference<Map<String, Object>>() {
+
+				});
+
+		Object headers = encodedMessageToCheck.get("headers");
+		assertThat(headers).isNotNull();
+		assertThat(headers).isInstanceOf(Map.class);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> headersToCheck = (Map<String, Object>) headers;
+		assertThat(headersToCheck).doesNotContainKey(MessageHeaders.ID);
+		assertThat(headersToCheck).containsKey(MessageHeaders.TIMESTAMP);
+		assertThat(headersToCheck).containsKey("bar");
+
+		Message<?> decoded = mapper.toMessage(mapper.fromMessage(message));
+		assertThat(decoded.getHeaders().getTimestamp()).isEqualTo(message.getHeaders().getTimestamp());
+		assertThat(decoded.getHeaders().getId()).isNotEqualTo(message.getHeaders().getId());
+		assertThat(decoded.getHeaders().get("bar")).isEqualTo("baz");
 	}
 
 }
