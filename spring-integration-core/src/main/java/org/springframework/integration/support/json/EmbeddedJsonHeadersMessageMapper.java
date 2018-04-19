@@ -29,7 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.MutableMessageHeaders;
-import org.springframework.integration.support.utils.PatternMatchUtils;
+import org.springframework.integration.util.PatternMatchUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
