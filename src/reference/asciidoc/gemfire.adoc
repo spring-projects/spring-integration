@@ -1,16 +1,38 @@
 [[gemfire]]
 == GemFire Support
 
-Spring Integration provides support for VMWare vFabric GemFire
+Spring Integration provides support for Pivotal GemFire and Apache Geode
 
 [[gemfire-intro]]
 === Introduction
 
-VMWare vFabric GemFire (GemFire) is a distributed data management platform providing a key-value data grid along with advanced distributed system features such as event processing, continuous querying, and remote function execution.
-This guide assumes some familiarity with http://www.vmware.com/support/pubs/vfabric-gemfire.html[GemFire] and its http://www.vmware.com/support/developer/vfabric-gemfire/662-api/index.html[API].
+GemFire is a distributed data management platform providing a key-value data grid along with advanced distributed system features such as event processing, continuous querying, and remote function execution.
+This guide assumes some familiarity with commercial https://pivotal.io/pivotal-gemfire[Pivotal GemFire] or Open Source http://geode.apache.org[Apache Geode].
 
-Spring integration provides support for GemFire by providing inbound adapters for entry and continuous query events, an outbound adapter to write entries to the cache, and `MessageStore` and `MessageGroupStore` implementations.
-Spring integration leverages thehttp://www.springsource.org/spring-gemfire[Spring Gemfire] project, providing a thin wrapper over its components.
+Spring integration provides support for GemFire implementing inbound adapters for entry and continuous query events, an outbound adapter to write entries to the cache, and `MessageStore` and `MessageGroupStore` implementations.
+Spring integration leverages the http://projects.spring.io/spring-data-gemfire[Spring Data Gemfire] project, providing a thin wrapper over its components.
+
+Starting with _version 5.1_, Spring Integration GemFire module brings the https://github.com/spring-projects/spring-data-geode[Spring Data Geode] transitive dependency - an implementation for Open Source Apache Geode.
+To switch to commercial Pivotal GemFire based Spring Data Gemfire, there is need to *exclude* `spring-data-geode` from dependencies and add `spring-data-gemfire`:
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-gemfire</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-geode</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+
+<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-gemfire</artifactId>
+</dependency>
+----
 
 To configure the 'int-gfe' namespace, include the following elements within the headers of your XML configuration file:
 [source,xml]
