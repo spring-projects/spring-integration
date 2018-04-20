@@ -5,45 +5,42 @@
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	   xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
-	   xmlns:context="http://www.springframework.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="DERBY" />
+	<jdbc:embedded-database id="dataSource" type="H2" />
 
 	<jdbc:initialize-database data-source="dataSource">
-		<jdbc:script location="${int.schema.script}" />
+		<jdbc:script location="org/springframework/integration/jdbc/schema-h2.sql" />
 	</jdbc:initialize-database>
 
 	<int-jdbc:message-store id="messageStore" data-source="dataSource" />
 
-	<channel id="input" xmlns="http://www.springframework.org/schema/integration">
-		<queue ref="queue"/>
-	</channel>
-
-	<int:channel id="output"/>
-
-	<int:logging-channel-adapter channel="output"/>
+	<int:channel id="input">
+		<int:queue ref="queue"/>
+	</int:channel>
 
 	<bean id="queue" class="org.springframework.integration.store.MessageGroupQueue">
 		<constructor-arg ref="messageStore" />
 		<constructor-arg value="JdbcMessageStoreChannelTests" />
 	</bean>
 
-	<service-activator id="service-activator" input-channel="input" output-channel="output" xmlns="http://www.springframework.org/schema/integration">
+	<int:service-activator id="service-activator" input-channel="input" output-channel="nullChannel">
 		<beans:bean class="org.springframework.integration.jdbc.store.JdbcMessageStoreChannelTests$Service" />
-		<poller fixed-rate="2000">
-			<transactional />
-		</poller>
-	</service-activator>
+		<int:poller fixed-rate="2000">
+			<int:transactional synchronization-factory="transactionSynchronizationFactory"/>
+		</int:poller>
+	</int:service-activator>
 
-	<context:property-placeholder location="int-${ENVIRONMENT:derby}.properties"
-								  system-properties-mode="OVERRIDE"
-								  ignore-unresolvable="true"
-								  order="1"/>
+	<int:transaction-synchronization-factory id="transactionSynchronizationFactory">
+		<int:after-commit expression="@afterCommitLatch.countDown()"/>
+	</int:transaction-synchronization-factory>
+
+	<bean id="afterCommitLatch" class="java.util.concurrent.CountDownLatch">
+		<constructor-arg value="1"/>
+	</bean>
 
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource" />
