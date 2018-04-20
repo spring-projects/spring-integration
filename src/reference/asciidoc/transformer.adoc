@@ -382,6 +382,8 @@ The node JSON representation provides efficiency for using the `JsonPropertyAcce
 See <<spel-property-accessors>>.
 When using Boon, the `NODE` representation is a `Map<String, Object>`
 
+Beginning with _version 5.1_, the `resultType` can be configured as `BYTES` to produce a message with the `byte[]` payload for convenience in downstream handlers which operate with this data type.
+
 [[transformer-annotation]]
 ===== Configuring a Transformer with Annotations
 

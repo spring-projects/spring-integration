@@ -38,3 +38,9 @@ Previously:
 
 Global channel interceptors are now applied to channels registered dynamically - such as via the `IntegrationFlowContext` when using the Java DSL, or beans that are initialized using `beanFactory.initializeBean()`.
 Previously, interceptors were not applied when beans were created after the application context was refreshed.
+
+==== ObjectToJsonTransformer
+
+A new `ResultType.BYTES` mode is introduced for the `ObjectToJsonTransformer`.
+
+See <<json-transformers>> for more information.
