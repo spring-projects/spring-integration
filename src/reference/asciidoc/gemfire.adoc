@@ -9,7 +9,7 @@ Spring Integration provides support for Pivotal GemFire and Apache Geode
 GemFire is a distributed data management platform providing a key-value data grid along with advanced distributed system features such as event processing, continuous querying, and remote function execution.
 This guide assumes some familiarity with commercial https://pivotal.io/pivotal-gemfire[Pivotal GemFire] or Open Source http://geode.apache.org[Apache Geode].
 
-Spring integration provides support for GemFire implementing inbound adapters for entry and continuous query events, an outbound adapter to write entries to the cache, and `MessageStore` and `MessageGroupStore` implementations.
+Spring integration provides support for GemFire implementing inbound adapters for entry and continuous query events, an outbound adapter to write entries to the cache, and Message & Metadata stores and `GemfireLockRegistry` implementations.
 Spring integration leverages the http://projects.spring.io/spring-data-gemfire[Spring Data Gemfire] project, providing a thin wrapper over its components.
 
 Starting with _version 5.1_, Spring Integration GemFire module brings the https://github.com/spring-projects/spring-data-geode[Spring Data Geode] transitive dependency - an implementation for Open Source Apache Geode.
@@ -46,7 +46,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 === Inbound Channel Adapter
 
 The _inbound-channel-adapter_ produces messages on a channel triggered by a GemFire `EntryEvent`.
-GemFire generates events whenever an entry is CREATED, UPDATED, DESTROYED, or INVALIDATED in the associated region.
+GemFire generates events whenever an entry is `CREATED`, `UPDATED`, `DESTROYED` or `INVALIDATED` in the associated region.
 The inbound channel adapter allows you to filter on a subset of these events.
 For example, you may want to only produce messages in response to an entry being CREATED.
 In addition, the inbound channel adapter can evaluate a SpEL expression if, for example, you want your message payload to contain an event property such as the new entry value.
@@ -65,7 +65,7 @@ By default CREATED and UPDATED are enabled.
 Note that this adapter conforms to Spring integration conventions.
 If no `channel` attribute is provided, the channel will be created from the `id` attribute.
 This adapter also supports an `error-channel`.
-The GemFire http://www.gemstone.com/docs/current/product/docs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] is the `#root` object of the `expression` evaluation.
+The GemFire hhttps://geode.apache.org/releases/latest/javadoc/org/apache/geode/cache/EntryEvent.html[EntryEvent] is the `#root` object of the `expression` evaluation.
 Example:
 [source]
 ----
@@ -78,13 +78,13 @@ If the `expression` attribute is not provided, the message payload will be the G
 === Continuous Query Inbound Channel Adapter
 
 The _cq-inbound-channel-adapter_ produces messages a channel triggered by a GemFire continuous query or `CqEvent` event.
-Spring GemFire introduced continuous query support in release 1.1, including a `ContinuousQueryListenerContainer` which provides a nice abstraction over the GemFire native API.
+Spring Data GemFire introduced continuous query support in release `1.1`, including a `ContinuousQueryListenerContainer` which provides a nice abstraction over the GemFire native API.
 This adapter requires a reference to a ContinuousQueryListenerContainer, and creates a listener for a given `query` and executes the query.
 The continuous query acts as an event source that will fire whenever its result set changes state.
 
 NOTE: GemFire queries are written in OQL and are scoped to the entire cache (not just one region).
 Additionally, continuous queries require a remote (i.e., running in a separate process or remote host) cache server.
-Please consult the http://www.gemstone.com/docs/6.6.RC/product/docs/html/user_guide/UserGuide_GemFire.html#Continuous%20Querying[GemFire documentation] for more information on implementing continuous queries.
+Please consult the http://gemfire82.docs.pivotal.io/docs-gemfire/gemfire_nativeclient/continuous-querying/continuous-querying.html[GemFire documentation] for more information on implementing continuous queries.
 
 
 [source,xml]
@@ -109,12 +109,12 @@ In the above configuration, we are creating a GemFire client cache (recall a rem
 The continuous query inbound channel adapter requires a `cq-listener-container` attribute which contains a reference to the `ContinuousQueryListenerContainer`.
 Optionally, it accepts an `expression` attribute which uses SpEL to transform the `CqEvent` or extract an individual property as needed.
 The cq-inbound-channel-adapter provides a `query-events` attribute, containing a comma separated list of event types for which a message will be produced on the input channel.
-Available event types are CREATED, UPDATED, DESTROYED, REGION_DESTROYED, REGION_INVALIDATED.
-CREATED and UPDATED are enabled by default.
+Available event types are `CREATED`, `UPDATED`, `DESTROYED`, `REGION_DESTROYED` and `REGION_INVALIDATED`.
+`CREATED` and `UPDATED` are enabled by default.
 Additional optional attributes include, `query-name` which provides an optional query name, and `expression` which works as described in the above section, and `durable` - a boolean value indicating if the query is durable (false by default).
 Note that this adapter conforms to Spring integration conventions.
 If no `channel` attribute is provided, the channel will be created from the `id` attribute.
-This adapter also supports an `error-channel`
+This adapter also supports an `error-channel`.
 
 [[gemfire-outbound]]
 === Outbound Channel Adapter
@@ -150,7 +150,7 @@ This adapter also supports the `order` attribute which may be useful if it is bo
 
 As described in EIP, a http://www.eaipatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
 This can be very useful when dealing with components that have a capability to buffer messages (_QueueChannel, Aggregator, Resequencer_, etc.) if reliability is a concern.
-In Spring Integration, the MessageStore strategy also provides the foundation for thehttp://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
+In Spring Integration, the MessageStore strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
 
 Spring Integration's Gemfire module provides the `GemfireMessageStore` which is an implementation of both the the `MessageStore` strategy (mainly used by the _QueueChannel_ and _ClaimCheck_ patterns) and the `MessageGroupStore` strategy (mainly used by the _Aggregator_ and _Resequencer_ patterns).
 
@@ -174,7 +174,7 @@ Spring Integration's Gemfire module provides the `GemfireMessageStore` which is 
 ----
 
 In the above example, the cache and region are configured using the spring-gemfire namespace (not to be confused with the spring-integration-gemfire namespace).
-Often it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration (See the http://www.vmware.com/support/pubs/vfabric-gemfire.html[GemFire product documentation] for more details).
+Often it is desirable for the message store to be maintained in one or more remote cache servers in a client-server configuration.
 In this case, you configure a client cache, client region, and client pool and inject the region into the MessageStore.
 Here is an example:
 [source,xml]
@@ -197,7 +197,7 @@ Note the _pool_ element is configured with the address of a cache server (a loca
 The region is configured as a 'PROXY' so that no data will be stored locally.
 The region's id corresponds to a region with the same name configured in the cache server.
 
-Starting with version _4.3.12_, the `GemfireMessageStore` supports the key `prefix` option to allow distinguishing between instances of the store on the same Gemfire region.
+Starting with version _4.3.12_, the `GemfireMessageStore` supports the key `prefix` option to allow distinguishing between instances of the store on the same GemFire region.
 
 [[gemfire-lock-registry]]
 === Gemfire Lock Registry
