@@ -2591,6 +2591,7 @@
 		<xsd:restriction base="xsd:token">
 			<xsd:enumeration value="STRING" />
 			<xsd:enumeration value="NODE" />
+			<xsd:enumeration value="BYTES" />
 		</xsd:restriction>
 	</xsd:simpleType>
 

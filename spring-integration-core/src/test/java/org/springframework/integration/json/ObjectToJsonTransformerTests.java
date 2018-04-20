@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ObjectToJsonTransformerTests {
@@ -116,6 +117,14 @@ public class ObjectToJsonTransformerTests {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		String result = (String) transformer.transform(new GenericMessage<Integer>(123)).getPayload();
 		assertEquals("123", result);
+	}
+
+	@Test
+	public void simpleIntegerAsBytesPayload() {
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(ObjectToJsonTransformer.ResultType.BYTES);
+		Object result = transformer.transform(new GenericMessage<>(123)).getPayload();
+		assertThat(result, instanceOf(byte[].class));
+		assertEquals("123", new String((byte[]) result));
 	}
 
 	@Test

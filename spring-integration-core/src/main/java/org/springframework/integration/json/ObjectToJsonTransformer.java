@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package org.springframework.integration.json;
 
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.util.Map;
+
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.transformer.AbstractTransformer;
@@ -52,12 +55,13 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ObjectToJsonTransformer extends AbstractTransformer {
 
 	public enum ResultType {
-		STRING, NODE
+		STRING, NODE, BYTES
 	}
 
 	public static final String JSON_CONTENT_TYPE = "application/json";
@@ -108,12 +112,9 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
-		Object payload = ResultType.STRING.equals(this.resultType)
-				? this.jsonObjectMapper.toJson(message.getPayload())
-				: this.jsonObjectMapper.toJsonNode(message.getPayload());
-		AbstractIntegrationMessageBuilder<Object> messageBuilder = this.getMessageBuilderFactory().withPayload(payload);
+		Object payload = buildJsonPayload(message.getPayload());
 
-		LinkedCaseInsensitiveMap<Object> headers = new LinkedCaseInsensitiveMap<Object>();
+		Map<String, Object> headers = new LinkedCaseInsensitiveMap<>();
 		headers.putAll(message.getHeaders());
 
 		if (headers.containsKey(MessageHeaders.CONTENT_TYPE)) {
@@ -130,8 +131,30 @@ public class ObjectToJsonTransformer extends AbstractTransformer {
 
 		this.jsonObjectMapper.populateJavaTypes(headers, message.getPayload());
 
-		messageBuilder.copyHeaders(headers);
-		return messageBuilder.build();
+		return getMessageBuilderFactory()
+				.withPayload(payload)
+				.copyHeaders(headers)
+				.build();
+	}
+
+	private Object buildJsonPayload(Object payload) throws Exception {
+		switch (this.resultType) {
+
+			case STRING:
+				return this.jsonObjectMapper.toJson(payload);
+
+			case NODE:
+				return this.jsonObjectMapper.toJsonNode(payload);
+
+			case BYTES:
+				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+					this.jsonObjectMapper.toJson(payload, new OutputStreamWriter(baos));
+					return baos.toByteArray();
+				}
+
+			default:
+				throw new IllegalArgumentException("Unsupported ResultType provided: " + this.resultType);
+		}
 	}
 
 }
