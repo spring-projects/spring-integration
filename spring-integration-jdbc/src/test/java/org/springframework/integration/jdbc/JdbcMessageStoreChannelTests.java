@@ -17,6 +17,7 @@
 package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.List;
@@ -46,7 +47,26 @@ public class JdbcMessageStoreChannelTests {
 	private MessageChannel input;
 
 	@Autowired
+	private CountDownLatch afterCommitLatch;
+
+	@Autowired
 	private JdbcMessageStore messageStore;
+
+	@Autowired
+	@Qualifier("service-activator")
+	private AbstractEndpoint serviceActivator;
+
+
+	@Before
+	public void init() {
+		Service.reset(1);
+		this.serviceActivator.start();
+	}
+
+	@After
+	public void tearDown() {
+		this.serviceActivator.stop();
+	}
 
 	@BeforeTransaction
 	public void clear() {
@@ -56,10 +76,9 @@ public class JdbcMessageStoreChannelTests {
 	}
 
 	@Test
-	public void testSendAndActivate() throws Exception {
-		Service.reset(1);
-		input.send(new GenericMessage<String>("foo"));
-		Service.await(10000);
+	public void testSendAndActivate() throws InterruptedException {
+		this.input.send(new GenericMessage<>("foo"));
+		assertTrue(this.afterCommitLatch.await(10, TimeUnit.SECONDS));
 		assertEquals(1, Service.messages.size());
 		assertEquals(0, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
 	}
