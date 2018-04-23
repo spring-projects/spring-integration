@@ -246,14 +246,13 @@ Version 4.0 introduced a new Gemfire-based `MetadataStore` (<<metadata-store>>) 
 You can use the `GemfireMetadataStore` to maintain metadata state across application restarts.
 This new `MetadataStore` implementation can be used with adapters such as:
 
-* <<twitter-inbound>>
 * <<feed-inbound-channel-adapter>>
 * <<file-reading>>
 * <<ftp-inbound>>
 * <<sftp-inbound>>
 
 To get these adapters to use the new `GemfireMetadataStore`, declare a Spring bean with a bean name of `metadataStore`.
-The Twitter inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `GemfireMetadataStore`.
+The feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `GemfireMetadataStore`.
 
 NOTE: The `GemfireMetadataStore` also implements `ConcurrentMetadataStore`, letting it be reliably shared across multiple application instances, where only one instance can store or modify a key's value.
 These methods give various levels of concurrency guarantees based on the scope and data policy of the region.

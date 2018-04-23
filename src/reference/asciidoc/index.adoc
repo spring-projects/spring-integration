@@ -113,8 +113,6 @@ include::./syslog.adoc[]
 
 include::./ip.adoc[]
 
-include::./twitter.adoc[]
-
 include::./webflux.adoc[]
 
 include::./web-sockets.adoc[]

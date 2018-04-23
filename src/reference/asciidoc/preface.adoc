@@ -31,8 +31,8 @@ Spring Framework 2.0 introduced support for namespaces, which simplifies the XML
 In this reference guide, the `int` namespace prefix is used for Spring Integration's core namespace support.
 Each Spring Integration adapter type (also called a module) provides its own namespace, which is configured by using the following convention:
 
-`int-` followed by the name of the module -- for example, `int-twitter`, `int-stream`, and so on.
-The following example shows the `int`, `int-twitter`, and `int-stream` namespaces in use:
+
+The following example shows the `int`, `int-event`, and `int-stream` namespaces in use:
 
 ====
 [source,xml]
@@ -41,15 +41,15 @@ The following example shows the `int`, `int-twitter`, and `int-stream` namespace
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:int="http://www.springframework.org/schema/integration"
-  xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
+  xmlns:int-webflux="http://www.springframework.org/schema/integration/webflux"
   xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
   xsi:schemaLocation="
    http://www.springframework.org/schema/beans
    http://www.springframework.org/schema/beans/spring-beans.xsd
    http://www.springframework.org/schema/integration
    http://www.springframework.org/schema/integration/spring-integration.xsd
-   http://www.springframework.org/schema/integration/twitter
-   http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd
+   http://www.springframework.org/schema/integration/webflux
+   http://www.springframework.org/schema/integration/webflux/spring-integration-webflux.xsd
    http://www.springframework.org/schema/integration/stream
    http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 …

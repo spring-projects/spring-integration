@@ -397,14 +397,14 @@ Spring Integration 3.0 introduced a new Redis-based http://docs.spring.io/spring
 You can use the `RedisMetadataStore` to maintain the state of a `MetadataStore` across application restarts.
 You can use this new `MetadataStore` implementation with adapters such as:
 
-* <<twitter-inbound,Twitter>>
+
 * <<feed-inbound-channel-adapter,Feed>>
 * <<file-reading,File>>
 * <<ftp-inbound,FTP>>
 * <<sftp-inbound,SFTP>>
 
 To instruct these adapters to use the new `RedisMetadataStore`, declare a Spring bean named `metadataStore`.
-The Twitter inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `RedisMetadataStore`.
+The Feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `RedisMetadataStore`.
 The following example shows how to declare such a bean:
 
 ====
