@@ -2,9 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int="http://www.springframework.org/schema/integration"
-	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
+	   xmlns:gfe="http://www.springframework.org/schema/geode"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+		http://www.springframework.org/schema/geode http://www.springframework.org/schema/gemfire/spring-geode.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<gfe:cache use-bean-factory-locator="false"/>
