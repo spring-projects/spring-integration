@@ -1,2 +1,0 @@
-http\://www.springframework.org/schema/integration/twitter=org.springframework.integration.twitter.config.TwitterNamespaceHandler
-

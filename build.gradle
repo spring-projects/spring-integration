@@ -47,7 +47,6 @@ allprojects {
 		'http://docs.spring.io/spring-data-gemfire/docs/current/api/',
 		'http://docs.spring.io/spring-data/data-mongo/docs/current/api/',
 		'http://docs.spring.io/spring-data/data-redis/docs/current/api/',
-		'http://docs.spring.io/spring-social-twitter/docs/current/apidocs/',
 		'http://docs.spring.io/spring-ws/sites/2.0/apidocs/'
 	] as String[]
 
@@ -137,7 +136,6 @@ subprojects { subproject ->
 		springDataRedisVersion = '2.1.0.BUILD-SNAPSHOT'
 		springGemfireVersion = '2.1.0.BUILD-SNAPSHOT'
 		springSecurityVersion = '5.1.0.BUILD-SNAPSHOT'
-		springSocialTwitterVersion = '1.1.2.RELEASE'
 		springRetryVersion = '1.2.2.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.0.BUILD-SNAPSHOT'
 		springWsVersion = '3.0.1.RELEASE'
@@ -623,26 +621,6 @@ project('spring-integration-test') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile project(":spring-integration-test-support")
-	}
-}
-
-project('spring-integration-twitter') {
-	description = 'Spring Integration Twitter Support'
-	dependencies {
-		compile project(":spring-integration-core")
-		compile "org.springframework:spring-web:$springVersion"
-		compile("org.springframework.social:spring-social-twitter:$springSocialTwitterVersion") {
-			exclude group: 'org.springframework', module: 'spring-beans'
-			exclude group: 'org.springframework', module: 'spring-context'
-			exclude group: 'org.springframework', module: 'spring-core'
-			exclude group: 'org.springframework', module: 'spring-expression'
-			exclude group: 'org.springframework', module: 'spring-web'
-			exclude group: 'org.springframework', module: 'spring-webmvc'
-		}
-		compile("javax.activation:activation:$javaxActivationVersion", optional)
-		testCompile project(":spring-integration-redis")
-		testCompile project(":spring-integration-redis").sourceSets.test.output
-		testCompile "io.lettuce:lettuce-core:$lettuceVersion"
 	}
 }
 

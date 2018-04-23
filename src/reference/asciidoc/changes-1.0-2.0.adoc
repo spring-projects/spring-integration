@@ -88,9 +88,9 @@ See also the following blog: http://blog.springsource.com/2010/03/29/using-udp-a
 [[new-twitter]]
 ===== Twitter Adapters
 
-Twitter adapters provide support for sending and receiving Twitter status updates and direct messages.
-You can also perform Twitter searches with an inbound channel adapter.
-See "`<<twitter>>`" for more details.
+Twitter adapters provides support for sending and receiving Twitter Status updates as well as Direct Messages.
+You can also perform Twitter Searches with an inbound Channel Adapter.
+See https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter] for more details.
 
 [[new-xmpp]]
 ===== XMPP Adapters

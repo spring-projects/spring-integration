@@ -1,4 +1,0 @@
-# Tooling related information for the integration twitter namespace
-http\://www.springframework.org/schema/integration/twitter@name=integration twitter Namespace
-http\://www.springframework.org/schema/integration/twitter@prefix=int-twitter
-http\://www.springframework.org/schema/integration/twitter@icon=org/springframework/integration/twitter/config/spring-integration-twitter.gif
