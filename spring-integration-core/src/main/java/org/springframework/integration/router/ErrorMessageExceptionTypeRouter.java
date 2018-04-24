@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -41,6 +42,7 @@ import org.springframework.util.ClassUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
@@ -67,6 +69,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 
 	private Class<?> resolveClassFromName(String className) {
 		try {
+			Assert.state(getApplicationContext() != null, "An ApplicationContext is required");
 			return ClassUtils.forName(className, getApplicationContext().getClassLoader());
 		}
 		catch (ClassNotFoundException e) {
@@ -78,9 +81,11 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	@ManagedOperation
 	public void setChannelMapping(String key, String channelName) {
 		super.setChannelMapping(key, channelName);
-		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>(this.classNameMappings);
-		newClassNameMappings.put(key, resolveClassFromName(key));
-		this.classNameMappings = newClassNameMappings;
+		if (this.initialized) {
+			Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>(this.classNameMappings);
+			newClassNameMappings.put(key, resolveClassFromName(key));
+			this.classNameMappings = newClassNameMappings;
+		}
 	}
 
 	@Override
