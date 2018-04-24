@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -43,17 +46,17 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class ErrorMessageExceptionTypeRouterTests {
 
-	private DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-	private QueueChannel illegalArgumentChannel = new QueueChannel();
+	private final QueueChannel illegalArgumentChannel = new QueueChannel();
 
-	private QueueChannel runtimeExceptionChannel = new QueueChannel();
+	private final QueueChannel runtimeExceptionChannel = new QueueChannel();
 
-	private QueueChannel messageHandlingExceptionChannel = new QueueChannel();
+	private final QueueChannel messageHandlingExceptionChannel = new QueueChannel();
 
-	private QueueChannel messageDeliveryExceptionChannel = new QueueChannel();
+	private final QueueChannel messageDeliveryExceptionChannel = new QueueChannel();
 
-	private QueueChannel defaultChannel = new QueueChannel();
+	private final QueueChannel defaultChannel = new QueueChannel();
 
 	@Before
 	public void prepare() {
@@ -79,6 +82,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(defaultChannel);
+		router.afterPropertiesSet();
 
 		router.handleMessage(message);
 
@@ -101,6 +105,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "runtimeExceptionChannel");
 		router.setDefaultOutputChannel(defaultChannel);
+		router.afterPropertiesSet();
 
 		router.handleMessage(message);
 
@@ -122,6 +127,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(defaultChannel);
+		router.afterPropertiesSet();
 
 		router.handleMessage(message);
 
@@ -141,6 +147,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setDefaultOutputChannel(defaultChannel);
+		router.afterPropertiesSet();
 
 		router.handleMessage(message);
 
@@ -163,6 +170,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setChannelMapping(MessageDeliveryException.class.getName(), "messageDeliveryExceptionChannel");
 		router.setResolutionRequired(true);
 		router.setBeanName("fooRouter");
+		router.afterPropertiesSet();
 
 		try {
 			router.handleMessage(message);
@@ -188,6 +196,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setChannelMapping(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(defaultChannel);
+		router.afterPropertiesSet();
 
 		router.handleMessage(message);
 
@@ -210,6 +219,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setChannelMapping(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(defaultChannel);
+		router.afterPropertiesSet();
 
 		router.handleMessage(message);
 
@@ -229,6 +239,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		router.setApplicationContext(TestUtils.createTestApplicationContext());
 		router.setChannelMapping(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setDefaultOutputChannel(defaultChannel);
+		router.afterPropertiesSet();
 
 		router.handleMessage(message);
 
@@ -241,6 +252,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setBeanFactory(beanFactory);
 		router.setApplicationContext(TestUtils.createTestApplicationContext());
+		router.afterPropertiesSet();
 		try {
 			router.setChannelMapping("foo", "fooChannel");
 			fail("IllegalStateException expected");
@@ -249,6 +261,30 @@ public class ErrorMessageExceptionTypeRouterTests {
 			assertThat(e, instanceOf(IllegalStateException.class));
 			assertThat(e.getCause(), instanceOf(ClassNotFoundException.class));
 		}
+	}
+
+	@Test
+	public void testLateClassBinding() {
+		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(Config.class);
+		ctx.getBean(ErrorMessageExceptionTypeRouter.class).handleMessage(new GenericMessage<>(new NullPointerException()));
+		assertNotNull(ctx.getBean("channel", PollableChannel.class).receive(0));
+		ctx.close();
+	}
+
+	public static class Config {
+
+		@Bean
+		public ErrorMessageExceptionTypeRouter errorMessageExceptionTypeRouter() {
+			ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
+			router.setChannelMapping(NullPointerException.class.getName(), "channel");
+			return router;
+		}
+
+		@Bean
+		public PollableChannel channel() {
+			return new QueueChannel();
+		}
+
 	}
 
 }

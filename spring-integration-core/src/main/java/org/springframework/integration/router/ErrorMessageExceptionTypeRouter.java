@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.util.ClassUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
@@ -67,7 +68,9 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 
 	private Class<?> resolveClassFromName(String className) {
 		try {
-			return ClassUtils.forName(className, getApplicationContext().getClassLoader());
+			ClassLoader classLoader = getApplicationContext() == null ? getClass().getClassLoader()
+					: getApplicationContext().getClassLoader();
+			return ClassUtils.forName(className, classLoader);
 		}
 		catch (ClassNotFoundException e) {
 			throw new IllegalStateException("Cannot load class for channel mapping.", e);
@@ -78,9 +81,12 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	@ManagedOperation
 	public void setChannelMapping(String key, String channelName) {
 		super.setChannelMapping(key, channelName);
-		Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>(this.classNameMappings);
-		newClassNameMappings.put(key, resolveClassFromName(key));
-		this.classNameMappings = newClassNameMappings;
+		// TODO: remove application context check in 5.1, here for backwards compatibility
+		if (this.initialized || getApplicationContext() != null) {
+			Map<String, Class<?>> newClassNameMappings = new ConcurrentHashMap<>(this.classNameMappings);
+			newClassNameMappings.put(key, resolveClassFromName(key));
+			this.classNameMappings = newClassNameMappings;
+		}
 	}
 
 	@Override
