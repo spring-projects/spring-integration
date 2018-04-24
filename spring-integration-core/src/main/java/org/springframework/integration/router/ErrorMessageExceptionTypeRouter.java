@@ -27,6 +27,7 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -68,9 +69,8 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 
 	private Class<?> resolveClassFromName(String className) {
 		try {
-			ClassLoader classLoader = getApplicationContext() == null ? getClass().getClassLoader()
-					: getApplicationContext().getClassLoader();
-			return ClassUtils.forName(className, classLoader);
+			Assert.state(getApplicationContext() != null, "An ApplicationContext is required");
+			return ClassUtils.forName(className, getApplicationContext().getClassLoader());
 		}
 		catch (ClassNotFoundException e) {
 			throw new IllegalStateException("Cannot load class for channel mapping.", e);
