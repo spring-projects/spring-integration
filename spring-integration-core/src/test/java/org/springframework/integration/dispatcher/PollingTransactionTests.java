@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.aop.framework.Advised;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.test.util.TestUtils;
@@ -68,8 +69,9 @@ public class PollingTransactionTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
-		input.send(new GenericMessage<String>("test"));
-		txManager.waitForCompletion(1000);
+		context.getBean("goodService", Lifecycle.class).start();
+		input.send(new GenericMessage<>("test"));
+		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
 		assertNotNull(message);
 		assertEquals(1, txManager.getCommitCount());
@@ -82,11 +84,12 @@ public class PollingTransactionTests {
 	public void transactionWithCommitAndAdvices() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionTests.xml", this.getClass());
-		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
+		PollingConsumer advisedPoller = context.getBean("advisedSa", PollingConsumer.class);
 
-		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain", List.class);
+		List<Advice> adviceChain = TestUtils.getPropertyValue(advisedPoller, "adviceChain", List.class);
 		assertEquals(4, adviceChain.size());
-		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);
+		advisedPoller.start();
+		Runnable poller = TestUtils.getPropertyValue(advisedPoller, "poller", Runnable.class);
 		Callable<?> pollingTask = TestUtils.getPropertyValue(poller, "pollingTask", Callable.class);
 		assertTrue("Poller is not Advised", pollingTask instanceof Advised);
 		Advisor[] advisors = ((Advised) pollingTask).getAdvisors();
@@ -98,9 +101,13 @@ public class PollingTransactionTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
+
 		input.send(new GenericMessage<>("test"));
+		input.send(new GenericMessage<>("test2"));
 		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
+		assertNotNull(message);
+		message = output.receive(0);
 		assertNotNull(message);
 		assertEquals(0, txManager.getRollbackCount());
 		context.close();
@@ -115,8 +122,11 @@ public class PollingTransactionTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
-		input.send(new GenericMessage<String>("test"));
-		txManager.waitForCompletion(1000);
+
+		context.getBean("badService", Lifecycle.class).start();
+
+		input.send(new GenericMessage<>("test"));
+		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
 		assertNull(message);
 		assertEquals(0, txManager.getCommitCount());
@@ -132,10 +142,10 @@ public class PollingTransactionTests {
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new GenericMessage<String>("test"));
-		Message<?> reply = output.receive(3000);
+		input.send(new GenericMessage<>("test"));
+		Message<?> reply = output.receive(10000);
 		assertNotNull(reply);
-		txManager.waitForCompletion(3000);
+		txManager.waitForCompletion(10000);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(Propagation.REQUIRED.value(), txManager.getLastDefinition().getPropagationBehavior());
 		context.close();
@@ -149,25 +159,25 @@ public class PollingTransactionTests {
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new GenericMessage<String>("test"));
-		Message<?> reply = output.receive(3000);
+		input.send(new GenericMessage<>("test"));
+		Message<?> reply = output.receive(10000);
 		assertNotNull(reply);
-		txManager.waitForCompletion(3000);
+		txManager.waitForCompletion(10000);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(Propagation.REQUIRES_NEW.value(), txManager.getLastDefinition().getPropagationBehavior());
 		context.close();
 	}
 
 	@Test
-	public void propagationSupports() throws InterruptedException {
+	public void propagationSupports() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"propagationSupportsTests.xml", this.getClass());
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new GenericMessage<String>("test"));
-		Message<?> reply = output.receive(3000);
+		input.send(new GenericMessage<>("test"));
+		Message<?> reply = output.receive(10000);
 		assertNotNull(reply);
 		assertEquals(0, txManager.getCommitCount());
 		assertNull(txManager.getLastDefinition());
@@ -175,15 +185,15 @@ public class PollingTransactionTests {
 	}
 
 	@Test
-	public void propagationNotSupported() throws InterruptedException {
+	public void propagationNotSupported() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"propagationNotSupportedTests.xml", this.getClass());
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new GenericMessage<String>("test"));
-		Message<?> reply = output.receive(3000);
+		input.send(new GenericMessage<>("test"));
+		Message<?> reply = output.receive(10000);
 		assertNotNull(reply);
 		assertEquals(0, txManager.getCommitCount());
 		assertNull(txManager.getLastDefinition());
@@ -191,7 +201,7 @@ public class PollingTransactionTests {
 	}
 
 	@Test
-	public void propagationMandatory() throws Throwable {
+	public void propagationMandatory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"propagationMandatoryTests.xml", this.getClass());
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
@@ -199,8 +209,8 @@ public class PollingTransactionTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new GenericMessage<String>("test"));
-		Message<?> errorMessage = errorChannel.receive(3000);
+		input.send(new GenericMessage<>("test"));
+		Message<?> errorMessage = errorChannel.receive(10000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
 		assertEquals(MessagingException.class, payload.getClass());
@@ -212,7 +222,7 @@ public class PollingTransactionTests {
 	}
 
 	@Test
-	public void commitFailureAndHandlerFailureTest() throws Throwable {
+	public void commitFailureAndHandlerFailureTest() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionFailureTests.xml", this.getClass());
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManagerBad");
@@ -222,7 +232,7 @@ public class PollingTransactionTests {
 		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		assertEquals(0, txManager.getCommitCount());
 		inputTxFail.send(new GenericMessage<>("commitFailureTest"));
-		Message<?> errorMessage = errorChannel.receive(10000);
+		Message<?> errorMessage = errorChannel.receive(20000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();
 		assertEquals(MessagingException.class, payload.getClass());
@@ -232,7 +242,7 @@ public class PollingTransactionTests {
 		assertNotNull(output.receive(0));
 		assertEquals(0, txManager.getCommitCount());
 
-		inputHandlerFail.send(new GenericMessage<>("handlerFalilureTest"));
+		inputHandlerFail.send(new GenericMessage<>("handlerFailureTest"));
 		errorMessage = errorChannel.receive(10000);
 		assertNotNull(errorMessage);
 		payload = errorMessage.getPayload();

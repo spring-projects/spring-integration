@@ -1,53 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<channel id="badInput">
-		<queue capacity="1" />
+		<queue capacity="1"/>
 	</channel>
 
 	<channel id="goodInput">
-		<queue capacity="1" />
+		<queue capacity="1"/>
 	</channel>
-	
+
 	<channel id="goodInputWithAdvice">
-		<queue capacity="1" />
+		<queue capacity="2"/>
 	</channel>
 
 	<channel id="output">
-		<queue capacity="1" />
+		<queue capacity="2"/>
 	</channel>
 
-	<service-activator input-channel="badInput" ref="testBean"
-		method="bad" output-channel="output">
+	<service-activator id="badService"
+					   auto-startup="false"
+					   input-channel="badInput"
+					   ref="testBean" method="bad"
+					   output-channel="output">
 		<poller max-messages-per-poll="1" fixed-delay="1" receive-timeout="-1">
-			<transactional transaction-manager="txManager" />
+			<transactional transaction-manager="txManager"/>
 		</poller>
 	</service-activator>
 
-	<service-activator input-channel="goodInput" ref="testBean"
-		method="good" output-channel="output">
+	<service-activator id="goodService"
+					   auto-startup="false"
+					   input-channel="goodInput"
+					   ref="testBean" method="good"
+					   output-channel="output">
 		<poller max-messages-per-poll="1" fixed-delay="1" receive-timeout="-1">
-			<transactional transaction-manager="txManager" />
+			<transactional transaction-manager="txManager"/>
 		</poller>
 	</service-activator>
-	
-	<service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
-		method="good" output-channel="output">
+
+	<service-activator id="advisedSa"
+					   auto-startup="false"
+					   input-channel="goodInputWithAdvice"
+					   ref="testBean" method="good"
+					   output-channel="output">
 		<poller max-messages-per-poll="1" fixed-delay="1" receive-timeout="-1">
 			<advice-chain>
 				<ref bean="txAdvise"/>
-				<ref bean="adviceA" />
-				<beans:bean class="org.springframework.integration.dispatcher.PollingTransactionTests.SampleAdvice"/>
-				<beans:bean class="org.springframework.integration.dispatcher.PollingTransactionTests.SimpleRepeatAdvice"/>
+				<ref bean="adviceA"/>
+				<beans:bean class="org.springframework.integration.dispatcher.PollingTransactionTests$SampleAdvice"/>
+				<beans:bean
+						class="org.springframework.integration.dispatcher.PollingTransactionTests$SimpleRepeatAdvice"/>
 			</advice-chain>
 		</poller>
 	</service-activator>
-	
+
 	<beans:bean id="txAdvise" class="org.springframework.transaction.interceptor.TransactionInterceptor">
 		<beans:property name="transactionManager" ref="txManager"/>
 		<beans:property name="transactionAttributeSource">
@@ -58,12 +69,11 @@
 			</beans:bean>
 		</beans:property>
 	</beans:bean>
-	
-	<beans:bean id="adviceA" class="org.springframework.integration.dispatcher.PollingTransactionTests.SampleAdvice"/>
 
-	<beans:bean id="testBean"
-		class="org.springframework.integration.dispatcher.TestBean" />
+	<beans:bean id="adviceA" class="org.springframework.integration.dispatcher.PollingTransactionTests$SampleAdvice"/>
 
-	<beans:bean id="txManager"
-		class="org.springframework.integration.util.TestTransactionManager" />
+	<beans:bean id="testBean" class="org.springframework.integration.dispatcher.TestBean"/>
+
+	<beans:bean id="txManager" class="org.springframework.integration.util.TestTransactionManager"/>
+
 </beans:beans>
