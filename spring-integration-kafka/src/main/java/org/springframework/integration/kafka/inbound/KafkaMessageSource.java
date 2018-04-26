@@ -43,10 +43,10 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.acks.AcknowledgmentCallback;
-import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.AcknowledgmentCallback;
+import org.springframework.integration.support.AcknowledgmentCallbackFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.Acknowledgment;
@@ -231,8 +231,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			}
 			if (this.logger.isWarnEnabled()) {
 				this.logger.warn("'" + ConsumerConfig.MAX_POLL_RECORDS_CONFIG
-						+ "' has been forced to from " + (maxPoll == null ? "unspecified" : maxPoll)
-						+ "to 1, to avoid having to seek after each record");
+						+ "' has been forced from " + (maxPoll == null ? "unspecified" : maxPoll)
+						+ " to 1, to avoid having to seek after each record");
 			}
 			Map<String, Object> configs = new HashMap<>(suppliedConsumerFactory.getConfigurationProperties());
 			configs.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
