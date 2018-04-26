@@ -16,7 +16,9 @@
 
 package org.springframework.integration.endpoint;
 
+import java.time.Duration;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -24,6 +26,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 import org.aopalliance.aop.Advice;
+import org.reactivestreams.Subscription;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -43,6 +46,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -50,6 +54,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * @author Mark Fisher
@@ -64,25 +72,27 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private Executor taskExecutor = new SyncTaskExecutor();
 
-	private boolean syncExecutor = true;
+	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+	private Trigger trigger = new PeriodicTrigger(10);
+
+	private long maxMessagesPerPoll = -1;
 
 	private ErrorHandler errorHandler;
 
 	private boolean errorHandlerIsDefault;
 
-	private Trigger trigger = new PeriodicTrigger(10);
-
 	private List<Advice> adviceChain;
-
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
-
-	private long maxMessagesPerPoll = -1;
 
 	private TransactionSynchronizationFactory transactionSynchronizationFactory;
 
-	private volatile ScheduledFuture<?> runningTask;
+	private volatile Callable<Message<?>> pollingTask;
 
-	private volatile Runnable poller;
+	private volatile Flux<Message<?>> pollingFlux;
+
+	private volatile Subscription subscription;
+
+	private volatile ScheduledFuture<?> runningTask;
 
 	private volatile boolean initialized;
 
@@ -167,6 +177,14 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
 	}
 
+	protected boolean isReactive() {
+		return false;
+	}
+
+	protected Flux<Message<?>> getPollingFlux() {
+		return this.pollingFlux;
+	}
+
 	@Override
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
@@ -200,8 +218,30 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 	}
 
+	// LifecycleSupport implementation
+
+	@Override // guarded by super#lifecycleLock
+	protected void doStart() {
+		if (!this.initialized) {
+			onInit();
+		}
+
+		this.pollingTask = createPollingTask();
+
+		if (isReactive()) {
+			this.pollingFlux = createFluxGenerator();
+		}
+		else {
+			Assert.state(getTaskScheduler() != null, "unable to start polling, no taskScheduler available");
+
+			this.runningTask =
+					getTaskScheduler()
+							.schedule(createPoller(), this.trigger);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
-	private Runnable createPoller() throws Exception {
+	private Callable<Message<?>> createPollingTask() {
 		List<Advice> receiveOnlyAdviceChain = null;
 		if (!CollectionUtils.isEmpty(this.adviceChain)) {
 			receiveOnlyAdviceChain = this.adviceChain.stream()
@@ -209,7 +249,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					.collect(Collectors.toList());
 		}
 
-		Callable<Boolean> pollingTask = this::doPoll;
+		Callable<Message<?>> pollingTask = this::doPoll;
 
 		List<Advice> adviceChain = this.adviceChain;
 		if (!CollectionUtils.isEmpty(adviceChain)) {
@@ -219,65 +259,122 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						.filter(advice -> !isReceiveOnlyAdvice(advice))
 						.forEach(proxyFactory::addAdvice);
 			}
-			pollingTask = (Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader);
+			pollingTask = (Callable<Message<?>>) proxyFactory.getProxy(this.beanClassLoader);
 		}
 		if (!CollectionUtils.isEmpty(receiveOnlyAdviceChain)) {
 			applyReceiveOnlyAdviceChain(receiveOnlyAdviceChain);
 		}
-		return new Poller(pollingTask);
+
+		return pollingTask;
 	}
 
-	// LifecycleSupport implementation
+	private Runnable createPoller() {
+		return () ->
+				this.taskExecutor.execute(() -> {
+					int count = 0;
+					while (this.initialized && (this.maxMessagesPerPoll <= 0 || count < this.maxMessagesPerPoll)) {
+						if (pollForMessage() == null) {
+							break;
+						}
+						count++;
+					}
+				});
+	}
 
-	@Override // guarded by super#lifecycleLock
-	protected void doStart() {
-		if (!this.initialized) {
-			this.onInit();
-		}
-		Assert.state(this.getTaskScheduler() != null,
-				"unable to start polling, no taskScheduler available");
+	private Flux<Message<?>> createFluxGenerator() {
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+
+		return Flux
+				.<Duration>generate(sink -> {
+					Date date = this.trigger.nextExecutionTime(triggerContext);
+					if (date != null) {
+						triggerContext.update(date, null, null);
+						long millis = date.getTime() - System.currentTimeMillis();
+						sink.next(Duration.ofMillis(millis));
+					}
+					else {
+						sink.complete();
+					}
+				})
+				.concatMap(duration ->
+						Mono.delay(duration)
+								.doOnNext(l ->
+										triggerContext.update(triggerContext.lastScheduledExecutionTime(),
+												new Date(), null))
+								.flatMapMany(l ->
+										Flux
+												.<Message<?>>generate(fluxSink -> {
+													Message<?> message = pollForMessage();
+													if (message != null) {
+														fluxSink.next(message);
+													}
+													else {
+														fluxSink.complete();
+													}
+												})
+												.take(this.maxMessagesPerPoll)
+												.subscribeOn(Schedulers.fromExecutor(this.taskExecutor))
+												.doOnComplete(() ->
+														triggerContext.update(triggerContext.lastScheduledExecutionTime(),
+																triggerContext.lastActualExecutionTime(),
+																new Date())
+												)), 1)
+				.repeat(this::isRunning)
+				.doOnSubscribe(subscription -> this.subscription = subscription);
+	}
+
+	private Message<?> pollForMessage() {
 		try {
-			this.poller = createPoller();
+			return this.pollingTask.call();
 		}
 		catch (Exception e) {
-			this.initialized = false;
-			throw new MessagingException("Failed to create Poller", e);
+			if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
+			else {
+				Message<?> failedMessage = null;
+				if (this.transactionSynchronizationFactory != null) {
+					Object resource = TransactionSynchronizationManager.getResource(getResourceToBind());
+					if (resource instanceof IntegrationResourceHolder) {
+						failedMessage = ((IntegrationResourceHolder) resource).getMessage();
+					}
+				}
+				throw new MessagingException(failedMessage, e);
+			}
 		}
-		this.runningTask = this.getTaskScheduler().schedule(this.poller, this.trigger);
+		finally {
+			if (this.transactionSynchronizationFactory != null) {
+				Object resource = getResourceToBind();
+				if (TransactionSynchronizationManager.hasResource(resource)) {
+					TransactionSynchronizationManager.unbindResource(resource);
+				}
+			}
+		}
 	}
 
-	@Override // guarded by super#lifecycleLock
-	protected void doStop() {
-		if (this.runningTask != null) {
-			this.runningTask.cancel(true);
-		}
-		this.runningTask = null;
-	}
-
-	private boolean doPoll() {
-		IntegrationResourceHolder holder = this.bindResourceHolderIfNecessary(
-				this.getResourceKey(), this.getResourceToBind());
-		Message<?> message = null;
+	private Message<?> doPoll() {
+		IntegrationResourceHolder holder = bindResourceHolderIfNecessary(getResourceKey(), getResourceToBind());
+		Message<?> message;
 		try {
-			message = this.receiveMessage();
+			message = receiveMessage();
 		}
 		catch (Exception e) {
 			if (Thread.interrupted()) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Poll interrupted - during stop()? : " + e.getMessage());
 				}
-				return false;
+				return null;
 			}
 			else {
 				throw (RuntimeException) e;
 			}
 		}
-		boolean result;
+
 		if (message == null) {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("Received no Message during the poll, returning 'false'");
 			}
-			result = false;
+			return null;
 		}
 		else {
 			if (this.logger.isDebugEnabled()) {
@@ -286,20 +383,35 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (holder != null) {
 				holder.setMessage(message);
 			}
-			try {
-				this.handleMessage(message);
-			}
-			catch (Exception e) {
-				if (e instanceof MessagingException) {
-					throw new MessagingExceptionWrapper(message, (MessagingException) e);
+
+			if (!isReactive()) {
+				try {
+					handleMessage(message);
 				}
-				else {
-					throw new MessagingException(message, e);
+				catch (Exception e) {
+					if (e instanceof MessagingException) {
+						throw new MessagingExceptionWrapper(message, (MessagingException) e);
+					}
+					else {
+						throw new MessagingException(message, e);
+					}
 				}
 			}
-			result = true;
 		}
-		return result;
+
+		return message;
+	}
+
+	@Override // guarded by super#lifecycleLock
+	protected void doStop() {
+		if (this.runningTask != null) {
+			this.runningTask.cancel(true);
+		}
+		this.runningTask = null;
+
+		if (this.subscription != null) {
+			this.subscription.cancel();
+		}
 	}
 
 	/**
@@ -367,59 +479,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 
 		return null;
-	}
-
-	/**
-	 * Default Poller implementation
-	 */
-	private final class Poller implements Runnable {
-
-		private final Callable<Boolean> pollingTask;
-
-		Poller(Callable<Boolean> pollingTask) {
-			this.pollingTask = pollingTask;
-		}
-
-		@Override
-		public void run() {
-			AbstractPollingEndpoint.this.taskExecutor.execute(() -> {
-				int count = 0;
-				while (AbstractPollingEndpoint.this.initialized
-						&& (AbstractPollingEndpoint.this.maxMessagesPerPoll <= 0
-						|| count < AbstractPollingEndpoint.this.maxMessagesPerPoll)) {
-					try {
-						if (!Poller.this.pollingTask.call()) {
-							break;
-						}
-						count++;
-					}
-					catch (Exception e) {
-						if (e instanceof MessagingException) {
-							throw (MessagingException) e;
-						}
-						else {
-							Message<?> failedMessage = null;
-							if (AbstractPollingEndpoint.this.transactionSynchronizationFactory != null) {
-								Object resource = TransactionSynchronizationManager.getResource(getResourceToBind());
-								if (resource instanceof IntegrationResourceHolder) {
-									failedMessage = ((IntegrationResourceHolder) resource).getMessage();
-								}
-							}
-							throw new MessagingException(failedMessage, e);
-						}
-					}
-					finally {
-						if (AbstractPollingEndpoint.this.transactionSynchronizationFactory != null) {
-							Object resource = getResourceToBind();
-							if (TransactionSynchronizationManager.hasResource(resource)) {
-								TransactionSynchronizationManager.unbindResource(resource);
-							}
-						}
-					}
-				}
-			});
-		}
-
 	}
 
 }

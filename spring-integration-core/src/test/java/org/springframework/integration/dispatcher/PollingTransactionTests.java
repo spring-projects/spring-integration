@@ -89,8 +89,7 @@ public class PollingTransactionTests {
 		List<Advice> adviceChain = TestUtils.getPropertyValue(advisedPoller, "adviceChain", List.class);
 		assertEquals(4, adviceChain.size());
 		advisedPoller.start();
-		Runnable poller = TestUtils.getPropertyValue(advisedPoller, "poller", Runnable.class);
-		Callable<?> pollingTask = TestUtils.getPropertyValue(poller, "pollingTask", Callable.class);
+		Callable<?> pollingTask = TestUtils.getPropertyValue(advisedPoller, "pollingTask", Callable.class);
 		assertTrue("Poller is not Advised", pollingTask instanceof Advised);
 		Advisor[] advisors = ((Advised) pollingTask).getAdvisors();
 		assertEquals(4, advisors.length);

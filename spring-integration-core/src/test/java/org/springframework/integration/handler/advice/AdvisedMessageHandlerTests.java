@@ -99,7 +99,7 @@ public class AdvisedMessageHandlerTests {
 
 	@Test
 	public void circuitBreakerExceptionText() {
-		GenericMessage<String> message = new GenericMessage<String>("foo");
+		GenericMessage<String> message = new GenericMessage<>("foo");
 		try {
 			input.send(message);
 			fail("expected exception");
@@ -353,7 +353,7 @@ public class AdvisedMessageHandlerTests {
 
 	@Test
 	@SuppressWarnings("rawtypes")
-	public void circuitBreakerTests() throws Exception {
+	public void circuitBreakerTests() {
 		final AtomicBoolean doFail = new AtomicBoolean();
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 
@@ -384,7 +384,7 @@ public class AdvisedMessageHandlerTests {
 		handler.afterPropertiesSet();
 
 		doFail.set(true);
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 		try {
 			handler.handleMessage(message);
 			fail("Expected failure");
@@ -483,7 +483,7 @@ public class AdvisedMessageHandlerTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 		handler.handleMessage(message);
 		assertTrue(counter.get() == -1);
 		Message<?> reply = replies.receive(10000);
@@ -511,13 +511,13 @@ public class AdvisedMessageHandlerTests {
 
 		advice.setRetryStateGenerator(message -> new DefaultRetryState(message.getHeaders().getId()));
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 		for (int i = 0; i < 3; i++) {
 			try {
 				handler.handleMessage(message);
@@ -583,13 +583,13 @@ public class AdvisedMessageHandlerTests {
 			AbstractReplyProducingMessageHandler handler, QueueChannel replies, RequestHandlerRetryAdvice advice) {
 		advice.setRecoveryCallback(context -> "baz");
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 		for (int i = 0; i < 4; i++) {
 			try {
 				handler.handleMessage(message);
@@ -617,13 +617,13 @@ public class AdvisedMessageHandlerTests {
 		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(errors);
 		advice.setRecoveryCallback(recoverer);
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 		handler.handleMessage(message);
 		Message<?> error = errors.receive(10000);
 		assertNotNull(error);
@@ -658,13 +658,13 @@ public class AdvisedMessageHandlerTests {
 		advice.setBeanFactory(mock(BeanFactory.class));
 		advice.afterPropertiesSet();
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 		handler.handleMessage(message);
 		Message<?> error = errors.receive(10000);
 		assertNotNull(error);
@@ -685,7 +685,7 @@ public class AdvisedMessageHandlerTests {
 			}
 		};
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 
 		adviceChain.add(new RequestHandlerRetryAdvice());
 		adviceChain.add((MethodInterceptor) invocation -> {
@@ -698,7 +698,7 @@ public class AdvisedMessageHandlerTests {
 		handler.afterPropertiesSet();
 
 		try {
-			handler.handleMessage(new GenericMessage<String>("test"));
+			handler.handleMessage(new GenericMessage<>("test"));
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
@@ -724,7 +724,7 @@ public class AdvisedMessageHandlerTests {
 		QueueChannel replies = new QueueChannel();
 		handler.setOutputChannel(replies);
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
 		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
@@ -750,7 +750,7 @@ public class AdvisedMessageHandlerTests {
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		handler.handleMessage(new GenericMessage<String>("test"));
+		handler.handleMessage(new GenericMessage<>("test"));
 		Message<?> receive = replies.receive(10000);
 		assertNotNull(receive);
 		assertEquals("intentional: 3", receive.getPayload());
@@ -772,7 +772,7 @@ public class AdvisedMessageHandlerTests {
 
 		QueueChannel errors = new QueueChannel();
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
 		expressionAdvice.setBeanFactory(mock(BeanFactory.class));
@@ -790,7 +790,7 @@ public class AdvisedMessageHandlerTests {
 		handler.afterPropertiesSet();
 
 		try {
-			handler.handleMessage(new GenericMessage<String>("test"));
+			handler.handleMessage(new GenericMessage<>("test"));
 		}
 		catch (Exception e) {
 			assertEquals("intentional: 3", e.getCause().getMessage());
@@ -833,7 +833,7 @@ public class AdvisedMessageHandlerTests {
 		Method method = AbstractReplyProducingMessageHandler.class.getDeclaredMethod("handleRequestMessage",
 				Message.class);
 		when(methodInvocation.getMethod()).thenReturn(method);
-		when(methodInvocation.getArguments()).thenReturn(new Object[] { new GenericMessage<String>("foo") });
+		when(methodInvocation.getArguments()).thenReturn(new Object[] { new GenericMessage<>("foo") });
 		try {
 			doAnswer(invocation -> {
 				throw theThrowable;
@@ -851,7 +851,7 @@ public class AdvisedMessageHandlerTests {
 	 * ThrowableHolderException from the output message.
 	 */
 	@Test
-	public void throwableProperlyPropagatedAndReported() throws Exception {
+	public void throwableProperlyPropagatedAndReported() {
 		QueueChannel errors = new QueueChannel();
 
 		ExpressionEvaluatingRequestHandlerAdvice expressionAdvice = new ExpressionEvaluatingRequestHandlerAdvice();
@@ -866,7 +866,7 @@ public class AdvisedMessageHandlerTests {
 		Bar fooHandler = (Bar) proxyFactory.getProxy();
 
 		try {
-			fooHandler.handleRequestMessage(new GenericMessage<String>("foo"));
+			fooHandler.handleRequestMessage(new GenericMessage<>("foo"));
 			fail("Expected throwable");
 		}
 		catch (Throwable t) {
@@ -898,12 +898,12 @@ public class AdvisedMessageHandlerTests {
 		consumer.setTaskScheduler(mock(TaskScheduler.class));
 		consumer.start();
 
-		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "poller.pollingTask", Callable.class);
+		Callable<?> pollingTask = TestUtils.getPropertyValue(consumer, "pollingTask", Callable.class);
 		assertTrue(AopUtils.isAopProxy(pollingTask));
 		Log logger = TestUtils.getPropertyValue(advice, "logger", Log.class);
 		logger = spy(logger);
 		when(logger.isWarnEnabled()).thenReturn(Boolean.TRUE);
-		final AtomicReference<String> logMessage = new AtomicReference<String>();
+		final AtomicReference<String> logMessage = new AtomicReference<>();
 		doAnswer(invocation -> {
 			logMessage.set(invocation.getArgument(0));
 			return null;
@@ -925,7 +925,7 @@ public class AdvisedMessageHandlerTests {
 		MessageFilter filter = new MessageFilter(message -> false);
 		QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
-		filter.handleMessage(new GenericMessage<String>("foo"));
+		filter.handleMessage(new GenericMessage<>("foo"));
 		assertNotNull(discardChannel.receive(0));
 	}
 
@@ -948,7 +948,7 @@ public class AdvisedMessageHandlerTests {
 		filter.setAdviceChain(adviceChain);
 		filter.setBeanFactory(mock(BeanFactory.class));
 		filter.afterPropertiesSet();
-		filter.handleMessage(new GenericMessage<String>("foo"));
+		filter.handleMessage(new GenericMessage<>("foo"));
 		assertNotNull(discardedWithinAdvice.get());
 		assertNull(discardChannel.receive(0));
 	}
@@ -958,7 +958,7 @@ public class AdvisedMessageHandlerTests {
 		MessageFilter filter = new MessageFilter(message -> false);
 		final QueueChannel discardChannel = new QueueChannel();
 		filter.setDiscardChannel(discardChannel);
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		final AtomicReference<Message<?>> discardedWithinAdvice = new AtomicReference<Message<?>>();
 		final AtomicBoolean adviceCalled = new AtomicBoolean();
 		adviceChain.add(new AbstractRequestHandlerAdvice() {
@@ -975,7 +975,7 @@ public class AdvisedMessageHandlerTests {
 		filter.setDiscardWithinAdvice(false);
 		filter.setBeanFactory(mock(BeanFactory.class));
 		filter.afterPropertiesSet();
-		filter.handleMessage(new GenericMessage<String>("foo"));
+		filter.handleMessage(new GenericMessage<>("foo"));
 		assertTrue(adviceCalled.get());
 		assertNull(discardedWithinAdvice.get());
 		assertNotNull(discardChannel.receive(0));
@@ -1022,13 +1022,13 @@ public class AdvisedMessageHandlerTests {
 
 		advice.setRetryTemplate(retryTemplate);
 
-		List<Advice> adviceChain = new ArrayList<Advice>();
+		List<Advice> adviceChain = new ArrayList<>();
 		adviceChain.add(advice);
 		handler.setAdviceChain(adviceChain);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
 
-		Message<String> message = new GenericMessage<String>("Hello, world!");
+		Message<String> message = new GenericMessage<>("Hello, world!");
 		try {
 			handler.handleMessage(message);
 			fail("MessagingException expected.");
@@ -1042,7 +1042,7 @@ public class AdvisedMessageHandlerTests {
 	}
 
 	@Test
-	public void enhancedRecoverer() throws Exception {
+	public void enhancedRecoverer() {
 		QueueChannel channel = new QueueChannel();
 		ErrorMessageSendingRecoverer recoverer = new ErrorMessageSendingRecoverer(channel);
 		recoverer.publish(new GenericMessage<>("foo"), new GenericMessage<>("bar"), new RuntimeException("baz"));

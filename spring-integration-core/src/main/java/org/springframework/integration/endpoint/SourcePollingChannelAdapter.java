@@ -30,7 +30,9 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
 import org.springframework.integration.acks.AcknowledgmentCallback;
+import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.aop.MessageSourceMutator;
+import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
@@ -169,6 +171,11 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		}
 	}
 
+	@Override
+	protected boolean isReactive() {
+		return getOutputChannel() instanceof ReactiveStreamsSubscribableChannel;
+	}
+
 	private NameMatchMethodPointcutAdvisor adviceToReceiveAdvisor(Advice advice) {
 		NameMatchMethodPointcutAdvisor sourceAdvisor = new NameMatchMethodPointcutAdvisor(advice);
 		sourceAdvisor.addMethodName("receive");
@@ -181,6 +188,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 			((Lifecycle) this.source).start();
 		}
 		super.doStart();
+
+		if (isReactive()) {
+			((ReactiveStreamsSubscribableChannel) this.outputChannel).subscribeTo(getPollingFlux());
+		}
 	}
 
 
@@ -197,7 +208,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	protected void onInit() {
 		Assert.notNull(this.source, "source must not be null");
 		Assert.state((this.outputChannelName == null && this.outputChannel != null)
-				|| (this.outputChannelName != null && this.outputChannel == null),
+						|| (this.outputChannelName != null && this.outputChannel == null),
 				"One and only one of 'outputChannelName' or 'outputChannel' is required.");
 		super.onInit();
 		if (this.getBeanFactory() != null) {
