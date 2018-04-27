@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -91,6 +92,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import reactor.util.function.Tuple2;
@@ -112,6 +114,8 @@ import reactor.util.function.Tuple2;
  * @see org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor
  */
 public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinition<B>> {
+
+	private static final Method FUNCTION_APPLY_METHOD = ReflectionUtils.findMethod(Function.class, "apply", (Class<?>[]) null);
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -1933,7 +1937,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 		MethodInvokingRouter methodInvokingRouter = isLambda(router)
 				? new MethodInvokingRouter(new LambdaMessageProcessor(router, payloadType))
-				: new MethodInvokingRouter(router);
+				: new MethodInvokingRouter(router, FUNCTION_APPLY_METHOD);
 		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
 	}
 
