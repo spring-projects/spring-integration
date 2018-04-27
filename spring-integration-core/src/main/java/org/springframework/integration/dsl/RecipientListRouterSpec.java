@@ -21,8 +21,8 @@ import org.springframework.integration.core.GenericSelector;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MethodInvokingSelector;
-import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.util.ClassUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StringUtils;
 
@@ -96,23 +96,20 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public <P> RecipientListRouterSpec recipient(String channelName, GenericSelector<P> selector) {
+		MessageSelector messageSelector = wrapToMessageSelectorIfNecessary(selector);
+		this.handler.addRecipient(channelName, messageSelector);
+		return _this();
+	}
+
+	private <P> MessageSelector wrapToMessageSelectorIfNecessary(GenericSelector<P> selector) {
 		MessageSelector messageSelector;
 		if (selector instanceof MessageSelector) {
 			messageSelector = (MessageSelector) selector;
 		}
 		else {
-			messageSelector =
-					isLambda(selector)
-							? new MethodInvokingSelector(new LambdaMessageProcessor(selector, null))
-							: new MethodInvokingSelector(selector);
+			messageSelector = new MethodInvokingSelector(selector, ClassUtils.SELECTOR_ACCEPT_METHOD);
 		}
-		this.handler.addRecipient(channelName, messageSelector);
-		return _this();
-	}
-
-	private static boolean isLambda(Object o) {
-		Class<?> aClass = o.getClass();
-		return aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass();
+		return messageSelector;
 	}
 
 	/**
@@ -170,16 +167,7 @@ public class RecipientListRouterSpec extends AbstractRouterSpec<RecipientListRou
 	 * @return the router spec.
 	 */
 	public <P> RecipientListRouterSpec recipient(MessageChannel channel, GenericSelector<P> selector) {
-		MessageSelector messageSelector;
-		if (selector instanceof MessageSelector) {
-			messageSelector = (MessageSelector) selector;
-		}
-		else {
-			messageSelector =
-					isLambda(selector)
-							? new MethodInvokingSelector(new LambdaMessageProcessor(selector, null))
-							: new MethodInvokingSelector(selector);
-		}
+		MessageSelector messageSelector = wrapToMessageSelectorIfNecessary(selector);
 		this.handler.addRecipient(channel, messageSelector);
 		return _this();
 	}
