@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.2.31'
+	ext.kotlinVersion = '1.2.40'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -75,9 +75,9 @@ subprojects { subproject ->
 		targetCompatibility = 1.8
 	}
 
-	compileKotlin {
+	compileTestKotlin {
 		kotlinOptions {
-			jvmTarget = "1.8"
+			jvmTarget = '1.8'
 		}
 	}
 

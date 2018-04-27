@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl;
 
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -87,12 +86,12 @@ import org.springframework.integration.transformer.HeaderFilter;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.Transformer;
+import org.springframework.integration.util.ClassUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import reactor.util.function.Tuple2;
@@ -114,8 +113,6 @@ import reactor.util.function.Tuple2;
  * @see org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor
  */
 public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinition<B>> {
-
-	private static final Method FUNCTION_APPLY_METHOD = ReflectionUtils.findMethod(Function.class, "apply", (Class<?>[]) null);
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -637,7 +634,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		Transformer transformer = genericTransformer instanceof Transformer ? (Transformer) genericTransformer :
 				(isLambda(genericTransformer)
 						? new MethodInvokingTransformer(new LambdaMessageProcessor(genericTransformer, payloadType))
-						: new MethodInvokingTransformer(genericTransformer));
+						: new MethodInvokingTransformer(genericTransformer, ClassUtils.TRANSFORMER_TRANSFORM_METHOD));
 		return addComponent(transformer)
 				.handle(new MessageTransformingHandler(transformer), endpointConfigurer);
 	}
@@ -830,7 +827,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		MessageSelector selector = genericSelector instanceof MessageSelector ? (MessageSelector) genericSelector :
 				(isLambda(genericSelector)
 						? new MethodInvokingSelector(new LambdaMessageProcessor(genericSelector, payloadType))
-						: new MethodInvokingSelector(genericSelector));
+						: new MethodInvokingSelector(genericSelector, ClassUtils.SELECTOR_ACCEPT_METHOD));
 		return this.register(new FilterEndpointSpec(new MessageFilter(selector)), endpointConfigurer);
 	}
 
@@ -1026,12 +1023,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		ServiceActivatingHandler serviceActivatingHandler = null;
+		ServiceActivatingHandler serviceActivatingHandler;
 		if (isLambda(handler)) {
 			serviceActivatingHandler = new ServiceActivatingHandler(new LambdaMessageProcessor(handler, payloadType));
 		}
 		else {
-			serviceActivatingHandler = new ServiceActivatingHandler(handler, "handle");
+			serviceActivatingHandler = new ServiceActivatingHandler(handler, ClassUtils.HANDLER_HANDLE_METHOD);
 		}
 		return this.handle(serviceActivatingHandler, endpointConfigurer);
 	}
@@ -1537,7 +1534,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
 		MethodInvokingSplitter split = isLambda(splitter)
 				? new MethodInvokingSplitter(new LambdaMessageProcessor(splitter, payloadType))
-				: new MethodInvokingSplitter(splitter);
+				: new MethodInvokingSplitter(splitter, ClassUtils.FUNCTION_APPLY_METHOD);
 		return this.split(split, endpointConfigurer);
 	}
 
@@ -1937,7 +1934,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
 		MethodInvokingRouter methodInvokingRouter = isLambda(router)
 				? new MethodInvokingRouter(new LambdaMessageProcessor(router, payloadType))
-				: new MethodInvokingRouter(router, FUNCTION_APPLY_METHOD);
+				: new MethodInvokingRouter(router, ClassUtils.FUNCTION_APPLY_METHOD);
 		return route(new RouterSpec<>(methodInvokingRouter), routerConfigurer);
 	}
 

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl.routers
 
-import assertk.all
 import assertk.assert
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
@@ -27,7 +26,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.config.EnableIntegration
-import org.springframework.integration.dsl.Channels
 import org.springframework.integration.dsl.IntegrationFlow
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.PollableChannel
@@ -82,7 +80,7 @@ class RouterDslTests {
                                                 .subFlowMapping(false, { sf -> sf.handle<Int> { p, _ -> p * 3 } })
                                     })
                             .aggregate()
-                            .channel { c: Channels -> c.queue("routerTwoSubFlowsOutput") }
+                            .channel { c -> c.queue("routerTwoSubFlowsOutput") }
                 }
 
     }
