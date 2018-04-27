@@ -10,9 +10,9 @@
 
 	<bean id="dataSource" class="oracle.jdbc.pool.OracleDataSource" destroy-method="close">
 		<property name="connectionCachingEnabled" value="true" />
-		<property name="URL" value="jdbc:oracle:thin:@//10.0.1.6:1521/XE" />
-		<property name="password" value="TT2" />
-		<property name="user"     value="tt" />
+		<property name="URL" value="jdbc:oracle:thin:@//[HOST]:1521/XE" />
+		<property name="user"     value="[USER]" />
+		<property name="password" value="[PASSWORD]" />
 		<property name="connectionCacheProperties">
 			<props merge="default">
 				 <prop key="MinLimit">3</prop>
