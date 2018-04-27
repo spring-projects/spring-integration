@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,62 @@
 
 package org.springframework.integration.util;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+
+import org.springframework.integration.core.GenericSelector;
+import org.springframework.integration.transformer.GenericTransformer;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public abstract class ClassUtils {
+
+	/**
+	 * The {@link Function#apply(Object)} method object.
+	 */
+	public static final Method FUNCTION_APPLY_METHOD =
+			ReflectionUtils.findMethod(Function.class, "apply", (Class<?>[]) null);
+
+	/**
+	 * The {@link GenericSelector#accept(Object)} method object.
+	 */
+	public static final Method SELECTOR_ACCEPT_METHOD =
+			ReflectionUtils.findMethod(GenericSelector.class, "accept", (Class<?>[]) null);
+
+	/**
+	 * The {@link GenericSelector#accept(Object)} method object.
+	 */
+	public static final Method TRANSFORMER_TRANSFORM_METHOD =
+			ReflectionUtils.findMethod(GenericTransformer.class, "transform", (Class<?>[]) null);
+
+	/**
+	 * The {@code org.springframework.integration.handler.GenericHandler#handle(Object, Map)} method object.
+	 */
+	public static final Method HANDLER_HANDLE_METHOD;
+
+	static {
+		Class<?> genericHandlerClass = null;
+		try {
+			genericHandlerClass =
+					org.springframework.util.ClassUtils.forName(
+							"org.springframework.integration.handler.GenericHandler",
+							org.springframework.util.ClassUtils.getDefaultClassLoader());
+		}
+		catch (ClassNotFoundException e) {
+			ReflectionUtils.rethrowRuntimeException(e);
+		}
+
+		HANDLER_HANDLE_METHOD = ReflectionUtils.findMethod(genericHandlerClass, "handle", (Class<?>[]) null);
+	}
+
 
 	/**
 	 * Map with primitive wrapper type as key and corresponding primitive
