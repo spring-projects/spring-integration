@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * @param <S> the target {@link JmsInboundGatewaySpec} implementation type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
@@ -184,9 +185,9 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 	public static class JmsInboundGatewayListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
 			extends JmsInboundGatewaySpec<JmsInboundGatewayListenerContainerSpec<S, C>> {
 
-		private final JmsListenerContainerSpec<S, C> spec;
+		private final S spec;
 
-		JmsInboundGatewayListenerContainerSpec(JmsListenerContainerSpec<S, C> spec) {
+		JmsInboundGatewayListenerContainerSpec(S spec) {
 			super(spec.get());
 			this.spec = spec;
 			this.spec.get().setAutoStartup(false);
@@ -213,7 +214,7 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 		}
 
 		public JmsInboundGatewayListenerContainerSpec<S, C> configureListenerContainer(
-				Consumer<JmsListenerContainerSpec<S, C>> configurer) {
+				Consumer<S> configurer) {
 			Assert.notNull(configurer, "'configurer' must not be null");
 			configurer.accept(this.spec);
 			return _this();
