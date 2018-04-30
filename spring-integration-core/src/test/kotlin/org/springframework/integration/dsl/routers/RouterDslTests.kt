@@ -68,10 +68,10 @@ class RouterDslTests {
 
     @Configuration
     @EnableIntegration
-    open class Config {
+    class Config {
 
         @Bean
-        open fun routerTwoSubFlows() =
+        fun routerTwoSubFlows() =
                 IntegrationFlow { f ->
                     f.split()
                             .route<Int, Boolean>({ p -> p % 2 == 0 },

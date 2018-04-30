@@ -39,7 +39,7 @@ import java.util.concurrent.Executors
 /**
  * @author Artem Bilan
  *
- * @since 5.1
+ * @since 5.0.5
  */
 @SpringJUnitConfig
 @DirtiesContext
@@ -50,7 +50,6 @@ class JmsDslKotlinTests {
     private lateinit var jmsOutboundInboundChannel: MessageChannel
 
     @Autowired
-    @Qualifier("jmsOutboundInboundReplyChannel")
     private lateinit var jmsOutboundInboundReplyChannel: PollableChannel
 
     @Test
@@ -81,30 +80,26 @@ class JmsDslKotlinTests {
         }
 
         @Bean
-        fun jmsOutboundFlow(): IntegrationFlow {
-            return IntegrationFlow { f ->
-                f.handle(Jms.outboundAdapter(jmsConnectionFactory())
-                        .destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER))
-            }
-        }
+        fun jmsOutboundFlow() =
+                IntegrationFlow { f ->
+                    f.handle(Jms.outboundAdapter(jmsConnectionFactory())
+                            .destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER))
+                }
 
         @Bean
-        fun jmsMessageDrivenFlowWithContainer(): IntegrationFlow {
-            return IntegrationFlows
-                    .from(Jms.messageDrivenChannelAdapter(
-                            Jms.container(jmsConnectionFactory(), "containerSpecDestination")
-                                    .pubSubDomain(false)
-                                    .taskExecutor(Executors.newCachedThreadPool())
-                                    .get()))
-                    .transform({ it: String -> it.trim({ it <= ' ' }) })
-                    .channel(jmsOutboundInboundReplyChannel())
-                    .get()
-        }
+        fun jmsMessageDrivenFlowWithContainer() =
+                IntegrationFlows.from(
+                        Jms.messageDrivenChannelAdapter(
+                                Jms.container(jmsConnectionFactory(), "containerSpecDestination")
+                                        .pubSubDomain(false)
+                                        .taskExecutor(Executors.newCachedThreadPool())
+                                        .get()))
+                        .transform({ it: String -> it.trim({ it <= ' ' }) })
+                        .channel(jmsOutboundInboundReplyChannel())
+                        .get()
 
         @Bean
-        fun jmsOutboundInboundReplyChannel(): MessageChannel {
-            return MessageChannels.queue().get()
-        }
+        fun jmsOutboundInboundReplyChannel() = MessageChannels.queue().get()
 
     }
 
