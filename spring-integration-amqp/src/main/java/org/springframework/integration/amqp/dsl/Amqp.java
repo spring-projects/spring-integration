@@ -53,8 +53,8 @@ public final class Amqp {
 	 * @param queueNames the queueNames.
 	 * @return the AmqpInboundGatewaySpec.
 	 */
-	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
-			String... queueNames) {
+	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory,
+			AmqpTemplate amqpTemplate, String... queueNames) {
 
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueueNames(queueNames);
@@ -81,8 +81,8 @@ public final class Amqp {
 	 * @param queues the queues.
 	 * @return the AmqpInboundGatewaySpec.
 	 */
-	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory, AmqpTemplate amqpTemplate,
-			Queue... queues) {
+	public static AmqpInboundGatewaySMLCSpec inboundGateway(ConnectionFactory connectionFactory,
+			AmqpTemplate amqpTemplate, Queue... queues) {
 
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(connectionFactory);
 		listenerContainer.setQueues(queues);
@@ -266,12 +266,9 @@ public final class Amqp {
 	/**
 	 * Create an initial AmqpPollableMessageChannelSpec.
 	 * @param connectionFactory the connectionFactory.
-	 * @param <S> the spec type.
 	 * @return the AmqpPollableMessageChannelSpec.
 	 */
-	public static <S extends AmqpPollableMessageChannelSpec<S>> AmqpPollableMessageChannelSpec<S> pollableChannel(
-			ConnectionFactory connectionFactory) {
-
+	public static AmqpPollableMessageChannelSpec<?> pollableChannel(ConnectionFactory connectionFactory) {
 		return pollableChannel(null, connectionFactory);
 	}
 
@@ -279,24 +276,19 @@ public final class Amqp {
 	 * Create an initial AmqpPollableMessageChannelSpec.
 	 * @param id the id.
 	 * @param connectionFactory the connectionFactory.
-	 * @param <S> the spec type.
 	 * @return the AmqpPollableMessageChannelSpec.
 	 */
-	public static <S extends AmqpPollableMessageChannelSpec<S>> AmqpPollableMessageChannelSpec<S> pollableChannel(
-			String id, ConnectionFactory connectionFactory) {
-
-		return new AmqpPollableMessageChannelSpec<S>(connectionFactory).id(id);
+	public static AmqpPollableMessageChannelSpec<?> pollableChannel(String id, ConnectionFactory connectionFactory) {
+		return new AmqpPollableMessageChannelSpec<>(connectionFactory)
+				.id(id);
 	}
 
 	/**
 	 * Create an initial AmqpMessageChannelSpec.
 	 * @param connectionFactory the connectionFactory.
-	 * @param <S> the spec type.
 	 * @return the AmqpMessageChannelSpec.
 	 */
-	public static <S extends AmqpMessageChannelSpec<S>> AmqpMessageChannelSpec<S> channel(
-			ConnectionFactory connectionFactory) {
-
+	public static AmqpMessageChannelSpec<?> channel(ConnectionFactory connectionFactory) {
 		return channel(null, connectionFactory);
 	}
 
@@ -304,13 +296,11 @@ public final class Amqp {
 	 * Create an initial AmqpMessageChannelSpec.
 	 * @param id the id.
 	 * @param connectionFactory the connectionFactory.
-	 * @param <S> the spec type.
 	 * @return the AmqpMessageChannelSpec.
 	 */
-	public static <S extends AmqpMessageChannelSpec<S>> AmqpMessageChannelSpec<S> channel(String id,
-			ConnectionFactory connectionFactory) {
-
-		return new AmqpMessageChannelSpec<S>(connectionFactory).id(id);
+	public static AmqpMessageChannelSpec<?> channel(String id, ConnectionFactory connectionFactory) {
+		return new AmqpMessageChannelSpec<>(connectionFactory)
+				.id(id);
 	}
 
 	/**
