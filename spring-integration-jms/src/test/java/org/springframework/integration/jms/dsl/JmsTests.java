@@ -65,6 +65,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.MessageListenerContainer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -326,9 +327,10 @@ public class JmsTests {
 		@Bean
 		public IntegrationFlow jmsMessageDrivenFlow() {
 			return IntegrationFlows
-					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory())
+					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory(), DefaultMessageListenerContainer.class)
 							.outputChannel(jmsMessageDrivenInputChannel())
-							.destination("jmsMessageDriven"))
+							.destination("jmsMessageDriven")
+					.configureListenerContainer(c -> c.clientId("foo")))
 					.<String, String>transform(String::toLowerCase)
 					.channel(jmsOutboundInboundReplyChannel())
 					.get();
@@ -377,9 +379,12 @@ public class JmsTests {
 
 		@Bean
 		public IntegrationFlow jmsInboundGatewayFlow() {
-			return IntegrationFlows.from(Jms.inboundGateway(jmsConnectionFactory())
-					.requestChannel(jmsInboundGatewayInputChannel())
-					.destination("jmsPipelineTest"))
+			return IntegrationFlows.from(
+					Jms.inboundGateway(jmsConnectionFactory())
+							.requestChannel(jmsInboundGatewayInputChannel())
+							.destination("jmsPipelineTest")
+							.configureListenerContainer(c ->
+									c.transactionManager(mock(PlatformTransactionManager.class))))
 					.<String, String>transform(String::toUpperCase)
 					.get();
 		}

@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.2.40'
+	ext.kotlinVersion = '1.2.41'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -9,6 +9,7 @@ buildscript {
 		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+		classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
 	}
 }
 
@@ -63,6 +64,7 @@ subprojects { subproject ->
 	apply plugin: 'jacoco'
 	apply plugin: 'checkstyle'
 	apply plugin: 'kotlin'
+	apply plugin: 'kotlin-spring'
 
 	sourceSets {
 		test {
@@ -91,6 +93,7 @@ subprojects { subproject ->
 
 	compileTestKotlin {
 		kotlinOptions {
+			freeCompilerArgs = ['-Xjsr305=strict']
 			jvmTarget = '1.8'
 		}
 	}
@@ -191,7 +194,7 @@ subprojects { subproject ->
 				exclude group: 'org.jetbrains.kotlin', module: 'kotlin-reflect'
 		}
 
-		testCompile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+		testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 		testRuntime "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
 	}
