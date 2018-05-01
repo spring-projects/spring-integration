@@ -47,10 +47,9 @@ public final class Kafka {
 	 * @param kafkaTemplate the {@link KafkaTemplate} to use
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
-	 * @param <S> the {@link KafkaProducerMessageHandlerSpec} extension type.
 	 * @return the KafkaProducerMessageHandlerSpec.
 	 */
-	public static <K, V, S extends KafkaProducerMessageHandlerSpec<K, V, S>> KafkaProducerMessageHandlerSpec<K, V, S> outboundChannelAdapter(
+	public static <K, V> KafkaProducerMessageHandlerSpec<K, V, ?> outboundChannelAdapter(
 			KafkaTemplate<K, V> kafkaTemplate) {
 
 		return new KafkaProducerMessageHandlerSpec<>(kafkaTemplate);
@@ -109,10 +108,9 @@ public final class Kafka {
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer}.
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
-	 * @param <S> the {@link KafkaMessageDrivenChannelAdapterSpec} extension type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.
 	 */
-	public static <K, V, S extends KafkaMessageDrivenChannelAdapterSpec<K, V, S>> KafkaMessageDrivenChannelAdapterSpec<K, V, S> messageDrivenChannelAdapter(
+	public static <K, V> KafkaMessageDrivenChannelAdapterSpec<K, V, ?> messageDrivenChannelAdapter(
 			AbstractMessageListenerContainer<K, V> listenerContainer) {
 
 		return messageDrivenChannelAdapter(listenerContainer, KafkaMessageDrivenChannelAdapter.ListenerMode.record);
@@ -124,10 +122,9 @@ public final class Kafka {
 	 * @param listenerMode the {@link KafkaMessageDrivenChannelAdapter.ListenerMode}.
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
-	 * @param <A> the {@link KafkaMessageDrivenChannelAdapterSpec} extension type.
 	 * @return the KafkaMessageDrivenChannelAdapterSpec.
 	 */
-	public static <K, V, A extends KafkaMessageDrivenChannelAdapterSpec<K, V, A>> KafkaMessageDrivenChannelAdapterSpec<K, V, A> messageDrivenChannelAdapter(
+	public static <K, V> KafkaMessageDrivenChannelAdapterSpec<K, V, ?> messageDrivenChannelAdapter(
 			AbstractMessageListenerContainer<K, V> listenerContainer,
 			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
 
@@ -291,11 +288,10 @@ public final class Kafka {
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type (request).
 	 * @param <R> the Kafka message value type (reply).
-	 * @param <S> the {@link KafkaOutboundGatewaySpec} extension type.
 	 * @return the KafkaGatewayMessageHandlerSpec.
 	 * @since 3.0.2
 	 */
-	public static <K, V, R, S extends KafkaOutboundGatewaySpec<K, V, R, S>> KafkaOutboundGatewaySpec<K, V, R, S> outboundGateway(
+	public static <K, V, R> KafkaOutboundGatewaySpec<K, V, R, ?> outboundGateway(
 			ReplyingKafkaTemplate<K, V, R> kafkaTemplate) {
 
 		return new KafkaOutboundGatewaySpec<>(kafkaTemplate);
@@ -326,11 +322,10 @@ public final class Kafka {
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type (request).
 	 * @param <R> the Kafka message value type (reply).
-	 * @param <S> the {@link KafkaInboundGatewaySpec} extension type.
 	 * @return the spec.
 	 * @since 3.0.2
 	 */
-	public static <K, V, R, S extends KafkaInboundGatewaySpec<K, V, R, S>> KafkaInboundGatewaySpec<K, V, R, S> inboundGateway(
+	public static <K, V, R> KafkaInboundGatewaySpec<K, V, R, ?> inboundGateway(
 			AbstractMessageListenerContainer<K, V> container, KafkaTemplate<K, R> template) {
 
 		return new KafkaInboundGatewaySpec<>(container, template);
