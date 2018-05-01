@@ -45,7 +45,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	private final List<Subscriber<? super Message<?>>> subscribers = new ArrayList<>();
 
-	private final Map<Publisher<Message<?>>, ConnectableFlux<Message<?>>> publishers = new ConcurrentHashMap<>();
+	private final Map<Publisher<Message<?>>, ConnectableFlux<?>> publishers = new ConcurrentHashMap<>();
 
 	private final Flux<Message<?>> flux;
 
@@ -79,10 +79,11 @@ public class FluxMessageChannel extends AbstractMessageChannel
 
 	@Override
 	public void subscribeTo(Publisher<Message<?>> publisher) {
-		ConnectableFlux<Message<?>> connectableFlux =
+		ConnectableFlux<?> connectableFlux =
 				Flux.from(publisher)
+						.handle((message, sink) -> sink.next(send(message)))
+						.errorStrategyContinue()
 						.doOnComplete(() -> this.publishers.remove(publisher))
-						.doOnNext(this::send)
 						.publish();
 
 		this.publishers.put(publisher, connectableFlux);
