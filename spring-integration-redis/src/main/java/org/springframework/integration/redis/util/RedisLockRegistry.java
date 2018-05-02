@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -31,6 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -38,7 +41,9 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Implementation of {@link LockRegistry} providing a distributed lock using Redis.
@@ -68,11 +73,13 @@ import org.springframework.util.Assert;
  * @since 4.0
  *
  */
-public final class RedisLockRegistry implements ExpirableLockRegistry {
+public final class RedisLockRegistry implements ExpirableLockRegistry, DisposableBean {
 
 	private static final Log logger = LogFactory.getLog(RedisLockRegistry.class);
 
-	private static final long DEFAULT_EXPIRE_AFTER = 60000;
+	private static final long DEFAULT_EXPIRE_AFTER = 60000L;
+
+	public static final long DEFAULT_DELETE_TIMEOUT = 10000L;
 
 	private static final String OBTAIN_LOCK_SCRIPT =
 			"local lockClientId = redis.call('GET', KEYS[1])\n" +
@@ -84,6 +91,27 @@ public final class RedisLockRegistry implements ExpirableLockRegistry {
 					"  return true\n" +
 					"end\n" +
 					"return false";
+
+
+	/**
+	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete(Object)} in
+	 * the separate thread when the current one is interrupted.
+	 */
+	private ExecutorService executorService =
+			Executors.newCachedThreadPool(new CustomizableThreadFactory("redis-lock-registry-"));
+
+	/**
+	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and
+	 * thus should not be shutdown when {@link #destroy()} is called
+	 */
+	private boolean executorServiceExplicitlySet;
+
+	/**
+	 * Time in milliseconds to wait for the {@link StringRedisTemplate#delete(Object)} in
+	 * the background thread.
+	 */
+	private long deleteTimeoutMillis = DEFAULT_DELETE_TIMEOUT;
+
 
 	private final Map<String, RedisLock> locks = new ConcurrentHashMap<>();
 
@@ -141,6 +169,13 @@ public final class RedisLockRegistry implements ExpirableLockRegistry {
 		}
 	}
 
+	@Override
+	public void destroy() {
+		if (!this.executorServiceExplicitlySet) {
+			this.executorService.shutdown();
+		}
+	}
+
 	private final class RedisLock implements Lock {
 
 		private final String lockKey;
@@ -172,11 +207,11 @@ public final class RedisLockRegistry implements ExpirableLockRegistry {
 					break;
 				}
 				catch (InterruptedException e) {
-						/*
-						 * This method must be uninterruptible so catch and ignore
-						 * interrupts and only break out of the while loop when
-						 * we get the lock.
-						 */
+					/*
+					 * This method must be uninterruptible so catch and ignore
+					 * interrupts and only break out of the while loop when
+					 * we get the lock.
+					 */
 				}
 				catch (Exception e) {
 					this.localLock.unlock();
@@ -263,10 +298,22 @@ public final class RedisLockRegistry implements ExpirableLockRegistry {
 				return;
 			}
 			try {
-				RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
+
+				if (Thread.currentThread().isInterrupted()) {
+					RedisLockRegistry.this.executorService.submit(() ->
+							RedisLockRegistry.this.redisTemplate.delete(this.lockKey))
+							.get(RedisLockRegistry.this.deleteTimeoutMillis, TimeUnit.MILLISECONDS);
+				}
+				else {
+					RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
+				}
+
 				if (logger.isDebugEnabled()) {
 					logger.debug("Released lock; " + this);
 				}
+			}
+			catch (Exception e) {
+				ReflectionUtils.rethrowRuntimeException(e);
 			}
 			finally {
 				this.localLock.unlock();

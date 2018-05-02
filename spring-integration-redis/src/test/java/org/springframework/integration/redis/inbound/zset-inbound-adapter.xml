@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:constant id="redisConnectionFactory"
+				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterNoScore"
 											connection-factory="redisConnectionFactory"
@@ -13,7 +18,7 @@
 											channel="redisChannel"
 											auto-startup="false"
 											collection-type="ZSET">
-		<int:poller fixed-rate="1000"/>
+		<int:poller fixed-rate="100"/>
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithScoreRange"
@@ -22,7 +27,7 @@
 											channel="redisChannel"
 											auto-startup="false"
 											collection-type="ZSET">
-		<int:poller fixed-rate="1000" max-messages-per-poll="2"/>
+		<int:poller fixed-rate="100" max-messages-per-poll="2"/>
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScore"
@@ -31,7 +36,7 @@
 											channel="redisChannel"
 											auto-startup="false"
 											collection-type="ZSET">
-		<int:poller fixed-rate="1000"/>
+		<int:poller fixed-rate="100"/>
 	</int-redis:store-inbound-channel-adapter>
 
 	<int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
@@ -40,7 +45,7 @@
 											channel="transformChannel"
 											auto-startup="false"
 											collection-type="ZSET">
-		<int:poller fixed-rate="1000">
+		<int:poller fixed-rate="100">
 			<int:transactional synchronization-factory="syncFactory"/>
 		</int:poller>
 	</int-redis:store-inbound-channel-adapter>
@@ -59,11 +64,6 @@
 	<int:channel id="otherRedisChannel">
 		<int:queue/>
 	</int:channel>
-
-	<bean id="redisConnectionFactory"
-		  class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
-	</bean>
 
 	<bean id="transactionManager" class="org.springframework.integration.transaction.PseudoTransactionManager"/>
 

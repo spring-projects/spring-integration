@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -68,15 +70,22 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 	@Autowired
 	private RedisQueueOutboundGateway outboundGateway;
 
+	@Before
 	public void setup() {
 		RedisConnectionFactory jcf = getConnectionFactoryForTest();
 		jcf.getConnection().del(this.queueName);
+		this.inboundGateway.start();
+	}
+
+	@After
+	public void tearDown() {
+		this.inboundGateway.stop();
 	}
 
 	@Test
 	@RedisAvailable
-	public void testRequestWithReply() throws Exception {
-		this.sendChannel.send(new GenericMessage<Integer>(1));
+	public void testRequestWithReply() {
+		this.sendChannel.send(new GenericMessage<>(1));
 		Message<?> receive = this.outputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(2, receive.getPayload());
@@ -84,45 +93,47 @@ public class RedisQueueGatewayIntegrationTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testInboundGatewayStop() throws Exception {
-		Long receiveTimeout = TestUtils.getPropertyValue(this.inboundGateway, "receiveTimeout", Long.class);
-		this.inboundGateway.setReceiveTimeout(1);
+	public void testInboundGatewayStop() {
+		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout", Integer.class);
+		this.outboundGateway.setReceiveTimeout(1);
 		this.inboundGateway.stop();
 		try {
-			this.sendChannel.send(new GenericMessage<String>("test1"));
+			this.sendChannel.send(new GenericMessage<>("test1"));
 		}
 		catch (Exception e) {
 			assertTrue(e.getMessage().contains("No reply produced"));
 		}
 		finally {
-			this.inboundGateway.setReceiveTimeout(receiveTimeout);
-			this.inboundGateway.start();
+			this.outboundGateway.setReceiveTimeout(receiveTimeout);
 		}
 	}
 
 	@Test
 	@RedisAvailable
-	public void testNullSerializer() throws Exception {
+	public void testNullSerializer() {
+		Integer receiveTimeout = TestUtils.getPropertyValue(this.outboundGateway, "receiveTimeout", Integer.class);
+		this.outboundGateway.setReceiveTimeout(1);
 		this.inboundGateway.setSerializer(null);
 		try {
-			this.sendChannel.send(new GenericMessage<String>("test1"));
+			this.sendChannel.send(new GenericMessage<>("test1"));
 		}
 		catch (Exception e) {
 			assertTrue(e.getMessage().contains("No reply produced"));
 		}
 		finally {
 			this.inboundGateway.setSerializer(new StringRedisSerializer());
+			this.outboundGateway.setReceiveTimeout(receiveTimeout);
 		}
 	}
 
 	@Test
 	@RedisAvailable
-	public void testRequestReplyWithMessage() throws Exception {
+	public void testRequestReplyWithMessage() {
 		this.inboundGateway.setSerializer(new JdkSerializationRedisSerializer());
 		this.inboundGateway.setExtractPayload(false);
 		this.outboundGateway.setSerializer(new JdkSerializationRedisSerializer());
 		this.outboundGateway.setExtractPayload(false);
-		this.sendChannel.send(new GenericMessage<Integer>(2));
+		this.sendChannel.send(new GenericMessage<>(2));
 		Message<?> receive = this.outputChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals(3, receive.getPayload());

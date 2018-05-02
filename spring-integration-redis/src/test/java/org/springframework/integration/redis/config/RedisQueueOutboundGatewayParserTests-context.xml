@@ -40,8 +40,7 @@
 	</int:channel>
 
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		</constructor-arg>
+		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
 	</bean>
 
 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>

@@ -108,7 +108,6 @@ subprojects { subproject ->
 		jackson2Version = '2.9.5'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.6.1'
-		jedisVersion = '2.9.0'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
 		jpaApiVersion = '2.1.1'
@@ -120,6 +119,7 @@ subprojects { subproject ->
 		junitPlatformVersion = '1.1.1'
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
+		lettuceVersion = '5.0.3.RELEASE'
 		log4jVersion = '2.11.0'
 		micrometerVersion = '1.0.3'
 		mockitoVersion = '2.18.0'
@@ -364,7 +364,7 @@ project('spring-integration-file') {
 		testCompile project(":spring-integration-gemfire")
 		testCompile project(":spring-integration-jdbc")
 		testCompile "com.h2database:h2:$h2Version"
-		testCompile "redis.clients:jedis:$jedisVersion"
+		testCompile "io.lettuce:lettuce-core:$lettuceVersion"
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }
@@ -542,7 +542,7 @@ project('spring-integration-redis') {
 		compile project(":spring-integration-core")
 		compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion")
 
-		testCompile "redis.clients:jedis:$jedisVersion"
+		testCompile "io.lettuce:lettuce-core:$lettuceVersion"
 	}
 }
 
@@ -642,7 +642,7 @@ project('spring-integration-twitter') {
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 		testCompile project(":spring-integration-redis")
 		testCompile project(":spring-integration-redis").sourceSets.test.output
-		testCompile "redis.clients:jedis:$jedisVersion"
+		testCompile "io.lettuce:lettuce-core:$lettuceVersion"
 	}
 }
 

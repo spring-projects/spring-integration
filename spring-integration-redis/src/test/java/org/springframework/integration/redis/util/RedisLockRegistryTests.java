@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -55,6 +54,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Konstantin Yakimov
  * @author Artem Bilan
  * @author Vedran Pavic
+ *
  * @since 4.0
  *
  */
@@ -65,11 +65,6 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	private final String registryKey = UUID.randomUUID().toString();
 
 	private final String registryKey2 = UUID.randomUUID().toString();
-
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories("org.springframework.data.redis");
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
