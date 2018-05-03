@@ -16,6 +16,9 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.AttributeAccessor;
@@ -30,8 +33,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import reactor.core.publisher.Flux;
 
 /**
  * A support class for producer endpoints that provides a setter for the
@@ -46,6 +52,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
+	private final BlockingQueue<Message<?>> sinkQueue = new LinkedBlockingQueue<>();
+
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
 	private volatile MessageChannel outputChannel;
@@ -57,6 +65,10 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	private volatile String errorChannelName;
 
 	private volatile boolean shouldTrack = false;
+
+	private boolean reactive;
+
+	private Flux<Message<?>> flux;
 
 	protected MessageProducerSupport() {
 		this.setPhase(Integer.MAX_VALUE / 2);
@@ -151,6 +163,14 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.errorMessageStrategy = errorMessageStrategy;
 	}
 
+	public boolean isReactive() {
+		return this.reactive;
+	}
+
+	public void setReactive(boolean reactive) {
+		this.reactive = reactive;
+	}
+
 	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
 	}
@@ -182,6 +202,17 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 */
 	@Override
 	protected void doStart() {
+		if (this.reactive && this.flux == null) {
+			this.flux = Flux.generate(sink -> {
+				try {
+					sink.next(this.sinkQueue.take());
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			});
+			this.messagingTemplate.send(getOutputChannel(), new GenericMessage<>(this.flux));
+		}
 	}
 
 	/**
@@ -199,12 +230,22 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
-		try {
-			this.messagingTemplate.send(getOutputChannel(), message);
+		if (this.flux != null) {
+			try {
+				this.sinkQueue.put(message);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
-		catch (RuntimeException e) {
-			if (!sendErrorMessageIfNecessary(message, e)) {
-				throw e;
+		else {
+			try {
+				this.messagingTemplate.send(getOutputChannel(), message);
+			}
+			catch (RuntimeException e) {
+				if (!sendErrorMessageIfNecessary(message, e)) {
+					throw e;
+				}
 			}
 		}
 	}
