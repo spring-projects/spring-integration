@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
@@ -83,15 +82,13 @@ public class ReactiveMessageProducerTests {
 
 		@ServiceActivator(inputChannel = "out")
 		public void handle2(final Flux<Message<?>> flux) {
-			Executors.newSingleThreadExecutor().execute(() -> {
-				flux.map(m -> {
-					this.received.add(m);
-					System.out.println(m);
-					latch.countDown();
-					return m;
-				})
-					.subscribe();
-			});
+			flux.map(m -> {
+				this.received.add(m);
+				System.out.println(m);
+				latch.countDown();
+				return m;
+			})
+				.subscribe();
 		}
 
 	}

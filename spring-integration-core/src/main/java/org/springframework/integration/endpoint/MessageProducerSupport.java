@@ -16,9 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.AttributeAccessor;
@@ -38,6 +35,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 
 /**
  * A support class for producer endpoints that provides a setter for the
@@ -51,8 +49,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		SmartInitializingSingleton {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
-	private final BlockingQueue<Message<?>> sinkQueue = new LinkedBlockingQueue<>();
 
 	private ErrorMessageStrategy errorMessageStrategy = new DefaultErrorMessageStrategy();
 
@@ -69,6 +65,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	private boolean reactive;
 
 	private Flux<Message<?>> flux;
+
+	private volatile FluxSink<Message<?>> sink;
 
 	protected MessageProducerSupport() {
 		this.setPhase(Integer.MAX_VALUE / 2);
@@ -203,14 +201,10 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	@Override
 	protected void doStart() {
 		if (this.reactive && this.flux == null) {
-			this.flux = Flux.generate(sink -> {
-				try {
-					sink.next(this.sinkQueue.take());
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			});
+			this.flux =
+					Flux.<Message<?>>create(emitter -> this.sink = emitter, FluxSink.OverflowStrategy.IGNORE)
+							.publish()
+							.autoConnect();
 			this.messagingTemplate.send(getOutputChannel(), new GenericMessage<>(this.flux));
 		}
 	}
@@ -231,12 +225,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
 		if (this.flux != null) {
-			try {
-				this.sinkQueue.put(message);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
+			this.sink.next(message);
 		}
 		else {
 			try {
