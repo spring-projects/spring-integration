@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -385,7 +385,9 @@ public class JdbcMessageStoreTests {
 		String groupId = "X";
 
 		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
+		Thread.sleep(10);
 		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		Thread.sleep(10);
 		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("baz").setCorrelationId(groupId).build());
 
 		messageStore.addMessagesToGroup("Y", MessageBuilder.withPayload("barA").setCorrelationId(groupId).build(),
