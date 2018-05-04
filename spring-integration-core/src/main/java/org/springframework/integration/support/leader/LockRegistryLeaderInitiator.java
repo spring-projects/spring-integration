@@ -386,8 +386,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 								this.lock.unlock();
 							}
 							catch (Exception e1) {
-								logger.debug("Could not unlock - treat as broken. " +
-										"Revoking " + (isRunning() ? " and retrying..." : "..."), e);
+								logger.debug("Could not unlock - treat as broken: " + this.context +
+										". Revoking " + (isRunning() ? " and retrying..." : "..."), e);
 
 							}
 							// The lock was broken and we are no longer leader

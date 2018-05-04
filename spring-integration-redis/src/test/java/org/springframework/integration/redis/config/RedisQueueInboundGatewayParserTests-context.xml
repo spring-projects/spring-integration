@@ -35,9 +35,7 @@
 	</int:channel>
 
 	<bean id="redisConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg
-				value="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		</constructor-arg>
+		<constructor-arg value="org.springframework.data.redis.connection.RedisConnectionFactory"/>
 	</bean>
 
 	<bean id="serializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
@@ -47,6 +45,7 @@
 	<int-redis:queue-inbound-gateway id="zeroReceiveTimeoutGateway"
 									 request-channel="requestChannel"
 									 receive-timeout="0"
+									 auto-startup="false"
 									 queue="si.test.queue"/>
 
 </beans>

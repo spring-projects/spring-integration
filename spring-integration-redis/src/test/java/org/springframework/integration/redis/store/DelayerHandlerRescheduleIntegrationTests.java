@@ -37,7 +37,6 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -56,11 +55,6 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 
 	@Rule
 	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
-
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories(true, "org.springframework.data.redis");
 
 	@Test
 	@RedisAvailable

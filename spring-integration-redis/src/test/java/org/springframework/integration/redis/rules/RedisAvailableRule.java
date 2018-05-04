@@ -24,8 +24,11 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.SocketOptions;
 
 /**
  * @author Oleg Zhurakousky
@@ -36,67 +39,50 @@ public final class RedisAvailableRule implements MethodRule {
 
 	public static final int REDIS_PORT = 6379;
 
-	static ThreadLocal<JedisConnectionFactory> connectionFactoryResource = new ThreadLocal<JedisConnectionFactory>();
+	public static LettuceConnectionFactory connectionFactory;
+
+	protected static void setupConnectionFactory() {
+		RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+		redisStandaloneConfiguration.setPort(REDIS_PORT);
+
+		LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+				.clientOptions(
+						ClientOptions.builder()
+								.socketOptions(
+										SocketOptions.builder()
+												.connectTimeout(Duration.ofMillis(10000))
+												.build())
+								.build())
+				.commandTimeout(Duration.ofSeconds(10000))
+				.build();
+
+		connectionFactory = new LettuceConnectionFactory(redisStandaloneConfiguration, clientConfiguration);
+		connectionFactory.afterPropertiesSet();
+	}
+
+
+	public static void cleanUpConnectionFactoryIfAny() {
+		if (connectionFactory != null) {
+			connectionFactory.destroy();
+		}
+	}
+
 
 	public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
 		RedisAvailable redisAvailable = method.getAnnotation(RedisAvailable.class);
 		if (redisAvailable != null) {
-			JedisConnectionFactory connectionFactory = null;
-			try {
-				RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-				redisStandaloneConfiguration.setPort(REDIS_PORT);
-
-				JedisClientConfiguration clientConfiguration = JedisClientConfiguration.builder()
-						.connectTimeout(Duration.ofSeconds(20))
-						.readTimeout(Duration.ofSeconds(20))
-						.build();
-
-				connectionFactory = new JedisConnectionFactory(redisStandaloneConfiguration, clientConfiguration);
-				connectionFactory.afterPropertiesSet();
-				connectionFactory.getConnection();
-				connectionFactoryResource.set(connectionFactory);
-			}
-			catch (Exception e) {
-				if (connectionFactory != null) {
-					connectionFactory.destroy();
+			if (connectionFactory != null) {
+				try {
+					connectionFactory.getConnection();
 				}
-				return new Statement() {
+				catch (Exception e) {
+					Assume.assumeTrue("Skipping test due to Redis not being available on port: " + REDIS_PORT + ": " + e, false);
 
-					@Override
-					public void evaluate() throws Throwable {
-						Assume.assumeTrue("Skipping test due to Redis not being available on port: " + REDIS_PORT, false);
-					}
-				};
-
-			}
-
-			return new Statement() {
-
-				@Override
-				public void evaluate() throws Throwable {
-					try {
-						base.evaluate();
-					}
-					finally {
-						JedisConnectionFactory connectionFactory = connectionFactoryResource.get();
-						connectionFactoryResource.remove();
-						if (connectionFactory != null) {
-							connectionFactory.destroy();
-						}
-					}
 				}
-
-			};
+			}
 		}
 
-		return new Statement() {
-
-			@Override
-			public void evaluate() throws Throwable {
-				base.evaluate();
-			}
-
-		};
+		return base;
 	}
 
 }

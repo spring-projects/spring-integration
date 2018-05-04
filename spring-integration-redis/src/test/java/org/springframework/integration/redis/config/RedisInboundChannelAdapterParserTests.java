@@ -111,6 +111,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests {
 			assertThat(receive.getPayload(), Matchers.<Object>isOneOf("Hello Redis from foo", "Hello Redis from bar"));
 		}
 
+		adapter.stop();
 	}
 
 	@Test
