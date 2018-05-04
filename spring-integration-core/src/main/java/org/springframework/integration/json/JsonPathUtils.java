@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.json;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -29,6 +30,7 @@ import com.jayway.jsonpath.Predicate;
  * Note {@link #evaluate} is used as {@code #jsonPath()} SpEL function.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 3.0
  */
@@ -37,6 +39,9 @@ public final class JsonPathUtils {
 	public static <T> T evaluate(Object json, String jsonPath, Predicate... predicates) throws Exception {
 		if (json instanceof String) {
 			return JsonPath.read((String) json, jsonPath, predicates);
+		}
+		else if (json instanceof byte[]) {
+			return JsonPath.read(new ByteArrayInputStream((byte[]) json), jsonPath, predicates);
 		}
 		else if (json instanceof File) {
 			return JsonPath.read((File) json, jsonPath, predicates);
