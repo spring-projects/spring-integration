@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,6 +123,11 @@ public class JsonPathTests {
 		assertNotNull(receive);
 		assertEquals("Nigel Rees", receive.getPayload());
 
+		this.transformerInput.send(new GenericMessage<>(JSON.getBytes()));
+		receive = this.output.receive(10000);
+		assertNotNull(receive);
+		assertEquals("Nigel Rees", receive.getPayload());
+
 		this.transformerInput.send(new GenericMessage<File>(JSON_FILE));
 		receive = this.output.receive(1000);
 		assertNotNull(receive);
@@ -207,6 +212,12 @@ public class JsonPathTests {
 		assertNull(this.routerOutput1.receive(10));
 	}
 
+
+	@Test
+	public void testJsonInByteArray() throws Exception {
+		byte[] json = "{\"foo\":\"bar\"}".getBytes();
+		assertEquals("bar", JsonPathUtils.evaluate(json, "$.foo"));
+	}
 
 	@Configuration
 	@ImportResource("classpath:org/springframework/integration/json/JsonPathTests-context.xml")
