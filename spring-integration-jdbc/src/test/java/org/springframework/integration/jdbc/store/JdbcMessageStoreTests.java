@@ -386,7 +386,9 @@ public class JdbcMessageStoreTests {
 		String groupId = "X";
 
 		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("foo").setCorrelationId(groupId).build());
+		Thread.sleep(10);
 		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		Thread.sleep(10);
 		messageStore.addMessagesToGroup(groupId, MessageBuilder.withPayload("baz").setCorrelationId(groupId).build());
 
 		messageStore.addMessagesToGroup("Y", MessageBuilder.withPayload("barA").setCorrelationId(groupId).build(),
