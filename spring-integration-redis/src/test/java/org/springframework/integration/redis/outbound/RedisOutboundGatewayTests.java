@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,16 +40,19 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class RedisOutboundGatewayTests extends RedisAvailableTests {
 
 	@Autowired
@@ -131,7 +134,7 @@ public class RedisOutboundGatewayTests extends RedisAvailableTests {
 				.setHeader(RedisHeaders.COMMAND, "SET").build());
 		Message<?> receive = this.replyChannel.receive(1000);
 		assertNotNull(receive);
-		assertTrue(Arrays.equals("OK".getBytes(), (byte[]) receive.getPayload()));
+		assertEquals("OK", receive.getPayload());
 
 		this.getCommandChannel.send(MessageBuilder.withPayload("foo").build());
 		receive = this.replyChannel.receive(1000);

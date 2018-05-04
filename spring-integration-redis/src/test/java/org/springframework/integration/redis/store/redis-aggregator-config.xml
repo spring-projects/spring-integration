@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:aggregator input-channel="inputChannel" output-channel="outputChannel" message-store="redisStore"/>
@@ -12,11 +12,7 @@
 	</int:channel>
 
 	<bean id="redisStore" class="org.springframework.integration.redis.store.RedisMessageStore">
-		<constructor-arg ref="redisConnectionFactory"/>
-	</bean>
-
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
+		<constructor-arg value="#{T (org.springframework.integration.redis.rules.RedisAvailableRule).connectionFactory}"/>
 	</bean>
 
 </beans>

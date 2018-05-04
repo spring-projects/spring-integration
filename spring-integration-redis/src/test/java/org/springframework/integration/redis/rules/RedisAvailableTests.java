@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.redis.rules;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 
 import org.springframework.data.redis.connection.RedisConnection;
@@ -38,26 +40,27 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  *
  */
-public class RedisAvailableTests {
+public abstract class RedisAvailableTests {
 
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
-	private RedisConnectionFactory connectionFactory;
+	@BeforeClass
+	public static void setupConnectionFactory() {
+		RedisAvailableRule.setupConnectionFactory();
+	}
+
+	@AfterClass
+	public static void cleanUpConnectionFactoryIfAny() {
+		RedisAvailableRule.cleanUpConnectionFactoryIfAny();
+	}
 
 	protected RedisConnectionFactory getConnectionFactoryForTest() {
-		if (this.connectionFactory != null) {
-			return this.connectionFactory;
-		}
-		RedisConnectionFactory connectionFactory =  RedisAvailableRule.connectionFactoryResource.get();
-		this.connectionFactory = connectionFactory;
-		return connectionFactory;
+		return RedisAvailableRule.connectionFactory;
 	}
 
 	protected void awaitContainerSubscribed(RedisMessageListenerContainer container) throws Exception {
 		awaitContainerSubscribedNoWait(container);
-		// wait another second because of race condition
-		Thread.sleep(1000);
 	}
 
 	private void awaitContainerSubscribedNoWait(RedisMessageListenerContainer container) throws InterruptedException {
@@ -66,7 +69,7 @@ public class RedisAvailableTests {
 		int n = 0;
 		while (n++ < 300 &&
 				(connection =
-				TestUtils.getPropertyValue(container, "subscriptionTask.connection", RedisConnection .class)) == null) {
+						TestUtils.getPropertyValue(container, "subscriptionTask.connection", RedisConnection.class)) == null) {
 			Thread.sleep(100);
 		}
 		assertNotNull("RedisMessageListenerContainer Failed to Connect", connection);

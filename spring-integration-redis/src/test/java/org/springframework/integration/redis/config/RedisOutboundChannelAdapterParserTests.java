@@ -22,6 +22,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -65,6 +67,21 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 	@Autowired
 	private RedisInboundChannelAdapter fooInbound;
 
+	@Autowired
+	private RedisInboundChannelAdapter barInbound;
+
+	@Before
+	public void setup() {
+		this.fooInbound.start();
+		this.barInbound.start();
+	}
+
+	@After
+	public void tearDown() {
+		this.fooInbound.stop();
+		this.barInbound.stop();
+	}
+
 	@Test
 	@RedisAvailable
 	public void validateConfiguration() {
@@ -94,16 +111,16 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
 		this.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
 				RedisMessageListenerContainer.class));
-		sendChannel.send(new GenericMessage<String>("Hello Redis"));
+		sendChannel.send(new GenericMessage<>("Hello Redis"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
-		Message<?> message = receiveChannel.receive(5000);
+		Message<?> message = receiveChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("Hello Redis", message.getPayload());
 
 		sendChannel = context.getBean("sendChannel", MessageChannel.class);
 		sendChannel.send(MessageBuilder.withPayload("Hello Redis").setHeader("topic", "bar").build());
 		receiveChannel = context.getBean("barChannel", QueueChannel.class);
-		message = receiveChannel.receive(5000);
+		message = receiveChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("Hello Redis", message.getPayload());
 	}
@@ -111,12 +128,12 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests 
 	@Test //INT-2275
 	@RedisAvailable
 	public void testOutboundChannelAdapterWithinChain() throws Exception {
-		MessageChannel sendChannel = context.getBean("redisOutboudChain", MessageChannel.class);
+		MessageChannel sendChannel = context.getBean("redisOutboundChain", MessageChannel.class);
 		this.awaitContainerSubscribed(TestUtils.getPropertyValue(fooInbound, "container",
 				RedisMessageListenerContainer.class));
-		sendChannel.send(new GenericMessage<String>("Hello Redis from chain"));
+		sendChannel.send(new GenericMessage<>("Hello Redis from chain"));
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
-		Message<?> message = receiveChannel.receive(5000);
+		Message<?> message = receiveChannel.receive(10000);
 		assertNotNull(message);
 		assertEquals("Hello Redis from chain", message.getPayload());
 	}

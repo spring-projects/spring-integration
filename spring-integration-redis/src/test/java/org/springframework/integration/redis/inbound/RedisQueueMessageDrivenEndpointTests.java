@@ -278,7 +278,7 @@ public class RedisQueueMessageDrivenEndpointTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	@Ignore("JedisConnectionFactory doesn't support proper 'destroy()' and allows to create new fresh Redis connection")
+	@Ignore("LettuceConnectionFactory doesn't support proper reinitialization after 'destroy()'")
 	public void testInt3196Recovery() throws Exception {
 		String queueName = "test.si.Int3196Recovery";
 		QueueChannel channel = new QueueChannel();

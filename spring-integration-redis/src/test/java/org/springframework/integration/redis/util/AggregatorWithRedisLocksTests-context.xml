@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:constant id="redisConnectionFactory"
+				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
 
 	<int:aggregator input-channel="in" release-strategy="latching" output-channel="out"
 		message-store="sms"
@@ -11,13 +16,8 @@
 
 	<bean id="latching" class="org.springframework.integration.redis.util.AggregatorWithRedisLocksTests$LatchingReleaseStrategy" />
 
-
-	<bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
-	</bean>
-
 	<bean id="redisLockRegistry" class="org.springframework.integration.redis.util.RedisLockRegistry">
-		<constructor-arg ref="connectionFactory"/>
+		<constructor-arg ref="redisConnectionFactory"/>
 		<constructor-arg value="aggregatorWithRedisLocksTests" />
 	</bean>
 
@@ -28,7 +28,7 @@
 		expire-groups-upon-completion="true" lock-registry="redisLockRegistry2" />
 
 	<bean id="redisLockRegistry2" class="org.springframework.integration.redis.util.RedisLockRegistry">
-		<constructor-arg ref="connectionFactory"/>
+		<constructor-arg ref="redisConnectionFactory"/>
 		<constructor-arg value="aggregatorWithRedisLocksTests" />
 	</bean>
 

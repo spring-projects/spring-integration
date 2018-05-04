@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:constant id="redisConnectionFactory"
+				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
 
 	<bean id="cms" class="org.springframework.integration.redis.store.RedisChannelMessageStore">
-		<constructor-arg>
-			<bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
-			</bean>
-		</constructor-arg>
+		<constructor-arg ref="redisConnectionFactory"/>
 	</bean>
 
 	<int:channel id="testChannel1">
@@ -22,11 +23,7 @@
 	</int:channel>
 
 	<bean id="priorityCms" class="org.springframework.integration.redis.store.RedisChannelPriorityMessageStore">
-		<constructor-arg>
-			<bean class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-				<property name="port" value="#{T(org.springframework.integration.redis.rules.RedisAvailableRule).REDIS_PORT}"/>
-			</bean>
-		</constructor-arg>
+		<constructor-arg ref="redisConnectionFactory"/>
 	</bean>
 
 	<int:channel id="testChannel3">

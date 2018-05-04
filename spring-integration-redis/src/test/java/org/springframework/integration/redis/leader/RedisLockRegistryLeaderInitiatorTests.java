@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.leader.Context;
@@ -34,6 +35,7 @@ import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 
 /**
  * @author Artem Bilan
@@ -44,16 +46,22 @@ import org.springframework.integration.support.leader.LockRegistryLeaderInitiato
  */
 public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
+	@Rule
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.trace()
+					.categories(true, "org.springframework.data.redis");
+
 	@Test
 	@RedisAvailable
 	public void testDistributedLeaderElection() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), "LeaderInitiator");
+		registry.expireUnusedOlderThan(-1);
 		CountDownLatch granted = new CountDownLatch(1);
 		CountingPublisher countingPublisher = new CountingPublisher(granted);
 		List<LockRegistryLeaderInitiator> initiators = new ArrayList<>();
 		for (int i = 0; i < 2; i++) {
-			RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), "LeaderInitiator");
 			LockRegistryLeaderInitiator initiator =
-					new LockRegistryLeaderInitiator(registry, new DefaultCandidate("foo", "bar"));
+					new LockRegistryLeaderInitiator(registry, new DefaultCandidate("foo:" + i, "bar"));
 			initiator.setLeaderEventPublisher(countingPublisher);
 			initiators.add(initiator);
 		}
