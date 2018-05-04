@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.leader.Context;
@@ -34,6 +35,7 @@ import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 
 /**
  * @author Artem Bilan
@@ -43,6 +45,11 @@ import org.springframework.integration.support.leader.LockRegistryLeaderInitiato
  * @since 4.3.9
  */
 public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
+
+	@Rule
+	public Log4j2LevelAdjuster adjuster =
+			Log4j2LevelAdjuster.trace()
+					.categories(true, "org.springframework.data.redis");
 
 	@Test
 	@RedisAvailable
