@@ -311,8 +311,8 @@ public class PollerAdviceTests {
 			while (overridePresent.size() > 5) {
 				overridePresent.removeLast();
 			}
+			assertThat(overridePresent, contains(null, override, null, override, null));
 		}
-		assertThat(overridePresent, contains(null, override, null, override, null));
 		verify(override, atLeast(2)).nextExecutionTime(any(TriggerContext.class));
 	}
 
