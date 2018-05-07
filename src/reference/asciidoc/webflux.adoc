@@ -6,7 +6,7 @@
 
 The WebFlux Spring Integration module (`spring-integration-webflux`) allows for the execution of HTTP requests and the processing of inbound HTTP requests in Reactive manner.
 The WebFlux support consists of the following gateway implementations: `WebFluxInboundEndpoint`, `WebFluxRequestExecutingMessageHandler`.
-The implementation is fully based on the Spring http://docs.spring.io/spring/docs/5.0.0.RC3/spring-framework-reference/web.html#web-reactive[WebFlux] and https://projectreactor.io/[Project Reactor] foundations.
+The implementation is fully based on the Spring https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#spring-webflux[WebFlux] and https://projectreactor.io/[Project Reactor] foundations.
 Also see <<http>> for more information since many options are shared between reactive and regular HTTP components.
 
 [[webflux-inbound]]
@@ -64,6 +64,8 @@ public IntegrationFlow sseFlow() {
 ----
 
 Also see <<http-request-mapping>> and <<http-cors>> for more possible configuration options.
+
+When the request body is empty, or `payloadExpression` returns `null`, the request params `MultiValueMap<String, String>` is used for a `payload` of the target message to process.
 
 [[webflux-outbound]]
 === WebFlux Outbound Components
