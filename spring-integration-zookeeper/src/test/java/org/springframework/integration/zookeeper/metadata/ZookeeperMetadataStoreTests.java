@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,10 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 				return metadataStore.get(testKey2);
 			}
 		})));
+
+		otherMetadataStore.stop();
 		CloseableUtils.closeQuietly(otherClient);
+
 	}
 
 	@Test
@@ -164,6 +167,8 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 			}
 		})));
 		assertEquals("Integration-2", otherMetadataStore.get(testKey));
+
+		otherMetadataStore.stop();
 		CloseableUtils.closeQuietly(otherClient);
 	}
 
@@ -223,7 +228,6 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		String testValue = "Integration";
 		metadataStore.put(testKey, testValue);
 		assertEquals(testValue, metadataStore.remove(testKey));
-		Thread.sleep(1000);
 		assertNull(metadataStore.remove(testKey));
 	}
 
@@ -296,10 +300,6 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		waitAtBarrier("remove", barriers);
 		assertThat(notifiedChanges, hasSize(4));
 		assertThat(notifiedChanges.get(3), IsIterableContainingInOrder.contains("remove", testKey, "Integration-3"));
-
-		// sleep and try to see if there were any other updates
-		Thread.sleep(1000);
-		assertThat(notifiedChanges, hasSize(4));
 	}
 
 	@Test
@@ -367,9 +367,8 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		assertThat(notifiedChanges, hasSize(4));
 		assertThat(notifiedChanges.get(3), IsIterableContainingInOrder.contains("remove", testKey, "Integration-3"));
 
-		// sleep and try to see if there were any other updates - if there any pending updates, we should catch them by now
-		Thread.sleep(1000);
-		assertThat(notifiedChanges, hasSize(4));
+		otherMetadataStore.stop();
+		CloseableUtils.closeQuietly(otherClient);
 	}
 
 	@Test
@@ -386,6 +385,19 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		assertThat(listeners, IsIterableContainingInOrder.contains(mockListener));
 		metadataStore.removeListener(mockListener);
 		assertThat(listeners, hasSize(0));
+	}
+
+	@Test
+	public void testEnsureStarted() {
+		ZookeeperMetadataStore zookeeperMetadataStore = new ZookeeperMetadataStore(this.client);
+
+		try {
+			zookeeperMetadataStore.get("foo");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(), containsString("ZookeeperMetadataStore has to be started before using."));
+		}
 	}
 
 	private void waitAtBarrier(String barrierName, Map<String, CyclicBarrier> barriers) {
