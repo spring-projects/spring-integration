@@ -23,10 +23,12 @@ A minimal configuration might be:
 ----
 <bean id="clientFactory"
         class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
-    <bean class="org.eclipse.paho.client.mqttv3.MqttConnectOptions">
-        <property name="userName" value="${mqtt.username}"/>
-        <property name="password" value="${mqtt.password}"/>
-    </bean>
+    <property name="connectionOptions">
+        <bean class="org.eclipse.paho.client.mqttv3.MqttConnectOptions">
+            <property name="userName" value="${mqtt.username}"/>
+            <property name="password" value="${mqtt.password}"/>
+        </bean>
+    </property>
 </bean>
 
 <int-mqtt:message-driven-channel-adapter id="mqttInbound"
