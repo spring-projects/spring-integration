@@ -150,6 +150,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	private Mono<Void> doHandle(ServerWebExchange exchange) {
 		return extractRequestBody(exchange)
 				.doOnSubscribe(s -> this.activeCount.incrementAndGet())
+				.switchIfEmpty(Mono.just(exchange.getRequest().getQueryParams()))
 				.map(body -> new HttpEntity<>(body, exchange.getRequest().getHeaders()))
 				.map(entity -> buildMessage(entity, exchange))
 				.flatMap(requestMessage -> {
@@ -267,10 +268,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		Object payload;
 		if (getPayloadExpression() != null) {
 			payload = getPayloadExpression().getValue(evaluationContext);
-			if (payload == null) {
-				throw new IllegalStateException("The payload expression '" + getPayloadExpression().getExpressionString()
-						+ "' returned null.");
-			}
 		}
 		else {
 			payload = httpEntity.getBody();
@@ -286,6 +283,10 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 					headers.put(headerName, headerValue);
 				}
 			}
+		}
+
+		if (payload == null) {
+			payload = requestParams;
 		}
 
 		AbstractIntegrationMessageBuilder<?> messageBuilder;

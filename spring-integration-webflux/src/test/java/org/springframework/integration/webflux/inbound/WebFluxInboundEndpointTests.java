@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -95,6 +96,16 @@ public class WebFluxInboundEndpointTests {
 				.is5xxServerError();
 	}
 
+	@Test
+	public void testPostWithEmptyBody() {
+		this.webTestClient
+				.post()
+				.uri("/post?foo=foo")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(String.class).isEqualTo("{foo=[foo]}");
+	}
+
 	@Configuration
 	@EnableWebFlux
 	@EnableIntegration
@@ -154,6 +165,22 @@ public class WebFluxInboundEndpointTests {
 		@ServiceActivator(inputChannel = "errorServiceChannel")
 		public ResponseEntity<String> processHttpRequest() {
 			return new ResponseEntity<>("<500 Internal Server Error,{}>", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		@Bean
+		public WebFluxInboundEndpoint postInboundEndpoint() {
+			WebFluxInboundEndpoint endpoint = new WebFluxInboundEndpoint();
+			RequestMapping requestMapping = new RequestMapping();
+			requestMapping.setPathPatterns("/post");
+			requestMapping.setMethods(HttpMethod.POST);
+			endpoint.setRequestMapping(requestMapping);
+			endpoint.setRequestChannelName("postServiceChannel");
+			return endpoint;
+		}
+
+		@ServiceActivator(inputChannel = "postServiceChannel")
+		String service(Object payload) {
+			return payload.toString();
 		}
 
 	}
