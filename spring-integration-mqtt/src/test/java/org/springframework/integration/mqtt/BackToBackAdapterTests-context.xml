@@ -20,7 +20,11 @@
 	</int:channel>
 
 	<bean id="multiUriClientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
-		<property name="serverURIs" value="tcp://localhost:1883,tcp://localhost:1883"/>
+		<property name="connectionOptions">
+			<bean class="org.eclipse.paho.client.mqttv3.MqttConnectOptions">
+				<property name="serverURIs" value="tcp://localhost:1883,tcp://localhost:1883"/>
+			</bean>
+		</property>
 	</bean>
 
 </beans>
