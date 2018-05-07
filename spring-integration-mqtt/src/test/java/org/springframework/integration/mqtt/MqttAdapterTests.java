@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,6 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.mqtt.core.ConsumerStopAction;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
-import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory.Will;
 import org.springframework.integration.mqtt.event.MqttConnectionFailedEvent;
 import org.springframework.integration.mqtt.event.MqttIntegrationEvent;
 import org.springframework.integration.mqtt.event.MqttSubscribedEvent;
@@ -100,50 +99,22 @@ public class MqttAdapterTests {
 	}
 
 	@Test
-	public void testPahoConnectOptions() {
-		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
-		factory.setCleanSession(false);
-		factory.setConnectionTimeout(23);
-		factory.setKeepAliveInterval(45);
-		factory.setPassword("pass");
-		SocketFactory socketFactory = mock(SocketFactory.class);
-		factory.setSocketFactory(socketFactory);
-		Properties props = new Properties();
-		factory.setSslProperties(props);
-		factory.setUserName("user");
-		Will will = new Will("foo", "bar".getBytes(), 2, true);
-		factory.setWill(will);
-
-		MqttConnectOptions options = factory.getConnectionOptions();
-
-		assertEquals(23, options.getConnectionTimeout());
-		assertEquals(45, options.getKeepAliveInterval());
-		assertEquals("pass", new String(options.getPassword()));
-		assertSame(socketFactory, options.getSocketFactory());
-		assertSame(props, options.getSSLProperties());
-		assertEquals("user", options.getUserName());
-		assertEquals("foo", options.getWillDestination());
-		assertEquals("bar", new String(options.getWillMessage().getPayload()));
-		assertEquals(2, options.getWillMessage().getQos());
-
-	}
-
-	@Test
 	public void testOutboundOptionsApplied() throws Exception {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
-		factory.setCleanSession(false);
-		factory.setConnectionTimeout(23);
-		factory.setKeepAliveInterval(45);
-		factory.setPassword("pass");
+		MqttConnectOptions connectOptions = new MqttConnectOptions();
+		connectOptions.setCleanSession(false);
+		connectOptions.setConnectionTimeout(23);
+		connectOptions.setKeepAliveInterval(45);
+		connectOptions.setPassword("pass".toCharArray());
 		MemoryPersistence persistence = new MemoryPersistence();
 		factory.setPersistence(persistence);
 		final SocketFactory socketFactory = mock(SocketFactory.class);
-		factory.setSocketFactory(socketFactory);
+		connectOptions.setSocketFactory(socketFactory);
 		final Properties props = new Properties();
-		factory.setSslProperties(props);
-		factory.setUserName("user");
-		Will will = new Will("foo", "bar".getBytes(), 2, true);
-		factory.setWill(will);
+		connectOptions.setSSLProperties(props);
+		connectOptions.setUserName("user");
+		connectOptions.setWill("foo", "bar".getBytes(), 2, true);
+		factory.setConnectionOptions(connectOptions);
 
 		factory = spy(factory);
 		final MqttAsyncClient client = mock(MqttAsyncClient.class);
@@ -192,19 +163,20 @@ public class MqttAdapterTests {
 	@Test
 	public void testInboundOptionsApplied() throws Exception {
 		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
-		factory.setCleanSession(false);
-		factory.setConnectionTimeout(23);
-		factory.setKeepAliveInterval(45);
-		factory.setPassword("pass");
+		MqttConnectOptions connectOptions = new MqttConnectOptions();
+		connectOptions.setCleanSession(false);
+		connectOptions.setConnectionTimeout(23);
+		connectOptions.setKeepAliveInterval(45);
+		connectOptions.setPassword("pass".toCharArray());
 		MemoryPersistence persistence = new MemoryPersistence();
 		factory.setPersistence(persistence);
 		final SocketFactory socketFactory = mock(SocketFactory.class);
-		factory.setSocketFactory(socketFactory);
+		connectOptions.setSocketFactory(socketFactory);
 		final Properties props = new Properties();
-		factory.setSslProperties(props);
-		factory.setUserName("user");
-		Will will = new Will("foo", "bar".getBytes(), 2, true);
-		factory.setWill(will);
+		connectOptions.setSSLProperties(props);
+		connectOptions.setUserName("user");
+		connectOptions.setWill("foo", "bar".getBytes(), 2, true);
+		factory.setConnectionOptions(connectOptions);
 
 		factory = spy(factory);
 		final IMqttClient client = mock(IMqttClient.class);
@@ -390,13 +362,15 @@ public class MqttAdapterTests {
 			}
 
 		};
-		factory.setServerURIs("tcp://localhost:1883");
+		MqttConnectOptions connectOptions = new MqttConnectOptions();
+		connectOptions.setServerURIs(new String[] { "tcp://localhost:1883" });
 		if (cleanSession != null) {
-			factory.setCleanSession(cleanSession);
+			connectOptions.setCleanSession(cleanSession);
 		}
 		if (action != null) {
 			factory.setConsumerStopAction(action);
 		}
+		factory.setConnectionOptions(connectOptions);
 		given(client.isConnected()).willReturn(true);
 		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("client", factory, "foo");
 		adapter.setApplicationEventPublisher(mock(ApplicationEventPublisher.class));

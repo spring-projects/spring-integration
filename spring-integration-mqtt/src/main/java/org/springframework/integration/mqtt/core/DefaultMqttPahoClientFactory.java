@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,65 +41,97 @@ import org.springframework.util.Assert;
  */
 public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 
-	private volatile Boolean cleanSession;
+	private MqttConnectOptions options = new MqttConnectOptions();
 
-	private volatile Integer connectionTimeout;
+	private MqttClientPersistence persistence;
 
-	private volatile Integer keepAliveInterval;
+	private ConsumerStopAction consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
 
-	private volatile String password;
-
-	private volatile SocketFactory socketFactory;
-
-	private volatile Properties sslProperties;
-
-	private volatile String userName;
-
-	private volatile MqttClientPersistence persistence;
-
-	private volatile Will will;
-
-	private volatile String[] serverURIs;
-
-	private volatile ConsumerStopAction consumerStopAction = ConsumerStopAction.UNSUBSCRIBE_CLEAN;
-
+	/**
+	 * Set the cleanSession.
+	 * @param cleanSession the cleanSession to set.
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
+	 */
+	@Deprecated
 	public void setCleanSession(Boolean cleanSession) {
-		this.cleanSession = cleanSession;
+		this.options.setCleanSession(cleanSession);
 	}
 
+	/**
+	 * Set the connectionTimeout.
+	 * @param connectionTimeout the connectionTimeout to set.
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
+	 */
+	@Deprecated
 	public void setConnectionTimeout(Integer connectionTimeout) {
-		this.connectionTimeout = connectionTimeout;
+		this.options.setConnectionTimeout(connectionTimeout);
 	}
 
+	/**
+	 * Set the keepAliveInterval.
+	 * @param keepAliveInterval the keepAliveInterval to set.
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
+	 */
+	@Deprecated
 	public void setKeepAliveInterval(Integer keepAliveInterval) {
-		this.keepAliveInterval = keepAliveInterval;
+		this.options.setKeepAliveInterval(keepAliveInterval);
 	}
 
+	/**
+	 * Set the password.
+	 * @param password the password to set.
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
+	 */
+	@Deprecated
 	public void setPassword(String password) {
-		this.password = password;
+		this.options.setPassword(password.toCharArray());
 	}
 
+	/**
+	 * Set the socketFactory.
+	 * @param socketFactory the socketFactory to set.
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
+	 */
+	@Deprecated
 	public void setSocketFactory(SocketFactory socketFactory) {
-		this.socketFactory = socketFactory;
+		this.options.setSocketFactory(socketFactory);
 	}
 
+	/**
+	 * Set the sslProperties.
+	 * @param sslProperties the sslProperties to set.
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
+	 */
+	@Deprecated
 	public void setSslProperties(Properties sslProperties) {
-		this.sslProperties = sslProperties;
+		this.options.setSSLProperties(sslProperties);
 	}
 
+	/**
+	 * Set the userName.
+	 * @param userName the userName to set.
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
+	 */
+	@Deprecated
 	public void setUserName(String userName) {
-		this.userName = userName;
+		this.options.setUserName(userName);
 	}
 
 	/**
 	 * Will be used to set the "Last Will and Testament" (LWT) for the connection.
 	 * @param will The will.
 	 * @see MqttConnectOptions#setWill
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
 	 */
+	@Deprecated
 	public void setWill(Will will) {
-		this.will = will;
+		this.options.setWill(will.getTopic(), will.getPayload(), will.getQos(), will.isRetained());
 	}
 
+	/**
+	 * Set the persistence to pass into the client constructor.
+	 * @param persistence the persistence to set.
+	 */
 	public void setPersistence(MqttClientPersistence persistence) {
 		this.persistence = persistence;
 	}
@@ -109,10 +141,12 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 	 * @param serverURIs The URIs.
 	 * @see MqttConnectOptions#setServerURIs(String[])
 	 * @since 4.1
+	 * @deprecated use {@link #setConnectionOptions(MqttConnectOptions)} instead.
 	 */
+	@Deprecated
 	public void setServerURIs(String... serverURIs) {
 		Assert.notNull(serverURIs, "'serverURIs' must not be null.");
-		this.serverURIs = Arrays.copyOf(serverURIs, serverURIs.length);
+		this.options.setServerURIs(Arrays.copyOf(serverURIs, serverURIs.length));
 	}
 
 	/**
@@ -147,37 +181,19 @@ public class DefaultMqttPahoClientFactory implements MqttPahoClientFactory {
 		return new MqttAsyncClient(uri == null ? "tcp://NO_URL_PROVIDED" : uri, clientId, this.persistence);
 	}
 
+	/**
+	 * Set the preconfigured {@link MqttConnectOptions}.
+	 * @param options the options.
+	 * @since 4.3.16
+	 */
+	public void setConnectionOptions(MqttConnectOptions options) {
+		Assert.notNull(options, "MqttConnectOptions cannot be null");
+		this.options = options;
+	}
+
 	@Override
 	public MqttConnectOptions getConnectionOptions() {
-		MqttConnectOptions options = new MqttConnectOptions();
-		if (this.cleanSession != null) {
-			options.setCleanSession(this.cleanSession);
-		}
-		if (this.connectionTimeout != null) {
-			options.setConnectionTimeout(this.connectionTimeout);
-		}
-		if (this.keepAliveInterval != null) {
-			options.setKeepAliveInterval(this.keepAliveInterval);
-		}
-		if (this.password != null) {
-			options.setPassword(this.password.toCharArray());
-		}
-		if (this.socketFactory != null) {
-			options.setSocketFactory(this.socketFactory);
-		}
-		if (this.sslProperties != null) {
-			options.setSSLProperties(this.sslProperties);
-		}
-		if (this.userName != null) {
-			options.setUserName(this.userName);
-		}
-		if (this.will != null) {
-			options.setWill(this.will.getTopic(), this.will.getPayload(), this.will.getQos(), this.will.isRetained());
-		}
-		if (this.serverURIs != null) {
-			options.setServerURIs(this.serverURIs);
-		}
-		return options;
+		return this.options;
 	}
 
 	public static class Will {
