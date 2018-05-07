@@ -10,6 +10,8 @@ The current implementation uses the http://www.eclipse.org/paho/[Eclipse Paho MQ
 Configuration of both adapters is achieved using the `DefaultMqttPahoClientFactory`.
 Refer to the Paho documentation for more information about configuration options.
 
+NOTE: It is preferred to configure an `MqttConnectOptions` object and inject it into the factory, instead of setting the (deprecated) options on the factory itself.
+
 [[mqtt-inbound]]
 === Inbound (message-driven) Channel Adapter
 
@@ -21,8 +23,10 @@ A minimal configuration might be:
 ----
 <bean id="clientFactory"
         class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
-    <property name="userName" value="${mqtt.username}"/>
-    <property name="password" value="${mqtt.password}"/>
+    <bean class="org.eclipse.paho.client.mqttv3.MqttConnectOptions">
+        <property name="userName" value="${mqtt.username}"/>
+        <property name="password" value="${mqtt.password}"/>
+    </bean>
 </bean>
 
 <int-mqtt:message-driven-channel-adapter id="mqttInbound"
@@ -266,9 +270,11 @@ public class MqttJavaApplication {
     @Bean
     public MqttPahoClientFactory mqttClientFactory() {
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
-        factory.setServerURIs("tcp://host1:1883", "tcp://host2:1883");
-        factory.setUserName("username");
-        factory.setPassword("password");
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setServerURIs(new String[] { "tcp://host1:1883", "tcp://host2:1883" });
+        options.setUserName("username");
+        options.setPassword("password".toCharArray());
+        factory.setConnectionOptions(options);
         return factory;
     }
 
