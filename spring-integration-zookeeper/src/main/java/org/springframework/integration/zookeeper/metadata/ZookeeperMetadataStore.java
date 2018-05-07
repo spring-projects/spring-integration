@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 
 	private volatile int phase = Integer.MAX_VALUE;
 
-	public ZookeeperMetadataStore(CuratorFramework client) throws Exception {
+	public ZookeeperMetadataStore(CuratorFramework client) {
 		Assert.notNull(client, "Client cannot be null");
 		this.client = client;
 	}
@@ -203,6 +203,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 	@Override
 	public String get(String key) {
 		Assert.notNull(key, "'key' must not be null.");
+		Assert.state(isRunning(), "ZookeeperMetadataStore has to be started before using.");
 		synchronized (this.updateMap) {
 			ChildData currentData = this.cache.getCurrentData(getPath(key));
 			if (currentData == null) {
