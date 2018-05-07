@@ -398,7 +398,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							}
 						}
 
-						if (e instanceof InterruptedException) {
+						if (e instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
 							Thread.currentThread().interrupt();
 							if (isRunning()) {
 								logger.warn("Restarting LeaderSelector because of error.", e);
