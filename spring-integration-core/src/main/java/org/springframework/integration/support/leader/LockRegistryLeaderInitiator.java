@@ -315,7 +315,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 					this.future.cancel(true);
 				}
 				this.future = null;
-				logger.debug("Stopped LeaderInitiator");
+				logger.debug("Stopped LeaderInitiator for " + getContext());
 			}
 		}
 	}
@@ -347,6 +347,11 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			try {
 				while (isRunning()) {
 					try {
+
+						if (logger.isDebugEnabled()) {
+							logger.debug("Acquiring the lock for " + this.context);
+						}
+
 						// We always try to acquire the lock, in case it expired
 						boolean acquired = this.lock.tryLock(LockRegistryLeaderInitiator.this.heartBeatMillis,
 								TimeUnit.MILLISECONDS);
@@ -386,8 +391,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 								this.lock.unlock();
 							}
 							catch (Exception e1) {
-								logger.debug("Could not unlock - treat as broken: " + this.context +
-										". Revoking " + (isRunning() ? " and retrying..." : "..."), e);
+								logger.debug("Could not unlock - treat as broken " + this.context +
+										". Revoking " + (isRunning() ? " and retrying..." : "..."), e1);
 
 							}
 							// The lock was broken and we are no longer leader
@@ -401,14 +406,15 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						if (e instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
 							Thread.currentThread().interrupt();
 							if (isRunning()) {
-								logger.warn("Restarting LeaderSelector because of error.", e);
+								logger.warn("Restarting LeaderSelector for " + this.context + " because of error.", e);
 								LockRegistryLeaderInitiator.this.future =
 										LockRegistryLeaderInitiator.this.executorService.submit(this);
 							}
 							return null;
 						}
 						else if (logger.isDebugEnabled()) {
-							logger.debug("Error acquiring the lock. " + (isRunning() ? "Retrying..." : ""), e);
+							logger.debug("Error acquiring the lock for " + this.context +
+									". " + (isRunning() ? "Retrying..." : ""), e);
 						}
 					}
 				}
@@ -420,7 +426,8 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						this.lock.unlock();
 					}
 					catch (Exception e) {
-						logger.debug("Could not unlock during stop - treat as broken. Revoking...", e);
+						logger.debug("Could not unlock during stop for " + this.context
+								+ " - treat as broken. Revoking...", e);
 					}
 					// We are stopping, therefore not leading any more
 					handleRevoked();
@@ -492,6 +499,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 		@Override
 		public void yield() {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Yielding leadership from " + this);
+			}
 			if (LockRegistryLeaderInitiator.this.future != null) {
 				LockRegistryLeaderInitiator.this.future.cancel(true);
 			}

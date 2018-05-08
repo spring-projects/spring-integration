@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -79,8 +80,6 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	private static final long DEFAULT_EXPIRE_AFTER = 60000L;
 
-	public static final long DEFAULT_DELETE_TIMEOUT = 10000L;
-
 	private static final String OBTAIN_LOCK_SCRIPT =
 			"local lockClientId = redis.call('GET', KEYS[1])\n" +
 					"if lockClientId == ARGV[1] then\n" +
@@ -97,21 +96,14 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 	 * An {@link ExecutorService} to call {@link StringRedisTemplate#delete(Object)} in
 	 * the separate thread when the current one is interrupted.
 	 */
-	private ExecutorService executorService =
+	private Executor executor =
 			Executors.newCachedThreadPool(new CustomizableThreadFactory("redis-lock-registry-"));
 
 	/**
 	 * Flag to denote whether the {@link ExecutorService} was provided via the setter and
 	 * thus should not be shutdown when {@link #destroy()} is called
 	 */
-	private boolean executorServiceExplicitlySet;
-
-	/**
-	 * Time in milliseconds to wait for the {@link StringRedisTemplate#delete(Object)} in
-	 * the background thread.
-	 */
-	private long deleteTimeoutMillis = DEFAULT_DELETE_TIMEOUT;
-
+	private boolean executorExplicitlySet;
 
 	private final Map<String, RedisLock> locks = new ConcurrentHashMap<>();
 
@@ -149,6 +141,17 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 		this.expireAfter = expireAfter;
 	}
 
+	/**
+	 * Set the {@link Executor}, where is not provided then a default of
+	 * cached thread pool Executor will be used.
+	 * @param executor the executor service
+	 * @since 5.0.5
+	 */
+	public void setExecutor(Executor executor) {
+		this.executor = executor;
+		this.executorExplicitlySet = true;
+	}
+
 	@Override
 	public Lock obtain(Object lockKey) {
 		Assert.isInstanceOf(String.class, lockKey);
@@ -171,8 +174,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 
 	@Override
 	public void destroy() {
-		if (!this.executorServiceExplicitlySet) {
-			this.executorService.shutdown();
+		if (!this.executorExplicitlySet) {
+			((ExecutorService) this.executor).shutdown();
 		}
 	}
 
@@ -298,11 +301,9 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 				return;
 			}
 			try {
-
 				if (Thread.currentThread().isInterrupted()) {
-					RedisLockRegistry.this.executorService.submit(() ->
-							RedisLockRegistry.this.redisTemplate.delete(this.lockKey))
-							.get(RedisLockRegistry.this.deleteTimeoutMillis, TimeUnit.MILLISECONDS);
+					RedisLockRegistry.this.executor.execute(() ->
+							RedisLockRegistry.this.redisTemplate.delete(this.lockKey));
 				}
 				else {
 					RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
