@@ -16,8 +16,11 @@
 
 package org.springframework.integration.dsl.flowservices;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +33,8 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -70,21 +75,27 @@ import org.springframework.util.StringUtils;
 @DirtiesContext
 public class FlowServiceTests {
 
+	@Autowired(required = false)
+	@Qualifier("flowServiceTests.MyFlow")
+	private IntegrationFlow myFlow;
+
 	@Autowired
 	@Qualifier("flowServiceTests.MyFlow.input")
 	private MessageChannel input;
-
-	@Autowired(required = false)
-	private MyFlow myFlow;
 
 	@Autowired
 	private PollableChannel myFlowAdapterOutput;
 
 	@Test
-	public void testFlowServiceAndLogAsLastNoError() {
+	public void testFlowServiceAndLogAsLastNoError() throws Exception {
 		assertNotNull(this.myFlow);
+		assertTrue(AopUtils.isAopProxy(this.myFlow));
+		assertThat(this.myFlow, instanceOf(Advised.class));
+
 		this.input.send(MessageBuilder.withPayload("foo").build());
-		Object result = this.myFlow.resultOverLoggingHandler.get();
+
+		MyFlow myFlow = (MyFlow) ((Advised) this.myFlow).getTargetSource().getTarget();
+		Object result = myFlow.resultOverLoggingHandler.get();
 		assertNotNull(result);
 		assertEquals("FOO", result);
 	}

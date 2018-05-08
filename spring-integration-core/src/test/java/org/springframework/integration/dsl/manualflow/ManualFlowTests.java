@@ -204,32 +204,6 @@ public class ManualFlowTests {
 
 	@Test
 	public void testWrongLifecycle() {
-
-		class MyIntegrationFlow implements IntegrationFlow {
-
-			@Override
-			public void configure(IntegrationFlowDefinition<?> flow) {
-				flow.bridge();
-			}
-
-		}
-
-		IntegrationFlow testFlow = new MyIntegrationFlow();
-
-		// This is fine because we are not going to start it automatically.
-		assertNotNull(this.integrationFlowContext.registration(testFlow)
-				.autoStartup(false)
-				.register());
-
-		try {
-			this.integrationFlowContext.registration(testFlow).register();
-			fail("IllegalStateException expected");
-		}
-		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalStateException.class));
-			assertThat(e.getMessage(), containsString("Consider to implement it for [" + testFlow + "]."));
-		}
-
 		try {
 			this.integrationFlowContext.remove("foo");
 			fail("IllegalStateException expected");

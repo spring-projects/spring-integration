@@ -643,6 +643,42 @@ public IntegrationFlow routeFlow() {
 The `.channelMapping()` continues to work as in regular `Router` mapping, but the `.subFlowMapping()` tied that subflow with main flow.
 In other words, any router's subflow returns to the main flow after `.route()`.
 
+[IMPORTANT]
+=====
+Sometime it is necessary to refer to an existing `IntegrationFlow` `@Bean` from the `.subFlowMapping()`:
+[source,java]
+----
+@Bean
+public IntegrationFlow splitRouteAggregate() {
+    return f -> f
+            .split()
+            .<Integer, Boolean>route(o -> o % 2 == 0,
+                    m -> m
+                            .subFlowMapping(true, oddFlow())
+                            .subFlowMapping(false, sf -> sf.gateway(evenFlow())))
+            .aggregate();
+}
+
+@Bean
+public IntegrationFlow oddFlow() {
+    return f -> f.handle(m -> System.out.println("odd"));
+}
+
+@Bean
+public IntegrationFlow evenFlow() {
+    return f -> f.handle((p, h) -> "even");
+}
+----
+
+In this case, when you need to receive a reply from such a sub-flow and continue the main flow, this `IntegrationFlow` bean reference (or its input channel) has to be wrapped with the `.gateway()` as shown above.
+The `oddFlow()` referece in the sample above isn't not wrapped to the `.gateway()` - therefore we don't expect a reply from this routing branch.
+Otherwise you end up with an exception like:
+....
+Caused by: org.springframework.beans.factory.BeanCreationException: The 'currentComponent' (org.springframework.integration.router.MethodInvokingRouter@7965a51c) is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'. This is the end of the integration flow.
+....
+When sub-flow is configured as a lambda, the Framework takes care about request-reply interaction with the sub-flow.
+=====
+
 Of course, subflows can be nested with any depth, but we don't recommend to do that because, in fact, even in the router case, adding complex subflows within a flow would quickly begin to look like a plate of spaghetti and difficult for a human to parse.
 
 [[java-dsl-protocol-adapters]]
