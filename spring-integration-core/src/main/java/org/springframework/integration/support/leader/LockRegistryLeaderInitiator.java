@@ -408,7 +408,12 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							if (isRunning()) {
 								logger.warn("Restarting LeaderSelector for " + this.context + " because of error.", e);
 								LockRegistryLeaderInitiator.this.future =
-										LockRegistryLeaderInitiator.this.executorService.submit(this);
+										LockRegistryLeaderInitiator.this.executorService.submit(
+												() -> {
+													// Give it a chance to elect some other leader.
+													Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+													return call();
+												});
 							}
 							return null;
 						}

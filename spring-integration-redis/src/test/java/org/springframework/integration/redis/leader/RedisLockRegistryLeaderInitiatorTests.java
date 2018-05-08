@@ -23,12 +23,9 @@ import static org.junit.Assert.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -40,8 +37,8 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
 import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
+import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Artem Bilan
@@ -52,7 +49,8 @@ import org.springframework.util.ReflectionUtils;
  */
 public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
-	private static final Log logger = LogFactory.getLog(RedisLockRegistryLeaderInitiatorTests.class);
+	@Rule
+	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Rule
 	public Log4j2LevelAdjuster adjuster =
@@ -105,55 +103,28 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 		CountDownLatch acquireLockFailed1 = new CountDownLatch(1);
 		CountDownLatch acquireLockFailed2 = new CountDownLatch(1);
 
-		Executor latchesExecutor = Executors.newCachedThreadPool();
+		initiator1.setLeaderEventPublisher(new CountingPublisher(granted1, revoked1, acquireLockFailed1));
 
-		initiator1.setLeaderEventPublisher(new CountingPublisher(granted1, revoked1, acquireLockFailed1) {
+		initiator2.setLeaderEventPublisher(new CountingPublisher(granted2, revoked2, acquireLockFailed2));
 
-			@Override
-			public void publishOnRevoked(Object source, Context context, String role) {
-				latchesExecutor.execute(() -> {
-					// It's difficult to see round-robin election, so block one initiator until the second is elected.
-					try {
-						assertThat(granted2.await(10, TimeUnit.SECONDS), is(true));
-					}
-					catch (InterruptedException e) {
-						ReflectionUtils.rethrowRuntimeException(e);
-					}
-					super.publishOnRevoked(source, context, role);
-				});
-
-			}
-
-		});
-
-		initiator2.setLeaderEventPublisher(new CountingPublisher(granted2, revoked2, acquireLockFailed2) {
-
-			@Override
-			public void publishOnRevoked(Object source, Context context, String role) {
-				latchesExecutor.execute(() -> {
-					try {
-						// It's difficult to see round-robin election, so block one initiator until the second is elected.
-						assertThat(granted1.await(10, TimeUnit.SECONDS), is(true));
-					}
-					catch (InterruptedException e) {
-						ReflectionUtils.rethrowRuntimeException(e);
-					}
-					super.publishOnRevoked(source, context, role);
-				});
-			}
-
-		});
+		// It's hard to see round-robin election, so let's make the yielding initiator to sleep long before restarting
+		initiator1.setBusyWaitMillis(5000);
 
 		initiator1.getContext().yield();
 
 		assertThat(revoked1.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(granted2.await(10, TimeUnit.SECONDS), is(true));
 
 		assertThat(initiator2.getContext().isLeader(), is(true));
 		assertThat(initiator1.getContext().isLeader(), is(false));
 
+		initiator1.setBusyWaitMillis(LockRegistryLeaderInitiator.DEFAULT_BUSY_WAIT_TIME);
+		initiator2.setBusyWaitMillis(5000);
+
 		initiator2.getContext().yield();
 
 		assertThat(revoked2.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(granted1.await(10, TimeUnit.SECONDS), is(true));
 
 		assertThat(initiator1.getContext().isLeader(), is(true));
 		assertThat(initiator2.getContext().isLeader(), is(false));
@@ -161,7 +132,8 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 		initiator2.stop();
 
 		CountDownLatch revoked11 = new CountDownLatch(1);
-		initiator1.setLeaderEventPublisher(new CountingPublisher(new CountDownLatch(1), revoked11, new CountDownLatch(1)));
+		initiator1.setLeaderEventPublisher(new CountingPublisher(new CountDownLatch(1), revoked11,
+				new CountDownLatch(1)));
 
 		initiator1.getContext().yield();
 
