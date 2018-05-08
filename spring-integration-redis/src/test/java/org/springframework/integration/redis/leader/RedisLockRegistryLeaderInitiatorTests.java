@@ -23,8 +23,12 @@ import static org.junit.Assert.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -36,6 +40,8 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
 import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Artem Bilan
@@ -46,10 +52,12 @@ import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
  */
 public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
+	private static final Log logger = LogFactory.getLog(RedisLockRegistryLeaderInitiatorTests.class);
+
 	@Rule
 	public Log4j2LevelAdjuster adjuster =
 			Log4j2LevelAdjuster.trace()
-					.categories(true, "org.springframework.data.redis");
+					.categories(true, "org.springframework.integration.redis.leader");
 
 	@Test
 	@RedisAvailable
@@ -62,6 +70,8 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 		for (int i = 0; i < 2; i++) {
 			LockRegistryLeaderInitiator initiator =
 					new LockRegistryLeaderInitiator(registry, new DefaultCandidate("foo:" + i, "bar"));
+			initiator.setExecutorService(
+					Executors.newSingleThreadExecutor(new CustomizableThreadFactory("lock-leadership-" + i + "-")));
 			initiator.setLeaderEventPublisher(countingPublisher);
 			initiators.add(initiator);
 		}
@@ -95,18 +105,23 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 		CountDownLatch acquireLockFailed1 = new CountDownLatch(1);
 		CountDownLatch acquireLockFailed2 = new CountDownLatch(1);
 
+		Executor latchesExecutor = Executors.newCachedThreadPool();
+
 		initiator1.setLeaderEventPublisher(new CountingPublisher(granted1, revoked1, acquireLockFailed1) {
 
 			@Override
 			public void publishOnRevoked(Object source, Context context, String role) {
-				try {
+				latchesExecutor.execute(() -> {
 					// It's difficult to see round-robin election, so block one initiator until the second is elected.
-					assertThat(granted2.await(10, TimeUnit.SECONDS), is(true));
-				}
-				catch (InterruptedException e) {
-					// No op
-				}
-				super.publishOnRevoked(source, context, role);
+					try {
+						assertThat(granted2.await(10, TimeUnit.SECONDS), is(true));
+					}
+					catch (InterruptedException e) {
+						ReflectionUtils.rethrowRuntimeException(e);
+					}
+					super.publishOnRevoked(source, context, role);
+				});
+
 			}
 
 		});
@@ -115,14 +130,16 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 
 			@Override
 			public void publishOnRevoked(Object source, Context context, String role) {
-				try {
-					// It's difficult to see round-robin election, so block one initiator until the second is elected.
-					assertThat(granted1.await(10, TimeUnit.SECONDS), is(true));
-				}
-				catch (InterruptedException e) {
-					// No op
-				}
-				super.publishOnRevoked(source, context, role);
+				latchesExecutor.execute(() -> {
+					try {
+						// It's difficult to see round-robin election, so block one initiator until the second is elected.
+						assertThat(granted1.await(10, TimeUnit.SECONDS), is(true));
+					}
+					catch (InterruptedException e) {
+						ReflectionUtils.rethrowRuntimeException(e);
+					}
+					super.publishOnRevoked(source, context, role);
+				});
 			}
 
 		});
