@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -64,6 +65,7 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -90,6 +92,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StopWatch;
 
 
 /**
@@ -130,6 +133,7 @@ public class TcpNioConnectionTests {
 				Socket s = server.accept();
 				// block so we fill the buffer
 				done.await(10, TimeUnit.SECONDS);
+				s.close();
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -804,6 +808,36 @@ public class TcpNioConnectionTests {
 		factory.stop();
 
 		te.shutdown();
+	}
+
+	@Test
+	@Ignore // Timing is too short for CI/Travis
+	public void testNoDelayOnClose() throws Exception {
+		TcpNioServerConnectionFactory cf = new TcpNioServerConnectionFactory(0);
+		final CountDownLatch reading = new CountDownLatch(1);
+		final StopWatch watch = new StopWatch();
+		cf.setDeserializer(is -> {
+			reading.countDown();
+			watch.start();
+			is.read();
+			is.read();
+			watch.stop();
+			return null;
+		});
+		cf.registerListener(m -> false);
+		final CountDownLatch listening = new CountDownLatch(1);
+		cf.setApplicationEventPublisher(e -> {
+			listening.countDown();
+		});
+		cf.afterPropertiesSet();
+		cf.start();
+		assertTrue(listening.await(10, TimeUnit.SECONDS));
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", cf.getPort());
+		socket.getOutputStream().write("x".getBytes());
+		assertTrue(reading.await(10, TimeUnit.SECONDS));
+		socket.close();
+		cf.stop();
+		assertThat(watch.getLastTaskTimeMillis(), lessThan(950L));
 	}
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {

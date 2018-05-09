@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,8 @@ import org.springframework.util.Assert;
 public class TcpNioConnection extends TcpConnectionSupport {
 
 	private static final long DEFAULT_PIPE_TIMEOUT = 60000;
+
+	private static final byte[] EOF = new byte[0]; // EOF marker buffer
 
 	private final SocketChannel socketChannel;
 
@@ -714,7 +716,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			while (buffer == null) {
 				try {
 					buffer = this.buffers.poll(1, TimeUnit.SECONDS);
-					if (buffer == null && this.isClosed) {
+					if (buffer == EOF || (buffer == null && this.isClosed)) {
 						return null;
 					}
 				}
@@ -758,6 +760,12 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		public void close() throws IOException {
 			super.close();
 			this.isClosed = true;
+			try {
+				this.buffers.offer(EOF, TcpNioConnection.this.pipeTimeout, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 		}
 
 		@Override
