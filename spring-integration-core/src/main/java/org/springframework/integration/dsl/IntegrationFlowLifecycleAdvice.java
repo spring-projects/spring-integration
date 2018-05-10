@@ -23,6 +23,27 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * An AOP {@link MethodInterceptor} for the {@link IntegrationFlow} proxies
+ * with a delegation to an associated {@link StandardIntegrationFlow} instance, which
+ * is not exposed as a bean during a target {@link IntegrationFlow} bean processing.
+ *
+ * <p> In most cases an associated internal {@link StandardIntegrationFlow}
+ * exposes an {@code inputChannel} bean for the target {@link IntegrationFlow},
+ * which doesn't start from the channel, e.g. instantiated from lambda.
+ * This way the advice first tries to obtain an {@code inputChannel} from the
+ * target {@link IntegrationFlow} and then falls back to the {@link #delegate}.
+ *
+ * <p> Another aspect of this advice is to control and delegate {@link SmartLifecycle}
+ * of the target {@link IntegrationFlow} and associated {@link #delegate}.
+ * The {@link SmartLifecycle#start()} and {@link SmartLifecycle#stop()} operations
+ * are delegated to the {@link StandardIntegrationFlow} as is because that instance
+ * isn't controlled by the standard application context lifecycle.
+ * The {@link SmartLifecycle#isAutoStartup()}, {@link SmartLifecycle#getPhase()}
+ * and {@link SmartLifecycle#isRunning()} are called on the {@link #delegate}
+ * only in case when {@link MethodInvocation#proceed()} returns {@code null}
+ * or isn't called at all, e.g. when target {@link IntegrationFlow} doesn't
+ * implement {@link SmartLifecycle}.
+ *
  * @author Artem Bilan
  *
  * @since 5.1
