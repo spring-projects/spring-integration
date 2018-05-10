@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
 
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.MessagingException;
 
 /**
  * @author Gary Russell
@@ -85,7 +84,7 @@ public class SimplePoolTests {
 			pool.getItem();
 			fail("Expected exception");
 		}
-		catch (MessagingException e) { }
+		catch (PoolItemNotAvailableException e) { }
 
 		// resize up
 		pool.setPoolSize(4);
@@ -154,17 +153,20 @@ public class SimplePoolTests {
 			final AtomicBoolean stale) {
 		SimplePool<String> pool = new SimplePool<String>(size, new SimplePool.PoolItemCallback<String>() {
 			private int i;
+			@Override
 			public String createForPool() {
 				String string = "String" + i++;
 				strings.add(string);
 				return string;
 			}
+			@Override
 			public boolean isStale(String item) {
 				if (stale.get()) {
 					strings.remove(item);
 				}
 				return stale.get();
 			}
+			@Override
 			public void removedFromPool(String item) {
 				strings.remove(item);
 			}

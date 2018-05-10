@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -155,7 +154,7 @@ public class SimplePool<T> implements Pool<T> {
 
 	/**
 	 * Obtains an item from the pool; waits up to waitTime milliseconds (default infinity).
-	 * @throws MessagingException if no items become available in time.
+	 * @throws PoolItemNotAvailableException if no items become available in time.
 	 */
 	@Override
 	public T getItem() {
@@ -166,10 +165,10 @@ public class SimplePool<T> implements Pool<T> {
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				throw new MessagingException("Interrupted awaiting a pooled resource", e);
+				throw new PoolItemNotAvailableException("Interrupted awaiting a pooled resource", e);
 			}
 			if (!permitted) {
-				throw new IllegalStateException("Timed out while waiting to acquire a pool entry.");
+				throw new PoolItemNotAvailableException("Timed out while waiting to acquire a pool entry.");
 			}
 			return doGetItem();
 		}
@@ -177,10 +176,10 @@ public class SimplePool<T> implements Pool<T> {
 			if (permitted) {
 				this.permits.release();
 			}
-			if (e instanceof MessagingException) {
-				throw (MessagingException) e;
+			if (e instanceof PoolItemNotAvailableException) {
+				throw (PoolItemNotAvailableException) e;
 			}
-			throw new MessagingException("Failed to obtain pooled item", e);
+			throw new PoolItemNotAvailableException("Failed to obtain pooled item", e);
 		}
 	}
 
