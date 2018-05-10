@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.integration.file.remote.session.CachingSessionFactory
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.messaging.MessagingException;
+import org.springframework.integration.util.PoolItemNotAvailableException;
 
 /**
  * @author Oleg Zhurakousky
@@ -163,7 +163,7 @@ public class SessionFactoryTests {
 		Mockito.verify(sessionFactory, Mockito.times(2)).getSession();
 	}
 
-	@Test (expected = MessagingException.class) // timeout expire
+	@Test (expected = PoolItemNotAvailableException.class) // timeout expire
 	public void testSessionWaitExpire() throws Exception {
 		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
 		Session session = Mockito.mock(Session.class);
