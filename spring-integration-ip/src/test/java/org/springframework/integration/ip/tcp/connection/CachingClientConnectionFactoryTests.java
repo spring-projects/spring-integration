@@ -77,9 +77,9 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.PoolItemNotAvailableException;
 import org.springframework.integration.util.SimplePool;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
@@ -216,7 +216,7 @@ public class CachingClientConnectionFactoryTests {
 		conn2a.close();
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test(expected = PoolItemNotAvailableException.class)
 	public void testLimit() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
