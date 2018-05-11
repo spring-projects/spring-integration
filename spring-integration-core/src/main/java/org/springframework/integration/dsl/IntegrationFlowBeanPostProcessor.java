@@ -253,6 +253,15 @@ public class IntegrationFlowBeanPostProcessor
 		return flow;
 	}
 
+	/**
+	 * Only invoked for {@link IntegrationFlow} instances that are not
+	 * {@link StandardIntegrationFlow}s; typically lambdas. Creates a new
+	 * {@link StandardIntegrationFlow} with an input channel named {@code beanName.input}
+	 * and the flow defined by the flow parameter. If the flow is not an
+	 * {@link IntegrationFlowAdapter} the original, user-provided {@link IntegrationFlow}
+	 * is wrapped in a proxy and advised with a {@link IntegrationFlowLifecycleAdvice};
+	 * see its javadocs for more information.
+	 */
 	private Object processIntegrationFlowImpl(IntegrationFlow flow, String beanName) {
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(beanName + ".input");
 
