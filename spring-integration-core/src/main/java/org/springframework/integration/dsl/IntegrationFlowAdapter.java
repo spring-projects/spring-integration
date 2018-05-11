@@ -18,11 +18,15 @@ package org.springframework.integration.dsl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import org.reactivestreams.Publisher;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -176,6 +180,27 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 	protected IntegrationFlowBuilder from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		return IntegrationFlows.from(service, methodName, endpointConfigurer);
+	}
+
+	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
+		return IntegrationFlows.from(messageSource);
+	}
+
+	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
+			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+		return IntegrationFlows.from(messageSource, endpointConfigurer);
+	}
+
+	protected IntegrationFlowBuilder from(Class<?> serviceInterface) {
+		return IntegrationFlows.from(serviceInterface);
+	}
+
+	protected IntegrationFlowBuilder from(Class<?> serviceInterface, String beanName) {
+		return IntegrationFlows.from(serviceInterface, beanName);
+	}
+
+	protected IntegrationFlowBuilder from(Publisher<Message<?>> publisher) {
+		return IntegrationFlows.from(publisher);
 	}
 
 	protected abstract IntegrationFlowDefinition<?> buildFlow();

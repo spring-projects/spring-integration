@@ -16,8 +16,11 @@
 
 package org.springframework.integration.dsl.flowservices;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,11 +33,15 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.Filter;
@@ -70,21 +77,29 @@ import org.springframework.util.StringUtils;
 @DirtiesContext
 public class FlowServiceTests {
 
+	@Autowired(required = false)
+	@Qualifier("flowServiceTests.MyFlow")
+	private IntegrationFlow myFlow;
+
 	@Autowired
 	@Qualifier("flowServiceTests.MyFlow.input")
 	private MessageChannel input;
-
-	@Autowired(required = false)
-	private MyFlow myFlow;
 
 	@Autowired
 	private PollableChannel myFlowAdapterOutput;
 
 	@Test
-	public void testFlowServiceAndLogAsLastNoError() {
+	public void testFlowServiceAndLogAsLastNoError() throws Exception {
 		assertNotNull(this.myFlow);
+		assertTrue(AopUtils.isAopProxy(this.myFlow));
+		assertThat(this.myFlow, instanceOf(Advised.class));
+		assertThat(this.myFlow, instanceOf(Ordered.class));
+		assertThat(this.myFlow, instanceOf(SmartLifecycle.class));
+
 		this.input.send(MessageBuilder.withPayload("foo").build());
-		Object result = this.myFlow.resultOverLoggingHandler.get();
+
+		MyFlow myFlow = (MyFlow) ((Advised) this.myFlow).getTargetSource().getTarget();
+		Object result = myFlow.resultOverLoggingHandler.get();
 		assertNotNull(result);
 		assertEquals("FOO", result);
 	}
@@ -134,7 +149,7 @@ public class FlowServiceTests {
 	}
 
 	@Component
-	public static class MyFlow implements IntegrationFlow {
+	public static class MyFlow implements IntegrationFlow, Ordered {
 
 		private final AtomicReference<Object> resultOverLoggingHandler = new AtomicReference<>();
 
@@ -145,6 +160,11 @@ public class FlowServiceTests {
 						resultOverLoggingHandler.set(m.getPayload());
 						return m;
 					});
+		}
+
+		@Override
+		public int getOrder() {
+			return 0;
 		}
 
 	}

@@ -20,6 +20,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
@@ -33,6 +35,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
@@ -250,11 +253,44 @@ public class IntegrationFlowBeanPostProcessor
 		return flow;
 	}
 
+	/**
+	 * Only invoked for {@link IntegrationFlow} instances that are not
+	 * {@link StandardIntegrationFlow}s; typically lambdas. Creates a new
+	 * {@link StandardIntegrationFlow} with an input channel named {@code beanName.input}
+	 * and the flow defined by the flow parameter. If the flow is not an
+	 * {@link IntegrationFlowAdapter} the original, user-provided {@link IntegrationFlow}
+	 * is wrapped in a proxy and advised with a {@link IntegrationFlowLifecycleAdvice};
+	 * see its javadocs for more information.
+	 */
 	private Object processIntegrationFlowImpl(IntegrationFlow flow, String beanName) {
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(beanName + ".input");
+
 		flow.configure(flowBuilder);
-		Object standardIntegrationFlow = processStandardIntegrationFlow(flowBuilder.get(), beanName);
-		return isLambda(flow) ? standardIntegrationFlow : flow;
+
+		StandardIntegrationFlow target = flowBuilder.get();
+		processStandardIntegrationFlow(target, beanName);
+
+		if (!(flow instanceof IntegrationFlowAdapter)) {
+			NameMatchMethodPointcutAdvisor integrationFlowAdvice =
+					new NameMatchMethodPointcutAdvisor(new IntegrationFlowLifecycleAdvice(target));
+			integrationFlowAdvice.setMappedNames(
+					"getInputChannel",
+					"start",
+					"stop",
+					"isRunning",
+					"isAutoStartup",
+					"getPhase");
+
+			ProxyFactory proxyFactory = new ProxyFactory(flow);
+			proxyFactory.addAdvisor(integrationFlowAdvice);
+			if (!(flow instanceof SmartLifecycle)) {
+				proxyFactory.addInterface(SmartLifecycle.class);
+			}
+			return proxyFactory.getProxy(this.beanFactory.getBeanClassLoader());
+		}
+		else {
+			return flow;
+		}
 	}
 
 	private void processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean) {
@@ -319,11 +355,6 @@ public class IntegrationFlowBeanPostProcessor
 			id = generatedBeanName + BeanFactoryUtils.GENERATED_BEAN_NAME_SEPARATOR + counter;
 		}
 		return id;
-	}
-
-	private static boolean isLambda(Object o) {
-		Class<?> aClass = o.getClass();
-		return aClass.isSynthetic() && !aClass.isAnonymousClass() && !aClass.isLocalClass();
 	}
 
 }
