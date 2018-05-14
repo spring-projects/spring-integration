@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ import org.springframework.util.CollectionUtils;
  * @author David Liu
  * @author Enrique Rodriguez
  * @author Meherzad Lahewala
+ *
  * @since 2.0
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
@@ -103,41 +104,41 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private MessageGroupProcessor outputProcessor;
 
-	private volatile MessageGroupStore messageStore;
+	private MessageGroupStore messageStore;
 
-	private volatile CorrelationStrategy correlationStrategy;
+	private CorrelationStrategy correlationStrategy;
 
-	private volatile ReleaseStrategy releaseStrategy;
+	private ReleaseStrategy releaseStrategy;
 
-	private volatile boolean releaseStrategySet;
+	private boolean releaseStrategySet;
 
-	private volatile MessageChannel discardChannel;
+	private MessageChannel discardChannel;
 
-	private volatile String discardChannelName;
+	private String discardChannelName;
 
 	private boolean sendPartialResultOnExpiry = false;
 
-	private volatile boolean sequenceAware = false;
+	private boolean sequenceAware = false;
 
-	private volatile LockRegistry lockRegistry = new DefaultLockRegistry();
+	private LockRegistry lockRegistry = new DefaultLockRegistry();
 
 	private boolean lockRegistrySet = false;
 
-	private volatile long minimumTimeoutForEmptyGroups;
+	private long minimumTimeoutForEmptyGroups;
 
-	private volatile boolean releasePartialSequences;
+	private boolean releasePartialSequences;
 
-	private volatile Expression groupTimeoutExpression;
+	private Expression groupTimeoutExpression;
 
-	private volatile List<Advice> forceReleaseAdviceChain;
+	private List<Advice> forceReleaseAdviceChain;
 
 	private MessageGroupProcessor forceReleaseProcessor = new ForceReleaseMessageGroupProcessor();
 
 	private EvaluationContext evaluationContext;
 
-	private volatile ApplicationEventPublisher applicationEventPublisher;
+	private ApplicationEventPublisher applicationEventPublisher;
 
-	private volatile boolean expireGroupsUponTimeout = true;
+	private boolean expireGroupsUponTimeout = true;
 
 	private volatile boolean running;
 
@@ -436,7 +437,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				if (this.releaseStrategy.canRelease(messageGroup)) {
 					Collection<Message<?>> completedMessages = null;
 					try {
-						completedMessages = this.completeGroup(message, correlationKey, messageGroup);
+						completedMessages = completeGroup(message, correlationKey, messageGroup);
 					}
 					finally {
 						// Possible clean (implementation dependency) up
@@ -520,10 +521,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (groupTimeout != null && groupTimeout >= 0) {
 			if (groupTimeout > 0) {
 				final Object groupId = messageGroup.getGroupId();
+				final long timestamp = messageGroup.getTimestamp();
+				final long lastModified = messageGroup.getLastModified();
 				ScheduledFuture<?> scheduledFuture = getTaskScheduler()
 						.schedule(() -> {
 							try {
-								processForceRelease(groupId);
+								processForceRelease(groupId, timestamp, lastModified);
 							}
 							catch (MessageDeliveryException e) {
 								if (AbstractCorrelatingMessageHandler.this.logger.isWarnEnabled()) {
@@ -550,9 +553,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		scheduleGroupToForceComplete(messageGroup);
 	}
 
-	private void processForceRelease(Object groupId) {
+	private void processForceRelease(Object groupId, long timestamp, long lastModified) {
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(groupId);
-		this.forceReleaseProcessor.processMessageGroup(messageGroup);
+		if (messageGroup.getTimestamp() == timestamp && messageGroup.getLastModified() == lastModified) {
+			this.forceReleaseProcessor.processMessageGroup(messageGroup);
+		}
 	}
 
 	private void discardMessage(Message<?> message) {
@@ -616,9 +621,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 				long lastModifiedNow = groupNow.getLastModified();
 				int groupSize = groupNow.size();
+
 				if ((!groupNow.isComplete() || groupSize == 0)
 						&& group.getLastModified() == lastModifiedNow
 						&& group.getTimestamp() == groupNow.getTimestamp()) {
+
 					if (groupSize > 0) {
 						if (this.releaseStrategy.canRelease(groupNow)) {
 							completeGroup(correlationKey, groupNow);
