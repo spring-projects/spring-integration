@@ -16,6 +16,7 @@
 
 package org.springframework.integration.kafka.dsl;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -44,12 +45,16 @@ import org.springframework.util.Assert;
  * @since 3.0.2
  */
 public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<K, V, R, S>>
-		extends MessagingGatewaySpec<S, KafkaInboundGateway<K, V, R>> {
+		extends MessagingGatewaySpec<S, KafkaInboundGateway<K, V, R>>
+		implements ComponentsRegistration {
+
+	private final AbstractMessageListenerContainer<K, V> container;
 
 	KafkaInboundGatewaySpec(AbstractMessageListenerContainer<K, V> messageListenerContainer,
 			KafkaTemplate<K, R> kafkaTemplate) {
 
 		super(new KafkaInboundGateway<>(messageListenerContainer, kafkaTemplate));
+		this.container = messageListenerContainer;
 	}
 
 	/**
@@ -84,6 +89,11 @@ public class KafkaInboundGatewaySpec<K, V, R, S extends KafkaInboundGatewaySpec<
 	public S recoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
 		this.target.setRecoveryCallback(recoveryCallback);
 		return _this();
+	}
+
+	@Override
+	public Map<Object, String> getComponentsToRegister() {
+		return Collections.singletonMap(this.container, getId() == null ? null : getId() + ".container");
 	}
 
 	/**

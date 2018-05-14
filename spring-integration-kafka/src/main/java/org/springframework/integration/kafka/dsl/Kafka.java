@@ -104,7 +104,11 @@ public final class Kafka {
 	}
 
 	/**
-	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec}.
+	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec}. If the listener
+	 * container is not already a bean it will be registered in the application context.
+	 * If the adapter spec has an {@code id}, the bean name will be that id appended with
+	 * '.container'. Otherwise, the bean name will be generated from the container class
+	 * name.
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer}.
 	 * @param <K> the Kafka message key type.
 	 * @param <V> the Kafka message value type.
@@ -117,7 +121,11 @@ public final class Kafka {
 	}
 
 	/**
-	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec}.
+	 * Create an initial {@link KafkaMessageDrivenChannelAdapterSpec}. If the listener
+	 * container is not already a bean it will be registered in the application context.
+	 * If the adapter spec has an {@code id}, the bean name will be that id appended with
+	 * '.container'. Otherwise, the bean name will be generated from the container class
+	 * name.
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer}.
 	 * @param listenerMode the {@link KafkaMessageDrivenChannelAdapter.ListenerMode}.
 	 * @param <K> the Kafka message key type.
@@ -316,7 +324,10 @@ public final class Kafka {
 
 	/**
 	 * Create an initial {@link KafkaInboundGatewaySpec} with the provided container and
-	 * template.
+	 * template. If the listener container is not already a bean it will be registered in
+	 * the application context. If the adapter spec has an {@code id}, the bean name will
+	 * be that id appended with '.container'. Otherwise, the bean name will be generated
+	 * from the container class name.
 	 * @param container the container.
 	 * @param template the template.
 	 * @param <K> the Kafka message key type.

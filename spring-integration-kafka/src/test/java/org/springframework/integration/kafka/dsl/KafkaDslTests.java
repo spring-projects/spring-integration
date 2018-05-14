@@ -52,12 +52,14 @@ import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessage
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.ContainerProperties.AckMode;
 import org.springframework.kafka.listener.GenericMessageListenerContainer;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListenerContainer;
@@ -100,8 +102,8 @@ public class KafkaDslTests {
 	private static final String TEST_TOPIC5 = "test-topic5";
 
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3,
-			TEST_TOPIC4, TEST_TOPIC5);
+	public static KafkaEmbedded embeddedKafka =
+			new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3, TEST_TOPIC4, TEST_TOPIC5);
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -212,7 +214,7 @@ public class KafkaDslTests {
 
 	@Test
 	public void testGateways() throws Exception {
-		assertThat(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS));
+		assertThat(this.config.replyContainerLatch.await(30, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.gate.exchange(TEST_TOPIC4, "foo")).isEqualTo("FOO");
 	}
 
@@ -260,15 +262,22 @@ public class KafkaDslTests {
 		}
 
 		@Bean
+		public ConcurrentKafkaListenerContainerFactory<Integer, String> kafkaListenerContainerFactory() {
+			ConcurrentKafkaListenerContainerFactory<Integer, String> factory =
+					new ConcurrentKafkaListenerContainerFactory<>();
+			factory.setConsumerFactory(consumerFactory());
+			factory.getContainerProperties().setAckMode(AckMode.MANUAL);
+			factory.setRecoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
+					new RawRecordHeaderErrorMessageStrategy()));
+			factory.setRetryTemplate(new RetryTemplate());
+			return factory;
+		}
+
+		@Bean
 		public IntegrationFlow topic2ListenerFromKafkaFlow() {
 			return IntegrationFlows
-					.from(Kafka.messageDrivenChannelAdapter(consumerFactory(),
-							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC2)
-							.configureListenerContainer(c ->
-									c.ackMode(ContainerProperties.AckMode.MANUAL))
-							.recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
-									new RawRecordHeaderErrorMessageStrategy()))
-							.retryTemplate(new RetryTemplate())
+					.from(Kafka.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
+							KafkaMessageDrivenChannelAdapter.ListenerMode.record)
 							.filterInRetry(true))
 					.filter(Message.class, m ->
 									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
@@ -380,4 +389,5 @@ public class KafkaDslTests {
 		String exchange(@Header(KafkaHeaders.TOPIC) String topic, String out);
 
 	}
+
 }
