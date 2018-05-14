@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,11 +46,15 @@ import org.springframework.util.Assert;
  * @since 3.0
  */
 public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDrivenChannelAdapterSpec<K, V, S>>
-		extends MessageProducerSpec<S, KafkaMessageDrivenChannelAdapter<K, V>> {
+		extends MessageProducerSpec<S, KafkaMessageDrivenChannelAdapter<K, V>>
+		implements ComponentsRegistration {
+
+	private final AbstractMessageListenerContainer<K, V> container;
 
 	KafkaMessageDrivenChannelAdapterSpec(AbstractMessageListenerContainer<K, V> messageListenerContainer,
 			KafkaMessageDrivenChannelAdapter.ListenerMode listenerMode) {
 		super(new KafkaMessageDrivenChannelAdapter<>(messageListenerContainer, listenerMode));
+		this.container = messageListenerContainer;
 	}
 
 	/**
@@ -150,6 +154,11 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	public S filterInRetry(boolean filterInRetry) {
 		this.target.setFilterInRetry(filterInRetry);
 		return _this();
+	}
+
+	@Override
+	public Map<Object, String> getComponentsToRegister() {
+		return Collections.singletonMap(this.container, getId() == null ? null : getId() + ".container");
 	}
 
 	/**
