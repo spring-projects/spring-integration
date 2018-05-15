@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.integration.aggregator.ResequencingMessageHandler;
  * @author Dave Syer
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class ResequencerParser extends AbstractCorrelatingMessageHandlerParser {
 
@@ -43,10 +44,11 @@ public class ResequencerParser extends AbstractCorrelatingMessageHandlerParser {
 
 		builder.addConstructorArgValue(processorBuilder.getBeanDefinition());
 
-		this.doParse(builder, element, processorBuilder.getBeanDefinition(), parserContext);
+		this.doParse(builder, element, null, parserContext);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE);
 
 		return builder;
 	}
+
 }

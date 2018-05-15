@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
-import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
+import org.springframework.integration.aggregator.SimpleSequenceSizeReleaseStrategy;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.StringUtils;
 
@@ -46,10 +46,7 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy>,
 
 	private String methodName;
 
-	private ReleaseStrategy strategy = new SequenceSizeReleaseStrategy();
-
-	public ReleaseStrategyFactoryBean() {
-	}
+	private ReleaseStrategy strategy = new SimpleSequenceSizeReleaseStrategy();
 
 	public void setTarget(Object target) {
 		this.target = target;
@@ -79,16 +76,14 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy>,
 					if (logger.isWarnEnabled()) {
 						logger.warn("No ReleaseStrategy annotated method found on "
 								+ this.target.getClass().getSimpleName()
-								+ "; falling back to SequenceSizeReleaseStrategy, target:"
-								+ this.target + ", methodName:" + this.methodName);
+								+ "; falling back to SimpleSequenceSizeReleaseStrategy, target: "
+								+ this.target + ", methodName: " + this.methodName);
 					}
 				}
 			}
 		}
 		else {
-			if (logger.isWarnEnabled()) {
-				logger.warn("No target supplied; falling back to SequenceSizeReleaseStrategy");
-			}
+			logger.warn("No target supplied; falling back to SimpleSequenceSizeReleaseStrategy");
 		}
 	}
 

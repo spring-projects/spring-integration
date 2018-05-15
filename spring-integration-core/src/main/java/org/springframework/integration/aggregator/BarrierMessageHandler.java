@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,9 +81,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	 * @param outputProcessor the output {@link MessageGroupProcessor}.
 	 */
 	public BarrierMessageHandler(long timeout, MessageGroupProcessor outputProcessor) {
-		this(timeout, outputProcessor,
-				new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
-		);
+		this(timeout, outputProcessor, null);
 	}
 
 	/**
@@ -105,10 +103,12 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	 */
 	public BarrierMessageHandler(long timeout, MessageGroupProcessor outputProcessor,
 			CorrelationStrategy correlationStrategy) {
+
 		Assert.notNull(outputProcessor, "'messageGroupProcessor' cannot be null");
-		Assert.notNull(correlationStrategy, "'correlationStrategy' cannot be null");
 		this.messageGroupProcessor = outputProcessor;
-		this.correlationStrategy = correlationStrategy;
+		this.correlationStrategy = (correlationStrategy == null
+				? new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
+				: correlationStrategy);
 		this.timeout = timeout;
 	}
 

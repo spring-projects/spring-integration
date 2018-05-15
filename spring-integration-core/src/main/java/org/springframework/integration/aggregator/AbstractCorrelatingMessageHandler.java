@@ -153,6 +153,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				? new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
 				: correlationStrategy);
 		this.releaseStrategy = releaseStrategy == null ? new SimpleSequenceSizeReleaseStrategy() : releaseStrategy;
+		this.releaseStrategySet = releaseStrategy != null;
 		this.sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
