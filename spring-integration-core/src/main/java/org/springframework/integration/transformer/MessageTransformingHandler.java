@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.transformer;
+
+import java.util.Collection;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
@@ -61,6 +63,18 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	protected void doInit() {
 		if (this.getBeanFactory() != null && this.transformer instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.transformer).setBeanFactory(this.getBeanFactory());
+		}
+	}
+
+	@Override
+	protected void updateNotPropagatedHeaders(String[] headers, boolean merge) {
+		super.updateNotPropagatedHeaders(headers, merge);
+
+		Collection<String> notPropagatedHeaders = getNotPropagatedHeaders();
+
+		if (this.transformer instanceof AbstractMessageProcessingTransformer && !notPropagatedHeaders.isEmpty()) {
+			((AbstractMessageProcessingTransformer) this.transformer)
+					.setNotPropagatedHeaders(notPropagatedHeaders.toArray(new String[0]));
 		}
 	}
 

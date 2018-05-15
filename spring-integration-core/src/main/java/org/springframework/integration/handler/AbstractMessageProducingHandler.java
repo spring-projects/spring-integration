@@ -139,7 +139,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * @param merge true to merge with existing patterns; false to replace.
 	 * @since 5.0.2
 	 */
-	protected final void updateNotPropagatedHeaders(String[] headers, boolean merge) {
+	protected void updateNotPropagatedHeaders(String[] headers, boolean merge) {
 		Set<String> headerPatterns = new HashSet<>();
 
 		if (merge && this.notPropagatedHeaders != null) {
@@ -151,7 +151,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 			headerPatterns.addAll(Arrays.asList(headers));
 
-			this.notPropagatedHeaders = headerPatterns.toArray(new String[headerPatterns.size()]);
+			this.notPropagatedHeaders = headerPatterns.toArray(new String[0]);
 		}
 
 		boolean hasAsterisk = headerPatterns.contains("*");
