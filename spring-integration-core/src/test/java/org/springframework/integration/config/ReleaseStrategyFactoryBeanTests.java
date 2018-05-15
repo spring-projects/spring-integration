@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,19 +29,20 @@ import org.junit.Test;
 
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
-import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
+import org.springframework.integration.aggregator.SimpleSequenceSizeReleaseStrategy;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0.2
  */
 public class ReleaseStrategyFactoryBeanTests {
 
 	@Test
-	public void testRefWithNoMethod() throws Exception {
+	public void testRefWithNoMethod() {
 		Foo foo = new Foo();
 		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
 		factory.setTarget(foo);
@@ -53,7 +54,7 @@ public class ReleaseStrategyFactoryBeanTests {
 		catch (Exception e) {
 			assertThat(e, instanceOf(IllegalStateException.class));
 			assertThat(e.getMessage(), containsString("Target object of type " +
-							"[class org.springframework.integration.config.ReleaseStrategyFactoryBeanTests$Foo] " +
+					"[class org.springframework.integration.config.ReleaseStrategyFactoryBeanTests$Foo] " +
 					"has no eligible methods for handling Messages."));
 		}
 	}
@@ -88,7 +89,7 @@ public class ReleaseStrategyFactoryBeanTests {
 		ReleaseStrategyFactoryBean factory = new ReleaseStrategyFactoryBean();
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, instanceOf(SequenceSizeReleaseStrategy.class));
+		assertThat(delegate, instanceOf(SimpleSequenceSizeReleaseStrategy.class));
 	}
 
 	@Test
@@ -98,7 +99,7 @@ public class ReleaseStrategyFactoryBeanTests {
 		factory.setTarget(foo);
 		factory.afterPropertiesSet();
 		ReleaseStrategy delegate = factory.getObject();
-		assertThat(delegate, instanceOf(SequenceSizeReleaseStrategy.class));
+		assertThat(delegate, instanceOf(SimpleSequenceSizeReleaseStrategy.class));
 	}
 
 	@Test
