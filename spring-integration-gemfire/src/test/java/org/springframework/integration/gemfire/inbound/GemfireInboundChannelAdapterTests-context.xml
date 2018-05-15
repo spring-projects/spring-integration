@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
+	   xmlns:gfe="http://www.springframework.org/schema/geode"
 	   xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 		http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
-		http://www.springframework.org/schema/gemfire
-		http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+		http://www.springframework.org/schema/geode
+		http://www.springframework.org/schema/gemfire/spring-geode.xsd
 		http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
