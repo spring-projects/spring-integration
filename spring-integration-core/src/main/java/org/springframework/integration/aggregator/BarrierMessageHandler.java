@@ -81,9 +81,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 	 * @param outputProcessor the output {@link MessageGroupProcessor}.
 	 */
 	public BarrierMessageHandler(long timeout, MessageGroupProcessor outputProcessor) {
-		this(timeout, outputProcessor,
-				new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
-		);
+		this(timeout, outputProcessor, null);
 	}
 
 	/**
