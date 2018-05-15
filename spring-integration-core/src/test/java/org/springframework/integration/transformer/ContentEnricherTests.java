@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import static org.mockito.Mockito.mock;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -63,14 +62,6 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @since 2.1
  */
 public class ContentEnricherTests {
-
-	private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-
-	@Before
-	public void init() throws Exception {
-		taskScheduler.setPoolSize(2);
-		taskScheduler.afterPropertiesSet();
-	}
 
 	/**
 	 * In this test a {@link Target} message is passed into a {@link ContentEnricher}.
@@ -137,6 +128,11 @@ public class ContentEnricherTests {
 
 		consumer.setTrigger(new PeriodicTrigger(0));
 		consumer.setErrorHandler(errorHandler);
+
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setPoolSize(2);
+		taskScheduler.afterPropertiesSet();
+
 		consumer.setTaskScheduler(taskScheduler);
 		consumer.setBeanFactory(mock(BeanFactory.class));
 		consumer.afterPropertiesSet();
@@ -152,6 +148,10 @@ public class ContentEnricherTests {
 			assertEquals("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.",
 					e.getMessage());
 			return;
+		}
+		finally {
+			consumer.stop();
+			taskScheduler.destroy();
 		}
 
 		fail("ReplyRequiredException expected.");
@@ -469,6 +469,8 @@ public class ContentEnricherTests {
 		assertFalse(enricher.isRunning());
 		enricher.start();
 		assertTrue(enricher.isRunning());
+
+		enricher.stop();
 	}
 
 	/**
