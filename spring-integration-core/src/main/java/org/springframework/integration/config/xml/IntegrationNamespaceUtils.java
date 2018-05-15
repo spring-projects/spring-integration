@@ -658,7 +658,10 @@ public abstract class IntegrationNamespaceUtils {
 
 		BeanMetadataElement adapter = constructAdapter(beanRefAttribute, methodRefAttribute, expressionAttribute,
 				adapterClass, element, processor, parserContext);
-		builder.addConstructorArgValue(adapter);
+
+		if (adapter != null) {
+			builder.addConstructorArgValue(adapter);
+		}
 	}
 
 	private static BeanMetadataElement constructAdapter(String beanRefAttribute, String methodRefAttribute,
