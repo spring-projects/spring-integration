@@ -17,14 +17,11 @@
 package org.springframework.integration.transformer;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -32,7 +29,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.PatternMatchUtils;
 
 /**
  * Base class for Message Transformers that delegate to a {@link MessageProcessor}.
@@ -106,7 +102,6 @@ public abstract class AbstractMessageProcessingTransformer
 	public void setNotPropagatedHeaders(String... headers) {
 		if (!ObjectUtils.isEmpty(headers)) {
 			Assert.noNullElements(headers, "null elements are not allowed in 'headers'");
-
 			this.notPropagatedHeaders = Arrays.copyOf(headers, headers.length);
 		}
 
@@ -125,23 +120,11 @@ public abstract class AbstractMessageProcessingTransformer
 
 		MessageHeaders requestHeaders = message.getHeaders();
 
-		AbstractIntegrationMessageBuilder<?> messageBuilder =
-				getMessageBuilderFactory()
-						.withPayload(result);
-
-		if (this.selectiveHeaderPropagation) {
-			Map<String, Object> headersToCopy = new HashMap<>(requestHeaders);
-
-			headersToCopy.entrySet()
-					.removeIf(entry -> PatternMatchUtils.simpleMatch(this.notPropagatedHeaders, entry.getKey()));
-
-			messageBuilder.copyHeadersIfAbsent(headersToCopy);
-		}
-		else {
-			messageBuilder.copyHeadersIfAbsent(requestHeaders);
-		}
-
-		return messageBuilder.build();
+		return getMessageBuilderFactory()
+				.withPayload(result)
+				.filterAndCopyHeadersIfAbsent(requestHeaders,
+						this.selectiveHeaderPropagation ? this.notPropagatedHeaders : null)
+				.build();
 	}
 
 }

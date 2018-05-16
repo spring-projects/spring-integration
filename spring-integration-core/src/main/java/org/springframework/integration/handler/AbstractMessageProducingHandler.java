@@ -19,7 +19,6 @@ package org.springframework.integration.handler;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +42,6 @@ import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
@@ -139,7 +137,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * @param merge true to merge with existing patterns; false to replace.
 	 * @since 5.0.2
 	 */
-	protected void updateNotPropagatedHeaders(String[] headers, boolean merge) {
+	protected final void updateNotPropagatedHeaders(String[] headers, boolean merge) {
 		Set<String> headerPatterns = new HashSet<>();
 
 		if (merge && this.notPropagatedHeaders != null) {
@@ -388,17 +386,8 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			builder = this.getMessageBuilderFactory().withPayload(output);
 		}
 		if (!this.noHeadersPropagation && shouldCopyRequestHeaders()) {
-			if (this.selectiveHeaderPropagation) {
-				Map<String, Object> headersToCopy = new HashMap<>(requestHeaders);
-
-				headersToCopy.entrySet()
-						.removeIf(entry -> PatternMatchUtils.simpleMatch(this.notPropagatedHeaders, entry.getKey()));
-
-				builder.copyHeadersIfAbsent(headersToCopy);
-			}
-			else {
-				builder.copyHeadersIfAbsent(requestHeaders);
-			}
+			builder.filterAndCopyHeadersIfAbsent(requestHeaders,
+					this.selectiveHeaderPropagation ? this.notPropagatedHeaders : null);
 		}
 		return builder.build();
 	}

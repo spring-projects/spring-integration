@@ -60,16 +60,21 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	}
 
 	@Override
+	public void addNotPropagatedHeaders(String... headers) {
+		super.addNotPropagatedHeaders(headers);
+		populateNotPropagatedHeadersIfAny();
+	}
+
+	@Override
 	protected void doInit() {
 		if (this.getBeanFactory() != null && this.transformer instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.transformer).setBeanFactory(this.getBeanFactory());
 		}
+
+		populateNotPropagatedHeadersIfAny();
 	}
 
-	@Override
-	protected void updateNotPropagatedHeaders(String[] headers, boolean merge) {
-		super.updateNotPropagatedHeaders(headers, merge);
-
+	private void populateNotPropagatedHeadersIfAny() {
 		Collection<String> notPropagatedHeaders = getNotPropagatedHeaders();
 
 		if (this.transformer instanceof AbstractMessageProcessingTransformer && !notPropagatedHeaders.isEmpty()) {
