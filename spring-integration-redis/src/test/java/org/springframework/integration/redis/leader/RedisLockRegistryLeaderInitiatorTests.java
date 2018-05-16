@@ -108,23 +108,23 @@ public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
 		initiator2.setLeaderEventPublisher(new CountingPublisher(granted2, revoked2, acquireLockFailed2));
 
 		// It's hard to see round-robin election, so let's make the yielding initiator to sleep long before restarting
-		initiator1.setBusyWaitMillis(5000);
+		initiator1.setBusyWaitMillis(1000);
 
 		initiator1.getContext().yield();
 
-		assertThat(revoked1.await(10, TimeUnit.SECONDS), is(true));
-		assertThat(granted2.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(revoked1.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(granted2.await(20, TimeUnit.SECONDS), is(true));
 
 		assertThat(initiator2.getContext().isLeader(), is(true));
 		assertThat(initiator1.getContext().isLeader(), is(false));
 
 		initiator1.setBusyWaitMillis(LockRegistryLeaderInitiator.DEFAULT_BUSY_WAIT_TIME);
-		initiator2.setBusyWaitMillis(5000);
+		initiator2.setBusyWaitMillis(1000);
 
 		initiator2.getContext().yield();
 
-		assertThat(revoked2.await(10, TimeUnit.SECONDS), is(true));
-		assertThat(granted1.await(10, TimeUnit.SECONDS), is(true));
+		assertThat(revoked2.await(20, TimeUnit.SECONDS), is(true));
+		assertThat(granted1.await(20, TimeUnit.SECONDS), is(true));
 
 		assertThat(initiator1.getContext().isLeader(), is(true));
 		assertThat(initiator2.getContext().isLeader(), is(false));
