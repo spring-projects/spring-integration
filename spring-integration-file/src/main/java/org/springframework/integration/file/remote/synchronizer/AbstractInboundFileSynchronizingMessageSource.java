@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.springframework.integration.endpoint.AbstractFetchLimitingMessageSour
 import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter;
@@ -77,24 +76,25 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	 */
 	private final LocalFileReadingMessageSource fileSource;
 
-	private volatile boolean running;
-
 	/**
 	 * Should the endpoint attempt to create the local directory? True by default.
 	 */
-	private volatile boolean autoCreateLocalDirectory = true;
+	private boolean autoCreateLocalDirectory = true;
 
 	/**
 	 * Directory to which things should be synchronized locally.
 	 */
-	private volatile File localDirectory;
+	private File localDirectory;
 
-	private volatile FileListFilter<File> localFileListFilter;
+	private FileListFilter<File> localFileListFilter;
 
 	/**
 	 * Whether the {@link DirectoryScanner} was explicitly set.
 	 */
-	private volatile boolean scannerExplicitlySet = false;
+	private boolean scannerExplicitlySet = false;
+
+	private volatile boolean running;
+
 
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer) {
 		this(synchronizer, null);
@@ -127,10 +127,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	 * after they have been synchronized. It will be combined with a filter that
 	 * will prevent accessing files that are in the process of being synchronized
 	 * (files having the {@link AbstractInboundFileSynchronizer#getTemporaryFileSuffix()}).
-	 * <p>
-	 * The default is an {@link AcceptOnceFileListFilter} which filters duplicate file
-	 * names (processed during the current execution).
-	 *
+	 * <p> The default is an {@link FileSystemPersistentAcceptOnceFileListFilter}
+	 * which filters duplicate file names (processed during the current execution).
 	 * @param localFileListFilter The local file list filter.
 	 */
 	public void setLocalFilter(FileListFilter<File> localFileListFilter) {
@@ -147,7 +145,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	public void setUseWatchService(boolean useWatchService) {
 		this.fileSource.setUseWatchService(useWatchService);
 		if (useWatchService) {
-			this.fileSource.setWatchEvents(FileReadingMessageSource.WatchEventType.CREATE,
+			this.fileSource.setWatchEvents(
+					FileReadingMessageSource.WatchEventType.CREATE,
 					FileReadingMessageSource.WatchEventType.MODIFY,
 					FileReadingMessageSource.WatchEventType.DELETE);
 		}
@@ -182,14 +181,15 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			}
 			this.fileSource.setDirectory(this.localDirectory);
 			if (this.localFileListFilter == null) {
-				this.localFileListFilter = new FileSystemPersistentAcceptOnceFileListFilter(
-						new SimpleMetadataStore(), getComponentName());
+				this.localFileListFilter =
+						new FileSystemPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), getComponentName());
 			}
 			FileListFilter<File> filter = buildFilter();
 			if (this.scannerExplicitlySet) {
 				Assert.state(!this.fileSource.isUseWatchService(),
 						"'useWatchService' and 'scanner' are mutually exclusive.");
-				this.fileSource.getScanner().setFilter(filter);
+				this.fileSource.getScanner()
+						.setFilter(filter);
 			}
 			else if (!this.fileSource.isUseWatchService()) {
 				DirectoryScanner directoryScanner = new DefaultDirectoryScanner();
@@ -209,8 +209,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 			throw e;
 		}
 		catch (Exception e) {
-			throw new BeanInitializationException("Failure during initialization of MessageSource for: "
-					+ this.getClass(), e);
+			throw new BeanInitializationException("Failure during initialization for: " + this, e);
 		}
 	}
 

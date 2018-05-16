@@ -270,7 +270,7 @@ An http://docs.spring.io/spring-integration/api/org/springframework/integration/
 Spring's Object/XML Mapping support provides several implementations supporting marshalling and unmarshalling using http://en.wikipedia.org/wiki/Java_Architecture_for_XML_Binding[JAXB], http://www.castor.org/[Castor] and http://jibx.sourceforge.net/[JiBX] amongst others.
 The unmarshaller requires an instance of `Source`.
 If the message payload is not an instance of `Source`, conversion will be attempted.
-Currently `String`, `File` and `org.w3c.dom.Document` payloads are supported.
+Currently `String`, `File`, `byte[]` and `org.w3c.dom.Document` payloads are supported.
 Custom conversion to a `Source` is also supported by injecting an implementation of a http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/SourceFactory.html[SourceFactory].
 
 NOTE: If a `SourceFactory` is not set explicitly, the property on the `UnmarshallingTransformer` will by default be set to a http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/source/DomSourceFactory.html[DomSourceFactory].
