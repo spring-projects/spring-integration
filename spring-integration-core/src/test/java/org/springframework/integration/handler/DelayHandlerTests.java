@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,24 +254,14 @@ public class DelayHandlerTests {
 
 	@Test
 	public void verifyShutdownWithWait() throws Exception {
-		delayHandler.setDefaultDelay(5000);
-		taskScheduler.setWaitForTasksToCompleteOnShutdown(true);
-		this.startDelayerHandler();
-		delayHandler.handleMessage(new GenericMessage<String>("foo"));
-		taskScheduler.destroy();
+		this.delayHandler.setDefaultDelay(100);
+		this.taskScheduler.setWaitForTasksToCompleteOnShutdown(true);
+		startDelayerHandler();
+		this.delayHandler.handleMessage(new GenericMessage<>("foo"));
+		this.taskScheduler.destroy();
 
-		final CountDownLatch latch = new CountDownLatch(1);
-		new Thread(() -> {
-			try {
-				taskScheduler.getScheduledExecutor().awaitTermination(10000, TimeUnit.MILLISECONDS);
-				latch.countDown();
-			}
-			catch (InterruptedException e) {
-				// won't countDown
-			}
-		}).start();
-		latch.await(50, TimeUnit.MILLISECONDS);
-		assertEquals(1, latch.getCount());
+		assertTrue(this.taskScheduler.getScheduledExecutor().awaitTermination(10, TimeUnit.SECONDS));
+		assertTrue(this.latch.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test(expected = MessageDeliveryException.class)
