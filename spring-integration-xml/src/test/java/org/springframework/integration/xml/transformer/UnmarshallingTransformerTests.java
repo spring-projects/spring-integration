@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 
 import org.junit.Test;
 
@@ -35,8 +36,18 @@ import org.springframework.xml.transform.StringSource;
 /**
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class UnmarshallingTransformerTests {
+
+	@Test
+	public void testBytesToString() {
+		Unmarshaller unmarshaller = new TestUnmarshaller(false);
+		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
+		Object transformed = transformer.transformPayload("world".getBytes());
+		assertEquals(String.class, transformed.getClass());
+		assertEquals("hello world", transformed.toString());
+	}
 
 	@Test
 	public void testStringSourceToString() {
@@ -74,6 +85,7 @@ public class UnmarshallingTransformerTests {
 			this.returnMessage = returnMessage;
 		}
 
+		@Override
 		public Object unmarshal(Source source) throws XmlMappingException, IOException {
 			if (source instanceof StringSource) {
 				char[] chars = new char[8];
@@ -83,9 +95,18 @@ public class UnmarshallingTransformerTests {
 				}
 				return "hello " + new String(chars).trim();
 			}
+			else if (source instanceof StreamSource) {
+				byte[] bytes = new byte[8];
+				((StreamSource) source).getInputStream().read(bytes);
+				if (returnMessage) {
+					return new GenericMessage<String>("message: " + new String(bytes).trim());
+				}
+				return "hello " + new String(bytes).trim();
+			}
 			return null;
 		}
 
+		@Override
 		public boolean supports(Class<?> clazz) {
 			return true;
 		}

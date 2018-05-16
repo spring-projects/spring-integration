@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -110,6 +111,9 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 			else if (payload instanceof String) {
 				source = new StringSource((String) payload);
 			}
+			else if (payload instanceof byte[]) {
+				source = new StreamSource(new ByteArrayInputStream((byte[]) payload));
+			}
 			else if (payload instanceof File) {
 				source = new StreamSource((File) payload);
 			}
@@ -136,7 +140,7 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 
 	private static class MimeMessageUnmarshallerHelper {
 
-		private Unmarshaller delegate;
+		private final Unmarshaller delegate;
 
 		MimeMessageUnmarshallerHelper(Unmarshaller unmarshaller) {
 			this.delegate = unmarshaller;
