@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transformer;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
@@ -24,7 +26,9 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Base class for Message Transformers that delegate to a {@link MessageProcessor}.
@@ -37,11 +41,15 @@ public abstract class AbstractMessageProcessingTransformer
 
 	private final MessageProcessor<?> messageProcessor;
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-
-	private volatile boolean messageBuilderFactorySet;
-
 	private BeanFactory beanFactory;
+
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+
+	private boolean messageBuilderFactorySet;
+
+	private String[] notPropagatedHeaders;
+
+	private boolean selectiveHeaderPropagation;
 
 	protected AbstractMessageProcessingTransformer(MessageProcessor<?> messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
@@ -85,6 +93,21 @@ public abstract class AbstractMessageProcessingTransformer
 		return !(this.messageProcessor instanceof Lifecycle) || ((Lifecycle) this.messageProcessor).isRunning();
 	}
 
+	/**
+	 * Set headers that will NOT be copied from the inbound message if
+	 * the handler is configured to copy headers.
+	 * @param headers the headers to not propagate from the inbound message.
+	 * @since 5.1
+	 */
+	public void setNotPropagatedHeaders(String... headers) {
+		if (!ObjectUtils.isEmpty(headers)) {
+			Assert.noNullElements(headers, "null elements are not allowed in 'headers'");
+			this.notPropagatedHeaders = Arrays.copyOf(headers, headers.length);
+		}
+
+		this.selectiveHeaderPropagation = !ObjectUtils.isEmpty(this.notPropagatedHeaders);
+	}
+
 	@Override
 	public final Message<?> transform(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
@@ -94,7 +117,14 @@ public abstract class AbstractMessageProcessingTransformer
 		if (result instanceof Message<?>) {
 			return (Message<?>) result;
 		}
-		return getMessageBuilderFactory().withPayload(result).copyHeaders(message.getHeaders()).build();
+
+		MessageHeaders requestHeaders = message.getHeaders();
+
+		return getMessageBuilderFactory()
+				.withPayload(result)
+				.filterAndCopyHeadersIfAbsent(requestHeaders,
+						this.selectiveHeaderPropagation ? this.notPropagatedHeaders : null)
+				.build();
 	}
 
 }

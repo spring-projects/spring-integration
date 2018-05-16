@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
@@ -34,6 +35,8 @@ import org.springframework.messaging.handler.annotation.Header;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class HeaderAnnotationTransformerTests {
@@ -102,6 +105,27 @@ public class HeaderAnnotationTransformerTests {
 		assertEquals("bar", result.getHeaders().get("foo"));
 	}
 
+
+	@Test
+	public void testNotPropagatedHeaders() {
+		Object target = new TestTransformer();
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(target, "evalFoo");
+		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.setNotPropagatedHeaders(IntegrationMessageHeaderAccessor.CORRELATION_ID);
+		handler.afterPropertiesSet();
+		QueueChannel outputChannel = new QueueChannel();
+		handler.setOutputChannel(outputChannel);
+		handler.handleMessage(
+				MessageBuilder.withPayload("test")
+						.setCorrelationId("abc")
+						.setHeader("foo", "bar")
+						.build());
+		Message<?> result = outputChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("BAR", result.getPayload());
+		assertFalse(result.getHeaders().containsKey(IntegrationMessageHeaderAccessor.CORRELATION_ID));
+	}
 
 	public static class TestTransformer {
 
