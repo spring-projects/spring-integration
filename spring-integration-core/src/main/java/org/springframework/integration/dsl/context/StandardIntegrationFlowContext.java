@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -46,7 +49,9 @@ import org.springframework.util.Assert;
  */
 public final class StandardIntegrationFlowContext implements IntegrationFlowContext, BeanFactoryAware {
 
-	private final Map<String, IntegrationFlowRegistration> registry = new HashMap<>();
+	private final Map<String, IntegrationFlowRegistration> registry = new ConcurrentHashMap<>();
+
+	private final DefaultLockRegistry registerBeansLockRegistry = new DefaultLockRegistry();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -76,17 +81,29 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	private void register(StandardIntegrationFlowRegistrationBuilder builder) {
 		IntegrationFlow integrationFlow = builder.integrationFlowRegistration.getIntegrationFlow();
 		String flowId = builder.integrationFlowRegistration.getId();
-		if (flowId == null) {
-			flowId = generateBeanName(integrationFlow, null);
-			builder.id(flowId);
+		Lock registerBeanLock = null;
+		try {
+			if (flowId == null) {
+				registerBeanLock = this.registerBeansLockRegistry.obtain(integrationFlow.getClass());
+				registerBeanLock.lock();
+				flowId = generateBeanName(integrationFlow, null);
+				builder.id(flowId);
+			}
+			else if (this.registry.containsKey(flowId)) {
+				throw new IllegalArgumentException("An IntegrationFlow '" + this.registry.get(flowId) +
+						"' with flowId '" + flowId + "' is already registered.\n" +
+						"An existing IntegrationFlowRegistration must be destroyed before overriding.");
+			}
+
+			integrationFlow = (IntegrationFlow) registerBean(integrationFlow, flowId, null);
 		}
-		else if (this.registry.containsKey(flowId)) {
-			throw new IllegalArgumentException("An IntegrationFlow '" + this.registry.get(flowId) +
-					"' with flowId '" + flowId + "' is already registered.\n" +
-					"An existing IntegrationFlowRegistration must be destroyed before overriding.");
+		finally {
+			if (registerBeanLock != null) {
+				registerBeanLock.unlock();
+			}
 		}
-		IntegrationFlow theFlow = (IntegrationFlow) registerBean(integrationFlow, flowId, null);
-		builder.integrationFlowRegistration.setIntegrationFlow(theFlow);
+
+		builder.integrationFlowRegistration.setIntegrationFlow(integrationFlow);
 
 		final String theFlowId = flowId;
 		builder.additionalBeans.forEach((key, value) -> registerBean(key, value, theFlowId));
@@ -133,19 +150,26 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 * @param flowId the bean name to destroy from
 	 */
 	@Override
-	public synchronized void remove(String flowId) {
+	public void remove(String flowId) {
 		if (this.registry.containsKey(flowId)) {
 			IntegrationFlowRegistration flowRegistration = this.registry.remove(flowId);
 			flowRegistration.stop();
 
-			Arrays.stream(this.beanFactory.getDependentBeans(flowId))
-					.forEach(((BeanDefinitionRegistry) this.beanFactory)::removeBeanDefinition);
+			BeanDefinitionRegistry beanDefinitionRegistry = (BeanDefinitionRegistry) this.beanFactory;
 
-			((BeanDefinitionRegistry) this.beanFactory).removeBeanDefinition(flowId);
+			Arrays.stream(this.beanFactory.getDependentBeans(flowId))
+					.forEach(beanName -> {
+						beanDefinitionRegistry.removeBeanDefinition(beanName);
+						// TODO until https://jira.spring.io/browse/SPR-16837
+						Arrays.asList(beanDefinitionRegistry.getAliases(beanName))
+								.forEach(beanDefinitionRegistry::removeAlias);
+					});
+
+			beanDefinitionRegistry.removeBeanDefinition(flowId);
 		}
 		else {
-			throw new IllegalStateException("Only manually registered IntegrationFlows can be removed. "
-					+ "But [" + flowId + "] ins't one of them.");
+			throw new IllegalStateException("An IntegrationFlow with the id "
+					+ "[" + flowId + "] doesn't exist in the registry.");
 		}
 	}
 
