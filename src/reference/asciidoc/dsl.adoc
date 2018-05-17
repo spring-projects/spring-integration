@@ -580,6 +580,12 @@ And Lambda flow can't start from `MessageSource` or `MessageProducer`.
 
 Starting _version 5.1_, this kind of `IntegrationFlow` are wrapped to the proxy for exposing lifecycle control and provide access to the `inputChannel` of the internally associated `StandardIntegrationFlow`.
 
+Starting with _version 5.0.5_, the generated bean names for the components in an `IntegrationFlow` include the flow bean followed by a dot as a prefix.
+For example the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::concat)` in the sample above, will end up with te bean name like `lambdaFlow.org.springframework.integration.config.ConsumerEndpointFactoryBean#0`.
+The `Transformer` implementation bean for that endpoint will have a bean name such as `lambdaFlow.org.springframework.integration.transformer.MethodInvokingTransformer#0`.
+These generated bean names are prepended with the flow id prefix for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
+See <<java-dsl-runtime-flows>> for more information.
+
 [[java-dsl-function-expression]]
 === FunctionExpression
 
@@ -926,6 +932,10 @@ Usually those additional beans are connection factories (AMQP, JMS, (S)FTP, TCP/
 
 Such a dynamically registered `IntegrationFlow` and all its dependant beans can be removed afterwards using `IntegrationFlowRegistration.destroy()` callback.
 See `IntegrationFlowContext` JavaDocs for more information.
+
+NOTE: Starting with _version 5.0.5_, all generated bean names in an `IntegrationFlow` definition are prepended with flow id as a prefix.
+It is recommended to always specify an explicit flow id, otherwise a synchronization barrier is initiated in the `IntegrationFlowContext` to generate the bean name for the `IntegrationFlow` and register its beans.
+We synchronize on these two operations to avoid a race condition when the same generated bean name may be used for different `IntegrationFlow` instances.
 
 [[java-dsl-gateway]]
 === IntegrationFlow as Gateway
