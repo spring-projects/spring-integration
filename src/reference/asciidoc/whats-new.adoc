@@ -315,3 +315,10 @@ Further changes were made in 5.0.4; if using Micrometer, a minimum of version 5.
 
 Introduced in _version 5.0.4_, this annotation provides control over bean naming when using Java configuration.
 See <<endpoint-bean-names>> for more information.
+
+==== Integration Flows: Generated bean names
+
+Starting with _version 5.0.5_, generated bean names for the components in an `IntegrationFlow` include the flow bean name, followed by a dot, as a prefix.
+
+See <<java-dsl-flows>> for more information.
+

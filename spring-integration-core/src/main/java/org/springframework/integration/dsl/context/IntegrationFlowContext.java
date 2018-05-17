@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -65,7 +68,9 @@ import org.springframework.util.Assert;
  */
 public final class IntegrationFlowContext implements BeanFactoryAware {
 
-	private final Map<String, IntegrationFlowRegistration> registry = new HashMap<>();
+	private final Map<String, IntegrationFlowRegistration> registry = new ConcurrentHashMap<>();
+
+	private final Lock registerFlowsLock = new ReentrantLock();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -91,20 +96,33 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 		return new IntegrationFlowRegistrationBuilder(integrationFlow);
 	}
 
+
 	private void register(IntegrationFlowRegistrationBuilder builder) {
 		IntegrationFlow integrationFlow = builder.integrationFlowRegistration.getIntegrationFlow();
 		String flowId = builder.integrationFlowRegistration.getId();
-		if (flowId == null) {
-			flowId = generateBeanName(integrationFlow, null);
-			builder.id(flowId);
+		Lock registerBeanLock = null;
+		try {
+			if (flowId == null) {
+				registerBeanLock = this.registerFlowsLock;
+				registerBeanLock.lock();
+				flowId = generateBeanName(integrationFlow, null);
+				builder.id(flowId);
+			}
+			else if (this.registry.containsKey(flowId)) {
+				throw new IllegalArgumentException("An IntegrationFlow '" + this.registry.get(flowId) +
+						"' with flowId '" + flowId + "' is already registered.\n" +
+						"An existing IntegrationFlowRegistration must be destroyed before overriding.");
+			}
+
+			integrationFlow = (IntegrationFlow) registerBean(integrationFlow, flowId, null);
 		}
-		else if (this.registry.containsKey(flowId)) {
-			throw new IllegalArgumentException("An IntegrationFlow '" + this.registry.get(flowId) +
-					"' with flowId '" + flowId + "' is already registered.\n" +
-					"An existing IntegrationFlowRegistration must be destroyed before overriding.");
+		finally {
+			if (registerBeanLock != null) {
+				registerBeanLock.unlock();
+			}
 		}
-		IntegrationFlow theFlow = (IntegrationFlow) registerBean(integrationFlow, flowId, null);
-		builder.integrationFlowRegistration.setIntegrationFlow(theFlow);
+
+		builder.integrationFlowRegistration.setIntegrationFlow(integrationFlow);
 
 		final String theFlowId = flowId;
 		builder.additionalBeans.forEach((key, value) -> registerBean(key, value, theFlowId));
@@ -149,19 +167,26 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 * for provided {@code flowId} and clean up all the local cache for it.
 	 * @param flowId the bean name to destroy from
 	 */
-	public synchronized void remove(String flowId) {
+	public void remove(String flowId) {
 		if (this.registry.containsKey(flowId)) {
 			IntegrationFlowRegistration flowRegistration = this.registry.remove(flowId);
 			flowRegistration.stop();
 
-			Arrays.stream(this.beanFactory.getDependentBeans(flowId))
-					.forEach(((BeanDefinitionRegistry) this.beanFactory)::removeBeanDefinition);
+			BeanDefinitionRegistry beanDefinitionRegistry = (BeanDefinitionRegistry) this.beanFactory;
 
-			((BeanDefinitionRegistry) this.beanFactory).removeBeanDefinition(flowId);
+			Arrays.stream(this.beanFactory.getDependentBeans(flowId))
+					.forEach(beanName -> {
+						beanDefinitionRegistry.removeBeanDefinition(beanName);
+						// TODO until https://jira.spring.io/browse/SPR-16837
+						Arrays.asList(beanDefinitionRegistry.getAliases(beanName))
+								.forEach(beanDefinitionRegistry::removeAlias);
+					});
+
+			beanDefinitionRegistry.removeBeanDefinition(flowId);
 		}
 		else {
-			throw new IllegalStateException("Only manually registered IntegrationFlows can be removed. "
-					+ "But [" + flowId + "] ins't one of them.");
+			throw new IllegalStateException("An IntegrationFlow with the id "
+					+ "[" + flowId + "] doesn't exist in the registry.");
 		}
 	}
 
