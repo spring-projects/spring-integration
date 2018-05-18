@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.data.gemfire.CacheFactoryBean;
-import org.springframework.data.gemfire.RegionFactoryBean;
+import org.springframework.data.gemfire.GenericRegionFactoryBean;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MessageGroup;
@@ -48,6 +48,7 @@ import org.springframework.messaging.support.GenericMessage;
  * @author David Turanski
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class GemfireMessageStoreTests {
@@ -57,7 +58,7 @@ public class GemfireMessageStoreTests {
 	private static Region<Object, Object> region;
 
 	@Test
-	public void addAndGetMessage() throws Exception {
+	public void addAndGetMessage() {
 		GemfireMessageStore store = new GemfireMessageStore(region);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		store.addMessage(message);
@@ -67,9 +68,7 @@ public class GemfireMessageStoreTests {
 
 	@Test
 	public void testRegionConstructor() throws Exception {
-		RegionFactoryBean<Object, Object> region = new RegionFactoryBean<Object, Object>() {
-
-		};
+		GenericRegionFactoryBean<Object, Object> region = new GenericRegionFactoryBean<>();
 		region.setName("someRegion");
 		region.setCache(cacheFactoryBean.getObject());
 		region.afterPropertiesSet();
@@ -81,10 +80,10 @@ public class GemfireMessageStoreTests {
 	}
 
 	@Test
-	public void testWithMessageHistory() throws Exception {
+	public void testWithMessageHistory() {
 		GemfireMessageStore store = new GemfireMessageStore(region);
 
-		Message<?> message = new GenericMessage<String>("Hello");
+		Message<?> message = new GenericMessage<>("Hello");
 		DirectChannel fooChannel = new DirectChannel();
 		fooChannel.setBeanName("fooChannel");
 		DirectChannel barChannel = new DirectChannel();
@@ -103,11 +102,11 @@ public class GemfireMessageStoreTests {
 	}
 
 	@Test
-	public void testAddAndRemoveMessagesFromMessageGroup() throws Exception {
+	public void testAddAndRemoveMessagesFromMessageGroup() {
 		GemfireMessageStore messageStore = new GemfireMessageStore(region);
 
 		String groupId = "X";
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 			messageStore.addMessagesToGroup(groupId, message);
@@ -121,11 +120,11 @@ public class GemfireMessageStoreTests {
 	}
 
 	@Test
-	public void testAddAndRemoveMessagesFromMessageGroupWithPrefix() throws Exception {
+	public void testAddAndRemoveMessagesFromMessageGroupWithPrefix() {
 		GemfireMessageStore messageStore = new GemfireMessageStore(region, "foo_");
 
 		String groupId = "X";
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<>();
 		for (int i = 0; i < 25; i++) {
 			Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 			messageStore.addMessagesToGroup(groupId, message);

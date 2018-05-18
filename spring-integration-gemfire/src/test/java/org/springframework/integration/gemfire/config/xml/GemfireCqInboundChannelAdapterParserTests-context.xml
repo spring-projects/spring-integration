@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:gfe="http://www.springframework.org/schema/gemfire"
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:util="http://www.springframework.org/schema/util"
 	   xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	   xmlns:context="http://www.springframework.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 		http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
-		http://www.springframework.org/schema/gemfire
-		http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/integration
 		http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans

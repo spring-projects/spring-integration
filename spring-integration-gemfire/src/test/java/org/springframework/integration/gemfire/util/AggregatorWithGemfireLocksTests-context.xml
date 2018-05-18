@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/geode http://www.springframework.org/schema/gemfire/spring-geode.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<gfe:cache use-bean-factory-locator="false"/>
+	<gfe:cache/>
 
 	<bean id="lockRegistry" class="org.springframework.integration.gemfire.util.GemfireLockRegistry">
 		<constructor-arg ref="gemfireCache"/>

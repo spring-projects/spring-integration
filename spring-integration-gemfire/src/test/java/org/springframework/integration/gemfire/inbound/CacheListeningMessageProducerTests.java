@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.gemfire.CacheFactoryBean;
+import org.springframework.data.gemfire.GenericRegionFactoryBean;
 import org.springframework.data.gemfire.RegionAttributesFactoryBean;
-import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
@@ -38,6 +38,7 @@ import org.springframework.messaging.Message;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class CacheListeningMessageProducerTests {
@@ -46,7 +47,7 @@ public class CacheListeningMessageProducerTests {
 
 	private static CacheFactoryBean cacheFactoryBean;
 
-	private static RegionFactoryBean<String, String> regionFactoryBean;
+	private static GenericRegionFactoryBean<String, String> regionFactoryBean;
 
 	private static Region<String, String> region;
 
@@ -54,9 +55,7 @@ public class CacheListeningMessageProducerTests {
 	public static void setup() throws Exception {
 		cacheFactoryBean = new CacheFactoryBean();
 
-		regionFactoryBean = new RegionFactoryBean<String, String>() {
-
-		};
+		regionFactoryBean = new GenericRegionFactoryBean<>();
 		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
 		regionFactoryBean.setCache(cacheFactoryBean.getObject());
 		setRegionAttributes(regionFactoryBean);
@@ -72,7 +71,7 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
-	public void receiveNewValuePayloadForCreateEvent() throws Exception {
+	public void receiveNewValuePayloadForCreateEvent() {
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setPayloadExpression(PARSER.parseExpression("key + '=' + newValue"));
@@ -91,7 +90,7 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
-	public void receiveNewValuePayloadForUpdateEvent() throws Exception {
+	public void receiveNewValuePayloadForUpdateEvent() {
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setPayloadExpression(PARSER.parseExpression("newValue"));
@@ -114,7 +113,7 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
-	public void receiveOldValuePayloadForDestroyEvent() throws Exception {
+	public void receiveOldValuePayloadForDestroyEvent() {
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setSupportedEventTypes(EventType.DESTROYED);
@@ -136,7 +135,7 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@Test
-	public void receiveOldValuePayloadForInvalidateEvent() throws Exception {
+	public void receiveOldValuePayloadForInvalidateEvent() {
 		QueueChannel channel = new QueueChannel();
 		CacheListeningMessageProducer producer = new CacheListeningMessageProducer(region);
 		producer.setSupportedEventTypes(EventType.INVALIDATED);
@@ -158,7 +157,9 @@ public class CacheListeningMessageProducerTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void setRegionAttributes(RegionFactoryBean<String, String> regionFactoryBean) throws Exception {
+	private static void setRegionAttributes(GenericRegionFactoryBean<String, String> regionFactoryBean)
+			throws Exception {
+
 		RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
 		attributesFactoryBean.afterPropertiesSet();
 		regionFactoryBean.setAttributes(attributesFactoryBean.getObject());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -42,6 +43,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -50,15 +52,15 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	private static final int DEFAULT_REAPER_DELAY = 60000;
 
-	protected final Map<String, MessageChannelWrapper> channels = new ConcurrentHashMap<String, DefaultHeaderChannelRegistry.MessageChannelWrapper>();
-
 	protected static final AtomicLong id = new AtomicLong();
+
+	protected final Map<String, MessageChannelWrapper> channels = new ConcurrentHashMap<>();
 
 	protected final String uuid = UUID.randomUUID().toString() + ":";
 
-	private volatile boolean removeOnGet;
+	private boolean removeOnGet;
 
-	private volatile long reaperDelay;
+	private long reaperDelay;
 
 	private volatile ScheduledFuture<?> reaperScheduledFuture;
 
@@ -118,15 +120,17 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		Assert.notNull(this.getTaskScheduler(), "a task scheduler is required");
+		Assert.notNull(getTaskScheduler(), "a task scheduler is required");
 	}
 
 	@Override
 	public synchronized void start() {
 		if (!this.running) {
-			Assert.notNull(this.getTaskScheduler(), "a task scheduler is required");
-			this.reaperScheduledFuture = this.getTaskScheduler().schedule(this,
-					new Date(System.currentTimeMillis() + this.reaperDelay));
+			Assert.notNull(getTaskScheduler(), "a task scheduler is required");
+			this.reaperScheduledFuture =
+					getTaskScheduler()
+							.schedule(this, new Date(System.currentTimeMillis() + this.reaperDelay));
+
 			this.running = true;
 		}
 	}
@@ -142,7 +146,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 	public void stop(Runnable callback) {
-		this.stop();
+		stop();
 		callback.run();
 	}
 
@@ -152,17 +156,17 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 	@Override
-	public Object channelToChannelName(Object channel) {
+	public Object channelToChannelName(@Nullable Object channel) {
 		return channelToChannelName(channel, this.reaperDelay);
 	}
 
 	@Override
-	public Object channelToChannelName(Object channel, long timeToLive) {
+	public Object channelToChannelName(@Nullable Object channel, long timeToLive) {
 		if (!this.running && !this.explicitlyStopped && this.getTaskScheduler() != null) {
 			start();
 		}
 		if (channel != null && channel instanceof MessageChannel) {
-			String name = this.uuid + DefaultHeaderChannelRegistry.id.incrementAndGet();
+			String name = this.uuid + id.incrementAndGet();
 			this.channels.put(name, new MessageChannelWrapper((MessageChannel) channel,
 					System.currentTimeMillis() + timeToLive));
 			if (logger.isDebugEnabled()) {
@@ -176,7 +180,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 	@Override
-	public MessageChannel channelNameToChannel(String name) {
+	public MessageChannel channelNameToChannel(@Nullable String name) {
 		if (name != null) {
 			MessageChannelWrapper messageChannelWrapper;
 			if (this.removeOnGet) {
@@ -188,6 +192,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			if (logger.isDebugEnabled() && messageChannelWrapper != null) {
 				logger.debug("Retrieved " + messageChannelWrapper.getChannel() + " with " + name);
 			}
+
 			return messageChannelWrapper == null ? null : messageChannelWrapper.getChannel();
 		}
 		return null;
@@ -202,7 +207,8 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 			this.reaperScheduledFuture.cancel(true);
 			this.reaperScheduledFuture = null;
 		}
-		this.run();
+
+		run();
 	}
 
 	@Override
@@ -221,8 +227,10 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 				iterator.remove();
 			}
 		}
-		this.reaperScheduledFuture = this.getTaskScheduler().schedule(this,
-				new Date(System.currentTimeMillis() + this.reaperDelay));
+		this.reaperScheduledFuture =
+				getTaskScheduler()
+						.schedule(this, new Date(System.currentTimeMillis() + this.reaperDelay));
+
 		if (logger.isTraceEnabled()) {
 			logger.trace("Reaper completed; channels size=" + this.channels.size());
 		}
