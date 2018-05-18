@@ -101,7 +101,7 @@ public class WebFluxDslTests {
 	@Qualifier("webFluxWithReplyPayloadToFlux.handler")
 	private WebFluxRequestExecutingMessageHandler webFluxWithReplyPayloadToFlux;
 
-	@Resource(name = "org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler#1")
+	@Resource(name = "httpReactiveProxyFlow.org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler#0")
 	private WebFluxRequestExecutingMessageHandler httpReactiveProxyFlow;
 
 	@Autowired
