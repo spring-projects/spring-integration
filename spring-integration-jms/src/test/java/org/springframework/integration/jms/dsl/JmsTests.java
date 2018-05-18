@@ -55,7 +55,6 @@ import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
@@ -272,7 +271,7 @@ public class JmsTests {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return IntegrationFlowDefinition::controlBus;
+			return IntegrationFlow.Definition::controlBus;
 		}
 
 		@Bean

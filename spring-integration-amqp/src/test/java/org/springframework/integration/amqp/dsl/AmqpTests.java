@@ -49,7 +49,6 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -147,7 +146,7 @@ public class AmqpTests {
 
 	@Test
 	public void testTemplateChannelTransacted() {
-		IntegrationFlowBuilder flow = IntegrationFlows.from(Amqp.channel("testTemplateChannelTransacted",
+		IntegrationFlow.Builder flow = IntegrationFlows.from(Amqp.channel("testTemplateChannelTransacted",
 				this.rabbitConnectionFactory)
 				.autoStartup(false)
 				.templateChannelTransacted(true));

@@ -41,7 +41,6 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.file.FileHeaders;
@@ -106,7 +105,7 @@ public class SftpTests extends SftpTestSupport {
 	@Test
 	public void testSftpInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
-		StandardIntegrationFlow flow = IntegrationFlows.from(
+		IntegrationFlow flow = IntegrationFlows.from(
 				Sftp.inboundStreamingAdapter(new SftpRemoteFileTemplate(sessionFactory()))
 						.remoteDirectory("sftpSource")
 						.regexFilter(".*\\.txt$"),

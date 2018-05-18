@@ -79,7 +79,7 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 	}
 
 	@Override
-	public void configure(IntegrationFlowDefinition<?> flow) {
+	public void configure(Definition<?> flow) {
 		throw new UnsupportedOperationException();
 	}
 

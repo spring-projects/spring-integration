@@ -158,7 +158,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 * Try to get a {@link MessageChannel} as an input for the provided {@link IntegrationFlow}
 	 * or create one and wrap the provided flow to a new one.
 	 * @param subFlow the {@link IntegrationFlow} to extract input channel.
-	 * @param evaluateInternalBuilder true if an internal {@link IntegrationFlowDefinition} should be
+	 * @param evaluateInternalBuilder true if an internal {@link IntegrationFlow.Definition} should be
 	 * evaluated to an {@link IntegrationFlow} component or left as a builder in the {@link #componentsToRegister}
 	 * for future use-case. For example the builder is used for router configurations to retain beans
 	 * registration order for parent-child dependencies.
@@ -170,7 +170,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 		MessageChannel messageChannel = subFlow.getInputChannel();
 		if (messageChannel == null) {
 			messageChannel = new DirectChannel();
-			IntegrationFlowDefinition<?> flowBuilder = IntegrationFlows.from(messageChannel);
+			IntegrationFlow.Definition<?> flowBuilder = IntegrationFlows.from(messageChannel);
 			subFlow.configure(flowBuilder);
 			this.componentsToRegister.put(evaluateInternalBuilder ? flowBuilder.get() : flowBuilder, null);
 		}

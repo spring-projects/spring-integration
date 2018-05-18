@@ -53,7 +53,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
-import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.handler.LoggingHandler;
@@ -154,7 +153,7 @@ public class FlowServiceTests {
 		private final AtomicReference<Object> resultOverLoggingHandler = new AtomicReference<>();
 
 		@Override
-		public void configure(IntegrationFlowDefinition<?> f) {
+		public void configure(Definition<?> f) {
 			f.<String, String>transform(String::toUpperCase)
 					.log(LoggingHandler.Level.ERROR, m -> {
 						resultOverLoggingHandler.set(m.getPayload());
@@ -179,7 +178,7 @@ public class FlowServiceTests {
 		}
 
 		@Override
-		protected IntegrationFlowDefinition<?> buildFlow() {
+		protected Definition<?> buildFlow() {
 			return from(this, "messageSource", e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
 					.split(this, null, e -> e.applySequence(false))
 					.transform(this)
