@@ -171,12 +171,13 @@ public class ManualFlowTests {
 								.fixedDelay(10)
 								.maxMessagesPerPoll(1)
 								.receiveTimeout(10)))
-				.handle(new BeanFactoryHandler());
+				.handle(new BeanFactoryHandler(), e -> e.id("anId"));
 
 		BeanFactoryHandler additionalBean = new BeanFactoryHandler();
 		IntegrationFlowRegistration flowRegistration =
 				this.integrationFlowContext.registration(myFlow)
 						.id(flowId)
+						.useFlowIdAsPrefix()
 						.addBean(additionalBean)
 						.register();
 
@@ -185,6 +186,7 @@ public class ManualFlowTests {
 						BeanFactoryHandler.class);
 		assertSame(additionalBean, bean);
 		assertSame(this.beanFactory, bean.beanFactory);
+		bean = this.beanFactory.getBean(flowRegistration.getId() + "." + "anId.handler", BeanFactoryHandler.class);
 
 		MessagingTemplate messagingTemplate = flowRegistration.getMessagingTemplate();
 		messagingTemplate.setReceiveTimeout(10000);

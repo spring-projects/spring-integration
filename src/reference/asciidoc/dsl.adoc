@@ -580,7 +580,7 @@ And Lambda flow can't start from `MessageSource` or `MessageProducer`.
 
 Starting _version 5.1_, this kind of `IntegrationFlow` are wrapped to the proxy for exposing lifecycle control and provide access to the `inputChannel` of the internally associated `StandardIntegrationFlow`.
 
-Starting with _version 5.0.5_, the generated bean names for the components in an `IntegrationFlow` include the flow bean followed by a dot as a prefix.
+Starting with _version 5.0.6_, the generated bean names for the components in an `IntegrationFlow` include the flow bean followed by a dot as a prefix.
 For example the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::concat)` in the sample above, will end up with te bean name like `lambdaFlow.org.springframework.integration.config.ConsumerEndpointFactoryBean#0`.
 The `Transformer` implementation bean for that endpoint will have a bean name such as `lambdaFlow.org.springframework.integration.transformer.MethodInvokingTransformer#0`.
 These generated bean names are prepended with the flow id prefix for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
@@ -933,9 +933,43 @@ Usually those additional beans are connection factories (AMQP, JMS, (S)FTP, TCP/
 Such a dynamically registered `IntegrationFlow` and all its dependant beans can be removed afterwards using `IntegrationFlowRegistration.destroy()` callback.
 See `IntegrationFlowContext` JavaDocs for more information.
 
-NOTE: Starting with _version 5.0.5_, all generated bean names in an `IntegrationFlow` definition are prepended with flow id as a prefix.
+NOTE: Starting with _version 5.0.6_, all generated bean names in an `IntegrationFlow` definition are prepended with flow id as a prefix.
 It is recommended to always specify an explicit flow id, otherwise a synchronization barrier is initiated in the `IntegrationFlowContext` to generate the bean name for the `IntegrationFlow` and register its beans.
 We synchronize on these two operations to avoid a race condition when the same generated bean name may be used for different `IntegrationFlow` instances.
+
+Also, starting with _version 5.0.6_, the registration builder API has a new method `useFlowIdAsPrefix()`.
+This is useful if you wish to declare multiple instances of the same flow and avoids bean name collisions if components in the flows have the same id.
+
+For example:
+
+[source, java]
+----
+private void registerFlows() {
+    IntegrationFlowRegistration flow1 = this.flowContext.registration(buildFlow(1234))
+                    .id("tcp1")
+                    .useFlowIdAsPrefix()
+                    .register();
+
+    IntegrationFlowRegistration flow2 = this.flowContext.registration(buildFlow(1235))
+                    .id("tcp2")
+                    .useFlowIdAsPrefix()
+                    .register();
+}
+
+private IntegrationFlow buildFlow(int port) {
+    return f -> f
+            .handle(Tcp.outboundGateway(Tcp.netClient("localhost", port)
+                    .serializer(TcpCodecs.crlf())
+                    .deserializer(TcpCodecs.lengthHeader1())
+                    .id("client"))
+                .remoteTimeout(m -> 5000))
+            .transform(Transformers.objectToString());
+}
+----
+
+In this case, the message handler for the first flow can be referenced with bean name `tcp1.client.handler`.
+
+NOTE: an `id` is required when using `useFlowIdAsPrefix()`.
 
 [[java-dsl-gateway]]
 === IntegrationFlow as Gateway
