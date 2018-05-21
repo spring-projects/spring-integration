@@ -96,6 +96,16 @@ public interface IntegrationFlowContext {
 	Map<String, IntegrationFlowRegistration> getRegistry();
 
 	/**
+	 * Return true to prefix flow bean names with the flow id and a period.
+	 * @param flowId the flow id.
+	 * @return true to use as a prefix.
+	 * @since 5.0.6
+	 */
+	default boolean isUseIdAsPrefix(String flowId) {
+		return false;
+	}
+
+	/**
 	 * @author Gary Russell
 	 * @since 5.1
 	 *
@@ -208,6 +218,19 @@ public interface IntegrationFlowContext {
 		 * @return the current builder instance
 		 */
 		IntegrationFlowRegistrationBuilder addBean(String name, Object bean);
+
+		/**
+		 * Invoke this method to prefix bean names in the flow with the (required) flow id
+		 * and a period. This is useful if you wish to register the same flow multiple times
+		 * while retaining the ability to reference beans within the flow; adding the unique
+		 * flow id to the bean name makes the name unique.
+		 * @return the current builder instance.
+		 * @see #id(String)
+		 * @since 5.0.6
+		 */
+		default IntegrationFlowRegistrationBuilder useFlowIdAsPrefix() {
+			return this;
+		}
 
 		/**
 		 * Register an {@link IntegrationFlow} and all the dependant and support components

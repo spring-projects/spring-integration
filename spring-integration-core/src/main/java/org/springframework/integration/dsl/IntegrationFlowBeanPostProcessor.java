@@ -44,6 +44,7 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
 import org.springframework.integration.support.context.NamedComponent;
@@ -67,6 +68,8 @@ public class IntegrationFlowBeanPostProcessor
 
 	private ConfigurableListableBeanFactory beanFactory;
 
+	private IntegrationFlowContext flowContext;
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		Assert.isInstanceOf(ConfigurableListableBeanFactory.class, beanFactory,
@@ -75,6 +78,8 @@ public class IntegrationFlowBeanPostProcessor
 		);
 
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
+		Assert.notNull(this.flowContext, "There must be an IntegrationFlowContext in the application context");
 	}
 
 	@Override
@@ -100,7 +105,7 @@ public class IntegrationFlowBeanPostProcessor
 					throw new BeanCreationNotAllowedException(beanName, "IntegrationFlows can not be scoped beans. " +
 							"Any dependant beans are registered as singletons, meanwhile IntegrationFlow is just a " +
 							"logical container for them. \n" +
-							"Consider to use [IntegrationFlowContext] for manual registration of IntegrationFlows.");
+							"Consider using [IntegrationFlowContext] for manual registration of IntegrationFlows.");
 				}
 			}
 		}
@@ -108,6 +113,7 @@ public class IntegrationFlowBeanPostProcessor
 
 	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) {
 		String flowNamePrefix = flowBeanName + ".";
+		boolean useFlowIdAsPrefix = this.flowContext.isUseIdAsPrefix(flowBeanName);
 		int subFlowNameIndex = 0;
 		int channelNameIndex = 0;
 
@@ -123,7 +129,10 @@ public class IntegrationFlowBeanPostProcessor
 				String id = endpointSpec.getId();
 
 				if (id == null) {
-					id = generateBeanName(endpoint, flowNamePrefix, entry.getValue());
+					id = generateBeanName(endpoint, flowNamePrefix, entry.getValue(), useFlowIdAsPrefix);
+				}
+				else if (useFlowIdAsPrefix) {
+					id = flowNamePrefix + id;
 				}
 
 				Collection<?> messageHandlers =
@@ -185,13 +194,19 @@ public class IntegrationFlowBeanPostProcessor
 													.contains(o.getKey()))
 									.forEach(o ->
 											registerComponent(o.getKey(),
-													generateBeanName(o.getKey(), flowNamePrefix, o.getValue())));
+													generateBeanName(o.getKey(), flowNamePrefix, o.getValue(),
+															useFlowIdAsPrefix)));
 						}
 						SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean = spec.get().getT1();
 						String id = spec.getId();
-						if (!StringUtils.hasText(id)) {
-							id = generateBeanName(pollingChannelAdapterFactoryBean, flowNamePrefix, entry.getValue());
+						if (id == null) {
+							id = generateBeanName(pollingChannelAdapterFactoryBean, flowNamePrefix, entry.getValue(),
+									useFlowIdAsPrefix);
 						}
+						else if (useFlowIdAsPrefix) {
+							id = flowNamePrefix + id;
+						}
+
 						registerComponent(pollingChannelAdapterFactoryBean, id, flowBeanName);
 						targetIntegrationComponents.put(pollingChannelAdapterFactoryBean, id);
 
@@ -236,7 +251,9 @@ public class IntegrationFlowBeanPostProcessor
 						targetIntegrationComponents.put(component, gatewayId);
 					}
 					else {
-						String generatedBeanName = generateBeanName(component, flowNamePrefix, entry.getValue());
+						String generatedBeanName =
+								generateBeanName(component, flowNamePrefix, entry.getValue(), useFlowIdAsPrefix);
+
 						registerComponent(component, generatedBeanName, flowBeanName);
 						targetIntegrationComponents.put(component, generatedBeanName);
 					}
@@ -334,15 +351,19 @@ public class IntegrationFlowBeanPostProcessor
 	}
 
 	private String generateBeanName(Object instance, String prefix) {
-		return generateBeanName(instance, prefix, null);
+		return generateBeanName(instance, prefix, null, false);
 	}
 
-	private String generateBeanName(Object instance, String prefix, String fallbackId) {
+	private String generateBeanName(Object instance, String prefix, String fallbackId, boolean useFlowIdAsPrefix) {
 		if (instance instanceof NamedComponent && ((NamedComponent) instance).getComponentName() != null) {
-			return ((NamedComponent) instance).getComponentName();
+			return useFlowIdAsPrefix
+					? prefix + ((NamedComponent) instance).getComponentName()
+					: ((NamedComponent) instance).getComponentName();
 		}
 		else if (fallbackId != null) {
-			return fallbackId;
+			return useFlowIdAsPrefix
+					? prefix + fallbackId
+					: fallbackId;
 		}
 
 		String generatedBeanName = prefix + instance.getClass().getName();

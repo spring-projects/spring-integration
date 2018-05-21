@@ -37,6 +37,7 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Standard implementation of {@link IntegrationFlowContext}.
@@ -50,6 +51,8 @@ import org.springframework.util.Assert;
 public final class StandardIntegrationFlowContext implements IntegrationFlowContext, BeanFactoryAware {
 
 	private final Map<String, IntegrationFlowRegistration> registry = new ConcurrentHashMap<>();
+
+	private final Map<String, Boolean> useFlowIdAsPrefix = new ConcurrentHashMap<>();
 
 	private final Lock registerFlowsLock = new ReentrantLock();
 
@@ -76,6 +79,11 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	@Override
 	public StandardIntegrationFlowRegistrationBuilder registration(IntegrationFlow integrationFlow) {
 		return new StandardIntegrationFlowRegistrationBuilder(integrationFlow);
+	}
+
+	@Override
+	public boolean isUseIdAsPrefix(String flowId) {
+		return Boolean.TRUE.equals(this.useFlowIdAsPrefix.get(flowId));
 	}
 
 	private void register(StandardIntegrationFlowRegistrationBuilder builder) {
@@ -224,6 +232,8 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 		private boolean autoStartup = true;
 
+		private boolean idAsPrefix;
+
 		StandardIntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
 			this.integrationFlowRegistration = new StandardIntegrationFlowRegistration(integrationFlow);
 			this.integrationFlowRegistration.setBeanFactory(StandardIntegrationFlowContext.this.beanFactory);
@@ -282,6 +292,12 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 			return this;
 		}
 
+		@Override
+		public IntegrationFlowRegistrationBuilder useFlowIdAsPrefix() {
+			this.idAsPrefix = true;
+			return this;
+		}
+
 		/**
 		 * Register an {@link IntegrationFlow} and all the dependant and support components
 		 * in the application context and return an associated {@link IntegrationFlowRegistration}
@@ -290,6 +306,12 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		 */
 		@Override
 		public IntegrationFlowRegistration register() {
+			String id = this.integrationFlowRegistration.getId();
+			Assert.state(!this.idAsPrefix || StringUtils.hasText(id),
+					"An 'id' must be present to use 'useFlowIdAsPrefix'");
+			if (this.idAsPrefix) {
+				StandardIntegrationFlowContext.this.useFlowIdAsPrefix.put(id, this.idAsPrefix);
+			}
 			StandardIntegrationFlowContext.this.register(this);
 			return this.integrationFlowRegistration;
 		}
