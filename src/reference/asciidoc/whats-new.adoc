@@ -44,3 +44,9 @@ Previously, interceptors were not applied when beans were created after the appl
 A new `ResultType.BYTES` mode is introduced for the `ObjectToJsonTransformer`.
 
 See <<json-transformers>> for more information.
+
+==== Integration Flows: Generated bean names
+
+Starting with _version 5.0.5_, the generated bean names for the components in the `IntegrationFlow` include the flow bean name with the dot as a prefix.
+
+See <<java-dsl-flows>> for more information.
