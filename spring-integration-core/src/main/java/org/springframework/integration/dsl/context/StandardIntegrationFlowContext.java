@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -34,7 +35,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -51,7 +51,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 
 	private final Map<String, IntegrationFlowRegistration> registry = new ConcurrentHashMap<>();
 
-	private final DefaultLockRegistry registerBeansLockRegistry = new DefaultLockRegistry();
+	private final Lock registerFlowsLock = new ReentrantLock();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
@@ -84,7 +84,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 		Lock registerBeanLock = null;
 		try {
 			if (flowId == null) {
-				registerBeanLock = this.registerBeansLockRegistry.obtain(integrationFlow.getClass());
+				registerBeanLock = this.registerFlowsLock;
 				registerBeanLock.lock();
 				flowId = generateBeanName(integrationFlow, null);
 				builder.id(flowId);
