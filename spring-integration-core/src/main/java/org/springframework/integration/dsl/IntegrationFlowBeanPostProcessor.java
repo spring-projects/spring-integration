@@ -44,6 +44,7 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
 import org.springframework.integration.support.context.NamedComponent;
@@ -67,6 +68,8 @@ public class IntegrationFlowBeanPostProcessor
 
 	private ConfigurableListableBeanFactory beanFactory;
 
+	private IntegrationFlowContext flowContext;
+
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		Assert.isInstanceOf(ConfigurableListableBeanFactory.class, beanFactory,
@@ -75,6 +78,8 @@ public class IntegrationFlowBeanPostProcessor
 		);
 
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
+		Assert.notNull(this.flowContext, "There must be an IntegrationFlowContext in the application context");
 	}
 
 	@Override
@@ -100,7 +105,7 @@ public class IntegrationFlowBeanPostProcessor
 					throw new BeanCreationNotAllowedException(beanName, "IntegrationFlows can not be scoped beans. " +
 							"Any dependant beans are registered as singletons, meanwhile IntegrationFlow is just a " +
 							"logical container for them. \n" +
-							"Consider to use [IntegrationFlowContext] for manual registration of IntegrationFlows.");
+							"Consider using [IntegrationFlowContext] for manual registration of IntegrationFlows.");
 				}
 			}
 		}
@@ -124,6 +129,9 @@ public class IntegrationFlowBeanPostProcessor
 
 				if (id == null) {
 					id = generateBeanName(endpoint, flowNamePrefix, entry.getValue());
+				}
+				else if (this.flowContext.isUseIdAsPrefix(flowBeanName)) {
+					id = flowNamePrefix + id;
 				}
 
 				Collection<?> messageHandlers =
