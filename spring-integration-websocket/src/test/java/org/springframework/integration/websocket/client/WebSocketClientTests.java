@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.tomcat.websocket.Constants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -60,7 +63,6 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
-import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
@@ -82,8 +84,8 @@ public class WebSocketClientTests {
 	private QueueChannel webSocketInputChannel;
 
 	@Test
-	public void testWebSocketOutboundMessageHandler() throws Exception {
-		this.webSocketOutputChannel.send(new GenericMessage<String>("Spring"));
+	public void testWebSocketOutboundMessageHandler() {
+		this.webSocketOutputChannel.send(new GenericMessage<>("Spring"));
 
 		Message<?> received = this.webSocketInputChannel.receive(10000);
 		assertNotNull(received);
@@ -106,7 +108,11 @@ public class WebSocketClientTests {
 
 		@Bean
 		public WebSocketClient webSocketClient() {
-			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new StandardWebSocketClient())));
+			StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
+			Map<String, Object> userProperties = new HashMap<>();
+			userProperties.put(Constants.IO_TIMEOUT_MS_PROPERTY, "" + (Constants.IO_TIMEOUT_MS_DEFAULT * 6));
+			webSocketClient.setUserProperties(userProperties);
+			return new SockJsClient(Collections.singletonList(new WebSocketTransport(webSocketClient)));
 		}
 
 		@Bean
