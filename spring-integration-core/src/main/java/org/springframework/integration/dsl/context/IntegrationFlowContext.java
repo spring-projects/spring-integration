@@ -37,6 +37,7 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A public API for dynamic (manual) registration of {@link IntegrationFlow}s,
@@ -70,6 +71,8 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 
 	private final Map<String, IntegrationFlowRegistration> registry = new ConcurrentHashMap<>();
 
+	private final Map<String, Boolean> useFlowIdAsPrefix = new ConcurrentHashMap<>();
+
 	private final Lock registerFlowsLock = new ReentrantLock();
 
 	private ConfigurableListableBeanFactory beanFactory;
@@ -96,6 +99,15 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 		return new IntegrationFlowRegistrationBuilder(integrationFlow);
 	}
 
+	/**
+	 * Return true to prefix flow bean names with the flow id and a period.
+	 * @param flowId the flow id.
+	 * @return true to use as a prefix.
+	 * @since 5.0.6
+	 */
+	public boolean isUseIdAsPrefix(String flowId) {
+		return Boolean.TRUE.equals(this.useFlowIdAsPrefix.get(flowId));
+	}
 
 	private void register(IntegrationFlowRegistrationBuilder builder) {
 		IntegrationFlow integrationFlow = builder.integrationFlowRegistration.getIntegrationFlow();
@@ -228,8 +240,12 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	}
 
 	/**
+	 * @author Gary Russell
+	 * @since 5.1
+	 *
 	 * A Builder pattern implementation for the options to register {@link IntegrationFlow}
 	 * in the application context.
+
 	 */
 	public final class IntegrationFlowRegistrationBuilder {
 
@@ -238,6 +254,8 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 		private final IntegrationFlowRegistration integrationFlowRegistration;
 
 		private boolean autoStartup = true;
+
+		private boolean idAsPrefix;
 
 		IntegrationFlowRegistrationBuilder(IntegrationFlow integrationFlow) {
 			this.integrationFlowRegistration = new IntegrationFlowRegistration(integrationFlow);
@@ -294,12 +312,32 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 		}
 
 		/**
+		 * Invoke this method to prefix bean names in the flow with the (required) flow id
+		 * and a period. This is useful if you wish to register the same flow multiple times
+		 * while retaining the ability to reference beans within the flow; adding the unique
+		 * flow id to the bean name makes the name unique.
+		 * @return the current builder instance.
+		 * @see #id(String)
+		 * @since 5.0.6
+		 */
+		public IntegrationFlowRegistrationBuilder useFlowIdAsPrefix() {
+			this.idAsPrefix = true;
+			return this;
+		}
+
+		/**
 		 * Register an {@link IntegrationFlow} and all the dependant and support components
 		 * in the application context and return an associated {@link IntegrationFlowRegistration}
 		 * control object.
 		 * @return the {@link IntegrationFlowRegistration} instance.
 		 */
 		public IntegrationFlowRegistration register() {
+			String id = this.integrationFlowRegistration.getId();
+			Assert.state(!this.idAsPrefix || StringUtils.hasText(id),
+					"An 'id' must be present to use 'useFlowIdAsPrefix'");
+			if (this.idAsPrefix) {
+				IntegrationFlowContext.this.useFlowIdAsPrefix.put(id, this.idAsPrefix);
+			}
 			IntegrationFlowContext.this.register(this);
 			return this.integrationFlowRegistration;
 		}
