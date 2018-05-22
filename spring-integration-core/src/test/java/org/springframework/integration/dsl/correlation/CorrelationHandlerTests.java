@@ -176,11 +176,12 @@ public class CorrelationHandlerTests {
 		}
 
 		@Bean
+		@SuppressWarnings("rawtypes")
 		public IntegrationFlow splitResequenceFlow() {
 			return f -> f.enrichHeaders(s -> s.header("FOO", "BAR"))
 					.split("testSplitterData", "buildList", c -> c.applySequence(false))
 					.channel(MessageChannels.executor(taskExecutor()))
-					.split(Message.class, Message<Object>::getPayload, c -> c.applySequence(false))
+					.split(Message.class, Message::getPayload, c -> c.applySequence(false))
 					.channel(MessageChannels.executor(taskExecutor()))
 					.split(s -> s
 							.applySequence(false)
