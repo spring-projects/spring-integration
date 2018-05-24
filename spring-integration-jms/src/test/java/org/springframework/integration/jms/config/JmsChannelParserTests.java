@@ -45,7 +45,6 @@ import org.springframework.jms.listener.SimpleMessageListenerContainer;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -333,7 +332,7 @@ public class JmsChannelParserTests {
 	}
 
 
-	static class TestInterceptor extends ChannelInterceptorAdapter {
+	static class TestInterceptor implements ChannelInterceptor {
 	}
 
 	static class CustomTestMessageListenerContainer extends DefaultMessageListenerContainer {

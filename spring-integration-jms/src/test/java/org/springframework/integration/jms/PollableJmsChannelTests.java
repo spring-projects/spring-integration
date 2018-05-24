@@ -51,7 +51,6 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -248,7 +247,7 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		assertEquals("bar", result2.getPayload());
 	}
 
-	public static class SampleInterceptor extends ChannelInterceptorAdapter {
+	public static class SampleInterceptor implements ChannelInterceptor {
 
 		private final boolean preReceiveFlag;
 
@@ -257,23 +256,8 @@ public class PollableJmsChannelTests extends ActiveMQMultiContextTests {
 		}
 
 		@Override
-		public Message<?> preSend(Message<?> message, MessageChannel channel) {
-			return message;
-		}
-
-		@Override
-		public void postSend(Message<?> message, MessageChannel channel,
-				boolean sent) {
-		}
-
-		@Override
 		public boolean preReceive(MessageChannel channel) {
 			return this.preReceiveFlag;
-		}
-
-		@Override
-		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-			return message;
 		}
 
 	}

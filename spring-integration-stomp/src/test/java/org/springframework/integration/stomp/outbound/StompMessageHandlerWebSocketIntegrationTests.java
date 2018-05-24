@@ -70,7 +70,7 @@ import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Controller;
@@ -215,7 +215,6 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 		}
 
 		@Bean
-		@SuppressWarnings("unchecked")
 		public ApplicationListener<ApplicationEvent> stompEventListener() {
 			ApplicationEventListeningMessageProducer producer = new ApplicationEventListeningMessageProducer();
 			producer.setEventTypes(StompIntegrationEvent.class);
@@ -273,7 +272,7 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 
 		@Override
 		public void configureClientInboundChannel(ChannelRegistration registration) {
-			registration.interceptors(new ChannelInterceptorAdapter() {
+			registration.interceptors(new ChannelInterceptor() {
 
 				private final AtomicBoolean invoked = new AtomicBoolean();
 
@@ -281,7 +280,7 @@ public class StompMessageHandlerWebSocketIntegrationTests {
 				public Message<?> preSend(Message<?> message, MessageChannel channel) {
 					if (StompCommand.CONNECT.equals(StompHeaderAccessor.wrap(message).getCommand()) ||
 							this.invoked.compareAndSet(false, true)) {
-						return super.preSend(message, channel);
+						return message;
 					}
 					throw new RuntimeException("preSend intentional Exception");
 				}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
-public class TestChannelInterceptor extends ChannelInterceptorAdapter {
+public class TestChannelInterceptor implements ChannelInterceptor {
 
 	private final AtomicInteger sendCount = new AtomicInteger();
 

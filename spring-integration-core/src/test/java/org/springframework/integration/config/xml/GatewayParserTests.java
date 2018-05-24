@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.test.annotation.DirtiesContext;
@@ -195,12 +195,12 @@ public class GatewayParserTests {
 	public void testAsyncCompletable() throws Exception {
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
 		final AtomicReference<Thread> thread = new AtomicReference<>();
-		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		requestChannel.addInterceptor(new ChannelInterceptor() {
 
 			@Override
 			public Message<?> preSend(Message<?> message, MessageChannel channel) {
 				thread.set(Thread.currentThread());
-				return super.preSend(message, channel);
+				return message;
 			}
 
 		});
@@ -218,12 +218,12 @@ public class GatewayParserTests {
 	public void testAsyncCompletableNoAsync() throws Exception {
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
 		final AtomicReference<Thread> thread = new AtomicReference<>();
-		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		requestChannel.addInterceptor(new ChannelInterceptor() {
 
 			@Override
 			public Message<?> preSend(Message<?> message, MessageChannel channel) {
 				thread.set(Thread.currentThread());
-				return super.preSend(message, channel);
+				return message;
 			}
 
 		});
@@ -241,12 +241,12 @@ public class GatewayParserTests {
 	public void testCustomCompletableNoAsync() throws Exception {
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
 		final AtomicReference<Thread> thread = new AtomicReference<>();
-		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		requestChannel.addInterceptor(new ChannelInterceptor() {
 
 			@Override
 			public Message<?> preSend(Message<?> message, MessageChannel channel) {
 				thread.set(Thread.currentThread());
-				return super.preSend(message, channel);
+				return message;
 			}
 
 		});
@@ -268,12 +268,12 @@ public class GatewayParserTests {
 		new DirectFieldAccessor(gateway).setPropertyValue("logger", logger);
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
 		final AtomicReference<Thread> thread = new AtomicReference<>();
-		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		requestChannel.addInterceptor(new ChannelInterceptor() {
 
 			@Override
 			public Message<?> preSend(Message<?> message, MessageChannel channel) {
 				thread.set(Thread.currentThread());
-				return super.preSend(message, channel);
+				return message;
 			}
 
 		});
@@ -294,12 +294,12 @@ public class GatewayParserTests {
 	public void testAsyncCompletableMessage() throws Exception {
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
 		final AtomicReference<Thread> thread = new AtomicReference<>();
-		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		requestChannel.addInterceptor(new ChannelInterceptor() {
 
 			@Override
 			public Message<?> preSend(Message<?> message, MessageChannel channel) {
 				thread.set(Thread.currentThread());
-				return super.preSend(message, channel);
+				return message;
 			}
 
 		});
@@ -317,12 +317,12 @@ public class GatewayParserTests {
 	public void testAsyncCompletableNoAsyncMessage() throws Exception {
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
 		final AtomicReference<Thread> thread = new AtomicReference<>();
-		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		requestChannel.addInterceptor(new ChannelInterceptor() {
 
 			@Override
 			public Message<?> preSend(Message<?> message, MessageChannel channel) {
 				thread.set(Thread.currentThread());
-				return super.preSend(message, channel);
+				return message;
 			}
 
 		});
@@ -340,12 +340,12 @@ public class GatewayParserTests {
 	public void testCustomCompletableNoAsyncMessage() throws Exception {
 		QueueChannel requestChannel = (QueueChannel) context.getBean("requestChannel");
 		final AtomicReference<Thread> thread = new AtomicReference<>();
-		requestChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		requestChannel.addInterceptor(new ChannelInterceptor() {
 
 			@Override
 			public Message<?> preSend(Message<?> message, MessageChannel channel) {
 				thread.set(Thread.currentThread());
-				return super.preSend(message, channel);
+				return message;
 			}
 
 		});

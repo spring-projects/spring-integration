@@ -122,7 +122,6 @@ public class AmqpChannelParserTests {
 	}
 
 	private static class TestInterceptor implements ChannelInterceptor {
-
 	}
 
 }

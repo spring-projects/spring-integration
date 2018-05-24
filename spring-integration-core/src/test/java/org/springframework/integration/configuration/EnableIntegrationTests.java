@@ -126,7 +126,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.annotation.Async;
@@ -820,13 +819,14 @@ public class EnableIntegrationTests {
 
 				@Override
 				protected ChannelInterceptor createInstance() throws Exception {
-					return new ChannelInterceptorAdapter() {
+					return new ChannelInterceptor() {
 
 						@Override
 						public Message<?> preSend(Message<?> message, MessageChannel channel) {
 							fbInterceptorCounter().incrementAndGet();
-							return super.preSend(message, channel);
+							return message;
 						}
+
 					};
 				}
 			};
@@ -930,7 +930,7 @@ public class EnableIntegrationTests {
 
 	@Component
 	@GlobalChannelInterceptor
-	public static class TestChannelInterceptor extends ChannelInterceptorAdapter {
+	public static class TestChannelInterceptor implements ChannelInterceptor {
 
 		private final AtomicInteger invoked = new AtomicInteger();
 

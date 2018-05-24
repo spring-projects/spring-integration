@@ -41,7 +41,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -160,7 +159,7 @@ public class GlobalChannelInterceptorTests {
 		assertThat(channelInterceptors.get(0), instanceOf(SampleInterceptor.class));
 	}
 
-	public static class SampleInterceptor extends ChannelInterceptorAdapter {
+	public static class SampleInterceptor implements ChannelInterceptor {
 
 		private String testIdentifier;
 
@@ -172,17 +171,21 @@ public class GlobalChannelInterceptorTests {
 			this.testIdentifier = testIdentifier;
 		}
 
+		@Override
 		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 			return null;
 		}
 
+		@Override
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 		}
 
+		@Override
 		public boolean preReceive(MessageChannel channel) {
 			return false;
 		}
 
+		@Override
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			return null;
 		}

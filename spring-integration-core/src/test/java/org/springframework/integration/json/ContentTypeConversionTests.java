@@ -41,7 +41,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -94,12 +94,12 @@ public class ContentTypeConversionTests {
 		@Bean
 		public MessageChannel serviceChannel(final AtomicReference<Object> sendData) {
 			return MessageChannels.direct()
-					.interceptor(new ChannelInterceptorAdapter() {
+					.interceptor(new ChannelInterceptor() {
 
 						@Override
 						public Message<?> preSend(Message<?> message, MessageChannel channel) {
 							sendData.set(message.getPayload());
-							return super.preSend(message, channel);
+							return message;
 						}
 
 					})
