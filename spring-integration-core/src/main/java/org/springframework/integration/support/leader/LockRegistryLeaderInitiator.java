@@ -397,10 +397,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							}
 							// The lock was broken and we are no longer leader
 							handleRevoked();
-							if (isRunning()) {
-								// Give it a chance to elect some other leader.
-								Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
-							}
 						}
 
 						if (e instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
@@ -417,9 +413,15 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 							}
 							return null;
 						}
-						else if (logger.isDebugEnabled()) {
-							logger.debug("Error acquiring the lock for " + this.context +
-									". " + (isRunning() ? "Retrying..." : ""), e);
+						else {
+							if (isRunning()) {
+								// Give it a chance to elect some other leader.
+								Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+							}
+							if (logger.isDebugEnabled()) {
+								logger.debug("Error acquiring the lock for " + this.context +
+										". " + (isRunning() ? "Retrying..." : ""), e);
+							}
 						}
 					}
 				}
