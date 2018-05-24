@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StringUtils;
@@ -55,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class ChannelInterceptorTests {
 
@@ -94,7 +94,8 @@ public class ChannelInterceptorTests {
 	@Test
 	public void testPostSendInterceptorWithSentMessage() {
 		final AtomicBoolean invoked = new AtomicBoolean(false);
-		channel.addInterceptor(new ChannelInterceptorAdapter() {
+		channel.addInterceptor(new ChannelInterceptor() {
+
 			@Override
 			public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 				assertNotNull(message);
@@ -103,6 +104,7 @@ public class ChannelInterceptorTests {
 				assertTrue(sent);
 				invoked.set(true);
 			}
+
 		});
 		channel.send(new GenericMessage<String>("test"));
 		assertTrue(invoked.get());
@@ -113,7 +115,8 @@ public class ChannelInterceptorTests {
 		final AtomicInteger invokedCounter = new AtomicInteger(0);
 		final AtomicInteger sentCounter = new AtomicInteger(0);
 		final QueueChannel singleItemChannel = new QueueChannel(1);
-		singleItemChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		singleItemChannel.addInterceptor(new ChannelInterceptor() {
+
 			@Override
 			public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 				assertNotNull(message);
@@ -124,6 +127,7 @@ public class ChannelInterceptorTests {
 				}
 				invokedCounter.incrementAndGet();
 			}
+
 		});
 		assertEquals(0, invokedCounter.get());
 		assertEquals(0, sentCounter.get());
@@ -206,7 +210,8 @@ public class ChannelInterceptorTests {
 	public void testPostReceiveInterceptor() {
 		final AtomicInteger invokedCount = new AtomicInteger();
 		final AtomicInteger messageCount = new AtomicInteger();
-		channel.addInterceptor(new ChannelInterceptorAdapter() {
+		channel.addInterceptor(new ChannelInterceptor() {
+
 			@Override
 			public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 				assertNotNull(channel);
@@ -217,6 +222,7 @@ public class ChannelInterceptorTests {
 				invokedCount.incrementAndGet();
 				return message;
 			}
+
 		});
 		channel.receive(0);
 		assertEquals(1, invokedCount.get());
@@ -295,7 +301,7 @@ public class ChannelInterceptorTests {
 		testApplicationContext.close();
 	}
 
-	public static class PreSendReturnsMessageInterceptor extends ChannelInterceptorAdapter {
+	public static class PreSendReturnsMessageInterceptor implements ChannelInterceptor {
 		private String foo;
 
 		private static AtomicInteger counter = new AtomicInteger();
@@ -329,7 +335,7 @@ public class ChannelInterceptorTests {
 	}
 
 
-	private static class PreSendReturnsNullInterceptor extends ChannelInterceptorAdapter {
+	private static class PreSendReturnsNullInterceptor implements ChannelInterceptor {
 
 		private static AtomicInteger counter = new AtomicInteger();
 
@@ -349,7 +355,7 @@ public class ChannelInterceptorTests {
 		}
 	}
 
-	private static class AfterCompletionTestInterceptor extends ChannelInterceptorAdapter {
+	private static class AfterCompletionTestInterceptor implements ChannelInterceptor {
 
 		private final AtomicInteger counter = new AtomicInteger();
 
@@ -391,7 +397,7 @@ public class ChannelInterceptorTests {
 
 	}
 
-	private static class PreReceiveReturnsTrueInterceptor extends ChannelInterceptorAdapter {
+	private static class PreReceiveReturnsTrueInterceptor implements ChannelInterceptor {
 
 		private final AtomicInteger counter = new AtomicInteger();
 
@@ -432,7 +438,7 @@ public class ChannelInterceptorTests {
 	}
 
 
-	private static class PreReceiveReturnsFalseInterceptor extends ChannelInterceptorAdapter {
+	private static class PreReceiveReturnsFalseInterceptor implements ChannelInterceptor {
 
 		private static AtomicInteger counter = new AtomicInteger();
 
@@ -448,8 +454,7 @@ public class ChannelInterceptorTests {
 
 	}
 
-	private static class TestExecutorInterceptor extends ChannelInterceptorAdapter
-			implements ExecutorChannelInterceptor {
+	private static class TestExecutorInterceptor implements ExecutorChannelInterceptor {
 
 		TestExecutorInterceptor() {
 			super();

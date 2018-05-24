@@ -46,7 +46,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -262,8 +261,7 @@ public class ExecutorChannelTests {
 		}
 	}
 
-	private static class BeforeHandleInterceptor extends ChannelInterceptorAdapter
-			implements ExecutorChannelInterceptor {
+	private static class BeforeHandleInterceptor implements ExecutorChannelInterceptor {
 
 		private final AtomicInteger counter = new AtomicInteger();
 
