@@ -416,7 +416,13 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 						else {
 							if (isRunning()) {
 								// Give it a chance to elect some other leader.
-								Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+								try {
+									Thread.sleep(LockRegistryLeaderInitiator.this.busyWaitMillis);
+								}
+								catch (InterruptedException e1) {
+									// Ignore interruption and let it to be caught on the next cycle.
+									Thread.currentThread().interrupt();
+								}
 							}
 							if (logger.isDebugEnabled()) {
 								logger.debug("Error acquiring the lock for " + this.context +
