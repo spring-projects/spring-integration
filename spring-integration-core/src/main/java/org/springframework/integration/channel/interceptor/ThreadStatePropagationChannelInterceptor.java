@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
 
 /**
@@ -51,7 +51,7 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @since 4.2
  */
 public abstract class ThreadStatePropagationChannelInterceptor<S>
-		extends ChannelInterceptorAdapter implements ExecutorChannelInterceptor {
+		implements ChannelInterceptor, ExecutorChannelInterceptor {
 
 	@Override
 	public final Message<?> preSend(Message<?> message, MessageChannel channel) {

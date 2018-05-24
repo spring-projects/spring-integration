@@ -73,7 +73,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -344,12 +344,12 @@ public class JmsTests {
 		@Bean
 		public MessageChannel jmsMessageDrivenInputChannel() {
 			DirectChannel directChannel = new DirectChannel();
-			directChannel.addInterceptor(new ChannelInterceptorAdapter() {
+			directChannel.addInterceptor(new ChannelInterceptor() {
 
 				@Override
 				public Message<?> preSend(Message<?> message, MessageChannel channel) {
 					jmsMessageDrivenChannelCalled().set(true);
-					return super.preSend(message, channel);
+					return message;
 				}
 
 			});
@@ -397,12 +397,12 @@ public class JmsTests {
 		@Bean
 		public MessageChannel jmsInboundGatewayInputChannel() {
 			DirectChannel directChannel = new DirectChannel();
-			directChannel.addInterceptor(new ChannelInterceptorAdapter() {
+			directChannel.addInterceptor(new ChannelInterceptor() {
 
 				@Override
 				public Message<?> preSend(Message<?> message, MessageChannel channel) {
 					jmsInboundGatewayChannelCalled().set(true);
-					return super.preSend(message, channel);
+					return message;
 				}
 
 			});
@@ -444,7 +444,7 @@ public class JmsTests {
 
 	@Component
 	@GlobalChannelInterceptor(patterns = "flow1QueueChannel")
-	public static class TestChannelInterceptor extends ChannelInterceptorAdapter {
+	public static class TestChannelInterceptor implements ChannelInterceptor {
 
 		private final AtomicInteger invoked = new AtomicInteger();
 

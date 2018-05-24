@@ -88,7 +88,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
@@ -594,7 +594,7 @@ public class GatewayInterfaceTests {
 		@BridgeTo
 		public MessageChannel gatewayThreadChannel() {
 			DirectChannel channel = new DirectChannel();
-			channel.addInterceptor(new ChannelInterceptorAdapter() {
+			channel.addInterceptor(new ChannelInterceptor() {
 
 				@Override
 				public Message<?> preSend(Message<?> message, MessageChannel channel) {

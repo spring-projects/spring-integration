@@ -29,7 +29,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
 
 /**
  * @author Oleg Zhurakousky
@@ -54,7 +53,7 @@ public class GlobalChannelInterceptorTests {
 	}
 
 
-	public static class SampleInterceptor extends ChannelInterceptorAdapter {
+	public static class SampleInterceptor implements ChannelInterceptor {
 	}
 
 }

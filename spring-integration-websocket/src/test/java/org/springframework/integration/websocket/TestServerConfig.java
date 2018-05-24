@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -37,6 +37,7 @@ import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 @Configuration
@@ -56,13 +57,15 @@ public class TestServerConfig implements WebSocketConfigurer {
 	@Bean
 	public AbstractSubscribableChannel clientOutboundChannel() {
 		DirectChannel directChannel = new DirectChannel();
-		directChannel.addInterceptor(new ChannelInterceptorAdapter() {
+		directChannel.addInterceptor(new ChannelInterceptor() {
+
 			@Override
 			public Message<?> preSend(Message<?> message, MessageChannel channel) {
 				SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(message);
 				headers.setLeaveMutable(true);
 				return MessageBuilder.createMessage(message.getPayload(), headers.getMessageHeaders());
 			}
+
 		});
 		return directChannel;
 	}
