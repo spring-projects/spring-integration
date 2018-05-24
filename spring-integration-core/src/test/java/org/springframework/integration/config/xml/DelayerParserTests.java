@@ -67,11 +67,11 @@ public class DelayerParserTests {
 		DelayHandler delayHandler = context.getBean("delayerWithDefaultScheduler.handler", DelayHandler.class);
 		assertEquals(99, delayHandler.getOrder());
 		assertEquals(context.getBean("output"), TestUtils.getPropertyValue(delayHandler, "outputChannel"));
-		assertEquals(new Long(1234), TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class));
+		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(delayHandler, "defaultDelay", Long.class));
 		//INT-2243
 		assertNotNull(TestUtils.getPropertyValue(delayHandler, "delayExpression"));
 		assertEquals("headers.foo", TestUtils.getPropertyValue(delayHandler, "delayExpression", Expression.class).getExpressionString());
-		assertEquals(new Long(987), TestUtils.getPropertyValue(delayHandler, "messagingTemplate.sendTimeout", Long.class));
+		assertEquals(Long.valueOf(987), TestUtils.getPropertyValue(delayHandler, "messagingTemplate.sendTimeout", Long.class));
 		assertNull(TestUtils.getPropertyValue(delayHandler, "taskScheduler"));
 	}
 
@@ -85,7 +85,7 @@ public class DelayerParserTests {
 		assertEquals(Ordered.LOWEST_PRECEDENCE, delayHandler.getOrder());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
 		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
-		assertEquals(new Long(0), accessor.getPropertyValue("defaultDelay"));
+		assertEquals(Long.valueOf(0), accessor.getPropertyValue("defaultDelay"));
 		assertEquals(context.getBean("testScheduler"), accessor.getPropertyValue("taskScheduler"));
 		assertNotNull(accessor.getPropertyValue("taskScheduler"));
 		assertEquals(Boolean.TRUE, new DirectFieldAccessor(

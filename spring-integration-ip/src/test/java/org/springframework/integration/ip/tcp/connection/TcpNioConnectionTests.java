@@ -66,9 +66,10 @@ import javax.net.SocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -85,7 +86,6 @@ import org.springframework.integration.ip.tcp.serializer.MapJsonSerializer;
 import org.springframework.integration.ip.util.TestingUtilities;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.MapMessageConverter;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CompositeExecutor;
 import org.springframework.messaging.Message;
@@ -107,27 +107,25 @@ public class TcpNioConnectionTests {
 
 	private final static Log logger = LogFactory.getLog(TcpNioConnectionTests.class);
 
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories("org.springframework.integration.ip.tcp");
-
-	@Rule
-	public TestName testName = new TestName();
+//	@Rule TODO: JUnit5 adjuster
+//	public Log4j2LevelAdjuster adjuster =
+//			Log4j2LevelAdjuster.trace()
+//					.categories("org.springframework.integration.ip.tcp");
 
 	private final ApplicationEventPublisher nullPublisher = mock(ApplicationEventPublisher.class);
 
 	private final AsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
 
 	@Test
-	public void testWriteTimeout() throws Exception {
+	public void testWriteTimeout(TestInfo testInfo) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final CountDownLatch done = new CountDownLatch(1);
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-				logger.debug(testName.getMethodName() + " starting server for " + server.getLocalPort());
+				logger.debug(
+						testInfo.getTestMethod().get().getName() + " starting server for " + server.getLocalPort());
 				serverSocket.set(server);
 				latch.countDown();
 				Socket s = server.accept();
@@ -159,14 +157,15 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	public void testReadTimeout() throws Exception {
+	public void testReadTimeout(TestInfo testInfo) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final CountDownLatch done = new CountDownLatch(1);
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-				logger.debug(testName.getMethodName() + " starting server for " + server.getLocalPort());
+				logger.debug(
+						testInfo.getTestMethod().get().getName() + " starting server for " + server.getLocalPort());
 				serverSocket.set(server);
 				latch.countDown();
 				Socket socket = server.accept();
@@ -206,13 +205,14 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
-	public void testMemoryLeak() throws Exception {
+	public void testMemoryLeak(TestInfo testInfo) throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<ServerSocket> serverSocket = new AtomicReference<>();
 		this.executor.execute(() -> {
 			try {
 				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
-				logger.debug(testName.getMethodName() + " starting server for " + server.getLocalPort());
+				logger.debug(
+						testInfo.getTestMethod().get().getName() + " starting server for " + server.getLocalPort());
 				serverSocket.set(server);
 				latch.countDown();
 				Socket socket = server.accept();
@@ -254,6 +254,7 @@ public class TcpNioConnectionTests {
 	}
 
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testCleanup() throws Exception {
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", 0);
 		factory.setApplicationEventPublisher(nullPublisher);

@@ -195,7 +195,7 @@ public class JmsTests {
 
 	@Test
 	public void testJmsPipelineFlow() {
-		assertEquals(new Long(10000),
+		assertEquals(Long.valueOf(10000),
 				TestUtils.getPropertyValue(this.jmsOutboundGatewayHandler, "idleReplyContainerTimeout", Long.class));
 		PollableChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("hello through the jms pipeline")

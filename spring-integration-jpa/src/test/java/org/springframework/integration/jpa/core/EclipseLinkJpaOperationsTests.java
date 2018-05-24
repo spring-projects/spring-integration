@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 
 package org.springframework.integration.jpa.core;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.text.ParseException;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
+
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * Tests the functionality of {@link JpaOperations} and {@link DefaultJpaOperations}
@@ -41,8 +43,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 2.2
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@SpringJUnitConfig
+@EnabledOnJre(JRE.JAVA_8)
 public class EclipseLinkJpaOperationsTests extends AbstractJpaOperationsTests {
 
 	@Test
@@ -56,7 +58,7 @@ public class EclipseLinkJpaOperationsTests extends AbstractJpaOperationsTests {
 			return;
 		}
 
-		Assert.fail("Was expecting an Exception as OpenJPA does not support Native SQL Queries with Named Parameters.");
+		fail("Was expecting an Exception as OpenJPA does not support Native SQL Queries with Named Parameters.");
 	}
 
 	@Test
@@ -70,7 +72,7 @@ public class EclipseLinkJpaOperationsTests extends AbstractJpaOperationsTests {
 			return;
 		}
 
-		Assert.fail("Was expecting an Exception as OpenJPA does not support Native SQL Queries with Named Parameters.");
+		fail("Was expecting an Exception as OpenJPA does not support Native SQL Queries with Named Parameters.");
 	}
 
 	@Test

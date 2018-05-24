@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +31,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
@@ -106,10 +109,10 @@ public class ObjectToJsonTransformerTests {
 		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void withProvidedContentTypeAsNull() throws Exception {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
-		transformer.setContentType(null);
+		assertThrows(IllegalArgumentException.class, () -> transformer.setContentType(null));
 	}
 
 	@Test
@@ -193,6 +196,7 @@ public class ObjectToJsonTransformerTests {
 	}
 
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testBoonJsonObjectMapper() throws Exception {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper());
 		TestPerson person = new TestPerson("John", "Doe", 42);
@@ -210,6 +214,7 @@ public class ObjectToJsonTransformerTests {
 	}
 
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testBoonJsonObjectMapper_toNode() throws Exception {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper(),
 				ObjectToJsonTransformer.ResultType.NODE);

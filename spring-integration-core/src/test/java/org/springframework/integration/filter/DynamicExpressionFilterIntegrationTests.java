@@ -52,10 +52,10 @@ public class DynamicExpressionFilterIntegrationTests {
 		this.input.send(new GenericMessage<Integer>(0));
 		this.input.send(new GenericMessage<Integer>(99));
 		this.input.send(new GenericMessage<Integer>(-99));
-		assertEquals(new Integer(1), positives.receive(0).getPayload());
-		assertEquals(new Integer(99), positives.receive(0).getPayload());
-		assertEquals(new Integer(0), negatives.receive(0).getPayload());
-		assertEquals(new Integer(-99), negatives.receive(0).getPayload());
+		assertEquals(Integer.valueOf(1), positives.receive(0).getPayload());
+		assertEquals(Integer.valueOf(99), positives.receive(0).getPayload());
+		assertEquals(Integer.valueOf(0), negatives.receive(0).getPayload());
+		assertEquals(Integer.valueOf(-99), negatives.receive(0).getPayload());
 		assertNull(positives.receive(0));
 		assertNull(negatives.receive(0));
 	}

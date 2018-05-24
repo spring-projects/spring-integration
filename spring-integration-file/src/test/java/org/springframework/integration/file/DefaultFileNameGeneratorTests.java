@@ -55,7 +55,7 @@ public class DefaultFileNameGeneratorTests {
 	public void defaultHeaderNameNotString() {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
 		generator.setBeanFactory(mock(BeanFactory.class));
-		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, new Integer(123))
+		Message<?> message = MessageBuilder.withPayload("test").setHeader(FileHeaders.FILENAME, Integer.valueOf(123))
 				.build();
 		String filename = generator.generateFileName(message);
 		assertEquals(message.getHeaders().getId() + ".msg", filename);
@@ -86,7 +86,7 @@ public class DefaultFileNameGeneratorTests {
 		DefaultFileNameGenerator generator = new DefaultFileNameGenerator();
 		generator.setBeanFactory(mock(BeanFactory.class));
 		generator.setHeaderName("foo");
-		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", new Integer(123)).build();
+		Message<?> message = MessageBuilder.withPayload("test").setHeader("foo", Integer.valueOf(123)).build();
 		String filename = generator.generateFileName(message);
 		assertEquals(message.getHeaders().getId() + ".msg", filename);
 	}

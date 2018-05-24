@@ -111,7 +111,7 @@ public class XsltPayloadTransformerTests {
 
 	@Test
 	public void testSourceWithResultTransformer() throws Exception {
-		Integer returnValue = new Integer(13);
+		Integer returnValue = Integer.valueOf(13);
 		transformer = new XsltPayloadTransformer(getXslResource(),
 				new StubResultTransformer(returnValue));
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
@@ -124,7 +124,7 @@ public class XsltPayloadTransformerTests {
 
 	@Test
 	public void testXsltPayloadWithTransformerFactoryClassname() throws Exception {
-		Integer returnValue = new Integer(13);
+		Integer returnValue = Integer.valueOf(13);
 		transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
 				"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
@@ -150,7 +150,7 @@ public class XsltPayloadTransformerTests {
 
 	@Test(expected = MessagingException.class)
 	public void testUnsupportedPayloadType() throws Exception {
-		transformer.doTransform(buildMessage(new Long(12)));
+		transformer.doTransform(buildMessage(Long.valueOf(12)));
 	}
 
 	@Test

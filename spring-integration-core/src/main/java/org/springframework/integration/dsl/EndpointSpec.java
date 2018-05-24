@@ -41,6 +41,7 @@ import reactor.util.function.Tuples;
  * @param <H> the target {@link MessageHandler} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -58,7 +59,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	protected EndpointSpec(H handler) {
 		try {
 			Class<?> fClass = ResolvableType.forClass(this.getClass()).as(EndpointSpec.class).resolveGenerics()[1];
-			this.endpointFactoryBean = (F) fClass.newInstance();
+			this.endpointFactoryBean = (F) fClass.getConstructor().newInstance();
 			this.handler = handler;
 		}
 		catch (Exception e) {

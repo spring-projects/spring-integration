@@ -108,6 +108,7 @@ subprojects { subproject ->
 		jackson2Version = '2.9.5'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.6.1'
+		jaxbVersion = '2.3.0'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
 		jpaApiVersion = '2.1.1'
@@ -153,7 +154,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.7.9"
+		toolVersion = "0.8.1"
 	}
 
 	// dependencies that are common across all java projects
@@ -486,6 +487,10 @@ project('spring-integration-jpa') {
 		compile "org.springframework:spring-orm:$springVersion"
 		compile ("org.eclipse.persistence:javax.persistence:$jpaApiVersion", optional)
 
+		if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
+			compile ("org.glassfish.jaxb:jaxb-runtime:$jaxbVersion", optional)
+		}
+
 		testCompile ("org.springframework.data:spring-data-jpa:$springDataJpaVersion")
 
 		testCompile "com.h2database:h2:$h2Version"
@@ -561,6 +566,10 @@ project('spring-integration-scripting') {
 		testCompile("org.jruby:jruby:$jrubyVersion")
 		testCompile("org.codehaus.groovy:groovy-all:$groovyVersion")
 		testCompile("org.python:jython-standalone:$jythonVersion")
+	}
+
+	if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
+		[compileTestJava]*.options*.compilerArgs = ['--add-modules', 'jdk.scripting.nashorn']
 	}
 }
 
@@ -694,6 +703,10 @@ project('spring-integration-ws') {
 
 		testRuntime "com.sun.mail:mailapi:$javaxMailVersion"
 		testRuntime "com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+	if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
+		[compileTestJava]*.options*.compilerArgs = ['--add-modules', 'java.xml.ws']
 	}
 }
 
@@ -706,6 +719,10 @@ project('spring-integration-xml') {
 		compile ("org.springframework.ws:spring-ws-core:$springWsVersion")
 
 		testCompile "xmlunit:xmlunit:$xmlUnitVersion"
+	}
+
+	if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
+		[compileTestJava]*.options*.compilerArgs = ['--add-modules', 'java.xml.bind']
 	}
 }
 

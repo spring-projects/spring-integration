@@ -59,6 +59,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
@@ -496,7 +497,7 @@ public class ManualFlowTests {
 
 		@Override
 		protected IntegrationFlowDefinition<?> buildFlow() {
-			return from(() -> new GenericMessage<>("flowAdapterMessage"),
+			return from((MessageSource<?>) () -> new GenericMessage<>("flowAdapterMessage"),
 					e -> e.poller(p -> p
 							.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
 					.channel(MessageChannels.queue("flowAdapterOutput"));

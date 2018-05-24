@@ -111,7 +111,7 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 	public void bridgeWithSendTimeout() {
 		BridgeHandler handler = (BridgeHandler) new DirectFieldAccessor(bridgeWithSendTimeout).getPropertyValue("handler");
 		MessagingTemplate template = (MessagingTemplate) new DirectFieldAccessor(handler).getPropertyValue("messagingTemplate");
-		assertEquals(new Long(1234), new DirectFieldAccessor(template).getPropertyValue("sendTimeout"));
+		assertEquals(Long.valueOf(1234), new DirectFieldAccessor(template).getPropertyValue("sendTimeout"));
 	}
 
 }

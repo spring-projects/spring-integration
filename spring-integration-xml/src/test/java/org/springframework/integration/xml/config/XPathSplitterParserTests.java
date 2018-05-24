@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Properties;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,16 +38,14 @@ import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.util.MultiValueMap;
 
 /**
  * @author Artem Bilan
  * @author Gary Russell
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class XPathSplitterParserTests {
 
@@ -63,11 +62,18 @@ public class XPathSplitterParserTests {
 	SmartLifecycleRoleController roleController;
 
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testXpathSplitterConfig() {
 		assertTrue(TestUtils.getPropertyValue(this.xpathSplitter, "createDocuments", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(this.xpathSplitter, "applySequence", Boolean.class));
 		assertFalse(TestUtils.getPropertyValue(this.xpathSplitter, "iterator", Boolean.class));
 		assertSame(this.outputProperties, TestUtils.getPropertyValue(this.xpathSplitter, "outputProperties"));
+		/*
+		 * JDK 10
+		 * WARNING: An illegal reflective access operation has occurred
+		 * WARNING: Illegal reflective access by org.springframework.util.ReflectionUtils
+		 * to field com.sun.org.apache.xpath.internal.jaxp.XPathExpressionImpl.xpath
+		 */
 		assertEquals("/orders/order",
 				TestUtils.getPropertyValue(this.xpathSplitter,
 						"xpathExpression.xpathExpression.xpath.m_patternString",

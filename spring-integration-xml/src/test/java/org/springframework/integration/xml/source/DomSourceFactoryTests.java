@@ -72,7 +72,7 @@ public class DomSourceFactoryTests {
 
 	@Test(expected = MessagingException.class)
 	public void testWithUnsupportedPayload() throws Exception {
-		sourceFactory.createSource(new Integer(12));
+		sourceFactory.createSource(Integer.valueOf(12));
 	}
 
 

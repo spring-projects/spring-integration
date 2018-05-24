@@ -180,7 +180,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Integer result = service.requestReplyWithIntegers(123);
-		assertEquals(new Integer(123456), result);
+		assertEquals(Integer.valueOf(123456), result);
 	}
 
 	@Test

@@ -170,7 +170,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 				Calendar calendar = Calendar.getInstance();
 				calendar.add(Calendar.DATE, 1);
-				when(lsEntry.getAttrs().getMTime()).thenReturn(new Long(calendar.getTimeInMillis() / 1000).intValue());
+				when(lsEntry.getAttrs().getMTime()).thenReturn(Long.valueOf(calendar.getTimeInMillis() / 1000).intValue());
 				when(lsEntry.getFilename()).thenReturn(fileName);
 				when(lsEntry.getLongname()).thenReturn(fileName);
 				sftpEntries.add(lsEntry);

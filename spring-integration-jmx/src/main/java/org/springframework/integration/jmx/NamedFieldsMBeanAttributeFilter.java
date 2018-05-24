@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import javax.management.ObjectName;
 
 /**
  * @author Stuart Williams
+ * @author Gary Russell
  * @since 3.0
  *
  */
@@ -33,7 +34,7 @@ public class NamedFieldsMBeanAttributeFilter implements MBeanAttributeFilter {
 	 * @param namedFields The named fields that should pass the filter.
 	 */
 	public NamedFieldsMBeanAttributeFilter(String... namedFields) {
-		this.namedFields = (String[]) Arrays.asList(namedFields).toArray();
+		this.namedFields = Arrays.asList(namedFields).toArray(new String[0]);
 	}
 
 	@Override

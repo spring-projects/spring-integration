@@ -114,7 +114,7 @@ public class WebFluxOutboundGatewayParserTests {
 		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
-		assertEquals(new Long("1234"), sendTimeout);
+		assertEquals(Long.valueOf("1234"), sendTimeout);
 		Map<String, Expression> uriVariableExpressions =
 				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
 		assertEquals(1, uriVariableExpressions.size());

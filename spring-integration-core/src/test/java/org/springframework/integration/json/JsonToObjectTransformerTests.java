@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.integration.support.json.BoonJsonObjectMapper;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
@@ -69,6 +71,7 @@ public class JsonToObjectTransformerTests {
 
 
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testBoonJsonObjectMapper() throws Exception {
 		JsonToObjectTransformer transformer = new JsonToObjectTransformer(TestPerson.class, new BoonJsonObjectMapper());
 		String jsonString = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42," +

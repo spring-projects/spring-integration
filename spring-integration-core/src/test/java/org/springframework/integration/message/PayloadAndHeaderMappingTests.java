@@ -293,7 +293,7 @@ public class PayloadAndHeaderMappingTests {
 	@Test
 	public void mapOnlyNoAnnotationsWithIntegerPayload() throws Exception {
 		MessageHandler handler = this.getHandler("mapOnlyNoAnnotations", Map.class);
-		Integer payload = new Integer(123);
+		Integer payload = Integer.valueOf(123);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("foo", "1");
 		headers.put("bar", "2");
@@ -351,7 +351,7 @@ public class PayloadAndHeaderMappingTests {
 	@Test
 	public void propertiesOnlyNoAnnotationsWithIntegerPayload() throws Exception {
 		MessageHandler handler = this.getHandler("propertiesOnlyNoAnnotations", Properties.class);
-		Integer payload = new Integer(123);
+		Integer payload = Integer.valueOf(123);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("foo", "1");
 		headers.put("bar", "2");
@@ -567,7 +567,7 @@ public class PayloadAndHeaderMappingTests {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("foo", "1");
 		headers.put("bar", "2");
-		Message<?> message = MessageBuilder.withPayload(new Integer(123))
+		Message<?> message = MessageBuilder.withPayload(Integer.valueOf(123))
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
 		assertNull(bean.lastPayload);
@@ -595,13 +595,13 @@ public class PayloadAndHeaderMappingTests {
 	public void singleIntegerHeaderOnlyWithIntegerPayload() throws Exception {
 		MessageHandler handler = this.getHandler("singleIntegerHeaderOnly", Integer.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", new Integer(123));
-		headers.put("bar", new Integer(456));
-		Message<?> message = MessageBuilder.withPayload(new Integer(789))
+		headers.put("foo", Integer.valueOf(123));
+		headers.put("bar", Integer.valueOf(456));
+		Message<?> message = MessageBuilder.withPayload(Integer.valueOf(789))
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
 		assertNull(bean.lastPayload);
-		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
+		assertEquals(Integer.valueOf(123), bean.lastHeaders.get("foo"));
 		assertNull(bean.lastHeaders.get("bar"));
 	}
 
@@ -610,12 +610,12 @@ public class PayloadAndHeaderMappingTests {
 		MessageHandler handler = this.getHandler("singleIntegerHeaderOnly", Integer.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("foo", "999");
-		headers.put("bar", new Integer(456));
-		Message<?> message = MessageBuilder.withPayload(new Integer(789))
+		headers.put("bar", Integer.valueOf(456));
+		Message<?> message = MessageBuilder.withPayload(Integer.valueOf(789))
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
 		assertNull(bean.lastPayload);
-		assertEquals(new Integer(999), bean.lastHeaders.get("foo"));
+		assertEquals(Integer.valueOf(999), bean.lastHeaders.get("foo"));
 		assertNull(bean.lastHeaders.get("bar"));
 	}
 
@@ -623,13 +623,13 @@ public class PayloadAndHeaderMappingTests {
 	public void singleIntegerHeaderOnlyWithStringPayload() throws Exception {
 		MessageHandler handler = this.getHandler("singleIntegerHeaderOnly", Integer.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", new Integer(123));
-		headers.put("bar", new Integer(456));
+		headers.put("foo", Integer.valueOf(123));
+		headers.put("bar", Integer.valueOf(456));
 		Message<?> message = MessageBuilder.withPayload("test")
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
 		assertNull(bean.lastPayload);
-		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
+		assertEquals(Integer.valueOf(123), bean.lastHeaders.get("foo"));
 		assertNull(bean.lastHeaders.get("bar"));
 	}
 
@@ -665,13 +665,13 @@ public class PayloadAndHeaderMappingTests {
 	public void singleObjectHeaderOnlyWithIntegerPayload() throws Exception {
 		MessageHandler handler = this.getHandler("singleObjectHeaderOnly", Object.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", new Integer(123));
-		headers.put("bar", new Integer(456));
-		Message<?> message = MessageBuilder.withPayload(new Integer(789))
+		headers.put("foo", Integer.valueOf(123));
+		headers.put("bar", Integer.valueOf(456));
+		Message<?> message = MessageBuilder.withPayload(Integer.valueOf(789))
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
 		assertNull(bean.lastPayload);
-		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
+		assertEquals(Integer.valueOf(123), bean.lastHeaders.get("foo"));
 		assertNull(bean.lastHeaders.get("bar"));
 	}
 
@@ -681,13 +681,13 @@ public class PayloadAndHeaderMappingTests {
 		Map<String, Object> payload = new HashMap<String, Object>();
 		payload.put("foo", 99);
 		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", new Integer(123));
-		headers.put("bar", new Integer(456));
+		headers.put("foo", Integer.valueOf(123));
+		headers.put("bar", Integer.valueOf(456));
 		Message<?> message = MessageBuilder.withPayload(payload)
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
 		assertNull(bean.lastPayload);
-		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
+		assertEquals(Integer.valueOf(123), bean.lastHeaders.get("foo"));
 		assertNull(bean.lastHeaders.get("bar"));
 	}
 

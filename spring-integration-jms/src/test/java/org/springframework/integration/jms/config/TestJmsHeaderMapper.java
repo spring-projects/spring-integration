@@ -38,7 +38,7 @@ public class TestJmsHeaderMapper extends JmsHeaderMapper {
 	public Map<String, Object> toHeaders(Message source) {
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("testProperty", "foo");
-		headerMap.put("testAttribute", new Integer(123));
+		headerMap.put("testAttribute", Integer.valueOf(123));
 		return headerMap;
 	}
 

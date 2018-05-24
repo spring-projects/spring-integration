@@ -26,8 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Collections;
 
-import javax.annotation.Resource;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -101,7 +99,9 @@ public class WebFluxDslTests {
 	@Qualifier("webFluxWithReplyPayloadToFlux.handler")
 	private WebFluxRequestExecutingMessageHandler webFluxWithReplyPayloadToFlux;
 
-	@Resource(name = "httpReactiveProxyFlow.org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler#0")
+	@Autowired
+	@Qualifier("httpReactiveProxyFlow.org.springframework.integration.webflux.outbound."
+			+ "WebFluxRequestExecutingMessageHandler#0")
 	private WebFluxRequestExecutingMessageHandler httpReactiveProxyFlow;
 
 	@Autowired

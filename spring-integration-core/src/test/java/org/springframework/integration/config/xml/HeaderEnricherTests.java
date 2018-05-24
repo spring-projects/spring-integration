@@ -141,7 +141,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Long(1111), new IntegrationMessageHeaderAccessor(result).getExpirationDate());
+		assertEquals(Long.valueOf(1111), new IntegrationMessageHeaderAccessor(result).getExpirationDate());
 	}
 
 	@Test
@@ -150,7 +150,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Long(9999), new IntegrationMessageHeaderAccessor(result).getExpirationDate());
+		assertEquals(Long.valueOf(9999), new IntegrationMessageHeaderAccessor(result).getExpirationDate());
 	}
 
 	@Test
@@ -159,7 +159,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(result).getPriority());
+		assertEquals(Integer.valueOf(42), new IntegrationMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test
@@ -169,7 +169,7 @@ public class HeaderEnricherTests {
 		Message<?> result = template.sendAndReceive(channel,
 				new GenericMessage<Map<String, String>>(Collections.singletonMap("priority", "-10")));
 		assertNotNull(result);
-		assertEquals(new Integer(-10), new IntegrationMessageHeaderAccessor(result).getPriority());
+		assertEquals(Integer.valueOf(-10), new IntegrationMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test

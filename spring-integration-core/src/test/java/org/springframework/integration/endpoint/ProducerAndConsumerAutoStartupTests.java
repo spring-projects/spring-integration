@@ -57,9 +57,9 @@ public class ProducerAndConsumerAutoStartupTests {
 			received.add(this.consumer.poll(10000));
 		}
 		this.context.stop();
-		assertEquals(new Integer(1), received.get(0));
-		assertEquals(new Integer(2), received.get(1));
-		assertEquals(new Integer(3), received.get(2));
+		assertEquals(Integer.valueOf(1), received.get(0));
+		assertEquals(Integer.valueOf(2), received.get(1));
+		assertEquals(Integer.valueOf(3), received.get(2));
 	}
 
 

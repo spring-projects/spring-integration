@@ -68,7 +68,7 @@ public class MessageHeadersTests {
 
 	@Test
 	public void testNonTypedAccessOfHeaderValue() {
-		Integer value = new Integer(123);
+		Integer value = Integer.valueOf(123);
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
@@ -77,7 +77,7 @@ public class MessageHeadersTests {
 
 	@Test
 	public void testTypedAccessOfHeaderValue() {
-		Integer value = new Integer(123);
+		Integer value = Integer.valueOf(123);
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
@@ -86,7 +86,7 @@ public class MessageHeadersTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testHeaderValueAccessWithIncorrectType() {
-		Integer value = new Integer(123);
+		Integer value = Integer.valueOf(123);
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("test", value);
 		MessageHeaders headers = new MessageHeaders(map);
@@ -111,7 +111,7 @@ public class MessageHeadersTests {
 	public void testHeaderKeys() {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("key1", "val1");
-		map.put("key2", new Integer(123));
+		map.put("key2", Integer.valueOf(123));
 		MessageHeaders headers = new MessageHeaders(map);
 		Set<String> keys = headers.keySet();
 		assertTrue(keys.contains("key1"));

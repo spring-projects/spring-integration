@@ -243,8 +243,8 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 				.setHeader("attrib2", 456).build();
 		Map<String, Integer> result = (Map<String, Integer>) processor.processMessage(message);
 		assertEquals(2, result.size());
-		assertEquals(new Integer(88), result.get("attrib1"));
-		assertEquals(new Integer(99), result.get("attrib2"));
+		assertEquals(Integer.valueOf(88), result.get("attrib1"));
+		assertEquals(Integer.valueOf(99), result.get("attrib2"));
 	}
 
 	@Test

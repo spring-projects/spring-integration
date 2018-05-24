@@ -133,7 +133,7 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setOperationName("x");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		List<Object> params = Arrays.asList(new Object[] { "foo", new Integer(123) });
+		List<Object> params = Arrays.asList(new Object[] { "foo", Integer.valueOf(123) });
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);

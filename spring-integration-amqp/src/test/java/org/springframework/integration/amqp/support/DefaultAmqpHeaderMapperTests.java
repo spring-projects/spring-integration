@@ -111,7 +111,7 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, amqpProperties.getDeliveryMode());
 		assertEquals(1234L, amqpProperties.getDeliveryTag());
 		assertEquals("test.expiration", amqpProperties.getExpiration());
-		assertEquals(new Integer(42), amqpProperties.getMessageCount());
+		assertEquals(Integer.valueOf(42), amqpProperties.getMessageCount());
 		assertEquals("test.messageId", amqpProperties.getMessageId());
 		assertEquals("test.receivedExchange", amqpProperties.getReceivedExchange());
 		assertEquals("test.receivedRoutingKey", amqpProperties.getReceivedRoutingKey());

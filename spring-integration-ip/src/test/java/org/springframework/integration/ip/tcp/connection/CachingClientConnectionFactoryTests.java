@@ -25,6 +25,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -55,8 +56,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -85,8 +87,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Gary Russell
@@ -95,8 +96,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 2.2
  *
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
 @DirtiesContext
 public class CachingClientConnectionFactoryTests {
 
@@ -216,7 +216,7 @@ public class CachingClientConnectionFactoryTests {
 		conn2a.close();
 	}
 
-	@Test(expected = PoolItemNotAvailableException.class)
+	@Test
 	public void testLimit() throws Exception {
 		AbstractClientConnectionFactory factory = mock(AbstractClientConnectionFactory.class);
 		when(factory.isRunning()).thenReturn(true);
@@ -233,7 +233,7 @@ public class CachingClientConnectionFactoryTests {
 		assertEquals("Cached:" + mockConn1.toString(), conn1.toString());
 		TcpConnection conn2 = cachingFactory.getConnection();
 		assertEquals("Cached:" + mockConn2.toString(), conn2.toString());
-		cachingFactory.getConnection();
+		assertThrows(PoolItemNotAvailableException.class, () -> cachingFactory.getConnection());
 	}
 
 	@Test
@@ -359,6 +359,7 @@ public class CachingClientConnectionFactoryTests {
 	}
 
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testExceptionOnSendNio() throws Exception {
 		TcpConnectionSupport conn1 = mockedTcpNioConnection();
 		TcpConnectionSupport conn2 = mockedTcpNioConnection();

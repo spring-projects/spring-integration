@@ -179,7 +179,7 @@ public class RouterParserTests {
 		assertTrue(this.routerWithTimeout instanceof MethodInvokingRouter);
 		MessagingTemplate template = TestUtils.getPropertyValue(this.routerWithTimeout, "messagingTemplate", MessagingTemplate.class);
 		Long timeout = TestUtils.getPropertyValue(template, "sendTimeout", Long.class);
-		assertEquals(new Long(1234), timeout);
+		assertEquals(Long.valueOf(1234), timeout);
 	}
 
 	@Test

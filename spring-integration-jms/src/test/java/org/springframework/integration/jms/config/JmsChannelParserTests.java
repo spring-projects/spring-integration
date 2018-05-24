@@ -335,7 +335,7 @@ public class JmsChannelParserTests {
 	static class TestInterceptor implements ChannelInterceptor {
 	}
 
-	static class CustomTestMessageListenerContainer extends DefaultMessageListenerContainer {
+	public static class CustomTestMessageListenerContainer extends DefaultMessageListenerContainer {
 
 	}
 

@@ -31,11 +31,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javax.annotation.Resource;
-
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -99,7 +98,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	@Autowired
 	private PollableChannel discardChannel;
 
-	@Resource(name = "collector")
+	@Autowired
 	private List<Message<?>> collector;
 
 	@Autowired(required = false)

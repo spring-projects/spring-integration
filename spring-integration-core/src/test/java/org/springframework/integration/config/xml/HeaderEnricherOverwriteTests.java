@@ -146,7 +146,7 @@ public class HeaderEnricherOverwriteTests {
 		template.setDefaultDestination(channel);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(result).getPriority());
+		assertEquals(Integer.valueOf(42), new IntegrationMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test
@@ -160,7 +160,7 @@ public class HeaderEnricherOverwriteTests {
 		input.send(message);
 		Message<?> result = replyChannel.receive(0);
 		assertNotNull(result);
-		assertEquals(new Integer(77), new IntegrationMessageHeaderAccessor(result).getPriority());
+		assertEquals(Integer.valueOf(77), new IntegrationMessageHeaderAccessor(result).getPriority());
 	}
 
 	@Test

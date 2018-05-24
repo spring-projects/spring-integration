@@ -161,7 +161,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 	private void singleMessage(MessageGroupProcessor processor) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("k1", "value1");
-		headers.put("k2", new Integer(2));
+		headers.put("k2", Integer.valueOf(2));
 		Message<?> message = correlatedMessage(1, 1, 1, headers);
 		List<Message<?>> messages = Collections.<Message<?>>singletonList(message);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
@@ -176,7 +176,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 	private void twoMessagesWithoutConflicts(MessageGroupProcessor processor) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("k1", "value1");
-		headers.put("k2", new Integer(2));
+		headers.put("k2", Integer.valueOf(2));
 		Message<?> message1 = correlatedMessage(1, 2, 1, headers);
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
@@ -192,11 +192,11 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 	private void twoMessagesWithConflicts(MessageGroupProcessor processor) {
 		Map<String, Object> headers1 = new HashMap<String, Object>();
 		headers1.put("k1", "foo");
-		headers1.put("k2", new Integer(123));
+		headers1.put("k2", Integer.valueOf(123));
 		Message<?> message1 = correlatedMessage(1, 2, 1, headers1);
 		Map<String, Object> headers2 = new HashMap<String, Object>();
 		headers2.put("k1", "bar");
-		headers2.put("k2", new Integer(123));
+		headers2.put("k2", Integer.valueOf(123));
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers2);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
@@ -212,7 +212,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Map<String, Object> headers1 = new HashMap<String, Object>();
 		headers1.put("only1", "value1");
 		headers1.put("commonTo1And2", "foo");
-		headers1.put("commonToAll", new Integer(123));
+		headers1.put("commonToAll", Integer.valueOf(123));
 		headers1.put("conflictBetween1And2", "valueFor1");
 		Message<?> message1 = correlatedMessage(1, 3, 1, headers1);
 		Map<String, Object> headers2 = new HashMap<String, Object>();
@@ -221,12 +221,12 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		headers2.put("commonTo2And3", "bar");
 		headers2.put("conflictBetween1And2", "valueFor2");
 		headers2.put("conflictBetween2And3", "valueFor2");
-		headers2.put("commonToAll", new Integer(123));
+		headers2.put("commonToAll", Integer.valueOf(123));
 		Message<?> message2 = correlatedMessage(1, 3, 2, headers2);
 		Map<String, Object> headers3 = new HashMap<String, Object>();
 		headers3.put("only3", "value3");
 		headers3.put("commonTo2And3", "bar");
-		headers3.put("commonToAll", new Integer(123));
+		headers3.put("commonToAll", Integer.valueOf(123));
 		headers3.put("conflictBetween2And3", "valueFor3");
 		Message<?> message3 = correlatedMessage(1, 3, 3, headers3);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2, message3);

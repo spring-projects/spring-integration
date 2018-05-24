@@ -98,7 +98,7 @@ public class CrossOriginTests {
 		assertTrue(config.getAllowCredentials());
 		assertArrayEquals(new String[] { "*" }, config.getAllowedHeaders().toArray());
 		assertNull(config.getExposedHeaders());
-		assertEquals(new Long(1800), config.getMaxAge());
+		assertEquals(Long.valueOf(1800), config.getMaxAge());
 	}
 
 	@Test
@@ -111,7 +111,7 @@ public class CrossOriginTests {
 		assertArrayEquals(new String[] { "http://site1.com", "http://site2.com" }, config.getAllowedOrigins().toArray());
 		assertArrayEquals(new String[] { "header1", "header2" }, config.getAllowedHeaders().toArray());
 		assertArrayEquals(new String[] { "header3", "header4" }, config.getExposedHeaders().toArray());
-		assertEquals(new Long(123), config.getMaxAge());
+		assertEquals(Long.valueOf(123), config.getMaxAge());
 		assertEquals(false, config.getAllowCredentials());
 	}
 
@@ -128,7 +128,7 @@ public class CrossOriginTests {
 		assertTrue(config.getAllowCredentials());
 		assertArrayEquals(new String[] { "*" }, config.getAllowedHeaders().toArray());
 		assertNull(config.getExposedHeaders());
-		assertEquals(new Long(1800), config.getMaxAge());
+		assertEquals(Long.valueOf(1800), config.getMaxAge());
 	}
 
 	@Test

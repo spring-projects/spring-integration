@@ -61,10 +61,10 @@ public class SpelFilterIntegrationTests {
 		this.simpleInput.send(new GenericMessage<Integer>(0));
 		this.simpleInput.send(new GenericMessage<Integer>(99));
 		this.simpleInput.send(new GenericMessage<Integer>(-99));
-		assertEquals(new Integer(1), positives.receive(0).getPayload());
-		assertEquals(new Integer(99), positives.receive(0).getPayload());
-		assertEquals(new Integer(0), negatives.receive(0).getPayload());
-		assertEquals(new Integer(-99), negatives.receive(0).getPayload());
+		assertEquals(Integer.valueOf(1), positives.receive(0).getPayload());
+		assertEquals(Integer.valueOf(99), positives.receive(0).getPayload());
+		assertEquals(Integer.valueOf(0), negatives.receive(0).getPayload());
+		assertEquals(Integer.valueOf(-99), negatives.receive(0).getPayload());
 		assertNull(positives.receive(0));
 		assertNull(negatives.receive(0));
 	}
@@ -75,10 +75,10 @@ public class SpelFilterIntegrationTests {
 		this.beanResolvingInput.send(new GenericMessage<Integer>(2));
 		this.beanResolvingInput.send(new GenericMessage<Integer>(9));
 		this.beanResolvingInput.send(new GenericMessage<Integer>(22));
-		assertEquals(new Integer(1), odds.receive(0).getPayload());
-		assertEquals(new Integer(9), odds.receive(0).getPayload());
-		assertEquals(new Integer(2), evens.receive(0).getPayload());
-		assertEquals(new Integer(22), evens.receive(0).getPayload());
+		assertEquals(Integer.valueOf(1), odds.receive(0).getPayload());
+		assertEquals(Integer.valueOf(9), odds.receive(0).getPayload());
+		assertEquals(Integer.valueOf(2), evens.receive(0).getPayload());
+		assertEquals(Integer.valueOf(22), evens.receive(0).getPayload());
 		assertNull(odds.receive(0));
 		assertNull(evens.receive(0));
 	}

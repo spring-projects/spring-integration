@@ -84,6 +84,7 @@
 				org.hamcrest.collection.IsCollectionWithSize.*,
 				org.junit.Assert.*,
 				org.junit.Assume.*,
+				org.junit.jupiter.api.Assertions.*,
 				org.mockito.Mockito.*,
 				org.mockito.BDDMockito.*,
 				org.mockito.AdditionalAnswers.*,

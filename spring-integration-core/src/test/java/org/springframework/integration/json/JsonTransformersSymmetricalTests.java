@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.integration.support.json.BoonJsonObjectMapper;
 import org.springframework.messaging.Message;
@@ -55,6 +57,7 @@ public class JsonTransformersSymmetricalTests {
 	}
 
 	@Test
+	@EnabledOnJre(JRE.JAVA_8)
 	public void testBoonObjectToJson_JsonToObject() {
 
 		TestPerson person = new TestPerson("John", "Doe", 42);
@@ -71,6 +74,5 @@ public class JsonTransformersSymmetricalTests {
 		assertThat(result, Matchers.instanceOf(List.class));
 		assertEquals(person, ((List<?>) result).get(0));
 	}
-
 
 }

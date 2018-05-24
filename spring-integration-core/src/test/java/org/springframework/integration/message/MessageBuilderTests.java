@@ -85,7 +85,7 @@ public class MessageBuilderTests {
 				.setHeader("count", 123)
 				.build();
 		assertEquals("bar", message.getHeaders().get("foo", String.class));
-		assertEquals(new Integer(123), message.getHeaders().get("count", Integer.class));
+		assertEquals(Integer.valueOf(123), message.getHeaders().get("count", Integer.class));
 	}
 
 	@Test
@@ -196,7 +196,7 @@ public class MessageBuilderTests {
 	public void testPriority() {
 		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
 				.setPriority(123).build();
-		assertEquals(new Integer(123), new IntegrationMessageHeaderAccessor(importantMessage).getPriority());
+		assertEquals(Integer.valueOf(123), new IntegrationMessageHeaderAccessor(importantMessage).getPriority());
 	}
 
 	@Test
@@ -206,7 +206,7 @@ public class MessageBuilderTests {
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 				.setHeaderIfAbsent(IntegrationMessageHeaderAccessor.PRIORITY, 13)
 				.build();
-		assertEquals(new Integer(42), new IntegrationMessageHeaderAccessor(message2).getPriority());
+		assertEquals(Integer.valueOf(42), new IntegrationMessageHeaderAccessor(message2).getPriority());
 	}
 
 	@Test

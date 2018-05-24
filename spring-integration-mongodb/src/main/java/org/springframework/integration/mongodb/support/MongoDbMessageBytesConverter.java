@@ -32,13 +32,16 @@ import org.springframework.messaging.Message;
 
 /**
  * A {@link GenericConverter} implementation to convert {@link Message} to
- * serialized {@link byte[]} to store {@link Message} to the MongoDB.
- * And vice versa - to convert {@link byte[]} from the MongoDB to the {@link Message}.
+ * serialized {@code byte[]} to store {@link Message} to the MongoDB.
+ * And vice versa - to convert {@code byte[]} from the MongoDB to the {@link Message}.
 
  * @author Artem Bilan
  * @author Gary Russell
  * @since 4.2.10
  * @deprecated since 5.0 in favor of {@link MessageToBinaryConverter} and {@link BinaryToMessageConverter}
+ */
+/*
+ * @link changed to @code above - see https://bugs.openjdk.java.net/browse/JDK-8200432
  */
 @WritingConverter
 @ReadingConverter
