@@ -182,13 +182,30 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 		return IntegrationFlows.from(service, methodName, endpointConfigurer);
 	}
 
-	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
-		return IntegrationFlows.from(messageSource);
+	/**
+	 * An alternative to {@link #from(MessageSource)}; it was previously {@code from()}
+	 * but that causes an ambiguity with newer compilers.
+	 * @param messageSource the source.
+	 * @param <T> the type supplied.
+	 * @return the builder.
+	 * @since 5.1
+	 */
+	protected <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource) {
+		return IntegrationFlows.fromSupplier(messageSource);
 	}
 
-	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
+	/**
+	 * An alternative to {@link #from(MessageSource, Consumer)}; it was previously
+	 * {@code from()} but that causes an ambiguity with newer compilers.
+	 * @param messageSource the source.
+	 * @param endpointConfigurer the configurer.
+	 * @param <T> the type supplied.
+	 * @return the builder.
+	 * @since 5.1
+	 */
+	protected <T> IntegrationFlowBuilder fromSupplier(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
-		return IntegrationFlows.from(messageSource, endpointConfigurer);
+		return IntegrationFlows.fromSupplier(messageSource, endpointConfigurer);
 	}
 
 	protected IntegrationFlowBuilder from(Class<?> serviceInterface) {

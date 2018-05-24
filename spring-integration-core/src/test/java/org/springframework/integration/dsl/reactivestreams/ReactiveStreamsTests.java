@@ -46,7 +46,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
@@ -182,7 +181,7 @@ public class ReactiveStreamsTests {
 		@Bean
 		public Publisher<Message<String>> reactiveFlow() {
 			return IntegrationFlows
-					.from((MessageSource<?>) () -> new GenericMessage<>("a,b,c,d,e,f"),
+					.from(() -> new GenericMessage<>("a,b,c,d,e,f"),
 							e -> e.poller(p -> p.trigger(ctx -> this.invoked.getAndSet(true) ? null : new Date()))
 									.autoStartup(false)
 									.id("reactiveStreamsMessageSource"))

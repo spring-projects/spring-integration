@@ -96,7 +96,6 @@ subprojects { subproject ->
 		commonsNetVersion = '3.6'
 		curatorVersion = '4.0.1'
 		derbyVersion = '10.13.1.1'
-		eclipseLinkVersion = '2.7.1'
 		ftpServerVersion = '1.1.1'
 		groovyVersion = '2.4.15'
 		guavaVersion = '20.0'
@@ -498,7 +497,6 @@ project('spring-integration-jpa') {
 		testCompile "org.hibernate:hibernate-entitymanager:$hibernateVersion"
 
 		testRuntime "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:$jpa21ApiVersion"
-		testRuntime "org.eclipse.persistence:org.eclipse.persistence.jpa:$eclipseLinkVersion"
 		testRuntime "org.springframework:spring-instrument:$springVersion"
 	}
 
@@ -723,6 +721,10 @@ project('spring-integration-xml') {
 
 	if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
 		[compileTestJava]*.options*.compilerArgs = ['--add-modules', 'java.xml.bind']
+	}
+
+	tasks.withType(Test) {
+		jvmArgs += ["--add-modules", "java.xml.bind"]
 	}
 }
 

@@ -25,8 +25,6 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnJre;
-import org.junit.jupiter.api.condition.JRE;
 import org.w3c.dom.Document;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +40,6 @@ import org.springframework.xml.transform.StringSource;
  * @author Gary Russell
  */
 @SpringJUnitConfig
-@EnabledOnJre(JRE.JAVA_8)
 public class JaxbMarshallingIntegrationTests {
 
 	@Autowired @Qualifier("marshallIn")

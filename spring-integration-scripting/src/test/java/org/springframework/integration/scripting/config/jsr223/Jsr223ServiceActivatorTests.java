@@ -124,7 +124,7 @@ public class Jsr223ServiceActivatorTests {
 	}
 
 	@Test
-	@EnabledOnJre(JRE.JAVA_8)
+	@EnabledOnJre(JRE.JAVA_8) // Some JRuby assertion problem
 	public void inlineScript() throws Exception {
 
 		QueueChannel replyChannel = new QueueChannel();

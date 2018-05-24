@@ -486,7 +486,7 @@ public class IntegrationFlowTests {
 	public static class SupplierContextConfiguration1 {
 		@Bean
 		public IntegrationFlow supplierFlow() {
-			return IntegrationFlows.from(() -> "foo")
+			return IntegrationFlows.fromSupplier(() -> "foo")
 					.<String, String>transform(p -> p.toUpperCase())
 					.channel("suppliedChannel")
 					.get();
@@ -516,7 +516,8 @@ public class IntegrationFlowTests {
 	public static class SupplierContextConfiguration2 {
 		@Bean
 		public IntegrationFlow supplierFlow2() {
-			return IntegrationFlows.from(() -> "foo", c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
+			return IntegrationFlows.fromSupplier(() -> "foo",
+						c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
 					.<String, String>transform(p -> p.toUpperCase())
 					.channel("suppliedChannel2")
 					.get();

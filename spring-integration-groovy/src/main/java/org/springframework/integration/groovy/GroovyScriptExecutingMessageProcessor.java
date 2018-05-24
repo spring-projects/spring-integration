@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private Object execute(Map<String, Object> variables) throws ScriptCompilationException {
 		try {
-			GroovyObject goo = (GroovyObject) this.scriptClass.newInstance();
+			GroovyObject goo = (GroovyObject) this.scriptClass.getConstructor().newInstance();
 
 			VariableBindingGroovyObjectCustomizerDecorator groovyObjectCustomizer =
 					new BindingOverwriteGroovyObjectCustomizerDecorator(new BeanFactoryFallbackBinding(variables));
@@ -204,13 +204,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 				return goo;
 			}
 		}
-		catch (InstantiationException ex) {
+		catch (Exception ex) {
 			throw new ScriptCompilationException(
 					this.scriptSource, "Could not instantiate Groovy script class: " + this.scriptClass.getName(), ex);
-		}
-		catch (IllegalAccessException ex) {
-			throw new ScriptCompilationException(
-					this.scriptSource, "Could not access Groovy script constructor: " + this.scriptClass.getName(), ex);
 		}
 	}
 

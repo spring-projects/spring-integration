@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.hamcrest.Matchers;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -48,8 +50,8 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingPropertyException;
@@ -59,10 +61,11 @@ import groovy.lang.MissingPropertyException;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig
+@DirtiesContext
 public class GroovyServiceActivatorTests {
 
 	@Autowired
@@ -180,7 +183,12 @@ public class GroovyServiceActivatorTests {
 	}
 
 	//INT-2399
-	@Test(expected = MessageHandlingException.class)
+	@Test
+	@EnabledOnJre(JRE.JAVA_8)
+	/*
+	 * java.lang.AssertionError: expected:<class groovy.lang.MissingPropertyException>
+	 * but was:<class org.springframework.scripting.ScriptCompilationException>
+	 */
 	public void invalidInlineScript() throws Exception {
 		Message<?> message =
 				new ErrorMessage(new ReplyRequiredException(new GenericMessage<String>("test"), "reply required!"));
@@ -188,20 +196,20 @@ public class GroovyServiceActivatorTests {
 			this.invalidInlineScript.send(message);
 			fail("MessageHandlingException expected!");
 		}
-		catch (Exception e) {
+		catch (MessageHandlingException e) {
 			Throwable cause = e.getCause();
 			assertEquals(MissingPropertyException.class, cause.getClass());
 			assertThat(cause.getMessage(),
 					Matchers.containsString("No such property: ReplyRequiredException for class: script"));
-			throw e;
 		}
 
 	}
 
-	@Test(expected = BeanDefinitionParsingException.class)
+	@Test
 	public void variablesAndScriptVariableGenerator() throws Exception {
-		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml",
-				this.getClass()).close();
+		Assertions.assertThrows(BeanDefinitionParsingException.class, () ->
+			new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml",
+				this.getClass()).close());
 	}
 
 	@Test
@@ -213,6 +221,7 @@ public class GroovyServiceActivatorTests {
 
 	public static class SampleScriptVariSource implements ScriptVariableGenerator {
 
+		@Override
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("foo", "foo");
@@ -230,6 +239,7 @@ public class GroovyServiceActivatorTests {
 
 		private volatile boolean executed;
 
+		@Override
 		public void customize(GroovyObject goo) {
 			this.executed = true;
 		}

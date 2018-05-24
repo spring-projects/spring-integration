@@ -206,7 +206,7 @@ public class MockMessageSourceTests {
 		@Bean
 		public IntegrationFlow myFlow() {
 			return IntegrationFlows
-					.from((MessageSource<?>) () -> new GenericMessage<>("myData"),
+					.from(() -> new GenericMessage<>("myData"),
 							e -> e.id("mySourceEndpoint"))
 					.<String, String>transform(String::toUpperCase)
 					.channel(results())
