@@ -3,7 +3,7 @@
 
 For a detailed migration guide in regards to upgrading an existing application that uses Spring Integration older than version 2.0, please see:
 
-null
+https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-1.0-to-2.0-Migration-Guide[Spring Integration 1.0 to 2.0 Migration Guide]
 
 [[migration-spring-30-support]]
 ==== Spring 3 support
