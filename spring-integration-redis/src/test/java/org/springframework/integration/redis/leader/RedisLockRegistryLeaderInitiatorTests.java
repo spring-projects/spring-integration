@@ -37,7 +37,6 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.springframework.integration.support.leader.LockRegistryLeaderInitiator;
 import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
@@ -48,9 +47,6 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  * @since 4.3.9
  */
 public class RedisLockRegistryLeaderInitiatorTests extends RedisAvailableTests {
-
-	@Rule
-	public LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Rule
 	public Log4j2LevelAdjuster adjuster =
