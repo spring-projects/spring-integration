@@ -147,8 +147,11 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 			getDispatcher().setMinSubscribers(this.minSubscribers);
 		}
 		else if (this.errorHandler != null) {
-			logger.warn("When 'executor' is not provided the 'errorHandler' is ignored and " +
-					"exceptions are thrown directly within the sending Thread");
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("The 'errorHandler' is ignored for the '" + getComponentName() +
+						"' (an 'executor' is not provided) and exceptions will be thrown " +
+						"directly within the sending Thread");
+			}
 		}
 
 		if (this.maxSubscribers == null) {
