@@ -50,3 +50,8 @@ See <<json-transformers>> for more information.
 Starting with _version 5.0.5_, generated bean names for the components in an `IntegrationFlow` include the flow bean name, followed by a dot, as a prefix.
 
 See <<java-dsl-flows>> for more information.
+
+==== AMQP Changes
+
+`ID` and `Timestamp` header mapping changes in the `DefaultAmqpHeaderMapper`.
+See the note near the bottom of <<amqp-message-headers>> for more information.

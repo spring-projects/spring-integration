@@ -1504,6 +1504,10 @@ Negated patterns get priority, so a list such as
 IMPORTANT: If you have a user defined header that begins with `!` that you *do* wish to map, you need to escape it with
 `\` thus: `STANDARD_REQUEST_HEADERS,\!myBangHeader` and it *WILL* be mapped.
 
+NOTE: Starting with _version 5.1_, the `DefaultAmqpHeaderMapper` will fall back to mapping `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` to `MessageProperties.messageId` and `MessageProperties.timestamp` respectively, if the corresponding `amqp_messageId` or `amqp_timestamp` headers are not present on outbound messages.
+Inbound properties will be mapped to the `amqp_*` headers as before.
+It is useful to populate the `messageId` property when message consumers are using stateful retry.
+
 [[amqp-strict-ordering]]
 === Strict Message Ordering
 

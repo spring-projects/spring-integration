@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
@@ -28,6 +29,8 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.support.JsonHeaders;
+import org.springframework.lang.Nullable;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
 import org.springframework.util.StringUtils;
 
@@ -213,6 +216,16 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 */
 	@Override
 	protected void populateStandardHeaders(Map<String, Object> headers, MessageProperties amqpMessageProperties) {
+		populateStandardHeaders(null, headers, amqpMessageProperties);
+	}
+
+	/**
+	 * Maps headers from a Spring Integration MessageHeaders instance to the MessageProperties
+	 * of an AMQP Message.
+	 */
+	@Override
+	protected void populateStandardHeaders(@Nullable Map<String, Object> allHeaders, Map<String, Object> headers,
+			MessageProperties amqpMessageProperties) {
 		String appId = getHeaderIfAvailable(headers, AmqpHeaders.APP_ID, String.class);
 		if (StringUtils.hasText(appId)) {
 			amqpMessageProperties.setAppId(appId);
@@ -265,6 +278,12 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (StringUtils.hasText(messageId)) {
 			amqpMessageProperties.setMessageId(messageId);
 		}
+		else if (allHeaders != null) {
+			UUID id = getHeaderIfAvailable(allHeaders, MessageHeaders.ID, UUID.class);
+			if (id != null) {
+				amqpMessageProperties.setMessageId(id.toString());
+			}
+		}
 		Integer priority = getHeaderIfAvailable(headers, IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
 		if (priority != null) {
 			amqpMessageProperties.setPriority(priority);
@@ -288,6 +307,12 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		Date timestamp = getHeaderIfAvailable(headers, AmqpHeaders.TIMESTAMP, Date.class);
 		if (timestamp != null) {
 			amqpMessageProperties.setTimestamp(timestamp);
+		}
+		else if (allHeaders != null) {
+			Long ts = getHeaderIfAvailable(allHeaders, MessageHeaders.TIMESTAMP, Long.class);
+			if (ts != null) {
+				amqpMessageProperties.setTimestamp(new Date(ts));
+			}
 		}
 		String type = getHeaderIfAvailable(headers, AmqpHeaders.TYPE, String.class);
 		if (type != null) {
