@@ -29,11 +29,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -371,7 +371,7 @@ public class ManualFlowTests {
 		assertTrue(this.roleController.getEndpointsRunningStatus(testRole).isEmpty());
 	}
 
-	//	@Test
+	@Test
 	public void testDynamicSubFlowCreation() {
 		Flux<Message<?>> messageFlux =
 				Flux.just("1,2,3,4")
@@ -393,7 +393,9 @@ public class ManualFlowTests {
 				.get();
 
 		IntegrationFlowRegistration flowRegistration =
-				this.integrationFlowContext.registration(integrationFlow).register();
+				this.integrationFlowContext.registration(integrationFlow)
+						.id("dynamicSubFlows")
+						.register();
 
 		for (int i = 0; i < 4; i++) {
 			Message<?> receive = resultChannel.receive(10_000);
@@ -437,7 +439,7 @@ public class ManualFlowTests {
 	public void testConcurrentRegistration() throws InterruptedException {
 		ExecutorService executorService = Executors.newCachedThreadPool();
 
-		List<IntegrationFlowRegistration> flowRegistrations = new ArrayList<>();
+		List<IntegrationFlowRegistration> flowRegistrations = new CopyOnWriteArrayList<>();
 
 		AtomicBoolean exceptionHappened = new AtomicBoolean();
 
