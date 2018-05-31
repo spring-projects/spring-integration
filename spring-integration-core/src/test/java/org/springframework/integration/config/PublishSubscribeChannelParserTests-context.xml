@@ -19,7 +19,7 @@
 
 	<publish-subscribe-channel id="channelWithApplySequenceEnabledAndTaskExecutor" apply-sequence="true" task-executor="pool"/>
 
-	<publish-subscribe-channel id="channelWithErrorHandler" error-handler="testErrorHandler"/>
+	<publish-subscribe-channel id="channelWithErrorHandler" error-handler="testErrorHandler" task-executor="pool"/>
 
 	<task:executor id="pool" pool-size="1"/>
 
