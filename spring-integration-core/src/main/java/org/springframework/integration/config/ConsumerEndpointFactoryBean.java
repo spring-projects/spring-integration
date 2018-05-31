@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,13 @@ import org.springframework.util.StringUtils;
 
 
 /**
+ * The {@link FactoryBean} implementation for {@link AbstractEndpoint} population.
+ * Controls all the necessary properties and lifecycle.
+ * According the provided {@link MessageChannel} implementation populates
+ * a {@link PollingConsumer} for the {@link PollableChannel},
+ * an {@link EventDrivenConsumer} for the {@link SubscribableChannel}
+ * and {@link ReactiveStreamsConsumer} for all other channel implementations.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Josh Long
@@ -310,9 +317,15 @@ public class ConsumerEndpointFactoryBean
 				this.endpoint.setAutoStartup(this.autoStartup);
 			}
 			int phase = this.phase;
-			if (!this.isPhaseSet && this.endpoint instanceof PollingConsumer) {
-				phase = Integer.MAX_VALUE / 2;
+			if (!this.isPhaseSet) {
+				if (this.endpoint instanceof PollingConsumer) {
+					phase = Integer.MAX_VALUE / 2;
+				}
+				else {
+					phase = Integer.MIN_VALUE;
+				}
 			}
+
 			this.endpoint.setPhase(phase);
 			this.endpoint.setRole(this.role);
 			if (this.taskScheduler != null) {
