@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl.context;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -77,6 +76,8 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 
 	private ConfigurableListableBeanFactory beanFactory;
 
+	private BeanDefinitionRegistry beanDefinitionRegistry;
+
 	private IntegrationFlowContext() {
 	}
 
@@ -87,6 +88,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 						"'ConfigurableListableBeanFactory'. " +
 						"Consider using 'GenericApplicationContext' implementation.");
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		this.beanDefinitionRegistry = (BeanDefinitionRegistry) this.beanFactory;
 	}
 
 	/**
@@ -184,21 +186,26 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 			IntegrationFlowRegistration flowRegistration = this.registry.remove(flowId);
 			flowRegistration.stop();
 
-			BeanDefinitionRegistry beanDefinitionRegistry = (BeanDefinitionRegistry) this.beanFactory;
+			removeDependantBeans(flowId);
 
-			Arrays.stream(this.beanFactory.getDependentBeans(flowId))
-					.forEach(beanName -> {
-						beanDefinitionRegistry.removeBeanDefinition(beanName);
-						// TODO until https://jira.spring.io/browse/SPR-16837
-						Arrays.asList(beanDefinitionRegistry.getAliases(beanName))
-								.forEach(beanDefinitionRegistry::removeAlias);
-					});
-
-			beanDefinitionRegistry.removeBeanDefinition(flowId);
+			this.beanDefinitionRegistry.removeBeanDefinition(flowId);
 		}
 		else {
 			throw new IllegalStateException("An IntegrationFlow with the id "
 					+ "[" + flowId + "] doesn't exist in the registry.");
+		}
+	}
+
+	private void removeDependantBeans(String parentName) {
+		String[] dependentBeans = this.beanFactory.getDependentBeans(parentName);
+		for (String beanName : dependentBeans) {
+			removeDependantBeans(beanName);
+			this.beanDefinitionRegistry.removeBeanDefinition(beanName);
+			// TODO until https://jira.spring.io/browse/SPR-16837
+			String[] aliases = this.beanDefinitionRegistry.getAliases(beanName);
+			for (String alias : aliases) {
+				this.beanDefinitionRegistry.removeAlias(alias);
+			}
 		}
 	}
 
@@ -249,7 +256,7 @@ public final class IntegrationFlowContext implements BeanFactoryAware {
 	 */
 	public final class IntegrationFlowRegistrationBuilder {
 
-		private Map<Object, String> additionalBeans = new HashMap<>();
+		private final Map<Object, String> additionalBeans = new HashMap<>();
 
 		private final IntegrationFlowRegistration integrationFlowRegistration;
 
