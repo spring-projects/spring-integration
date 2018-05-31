@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,17 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.Executor;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -41,61 +44,53 @@ import org.springframework.util.ErrorHandler;
  * @author Gary Russell
  * @author Artem Bilan
  */
+@RunWith(SpringRunner.class)
 public class PublishSubscribeChannelParserTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test
 	public void defaultChannel() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"publishSubscribeChannelParserTests.xml", this.getClass());
-		PublishSubscribeChannel channel = (PublishSubscribeChannel)
-				context.getBean("defaultChannel");
+		PublishSubscribeChannel channel = this.context.getBean("defaultChannel", PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		dispatcher.setApplySequence(true);
 		dispatcher.addHandler(message -> { });
-		dispatcher.dispatch(new GenericMessage<String>("foo"));
+		dispatcher.dispatch(new GenericMessage<>("foo"));
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		assertNull(dispatcherAccessor.getPropertyValue("executor"));
 		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
 		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
-		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
+		Object mbf = this.context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		assertSame(mbf, dispatcherAccessor.getPropertyValue("messageBuilderFactory"));
-		context.close();
 	}
 
 	@Test
 	public void ignoreFailures() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"publishSubscribeChannelParserTests.xml", this.getClass());
-		PublishSubscribeChannel channel = (PublishSubscribeChannel)
-				context.getBean("channelWithIgnoreFailures");
+		PublishSubscribeChannel channel =
+				this.context.getBean("channelWithIgnoreFailures", PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		assertTrue((Boolean) new DirectFieldAccessor(dispatcher).getPropertyValue("ignoreFailures"));
-		context.close();
 	}
 
 	@Test
 	public void applySequenceEnabled() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"publishSubscribeChannelParserTests.xml", this.getClass());
-		PublishSubscribeChannel channel = (PublishSubscribeChannel)
-				context.getBean("channelWithApplySequenceEnabled");
+		PublishSubscribeChannel channel =
+				this.context.getBean("channelWithApplySequenceEnabled", PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		assertTrue((Boolean) new DirectFieldAccessor(dispatcher).getPropertyValue("applySequence"));
-		context.close();
 	}
 
 	@Test
 	public void channelWithTaskExecutor() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"publishSubscribeChannelParserTests.xml", this.getClass());
-		PublishSubscribeChannel channel = (PublishSubscribeChannel)
-				context.getBean("channelWithTaskExecutor");
+		PublishSubscribeChannel channel =
+				this.context.getBean("channelWithTaskExecutor", PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
@@ -106,15 +101,12 @@ public class PublishSubscribeChannelParserTests {
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
 		assertEquals(context.getBean("pool"), innerExecutor);
-		context.close();
 	}
 
 	@Test
 	public void ignoreFailuresWithTaskExecutor() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"publishSubscribeChannelParserTests.xml", this.getClass());
-		PublishSubscribeChannel channel = (PublishSubscribeChannel)
-				context.getBean("channelWithIgnoreFailuresAndTaskExecutor");
+		PublishSubscribeChannel channel =
+				this.context.getBean("channelWithIgnoreFailuresAndTaskExecutor", PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
@@ -125,16 +117,13 @@ public class PublishSubscribeChannelParserTests {
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
-		assertEquals(context.getBean("pool"), innerExecutor);
-		context.close();
+		assertEquals(this.context.getBean("pool"), innerExecutor);
 	}
 
 	@Test
 	public void applySequenceEnabledWithTaskExecutor() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"publishSubscribeChannelParserTests.xml", this.getClass());
-		PublishSubscribeChannel channel = (PublishSubscribeChannel)
-				context.getBean("channelWithApplySequenceEnabledAndTaskExecutor");
+		PublishSubscribeChannel channel =
+				this.context.getBean("channelWithApplySequenceEnabledAndTaskExecutor", PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
@@ -145,21 +134,17 @@ public class PublishSubscribeChannelParserTests {
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
 		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
-		assertEquals(context.getBean("pool"), innerExecutor);
-		context.close();
+		assertEquals(this.context.getBean("pool"), innerExecutor);
 	}
 
 	@Test
 	public void channelWithErrorHandler() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"publishSubscribeChannelParserTests.xml", this.getClass());
-		PublishSubscribeChannel channel = (PublishSubscribeChannel)
-				context.getBean("channelWithErrorHandler");
+		PublishSubscribeChannel channel =
+				this.context.getBean("channelWithErrorHandler", PublishSubscribeChannel.class);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		ErrorHandler errorHandler = (ErrorHandler) accessor.getPropertyValue("errorHandler");
 		assertNotNull(errorHandler);
-		assertEquals(context.getBean("testErrorHandler"), errorHandler);
-		context.close();
+		assertEquals(this.context.getBean("testErrorHandler"), errorHandler);
 	}
 
 }

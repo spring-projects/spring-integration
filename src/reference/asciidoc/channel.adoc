@@ -572,6 +572,10 @@ When using this element, you can also specify the `task-executor` used for publi
 <int:publish-subscribe-channel id="pubsubChannel" task-executor="someExecutor"/>
 ----
 
+Alongside with the `Executor`, an `ErrorHandler` can be configured as well.
+By default the `PublishSubscribeChannel` uses a `MessagePublishingErrorHandler` implementation to send error to the `MessageChannel` from the `errorChannel` header or a global `errorChannel` instance.
+If an `Executor` is not configured, the `ErrorHandler` is ignored and exceptions are thrown directly to the caller's Thread.
+
 If you are providing a _Resequencer_ or _Aggregator_ downstream from a `PublishSubscribeChannel`, then you can set the 'apply-sequence' property on the channel to `true`.
 That will indicate that the channel should set the sequence-size and sequence-number Message headers as well as the correlation id prior to passing the Messages along.
 For example, if there are 5 subscribers, the sequence-size would be set to 5, and the Messages would have sequence-number header values ranging from 1 to 5.
