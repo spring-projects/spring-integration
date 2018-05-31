@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.messaging.Message;
@@ -38,6 +39,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -74,6 +77,10 @@ public class ServiceActivatorParserTests {
 	@Autowired
 	@Qualifier("testAlias.handler")
 	private ServiceActivatingHandler testAlias;
+
+	@Autowired
+	@Qualifier("testAlias")
+	private EventDrivenConsumer testAliasEndpoint;
 
 	@Test
 	public void literalExpression() {
@@ -200,6 +207,11 @@ public class ServiceActivatorParserTests {
 		}
 	}
 
+	@Test
+	public void testConsumerEndpointFactoryBeanDefaultPhase() {
+		assertEquals(Integer.MIN_VALUE, this.testAliasEndpoint.getPhase());
+	}
+
 	private Object sendAndReceive(MessageChannel channel, Object payload) {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(channel);
@@ -222,6 +234,7 @@ public class ServiceActivatorParserTests {
 		public String concat(String s1, String s2) {
 			return s1 + s2;
 		}
+
 	}
 
 
@@ -235,6 +248,7 @@ public class ServiceActivatorParserTests {
 		public String getSimpleClassName(Object o) {
 			return o.getClass().getSimpleName();
 		}
+
 	}
 
 
@@ -257,6 +271,7 @@ public class ServiceActivatorParserTests {
 		public String getLastName() {
 			return lastName;
 		}
+
 	}
 
 	public static class BarAdvice extends AbstractRequestHandlerAdvice {
@@ -268,4 +283,5 @@ public class ServiceActivatorParserTests {
 		}
 
 	}
+
 }
