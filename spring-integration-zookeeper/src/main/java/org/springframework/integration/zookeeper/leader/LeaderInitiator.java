@@ -221,7 +221,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	 */
 	public Context getContext() {
 		if (this.leaderSelector == null) {
-			return nullContext;
+			return this.nullContext;
 		}
 		return this.context;
 	}
