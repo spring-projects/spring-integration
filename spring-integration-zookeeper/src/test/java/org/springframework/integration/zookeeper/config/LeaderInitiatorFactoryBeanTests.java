@@ -16,6 +16,7 @@
 
 package org.springframework.integration.zookeeper.config;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -91,7 +92,7 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 	public void testExceptionFromEvent() throws Exception {
 		CountDownLatch onGranted = new CountDownLatch(1);
 
-		LeaderInitiator initiator = new LeaderInitiator(client, new DefaultCandidate());
+		LeaderInitiator initiator = new LeaderInitiator(client, new DefaultCandidate("foo", "bar"));
 
 		initiator.setLeaderEventPublisher(new DefaultLeaderEventPublisher() {
 
@@ -107,10 +108,12 @@ public class LeaderInitiatorFactoryBeanTests extends ZookeeperTestSupport {
 
 		});
 
+		assertThat(initiator.getContext().getRole(), equalTo("bar"));
 		initiator.start();
 
 		assertTrue(onGranted.await(10, TimeUnit.SECONDS));
 		assertTrue(initiator.getContext().isLeader());
+		assertThat(initiator.getContext().getRole(), equalTo("bar"));
 
 		initiator.stop();
 	}
