@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
@@ -37,6 +38,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
@@ -49,6 +51,16 @@ import org.springframework.util.MimeTypeUtils;
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapperTests {
+
+	@Test
+	public void fromHeadersFallbackIdTimestamp() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.outboundMapper();
+		org.springframework.messaging.Message<?> message = new GenericMessage<>("");
+		MessageProperties messageProperties = new MessageProperties();
+		headerMapper.fromHeadersToRequest(message.getHeaders(), messageProperties);
+		assertThat(message.getHeaders().getId().toString()).isEqualTo(messageProperties.getMessageId());
+		assertThat(message.getHeaders().getTimestamp()).isEqualTo(messageProperties.getTimestamp().getTime());
+	}
 
 	@Test
 	public void fromHeaders() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -201,7 +202,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 					subset.put(headerName, entry.getValue());
 				}
 			}
-			this.populateStandardHeaders(subset, target);
+			this.populateStandardHeaders(headers, subset, target);
 			this.populateUserDefinedHeaders(subset, target);
 		}
 		catch (Exception e) {
@@ -336,6 +337,20 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * @param target the target object to populate headers.
 	 */
 	protected abstract void populateStandardHeaders(Map<String, Object> headers, T target);
+
+	/**
+	 * Populate the specified standard headers to the specified source.
+	 * If not implemented, calls {@link #populateStandardHeaders(Map, Object)}.
+	 * @param allHeaders all headers including transient.
+	 * @param subset the map of standard headers to be populated.
+	 * @param target the target object to populate headers.
+	 * @since 5.1
+	 */
+	protected void populateStandardHeaders(@Nullable Map<String, Object> allHeaders, Map<String, Object> subset,
+			T target) {
+
+		populateStandardHeaders(subset, target);
+	}
 
 	/**
 	 * Populate the specified user-defined headers to the specified source.
