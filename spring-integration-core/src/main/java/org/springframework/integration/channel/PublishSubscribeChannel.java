@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,19 +35,18 @@ import org.springframework.util.ErrorHandler;
  */
 public class PublishSubscribeChannel extends AbstractExecutorChannel {
 
-	private volatile ErrorHandler errorHandler;
+	private ErrorHandler errorHandler;
 
-	private volatile boolean ignoreFailures;
+	private boolean ignoreFailures;
 
-	private volatile boolean applySequence;
+	private boolean applySequence;
 
-	private volatile int minSubscribers;
+	private int minSubscribers;
 
 	/**
 	 * Create a PublishSubscribeChannel that will use an {@link Executor}
 	 * to invoke the handlers. If this is null, each invocation will occur in
 	 * the message sender's thread.
-	 *
 	 * @param executor The executor.
 	 */
 	public PublishSubscribeChannel(Executor executor) {
@@ -79,9 +78,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	 * a {@link MessagePublishingErrorHandler} that sends error messages to
 	 * the failed request Message's error channel header if available or to
 	 * the default 'errorChannel' otherwise.
-	 *
 	 * @param errorHandler The error handler.
-	 *
 	 * @see #PublishSubscribeChannel(Executor)
 	 */
 	public void setErrorHandler(ErrorHandler errorHandler) {
@@ -149,6 +146,14 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 			getDispatcher().setApplySequence(this.applySequence);
 			getDispatcher().setMinSubscribers(this.minSubscribers);
 		}
+		else if (this.errorHandler != null) {
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("The 'errorHandler' is ignored for the '" + getComponentName() +
+						"' (an 'executor' is not provided) and exceptions will be thrown " +
+						"directly within the sending Thread");
+			}
+		}
+
 		if (this.maxSubscribers == null) {
 			Integer maxSubscribers =
 					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
