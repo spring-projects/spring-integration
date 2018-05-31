@@ -126,7 +126,7 @@ subprojects { subproject ->
 		mysqlVersion = '8.0.11'
 		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.0.0'
-		reactorNettyVersion = '0.7.8.BUILD-SNAPSHOT'
+		reactorNettyVersion = '0.8.0.BUILD-SNAPSHOT'
 		reactorVersion = '3.2.0.BUILD-SNAPSHOT'
 		romeToolsVersion = '1.9.0'
 		servletApiVersion = '4.0.0'
@@ -587,7 +587,7 @@ project('spring-integration-stomp') {
 		compile project(":spring-integration-core")
 
 		compile ("org.springframework:spring-websocket:$springVersion", optional)
-		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
+		compile ("io.projectreactor.netty:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile project(":spring-integration-websocket")
 		testCompile project(":spring-integration-websocket").sourceSets.test.output
@@ -646,7 +646,7 @@ project('spring-integration-webflux') {
 			exclude group: 'org.springframework', module: 'spring-webmvc'
 		}
 		compile "org.springframework:spring-webflux:$springVersion"
-		compile ("io.projectreactor.ipc:reactor-netty:$reactorNettyVersion" , optional)
+		compile ("io.projectreactor.netty:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile "org.springframework:spring-webmvc:$springVersion"
 		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion")
