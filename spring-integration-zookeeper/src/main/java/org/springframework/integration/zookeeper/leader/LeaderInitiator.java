@@ -47,8 +47,6 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	private static final String DEFAULT_NAMESPACE = "/spring-integration/leader/";
 
-	private static final Context NULL_CONTEXT = () -> false;
-
 	private final CuratorContext context = new CuratorContext();
 
 	/**
@@ -60,6 +58,20 @@ public class LeaderInitiator implements SmartLifecycle {
 	 * Candidate for leader election.
 	 */
 	private final Candidate candidate;
+
+	private final Context nullContext = new Context() {
+
+		@Override
+		public boolean isLeader() {
+			return false;
+		}
+
+		@Override
+		public String getRole() {
+			return LeaderInitiator.this.candidate.getRole();
+		}
+
+	};
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -203,13 +215,13 @@ public class LeaderInitiator implements SmartLifecycle {
 	}
 
 	/**
-	 * The context of the initiator or null if not running.
-	 * @return the context (or null if not running)
+	 * The context of the initiator.
+	 * @return the context.
 	 * @since 5.0
 	 */
 	public Context getContext() {
 		if (this.leaderSelector == null) {
-			return NULL_CONTEXT;
+			return nullContext;
 		}
 		return this.context;
 	}
@@ -290,6 +302,11 @@ public class LeaderInitiator implements SmartLifecycle {
 		@Override
 		public void yield() {
 			LeaderInitiator.this.leaderSelector.interruptLeadership();
+		}
+
+		@Override
+		public String getRole() {
+			return LeaderInitiator.this.candidate.getRole();
 		}
 
 		@Override

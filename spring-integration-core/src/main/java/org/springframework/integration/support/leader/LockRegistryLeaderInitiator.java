@@ -58,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Vedran Pavic
  * @author Glenn Renfro
  * @author Kiel Boatman
+ * @author Gary Russell
  *
  * @since 4.3.1
  */
@@ -68,8 +69,6 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	public static final long DEFAULT_BUSY_WAIT_TIME = 50L;
 
 	private static final Log logger = LogFactory.getLog(LockRegistryLeaderInitiator.class);
-
-	private static final Context NULL_CONTEXT = () -> false;
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -86,6 +85,20 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	 * {@link #setLeaderEventPublisher(LeaderEventPublisher) leaderEventPublisher} is set.
 	 */
 	private final Candidate candidate;
+
+	private final Context nullContext = new Context() {
+
+		@Override
+		public boolean isLeader() {
+			return false;
+		}
+
+		@Override
+		public String getRole() {
+			return LockRegistryLeaderInitiator.this.candidate.getRole();
+		}
+
+	};
 
 	/**
 	 * Executor service for running leadership daemon.
@@ -243,11 +256,11 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	}
 
 	/**
-	 * @return the context (or null if not running)
+	 * @return the context.
 	 */
 	public Context getContext() {
 		if (this.leaderSelector == null) {
-			return NULL_CONTEXT;
+			return this.nullContext;
 		}
 		return this.leaderSelector.context;
 	}
@@ -518,6 +531,11 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 			if (LockRegistryLeaderInitiator.this.future != null) {
 				LockRegistryLeaderInitiator.this.future.cancel(true);
 			}
+		}
+
+		@Override
+		public String getRole() {
+			return LockRegistryLeaderInitiator.this.candidate.getRole();
 		}
 
 		@Override

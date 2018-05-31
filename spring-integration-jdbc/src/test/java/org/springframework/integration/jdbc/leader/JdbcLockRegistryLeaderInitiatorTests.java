@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jdbc.leader;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -98,7 +99,9 @@ public class JdbcLockRegistryLeaderInitiatorTests {
 		assertNotNull(initiator2);
 
 		assertThat(initiator1.getContext().isLeader(), is(true));
+		assertThat(initiator1.getContext().getRole(), equalTo("bar"));
 		assertThat(initiator2.getContext().isLeader(), is(false));
+		assertThat(initiator2.getContext().getRole(), equalTo("bar"));
 
 		final CountDownLatch granted1 = new CountDownLatch(1);
 		final CountDownLatch granted2 = new CountDownLatch(1);

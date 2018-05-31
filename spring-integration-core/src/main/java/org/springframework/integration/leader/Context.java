@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.leader;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Interface that defines the context for candidate leadership.
  * Instances of this object are passed to {@link Candidate candidates}
@@ -27,6 +29,7 @@ package org.springframework.integration.leader;
  * @author Patrick Peralta
  * @author Janne Valkealahti
  * @author Artem Bilan
+ * @author Gary Russell
  *
  */
 @FunctionalInterface
@@ -47,6 +50,16 @@ public interface Context {
 	 */
 	default void yield() {
 		// no-op
+	}
+
+	/**
+	 * Get the role for the {@link Candidate}.
+	 * @return the role.
+	 * @since 5.0.6
+	 */
+	@Nullable
+	default String getRole() {
+		return null;
 	}
 
 }
