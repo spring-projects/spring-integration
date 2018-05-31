@@ -299,8 +299,10 @@ public class WebFluxDslTests {
 		public IntegrationFlow sseFlow() {
 			return IntegrationFlows
 					.from(WebFlux.inboundGateway("/sse")
-							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
-					.handle((p, h) -> Flux.just("foo", "bar", "baz"))
+							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE))
+							.mappedResponseHeaders("*"))
+					.enrichHeaders(Collections.singletonMap("aHeader", new String[] { "foo", "bar", "baz" }))
+					.handle((p, h) -> Flux.fromArray((String[]) h.get("aHeader")))
 					.get();
 		}
 
