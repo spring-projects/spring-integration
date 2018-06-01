@@ -17,13 +17,16 @@
 package org.springframework.integration.webflux.dsl;
 
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.Credentials.basicAuthenticationCredentials;
+import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
+import java.security.Principal;
 import java.util.Collections;
 
 import javax.annotation.Resource;
@@ -48,6 +51,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.dsl.Http;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingMessageHandler;
@@ -60,10 +64,18 @@ import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -116,11 +128,14 @@ public class WebFluxDslTests {
 	public void setup() {
 		this.mockMvc =
 				MockMvcBuilders.webAppContextSetup(this.wac)
-						.apply(springSecurity())
+						.apply(SecurityMockMvcConfigurers.springSecurity())
 						.build();
 
 		this.webTestClient =
 				WebTestClient.bindToApplicationContext(this.wac)
+						.apply(SecurityMockServerConfigurers.springSecurity())
+						.configureClient()
+						.filter(basicAuthentication())
 						.build();
 	}
 
@@ -198,6 +213,7 @@ public class WebFluxDslTests {
 	@SuppressWarnings("unchecked")
 	public void testHttpReactivePost() {
 		this.webTestClient.post().uri("/reactivePost")
+				.attributes(basicAuthenticationCredentials("guest", "guest"))
 				.body(Mono.just("foo\nbar\nbaz"), String.class)
 				.exchange()
 				.expectStatus().isAccepted();
@@ -205,6 +221,8 @@ public class WebFluxDslTests {
 		Message<?> store = this.storeChannel.receive(10_000);
 		assertNotNull(store);
 		assertThat(store.getPayload(), instanceOf(Flux.class));
+
+		assertThat(store.getHeaders().get(HttpHeaders.USER_PRINCIPAL, Principal.class).getName(), is("guest"));
 
 		StepVerifier
 				.create((Publisher<String>) store.getPayload())
@@ -217,6 +235,7 @@ public class WebFluxDslTests {
 	public void testSse() {
 		Flux<String> responseBody =
 				this.webTestClient.get().uri("/sse")
+						.attributes(basicAuthenticationCredentials("guest", "guest"))
 						.exchange()
 						.returnResult(String.class)
 						.getResponseBody();
@@ -230,22 +249,40 @@ public class WebFluxDslTests {
 	@Configuration
 	@EnableWebFlux
 	@EnableWebSecurity
+	@EnableWebFluxSecurity
 	@EnableIntegration
 	public static class ContextConfiguration extends WebSecurityConfigurerAdapter {
+
+		@Bean
+		public UserDetails userDetails() {
+			return User.withUsername("guest")
+					.passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
+					.password("guest")
+					.roles("ADMIN")
+					.build();
+		}
 
 		@Override
 		@Bean
 		public UserDetailsService userDetailsService() {
-			InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+			return new InMemoryUserDetailsManager(userDetails());
+		}
 
-			manager.createUser(
-					User.withUsername("guest")
-							.passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder()::encode)
-							.password("guest")
-							.roles("ADMIN")
-							.build());
+		@Bean
+		public ReactiveUserDetailsService reactiveUserDetailsService() {
+			return new MapReactiveUserDetailsService(userDetails());
+		}
 
-			return manager;
+
+		@Bean
+		public SecurityWebFilterChain reactiveSpringSecurityFilterChain(ServerHttpSecurity http) {
+			return http.authorizeExchange()
+					.anyExchange().hasRole("ADMIN")
+					.and()
+					.httpBasic()
+					.and()
+					.csrf().disable()
+					.build();
 		}
 
 		@Override
