@@ -55,3 +55,6 @@ See <<java-dsl-flows>> for more information.
 
 `ID` and `Timestamp` header mapping changes in the `DefaultAmqpHeaderMapper`.
 See the note near the bottom of <<amqp-message-headers>> for more information.
+
+The `contentType` header is no longer incorrectly mapped as an entry in the general headers map.
+See <<amqp-content-type>> for more information.
