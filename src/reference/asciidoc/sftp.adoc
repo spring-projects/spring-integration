@@ -239,6 +239,8 @@ Convenience methods have been added so this can easily be done from a message fl
 IMPORTANT: When using session caching (see <<sftp-session-caching>>), each of the delegates should be cached; you
 cannot cache the `DelegatingSessionFactory` itself.
 
+Starting with _version 5.0.7_, the `DelegatingSessionFactory` can be used in conjuction with a `RotatingServerAdvice` to poll multiple servers; see <<sftp-rotating-server-advice>>.
+
 [[sftp-session-caching]]
 === SFTP Session Caching
 
@@ -664,6 +666,71 @@ public class SftpJavaApplication {
 ----
 
 Notice that, in this example, the message handler downstream of the transformer has an advice that removes the remote file after processing.
+
+[[sftp-rotating-server-advice]]
+=== Inbound Channel Adapters: Polling Multiple Servers and Directories
+
+Starting with _version 5.0.7_, the `RotatingServerAdvice` is available; when configured as a poller advice, the inbound adapters can poll multiple servers and directories.
+Configure the advice and add it to the poller's advice chain as normal.
+A `DelegatingSessionFactory` is used to select the server see <<ftp-dsf>> for more information.
+The advice configuration consists of a list of `RotatingServerAdvice.KeyDirectory` objects.
+
+.Example
+[source, java]
+----
+@Bean
+public RotatingServerAdvice advice() {
+    List<KeyDirectory> keyDirectories = new ArrayList<>();
+    keyDirectories.add(new KeyDirectory("one", "foo"));
+    keyDirectories.add(new KeyDirectory("one", "bar"));
+    keyDirectories.add(new KeyDirectory("two", "baz"));
+    keyDirectories.add(new KeyDirectory("two", "qux"));
+    keyDirectories.add(new KeyDirectory("three", "fiz"));
+    keyDirectories.add(new KeyDirectory("three", "buz"));
+    return new RotatingServerAdvice(delegatingSf(), keyDirectories);
+}
+----
+
+This advice will poll directory `foo` on server `one` until no new files exist then move to directory `bar` and then direcctory `baz` on server `two`, etc.
+
+This default behavior can be modified with the `fair` constructor arg:
+
+.fair
+[source, java]
+----
+@Bean
+public RotatingServerAdvice advice() {
+    ...
+    return new RotatingServerAdvice(delegatingSf(), keyDirectories, true);
+}
+----
+
+In this case, the advice will move to the next server/directory regardless of whether the previous poll returned a file.
+
+Alternatively, you can provide your own `RotatingServerAdvice.RotationPolicy` to reconfigure the message source as needed:
+
+.policy
+[source, java]
+----
+public interface RotationPolicy {
+
+    void beforeReceive(MessageSource<?> source);
+
+    void afterReceive(boolean messageReceived, MessageSource<?> source);
+
+}
+----
+
+and
+
+.custom
+[source, java]
+----
+@Bean
+public RotatingServerAdvice advice() {
+    return new RotatingServerAdvice(myRotationPolicy());
+}
+----
 
 [[sftp-max-fetch]]
 === Inbound Channel Adapters: Controlling Remote File Fetching

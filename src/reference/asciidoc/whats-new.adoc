@@ -77,3 +77,11 @@ See <<amqp-content-type>> for more information.
 A confusing `max-rows-per-poll` property on the JDBC Inbound Channel Adapter and JDBC Outbound Gateway has been deprecated in favor newly introduced `max-rows` property.
 
 See <<jdbc>> for more information.
+
+=== (S)FTP Changes
+
+A `RotatingServerAdvice` is now available to poll multiple servers and/or directories with the inbound channel adapters.
+
+See <<ftp-rotating-server-advice>> and <<sftp-rotating-server-advice>> for more information.
+
+Also inbound adapter `localFilenameExpression` s can contain the variable `#remoteDirectory` which contains the remote directory being polled.

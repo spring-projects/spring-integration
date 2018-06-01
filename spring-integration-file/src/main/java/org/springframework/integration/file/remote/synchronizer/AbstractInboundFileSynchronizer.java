@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
@@ -270,6 +271,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			return;
 		}
 		final String remoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext, String.class);
+		if (this.logger.isTraceEnabled()) {
+			this.logger.trace("Synchronizing " + remoteDirectory + " to " + localDirectory);
+		}
 		try {
 			int transferred = this.remoteFileTemplate.execute(session -> {
 				F[] files = session.list(remoteDirectory);
@@ -328,8 +332,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory,
 			Session<F> session) throws IOException {
-		String remoteFileName = this.getFilename(remoteFile);
-		String localFileName = this.generateLocalFileName(remoteFileName);
+		String remoteFileName = getFilename(remoteFile);
+		String localFileName = generateLocalFileName(remoteDirectoryPath, remoteFileName);
 		String remoteFilePath = remoteDirectoryPath != null
 				? (remoteDirectoryPath + this.remoteFileSeparator + remoteFileName)
 				: remoteFileName;
@@ -436,9 +440,19 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		return false;
 	}
 
-	private String generateLocalFileName(String remoteFileName) {
+	private String generateLocalFileName(String remoteDirectoryPath, String remoteFileName) {
 		if (this.localFilenameGeneratorExpression != null) {
-			return this.localFilenameGeneratorExpression.getValue(this.evaluationContext, remoteFileName, String.class);
+			if (!(this.localFilenameGeneratorExpression instanceof LiteralExpression) &&
+					this.localFilenameGeneratorExpression.getExpressionString().contains("#remoteDirectory")) {
+				EvaluationContext context = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
+				context.setVariable("remoteDirectory", remoteDirectoryPath);
+				return this.localFilenameGeneratorExpression.getValue(context, remoteFileName,
+						String.class);
+			}
+			else {
+				return this.localFilenameGeneratorExpression.getValue(this.evaluationContext, remoteFileName,
+						String.class);
+			}
 		}
 		return remoteFileName;
 	}
