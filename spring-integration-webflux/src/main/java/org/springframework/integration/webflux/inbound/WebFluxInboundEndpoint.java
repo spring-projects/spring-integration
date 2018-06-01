@@ -289,12 +289,12 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 			payload = requestParams;
 		}
 
-		AbstractIntegrationMessageBuilder<?> messageBuilder;
+		AbstractIntegrationMessageBuilder<Object> messageBuilder;
 
 		if (payload instanceof Message<?>) {
 			messageBuilder =
 					getMessageBuilderFactory()
-							.fromMessage((Message<?>) payload)
+							.fromMessage((Message<Object>) payload)
 							.copyHeadersIfAbsent(headers);
 		}
 		else {
@@ -312,8 +312,9 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		return exchange.getPrincipal()
 				.map(principal ->
 						messageBuilder
-								.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, principal)
-								.build());
+								.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, principal))
+				.defaultIfEmpty(messageBuilder)
+				.map(AbstractIntegrationMessageBuilder::build);
 	}
 
 	private Mono<Void> populateResponse(ServerWebExchange exchange, Message<?> replyMessage) {

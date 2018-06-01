@@ -104,7 +104,9 @@
 				org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*,
 				org.springframework.test.web.servlet.result.MockMvcResultMatchers.*,
 				org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*,
-				org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.*" />
+				org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.*,
+				org.springframework.web.reactive.function.client.ExchangeFilterFunctions.*,
+				org.springframework.web.reactive.function.client.ExchangeFilterFunctions.Credentials.*"	/>
 		</module>
 		<module name="IllegalImport" />
 		<module name="RedundantImport" />
