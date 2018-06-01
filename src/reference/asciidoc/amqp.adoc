@@ -1388,6 +1388,8 @@ public IntegrationFlow pubSubInFlow(ConnectionFactory connectionFactory) {
 [[amqp-message-headers]]
 === AMQP Message Headers
 
+==== Overview
+
 The Spring Integration AMQP Adapters will map all AMQP properties and headers automatically.
 (This is a change in 4.3 - previously, only standard headers were mapped).
 These properties will be copied by default to and from Spring Integration `MessageHeaders` using the
@@ -1423,7 +1425,7 @@ Class `org.springframework.amqp.support.AmqpHeaders` identifies the default head
 
 * amqp_contentLength
 
-* content-type
+* content-type (see <<amqp-content-type>>)
 
 * amqp_correlationId
 
@@ -1507,6 +1509,19 @@ IMPORTANT: If you have a user defined header that begins with `!` that you *do* 
 NOTE: Starting with _version 5.1_, the `DefaultAmqpHeaderMapper` will fall back to mapping `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` to `MessageProperties.messageId` and `MessageProperties.timestamp` respectively, if the corresponding `amqp_messageId` or `amqp_timestamp` headers are not present on outbound messages.
 Inbound properties will be mapped to the `amqp_*` headers as before.
 It is useful to populate the `messageId` property when message consumers are using stateful retry.
+
+[[amqp-content-type]]
+==== contentType Header
+
+Unlike other headers, the `AmqpHeaders.CONTENT_TYPE` is not prefixed with `amqp_`; this allows transparent passing of the contentType header across different technologies.
+E.g. an inbound HTTP message sent to a RabbitMQ queue.
+
+The `contentType` header is mapped to Spring AMQP's `MessageProperties.contentType` property and that is subsequently mapped to RabbitMQ's `content_type` property.
+
+Prior to _version 5.1_, this header was also mapped as an entry in the `MessageProperties.headers` map; this was incorrect and, furthermore, the value could be wrong since the underlying Spring AMQP message converter might have changed the content type.
+Such a change would be reflected in the first-class `content_type` property, but not in the RabbitMQ headers map.
+Inbound mapping ignored the headers map value.
+`contentType` is no longer mapped to an entry in the headers map.
 
 [[amqp-strict-ordering]]
 === Strict Message Ordering

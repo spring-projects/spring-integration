@@ -359,7 +359,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 			MessageProperties amqpMessageProperties) {
 		// do not overwrite an existing header with the same key
 		// TODO: do we need to expose a boolean 'overwrite' flag?
-		if (!amqpMessageProperties.getHeaders().containsKey(headerName)) {
+		if (!amqpMessageProperties.getHeaders().containsKey(headerName)
+				&& !AmqpHeaders.CONTENT_TYPE.equals(headerName)) {
 			amqpMessageProperties.setHeader(headerName, headerValue);
 		}
 	}

@@ -97,8 +97,8 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
 		Set<String> headerKeys = amqpProperties.getHeaders().keySet();
 		for (String headerKey : headerKeys) {
-			if (headerKey.startsWith(AmqpHeaders.PREFIX)) {
-				fail();
+			if (headerKey.startsWith(AmqpHeaders.PREFIX) || headerKey.equals("contentType")) {
+				fail("Unexpected header in properties.headers: " + headerKey);
 			}
 		}
 		assertEquals("test.appId", amqpProperties.getAppId());
