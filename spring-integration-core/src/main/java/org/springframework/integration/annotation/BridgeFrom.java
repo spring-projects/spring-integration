@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -37,13 +36,14 @@ import java.lang.annotation.Target;
  * is used as the {@code outputChannel} of the {@link org.springframework.integration.handler.BridgeHandler}.
  *
  * @author Artem Bilan
+ *
  * @since 4.0
  */
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
 public @interface BridgeFrom {
+
 	/**
 	 * @return the inbound channel name to receive message for the
 	 * {@link org.springframework.integration.handler.BridgeHandler}
@@ -56,7 +56,14 @@ public @interface BridgeFrom {
 	 */
 	String autoStartup() default "true";
 
-	String phase() default "0";
+	/**
+	 * Specify a {@link org.springframework.context.SmartLifecycle} {@code phase} option.
+	 * Defaults {@code Integer.MAX_VALUE / 2} for {@link org.springframework.integration.endpoint.PollingConsumer}
+	 * and {@code Integer.MIN_VALUE} for {@link org.springframework.integration.endpoint.EventDrivenConsumer}.
+	 * Can be specified as 'property placeholder', e.g. {@code ${foo.phase}}.
+	 * @return the {@code SmartLifecycle} phase.
+	 */
+	String phase() default "";
 
 	/**
 	 * @return the {@link Poller} options for a polled endpoint
@@ -64,5 +71,6 @@ public @interface BridgeFrom {
 	 * This attribute is an {@code array} just to allow an empty default (no poller).
 	 * Only one {@link Poller} element is allowed.
 	 */
-	Poller[] poller() default {};
+	Poller[] poller() default { };
+
 }

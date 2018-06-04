@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import java.lang.annotation.Target;
  * @author Gary Russell
  * @author Artem Bilan
  */
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Splitter {
@@ -78,7 +78,7 @@ public @interface Splitter {
 	 * Only the handler is advised, not the downstream flow.
 	 * @return the advice chain.
 	 */
-	String[] adviceChain() default {};
+	String[] adviceChain() default { };
 
 	/**
 	 * Specify the maximum amount of time in milliseconds to wait when sending a reply
@@ -104,7 +104,7 @@ public @interface Splitter {
 
 	/**
 	 * Specify a {@link org.springframework.context.SmartLifecycle} {@code phase} option.
-	 * Defaults {@code 0} for {@link org.springframework.integration.endpoint.PollingConsumer}
+	 * Defaults {@code Integer.MAX_VALUE / 2} for {@link org.springframework.integration.endpoint.PollingConsumer}
 	 * and {@code Integer.MIN_VALUE} for {@link org.springframework.integration.endpoint.EventDrivenConsumer}.
 	 * Can be specified as 'property placeholder', e.g. {@code ${foo.phase}}.
 	 * @return the {@code SmartLifecycle} phase.
@@ -117,6 +117,6 @@ public @interface Splitter {
 	 * This attribute is an {@code array} just to allow an empty default (no poller).
 	 * Only one {@link Poller} element is allowed.
 	 */
-	Poller[] poller() default {};
+	Poller[] poller() default { };
 
 }

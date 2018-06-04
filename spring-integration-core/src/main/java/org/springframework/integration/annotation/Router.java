@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -45,9 +44,8 @@ import java.lang.annotation.Target;
  * @author Mark Fisher
  * @author Artem Bilan
  */
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
 public @interface Router {
 
@@ -71,7 +69,7 @@ public @interface Router {
 	 * @return the channelMappings.
 	 * @see org.springframework.integration.router.AbstractMappingMessageRouter#setChannelMapping(String, String)
 	 */
-	String[] channelMappings() default {};
+	String[] channelMappings() default { };
 
 	/**
 	 * Specify a prefix to be added to each channel name prior to resolution.
@@ -141,7 +139,7 @@ public @interface Router {
 
 	/**
 	 * Specify a {@link org.springframework.context.SmartLifecycle} {@code phase} option.
-	 * Defaults {@code 0} for {@link org.springframework.integration.endpoint.PollingConsumer}
+	 * Defaults {@code Integer.MAX_VALUE / 2} for {@link org.springframework.integration.endpoint.PollingConsumer}
 	 * and {@code Integer.MIN_VALUE} for {@link org.springframework.integration.endpoint.EventDrivenConsumer}.
 	 * Can be specified as 'property placeholder', e.g. {@code ${foo.phase}}.
 	 * @return the {@code SmartLifecycle} phase.
@@ -154,6 +152,6 @@ public @interface Router {
 	 * This attribute is an {@code array} just to allow an empty default (no poller).
 	 * Only one {@link Poller} element is allowed.
 	 */
-	Poller[] poller() default {};
+	Poller[] poller() default { };
 
 }

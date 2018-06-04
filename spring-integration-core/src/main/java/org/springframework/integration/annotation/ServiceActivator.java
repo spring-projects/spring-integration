@@ -18,7 +18,6 @@ package org.springframework.integration.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -45,7 +44,6 @@ import java.lang.annotation.Target;
  */
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
 public @interface ServiceActivator {
 
@@ -104,7 +102,7 @@ public @interface ServiceActivator {
 
 	/**
 	 * Specify a {@link org.springframework.context.SmartLifecycle} {@code phase} option.
-	 * Defaults {@code 0} for {@link org.springframework.integration.endpoint.PollingConsumer}
+	 * Defaults {@code Integer.MAX_VALUE / 2} for {@link org.springframework.integration.endpoint.PollingConsumer}
 	 * and {@code Integer.MIN_VALUE} for {@link org.springframework.integration.endpoint.EventDrivenConsumer}.
 	 * Can be specified as 'property placeholder', e.g. {@code ${foo.phase}}.
 	 * @return the {@code SmartLifecycle} phase.
