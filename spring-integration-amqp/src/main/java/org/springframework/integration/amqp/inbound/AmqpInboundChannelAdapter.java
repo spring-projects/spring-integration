@@ -25,6 +25,7 @@ import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.core.AttributeAccessor;
@@ -200,14 +201,10 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		@SuppressWarnings("unchecked")
 		@Override
 		public void onMessage(final Message message, final Channel channel) throws Exception {
+			boolean retryEnabled = AmqpInboundChannelAdapter.this.retryTemplate == null;
 			try {
-				if (AmqpInboundChannelAdapter.this.retryTemplate == null) {
-					try {
-						createAndSend(message, channel);
-					}
-					finally {
-						attributesHolder.remove();
-					}
+				if (retryEnabled) {
+					createAndSend(message, channel);
 				}
 				else {
 					final org.springframework.messaging.Message<Object> toSend = createMessage(message, channel);
@@ -220,13 +217,19 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 							(RecoveryCallback<Object>) AmqpInboundChannelAdapter.this.recoveryCallback);
 				}
 			}
-			catch (RuntimeException e) {
+			catch (MessageConversionException e) {
 				if (getErrorChannel() != null) {
+					setAttributesIfNecessary(message, null);
 					getMessagingTemplate().send(getErrorChannel(), buildErrorMessage(null,
 							new ListenerExecutionFailedException("Message conversion failed", e, message)));
 				}
 				else {
 					throw e;
+				}
+			}
+			finally {
+				if (retryEnabled) {
+					attributesHolder.remove();
 				}
 			}
 		}
