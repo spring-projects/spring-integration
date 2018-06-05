@@ -21,7 +21,7 @@ package org.springframework.integration.support;
  *
  * @author Gary Russell
  *
- * @since 4.3.17
+ * @since 5.0.6
  */
 public class StringObjectMapBuilder extends MapBuilder<StringObjectMapBuilder, String, Object> {
 

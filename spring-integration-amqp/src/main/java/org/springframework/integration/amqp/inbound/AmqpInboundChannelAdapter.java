@@ -201,9 +201,9 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 		@SuppressWarnings("unchecked")
 		@Override
 		public void onMessage(final Message message, final Channel channel) throws Exception {
-			boolean retryEnabled = AmqpInboundChannelAdapter.this.retryTemplate == null;
+			boolean retryDisabled = AmqpInboundChannelAdapter.this.retryTemplate == null;
 			try {
-				if (retryEnabled) {
+				if (retryDisabled) {
 					createAndSend(message, channel);
 				}
 				else {
@@ -228,7 +228,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 				}
 			}
 			finally {
-				if (retryEnabled) {
+				if (retryDisabled) {
 					attributesHolder.remove();
 				}
 			}
