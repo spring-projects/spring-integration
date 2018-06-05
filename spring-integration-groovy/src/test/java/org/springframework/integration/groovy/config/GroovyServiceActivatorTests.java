@@ -33,8 +33,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnJre;
-import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -49,12 +47,12 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import groovy.lang.GroovyObject;
-import groovy.lang.MissingPropertyException;
 
 /**
  * @author Mark Fisher
@@ -184,7 +182,6 @@ public class GroovyServiceActivatorTests {
 
 	//INT-2399
 	@Test
-	@EnabledOnJre(JRE.JAVA_8)
 	/*
 	 * java.lang.AssertionError: expected:<class groovy.lang.MissingPropertyException>
 	 * but was:<class org.springframework.scripting.ScriptCompilationException>
@@ -198,7 +195,7 @@ public class GroovyServiceActivatorTests {
 		}
 		catch (MessageHandlingException e) {
 			Throwable cause = e.getCause();
-			assertEquals(MissingPropertyException.class, cause.getClass());
+			assertEquals(ScriptCompilationException.class, cause.getClass());
 			assertThat(cause.getMessage(),
 					Matchers.containsString("No such property: ReplyRequiredException for class: script"));
 		}
