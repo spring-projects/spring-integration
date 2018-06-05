@@ -251,17 +251,11 @@ public class InboundEndpointTests {
 		adapter.setOutputChannel(outputChannel);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);
-		adapter.setMessageConverter(new MessageConverter() {
-
-			@Override
-			public org.springframework.amqp.core.Message toMessage(Object object, MessageProperties messageProperties)
-					throws MessageConversionException {
-				throw new MessageConversionException("intended");
-			}
+		adapter.setMessageConverter(new SimpleMessageConverter() {
 
 			@Override
 			public Object fromMessage(org.springframework.amqp.core.Message message) throws MessageConversionException {
-				return null;
+				throw new MessageConversionException("intended");
 			}
 
 		});
