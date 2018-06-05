@@ -292,6 +292,13 @@ subprojects { subproject ->
 					'Automatic-Module-Name': subproject.name.replace('-', '.')  // for Jigsaw
 			)
 		}
+
+		from("${rootProject.projectDir}/src/dist") {
+			include "license.txt"
+			include "notice.txt"
+			into "META-INF"
+			expand(copyright: new Date().format("yyyy"), version: project.version)
+		}
 	}
 
 	check.dependsOn javadoc
@@ -1002,6 +1009,7 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
 		include 'license.txt'
 		include 'notice.txt'
 		into "${baseDir}"
+		expand(copyright: new Date().format("yyyy"), version: project.version)
 	}
 
 	from(zipTree(docsZip.archivePath)) {
