@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,15 @@
 
 package org.springframework.integration.amqp.dsl;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -37,14 +42,19 @@ import org.springframework.amqp.rabbit.junit.RabbitAvailable;
 import org.springframework.amqp.rabbit.junit.RabbitAvailableCondition;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.exception.ListenerExecutionFailedException;
+import org.springframework.amqp.support.converter.MessageConversionException;
+import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
 import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
+import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessageStrategy;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -52,6 +62,7 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.StringObjectMapBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -67,7 +78,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @RabbitAvailable(queues = { "amqpOutboundInput", "amqpReplyChannel", "asyncReplies",
-							"defaultReplyTo", "si.dsl.test", "testTemplateChannelTransacted" })
+							"defaultReplyTo", "si.dsl.test", "si.dsl.exception.test.dlq",
+							"si.dsl.conv.exception.test.dlq", "testTemplateChannelTransacted" })
 @DirtiesContext
 public class AmqpTests {
 
@@ -92,8 +104,10 @@ public class AmqpTests {
 	private Lifecycle asyncOutboundGateway;
 
 	@AfterAll
-	public static void tearDown() {
-		RabbitAvailableCondition.getBrokerRunning().removeTestQueues();
+	public static void tearDown(ConfigurableApplicationContext context) {
+		context.stop(); // prevent queues from being redeclared after deletion
+		RabbitAvailableCondition.getBrokerRunning().removeTestQueues("si.dsl.exception.test",
+				"si.dsl.conv.exception.test");
 	}
 
 	@Test
@@ -171,6 +185,33 @@ public class AmqpTests {
 		assertEquals("HELLO ASYNC GATEWAY", receive.getPayload());
 
 		this.asyncOutboundGateway.stop();
+	}
+
+	@Autowired
+	private AtomicReference<ListenerExecutionFailedException> lefe;
+
+	@Autowired
+	private AtomicReference<?> raw;
+
+
+	@Test
+	public void testInboundMessagingExceptionFlow() {
+		this.amqpTemplate.convertAndSend("si.dsl.exception.test", "foo");
+		assertNotNull(this.amqpTemplate.receive("si.dsl.exception.test.dlq", 30_000));
+		assertNull(this.lefe.get());
+		assertNotNull(this.raw.get());
+		this.raw.set(null);
+	}
+
+	@Test
+	public void testInboundConversionExceptionFlow() {
+		this.amqpTemplate.convertAndSend("si.dsl.conv.exception.test", "foo");
+		assertNotNull(this.amqpTemplate.receive("si.dsl.conv.exception.test.dlq", 30_000));
+		assertNotNull(this.lefe.get());
+		assertThat(this.lefe.get().getCause(), instanceOf(MessageConversionException.class));
+		assertNotNull(this.raw.get());
+		this.raw.set(null);
+		this.lefe.set(null);
 	}
 
 	@Autowired
@@ -274,6 +315,84 @@ public class AmqpTests {
 					.channel(Amqp.pollableChannel(rabbitConnectionFactory)
 							.queueName("amqpReplyChannel")
 							.channelTransacted(true))
+					.get();
+		}
+
+		@Bean
+		public AtomicReference<ListenerExecutionFailedException> lefe() {
+			return new AtomicReference<>();
+		}
+
+		@Bean
+		public AtomicReference<org.springframework.amqp.core.Message> raw() {
+			return new AtomicReference<>();
+		}
+
+		@Bean
+		public Queue exQueue() {
+			return new Queue("si.dsl.exception.test", true, false, false,
+					new StringObjectMapBuilder()
+						.put("x-dead-letter-exchange", "")
+						.put("x-dead-letter-routing-key", exDLQ().getName())
+						.get());
+		}
+
+		@Bean
+		public Queue exDLQ() {
+			return new Queue("si.dsl.exception.test.dlq");
+		}
+
+		@Bean
+		public IntegrationFlow inboundWithExceptionFlow(ConnectionFactory cf) {
+			return IntegrationFlows.from(Amqp.inboundAdapter(cf, exQueue())
+						.configureContainer(c -> c.defaultRequeueRejected(false))
+						.errorChannel("errors.input"))
+					.handle(m -> {
+						throw new RuntimeException("fail");
+					})
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow errors() {
+			return f -> f.handle(m -> {
+					raw().set(m.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE,
+							org.springframework.amqp.core.Message.class));
+					if (m.getPayload() instanceof ListenerExecutionFailedException) {
+						lefe().set((ListenerExecutionFailedException) m.getPayload());
+					}
+					throw (RuntimeException) m.getPayload();
+				});
+		}
+
+		@Bean
+		public Queue exConvQueue() {
+			return new Queue("si.dsl.conv.exception.test", true, false, false,
+					new StringObjectMapBuilder()
+						.put("x-dead-letter-exchange", "")
+						.put("x-dead-letter-routing-key", exConvDLQ().getName())
+						.get());
+		}
+
+		@Bean
+		public Queue exConvDLQ() {
+			return new Queue("si.dsl.conv.exception.test.dlq");
+		}
+
+		@Bean
+		public IntegrationFlow inboundWithConvExceptionFlow(ConnectionFactory cf) {
+			return IntegrationFlows.from(Amqp.inboundAdapter(cf, exConvQueue())
+						.configureContainer(c -> c.defaultRequeueRejected(false))
+						.messageConverter(new SimpleMessageConverter() {
+
+							@Override
+							public Object fromMessage(org.springframework.amqp.core.Message message)
+									throws MessageConversionException {
+								throw new MessageConversionException("fail");
+							}
+
+						})
+						.errorChannel("errors.input"))
 					.get();
 		}
 
