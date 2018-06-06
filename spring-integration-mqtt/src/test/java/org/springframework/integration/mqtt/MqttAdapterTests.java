@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -96,6 +97,16 @@ public class MqttAdapterTests {
 		pfb.addAdvice((MethodInterceptor) invocation -> null);
 		pfb.setInterfaces(IMqttToken.class);
 		this.alwaysComplete = (IMqttToken) pfb.getObject();
+	}
+
+	@Test
+	public void testCloseOnBadConnect() throws Exception {
+		final IMqttClient client = mock(IMqttClient.class);
+		willThrow(new MqttException(0)).given(client).connect(any());
+		MqttPahoMessageDrivenChannelAdapter adapter = buildAdapter(client, null, ConsumerStopAction.UNSUBSCRIBE_NEVER);
+		adapter.start();
+		verify(client).close();
+		adapter.stop();
 	}
 
 	@Test
@@ -345,6 +356,7 @@ public class MqttAdapterTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		adapter.connectionLost(new RuntimeException("initial"));
+		verify(client).close();
 		Thread.sleep(1000);
 		// the following assertion should be equalTo, but leq to protect against a slow CI server
 		assertThat(attemptingReconnectCount.get(), lessThanOrEqualTo(2));
