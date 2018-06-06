@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -262,6 +262,14 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 			}
 			logger.error("Error connecting or subscribing to " + Arrays.toString(topics), e);
 			this.client.disconnectForcibly(this.completionTimeout);
+			try {
+				this.client.setCallback(null);
+				this.client.close();
+			}
+			catch (MqttException e1) {
+				// NOSONAR
+			}
+			this.client = null;
 			throw e;
 		}
 		finally {
@@ -316,6 +324,14 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		if (isRunning()) {
 			this.logger.error("Lost connection: " + cause.getMessage() + "; retrying...");
 			this.connected = false;
+			try {
+				this.client.setCallback(null);
+				this.client.close();
+			}
+			catch (MqttException e) {
+				// NOSONAR
+			}
+			this.client = null;
 			scheduleReconnect();
 			if (this.applicationEventPublisher != null) {
 				this.applicationEventPublisher.publishEvent(new MqttConnectionFailedEvent(this, cause));
