@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.integration.file.remote.synchronizer.AbstractInboundF
  * @param <MS> the target {@link AbstractInboundFileSynchronizingMessageSource} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -134,9 +135,22 @@ public abstract class RemoteFileInboundChannelAdapterSpec<F, S extends RemoteFil
 	 * file is renamed to its final name. Default: '.writing'.
 	 * @param temporaryFileSuffix the temporaryFileSuffix.
 	 * @return the spec.
+	 * @see #temporaryFileNameExpression(String)
 	 */
 	public S temporaryFileSuffix(String temporaryFileSuffix) {
 		this.synchronizer.setTemporaryFileSuffix(temporaryFileSuffix);
+		return _this();
+	}
+
+	/**
+	 * Configure an expression to create a temporary file name based on the final file
+	 * name as the root object for the evaluation; when copied, the file is renamed to its
+	 * final name. Default: {@code #root.writing}.
+	 * @param temporaryFileNameExpression the temporaryFileSuffix.
+	 * @return the spec.
+	 */
+	public S temporaryFileNameExpression(String temporaryFileNameExpression) {
+		this.synchronizer.setTemporaryFileSuffix(temporaryFileNameExpression);
 		return _this();
 	}
 

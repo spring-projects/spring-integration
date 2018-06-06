@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,8 @@ public class InboundChannelAdapterParserTests {
 		assertNotNull(TestUtils.getPropertyValue(synchronizer, "localFilenameGeneratorExpression"));
 		assertTrue(TestUtils.getPropertyValue(synchronizer, "preserveTimestamp", Boolean.class));
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(synchronizer, "remoteFileSeparator");
-		assertEquals(".bar", TestUtils.getPropertyValue(synchronizer, "temporaryFileSuffix", String.class));
+		assertEquals("#root + '.bar'", TestUtils.getPropertyValue(synchronizer,
+				"temporaryFileNameHelper.temporaryFileNameExpression.expression", String.class));
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".", remoteFileSeparator);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);

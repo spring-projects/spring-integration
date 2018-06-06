@@ -223,6 +223,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected final Set<Option> options = new HashSet<>();
 
+	private EvaluationContext evaluationContext;
+
 	private volatile ExpressionEvaluatingMessageProcessor<String> renameProcessor =
 			new ExpressionEvaluatingMessageProcessor<>(
 					new FunctionExpression<Message<?>>(m ->
@@ -428,6 +430,16 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	/**
+	 * Set the temporary suffix to use when transferring files to the remote system.
+	 * Default {@code .writing}.
+	 * @param temporaryFileNameExpression the temporaryFileNameExpression to set
+	 * @see RemoteFileTemplate#setTemporaryFileNameExpression(String)
+	 */
+	public void setTemporaryFileNameExpression(String temporaryFileNameExpression) {
+		this.remoteFileTemplate.setTemporaryFileNameExpression(temporaryFileNameExpression);
+	}
+
+	/**
 	 * Set a {@link FileListFilter} to filter remote files.
 	 * @param filter the filter to set
 	 */
@@ -574,6 +586,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			this.renameProcessor.setBeanFactory(getBeanFactory());
 			this.remoteFileTemplate.setBeanFactory(getBeanFactory());
 		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override
@@ -1027,7 +1040,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				&& localFile.lastModified() != getModified(fileInfo));
 		if (!exists || appending || replacing) {
 			OutputStream outputStream;
-			String tempFileName = localFile.getAbsolutePath() + this.remoteFileTemplate.getTemporaryFileSuffix();
+			String tempFileName = this.remoteFileTemplate.getTemporaryFileNameHelper()
+					.toTempFile(localFile.getAbsolutePath(), this.evaluationContext);
 			File tempFile = new File(tempFileName);
 			if (appending) {
 				outputStream = new BufferedOutputStream(new FileOutputStream(localFile, true));

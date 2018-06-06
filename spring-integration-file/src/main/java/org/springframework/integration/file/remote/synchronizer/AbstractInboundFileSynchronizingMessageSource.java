@@ -255,7 +255,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	}
 
 	private FileListFilter<File> buildFilter() {
-		Pattern completePattern = Pattern.compile("^.*(?<!" + this.synchronizer.getTemporaryFileSuffix() + ")$");
+		Pattern completePattern = this.synchronizer.getTemporaryFileNameHelper()
+				.excludeTemporaryMatches(this.synchronizer.getEvaluationContext());
 		return new CompositeFileListFilter<>(
 				Arrays.asList(this.localFileListFilter, new RegexPatternFileListFilter(completePattern)));
 	}

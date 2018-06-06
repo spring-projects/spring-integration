@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,8 @@ public class FtpOutboundChannelAdapterParserTests {
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler,
 				"remoteFileTemplate.remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
-		assertEquals(".foo", TestUtils.getPropertyValue(handler, "remoteFileTemplate.temporaryFileSuffix", String.class));
+		assertEquals("#root + '.foo'", TestUtils.getPropertyValue(handler,
+				"remoteFileTemplate.temporaryFileNameHelper.temporaryFileNameExpression.expression", String.class));
 		assertEquals("", remoteFileSeparator);
 		assertEquals(this.fileNameGenerator, TestUtils.getPropertyValue(handler, "remoteFileTemplate.fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "remoteFileTemplate.charset"));

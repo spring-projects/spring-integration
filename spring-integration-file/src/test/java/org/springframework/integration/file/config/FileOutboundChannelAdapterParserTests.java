@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,7 @@ public class FileOutboundChannelAdapterParserTests {
 		Expression destinationDirectoryExpression =
 				(Expression) handlerAccessor.getPropertyValue("destinationDirectoryExpression");
 		File actual = new File(destinationDirectoryExpression.getExpressionString());
-		assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
+		assertEquals("#root + '.foo'", TestUtils.getPropertyValue(handler, "temporaryFileNameHelper.temporaryFileNameExpression.expression", String.class));
 		assertThat(actual, is(expected));
 		DefaultFileNameGenerator fileNameGenerator =
 				(DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
@@ -163,7 +163,8 @@ public class FileOutboundChannelAdapterParserTests {
 
 		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
-		assertEquals(".writing", handlerAccessor.getPropertyValue("temporaryFileSuffix"));
+		assertEquals("#root + '.writing'", TestUtils.getPropertyValue(handler,
+				"temporaryFileNameHelper.temporaryFileNameExpression.expression", String.class));
 		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("flushWhenIdle"));
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,19 @@ public class FileWritingMessageHandlerSpec
 	 */
 	public FileWritingMessageHandlerSpec temporaryFileSuffix(String temporaryFileSuffix) {
 		this.target.setTemporaryFileSuffix(temporaryFileSuffix);
+		return _this();
+	}
+
+	/**
+	 * By default, every file that is in the process of being transferred will appear in
+	 * the file system with a temporary name, which by default is
+	 * {@code finalFile.name.writing}, and renamed when complete.
+	 * @param temporaryFileNameExpression The temporary file name expression; e.g.
+	 * {@code #root.writing} (the default).
+	 * @return the current Spec
+	 */
+	public FileWritingMessageHandlerSpec temporaryFileExpression(String temporaryFileNameExpression) {
+		this.target.setTemporaryFileNameExpression(temporaryFileNameExpression);
 		return _this();
 	}
 

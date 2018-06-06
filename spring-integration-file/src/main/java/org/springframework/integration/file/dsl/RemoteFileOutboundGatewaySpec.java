@@ -42,6 +42,7 @@ import org.springframework.messaging.Message;
  * @param <S> the target {@link RemoteFileOutboundGatewaySpec} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -152,6 +153,18 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 */
 	public S temporaryFileSuffix(String temporaryFileSuffix) {
 		this.target.setTemporaryFileSuffix(temporaryFileSuffix);
+		return _this();
+	}
+
+	/**
+	 * Set the temporary file name expression to use when transferring files to the remote system.
+	 * The root object for the evaluation is the final file name.
+	 * Default {@code #root.writing}.
+	 * @param temporaryFileNameExpression the temporaryFileNameExpression to set
+	 * @return the Spec.
+	 */
+	public S temporaryFileNameExpression(String temporaryFileNameExpression) {
+		this.target.setTemporaryFileNameExpression(temporaryFileNameExpression);
 		return _this();
 	}
 
