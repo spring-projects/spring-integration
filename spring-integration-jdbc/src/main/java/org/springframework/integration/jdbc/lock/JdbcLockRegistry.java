@@ -26,14 +26,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.dao.CannotSerializeTransactionException;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
-import org.springframework.transaction.TransactionTimedOutException;
 import org.springframework.util.Assert;
 
 /**
@@ -47,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Kai Zimmermann
+ * @author Bartosz Rempuszewski
  *
  * @since 4.3
  */
@@ -113,7 +112,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 					break;
 				}
-				catch (CannotSerializeTransactionException | TransactionTimedOutException | QueryTimeoutException e) {
+				catch (TransientDataAccessException e) {
 					// try again
 				}
 				catch (InterruptedException e) {
@@ -147,7 +146,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 					break;
 				}
-				catch (CannotSerializeTransactionException | TransactionTimedOutException | QueryTimeoutException e) {
+				catch (TransientDataAccessException e) {
 					// try again
 				}
 				catch (InterruptedException ie) {
@@ -191,7 +190,7 @@ public class JdbcLockRegistry implements ExpirableLockRegistry {
 					}
 					return acquired;
 				}
-				catch (CannotSerializeTransactionException | TransactionTimedOutException | QueryTimeoutException e) {
+				catch (TransientDataAccessException e) {
 					// try again
 				}
 				catch (Exception e) {
