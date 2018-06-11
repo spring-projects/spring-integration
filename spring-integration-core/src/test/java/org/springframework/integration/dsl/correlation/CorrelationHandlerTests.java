@@ -43,6 +43,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.handler.MessageTriggerAction;
 import org.springframework.integration.support.MessageBuilder;
@@ -176,11 +177,16 @@ public class CorrelationHandlerTests {
 		}
 
 		@Bean
+		public MessageChannelSpec<?, ?> executorChannel() {
+			return MessageChannels.executor(taskExecutor());
+		}
+
+		@Bean
 		@SuppressWarnings("rawtypes")
-		public IntegrationFlow splitResequenceFlow() {
+		public IntegrationFlow splitResequenceFlow(MessageChannel executorChannel) {
 			return f -> f.enrichHeaders(s -> s.header("FOO", "BAR"))
 					.split("testSplitterData", "buildList", c -> c.applySequence(false))
-					.channel(MessageChannels.executor(taskExecutor()))
+					.channel(executorChannel)
 					.split(Message.class, Message::getPayload, c -> c.applySequence(false))
 					.channel(MessageChannels.executor(taskExecutor()))
 					.split(s -> s
@@ -230,6 +236,11 @@ public class CorrelationHandlerTests {
 		}
 
 		@Bean
+		public MessageChannelSpec<?, ?> barrierResults() {
+			return MessageChannels.queue("barrierResults");
+		}
+
+		@Bean
 		public IntegrationFlow barrierFlow() {
 			return f -> f
 					.barrier(10000, b -> b
@@ -240,13 +251,18 @@ public class CorrelationHandlerTests {
 											.skip(1)
 											.findFirst()
 											.get()))
-					.channel(MessageChannels.queue("barrierResults"));
+					.channel("barrierResults");
+		}
+
+		@Bean
+		public MessageChannelSpec<?, ?> releaseChannel() {
+			return MessageChannels.queue("releaseChannel");
 		}
 
 		@Bean
 		@DependsOn("barrierFlow")
 		public IntegrationFlow releaseBarrierFlow(MessageTriggerAction barrierTriggerAction) {
-			return IntegrationFlows.from(MessageChannels.queue("releaseChannel"))
+			return IntegrationFlows.from(releaseChannel())
 					.trigger(barrierTriggerAction,
 							e -> e.poller(p -> p.fixedDelay(100)))
 					.get();
