@@ -567,7 +567,7 @@ project('spring-integration-scripting') {
 	}
 
 	if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
-		[compileTestJava]*.options*.compilerArgs = ['--add-modules', 'jdk.scripting.nashorn']
+		[compileTestJava]*.options*.compilerArgs = ["$xLintArg", '--add-modules', 'jdk.scripting.nashorn']
 	}
 }
 
@@ -704,7 +704,7 @@ project('spring-integration-ws') {
 
 	}
 	if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
-		[compileTestJava]*.options*.compilerArgs = ['--add-modules', 'java.xml.ws']
+		[compileTestJava]*.options*.compilerArgs = ["$xLintArg", '--add-modules', 'java.xml.ws']
 	}
 }
 
@@ -720,7 +720,7 @@ project('spring-integration-xml') {
 	}
 
 	if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
-		[compileTestJava]*.options*.compilerArgs = ['--add-modules', 'java.xml.bind']
+		[compileTestJava]*.options*.compilerArgs = ["$xLintArg", '--add-modules', 'java.xml.bind']
 	}
 
 	tasks.withType(Test) {
