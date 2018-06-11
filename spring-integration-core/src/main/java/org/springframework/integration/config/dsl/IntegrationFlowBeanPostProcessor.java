@@ -281,7 +281,6 @@ public class IntegrationFlowBeanPostProcessor
 	}
 
 	private void processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean) {
-		registerComponent(bean.get(), generateBeanName(bean.get(), bean.getId()));
 		if (bean instanceof ComponentsRegistration) {
 			Map<Object, String> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
 			if (!CollectionUtils.isEmpty(componentsToRegister)) {
