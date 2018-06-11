@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,12 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-public class SubscribableJmsChannel extends AbstractJmsChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
+public class SubscribableJmsChannel extends AbstractJmsChannel
+		implements SubscribableChannel, SmartLifecycle, DisposableBean {
 
 	private final AbstractMessageListenerContainer container;
 
@@ -72,13 +75,15 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	@Override
 	public boolean subscribe(MessageHandler handler) {
-		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
+		Assert.state(this.dispatcher != null,
+				"'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.addHandler(handler);
 	}
 
 	@Override
 	public boolean unsubscribe(MessageHandler handler) {
-		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
+		Assert.state(this.dispatcher != null,
+				"'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.removeHandler(handler);
 	}
 
@@ -126,7 +131,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.container != null) ? this.container.isAutoStartup() : false;
+		return (this.container != null) && this.container.isAutoStartup();
 	}
 
 	@Override
@@ -136,7 +141,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	@Override
 	public boolean isRunning() {
-		return (this.container != null) ? this.container.isRunning() : false;
+		return (this.container != null) && this.container.isRunning();
 	}
 
 	@Override
@@ -157,6 +162,9 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 	public void stop(Runnable callback) {
 		if (this.container != null) {
 			this.container.stop(callback);
+		}
+		else {
+			callback.run();
 		}
 	}
 
@@ -226,6 +234,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 				throw new MessagingException("failed to handle incoming JMS Message", e);
 			}
 		}
+
 	}
 
 }

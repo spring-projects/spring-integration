@@ -341,6 +341,9 @@ public class ConsumerEndpointFactoryBean
 		if (this.endpoint != null) {
 			this.endpoint.stop(callback);
 		}
+		else {
+			callback.run();
+		}
 	}
 
 }
