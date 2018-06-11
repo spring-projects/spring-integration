@@ -152,7 +152,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 				.doOnSubscribe(s -> this.activeCount.incrementAndGet())
 				.switchIfEmpty(Mono.just(exchange.getRequest().getQueryParams()))
 				.map(body -> new HttpEntity<>(body, exchange.getRequest().getHeaders()))
-				.map(entity -> buildMessage(entity, exchange))
+				.flatMap(entity -> buildMessage(entity, exchange))
 				.flatMap(requestMessage -> {
 					if (this.expectReply) {
 						return sendAndReceiveMessageReactive(requestMessage)
@@ -235,7 +235,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	@SuppressWarnings("unchecked")
-	private Message<?> buildMessage(HttpEntity<?> httpEntity, ServerWebExchange exchange) {
+	private Mono<Message<?>> buildMessage(HttpEntity<?> httpEntity, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 		HttpHeaders requestHeaders = request.getHeaders();
 		Map<String, Object> exchangeAttributes = exchange.getAttributes();
@@ -289,12 +289,12 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 			payload = requestParams;
 		}
 
-		AbstractIntegrationMessageBuilder<?> messageBuilder;
+		AbstractIntegrationMessageBuilder<Object> messageBuilder;
 
 		if (payload instanceof Message<?>) {
 			messageBuilder =
 					getMessageBuilderFactory()
-							.fromMessage((Message<?>) payload)
+							.fromMessage((Message<Object>) payload)
 							.copyHeadersIfAbsent(headers);
 		}
 		else {
@@ -304,11 +304,17 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 							.copyHeaders(headers);
 		}
 
-		return messageBuilder
+		messageBuilder
 				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
-				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
-				.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, exchange.getPrincipal().block())
-				.build();
+				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
+						request.getMethod().toString());
+
+		return exchange.getPrincipal()
+				.map(principal ->
+						messageBuilder
+								.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, principal))
+				.defaultIfEmpty(messageBuilder)
+				.map(AbstractIntegrationMessageBuilder::build);
 	}
 
 	private Mono<Void> populateResponse(ServerWebExchange exchange, Message<?> replyMessage) {
