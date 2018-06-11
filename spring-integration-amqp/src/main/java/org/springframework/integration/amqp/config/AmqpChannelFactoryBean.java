@@ -500,7 +500,9 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	@Override
 	protected void destroyInstance(AbstractAmqpChannel instance) throws Exception {
-		this.channel.destroy();
+		if (instance instanceof DisposableBean) {
+			((DisposableBean) this.channel).destroy();
+		}
 	}
 
 }
