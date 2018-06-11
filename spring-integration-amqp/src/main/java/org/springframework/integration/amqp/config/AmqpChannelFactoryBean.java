@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,10 +66,11 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
-public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChannel> implements SmartLifecycle,
-		DisposableBean, BeanNameAware {
+public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChannel>
+		implements SmartLifecycle, DisposableBean, BeanNameAware {
 
 	private volatile AbstractAmqpChannel channel;
 
@@ -516,13 +517,14 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		if (this.channel instanceof SmartLifecycle) {
 			((SmartLifecycle) this.channel).stop(callback);
 		}
+		else {
+			callback.run();
+		}
 	}
 
 	@Override
 	protected void destroyInstance(AbstractAmqpChannel instance) throws Exception {
-		if (instance instanceof DisposableBean) {
-			((DisposableBean) this.channel).destroy();
-		}
+		this.channel.destroy();
 	}
 
 }

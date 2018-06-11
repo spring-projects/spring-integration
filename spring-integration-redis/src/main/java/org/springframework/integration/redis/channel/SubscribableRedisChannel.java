@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
@@ -105,7 +106,6 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 	/**
 	 * Specify the maximum number of subscribers supported by the
 	 * channel's dispatcher.
-	 *
 	 * @param maxSubscribers The maximum number of subscribers allowed.
 	 */
 	public void setMaxSubscribers(int maxSubscribers) {
@@ -168,45 +168,37 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	@Override
 	public boolean isAutoStartup() {
-		return (this.container != null) && this.container.isAutoStartup();
+		return this.container.isAutoStartup();
 	}
 
 	@Override
 	public int getPhase() {
-		return (this.container != null) ? this.container.getPhase() : 0;
+		return this.container.getPhase();
 	}
 
 	@Override
 	public boolean isRunning() {
-		return (this.container != null) && this.container.isRunning();
+		return this.container.isRunning();
 	}
 
 	@Override
 	public void start() {
-		if (this.container != null) {
-			this.container.start();
-		}
+		this.container.start();
 	}
 
 	@Override
 	public void stop() {
-		if (this.container != null) {
-			this.container.stop();
-		}
+		this.container.stop();
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.container != null) {
-			this.container.stop(callback);
-		}
+		this.container.stop(callback);
 	}
 
 	@Override
 	public void destroy() throws Exception {
-		if (this.container != null) {
-			this.container.destroy();
-		}
+		this.container.destroy();
 	}
 
 	private class MessageListenerDelegate {
@@ -230,6 +222,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 						+ "' (" + SubscribableRedisChannel.this.getFullChannelName() + ").", e);
 			}
 		}
+
 	}
 
 }

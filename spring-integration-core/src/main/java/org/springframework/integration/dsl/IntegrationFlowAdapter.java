@@ -98,6 +98,9 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 		if (this.running.getAndSet(false)) {
 			this.targetIntegrationFlow.stop(callback);
 		}
+		else {
+			callback.run();
+		}
 	}
 
 	@Override
