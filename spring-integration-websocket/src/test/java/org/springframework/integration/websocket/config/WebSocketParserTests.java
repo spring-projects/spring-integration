@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ import org.springframework.web.socket.sockjs.transport.TransportType;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 @ContextConfiguration
@@ -182,7 +183,7 @@ public class WebSocketParserTests {
 		Map<TransportType, TransportHandler> transportHandlers = sockJsService.getTransportHandlers();
 
 		//If "handshake-handler" is provided, "transport-handlers" isn't allowed
-		assertEquals(8, transportHandlers.size());
+		assertEquals(6, transportHandlers.size());
 		assertSame(this.handshakeHandler,
 				TestUtils.getPropertyValue(transportHandlers.get(TransportType.WEBSOCKET), "handshakeHandler"));
 		assertEquals(4000L, sockJsService.getDisconnectDelay());
