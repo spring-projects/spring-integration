@@ -647,7 +647,7 @@ Adapters are automatically started by default.
 Again, the connection factory must be of type client and have _single-use_ set to false and _retry-interval_ and _scheduler_ are also supported.
 If a connection fails, it will be re-established either by the scheduler or when the next message is sent.
 
-For both inbound and outbound, if the adapter is started, you may force the adapter to establish a connection by sending a <control-bus /> command: `@adapter_id.retryConnection()` and examine the current state with `@adapter_id.isConnected()`.
+For both inbound and outbound, if the adapter is started, you may force the adapter to establish a connection by sending a <control-bus /> command: `@adapter_id.retryConnection()` and examine the current state with `@adapter_id.isClientModeConnected()`.
 
 [[tcp-gateways]]
 === TCP Gateways
@@ -671,7 +671,7 @@ In this case, the connection factory must be of type 'client' and must have _sin
 Two additional attributes are used to support this mechanism: _retry-interval_ specifies (in milliseconds) how often the framework will attempt to reconnect after a connection failure.
 _scheduler_ is used to supply a `TaskScheduler` used to schedule the connection attempts, and to test that the connection is still active.
 
-If the gateway is started, you may force the gateway to establish a connection by sending a <control-bus /> command: `@adapter_id.retryConnection()` and examine the current state with `@adapter_id.isConnected()`.
+If the gateway is started, you may force the gateway to establish a connection by sending a <control-bus /> command: `@adapter_id.retryConnection()` and examine the current state with `@adapter_id.isClientModeConnected()`.
 
 The outbound gateway, after sending a message over the connection, waits for a response and constructs a response message and puts in on the reply channel.
 Communications over the connections are single-threaded.
@@ -703,6 +703,8 @@ remote-timeout-expression="headers['timeout']" -->
 ----
 
 A simple outbound TCP gateway.
+
+`client-mode` is not currently available with the outbound gateway.
 
 [[ip-correlation]]
 === TCP Message Correlation
