@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class RmiInboundGatewayParserTests {
 		assertEquals("gatewayWithDefaults", gateway.getComponentName());
 		assertEquals("rmi:inbound-gateway", gateway.getComponentType());
 		assertTrue(TestUtils.getPropertyValue(gateway, "expectReply", Boolean.class));
-		assertSame(this.channel, TestUtils.getPropertyValue(gateway, "requestChannel"));
+		assertSame(this.channel, gateway.getRequestChannel());
 		assertEquals(1000L, TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout"));
 		assertEquals(1000L, TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout"));
 	}
@@ -69,7 +69,7 @@ public class RmiInboundGatewayParserTests {
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithCustomProperties");
 
 		assertFalse(TestUtils.getPropertyValue(gateway, "expectReply", Boolean.class));
-		assertSame(this.channel, TestUtils.getPropertyValue(gateway, "requestChannel"));
+		assertSame(this.channel, gateway.getRequestChannel());
 		assertEquals(123L, TestUtils.getPropertyValue(gateway, "messagingTemplate.sendTimeout"));
 		assertEquals(456L, TestUtils.getPropertyValue(gateway, "messagingTemplate.receiveTimeout"));
 	}
@@ -78,7 +78,7 @@ public class RmiInboundGatewayParserTests {
 	public void gatewayWithHost() {
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithHostAndErrorChannel");
 		assertEquals("localhost", TestUtils.getPropertyValue(gateway, "registryHost"));
-		assertSame(context.getBean("testErrorChannel"), TestUtils.getPropertyValue(gateway, "errorChannel"));
+		assertSame(context.getBean("testErrorChannel"), gateway.getErrorChannel());
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,25 +33,25 @@ import org.springframework.util.StringUtils;
  * An inbound Messaging Gateway for RMI-based remoting.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-public class RmiInboundGateway extends MessagingGatewaySupport implements RequestReplyExchanger, InitializingBean {
+public class RmiInboundGateway extends MessagingGatewaySupport
+		implements RequestReplyExchanger, InitializingBean {
 
 	public static final String SERVICE_NAME_PREFIX = "org.springframework.integration.rmiGateway.";
 
 
-	private volatile String requestChannelName;
+	private final RmiServiceExporter exporter = new RmiServiceExporter();
 
-	private volatile String registryHost;
+	private String requestChannelName;
 
-	private volatile int registryPort = Registry.REGISTRY_PORT;
+	private String registryHost;
 
-	private volatile boolean expectReply = true;
+	private int registryPort = Registry.REGISTRY_PORT;
 
-	private volatile RemoteInvocationExecutor remoteInvocationExecutor;
+	private boolean expectReply = true;
 
-	private volatile RmiServiceExporter exporter;
-
-	private final Object initializationMonitor = new Object();
+	private RemoteInvocationExecutor remoteInvocationExecutor;
 
 
 	/**
@@ -62,16 +62,21 @@ public class RmiInboundGateway extends MessagingGatewaySupport implements Reques
 	public void setRequestChannel(MessageChannel requestChannel) {
 		Assert.notNull(requestChannel, "requestChannel must not be null");
 		Assert.isTrue(requestChannel instanceof NamedComponent &&
-				StringUtils.hasText(((NamedComponent) requestChannel).getComponentName()),
+						StringUtils.hasText(((NamedComponent) requestChannel).getComponentName()),
 				"RmiGateway's request channel must have a name.");
 		this.requestChannelName = ((NamedComponent) requestChannel).getComponentName();
 		super.setRequestChannel(requestChannel);
 	}
 
+	@Override
+	public void setRequestChannelName(String requestChannelName) {
+		this.requestChannelName = requestChannelName;
+		super.setRequestChannelName(requestChannelName);
+	}
+
 	/**
 	 * Specify whether the gateway should be expected to return a reply.
 	 * The default is '<code>true</code>'.
-	 *
 	 * @param expectReply true when a reply is expected.
 	 */
 	public void setExpectReply(boolean expectReply) {
@@ -97,33 +102,36 @@ public class RmiInboundGateway extends MessagingGatewaySupport implements Reques
 
 	@Override
 	protected void onInit() throws Exception {
-		synchronized (this.initializationMonitor) {
-			if (this.exporter == null) {
-				RmiServiceExporter exporter = new RmiServiceExporter();
-				if (this.registryHost != null) {
-					exporter.setRegistryHost(this.registryHost);
-				}
-				exporter.setRegistryPort(this.registryPort);
-				if (this.remoteInvocationExecutor != null) {
-					exporter.setRemoteInvocationExecutor(this.remoteInvocationExecutor);
-				}
-				exporter.setService(this);
-				exporter.setServiceInterface(RequestReplyExchanger.class);
-				exporter.setServiceName(SERVICE_NAME_PREFIX + this.requestChannelName);
-				exporter.afterPropertiesSet();
-				this.exporter = exporter;
-			}
-		}
 		super.onInit();
+
+		if (this.registryHost != null) {
+			this.exporter.setRegistryHost(this.registryHost);
+		}
+		this.exporter.setRegistryPort(this.registryPort);
+		if (this.remoteInvocationExecutor != null) {
+			this.exporter.setRemoteInvocationExecutor(this.remoteInvocationExecutor);
+		}
+		this.exporter.setService(this);
+		this.exporter.setServiceInterface(RequestReplyExchanger.class);
+		this.exporter.setServiceName(SERVICE_NAME_PREFIX + this.requestChannelName);
+		this.exporter.afterPropertiesSet();
 	}
 
 	@Override
 	public Message<?> exchange(Message<?> message) {
 		if (this.expectReply) {
-			return this.sendAndReceiveMessage(message);
+			return sendAndReceiveMessage(message);
 		}
-		this.send(message);
-		return null;
+		else {
+			send(message);
+			return null;
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		super.destroy();
+		this.exporter.destroy();
 	}
 
 }

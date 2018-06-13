@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,14 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
+
 		String id = super.resolveId(element, definition, parserContext);
 		if (!StringUtils.hasText(id)) {
 			id = element.getAttribute("name");
@@ -58,21 +60,20 @@ public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDef
 	protected final void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String requestChannelRef = element.getAttribute("request-channel");
 		Assert.hasText(requestChannelRef, "a 'request-channel' reference is required");
-		builder.addPropertyReference("requestChannel", requestChannelRef);
+		builder.addPropertyValue("requestChannelName", requestChannelRef);
 		String replyChannel = element.getAttribute("reply-channel");
 		if (StringUtils.hasText(replyChannel)) {
-			builder.addPropertyReference("replyChannel", replyChannel);
+			builder.addPropertyValue("replyChannelName", replyChannel);
 		}
 		String errorChannel = element.getAttribute("error-channel");
 		if (StringUtils.hasText(errorChannel)) {
-			builder.addPropertyReference("errorChannel", errorChannel);
+			builder.addPropertyValue("errorChannelName", errorChannel);
 		}
 		this.doPostProcess(builder, element);
 	}
 
 	/**
 	 * Subclasses may add to the bean definition by overriding this method.
-	 *
 	 * @param builder The builder.
 	 * @param element The element.
 	 */
