@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,12 +70,13 @@ public class RecursiveDirectoryScanner extends DefaultDirectoryScanner {
 	public List<File> listFiles(File directory) throws IllegalArgumentException {
 		FileListFilter<File> filter = getFilter();
 		boolean supportAcceptFilter = filter instanceof AbstractFileListFilter;
-		try {
-			Stream<File> fileStream = Files.walk(directory.toPath(), this.maxDepth, this.fileVisitOptions)
-					.skip(1)
-					.map(Path::toFile)
-					.filter(file -> !supportAcceptFilter
-							|| ((AbstractFileListFilter<File>) filter).accept(file));
+		try (Stream<Path> pathStream = Files.walk(directory.toPath(), this.maxDepth, this.fileVisitOptions);) {
+			Stream<File> fileStream =
+					pathStream
+							.skip(1)
+							.map(Path::toFile)
+							.filter(file -> !supportAcceptFilter
+									|| ((AbstractFileListFilter<File>) filter).accept(file));
 
 			if (supportAcceptFilter) {
 				return fileStream.collect(Collectors.toList());
