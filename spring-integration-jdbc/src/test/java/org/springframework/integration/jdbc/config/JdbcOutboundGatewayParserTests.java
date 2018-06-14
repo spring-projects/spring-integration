@@ -209,7 +209,7 @@ public class JdbcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("poller"); //JdbcPollingChannelAdapter
 		accessor = new DirectFieldAccessor(source);
-		Integer maxRowsPerPoll = (Integer) accessor.getPropertyValue("maxRowsPerPoll");
+		Integer maxRowsPerPoll = (Integer) accessor.getPropertyValue("maxRows");
 		assertEquals("maxRowsPerPoll should default to 1", Integer.valueOf(1),  maxRowsPerPoll);
 
 	}
@@ -225,7 +225,7 @@ public class JdbcOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(source);
 		source = accessor.getPropertyValue("poller"); //JdbcPollingChannelAdapter
 		accessor = new DirectFieldAccessor(source);
-		Integer maxRowsPerPoll = (Integer) accessor.getPropertyValue("maxRowsPerPoll");
+		Integer maxRowsPerPoll = (Integer) accessor.getPropertyValue("maxRows");
 		assertEquals("maxRowsPerPoll should default to 10", Integer.valueOf(10),  maxRowsPerPoll);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,11 @@ import org.springframework.integration.jdbc.JdbcPollingChannelAdapter;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for {@link org.springframework.integration.jdbc.JdbcPollingChannelAdapter}.
+ * Parser for {@link JdbcPollingChannelAdapter}.
  *
  * @author Jonas Partner
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -59,9 +61,8 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		}
 		String query = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "query", parserContext);
 		if (!StringUtils.hasText(query)) {
-			throw new BeanCreationException("The query attrbitue is required");
+			throw new BeanCreationException("The query attribute is required");
 		}
-		String update = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "update", parserContext);
 		if (refToDataSourceSet) {
 			builder.addConstructorArgReference(dataSourceRef);
 		}
@@ -69,14 +70,15 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 			builder.addConstructorArgReference(jdbcOperationsRef);
 		}
 		builder.addConstructorArgValue(query);
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "update-sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "select-sql-parameter-source");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
-		if (update != null) {
-			builder.addPropertyValue("updateSql", update);
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update", "updateSql");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update-per-row");
+
 		return builder.getBeanDefinition();
 	}
 

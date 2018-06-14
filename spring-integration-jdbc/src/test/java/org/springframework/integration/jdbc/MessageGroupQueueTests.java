@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.LogFactory;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -44,7 +43,7 @@ import org.springframework.messaging.support.GenericMessage;
  */
 public class MessageGroupQueueTests {
 
-	@ClassRule
+//	@ClassRule
 	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
 
 	@Test

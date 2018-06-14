@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.RowMapperResultSetExtractor;
@@ -32,6 +33,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * A polling channel adapter that creates messages from the payload returned by
@@ -50,41 +52,38 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 
 	private final String selectQuery;
 
-	private volatile RowMapper<?> rowMapper;
+	private RowMapper<?> rowMapper;
 
-	private volatile SqlParameterSource sqlQueryParameterSource;
+	private SqlParameterSource sqlQueryParameterSource;
 
-	private volatile boolean updatePerRow = false;
+	private boolean updatePerRow = false;
 
-	private volatile String updateSql;
+	private String updateSql;
 
-	private volatile SqlParameterSourceFactory sqlParameterSourceFactory =
-			new ExpressionEvaluatingSqlParameterSourceFactory();
+	private SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
-	private volatile boolean sqlParameterSourceFactorySet;
+	private boolean sqlParameterSourceFactorySet;
 
-	private volatile int maxRowsPerPoll = 0;
+	private int maxRows = 0;
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be
 	 * obtained and the select query to execute to retrieve new rows.
-	 *
 	 * @param dataSource Must not be null
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(DataSource dataSource, String selectQuery) {
-		this.jdbcOperations = new NamedParameterJdbcTemplate(dataSource);
-		this.selectQuery = selectQuery;
+		this(new JdbcTemplate(dataSource), selectQuery);
 	}
 
 	/**
 	 * Constructor taking {@link JdbcOperations} instance to use for query
 	 * execution and the select query to execute to retrieve new rows.
-	 *
 	 * @param jdbcOperations instance to use for query execution
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, String selectQuery) {
+		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
 		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations);
 		this.selectQuery = selectQuery;
 	}
@@ -108,7 +107,6 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 
 	/**
 	 * A source of parameters for the select query used for polling.
-	 *
 	 * @param sqlQueryParameterSource the sql query parameter source to set
 	 */
 	public void setSelectSqlParameterSource(SqlParameterSource sqlQueryParameterSource) {
@@ -119,19 +117,29 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	 * The maximum number of rows to pull out of the query results per poll (if
 	 * greater than zero, otherwise all rows will be packed into the outgoing
 	 * message). Default is zero.
-	 *
 	 * @param maxRows the max rows to set
+	 * @deprecated since 5.1 in favor of {@link #setMaxRows(int)}
 	 */
+	@Deprecated
 	public void setMaxRowsPerPoll(int maxRows) {
-		this.maxRowsPerPoll = maxRows;
+		setMaxRows(maxRows);
+	}
+
+	/**
+	 * The maximum number of rows to query. Default is zero - select all records.
+	 * @param maxRows the max rows to set
+	 * @since 5.1
+	 */
+	public void setMaxRows(int maxRows) {
+		this.maxRows = maxRows;
 	}
 
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		if (!this.sqlParameterSourceFactorySet && this.getBeanFactory() != null) {
+		if (!this.sqlParameterSourceFactorySet && getBeanFactory() != null) {
 			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
-					.setBeanFactory(this.getBeanFactory());
+					.setBeanFactory(getBeanFactory());
 		}
 	}
 
@@ -148,7 +156,9 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		if (payload == null) {
 			return null;
 		}
-		return this.getMessageBuilderFactory().withPayload(payload).build();
+		return getMessageBuilderFactory()
+				.withPayload(payload)
+				.build();
 	}
 
 	/**
@@ -183,11 +193,11 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		final RowMapper<?> rowMapper = this.rowMapper == null ? new ColumnMapRowMapper() : this.rowMapper;
 		ResultSetExtractor<List<Object>> resultSetExtractor;
 
-		if (this.maxRowsPerPoll > 0) {
+		if (this.maxRows > 0) {
 			resultSetExtractor = rs -> {
-				List<Object> results = new ArrayList<Object>(JdbcPollingChannelAdapter.this.maxRowsPerPoll);
+				List<Object> results = new ArrayList<Object>(JdbcPollingChannelAdapter.this.maxRows);
 				int rowNum = 0;
-				while (rs.next() && rowNum < JdbcPollingChannelAdapter.this.maxRowsPerPoll) {
+				while (rs.next() && rowNum < JdbcPollingChannelAdapter.this.maxRows) {
 					results.add(rowMapper.mapRow(rs, rowNum++));
 				}
 				return results;
