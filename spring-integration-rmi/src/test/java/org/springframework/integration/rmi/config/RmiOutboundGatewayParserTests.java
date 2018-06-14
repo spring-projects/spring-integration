@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,6 +47,7 @@ import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.SocketUtils;
 
 /**
  * @author Mark Fisher
@@ -57,7 +59,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class RmiOutboundGatewayParserTests {
 
+	public final static int port = SocketUtils.findAvailableTcpPort();
+
 	private static final QueueChannel testChannel = new QueueChannel();
+
+	private static final RmiInboundGateway rmiInboundGateway = new RmiInboundGateway();
 
 	@Autowired
 	public FooAdvice advice;
@@ -86,13 +92,18 @@ public class RmiOutboundGatewayParserTests {
 	RmiOutboundGateway advised;
 
 	@BeforeClass
-	public static void setupTestInboundGateway() throws Exception {
+	public static void setupTestInboundGateway() {
 		testChannel.setBeanName("testChannel");
-		RmiInboundGateway gateway = new RmiInboundGateway();
-		gateway.setRequestChannel(testChannel);
-		gateway.setExpectReply(false);
-		gateway.setBeanFactory(mock(BeanFactory.class));
-		gateway.afterPropertiesSet();
+		rmiInboundGateway.setRequestChannel(testChannel);
+		rmiInboundGateway.setRegistryPort(port);
+		rmiInboundGateway.setExpectReply(false);
+		rmiInboundGateway.setBeanFactory(mock(BeanFactory.class));
+		rmiInboundGateway.afterPropertiesSet();
+	}
+
+	@AfterClass
+	public static void destroyInboundGateway() throws Exception {
+		rmiInboundGateway.destroy();
 	}
 
 	@Test
@@ -107,7 +118,7 @@ public class RmiOutboundGatewayParserTests {
 	public void directInvocation() {
 		assertFalse(TestUtils.getPropertyValue(advised, "requiresReply", Boolean.class));
 
-		advisedChannel.send(new GenericMessage<String>("test"));
+		advisedChannel.send(new GenericMessage<>("test"));
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());

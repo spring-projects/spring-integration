@@ -29,7 +29,7 @@
 	</int:channel>
 
 	<bean id="port" class="java.lang.Integer">
-		<constructor-arg value="#{T(org.springframework.integration.test.util.SocketUtils).findAvailableServerSocket(11099)}" />
+		<constructor-arg value="#{T(org.springframework.integration.test.util.SocketUtils).findAvailableServerSocket()}" />
 	</bean>
 
 	<!-- Bad -->

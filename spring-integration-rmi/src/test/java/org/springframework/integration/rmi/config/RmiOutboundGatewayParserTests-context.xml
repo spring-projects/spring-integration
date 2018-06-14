@@ -17,7 +17,8 @@
 						  request-channel="localChannel"
 						  remote-channel="testChannel"
 						  configurer="configurer"
-						  host="localhost"/>
+						  host="localhost"
+						  port="#{T(org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests).port}"/>
 
 	<channel id="advisedChannel"/>
 
@@ -25,28 +26,33 @@
 						  request-channel="advisedChannel"
 						  remote-channel="testChannel"
 						  requires-reply="false"
-						  host="localhost">
+						  host="localhost"
+						  port="#{T(org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests).port}">
 		<rmi:request-handler-advice-chain>
-			<beans:ref bean="advice" />
+			<beans:ref bean="advice"/>
 		</rmi:request-handler-advice-chain>
 	</rmi:outbound-gateway>
 
 	<beans:bean id="configurer" class="org.mockito.Mockito" factory-method="mock">
 		<beans:constructor-arg
-				value="org.springframework.integration.rmi.RmiOutboundGateway$RmiProxyFactoryBeanConfigurer" />
+				value="org.springframework.integration.rmi.RmiOutboundGateway$RmiProxyFactoryBeanConfigurer"/>
 	</beans:bean>
 
 	<beans:bean id="advice"
-			class="org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests$FooAdvice" />
+				class="org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests$FooAdvice"/>
 
 	<chain input-channel="rmiOutboundGatewayInsideChain">
-		<rmi:outbound-gateway remote-channel="testChannel" host="localhost" requires-reply="false"/>
+		<rmi:outbound-gateway remote-channel="testChannel"
+							  host="localhost"
+							  port="#{T(org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests).port}"
+							  requires-reply="false"/>
 	</chain>
 
 
 	<channel id="remoteChannel"/>
 
-	<rmi:inbound-gateway request-channel="remoteChannel"/>
+	<rmi:inbound-gateway request-channel="remoteChannel"
+						 registry-port="#{T(org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests).port}"/>
 
 	<service-activator input-channel="remoteChannel" expression="payload.toUpperCase()"/>
 
@@ -56,7 +62,9 @@
 	</channel>
 
 	<chain input-channel="requestReplyRmiWithChainChannel" output-channel="replyChannel">
-		<rmi:outbound-gateway remote-channel="remoteChannel" host="localhost"/>
+		<rmi:outbound-gateway remote-channel="remoteChannel"
+							  host="localhost"
+							  port="#{T(org.springframework.integration.rmi.config.RmiOutboundGatewayParserTests).port}"/>
 	</chain>
 
 </beans:beans>

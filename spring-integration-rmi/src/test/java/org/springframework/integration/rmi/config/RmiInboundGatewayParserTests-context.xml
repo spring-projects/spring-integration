@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:rmi="http://www.springframework.org/schema/integration/rmi"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:rmi="http://www.springframework.org/schema/integration/rmi"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
@@ -16,18 +16,22 @@
 
 	<channel id="testErrorChannel"/>
 
-	<rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel"/>
+	<rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel" auto-startup="false"/>
 
 	<rmi:inbound-gateway id="gatewayWithCustomProperties" request-channel="testChannel"
-			expect-reply="false" request-timeout="123" reply-timeout="456"/>
+						 expect-reply="false" request-timeout="123" reply-timeout="456" auto-startup="false"/>
 
 	<rmi:inbound-gateway id="gatewayWithHostAndErrorChannel" request-channel="testChannel" registry-host="localhost"
-		error-channel="testErrorChannel"/>
+						 error-channel="testErrorChannel" auto-startup="false"/>
 
-	<rmi:inbound-gateway id="gatewayWithPort" request-channel="testChannel" registry-port="1234"/>
+	<rmi:inbound-gateway id="gatewayWithPort" request-channel="testChannel" registry-port="1234" auto-startup="false"/>
 
-	<rmi:inbound-gateway id="gatewayWithExecutorRef" request-channel="testChannel" remote-invocation-executor="invocationExecutor"/>
+	<rmi:inbound-gateway id="gatewayWithExecutorRef"
+						 request-channel="testChannel"
+						 remote-invocation-executor="invocationExecutor"
+						 auto-startup="false"/>
 
-	<beans:bean id="invocationExecutor" class="org.springframework.integration.rmi.config.StubRemoteInvocationExecutor"/>
+	<beans:bean id="invocationExecutor"
+				class="org.springframework.integration.rmi.config.StubRemoteInvocationExecutor"/>
 
 </beans:beans>
