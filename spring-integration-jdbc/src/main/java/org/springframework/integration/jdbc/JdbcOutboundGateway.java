@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,14 +44,13 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 
 	private final JdbcPollingChannelAdapter poller;
 
-	private volatile SqlParameterSourceFactory sqlParameterSourceFactory =
-			new ExpressionEvaluatingSqlParameterSourceFactory();
+	private SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
-	private volatile boolean sqlParameterSourceFactorySet;
+	private boolean sqlParameterSourceFactorySet;
 
-	private volatile boolean keysGenerated;
+	private boolean keysGenerated;
 
-	private volatile Integer maxRowsPerPoll;
+	private Integer maxRows;
 
 	public JdbcOutboundGateway(DataSource dataSource, String updateQuery) {
 		this(new JdbcTemplate(dataSource), updateQuery, null);
@@ -66,16 +65,16 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	}
 
 	public JdbcOutboundGateway(JdbcOperations jdbcOperations, String updateQuery, String selectQuery) {
-
 		Assert.notNull(jdbcOperations, "'jdbcOperations' must not be null.");
 
 		if (!StringUtils.hasText(updateQuery) && !StringUtils.hasText(selectQuery)) {
-			throw new IllegalArgumentException("The 'updateQuery' and the 'selectQuery' must not both be null or empty.");
+			throw new IllegalArgumentException(
+					"The 'updateQuery' and the 'selectQuery' must not both be null or empty.");
 		}
 
 		if (StringUtils.hasText(selectQuery)) {
 			this.poller = new JdbcPollingChannelAdapter(jdbcOperations, selectQuery);
-			this.poller.setMaxRowsPerPoll(1);
+			this.poller.setMaxRows(1);
 		}
 		else {
 			this.poller = null;
@@ -98,10 +97,54 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	 * This parameter is only applicable if a selectQuery was provided. Null values
 	 * are not permitted.
 	 * @param maxRowsPerPoll the number of rows to select. Must not be null.
+	 * @deprecated since 5.1 in favor of {@link #setMaxRows(Integer)}
 	 */
+	@Deprecated
 	public void setMaxRowsPerPoll(Integer maxRowsPerPoll) {
-		Assert.notNull(maxRowsPerPoll, "MaxRowsPerPoll must not be null.");
-		this.maxRowsPerPoll = maxRowsPerPoll;
+		setMaxRows(maxRowsPerPoll);
+	}
+
+	/**
+	 * The maximum number of rows to query.
+	 * The value is ultimately set on the underlying {@link JdbcPollingChannelAdapter}.
+	 * If not specified this value will default to {@code 1}.
+	 * This parameter is only applicable if a selectQuery was provided. Null values
+	 * are not permitted.
+	 * @param maxRows the number of rows to select. Must not be null.
+	 * @since 5.1
+	 * @see JdbcPollingChannelAdapter#setMaxRows(int)
+	 */
+	public void setMaxRows(Integer maxRows) {
+		Assert.notNull(maxRows, "'maxRows' must not be null.");
+		this.maxRows = maxRows;
+	}
+
+	/**
+	 * Flag to indicate that the update query is an insert with auto-generated keys,
+	 * which will be logged at debug level.
+	 * @param keysGenerated the flag value to set
+	 */
+	public void setKeysGenerated(boolean keysGenerated) {
+		this.keysGenerated = keysGenerated;
+	}
+
+	public void setRequestSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+		Assert.notNull(this.handler, "'handler' cannot be null");
+		this.handler.setSqlParameterSourceFactory(sqlParameterSourceFactory);
+	}
+
+	public void setRequestPreparedStatementSetter(MessagePreparedStatementSetter requestPreparedStatementSetter) {
+		Assert.notNull(this.handler, "'handler' cannot be null");
+		this.handler.setPreparedStatementSetter(requestPreparedStatementSetter);
+	}
+
+	public void setReplySqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
+		this.sqlParameterSourceFactorySet = true;
+	}
+
+	public void setRowMapper(RowMapper<?> rowMapper) {
+		this.poller.setRowMapper(rowMapper);
 	}
 
 	@Override
@@ -111,9 +154,9 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 
 	@Override
 	protected void doInit() {
-		if (this.maxRowsPerPoll != null) {
-			Assert.notNull(this.poller, "If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.");
-			this.poller.setMaxRowsPerPoll(this.maxRowsPerPoll);
+		if (this.maxRows != null) {
+			Assert.notNull(this.poller, "If you want to set 'maxRows', then you must provide a 'selectQuery'.");
+			this.poller.setMaxRows(this.maxRows);
 		}
 
 		if (this.handler != null) {
@@ -165,33 +208,6 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 			payload = list.get(0);
 		}
 		return payload;
-	}
-
-	/**
-	 * Flag to indicate that the update query is an insert with auto-generated keys, which will be logged at debug level.
-	 * @param keysGenerated the flag value to set
-	 */
-	public void setKeysGenerated(boolean keysGenerated) {
-		this.keysGenerated = keysGenerated;
-	}
-
-	public void setRequestSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
-		Assert.notNull(this.handler, "'handler' cannot be null");
-		this.handler.setSqlParameterSourceFactory(sqlParameterSourceFactory);
-	}
-
-	public void setRequestPreparedStatementSetter(MessagePreparedStatementSetter requestPreparedStatementSetter) {
-		Assert.notNull(this.handler, "'handler' cannot be null");
-		this.handler.setPreparedStatementSetter(requestPreparedStatementSetter);
-	}
-
-	public void setReplySqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
-		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
-		this.sqlParameterSourceFactorySet = true;
-	}
-
-	public void setRowMapper(RowMapper<?> rowMapper) {
-		this.poller.setRowMapper(rowMapper);
 	}
 
 }
