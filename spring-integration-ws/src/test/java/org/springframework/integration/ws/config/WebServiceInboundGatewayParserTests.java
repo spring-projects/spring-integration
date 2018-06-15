@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.xml.transform.Source;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -50,9 +48,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.oxm.Unmarshaller;
-import org.springframework.oxm.support.AbstractMarshaller;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.context.DefaultMessageContext;
@@ -69,7 +65,7 @@ import org.springframework.ws.soap.SoapMessage;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class WebServiceInboundGatewayParserTests {
 
 	@Autowired
@@ -88,22 +84,25 @@ public class WebServiceInboundGatewayParserTests {
 	@Qualifier("requestsVerySimple")
 	MessageChannel requestsVerySimple;
 
-	@Test
-	public void configOk() throws Exception {
-		// config valid
-	}
-
 	//Simple
 	@Autowired
 	@Qualifier("simple")
 	SimpleWebServiceInboundGateway simpleGateway;
 
+	//marshalling
+	@Autowired
+	@Qualifier("marshalling")
+	MarshallingWebServiceInboundGateway marshallingGateway;
+
+	@Autowired
+	Unmarshaller marshaller;
+
 	@Test
-	public void simpleGatewayProperties() throws Exception {
-		assertSame(this.requestsVerySimple, TestUtils.getPropertyValue(this.simpleGateway, "requestChannel"));
-		assertSame(this.customErrorChannel, TestUtils.getPropertyValue(this.simpleGateway, "errorChannel"));
-		assertFalse(TestUtils.getPropertyValue(this.simpleGateway, "autoStartup", Boolean.class));
-		assertEquals(101, TestUtils.getPropertyValue(this.simpleGateway, "phase"));
+	public void simpleGatewayProperties() {
+		assertSame(this.requestsVerySimple, this.simpleGateway.getRequestChannel());
+		assertSame(this.customErrorChannel, this.simpleGateway.getErrorChannel());
+		assertFalse(this.simpleGateway.isAutoStartup());
+		assertEquals(101, this.simpleGateway.getPhase());
 	}
 
 	//extractPayload = false
@@ -112,36 +111,23 @@ public class WebServiceInboundGatewayParserTests {
 	SimpleWebServiceInboundGateway payloadExtractingGateway;
 
 	@Test
-	public void extractPayloadSet() throws Exception {
+	public void extractPayloadSet() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				payloadExtractingGateway);
 		assertThat((Boolean) accessor.getPropertyValue("extractPayload"),
 				is(false));
 	}
 
-	//marshalling
-	@Autowired
-	@Qualifier("marshalling")
-	MarshallingWebServiceInboundGateway marshallingGateway;
-
-	@Autowired
-	AbstractMarshaller marshaller;
-
 	@Test
-	public void marshallersSet() throws Exception {
+	public void marshallersSet() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(marshallingGateway);
 
-		AbstractMarshaller retrievedMarshaller = (AbstractMarshaller) accessor.getPropertyValue("marshaller");
-		assertThat(retrievedMarshaller, is(marshaller));
+		assertThat(accessor.getPropertyValue("marshaller"), is(marshaller));
+		assertThat(accessor.getPropertyValue("unmarshaller"), is(marshaller));
 
-		AbstractMarshaller retrievedUnMarshaller = (AbstractMarshaller) accessor.getPropertyValue("unmarshaller");
-		assertThat(retrievedUnMarshaller, is(marshaller));
+		assertTrue("messaging gateway is not running", this.marshallingGateway.isRunning());
 
-		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
-
-		assertThat(
-				(MessageChannel) accessor.getPropertyValue("errorChannel"),
-				is(customErrorChannel));
+		assertSame(this.customErrorChannel, this.marshallingGateway.getErrorChannel());
 
 		AbstractHeaderMapper.HeaderMatcher requestHeaderMatcher = TestUtils.getPropertyValue(marshallingGateway,
 				"headerMapper.requestHeaderMatcher", AbstractHeaderMapper.HeaderMatcher.class);
@@ -158,7 +144,7 @@ public class WebServiceInboundGatewayParserTests {
 	public void testMessageHistoryWithMarshallingGateway() throws Exception {
 		MessageContext context = new DefaultMessageContext(new StubMessageFactory());
 		Unmarshaller unmarshaller = mock(Unmarshaller.class);
-		when(unmarshaller.unmarshal((Source) Mockito.any())).thenReturn("hello");
+		when(unmarshaller.unmarshal(Mockito.any())).thenReturn("hello");
 		marshallingGateway.setUnmarshaller(unmarshaller);
 		marshallingGateway.invoke(context);
 		Message<?> message = requestsMarshalling.receive(100);
@@ -188,7 +174,7 @@ public class WebServiceInboundGatewayParserTests {
 	private SoapHeaderMapper testHeaderMapper;
 
 	@Test
-	public void testHeaderMapperReference() throws Exception {
+	public void testHeaderMapperReference() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(headerMappingGateway);
 		Object headerMapper = accessor.getPropertyValue("headerMapper");
 		assertEquals(testHeaderMapper, headerMapper);
@@ -199,7 +185,7 @@ public class WebServiceInboundGatewayParserTests {
 	private SimpleWebServiceInboundGateway replyTimeoutGateway;
 
 	@Test
-	public void testReplyTimeout() throws Exception {
+	public void testReplyTimeout() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(replyTimeoutGateway);
 		Object replyTimeout = accessor.getPropertyValue("replyTimeout");
 		assertEquals(1234L, replyTimeout);
@@ -227,6 +213,7 @@ public class WebServiceInboundGatewayParserTests {
 		public Map<String, Object> toHeadersFromReply(SoapMessage source) {
 			return Collections.emptyMap();
 		}
+
 	}
 
 }

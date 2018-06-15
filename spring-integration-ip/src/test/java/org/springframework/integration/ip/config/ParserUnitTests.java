@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -444,7 +444,7 @@ public class ParserUnitTests {
 		assertEquals(456L, dfa.getPropertyValue("replyTimeout"));
 		assertEquals("inGateway1", tcpInboundGateway1.getComponentName());
 		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway1.getComponentType());
-		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
+		assertEquals(errorChannel, tcpInboundGateway1.getErrorChannel());
 		assertTrue(cfS2.isLookupHost());
 		assertFalse(tcpInboundGateway1.isAutoStartup());
 		assertEquals(126, tcpInboundGateway1.getPhase());

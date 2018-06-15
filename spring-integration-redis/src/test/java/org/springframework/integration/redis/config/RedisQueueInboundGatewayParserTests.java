@@ -73,8 +73,8 @@ public class RedisQueueInboundGatewayParserTests {
 		assertFalse(TestUtils.getPropertyValue(this.defaultGateway, "extractPayload", Boolean.class));
 		assertSame(this.serializer, TestUtils.getPropertyValue(this.defaultGateway, "serializer"));
 		assertTrue(TestUtils.getPropertyValue(this.defaultGateway, "serializerExplicitlySet", Boolean.class));
-		assertSame(this.receiveChannel, TestUtils.getPropertyValue(this.defaultGateway, "replyChannel"));
-		assertSame(this.requestChannel, TestUtils.getPropertyValue(this.defaultGateway, "requestChannel"));
+		assertSame(this.receiveChannel, this.defaultGateway.getReplyChannel());
+		assertSame(this.requestChannel, this.defaultGateway.getRequestChannel());
 		assertEquals(2000L, TestUtils.getPropertyValue(this.defaultGateway, "replyTimeout"));
 		assertNotNull(TestUtils.getPropertyValue(this.defaultGateway, "taskExecutor"));
 		assertFalse(TestUtils.getPropertyValue(this.defaultGateway, "autoStartup", Boolean.class));
