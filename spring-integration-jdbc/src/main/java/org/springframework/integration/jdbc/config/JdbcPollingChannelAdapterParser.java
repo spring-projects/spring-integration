@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.jdbc.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
@@ -28,9 +27,11 @@ import org.springframework.integration.jdbc.JdbcPollingChannelAdapter;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for {@link org.springframework.integration.jdbc.JdbcPollingChannelAdapter}.
+ * Parser for {@link JdbcPollingChannelAdapter}.
  *
  * @author Jonas Partner
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
@@ -59,9 +60,9 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		}
 		String query = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "query", parserContext);
 		if (!StringUtils.hasText(query)) {
-			throw new BeanCreationException("The query attrbitue is required");
+			parserContext.getReaderContext()
+					.error("The 'query' attribute is required", element);
 		}
-		String update = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "update", parserContext);
 		if (refToDataSourceSet) {
 			builder.addConstructorArgReference(dataSourceRef);
 		}
@@ -69,14 +70,32 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 			builder.addConstructorArgReference(jdbcOperationsRef);
 		}
 		builder.addConstructorArgValue(query);
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "update-sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "select-sql-parameter-source");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
-		if (update != null) {
-			builder.addPropertyValue("updateSql", update);
+
+		// TODO remove deprecated option in the next version
+		boolean hasMaxRowsPerPoll = element.hasAttribute("max-rows-per-poll");
+		boolean hasMaxRows = element.hasAttribute("max-rows");
+
+		if (hasMaxRowsPerPoll) {
+			parserContext.getReaderContext()
+					.warning("The 'max-rows-per-poll' is deprecated in favor of 'max-rows'", element);
+
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
+
+			if (hasMaxRows) {
+				parserContext.getReaderContext()
+						.warning("The 'max-rows' has a precedence over 'max-rows-per-poll'", element);
+			}
 		}
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows");
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update", "updateSql");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update-per-row");
+
 		return builder.getBeanDefinition();
 	}
 

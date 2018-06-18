@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,7 +204,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 				"select * from item where id not in (select id from copy)");
 		adapter.setUpdateSql("insert into copy values(:id,10)");
 		adapter.setUpdatePerRow(true);
-		adapter.setMaxRowsPerPoll(1);
+		adapter.setMaxRows(1);
 		adapter.setRowMapper(new ItemRowMapper());
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
@@ -234,7 +234,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 				"select * from item where status=2");
 		adapter.setUpdateSql("update item set status = 10 where id = :id");
 		adapter.setUpdatePerRow(true);
-		adapter.setMaxRowsPerPoll(1);
+		adapter.setMaxRows(1);
 		adapter.setRowMapper(new ItemRowMapper());
 		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();

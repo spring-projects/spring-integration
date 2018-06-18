@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,14 +60,14 @@ public class JdbcOutboundGatewayTests {
 		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "update something");
 
 		try {
-			jdbcOutboundGateway.setMaxRowsPerPoll(10);
+			jdbcOutboundGateway.setMaxRows(10);
 			jdbcOutboundGateway.setBeanFactory(mock(BeanFactory.class));
 			jdbcOutboundGateway.afterPropertiesSet();
 
 			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.", e.getMessage());
+			assertEquals("If you want to set 'maxRows', then you must provide a 'selectQuery'.", e.getMessage());
 		}
 
 		dataSource.shutdown();
@@ -99,7 +99,8 @@ public class JdbcOutboundGatewayTests {
 			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
-			Assert.assertEquals("The 'updateQuery' and the 'selectQuery' must not both be null or empty.", e.getMessage());
+			Assert.assertEquals("The 'updateQuery' and the 'selectQuery' must not both be null or empty.",
+					e.getMessage());
 		}
 	}
 
@@ -108,12 +109,12 @@ public class JdbcOutboundGatewayTests {
 		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "select * from DOES_NOT_EXIST");
 
 		try {
-			jdbcOutboundGateway.setMaxRowsPerPoll(null);
+			jdbcOutboundGateway.setMaxRows(null);
 
 			fail("Expected an IllegalArgumentException to be thrown.");
 		}
 		catch (IllegalArgumentException e) {
-			assertEquals("MaxRowsPerPoll must not be null.", e.getMessage());
+			assertEquals("'maxRows' must not be null.", e.getMessage());
 		}
 	}
 

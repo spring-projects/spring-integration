@@ -131,14 +131,14 @@ The transaction manager configuration is not shown, but as long as it is aware o
 A common use case is for the downstream channels to be direct channels (the default), so that the endpoints are invoked in the same thread, and hence the same transaction.
 Then if any of them fail, the transaction rolls back and the input data is reverted to its original state.
 
-[[jdbc-max-rows-per-poll-versus-max-messages-per-poll]]
-==== Max-rows-per-poll versus Max-messages-per-poll
+[[jdbc-max-rows-versus-max-messages-per-poll]]
+==== Max-rows versus Max-messages-per-poll
 
-The _JDBC Inbound Channel Adapter_ defines an attribute `max-rows-per-poll`.
+The _JDBC Inbound Channel Adapter_ defines an attribute `max-rows`.
 When you specify the adapter's _Poller_, you can also define a property called `max-messages-per-poll`.
 While these two attributes look similar, their meaning is quite different.
 
-`max-messages-per-poll` specifies the number of times the query is executed per polling interval, whereas `max-rows-per-poll` specifies the number of rows returned for each execution.
+`max-messages-per-poll` specifies the number of times the query is executed per polling interval, whereas `max-rows` specifies the number of rows returned for each execution.
 
 Under normal circumstances, you would likely not want to set the Poller's `max-messages-per-poll` property when using the _JDBC Inbound Channel Adapter_.
 Its default value is _1_, which means that the _JDBC Inbound Channel Adapter_'s https://docs.spring.io/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()[`receive()`] method is executed exactly once for each poll interval.
@@ -146,9 +146,12 @@ Its default value is _1_, which means that the _JDBC Inbound Channel Adapter_'s 
 Setting the `max-messages-per-poll` attribute to a larger value means that the query is executed that many times back to back.
 For more information regarding the `max-messages-per-poll` attribute, please see <<channel-adapter-namespace-inbound>>.
 
-In contrast, the `max-rows-per-poll` attribute, if greater than _0_, specifies the maximum number of rows that will be used from the query result set, per execution of the `receive()` method.
+In contrast, the `max-rows` attribute, if greater than _0_, specifies the maximum number of rows that will be used from the query result set, per execution of the `receive()` method.
 If the attribute is set to _0_, then all rows will be included in the resulting message.
 If not explicitly set, the attribute defaults to _0_.
+
+NOTE: It is recommended to use result set limiting via vendor-specific query option, for example MySQL `LIMIT` or SQL Server `TOP` or Oracle's `ROWNUM`.
+See more information the particular vendor documentation.
 
 [[jdbc-outbound-channel-adapter]]
 === Outbound Channel Adapter
@@ -302,8 +305,8 @@ The reply message is then generated from the result, like the inbound adapter, a
 [IMPORTANT]
 ====
 By default the component for the SELECT query returns only one, first row from the cursor.
-This can be adjusted with the `max-rows-per-poll` option.
-Consider to specify `max-rows-per-poll="0"` if you need to return all the rows from the SELECT.
+This can be adjusted with the `max-rows` option.
+Consider to specify `max-rows="0"` if you need to return all the rows from the SELECT.
 ====
 
 As with the channel adapters, there is also the option to provide `SqlParameterSourceFactory` instances for request and reply.
@@ -810,7 +813,7 @@ Furthermore, if you need even more control over how parameters are retrieved, co
                                    id=""
                                    ignore-column-meta-data="false"
                                    is-function="false"
-                                   max-rows-per-poll=""                          <2>
+                                   max-rows=""                          <2>
                                    skip-undeclared-results=""                    <3>
                                    return-value-required="false"                 <4>
     <int:poller/>
@@ -844,7 +847,7 @@ _Optional_.
 Since _Spring Integration 3.0_. _Optional_.
 
 NOTE: When you declare a Poller, you may notice the Poller's `max-messages-per-poll` attribute.
-For information about how it relates to the `max-rows-per-poll` attribute of the _Stored Procedure Inbound Channel Adapter_, please see <<jdbc-max-rows-per-poll-versus-max-messages-per-poll>> for a thorough discussion.
+For information about how it relates to the `max-rows` attribute of the _Stored Procedure Inbound Channel Adapter_, please see <<jdbc-max-rows-versus-max-messages-per-poll>> for a thorough discussion.
 The meaning of the attributes is the same as for the _JDBC Inbound Channel Adapter_.
 
 [[stored-procedure-outbound-channel-adapter]]
