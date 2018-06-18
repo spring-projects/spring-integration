@@ -71,7 +71,24 @@ public class JdbcOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				"request-prepared-statement-setter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
+
+
+		// TODO remove deprecated option in the next version
+		boolean hasMaxRowsPerPoll = element.hasAttribute("max-rows-per-poll");
+		boolean hasMaxRows = element.hasAttribute("max-rows");
+
+		if (hasMaxRowsPerPoll) {
+			parserContext.getReaderContext()
+					.warning("The 'max-rows-per-poll' is deprecated in favor of 'max-rows'", element);
+
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
+
+			if (hasMaxRows) {
+				parserContext.getReaderContext()
+						.warning("The 'max-rows' has a precedence over 'max-rows-per-poll'", element);
+			}
+		}
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "keys-generated");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");

@@ -150,6 +150,9 @@ In contrast, the `max-rows` attribute, if greater than _0_, specifies the maximu
 If the attribute is set to _0_, then all rows will be included in the resulting message.
 If not explicitly set, the attribute defaults to _0_.
 
+NOTE: It is recommended to use result set limiting via vendor-specific query option, for example MySQL `LIMIT` or SQL Server `TOP` or Oracle's `ROWNUM`.
+See more information the particular vendor documentation.
+
 [[jdbc-outbound-channel-adapter]]
 === Outbound Channel Adapter
 

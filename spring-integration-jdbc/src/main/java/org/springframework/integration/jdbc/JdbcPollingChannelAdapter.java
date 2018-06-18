@@ -16,8 +16,9 @@
 
 package org.springframework.integration.jdbc;
 
-import java.util.ArrayList;
+import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -26,9 +27,9 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.PreparedStatementCreatorFactory;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -84,7 +85,23 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	 */
 	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, String selectQuery) {
 		Assert.hasText(selectQuery, "'selectQuery' must be specified.");
-		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations);
+		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations) {
+
+			@Override
+			protected PreparedStatementCreator getPreparedStatementCreator(String sql,
+					SqlParameterSource paramSource, Consumer<PreparedStatementCreatorFactory> customizer) {
+
+				PreparedStatementCreator preparedStatementCreator =
+						super.getPreparedStatementCreator(sql, paramSource, customizer);
+
+				return con -> {
+					PreparedStatement preparedStatement = preparedStatementCreator.createPreparedStatement(con);
+					preparedStatement.setMaxRows(JdbcPollingChannelAdapter.this.maxRows);
+					return preparedStatement;
+				};
+			}
+		};
+
 		this.selectQuery = selectQuery;
 	}
 
@@ -143,6 +160,11 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		}
 	}
 
+	@Override
+	public String getComponentType() {
+		return "jdbc:inbound-channel-adapter";
+	}
+
 	/**
 	 * Execute the query. If a query result set contains one or more rows, the
 	 * Message payload will contain either a List of Maps for each row or, if a
@@ -184,43 +206,20 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		return payload;
 	}
 
+	protected List<?> doPoll(SqlParameterSource sqlQueryParameterSource) {
+		final RowMapper<?> rowMapper = this.rowMapper == null ? new ColumnMapRowMapper() : this.rowMapper;
+
+		if (sqlQueryParameterSource != null) {
+			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, rowMapper);
+		}
+		else {
+			return this.jdbcOperations.query(this.selectQuery, rowMapper);
+		}
+	}
+
 	private void executeUpdateQuery(Object obj) {
 		SqlParameterSource updateParameterSource = this.sqlParameterSourceFactory.createParameterSource(obj);
 		this.jdbcOperations.update(this.updateSql, updateParameterSource);
-	}
-
-	protected List<?> doPoll(SqlParameterSource sqlQueryParameterSource) {
-		final RowMapper<?> rowMapper = this.rowMapper == null ? new ColumnMapRowMapper() : this.rowMapper;
-		ResultSetExtractor<List<Object>> resultSetExtractor;
-
-		if (this.maxRows > 0) {
-			resultSetExtractor = rs -> {
-				List<Object> results = new ArrayList<Object>(JdbcPollingChannelAdapter.this.maxRows);
-				int rowNum = 0;
-				while (rs.next() && rowNum < JdbcPollingChannelAdapter.this.maxRows) {
-					results.add(rowMapper.mapRow(rs, rowNum++));
-				}
-				return results;
-			};
-		}
-		else {
-			@SuppressWarnings("unchecked")
-			ResultSetExtractor<List<Object>> temp =
-					new RowMapperResultSetExtractor<Object>((RowMapper<Object>) rowMapper);
-			resultSetExtractor = temp;
-		}
-
-		if (sqlQueryParameterSource != null) {
-			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, resultSetExtractor);
-		}
-		else {
-			return this.jdbcOperations.getJdbcOperations().query(this.selectQuery, resultSetExtractor);
-		}
-	}
-
-	@Override
-	public String getComponentType() {
-		return "jdbc:inbound-channel-adapter";
 	}
 
 }
