@@ -24,7 +24,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
-import org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor;
 import org.springframework.util.Assert;
 
 /**

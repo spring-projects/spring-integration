@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl;
+package org.springframework.integration.dsl.context;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -44,7 +44,15 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.dsl.ComponentsRegistration;
+import org.springframework.integration.dsl.ConsumerEndpointSpec;
+import org.springframework.integration.dsl.IntegrationComponentSpec;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlowAdapter;
+import org.springframework.integration.dsl.IntegrationFlowBuilder;
+import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.SourcePollingChannelAdapterSpec;
+import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
 import org.springframework.integration.support.context.NamedComponent;
