@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  *
  * @since 5.0
  *
- * @see org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor
+ * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
  */
 public final class IntegrationFlows {
 

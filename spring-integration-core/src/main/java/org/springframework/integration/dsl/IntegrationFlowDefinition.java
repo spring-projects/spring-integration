@@ -110,7 +110,7 @@ import reactor.util.function.Tuple2;
  *
  * @since 5.0
  *
- * @see org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor
+ * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
  */
 public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinition<B>> {
 
@@ -200,7 +200,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the provided {@link MessageChannel} instance
 	 * at the current {@link IntegrationFlow} chain position.
 	 * The {@code messageChannel} can be an existing bean, or fresh instance, in which case
-	 * the {@link org.springframework.integration.dsl.IntegrationFlowBeanPostProcessor}
+	 * the {@link org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor}
 	 * will populate it as a bean with a generated name.
 	 * @param messageChannel the {@link MessageChannel} to populate.
 	 * @return the current {@link IntegrationFlowDefinition}.

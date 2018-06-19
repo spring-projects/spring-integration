@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dsl;
+package org.springframework.integration.dsl.context;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.util.ObjectUtils;
 
 /**
