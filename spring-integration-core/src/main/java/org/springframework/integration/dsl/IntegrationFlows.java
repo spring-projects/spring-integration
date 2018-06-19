@@ -37,7 +37,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
- * The central factory for fluent {@link IntegrationFlowBuilder} API.
+ * The central factory for fluent {@link IntegrationFlow.Builder} API.
  *
  * @author Artem Bilan
  * @author Gary Russell
@@ -50,19 +50,19 @@ import org.springframework.util.Assert;
 public final class IntegrationFlows {
 
 	/**
-	 * Populate the {@link MessageChannel} name to the new {@link IntegrationFlowBuilder} chain.
+	 * Populate the {@link MessageChannel} name to the new {@link IntegrationFlow.Builder} chain.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
 	 * @param messageChannelName the name of existing {@link MessageChannel} bean.
 	 * The new {@link DirectChannel} bean will be created on context startup
 	 * if there is no bean with this name.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 */
-	public static IntegrationFlowBuilder from(String messageChannelName) {
+	public static IntegrationFlow.Builder from(String messageChannelName) {
 		return from(new MessageChannelReference(messageChannelName));
 	}
 
 	/**
-	 * Populate the {@link MessageChannel} name to the new {@link IntegrationFlowBuilder} chain.
+	 * Populate the {@link MessageChannel} name to the new {@link IntegrationFlow.Builder} chain.
 	 * Typically for the {@link org.springframework.integration.channel.FixedSubscriberChannel} together
 	 * with {@code fixedSubscriber = true}.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
@@ -73,11 +73,11 @@ public final class IntegrationFlows {
 	 * @param fixedSubscriber the boolean flag to determine if result {@link MessageChannel} should
 	 * be {@link DirectChannel}, if {@code false} or
 	 * {@link org.springframework.integration.channel.FixedSubscriberChannel}, if {@code true}.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see DirectChannel
 	 * @see org.springframework.integration.channel.FixedSubscriberChannel
 	 */
-	public static IntegrationFlowBuilder from(String messageChannelName, boolean fixedSubscriber) {
+	public static IntegrationFlow.Builder from(String messageChannelName, boolean fixedSubscriber) {
 		return fixedSubscriber
 				? from(new FixedSubscriberChannelPrototype(messageChannelName))
 				: from(messageChannelName);
@@ -85,51 +85,51 @@ public final class IntegrationFlows {
 
 	/**
 	 * Populate the {@link MessageChannel} object to the
-	 * {@link IntegrationFlowBuilder} chain using the fluent API from {@link MessageChannelSpec}.
+	 * {@link IntegrationFlow.Builder} chain using the fluent API from {@link MessageChannelSpec}.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
 	 * @param messageChannelSpec the MessageChannelSpec to populate {@link MessageChannel} instance.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see org.springframework.integration.dsl.MessageChannels
 	 */
-	public static IntegrationFlowBuilder from(MessageChannelSpec<?, ?> messageChannelSpec) {
+	public static IntegrationFlow.Builder from(MessageChannelSpec<?, ?> messageChannelSpec) {
 		Assert.notNull(messageChannelSpec, "'messageChannelSpec' must not be null");
 		return from(messageChannelSpec.get());
 	}
 
 	/**
-	 * Populate the provided {@link MessageChannel} object to the {@link IntegrationFlowBuilder} chain.
+	 * Populate the provided {@link MessageChannel} object to the {@link IntegrationFlow.Builder} chain.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code inputChannel}.
 	 * @param messageChannel the {@link MessageChannel} to populate.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 */
-	public static IntegrationFlowBuilder from(MessageChannel messageChannel) {
-		return new IntegrationFlowBuilder().channel(messageChannel);
+	public static IntegrationFlow.Builder from(MessageChannel messageChannel) {
+		return new IntegrationFlow.Builder().channel(messageChannel);
 	}
 
 	/**
-	 * Populate the {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain
+	 * Populate the {@link MessageSource} object to the {@link IntegrationFlow.Builder} chain
 	 * using the fluent API from the provided {@link MessageSourceSpec}.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
 	 * @param messageSourceSpec the {@link MessageSourceSpec} to use.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see MessageSourceSpec and its implementations.
 	 */
-	public static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec) {
+	public static IntegrationFlow.Builder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec) {
 		return from(messageSourceSpec, (Consumer<SourcePollingChannelAdapterSpec>) null);
 	}
 
 	/**
-	 * Populate the {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain
+	 * Populate the {@link MessageSource} object to the {@link IntegrationFlow.Builder} chain
 	 * using the fluent API from the provided {@link MessageSourceSpec}.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
 	 * @param messageSourceSpec the {@link MessageSourceSpec} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see MessageSourceSpec
 	 * @see SourcePollingChannelAdapterSpec
 	 */
-	public static IntegrationFlowBuilder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
+	public static IntegrationFlow.Builder from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		Assert.notNull(messageSourceSpec, "'messageSourceSpec' must not be null");
 		return from(messageSourceSpec.get(), endpointConfigurer, registerComponents(messageSourceSpec));
@@ -140,11 +140,11 @@ public final class IntegrationFlows {
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
 	 * @param service the service to use.
 	 * @param methodName the method to invoke.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @since 1.1
 	 * @see MethodInvokingMessageSource
 	 */
-	public static IntegrationFlowBuilder from(Object service, String methodName) {
+	public static IntegrationFlow.Builder from(Object service, String methodName) {
 		return from(service, methodName, null);
 	}
 
@@ -153,10 +153,10 @@ public final class IntegrationFlows {
 	 * be triggered by the application context's default poller (which must be declared).
 	 * @param messageSource the {@link Supplier} to populate.
 	 * @param <T> the supplier type.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see Supplier
 	 */
-	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
+	public static <T> IntegrationFlow.Builder from(Supplier<T> messageSource) {
 		return from(messageSource, "get", null);
 	}
 
@@ -167,10 +167,10 @@ public final class IntegrationFlows {
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
 	 * @param <T> the supplier type.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see Supplier
 	 */
-	public static <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
+	public static <T> IntegrationFlow.Builder from(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		return from(messageSource, "get", endpointConfigurer);
 	}
@@ -182,11 +182,11 @@ public final class IntegrationFlows {
 	 * @param methodName the method to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @since 1.1
 	 * @see MethodInvokingMessageSource
 	 */
-	public static IntegrationFlowBuilder from(Object service, String methodName,
+	public static IntegrationFlow.Builder from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		Assert.notNull(service, "'service' must not be null");
 		Assert.hasText(methodName, "'methodName' must not be empty");
@@ -197,71 +197,71 @@ public final class IntegrationFlows {
 	}
 
 	/**
-	 * Populate the provided {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain.
+	 * Populate the provided {@link MessageSource} object to the {@link IntegrationFlow.Builder} chain.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
 	 * @param messageSource the {@link MessageSource} to populate.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see MessageSource
 	 */
-	public static IntegrationFlowBuilder from(MessageSource<?> messageSource) {
+	public static IntegrationFlow.Builder from(MessageSource<?> messageSource) {
 		return from(messageSource, (Consumer<SourcePollingChannelAdapterSpec>) null);
 	}
 
 	/**
-	 * Populate the provided {@link MessageSource} object to the {@link IntegrationFlowBuilder} chain.
+	 * Populate the provided {@link MessageSource} object to the {@link IntegrationFlow.Builder} chain.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageSource}.
 	 * In addition use {@link SourcePollingChannelAdapterSpec} to provide options for the underlying
 	 * {@link org.springframework.integration.endpoint.SourcePollingChannelAdapter} endpoint.
 	 * @param messageSource the {@link MessageSource} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see MessageSource
 	 * @see SourcePollingChannelAdapterSpec
 	 */
-	public static IntegrationFlowBuilder from(MessageSource<?> messageSource,
+	public static IntegrationFlow.Builder from(MessageSource<?> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		return from(messageSource, endpointConfigurer, null);
 	}
 
-	private static IntegrationFlowBuilder from(MessageSource<?> messageSource,
+	private static IntegrationFlow.Builder from(MessageSource<?> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer,
-			IntegrationFlowBuilder integrationFlowBuilder) {
+			IntegrationFlow.Builder integrationFlowBuilder) {
 		SourcePollingChannelAdapterSpec spec = new SourcePollingChannelAdapterSpec(messageSource);
 		if (endpointConfigurer != null) {
 			endpointConfigurer.accept(spec);
 		}
 		if (integrationFlowBuilder == null) {
-			integrationFlowBuilder = new IntegrationFlowBuilder();
+			integrationFlowBuilder = new IntegrationFlow.Builder();
 		}
 		return integrationFlowBuilder.addComponent(spec)
 				.currentComponent(spec);
 	}
 
 	/**
-	 * Populate the {@link MessageProducerSupport} object to the {@link IntegrationFlowBuilder} chain
+	 * Populate the {@link MessageProducerSupport} object to the {@link IntegrationFlow.Builder} chain
 	 * using the fluent API from the {@link MessageProducerSpec}.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageProducer}.
 	 * @param messageProducerSpec the {@link MessageProducerSpec} to use.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 * @see MessageProducerSpec
 	 */
-	public static IntegrationFlowBuilder from(MessageProducerSpec<?, ?> messageProducerSpec) {
+	public static IntegrationFlow.Builder from(MessageProducerSpec<?, ?> messageProducerSpec) {
 		return from(messageProducerSpec.get(), registerComponents(messageProducerSpec));
 	}
 
 	/**
-	 * Populate the provided {@link MessageProducerSupport} object to the {@link IntegrationFlowBuilder} chain.
+	 * Populate the provided {@link MessageProducerSupport} object to the {@link IntegrationFlow.Builder} chain.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageProducer}.
 	 * @param messageProducer the {@link MessageProducerSupport} to populate.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 */
-	public static IntegrationFlowBuilder from(MessageProducerSupport messageProducer) {
-		return from(messageProducer, (IntegrationFlowBuilder) null);
+	public static IntegrationFlow.Builder from(MessageProducerSupport messageProducer) {
+		return from(messageProducer, (IntegrationFlow.Builder) null);
 	}
 
-	private static IntegrationFlowBuilder from(MessageProducerSupport messageProducer,
-			IntegrationFlowBuilder integrationFlowBuilder) {
+	private static IntegrationFlow.Builder from(MessageProducerSupport messageProducer,
+			IntegrationFlow.Builder integrationFlowBuilder) {
 		MessageChannel outputChannel = messageProducer.getOutputChannel();
 		if (outputChannel == null) {
 			outputChannel = new DirectChannel();
@@ -277,28 +277,28 @@ public final class IntegrationFlows {
 	}
 
 	/**
-	 * Populate the {@link MessagingGatewaySupport} object to the {@link IntegrationFlowBuilder} chain
+	 * Populate the {@link MessagingGatewaySupport} object to the {@link IntegrationFlow.Builder} chain
 	 * using the fluent API from the {@link MessagingGatewaySpec}.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessagingGateway}.
 	 * @param inboundGatewaySpec the {@link MessagingGatewaySpec} to use.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 */
-	public static IntegrationFlowBuilder from(MessagingGatewaySpec<?, ?> inboundGatewaySpec) {
+	public static IntegrationFlow.Builder from(MessagingGatewaySpec<?, ?> inboundGatewaySpec) {
 		return from(inboundGatewaySpec.get(), registerComponents(inboundGatewaySpec));
 	}
 
 	/**
-	 * Populate the provided {@link MessagingGatewaySupport} object to the {@link IntegrationFlowBuilder} chain.
+	 * Populate the provided {@link MessagingGatewaySupport} object to the {@link IntegrationFlow.Builder} chain.
 	 * The {@link org.springframework.integration.dsl.IntegrationFlow} {@code startMessageProducer}.
 	 * @param inboundGateway the {@link MessagingGatewaySupport} to populate.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 */
-	public static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway) {
-		return from(inboundGateway, (IntegrationFlowBuilder) null);
+	public static IntegrationFlow.Builder from(MessagingGatewaySupport inboundGateway) {
+		return from(inboundGateway, (IntegrationFlow.Builder) null);
 	}
 
 	/**
-	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlowBuilder}
+	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlow.Builder}
 	 * chain, which becomes as a {@code requestChannel} for the Messaging Gateway(s) built
 	 * on the provided service interface.
 	 * <p>A gateway proxy bean for provided service interface is registered under a name
@@ -307,14 +307,14 @@ public final class IntegrationFlows {
 	 * or from the {@link IntegrationFlow} bean name plus {@code .gateway} suffix.
 	 * @param serviceInterface the service interface class with an optional
 	 * {@link org.springframework.integration.annotation.MessagingGateway} annotation.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 */
-	public static IntegrationFlowBuilder from(Class<?> serviceInterface) {
+	public static IntegrationFlow.Builder from(Class<?> serviceInterface) {
 		return from(serviceInterface, null);
 	}
 
 	/**
-	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlowBuilder}
+	 * Populate the {@link MessageChannel} to the new {@link IntegrationFlow.Builder}
 	 * chain, which becomes as a {@code requestChannel} for the Messaging Gateway(s) built
 	 * on the provided service interface.
 	 * <p>A gateway proxy bean for provided service interface is registered under a name of
@@ -324,9 +324,9 @@ public final class IntegrationFlows {
 	 * @param serviceInterface the service interface class with an optional
 	 * {@link org.springframework.integration.annotation.MessagingGateway} annotation.
 	 * @param beanName the bean name to be used for registering bean for the gateway proxy
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 */
-	public static IntegrationFlowBuilder from(Class<?> serviceInterface, String beanName) {
+	public static IntegrationFlow.Builder from(Class<?> serviceInterface, String beanName) {
 		final DirectChannel gatewayRequestChannel = new DirectChannel();
 
 		GatewayProxyFactoryBean gatewayProxyFactoryBean = new AnnotationGatewayProxyFactoryBean(serviceInterface);
@@ -339,19 +339,19 @@ public final class IntegrationFlows {
 	}
 
 	/**
-	 * Populate a {@link FluxMessageChannel} to the {@link IntegrationFlowBuilder} chain
+	 * Populate a {@link FluxMessageChannel} to the {@link IntegrationFlow.Builder} chain
 	 * and subscribe it to the provided {@link Publisher}.
 	 * @param publisher the {@link Publisher} to subscribe to.
-	 * @return new {@link IntegrationFlowBuilder}.
+	 * @return new {@link IntegrationFlow.Builder}.
 	 */
-	public static IntegrationFlowBuilder from(Publisher<Message<?>> publisher) {
+	public static IntegrationFlow.Builder from(Publisher<Message<?>> publisher) {
 		FluxMessageChannel reactiveChannel = new FluxMessageChannel();
 		reactiveChannel.subscribeTo(publisher);
 		return from((MessageChannel) reactiveChannel);
 	}
 
-	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
-			IntegrationFlowBuilder integrationFlowBuilder) {
+	private static IntegrationFlow.Builder from(MessagingGatewaySupport inboundGateway,
+			IntegrationFlow.Builder integrationFlowBuilder) {
 		MessageChannel outputChannel = inboundGateway.getRequestChannel();
 		if (outputChannel == null) {
 			outputChannel = new DirectChannel();
@@ -366,9 +366,9 @@ public final class IntegrationFlows {
 		return integrationFlowBuilder.addComponent(inboundGateway);
 	}
 
-	private static IntegrationFlowBuilder registerComponents(Object spec) {
+	private static IntegrationFlow.Builder registerComponents(Object spec) {
 		if (spec instanceof ComponentsRegistration) {
-			return new IntegrationFlowBuilder()
+			return new IntegrationFlow.Builder()
 					.addComponents(((ComponentsRegistration) spec).getComponentsToRegister());
 		}
 		return null;

@@ -62,11 +62,9 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
-import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.MessageProducerSpec;
-import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -411,7 +409,7 @@ public class ManualFlowTests {
 	public void testRegistrationDuplicationRejected() {
 		String testId = "testId";
 
-		StandardIntegrationFlow testFlow =
+		IntegrationFlow testFlow =
 				IntegrationFlows.from(Supplier.class)
 						.get();
 
@@ -495,7 +493,7 @@ public class ManualFlowTests {
 		private final AtomicReference<Date> nextExecutionTime = new AtomicReference<>(new Date());
 
 		@Override
-		protected IntegrationFlowDefinition<?> buildFlow() {
+		protected Definition<?> buildFlow() {
 			return from(() -> new GenericMessage<>("flowAdapterMessage"),
 					e -> e.poller(p -> p
 							.trigger(ctx -> this.nextExecutionTime.getAndSet(null))))
@@ -512,7 +510,7 @@ public class ManualFlowTests {
 		@Bean
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public IntegrationFlow wrongScopeFlow() {
-			return IntegrationFlowDefinition::bridge;
+			return IntegrationFlow.Definition::bridge;
 		}
 
 	}

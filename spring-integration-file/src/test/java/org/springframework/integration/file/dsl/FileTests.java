@@ -62,11 +62,9 @@ import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.DefaultFileNameGenerator;
@@ -325,7 +323,7 @@ public class FileTests {
 
 		@Bean
 		public IntegrationFlow controlBus() {
-			return IntegrationFlowDefinition::controlBus;
+			return IntegrationFlow.Definition::controlBus;
 		}
 
 		@Bean
@@ -444,7 +442,7 @@ public class FileTests {
 
 		void pollDirectories(File... directories) {
 			for (File directory : directories) {
-				StandardIntegrationFlow integrationFlow = IntegrationFlows
+				IntegrationFlow integrationFlow = IntegrationFlows
 						.from(Files.inboundAdapter(directory)
 										.scanner(new DefaultDirectoryScanner()),
 								e -> e.poller(p -> p.fixedDelay(1000))

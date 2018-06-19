@@ -48,7 +48,7 @@ public class PublishSubscribeSpec extends PublishSubscribeChannelSpec<PublishSub
 	public PublishSubscribeSpec subscribe(IntegrationFlow subFlow) {
 		Assert.notNull(subFlow, "'subFlow' must not be null");
 
-		IntegrationFlowBuilder flowBuilder =
+		IntegrationFlow.Builder flowBuilder =
 				IntegrationFlows.from(this.channel)
 						.bridge();
 

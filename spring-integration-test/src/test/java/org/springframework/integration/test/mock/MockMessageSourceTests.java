@@ -42,7 +42,6 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.PollerSpec;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -61,7 +60,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = MockMessageSourceTests.Config.class)
-@SpringIntegrationTest(noAutoStartup = {"inboundChannelAdapter", "*Source*"})
+@SpringIntegrationTest(noAutoStartup = { "inboundChannelAdapter", "*Source*" })
 @DirtiesContext
 public class MockMessageSourceTests {
 
@@ -152,7 +151,7 @@ public class MockMessageSourceTests {
 	@Test
 	public void testMockMessageSourceDynamicFlow() {
 		QueueChannel out = new QueueChannel();
-		StandardIntegrationFlow flow = IntegrationFlows
+		IntegrationFlow flow = IntegrationFlows
 				.from(MockIntegration.mockMessageSource("foo", "bar", "baz"))
 				.<String, String>transform(String::toUpperCase)
 				.channel(out)

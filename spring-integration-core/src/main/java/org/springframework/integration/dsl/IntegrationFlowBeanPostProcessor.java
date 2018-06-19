@@ -243,10 +243,10 @@ public class IntegrationFlowBeanPostProcessor
 						}
 
 						registerComponent(gateway, gatewayId, flowBeanName,
-								beanDefinition -> {
-									((AbstractBeanDefinition) beanDefinition)
-											.setSource(new DescriptiveResource(gateway.getObjectType().getName()));
-								});
+								beanDefinition ->
+										((AbstractBeanDefinition) beanDefinition)
+												.setSource(new DescriptiveResource(gateway.getObjectType().getName()))
+						);
 
 						targetIntegrationComponents.put(component, gatewayId);
 					}
@@ -275,14 +275,15 @@ public class IntegrationFlowBeanPostProcessor
 	 * and the flow defined by the flow parameter. If the flow is not an
 	 * {@link IntegrationFlowAdapter} the original, user-provided {@link IntegrationFlow}
 	 * is wrapped in a proxy and advised with a {@link IntegrationFlowLifecycleAdvice};
-	 * see its javadocs for more information.
+	 * see its JavaDocs for more information.
 	 */
+	@SuppressWarnings("unchecked")
 	private Object processIntegrationFlowImpl(IntegrationFlow flow, String beanName) {
-		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(beanName + ".input");
+		IntegrationFlow.Builder flowBuilder = IntegrationFlows.from(beanName + ".input");
 
 		flow.configure(flowBuilder);
 
-		StandardIntegrationFlow target = flowBuilder.get();
+		StandardIntegrationFlow target = (StandardIntegrationFlow) flowBuilder.get();
 		processStandardIntegrationFlow(target, beanName);
 
 		if (!(flow instanceof IntegrationFlowAdapter)) {

@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 /**
  * The base {@code Adapter} class for the {@link IntegrationFlow} abstraction.
  * Requires the implementation for the {@link #buildFlow()} method to produce
- * {@link IntegrationFlowDefinition} using one of {@link #from} support methods.
+ * {@link IntegrationFlow.Definition} using one of {@link #from} support methods.
  * <p>
  * Typically is used for target service implementation:
  * <pre class="code">
@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  *     private ConnectionFactory rabbitConnectionFactory;
  *
  *     &#64;Override
- *     protected IntegrationFlowDefinition&lt;?&gt; buildFlow() {
+ *     protected Definition&lt;?&gt; buildFlow() {
  *          return from(Amqp.inboundAdapter(this.rabbitConnectionFactory, "myQueue"))
  *                   .&lt;String, String&gt;transform(String::toLowerCase)
  *                   .channel(c -&gt; c.queue("myFlowAdapterOutput"));
@@ -64,12 +64,13 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 	private StandardIntegrationFlow targetIntegrationFlow;
 
 	@Override
-	public final void configure(IntegrationFlowDefinition<?> flow) {
-		IntegrationFlowDefinition<?> targetFlow = buildFlow();
+	@SuppressWarnings("unchecked")
+	public final void configure(IntegrationFlow.Definition<?> flow) {
+		Definition<?> targetFlow = buildFlow();
 		Assert.state(targetFlow != null, "the 'buildFlow()' must not return null");
 		flow.integrationComponents.clear();
 		flow.integrationComponents.putAll(targetFlow.integrationComponents);
-		this.targetIntegrationFlow = flow.get();
+		this.targetIntegrationFlow = (StandardIntegrationFlow) flow.get();
 	}
 
 	@Override
@@ -126,86 +127,89 @@ public abstract class IntegrationFlowAdapter implements IntegrationFlow, SmartLi
 		return 0;
 	}
 
-	protected IntegrationFlowDefinition<?> from(String messageChannelName) {
+	protected IntegrationFlow.Definition<?> from(String messageChannelName) {
 		return IntegrationFlows.from(messageChannelName);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessageChannel messageChannel) {
+	protected IntegrationFlow.Definition<?> from(MessageChannel messageChannel) {
 		return IntegrationFlows.from(messageChannel);
 	}
 
-	protected IntegrationFlowDefinition<?> from(String messageChannelName, boolean fixedSubscriber) {
+	protected IntegrationFlow.Definition<?> from(String messageChannelName, boolean fixedSubscriber) {
 		return IntegrationFlows.from(messageChannelName, fixedSubscriber);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
+	protected IntegrationFlow.Definition<?> from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		return IntegrationFlows.from(messageSourceSpec, endpointConfigurer);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessageSource<?> messageSource,
+	protected IntegrationFlow.Definition<?> from(MessageSource<?> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
 		return IntegrationFlows.from(messageSource, endpointConfigurer);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessageProducerSupport messageProducer) {
+	protected IntegrationFlow.Definition<?> from(MessageProducerSupport messageProducer) {
 		return IntegrationFlows.from(messageProducer);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessageSource<?> messageSource) {
+	protected IntegrationFlow.Definition<?> from(MessageSource<?> messageSource) {
 		return IntegrationFlows.from(messageSource);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessagingGatewaySupport inboundGateway) {
+	protected IntegrationFlow.Definition<?> from(MessagingGatewaySupport inboundGateway) {
 		return IntegrationFlows.from(inboundGateway);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessageChannelSpec<?, ?> messageChannelSpec) {
+	protected IntegrationFlow.Definition<?> from(MessageChannelSpec<?, ?> messageChannelSpec) {
 		return IntegrationFlows.from(messageChannelSpec);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessageProducerSpec<?, ?> messageProducerSpec) {
+	protected IntegrationFlow.Definition<?> from(MessageProducerSpec<?, ?> messageProducerSpec) {
 		return IntegrationFlows.from(messageProducerSpec);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec) {
+	protected IntegrationFlow.Definition<?> from(MessageSourceSpec<?, ? extends MessageSource<?>> messageSourceSpec) {
 		return IntegrationFlows.from(messageSourceSpec);
 	}
 
-	protected IntegrationFlowDefinition<?> from(MessagingGatewaySpec<?, ?> inboundGatewaySpec) {
+	protected IntegrationFlow.Definition<?> from(MessagingGatewaySpec<?, ?> inboundGatewaySpec) {
 		return IntegrationFlows.from(inboundGatewaySpec);
 	}
 
-	protected IntegrationFlowBuilder from(Object service, String methodName) {
+	protected IntegrationFlow.Definition<?> from(Object service, String methodName) {
 		return IntegrationFlows.from(service, methodName);
 	}
 
-	protected IntegrationFlowBuilder from(Object service, String methodName,
+	protected IntegrationFlow.Definition<?> from(Object service, String methodName,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		return IntegrationFlows.from(service, methodName, endpointConfigurer);
 	}
 
-	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource) {
+	protected <T> IntegrationFlow.Definition<?> from(Supplier<T> messageSource) {
 		return IntegrationFlows.from(messageSource);
 	}
 
-	protected <T> IntegrationFlowBuilder from(Supplier<T> messageSource,
+	protected <T> IntegrationFlow.Definition<?> from(Supplier<T> messageSource,
 			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		return IntegrationFlows.from(messageSource, endpointConfigurer);
 	}
 
-	protected IntegrationFlowBuilder from(Class<?> serviceInterface) {
+	protected IntegrationFlow.Definition<?> from(Class<?> serviceInterface) {
 		return IntegrationFlows.from(serviceInterface);
 	}
 
-	protected IntegrationFlowBuilder from(Class<?> serviceInterface, String beanName) {
+	protected IntegrationFlow.Definition<?> from(Class<?> serviceInterface, String beanName) {
 		return IntegrationFlows.from(serviceInterface, beanName);
 	}
 
-	protected IntegrationFlowBuilder from(Publisher<Message<?>> publisher) {
+	protected IntegrationFlow.Definition<?> from(Publisher<Message<?>> publisher) {
 		return IntegrationFlows.from(publisher);
 	}
 
-	protected abstract IntegrationFlowDefinition<?> buildFlow();
+	protected abstract IntegrationFlow.Definition<?> buildFlow();
 
 }

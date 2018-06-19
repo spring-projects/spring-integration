@@ -50,7 +50,6 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.file.FileHeaders;
@@ -138,7 +137,7 @@ public class FtpTests extends FtpTestSupport {
 	@Test
 	public void testFtpInboundStreamFlow() throws Exception {
 		QueueChannel out = new QueueChannel();
-		StandardIntegrationFlow flow = IntegrationFlows.from(
+		IntegrationFlow flow = IntegrationFlows.from(
 				Ftp.inboundStreamingAdapter(new FtpRemoteFileTemplate(sessionFactory()))
 						.remoteDirectory("ftpSource")
 						.maxFetchSize(11)
