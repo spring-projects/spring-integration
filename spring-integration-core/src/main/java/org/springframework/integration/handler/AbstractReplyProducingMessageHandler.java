@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
@@ -26,7 +27,6 @@ import org.springframework.integration.handler.advice.HandleMessageAdvice;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Base class for MessageHandlers that are capable of producing replies.
@@ -41,13 +41,13 @@ import org.springframework.util.CollectionUtils;
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
 		implements BeanClassLoaderAware {
 
+	private final List<Advice> adviceChain = new LinkedList<>();
+
+	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+	private boolean requiresReply = false;
+
 	private volatile RequestHandler advisedRequestHandler;
-
-	private volatile List<Advice> adviceChain;
-
-	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
-
-	private volatile boolean requiresReply = false;
 
 	/**
 	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
@@ -62,13 +62,23 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		return this.requiresReply;
 	}
 
+	/**
+	 * Configure a list of {@link Advice}s to proxy a {@link #handleRequestMessage(Message)} method.
+	 * @param adviceChain the list of {@link Advice}s to use.
+	 */
 	public void setAdviceChain(List<Advice> adviceChain) {
-		Assert.notNull(adviceChain, "adviceChain cannot be null");
-		this.adviceChain = adviceChain;
+		Assert.notEmpty(adviceChain, "adviceChain cannot be empty");
+		synchronized (this.adviceChain) {
+			this.adviceChain.clear();
+			this.adviceChain.addAll(adviceChain);
+			if (isInitialized()) {
+				initAdvisedRequestHandlerIfAny();
+			}
+		}
 	}
 
 	protected boolean hasAdviceChain() {
-		return this.adviceChain != null && this.adviceChain.size() > 0;
+		return this.adviceChain.size() > 0;
 	}
 
 	@Override
@@ -80,7 +90,12 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	@Override
 	protected final void onInit() throws Exception {
 		super.onInit();
-		if (!CollectionUtils.isEmpty(this.adviceChain)) {
+		initAdvisedRequestHandlerIfAny();
+		doInit();
+	}
+
+	private void initAdvisedRequestHandlerIfAny() {
+		if (!this.adviceChain.isEmpty()) {
 			ProxyFactory proxyFactory = new ProxyFactory(new AdvisedRequestHandler());
 			boolean advised = false;
 			for (Advice advice : this.adviceChain) {
@@ -93,7 +108,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 				this.advisedRequestHandler = (RequestHandler) proxyFactory.getProxy(this.beanClassLoader);
 			}
 		}
-		doInit();
 	}
 
 	protected void doInit() {
@@ -153,9 +167,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	public interface RequestHandler {
 
 		Object handleRequestMessage(Message<?> requestMessage);
-
-		@Override
-		String toString();
 
 		/**
 		 * Utility method, intended for use in message handler advice classes to get
