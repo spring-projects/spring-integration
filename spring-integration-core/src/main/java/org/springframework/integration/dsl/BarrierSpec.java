@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,9 @@ public class BarrierSpec extends ConsumerEndpointSpec<BarrierSpec, BarrierMessag
 	@Override
 	public Tuple2<ConsumerEndpointFactoryBean, BarrierMessageHandler> doGet() {
 		this.handler = new BarrierMessageHandler(this.timeout, this.outputProcessor, this.correlationStrategy);
-		this.handler.setAdviceChain(this.adviceChain);
+		if (!this.adviceChain.isEmpty()) {
+			this.handler.setAdviceChain(this.adviceChain);
+		}
 		this.handler.setRequiresReply(this.requiresReply);
 		this.handler.setSendTimeout(this.sendTimeout);
 		this.handler.setAsync(this.async);

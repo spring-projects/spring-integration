@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,25 +75,27 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private final ConversionService defaultConversionService = DefaultConversionService.getSharedInstance();
 
-	private volatile DestinationResolver<MessageChannel> channelResolver;
+	private DestinationResolver<MessageChannel> channelResolver;
 
-	private volatile String beanName;
+	private String beanName;
 
-	private volatile String componentName;
+	private String componentName;
 
-	private volatile BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
-	private volatile TaskScheduler taskScheduler;
+	private TaskScheduler taskScheduler;
 
-	private volatile Properties integrationProperties = IntegrationProperties.defaults();
+	private Properties integrationProperties = IntegrationProperties.defaults();
 
-	private volatile ConversionService conversionService;
+	private ConversionService conversionService;
 
-	private volatile ApplicationContext applicationContext;
+	private ApplicationContext applicationContext;
 
-	private volatile MessageBuilderFactory messageBuilderFactory;
+	private MessageBuilderFactory messageBuilderFactory;
 
 	private Expression expression;
+
+	private boolean initialized;
 
 	@Override
 	public final void setBeanName(String beanName) {
@@ -181,6 +183,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			}
 			throw new BeanInitializationException("failed to initialize", e);
 		}
+
+		this.initialized = true;
 	}
 
 	/**
@@ -188,6 +192,14 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 * @throws Exception Any exception.
 	 */
 	protected void onInit() throws Exception {
+	}
+
+	/**
+	 * Return the status of this component if it has been initialized already.
+	 * @return the flag if this component has been initialized already.
+	 */
+	protected boolean isInitialized() {
+		return this.initialized;
 	}
 
 	protected BeanFactory getBeanFactory() {

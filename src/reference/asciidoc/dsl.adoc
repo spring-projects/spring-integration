@@ -236,6 +236,26 @@ public IntegrationFlow flow2() {
 
 In addition the `EndpointSpec` provides an `id()` method to allow you to register an endpoint bean with a  given bean name, rather than a generated one.
 
+If the `MessageHandler` is referenced as a bean, then its own `adviceChain` configuration is overridden by the provided in DSL definition:
+
+[source,java]
+----
+@Bean
+public TcpOutboundGateway tcpOut() {
+    TcpOutboundGateway gateway = new TcpOutboundGateway();
+    gateway.setConnectionFactory(cf());
+    gateway.setAdviceChain(Collections.singletonList(fooAdvice()));
+    return gateway;
+}
+
+@Bean
+public IntegrationFlow clientTcpFlow() {
+    return f -> f
+        .handle(tcpOut(), e -> e.advice(testAdvice()))
+        .transform(Transformers.objectToString());
+}
+----
+
 [[java-dsl-transformers]]
 === Transformers
 
