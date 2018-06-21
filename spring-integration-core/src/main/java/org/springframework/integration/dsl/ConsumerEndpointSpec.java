@@ -267,7 +267,7 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 	@Override
 	protected Tuple2<ConsumerEndpointFactoryBean, H> doGet() {
 		this.endpointFactoryBean.setAdviceChain(this.adviceChain);
-		if (this.handler instanceof AbstractReplyProducingMessageHandler) {
+		if (this.handler instanceof AbstractReplyProducingMessageHandler && !this.adviceChain.isEmpty()) {
 			((AbstractReplyProducingMessageHandler) this.handler).setAdviceChain(this.adviceChain);
 		}
 		this.endpointFactoryBean.setHandler(this.handler);

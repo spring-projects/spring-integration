@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -39,6 +39,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -75,7 +77,7 @@ public class TwitterSearchOutboundGatewayParserTests {
 	@Test
 	public void testAdvised() {
 		assertSame(twitter, TestUtils.getPropertyValue(polledAndAdvisedTSOG, "handler.twitter"));
-		assertThat(TestUtils.getPropertyValue(polledAndAdvisedTSOG, "handler.adviceChain", ArrayList.class).get(0),
+		assertThat(TestUtils.getPropertyValue(polledAndAdvisedTSOG, "handler.adviceChain", List.class).get(0),
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
