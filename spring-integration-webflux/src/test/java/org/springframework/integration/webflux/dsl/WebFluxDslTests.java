@@ -51,6 +51,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.dsl.Http;
 import org.springframework.integration.support.MessageBuilder;
@@ -108,6 +109,9 @@ public class WebFluxDslTests {
 
 	@Autowired
 	private WebApplicationContext wac;
+
+	@Autowired
+	private IntegrationFlowContext integrationFlowContext;
 
 	@Autowired
 	@Qualifier("webFluxWithReplyPayloadToFlux.handler")
@@ -244,6 +248,33 @@ public class WebFluxDslTests {
 				.create(responseBody)
 				.expectNext("foo", "bar", "baz")
 				.verifyComplete();
+	}
+
+	@Test
+	public void testDynamicHttpEndpoint() throws Exception {
+		IntegrationFlow flow =
+				IntegrationFlows.from(WebFlux.inboundGateway("/dynamic")
+						.requestMapping(r -> r.params("name"))
+						.payloadExpression("#requestParams.name[0]"))
+						.<String, String>transform(String::toLowerCase)
+						.get();
+
+		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(flow).register();
+
+		this.webTestClient.get().uri("/dynamic?name=BAR")
+				.attributes(basicAuthenticationCredentials("guest", "guest"))
+				.exchange()
+				.expectBody(String.class)
+				.isEqualTo("bar");
+
+		flowRegistration.destroy();
+
+		this.webTestClient.get().uri("/dynamic?name=BAZ")
+				.attributes(basicAuthenticationCredentials("guest", "guest"))
+				.exchange()
+				.expectStatus()
+				.isNotFound();
 	}
 
 	@Configuration

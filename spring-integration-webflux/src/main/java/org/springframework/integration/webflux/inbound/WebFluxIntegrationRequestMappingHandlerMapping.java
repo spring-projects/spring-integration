@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.webflux.inbound;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.http.config.HttpContextUtils;
@@ -66,6 +68,11 @@ import org.springframework.web.server.WebHandler;
  * {@link org.springframework.web.reactive.HandlerMapping}
  * compromise implementation between method-level annotations and component-level
  * (e.g. Spring Integration XML) configurations.
+ * <p>
+ * Starting with version 5.1, this class implements {@link DestructionAwareBeanPostProcessor} to
+ * register HTTP endpoints at runtime for dynamically declared beans, e.g. via
+ * {@link org.springframework.integration.dsl.context.IntegrationFlowContext}, and unregister
+ * them during the {@link WebFluxInboundEndpoint} destruction.
  *
  * @author Artem Bilan
  *
@@ -75,12 +82,34 @@ import org.springframework.web.server.WebHandler;
  * @see RequestMappingHandlerMapping
  */
 public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
-		implements ApplicationListener<ContextRefreshedEvent> {
+		implements ApplicationListener<ContextRefreshedEvent>, DestructionAwareBeanPostProcessor {
 
 	private static final Method HANDLER_METHOD = ReflectionUtils.findMethod(WebHandler.class,
 			"handle", ServerWebExchange.class);
 
 	private final AtomicBoolean initialized = new AtomicBoolean();
+
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		if (this.initialized.get() && isHandler(bean.getClass())) {
+			detectHandlerMethods(bean);
+		}
+
+		return bean;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+		if (isHandler(bean.getClass())) {
+			unregisterMapping(getMappingForEndpoint((WebFluxInboundEndpoint) bean));
+		}
+	}
+
+	@Override
+	public boolean requiresDestruction(Object bean) {
+		return isHandler(bean.getClass());
+	}
 
 	@Override
 	protected boolean isHandler(Class<?> beanType) {
