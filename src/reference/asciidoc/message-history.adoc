@@ -73,8 +73,7 @@ This feature might be useful to temporarily turn on history to analyze a system.
 The MBean's object name is `"<domain>:name=messageHistoryConfigurer,type=MessageHistoryConfigurer"`.
 
 IMPORTANT: If multiple beans (declared by `@EnableMessageHistory` and/or `<message-history/>`) they all must have identical component name patterns (when trimmed and sorted).
-*Do not use a generic
-	`<bean/>` definition for the `MessageHistoryConfigurer`*.
+*Do not use a generic `<bean/>` definition for the `MessageHistoryConfigurer`*.
 
 NOTE: Remember that by definition the Message History header is immutable (you can't re-write history, although some try).
 Therefore, when writing Message History values, the components are either creating brand new Messages (when the component is an origin), or they are copying the history from a request Message, modifying it and setting the new list on a reply Message.

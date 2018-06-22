@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -58,6 +59,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -71,6 +73,7 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowContext.IntegrationFlowRegistration;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.messaging.Message;
@@ -253,6 +256,12 @@ public class ManualFlowTests {
 		Message<?> receive = resultChannel.receive(1000);
 		assertNotNull(receive);
 		assertEquals("test", receive.getPayload());
+
+		MessageHistory messageHistory = MessageHistory.read(receive);
+		assertNotNull(messageHistory);
+		String messageHistoryString = messageHistory.toString();
+		assertThat(messageHistoryString, Matchers.containsString("dynamicFlow.input"));
+		assertThat(messageHistoryString, Matchers.containsString("dynamicFlow.subFlow#0.channel#1"));
 
 		this.integrationFlowContext.remove("dynamicFlow");
 	}
@@ -475,6 +484,7 @@ public class ManualFlowTests {
 
 	@Configuration
 	@EnableIntegration
+	@EnableMessageHistory
 	public static class RootConfiguration {
 
 		@Bean

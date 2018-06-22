@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.history;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -49,25 +50,23 @@ import org.springframework.util.StringUtils;
  */
 @ManagedResource
 @IntegrationManagedResource
-public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAware {
+public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAware, BeanPostProcessor {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile String[] componentNamePatterns = new String[] { "*" };
+	private final Set<TrackableComponent> currentlyTrackedComponents = ConcurrentHashMap.newKeySet();
 
-	private volatile boolean componentNamePatternsExplicitlySet;
+	private String[] componentNamePatterns = new String[] { "*" };
 
-	private final Set<String> currentlyTrackedComponentNames = new HashSet<String>();
+	private boolean componentNamePatternsExplicitlySet;
 
-	private volatile BeanFactory beanFactory;
+	private ListableBeanFactory beanFactory;
+
+	private boolean autoStartup = true;
+
+	private int phase = Integer.MIN_VALUE;
 
 	private volatile boolean running;
-
-	private volatile boolean autoStartup = true;
-
-	private final int phase = Integer.MIN_VALUE;
-
-	private final Object lifecycleMonitor = new Object();
 
 
 	/**
@@ -84,10 +83,10 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 		}
 		Arrays.sort(trimmedAndSortedComponentNamePatterns);
 		Assert.isTrue(!this.componentNamePatternsExplicitlySet
-				|| Arrays.equals(this.componentNamePatterns, trimmedAndSortedComponentNamePatterns),
-					"When more than one message history definition " +
-					"(@EnableMessageHistory or <message-history>)" +
-					" is found in the context, they all must have the same 'componentNamePatterns'");
+						|| Arrays.equals(this.componentNamePatterns, trimmedAndSortedComponentNamePatterns),
+				"When more than one message history definition " +
+						"(@EnableMessageHistory or <message-history>)" +
+						" is found in the context, they all must have the same 'componentNamePatterns'");
 		this.componentNamePatterns = trimmedAndSortedComponentNamePatterns;
 		this.componentNamePatternsExplicitlySet = true;
 	}
@@ -136,13 +135,30 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+		Assert.isInstanceOf(ListableBeanFactory.class, beanFactory,
+				"The provided 'beanFactory' must be of 'ListableBeanFactory' type.");
+		this.beanFactory = (ListableBeanFactory) beanFactory;
 	}
 
-	private static Collection<TrackableComponent> getTrackableComponents(ListableBeanFactory beanFactory) {
-		return BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory, TrackableComponent.class).values();
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		if (bean instanceof TrackableComponent && this.running) {
+			trackComponentIfAny((TrackableComponent) bean);
+		}
+		return bean;
 	}
 
+	private void trackComponentIfAny(TrackableComponent component) {
+		String componentName = component.getComponentName();
+		boolean shouldTrack = PatternMatchUtils.simpleMatch(this.componentNamePatterns, componentName);
+		component.setShouldTrack(shouldTrack);
+		if (shouldTrack) {
+			this.currentlyTrackedComponents.add(component);
+			if (this.logger.isInfoEnabled()) {
+				this.logger.info("Enabling MessageHistory tracking for component '" + componentName + "'");
+			}
+		}
+	}
 
 	/*
 	 * SmartLifecycle implementation
@@ -153,9 +169,17 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 		return this.running;
 	}
 
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
 	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	@Override
@@ -166,20 +190,12 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	@ManagedOperation
 	@Override
 	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.running && this.beanFactory instanceof ListableBeanFactory) {
-				for (TrackableComponent component : getTrackableComponents((ListableBeanFactory) this.beanFactory)) {
-					String componentName = component.getComponentName();
-					boolean shouldTrack = PatternMatchUtils.simpleMatch(this.componentNamePatterns, componentName);
-					component.setShouldTrack(shouldTrack);
-					if (shouldTrack) {
-						this.currentlyTrackedComponentNames.add(componentName);
-						if (this.logger.isInfoEnabled()) {
-							this.logger.info("Enabling MessageHistory tracking for component '" + componentName + "'");
-						}
-					}
+		synchronized (this.currentlyTrackedComponents) {
+			if (!this.running) {
+				for (TrackableComponent component : getTrackableComponents(this.beanFactory)) {
+					trackComponentIfAny(component);
+					this.running = true;
 				}
-				this.running = true;
 			}
 		}
 	}
@@ -187,20 +203,19 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	@ManagedOperation
 	@Override
 	public void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.running && this.beanFactory instanceof ListableBeanFactory) {
-				for (TrackableComponent component : getTrackableComponents((ListableBeanFactory) this.beanFactory)) {
-					String componentName = component.getComponentName();
-					if (this.currentlyTrackedComponentNames.contains(componentName)) {
-						component.setShouldTrack(false);
-						if (this.logger.isInfoEnabled()) {
-							this.logger.info("Disabling MessageHistory tracking for component '" + componentName + "'");
-						}
+		synchronized (this.currentlyTrackedComponents) {
+			if (this.running) {
+				this.currentlyTrackedComponents.forEach(component -> {
+					component.setShouldTrack(false);
+					if (this.logger.isInfoEnabled()) {
+						this.logger.info("Disabling MessageHistory tracking for component '"
+								+ component.getComponentName() + "'");
 					}
-				}
-				this.currentlyTrackedComponentNames.clear();
-				this.running = false;
+				});
+
+				this.currentlyTrackedComponents.clear();
 				this.componentNamePatternsExplicitlySet = false; // allow pattern changes
+				this.running = false;
 			}
 		}
 	}
@@ -209,6 +224,10 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	public void stop(Runnable callback) {
 		this.stop();
 		callback.run();
+	}
+
+	private static Collection<TrackableComponent> getTrackableComponents(ListableBeanFactory beanFactory) {
+		return BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory, TrackableComponent.class).values();
 	}
 
 }
