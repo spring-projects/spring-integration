@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -60,13 +62,18 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * {@code org.springframework.stereotype.Controller} user-class may have their own
  * {@link org.springframework.web.bind.annotation.RequestMapping}.
  * On the other side, all Spring Integration HTTP Inbound Endpoints are configured on
- * the basis of the same {@link HttpRequestHandlingEndpointSupport} class and there is no
+ * the basis of the same {@link BaseHttpInboundEndpoint} class and there is no
  * single {@link RequestMappingInfo} configuration without
  * {@link org.springframework.web.method.HandlerMethod} in Spring MVC.
  * Accordingly {@link IntegrationRequestMappingHandlerMapping} is a
  * {@link org.springframework.web.servlet.HandlerMapping}
  * compromise implementation between method-level annotations and component-level
  * (e.g. Spring Integration XML) configurations.
+ * <p>
+ * Starting with version 5.1, this class implements {@link DestructionAwareBeanPostProcessor} to
+ * register HTTP endpoints at runtime for dynamically declared beans, e.g. via
+ * {@link org.springframework.integration.dsl.context.IntegrationFlowContext}, and unregister
+ * them during the {@link BaseHttpInboundEndpoint} destruction.
  *
  * @author Artem Bilan
  *
@@ -76,12 +83,34 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * @see RequestMappingHandlerMapping
  */
 public final class IntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
-		implements ApplicationListener<ContextRefreshedEvent> {
+		implements ApplicationListener<ContextRefreshedEvent>, DestructionAwareBeanPostProcessor {
 
 	private static final Method HANDLE_REQUEST_METHOD = ReflectionUtils.findMethod(HttpRequestHandler.class,
 			"handleRequest", HttpServletRequest.class, HttpServletResponse.class);
 
 	private final AtomicBoolean initialized = new AtomicBoolean();
+
+	@Override
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		if (this.initialized.get() && isHandler(bean.getClass())) {
+			detectHandlerMethods(bean);
+		}
+
+		return bean;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+		if (isHandler(bean.getClass())) {
+			unregisterMapping(getMappingForEndpoint((BaseHttpInboundEndpoint) bean));
+		}
+	}
+
+	@Override
+	public boolean requiresDestruction(Object bean) {
+		return isHandler(bean.getClass());
+	}
 
 	@Override
 	protected boolean isHandler(Class<?> beanType) {
@@ -97,6 +126,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 				handler = bean;
 			}
 		}
+
 		return super.getHandlerExecutionChain(handler, request);
 	}
 

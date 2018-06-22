@@ -38,6 +38,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.SecuredChannel;
@@ -80,6 +81,9 @@ public class HttpDslTests {
 	@Autowired
 	private HttpRequestExecutingMessageHandler serviceInternalGatewayHandler;
 
+	@Autowired
+	private IntegrationFlowContext integrationFlowContext;
+
 	private MockMvc mockMvc;
 
 	@Before
@@ -112,6 +116,37 @@ public class HttpDslTests {
 				.andExpect(
 						status()
 								.isForbidden());
+	}
+
+	@Test
+	public void testDynamicHttpEndpoint() throws Exception {
+		IntegrationFlow flow =
+				IntegrationFlows.from(Http.inboundGateway("/dynamic")
+						.requestMapping(r -> r.params("name"))
+						.payloadExpression("#requestParams.name[0]"))
+						.<String, String>transform(String::toLowerCase)
+						.get();
+
+		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(flow).register();
+
+		this.mockMvc.perform(
+				get("/dynamic")
+						.with(httpBasic("admin", "admin"))
+						.param("name", "BAR"))
+				.andExpect(
+						content()
+								.string("bar"));
+
+		flowRegistration.destroy();
+
+		this.mockMvc.perform(
+				get("/dynamic")
+						.with(httpBasic("admin", "admin"))
+						.param("name", "BAZ"))
+				.andExpect(
+						status()
+								.isNotFound());
 	}
 
 	@Configuration
