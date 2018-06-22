@@ -38,25 +38,26 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class PriorityChannelTests {
 
 	@Test
 	public void testCapacityEnforced() {
 		PriorityChannel channel = new PriorityChannel(3);
-		assertTrue(channel.send(new GenericMessage<String>("test1"), 0));
-		assertTrue(channel.send(new GenericMessage<String>("test2"), 0));
-		assertTrue(channel.send(new GenericMessage<String>("test3"), 0));
-		assertFalse(channel.send(new GenericMessage<String>("test4"), 0));
+		assertTrue(channel.send(new GenericMessage<>("test1"), 0));
+		assertTrue(channel.send(new GenericMessage<>("test2"), 0));
+		assertTrue(channel.send(new GenericMessage<>("test3"), 0));
+		assertFalse(channel.send(new GenericMessage<>("test4"), 0));
 		channel.receive(0);
-		assertTrue(channel.send(new GenericMessage<String>("test5")));
+		assertTrue(channel.send(new GenericMessage<>("test5")));
 	}
 
 	@Test
-	public void testDefaultComparatorWithTimestampFallback() throws Exception {
+	public void testDefaultComparatorWithTimestampFallback() {
 		PriorityChannel channel = new PriorityChannel();
 		for (int i = 0; i < 1000; i++) {
-			channel.send(new GenericMessage<Integer>(i));
+			channel.send(new GenericMessage<>(i));
 		}
 		for (int i = 0; i < 1000; i++) {
 			assertEquals(i, channel.receive().getPayload());
@@ -86,9 +87,9 @@ public class PriorityChannelTests {
 	// although this test has no assertions it results in ConcurrentModificationException
 	// if executed before changes for INT-2508
 	@Test
-	public void testPriorityChannelWithConcurrentModification() throws Exception {
+	public void testPriorityChannelWithConcurrentModification() {
 		final PriorityChannel channel = new PriorityChannel();
-		final Message<String> message = new GenericMessage<String>("hello");
+		final Message<String> message = new GenericMessage<>("hello");
 		for (int i = 0; i < 1000; i++) {
 			channel.send(message);
 			new Thread(() -> channel.receive()).start();
@@ -99,11 +100,11 @@ public class PriorityChannelTests {
 	@Test
 	public void testCustomComparator() {
 		PriorityChannel channel = new PriorityChannel(5, new StringPayloadComparator());
-		Message<?> messageA = new GenericMessage<String>("A");
-		Message<?> messageB = new GenericMessage<String>("B");
-		Message<?> messageC = new GenericMessage<String>("C");
-		Message<?> messageD = new GenericMessage<String>("D");
-		Message<?> messageE = new GenericMessage<String>("E");
+		Message<?> messageA = new GenericMessage<>("A");
+		Message<?> messageB = new GenericMessage<>("B");
+		Message<?> messageC = new GenericMessage<>("C");
+		Message<?> messageD = new GenericMessage<>("D");
+		Message<?> messageE = new GenericMessage<>("E");
 		channel.send(messageC);
 		channel.send(messageA);
 		channel.send(messageE);
@@ -200,7 +201,7 @@ public class PriorityChannelTests {
 		PriorityChannel channel = new PriorityChannel(5);
 		Message<?> highPriority = createPriorityMessage(5);
 		Message<?> lowPriority = createPriorityMessage(-5);
-		Message<?> nullPriority = new GenericMessage<String>("test:NULL");
+		Message<?> nullPriority = new GenericMessage<>("test:NULL");
 		channel.send(lowPriority);
 		channel.send(highPriority);
 		channel.send(nullPriority);
@@ -214,7 +215,7 @@ public class PriorityChannelTests {
 		PriorityChannel channel = new PriorityChannel();
 		Message<?> highPriority = createPriorityMessage(5);
 		Message<?> lowPriority = createPriorityMessage(-5);
-		Message<?> nullPriority = new GenericMessage<String>("test:NULL");
+		Message<?> nullPriority = new GenericMessage<>("test:NULL");
 		channel.send(lowPriority);
 		channel.send(highPriority);
 		channel.send(nullPriority);
@@ -228,8 +229,8 @@ public class PriorityChannelTests {
 		final PriorityChannel channel = new PriorityChannel(1);
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-		channel.send(new GenericMessage<String>("test-1"));
-		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 10)));
+		channel.send(new GenericMessage<>("test-1"));
+		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<>("test-2"), 10)));
 		assertFalse(sentSecondMessage.get());
 
 		executor.shutdown();
@@ -249,15 +250,15 @@ public class PriorityChannelTests {
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(() -> {
-			sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 3000));
+			sentSecondMessage.set(channel.send(new GenericMessage<>("test-2"), 3000));
 			latch.countDown();
 		});
 		assertFalse(sentSecondMessage.get());
-		Thread.sleep(500);
+		Thread.sleep(10);
 		Message<?> message1 = channel.receive();
 		assertNotNull(message1);
 		assertEquals("test-1", message1.getPayload());
-		latch.await(1000, TimeUnit.MILLISECONDS);
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		assertTrue(sentSecondMessage.get());
 		Message<?> message2 = channel.receive();
 		assertNotNull(message2);
@@ -271,10 +272,10 @@ public class PriorityChannelTests {
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		channel.send(new GenericMessage<String>("test-1"));
-		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), -1)));
+		executor.execute(() -> sentSecondMessage.set(channel.send(new GenericMessage<>("test-2"), -1)));
 		assertFalse(sentSecondMessage.get());
-		Thread.sleep(500);
-		Message<?> message1 = channel.receive(1000);
+		Thread.sleep(10);
+		Message<?> message1 = channel.receive(10000);
 		assertNotNull(message1);
 		assertEquals("test-1", message1.getPayload());
 		executor.shutdown();

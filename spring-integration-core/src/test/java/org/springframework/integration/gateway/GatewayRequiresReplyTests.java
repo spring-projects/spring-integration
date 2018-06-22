@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +31,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -43,34 +45,38 @@ public class GatewayRequiresReplyTests {
 
 	@Test
 	public void replyReceived() {
-		TestService gateway = (TestService) applicationContext.getBean("gateway");
+		TestService gateway =  this.applicationContext.getBean("gateway", TestService.class);
 		String result = gateway.test("foo");
 		assertEquals("bar", result);
 	}
 
 	@Test(expected = ReplyRequiredException.class)
 	public void noReplyReceived() {
-		TestService gateway = (TestService) applicationContext.getBean("gateway");
+		TestService gateway = this.applicationContext.getBean("gateway", TestService.class);
 		gateway.test("bad");
 	}
 
 	@Test
 	public void timedOutGateway() {
-		TestService gateway = (TestService) applicationContext.getBean("timeoutGateway");
+		TestService gateway = this.applicationContext.getBean("timeoutGateway", TestService.class);
 		String result = gateway.test("hello");
 		assertNull(result);
 	}
 
 
 	public interface TestService {
+
 		String test(String s);
+
 	}
 
 	public static class LongRunningService {
+
 		public String echo(String value) throws Exception {
 			Thread.sleep(5000);
 			return value;
 		}
+
 	}
 
 }

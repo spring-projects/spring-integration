@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -92,7 +93,7 @@ public class ControlBusTests {
 				"ControlBusLifecycleTests-context.xml", this.getClass());
 		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);
 		PollableChannel outputChannel = context.getBean("outputChannel", PollableChannel.class);
-		assertNull(outputChannel.receive(1000));
+		assertNull(outputChannel.receive(10));
 		Message<?> message = MessageBuilder.withPayload("@adapter.start()").build();
 		inputChannel.send(message);
 		assertNotNull(outputChannel.receive(1000));
@@ -109,7 +110,7 @@ public class ControlBusTests {
 		assertEquals(0, result.getPayload());
 		this.registry.channelToChannelName(new DirectChannel());
 		// Sleep a bit to be sure that we aren't reaped by registry TTL as 60000
-		Thread.sleep(100);
+		Thread.sleep(10);
 		messagingTemplate.convertAndSend(input, "@integrationHeaderChannelRegistry.size()");
 		result = this.output.receive(0);
 		assertNotNull(result);

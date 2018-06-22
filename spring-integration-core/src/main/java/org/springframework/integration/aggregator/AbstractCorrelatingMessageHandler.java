@@ -100,7 +100,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new ConcurrentHashMap<>();
 
-	private final Set<Object> groupIds =  ConcurrentHashMap.newKeySet();
+	private final Set<Object> groupIds = ConcurrentHashMap.newKeySet();
 
 	private MessageGroupProcessor outputProcessor;
 
@@ -144,15 +144,23 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
+
 		Assert.notNull(processor, "'processor' must not be null");
 		Assert.notNull(store, "'store' must not be null");
 
 		setMessageStore(store);
 		this.outputProcessor = processor;
-		this.correlationStrategy = (correlationStrategy == null
-				? new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
-				: correlationStrategy);
-		this.releaseStrategy = releaseStrategy == null ? new SimpleSequenceSizeReleaseStrategy() : releaseStrategy;
+
+		this.correlationStrategy =
+				correlationStrategy == null
+						? new HeaderAttributeCorrelationStrategy(IntegrationMessageHeaderAccessor.CORRELATION_ID)
+						: correlationStrategy;
+
+		this.releaseStrategy =
+				releaseStrategy == null
+						? new SimpleSequenceSizeReleaseStrategy()
+						: releaseStrategy;
+
 		this.releaseStrategySet = releaseStrategy != null;
 		this.sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
@@ -195,7 +203,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	public void setForceReleaseAdviceChain(List<Advice> forceReleaseAdviceChain) {
-		Assert.notNull(forceReleaseAdviceChain, "forceReleaseAdviceChain must not be null");
+		Assert.notNull(forceReleaseAdviceChain, "'forceReleaseAdviceChain' must not be null");
 		this.forceReleaseAdviceChain = forceReleaseAdviceChain;
 	}
 
@@ -242,7 +250,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 
 		if (this.releasePartialSequences) {
-			Assert.isInstanceOf(SequenceSizeReleaseStrategy.class, this.releaseStrategy,
+			Assert.isInstanceOf(SequenceSizeReleaseStrategy.class, this.releaseStrategy, () ->
 					"Release strategy of type [" + this.releaseStrategy.getClass().getSimpleName() +
 							"] cannot release partial sequences. Use a SequenceSizeReleaseStrategy instead.");
 			((SequenceSizeReleaseStrategy) this.releaseStrategy)
@@ -519,7 +527,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		 * When 'groupTimeout' is evaluated to 'null' we do nothing.
 		 * The 'MessageGroupStoreReaper' can be used to 'forceComplete' message groups.
 		 */
-		if (groupTimeout != null && groupTimeout >= 0) {
+		if (groupTimeout != null) {
 			if (groupTimeout > 0) {
 				final Object groupId = messageGroup.getGroupId();
 				final long timestamp = messageGroup.getTimestamp();

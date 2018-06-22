@@ -152,7 +152,7 @@ public class PollerAdviceTests {
 		adapter.setAdviceChain(adviceChain);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertFalse(latch.await(1, TimeUnit.SECONDS));
+		assertFalse(latch.await(10, TimeUnit.MILLISECONDS));
 		adapter.stop();
 		skipper.reset();
 		latch = new CountDownLatch(1);
