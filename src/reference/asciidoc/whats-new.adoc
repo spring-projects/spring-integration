@@ -63,4 +63,11 @@ See <<amqp-content-type>> for more information.
 
 A confusing `max-rows-per-poll` property on the JDBC Inbound Channel Adapter and JDBC Outbound Gateway has been deprecated in favor newly introduced `max-rows` property.
 
-See <<jdbc>>  for more information.
+See <<jdbc>> for more information.
+
+==== Aggregator Changes
+
+An aggregator now expires the group immediately, if the `groupTimeout` is evaluated to a negative value.
+Only `null` is considered as a signal do nothing for the current message.
+
+See <<aggregator>> for more information.

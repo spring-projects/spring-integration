@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class PollingLifecycleTests {
 	private final TestErrorHandler errorHandler = new TestErrorHandler();
 
 	@Before
-	public void init() throws Exception {
+	public void init() {
 		taskScheduler.afterPropertiesSet();
 	}
 
@@ -68,13 +68,16 @@ public class PollingLifecycleTests {
 	public void ensurePollerTaskStops() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(1);
 		QueueChannel channel = new QueueChannel();
-		channel.send(new GenericMessage<String>("foo"));
+		channel.send(new GenericMessage<>("foo"));
 
+		//Has to be an explicit implementation - Mockito cannot mock/spy lambdas
 		MessageHandler handler = Mockito.spy(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				latch.countDown();
 			}
+
 		});
 		PollingConsumer consumer = new PollingConsumer(channel, handler);
 		consumer.setTrigger(new PeriodicTrigger(0));
@@ -87,7 +90,7 @@ public class PollingLifecycleTests {
 		Mockito.verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 		consumer.stop();
 		for (int i = 0; i < 10; i++) {
-			channel.send(new GenericMessage<String>("foo"));
+			channel.send(new GenericMessage<>("foo"));
 		}
 		Thread.sleep(2000); // give enough time for poller to kick in if it didn't stop properly
 		// we'll still have a natural race condition between call to stop() and poller polling
@@ -105,12 +108,16 @@ public class PollingLifecycleTests {
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
 		adapterFactory.setPollerMetadata(pollerMetadata);
+
+		//Has to be an explicit implementation - Mockito cannot mock/spy lambdas
 		MessageSource<String> source = spy(new MessageSource<String>() {
+
 			@Override
 			public Message<String> receive() {
 				latch.countDown();
-				return new GenericMessage<String>("hello");
+				return new GenericMessage<>("hello");
 			}
+
 		});
 		adapterFactory.setSource(source);
 		adapterFactory.setOutputChannel(channel);
@@ -122,7 +129,7 @@ public class PollingLifecycleTests {
 		assertTrue(latch.await(20, TimeUnit.SECONDS));
 		assertNotNull(channel.receive(100));
 		adapter.stop();
-		assertNull(channel.receive(1000));
+		assertNull(channel.receive(10));
 		Mockito.verify(source, times(1)).receive();
 	}
 
@@ -136,20 +143,20 @@ public class PollingLifecycleTests {
 		pollerMetadata.setMaxMessagesPerPoll(-1);
 		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
 		adapterFactory.setPollerMetadata(pollerMetadata);
-		final Runnable coughtInterrupted = mock(Runnable.class);
+		final Runnable caughtInterrupted = mock(Runnable.class);
 		MessageSource<String> source = () -> {
 
 			try {
 				for (int i = 0; i < 10; i++) {
-					Thread.sleep(1000);
+					Thread.sleep(10);
 					latch.countDown();
 				}
 			}
 			catch (InterruptedException e) {
-				coughtInterrupted.run();
+				caughtInterrupted.run();
 			}
 
-			return new GenericMessage<String>("hello");
+			return new GenericMessage<>("hello");
 		};
 		adapterFactory.setSource(source);
 		adapterFactory.setOutputChannel(channel);
@@ -161,8 +168,8 @@ public class PollingLifecycleTests {
 		assertTrue(latch.await(3000, TimeUnit.SECONDS));
 		//
 		adapter.stop();
-		Thread.sleep(1000);
-		Mockito.verify(coughtInterrupted, times(1)).run();
+		Thread.sleep(10);
+		Mockito.verify(caughtInterrupted, times(1)).run();
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Iwein Fuld
@@ -55,8 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  * @author Gary Russell
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class AggregatorIntegrationTests {
 
@@ -91,10 +89,10 @@ public class AggregatorIntegrationTests {
 	private QueueChannel errors;
 
 	@Test
-	public void testVanillaAggregation() throws Exception {
+	public void testVanillaAggregation() {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
-			input.send(new GenericMessage<Integer>(i, headers));
+			input.send(new GenericMessage<>(i, headers));
 		}
 		Message<?> receive = output.receive(10000);
 		assertNotNull(receive);
@@ -102,10 +100,10 @@ public class AggregatorIntegrationTests {
 	}
 
 	@Test
-	public void testNonExpiringAggregator() throws Exception {
+	public void testNonExpiringAggregator() {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
-			nonExpiringAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+			nonExpiringAggregatorInput.send(new GenericMessage<>(i, headers));
 		}
 		assertNotNull(output.receive(0));
 
@@ -113,7 +111,7 @@ public class AggregatorIntegrationTests {
 
 		for (int i = 5; i < 10; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
-			nonExpiringAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+			nonExpiringAggregatorInput.send(new GenericMessage<>(i, headers));
 		}
 		assertNull(output.receive(0));
 
@@ -125,10 +123,10 @@ public class AggregatorIntegrationTests {
 	}
 
 	@Test
-	public void testExpiringAggregator() throws Exception {
+	public void testExpiringAggregator() {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
-			expiringAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+			expiringAggregatorInput.send(new GenericMessage<>(i, headers));
 		}
 		assertNotNull(output.receive(0));
 
@@ -136,7 +134,7 @@ public class AggregatorIntegrationTests {
 
 		for (int i = 5; i < 10; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
-			expiringAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+			expiringAggregatorInput.send(new GenericMessage<>(i, headers));
 		}
 		assertNotNull(output.receive(0));
 
@@ -148,7 +146,7 @@ public class AggregatorIntegrationTests {
 	public void testGroupTimeoutScheduling() throws Exception {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
-			this.groupTimeoutAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+			this.groupTimeoutAggregatorInput.send(new GenericMessage<>(i, headers));
 
 			//Wait until 'group-timeout' does its stuff.
 			MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore",
@@ -166,11 +164,11 @@ public class AggregatorIntegrationTests {
 	@Test
 	public void testGroupTimeoutReschedulingOnMessageDeliveryException() throws Exception {
 		for (int i = 0; i < 5; i++) {
-			this.output.send(new GenericMessage<String>("fake message"));
+			this.output.send(new GenericMessage<>("fake message"));
 		}
 
 		Map<String, Object> headers = stubHeaders(1, 2, 1);
-		this.groupTimeoutAggregatorInput.send(new GenericMessage<Integer>(1, headers));
+		this.groupTimeoutAggregatorInput.send(new GenericMessage<>(1, headers));
 
 		//Wait until 'group-timeout' does its stuff.
 		MessageGroupStore mgs = TestUtils.getPropertyValue(this.context.getBean("gta.handler"), "messageStore",
@@ -190,14 +188,14 @@ public class AggregatorIntegrationTests {
 	}
 
 	@Test
-	public void testGroupTimeoutExpressionScheduling() throws Exception {
-		// Since group-timeout-expression="size() >= 2 ? 100 : -1". The first message won't be scheduled to 'forceComplete'
-		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(1, stubHeaders(1, 6, 1)));
+	public void testGroupTimeoutExpressionScheduling() {
+		// Since group-timeout-expression="size() >= 2 ? 100 : null". The first message won't be scheduled to 'forceComplete'
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(1, stubHeaders(1, 6, 1)));
 		assertNull(this.output.receive(0));
 		assertNull(this.discard.receive(0));
 
 		// As far as 'group.size() >= 2' it will be scheduled to 'forceComplete'
-		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(2, stubHeaders(2, 6, 1)));
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(2, stubHeaders(2, 6, 1)));
 		assertNull(this.output.receive(0));
 		Message<?> receive = this.output.receive(10000);
 		assertNotNull(receive);
@@ -205,15 +203,15 @@ public class AggregatorIntegrationTests {
 		assertNull(this.discard.receive(0));
 
 		// The same with these three messages
-		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(3, stubHeaders(3, 6, 1)));
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(3, stubHeaders(3, 6, 1)));
 		assertNull(this.output.receive(0));
 		assertNull(this.discard.receive(0));
 
-		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(4, stubHeaders(4, 6, 1)));
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(4, stubHeaders(4, 6, 1)));
 		assertNull(this.output.receive(0));
 		assertNull(this.discard.receive(0));
 
-		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(5, stubHeaders(5, 6, 1)));
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(5, stubHeaders(5, 6, 1)));
 		assertNull(this.output.receive(0));
 		receive = this.output.receive(10000);
 		assertNotNull(receive);
@@ -221,7 +219,7 @@ public class AggregatorIntegrationTests {
 		assertNull(this.discard.receive(0));
 
 		// The last message in the sequence - normal release by provided 'ReleaseStrategy'
-		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(6, stubHeaders(6, 6, 1)));
+		this.groupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(6, stubHeaders(6, 6, 1)));
 		receive = this.output.receive(10000);
 		assertNotNull(receive);
 		assertEquals(1, ((Collection<?>) receive.getPayload()).size());
@@ -229,17 +227,17 @@ public class AggregatorIntegrationTests {
 	}
 
 	@Test
-	public void testZeroGroupTimeoutExpressionScheduling() throws Exception {
+	public void testZeroGroupTimeoutExpressionScheduling() {
 		try {
 			this.output.purge(null);
 			this.errors.purge(null);
-			GenericMessage<String> message = new GenericMessage<String>("foo");
+			GenericMessage<String> message = new GenericMessage<>("foo");
 			this.output.send(message);
 			this.output.send(message);
 			this.output.send(message);
 			this.output.send(message);
 			this.output.send(message);
-			this.zeroGroupTimeoutExpressionAggregatorInput.send(new GenericMessage<Integer>(1, stubHeaders(1, 2, 1)));
+			this.zeroGroupTimeoutExpressionAggregatorInput.send(new GenericMessage<>(1, stubHeaders(1, 2, 1)));
 			ErrorMessage em = (ErrorMessage) this.errors.receive(10000);
 			assertNotNull(em);
 			assertThat(em.getPayload().getMessage().toLowerCase(),
@@ -263,7 +261,7 @@ public class AggregatorIntegrationTests {
 	}
 
 	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correlationId) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
 		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
 		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId);

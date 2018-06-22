@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
@@ -37,6 +40,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  */
 public class PollerWithErrorChannelTests {
@@ -54,10 +58,20 @@ public class PollerWithErrorChannelTests {
 
 		SubscribableChannel errorChannel = ac.getBean("errorChannel", SubscribableChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
+
+		CountDownLatch handleLatch = new CountDownLatch(1);
+
+		willAnswer(invocation -> {
+			handleLatch.countDown();
+			return null;
+		})
+				.given(handler)
+				.handleMessage(any(Message.class));
 		errorChannel.subscribe(handler);
 		adapter.start();
-		Thread.sleep(1000);
-		verify(handler, atLeastOnce()).handleMessage(Mockito.any(Message.class));
+
+		assertTrue(handleLatch.await(10, TimeUnit.SECONDS));
+
 		adapter.stop();
 		ac.close();
 	}
@@ -75,7 +89,7 @@ public class PollerWithErrorChannelTests {
 	}
 
 	@Test
-	public void testWithErrorChannelAndHeader() throws Exception {
+	public void testWithErrorChannelAndHeader() {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml",
 				this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannelAndHeader",
@@ -89,7 +103,7 @@ public class PollerWithErrorChannelTests {
 
 	@Test
 	// config the same as above but the error wil come from the send
-	public void testWithErrorChannelAndHeaderWithSendFailure() throws Exception {
+	public void testWithErrorChannelAndHeaderWithSendFailure() {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml",
 				this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannelAndHeaderErrorOnSend",
@@ -103,12 +117,12 @@ public class PollerWithErrorChannelTests {
 
 	@Test
 	// INT-1952
-	public void testWithErrorChannelAndPollingConsumer() throws Exception {
+	public void testWithErrorChannelAndPollingConsumer() {
 		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml",
 				this.getClass());
 		MessageChannel serviceWithPollerChannel = ac.getBean("serviceWithPollerChannel", MessageChannel.class);
 		QueueChannel errorChannel = ac.getBean("serviceErrorChannel", QueueChannel.class);
-		serviceWithPollerChannel.send(new GenericMessage<String>(""));
+		serviceWithPollerChannel.send(new GenericMessage<>(""));
 		assertNotNull(errorChannel.receive(10000));
 		ac.close();
 	}

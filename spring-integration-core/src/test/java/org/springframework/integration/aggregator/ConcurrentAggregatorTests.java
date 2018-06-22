@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
 public class ConcurrentAggregatorTests {
 
@@ -90,8 +91,7 @@ public class ConcurrentAggregatorTests {
 	@Test
 	@Ignore
 	// dropped backwards compatibility for duplicate ID's
-	public void testCompleteGroupWithinTimeoutWithSameId()
-			throws InterruptedException {
+	public void testCompleteGroupWithinTimeoutWithSameId() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel,
 				"ID#1");
@@ -111,8 +111,8 @@ public class ConcurrentAggregatorTests {
 	}
 
 	@Test
-	public void testShouldNotSendPartialResultOnTimeoutByDefault()
-			throws InterruptedException {
+	public void testShouldNotSendPartialResultOnTimeoutByDefault() throws InterruptedException {
+
 		QueueChannel discardChannel = new QueueChannel();
 		this.aggregator.setDiscardChannel(discardChannel);
 		QueueChannel replyChannel = new QueueChannel();
@@ -126,17 +126,16 @@ public class ConcurrentAggregatorTests {
 
 		assertEquals("Task should have completed within timeout", 0, latch
 				.getCount());
-		Message<?> reply = replyChannel.receive(1000);
+		Message<?> reply = replyChannel.receive(10);
 		assertNull("No message should have been sent normally", reply);
 		this.store.expireMessageGroups(-10000);
-		Message<?> discardedMessage = discardChannel.receive(1000);
+		Message<?> discardedMessage = discardChannel.receive(10000);
 		assertNotNull("A message should have been discarded", discardedMessage);
 		assertEquals(message, discardedMessage);
 	}
 
 	@Test
-	public void testShouldSendPartialResultOnTimeoutTrue()
-			throws InterruptedException {
+	public void testShouldSendPartialResultOnTimeoutTrue() throws InterruptedException {
 		this.aggregator.setSendPartialResultOnExpiry(true);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
@@ -252,16 +251,14 @@ public class ConcurrentAggregatorTests {
 	}
 
 	@Test(expected = MessageHandlingException.class)
-	public void testExceptionThrownIfNoCorrelationId()
-			throws InterruptedException {
+	public void testExceptionThrownIfNoCorrelationId() {
 		Message<?> message = createMessage(3, null, 2, 1, new QueueChannel(),
 				null);
 		this.aggregator.handleMessage(message);
 	}
 
 	@Test
-	public void testAdditionalMessageAfterCompletion()
-			throws InterruptedException {
+	public void testAdditionalMessageAfterCompletion() throws InterruptedException {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
@@ -291,6 +288,7 @@ public class ConcurrentAggregatorTests {
 	private static Message<?> createMessage(Object payload,
 			Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel, String predefinedId) {
+
 		MessageBuilder<Object> builder = MessageBuilder.withPayload(payload)
 				.setCorrelationId(correlationId).setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)

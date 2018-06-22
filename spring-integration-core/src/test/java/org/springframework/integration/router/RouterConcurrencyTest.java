@@ -42,6 +42,7 @@ import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Gary Russell
+ *
  * @since 3.0
  *
  */
@@ -61,11 +62,11 @@ public class RouterConcurrencyTest {
 			protected void setConversionService(ConversionService conversionService) {
 				try {
 					if (count.incrementAndGet() > 1) {
-						Thread.sleep(2000);
+						Thread.sleep(20);
 					}
 					super.setConversionService(conversionService);
 					semaphore.release();
-					Thread.sleep(1000);
+					Thread.sleep(10);
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
@@ -85,8 +86,7 @@ public class RouterConcurrencyTest {
 		router.setBeanFactory(beanFactory);
 
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		final List<ConversionService> returns = Collections.synchronizedList(
-				new ArrayList<ConversionService>());
+		final List<ConversionService> returns = Collections.synchronizedList(new ArrayList<>());
 		Runnable runnable = () -> {
 			ConversionService requiredConversionService = router.getRequiredConversionService();
 			returns.add(requiredConversionService);
