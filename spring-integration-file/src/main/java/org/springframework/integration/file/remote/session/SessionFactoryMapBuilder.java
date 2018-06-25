@@ -19,6 +19,8 @@ package org.springframework.integration.file.remote.session;
 import org.springframework.integration.support.MapBuilder;
 
 /**
+ * A {@link MapBuilder} to producer a map that maps objects to {@link SessionFactory}s.
+ *
  * @author Gary Russell
  * @since 5.0.7
  *
