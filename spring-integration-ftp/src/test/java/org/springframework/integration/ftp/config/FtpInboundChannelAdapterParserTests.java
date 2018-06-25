@@ -138,7 +138,7 @@ public class FtpInboundChannelAdapterParserTests {
 			method.setAccessible(true);
 			genMethod.set(method);
 		}, method -> "generateLocalFileName".equals(method.getName()));
-		assertEquals("FOO.afoo", genMethod.get().invoke(fisync, ".", "foo"));
+		assertEquals("FOO.afoo", genMethod.get().invoke(fisync, "foo"));
 		assertEquals(42, inbound.getMaxFetchSize());
 	}
 

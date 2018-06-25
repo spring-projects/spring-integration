@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.remote.session;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -62,7 +63,13 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 		this(new StandardRotationPolicy(factory, keyDirectories, fair));
 	}
 
+	/**
+	 * Construct an instance that rotates according to the supplied
+	 * {@link RotationPolicy}.
+	 * @param rotationPolicy the policy.
+	 */
 	public RotatingServerAdvice(RotationPolicy rotationPolicy) {
+		Assert.notNull(rotationPolicy, "'rotationPolicy' cannot be null");
 		this.rotationPolicy = rotationPolicy;
 	}
 
@@ -151,7 +158,9 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 		@Override
 		public void afterReceive(boolean messageReceived, MessageSource<?> source) {
 			if (this.logger.isTraceEnabled()) {
-				this.logger.trace("Poll resulted in message: " + messageReceived);
+				this.logger.trace("Poll produced "
+						+ (messageReceived ? "a" : "no")
+						+ " message");
 			}
 			this.factory.clearThreadKey();
 			if (!this.fair && !messageReceived) {
@@ -169,11 +178,11 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 			}
 			this.current = this.iterator.next();
 			if (source instanceof AbstractRemoteFileStreamingMessageSource) {
-				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getDirectory());
+				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getValue());
 			}
 			else {
 				((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
-					.setRemoteDirectory(this.current.getDirectory());
+					.setRemoteDirectory(this.current.getValue());
 			}
 		}
 
@@ -184,30 +193,18 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	 * @since 5.0.7
 	 *
 	 */
-	public static class KeyDirectory {
-
-		private final String key;
-
-		private final String directory;
+	@SuppressWarnings("serial")
+	public static class KeyDirectory extends SimpleEntry<String, String> {
 
 		public KeyDirectory(String key, String directory) {
+			super(key, directory);
 			Assert.notNull(key, "key cannot be null");
 			Assert.notNull(directory, "directory cannot be null");
-			this.key = key;
-			this.directory = directory;
-		}
-
-		public String getKey() {
-			return this.key;
-		}
-
-		public String getDirectory() {
-			return this.directory;
 		}
 
 		@Override
 		public String toString() {
-			return "KeyDirectory [key=" + this.key + ", directory=" + this.directory + "]";
+			return "KeyDirectory [key=" + getKey() + ", directory=" + getValue() + "]";
 		}
 
 	}
