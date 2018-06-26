@@ -15,6 +15,8 @@ Spring Integration provides two approaches: XML and Annotation-driven.
 ==== Annotation-driven approach via @Publisher annotation
 
 The annotation-driven approach allows you to annotate any method with the `@Publisher` annotation, specifying a 'channel' attribute.
+Starting with _version 5.1_, to switch this functionality on, the `@EnablePublisher` annotation must be provided on some `@Configuration` class.
+See <<configuration-enable-integration>> for more information.
 The Message will be constructed from the return value of the method invocation and sent to a channel specified by the 'channel' attribute.
 To further manage message structure, you can also use a combination of both `@Payload` and `@Header` annotations.
 
@@ -105,10 +107,24 @@ As with most other annotation-driven features in Spring, you will need to regist
 You can instead use namespace support for a more concise configuration:
 [source,xml]
 ----
-<int:annotation-config default-publisher-channel="defaultChannel"/>
+<int:annotation-config>
+    <int:enable-publisher default-publisher-channel="defaultChannel"/>
+</int:annotation-config>
 ----
 
-Similar to other Spring annotations (@Component, @Scheduled, etc.), `@Publisher` can also be used as a meta-annotation.
+For Java & Annotation Spring configuration, the `@EnablePublisher` annotation must be used:
+
+[source,java]
+----
+@Configuration
+@EnableIntegration
+@EnablePublisher("defaultChannel")
+public class IntegrationConfiguration {
+    ...
+}
+----
+
+Similar to other Spring annotations (`@Component`, `@Scheduled`, etc.), `@Publisher` can also be used as a meta-annotation.
 That means you can define your own annotations that will be treated in the same way as the `@Publisher` itself.
 
 [source,java]

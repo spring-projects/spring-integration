@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:aop="http://www.springframework.org/schema/aop"
-	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd"
 	xmlns:si="http://www.springframework.org/schema/integration">
 
@@ -17,6 +15,8 @@
 		<si:queue />
 	</si:channel>
 
-	<si:annotation-config default-publisher-channel="defaultChannel"/>
+	<si:annotation-config>
+		<si:enable-publisher default-publisher-channel="defaultChannel"/>
+	</si:annotation-config>
 
 </beans>

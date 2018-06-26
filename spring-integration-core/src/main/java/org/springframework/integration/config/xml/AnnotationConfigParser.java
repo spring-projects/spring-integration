@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.type.StandardAnnotationMetadata;
+import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.config.IntegrationRegistrar;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;annotation-config&gt; element of the integration namespace.
@@ -38,13 +40,33 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
-		new IntegrationRegistrar().registerBeanDefinitions(new StandardAnnotationMetadata(Object.class) {
+		IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
+		integrationRegistrar.setBeanClassLoader(parserContext.getReaderContext().getBeanClassLoader());
 
-			@Override
-			public Map<String, Object> getAnnotationAttributes(String annotationType) {
-				return Collections.<String, Object>singletonMap("value", element.getAttribute("default-publisher-channel"));
-			}
-		}, parserContext.getRegistry());
+		StandardAnnotationMetadata importingClassMetadata =
+				new StandardAnnotationMetadata(Object.class) {
+
+					@Override
+					public Map<String, Object> getAnnotationAttributes(String annotationType) {
+						if (EnablePublisher.class.getName().equals(annotationType)) {
+							Element enablePublisherElement =
+									DomUtils.getChildElementByTagName(element, "enable-publisher");
+							if (enablePublisherElement != null) {
+								return Collections.singletonMap("value",
+										enablePublisherElement.getAttribute("default-publisher-channel"));
+							}
+							else {
+								return null;
+							}
+						}
+						else {
+							return null;
+						}
+					}
+
+				};
+
+		integrationRegistrar.registerBeanDefinitions(importingClassMetadata, parserContext.getRegistry());
 
 		return null;
 	}
