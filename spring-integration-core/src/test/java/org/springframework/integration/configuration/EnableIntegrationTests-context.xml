@@ -14,7 +14,9 @@
 
 	<message-history tracked-components="publishedChannel,input,annotationTestService*"/>
 
-	<annotation-config default-publisher-channel="publishedChannel"/>
+	<annotation-config>
+		<enable-publisher default-publisher-channel="publishedChannel"/>
+	</annotation-config>
 
 	<channel-interceptor pattern="none">
 		<wire-tap channel="bar" />

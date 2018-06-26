@@ -55,6 +55,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnablePublisher;
 import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -72,6 +73,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
@@ -263,6 +265,7 @@ public class BarrierMessageHandlerTests {
 
 	@Configuration
 	@EnableIntegration
+	@EnablePublisher
 	public static class Config {
 
 		@Bean
