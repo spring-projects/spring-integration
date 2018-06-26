@@ -705,6 +705,8 @@ public IntegrationFlow flow() {
 }
 ----
 
+IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advice; see <<conditional-pollers>> for more information.
+
 [[ftp-max-fetch]]
 === Inbound Channel Adapters: Controlling Remote File Fetching
 

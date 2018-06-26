@@ -16,7 +16,6 @@
 
 package org.springframework.integration.file.remote.session;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -116,9 +115,9 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	 * @since 5.0.7
 	 *
 	 */
-	private static class StandardRotationPolicy implements RotationPolicy {
+	public static class StandardRotationPolicy implements RotationPolicy {
 
-		private final Log logger = LogFactory.getLog(getClass());
+		protected final Log logger = LogFactory.getLog(getClass());
 
 		private final DelegatingSessionFactory<?> factory;
 
@@ -141,6 +140,34 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 			this.keyDirectories.addAll(keyDirectories);
 			this.fair = fair;
 			this.iterator = this.keyDirectories.iterator();
+		}
+
+		protected Iterator<KeyDirectory> getIterator() {
+			return this.iterator;
+		}
+
+		protected void setIterator(Iterator<KeyDirectory> iterator) {
+			this.iterator = iterator;
+		}
+
+		protected boolean isInitialized() {
+			return this.initialized;
+		}
+
+		protected void setInitialized(boolean initialized) {
+			this.initialized = initialized;
+		}
+
+		protected DelegatingSessionFactory<?> getFactory() {
+			return this.factory;
+		}
+
+		protected List<KeyDirectory> getKeyDirectories() {
+			return this.keyDirectories;
+		}
+
+		protected boolean isFair() {
+			return this.fair;
 		}
 
 		@Override
@@ -168,7 +195,7 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 			}
 		}
 
-		private void configureSource(MessageSource<?> source) {
+		protected void configureSource(MessageSource<?> source) {
 			Assert.isTrue(source instanceof AbstractInboundFileSynchronizingMessageSource
 					|| source instanceof AbstractRemoteFileStreamingMessageSource,
 				"source must be an AbstractInboundFileSynchronizingMessageSource or a "
@@ -178,11 +205,11 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 			}
 			this.current = this.iterator.next();
 			if (source instanceof AbstractRemoteFileStreamingMessageSource) {
-				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getValue());
+				((AbstractRemoteFileStreamingMessageSource<?>) source).setRemoteDirectory(this.current.getDirectory());
 			}
 			else {
 				((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
-					.setRemoteDirectory(this.current.getValue());
+					.setRemoteDirectory(this.current.getDirectory());
 			}
 		}
 
@@ -193,18 +220,31 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	 * @since 5.0.7
 	 *
 	 */
-	@SuppressWarnings("serial")
-	public static class KeyDirectory extends SimpleEntry<String, String> {
+
+	public static class KeyDirectory {
+
+		private final String key;
+
+		private final String directory;
 
 		public KeyDirectory(String key, String directory) {
-			super(key, directory);
 			Assert.notNull(key, "key cannot be null");
 			Assert.notNull(directory, "directory cannot be null");
+			this.key = key;
+			this.directory = directory;
+		}
+
+		public String getKey() {
+			return this.key;
+		}
+
+		public String getDirectory() {
+			return this.directory;
 		}
 
 		@Override
 		public String toString() {
-			return "KeyDirectory [key=" + getKey() + ", directory=" + getValue() + "]";
+			return "KeyDirectory [key=" + this.key + ", directory=" + this.directory + "]";
 		}
 
 	}

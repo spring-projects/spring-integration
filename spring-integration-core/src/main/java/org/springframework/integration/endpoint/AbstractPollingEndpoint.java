@@ -92,6 +92,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.taskExecutor = (taskExecutor != null ? taskExecutor : new SyncTaskExecutor());
 	}
 
+	protected Executor getTaskExecutor() {
+		return this.taskExecutor;
+	}
+
 	public void setTrigger(Trigger trigger) {
 		this.trigger = (trigger != null ? trigger : new PeriodicTrigger(10));
 	}

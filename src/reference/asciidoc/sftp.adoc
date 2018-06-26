@@ -732,6 +732,26 @@ public RotatingServerAdvice advice() {
 }
 ----
 
+The `local-filename-generator-expression` attribute (`localFilenameGeneratorExpression` on the synchronizer) can now contain the `#remoteDirectory` variable.
+This allows files retrieved from different directories to be downloaded to similar directorties locally:
+
+[source, java]
+----
+@Bean
+public IntegrationFlow flow() {
+    return IntegrationFlows.from(Ftp.inboundAdapter(sf())
+                    .filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
+                    .localDirectory(new File(tmpDir))
+                    .localFilenameExpression("#remoteDirectory + T(java.io.File).separator + #root")
+                    .remoteDirectory("."),
+                e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
+            .channel(MessageChannels.queue("files"))
+            .get();
+}
+----
+
+IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advice; see <<conditional-pollers>> for more information.
+
 [[sftp-max-fetch]]
 === Inbound Channel Adapters: Controlling Remote File Fetching
 
