@@ -13,7 +13,7 @@
 			 default-request-channel="requestChannel"
 			 default-reply-timeout="3000"
 			 service-interface="org.springframework.integration.gateway.GatewayRequiresReplyTests$TestService" />
-	
+
 
 	<service-activator input-channel="requestChannel"
 					   expression="payload == 'foo' ? 'bar' : null"
@@ -21,16 +21,16 @@
 
 	<gateway id="timeoutGateway"
 			 default-request-channel="timeoutChannel"
-			 default-reply-timeout="1000"
+			 default-reply-timeout="10"
 			 service-interface="org.springframework.integration.gateway.GatewayRequiresReplyTests$TestService" />
-			 
+
 	<channel id="timeoutChannel">
 		<dispatcher task-executor="executor"/>
 	</channel>
-			 
+
 	<service-activator input-channel="timeoutChannel">
 		<beans:bean class="org.springframework.integration.gateway.GatewayRequiresReplyTests.LongRunningService"/>
 	</service-activator>
-	
+
 	<task:executor id="executor" pool-size="5"/>
 </beans:beans>

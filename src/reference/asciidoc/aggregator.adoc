@@ -477,8 +477,8 @@ See <<redis-lock-registry>>, <<gemfire-lock-registry>>, <<zk-lock-registry>> for
 This attribute provides a built-in _Time-base Release Strategy_ for the aggregator, when there is a need to emit a partial result (or discard the group), if a new Message does not arrive for the `MessageGroup` within the timeout.
 When a new Message arrives at the aggregator, any existing `ScheduledFuture<?>` for its `MessageGroup` is canceled.
 If the `ReleaseStrategy` returns `false` (don't release) and the `groupTimeout > 0` a new task will be scheduled to expire the group.
-Setting this attribute to zero is not advised because it will effectively disable the aggregator because every message group will be immediately completed.
-It is possible, however to conditionally set it to zero using an expression; see `group-timeout-expression` for information.
+Setting this attribute to zero (or negative value) is not advised because it will effectively disable the aggregator because every message group will be immediately completed.
+It is possible, however to conditionally set it to zero (or negative value) using an expression; see `group-timeout-expression` for information.
 The action taken during the completion depends on the `ReleaseStrategy` and the `send-partial-group-on-expiry` attribute.
 See <<agg-and-group-to>> for more information.
 Mutually exclusive with 'group-timeout-expression' attribute.
@@ -486,7 +486,7 @@ Mutually exclusive with 'group-timeout-expression' attribute.
 
 <22> The SpEL expression that evaluates to a `groupTimeout` with the `MessageGroup` as the `#root` evaluation context object.
 Used for scheduling the `MessageGroup` to be forced complete.
-If the expression evaluates to null or `< 0`, the completion is not scheduled.
+If the expression evaluates to `null`, the completion is not scheduled.
 If it evaluates to zero, the group is completed immediately on the current thread.
 In effect, this provides a dynamic `group-timeout` property.
 See `group-timeout` for more information.
