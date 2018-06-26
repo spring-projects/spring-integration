@@ -391,7 +391,10 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 					builder.getBeanDefinition());
 		}
 
-		new PublisherRegistrar().registerBeanDefinitions(meta, registry);
+		if (meta.getAnnotationAttributes(EnablePublisher.class.getName()) != null) {
+			new PublisherRegistrar().
+					registerBeanDefinitions(meta, registry);
+		}
 	}
 
 	/**
@@ -399,7 +402,9 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	 * to process the external Integration infrastructure.
 	 */
 	private void registerIntegrationConfigurationBeanFactoryPostProcessor(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME)) {
+		if (!registry.containsBeanDefinition(
+				IntegrationContextUtils.INTEGRATION_CONFIGURATION_POST_PROCESSOR_BEAN_NAME)) {
+
 			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(IntegrationConfigurationBeanFactoryPostProcessor.class)
 					.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);

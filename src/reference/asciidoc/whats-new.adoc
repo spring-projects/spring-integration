@@ -51,7 +51,20 @@ Starting with _version 5.0.5_, generated bean names for the components in an `In
 
 See <<java-dsl-flows>> for more information.
 
-==== AMQP Changes
+==== Aggregator Changes
+
+An aggregator now expires the group immediately, if the `groupTimeout` is evaluated to a negative value.
+Only `null` is considered as a signal do nothing for the current message.
+
+See <<aggregator>> for more information.
+
+==== @Publisher annotation changes
+
+Starting with _version 5.1, the `@Publisher` AOP functionality has to be turned on explicitly via `@EnablePublisher` or via `<int:enable-publisher>` sub-element on the `<int:annotation-config>`.
+
+See <<publisher-annotation>> for more information.
+
+=== AMQP Changes
 
 `ID` and `Timestamp` header mapping changes in the `DefaultAmqpHeaderMapper`.
 See the note near the bottom of <<amqp-message-headers>> for more information.
@@ -59,15 +72,8 @@ See the note near the bottom of <<amqp-message-headers>> for more information.
 The `contentType` header is no longer incorrectly mapped as an entry in the general headers map.
 See <<amqp-content-type>> for more information.
 
-==== JDBC Changes
+=== JDBC Changes
 
 A confusing `max-rows-per-poll` property on the JDBC Inbound Channel Adapter and JDBC Outbound Gateway has been deprecated in favor newly introduced `max-rows` property.
 
 See <<jdbc>> for more information.
-
-==== Aggregator Changes
-
-An aggregator now expires the group immediately, if the `groupTimeout` is evaluated to a negative value.
-Only `null` is considered as a signal do nothing for the current message.
-
-See <<aggregator>> for more information.

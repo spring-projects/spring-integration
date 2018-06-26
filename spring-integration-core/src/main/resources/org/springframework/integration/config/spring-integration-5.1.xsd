@@ -20,18 +20,24 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="default-publisher-channel" type="xsd:string" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						Default output channel for the @Publisher annotation support.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.messaging.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:sequence>
+				<xsd:element name="enable-publisher" minOccurs="0">
+					<xsd:complexType>
+						<xsd:attribute name="default-publisher-channel" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>
+									Default output channel for the @Publisher annotation support.
+								</xsd:documentation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="org.springframework.messaging.MessageChannel" />
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -53,22 +59,22 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-					<xsd:element name="before-commit" minOccurs="0" maxOccurs="1">
-						<xsd:complexType>
-							<xsd:attributeGroup ref="synchronizationAttributeGroup"/>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="after-commit" minOccurs="0" maxOccurs="1">
-						<xsd:complexType>
-							<xsd:attributeGroup ref="synchronizationAttributeGroup"/>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="after-rollback" minOccurs="0" maxOccurs="1">
-						<xsd:complexType>
-							<xsd:attributeGroup ref="synchronizationAttributeGroup"/>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:sequence>
+				<xsd:element name="before-commit" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:attributeGroup ref="synchronizationAttributeGroup"/>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="after-commit" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:attributeGroup ref="synchronizationAttributeGroup"/>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="after-rollback" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:attributeGroup ref="synchronizationAttributeGroup"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
@@ -134,7 +140,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Point-to-Point MessageChannel.
-				See 'PointToPointChannelParser' source code for 'MessageChannel' implementaitons.
+				See 'PointToPointChannelParser' source code for 'MessageChannel' implementations.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
