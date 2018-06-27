@@ -65,7 +65,7 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			});
 		}
 		catch (Exception e) {
-			throw new IllegalStateException("Cannot find ExistsBuilder.creatingParentContainersIfNeeded()");
+			throw new IllegalStateException("Cannot find ExistsBuilder.creatingParentContainersIfNeeded()", e);
 		}
 		if (method.get() == null) {
 			throw new IllegalStateException("Cannot find ExistsBuilder.creatingParentContainersIfNeeded()");
