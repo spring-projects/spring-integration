@@ -16,12 +16,16 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.ExistsBuilder;
+import org.apache.curator.framework.api.ExistsBuilderMain;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -35,6 +39,7 @@ import org.springframework.integration.metadata.ListenableMetadataStore;
 import org.springframework.integration.metadata.MetadataStoreListener;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Zookeeper-based {@link ListenableMetadataStore} based on a Zookeeper node.
@@ -47,6 +52,26 @@ import org.springframework.util.Assert;
  * @since 4.2
  */
 public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLifecycle {
+
+	private final static Method creatingParentContainersIfNeeded;
+
+	static {
+		AtomicReference<Method> method = new AtomicReference<>();
+		try {
+			ReflectionUtils.doWithMethods(ExistsBuilder.class, m -> {
+				method.set(m);
+			}, m -> {
+				return "creatingParentContainersIfNeeded".equals(m.getName()) && m.getParameterCount() == 0;
+			});
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Cannot find ExistsBuilder.creatingParentContainersIfNeeded()", e);
+		}
+		if (method.get() == null) {
+			throw new IllegalStateException("Cannot find ExistsBuilder.creatingParentContainersIfNeeded()");
+		}
+		creatingParentContainersIfNeeded = method.get();
+	}
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -277,9 +302,10 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 			synchronized (this.lifecycleMonitor) {
 				if (!this.running) {
 					try {
-						this.client.checkExists()
-								.creatingParentContainersIfNeeded()
-								.forPath(this.root);
+						ExistsBuilder checkExists = this.client.checkExists();
+						ExistsBuilderMain builderMain = (ExistsBuilderMain) creatingParentContainersIfNeeded
+								.invoke(checkExists, new Object[0]);
+						builderMain.forPath(this.root);
 
 						this.cache = new PathChildrenCache(this.client, this.root, true);
 						this.cache.getListenable()
