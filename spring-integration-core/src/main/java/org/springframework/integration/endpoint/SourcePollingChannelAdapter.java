@@ -30,7 +30,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
 import org.springframework.integration.acks.AcknowledgmentCallback;
-import org.springframework.integration.aop.AbstractMessageSourceAdvice;
+import org.springframework.integration.aop.MessageSourceMutator;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
@@ -137,7 +137,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 
 	@Override
 	protected boolean isReceiveOnlyAdvice(Advice advice) {
-		return advice instanceof AbstractMessageSourceAdvice;
+		return advice instanceof MessageSourceMutator;
 	}
 
 	@Override
@@ -159,6 +159,13 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 			}
 			this.appliedAdvices.clear();
 			this.appliedAdvices.addAll(chain);
+			if (!(isSyncExecutor()) && logger.isWarnEnabled()) {
+				logger.warn(getComponentName() + ": A task executor is supplied and " + chain.size()
+						+ "MessageSourceMutator(s) is/are provided. If an advice mutates the source, such "
+						+ "mutations are not thread safe and could cause unexpected results, especially with "
+						+ "high frequency pollers. Consider using a downstream ExecutorChannel instead of "
+						+ "adding an executor to the poller");
+			}
 		}
 	}
 

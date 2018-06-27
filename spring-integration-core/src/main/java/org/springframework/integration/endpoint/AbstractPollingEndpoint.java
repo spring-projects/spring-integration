@@ -60,17 +60,25 @@ import org.springframework.util.ErrorHandler;
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
 
-	private volatile Executor taskExecutor = new SyncTaskExecutor();
+	private final Object initializationMonitor = new Object();
 
-	private volatile ErrorHandler errorHandler;
+	private Executor taskExecutor = new SyncTaskExecutor();
 
-	private volatile boolean errorHandlerIsDefault;
+	private boolean syncExecutor = true;
 
-	private volatile Trigger trigger = new PeriodicTrigger(10);
+	private ErrorHandler errorHandler;
 
-	private volatile List<Advice> adviceChain;
+	private boolean errorHandlerIsDefault;
 
-	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+	private Trigger trigger = new PeriodicTrigger(10);
+
+	private List<Advice> adviceChain;
+
+	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+	private long maxMessagesPerPoll = -1;
+
+	private TransactionSynchronizationFactory transactionSynchronizationFactory;
 
 	private volatile ScheduledFuture<?> runningTask;
 
@@ -78,18 +86,23 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private volatile boolean initialized;
 
-	private volatile long maxMessagesPerPoll = -1;
-
-	private final Object initializationMonitor = new Object();
-
-	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
-
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE / 2);
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = (taskExecutor != null ? taskExecutor : new SyncTaskExecutor());
+		this.syncExecutor = this.taskExecutor instanceof SyncTaskExecutor
+				|| (this.taskExecutor instanceof ErrorHandlingTaskExecutor
+						&& ((ErrorHandlingTaskExecutor) this.taskExecutor).isSyncExecutor());
+	}
+
+	protected Executor getTaskExecutor() {
+		return this.taskExecutor;
+	}
+
+	protected boolean isSyncExecutor() {
+		return this.syncExecutor;
 	}
 
 	public void setTrigger(Trigger trigger) {
