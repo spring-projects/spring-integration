@@ -39,7 +39,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.DefaultSessionFactoryLocator;
@@ -80,6 +80,7 @@ public class RotatingServersTests extends FtpTestSupport {
 			s.write(bais, "foo/f1");
 			s.write(bais, "baz/f2");
 			s.write(bais, "fiz/f3");
+			bais.close();
 			return null;
 		});
 	}
@@ -127,7 +128,8 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(f1.delete()).isTrue();
 		assertThat(f2.delete()).isTrue();
 		assertThat(f3.delete()).isTrue();
-		assertThat(ctx.getBean("files", QueueChannel.class).getQueueSize()).isEqualTo(3);
+		QueueChannel files = ctx.getBean("files", QueueChannel.class);
+		assertThat(files.getQueueSize()).isEqualTo(3);
 		ctx.close();
 	}
 
