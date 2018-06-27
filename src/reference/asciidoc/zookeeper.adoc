@@ -84,6 +84,9 @@ In Java configuration you can create an instance of the leader initiator like th
 ----
 @Bean
 public LeaderInitiatorFactoryBean leaderInitiator(CuratorFramework client) {
-    return new LeaderInitiatorFactoryBean(client, "/siTest/", "cluster");
+    return new LeaderInitiatorFactoryBean()
+                .setClient(client)
+                .setPath("/siTest/")
+                .setRole("cluster");
 }
 ----
