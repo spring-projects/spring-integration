@@ -131,8 +131,9 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 
 		private volatile boolean initialized;
 
-		StandardRotationPolicy(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories,
+		public StandardRotationPolicy(DelegatingSessionFactory<?> factory, List<KeyDirectory> keyDirectories,
 				boolean fair) {
+
 			Assert.notNull(factory, "factory cannot be null");
 			Assert.notNull(keyDirectories, "keyDirectories cannot be null");
 			Assert.isTrue(keyDirectories.size() > 0, "At least one KeyDirectory is required");

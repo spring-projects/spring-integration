@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.net.ftp.FTPFile;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -79,6 +81,12 @@ public class RotatingServersTests extends FtpTestSupport {
 			s.write(bais, "fiz/f3");
 			return null;
 		});
+	}
+
+	@Before
+	@After
+	public void clean() {
+		recursiveDelete(new File(tmpDir));
 	}
 
 	@Test

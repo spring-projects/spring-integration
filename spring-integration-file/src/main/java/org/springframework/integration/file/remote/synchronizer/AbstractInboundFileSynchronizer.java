@@ -169,7 +169,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 */
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectoryExpression = new LiteralExpression(remoteDirectory);
-		evalueRemoteDirectory();
+		evaluateRemoteDirectory();
 	}
 
 	/**
@@ -195,7 +195,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	protected final void doSetRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		Assert.notNull(remoteDirectoryExpression, "'remoteDirectoryExpression' must not be null");
 		this.remoteDirectoryExpression = remoteDirectoryExpression;
-		evalueRemoteDirectory();
+		evaluateRemoteDirectory();
 	}
 
 	/**
@@ -238,7 +238,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		}
-		evalueRemoteDirectory();
+		evaluateRemoteDirectory();
 		doInit();
 	}
 
@@ -454,7 +454,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		return remoteFileName;
 	}
 
-	protected void evalueRemoteDirectory() {
+	protected void evaluateRemoteDirectory() {
 		if (this.evaluationContext != null) {
 			this.evaluatedRemoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext,
 					String.class);
