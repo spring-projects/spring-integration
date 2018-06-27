@@ -691,7 +691,7 @@ public RotatingServerAdvice advice() {
 }
 ----
 
-This advice will poll directory `foo` on server `one` until no new files exist then move to directory `bar` and then direcctory `baz` on server `two`, etc.
+This advice will poll directory `foo` on server `one` until no new files exist then move to directory `bar` and then directory `baz` on server `two`, etc.
 
 This default behavior can be modified with the `fair` constructor arg:
 
@@ -733,7 +733,7 @@ public RotatingServerAdvice advice() {
 ----
 
 The `local-filename-generator-expression` attribute (`localFilenameGeneratorExpression` on the synchronizer) can now contain the `#remoteDirectory` variable.
-This allows files retrieved from different directories to be downloaded to similar directorties locally:
+This allows files retrieved from different directories to be downloaded to similar directories locally:
 
 [source, java]
 ----

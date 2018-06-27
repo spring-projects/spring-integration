@@ -88,11 +88,11 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
-		File f1 = new File(tmpDir + File.separator + "f1");
+		File f1 = new File(tmpDir + File.separator + "standard" + File.separator + "f1");
 		assertThat(f1.exists()).isTrue();
-		File f2 = new File(tmpDir + File.separator + "f2");
+		File f2 = new File(tmpDir + File.separator + "standard" + File.separator + "f2");
 		assertThat(f2.exists()).isTrue();
-		File f3 = new File(tmpDir + File.separator + "f3");
+		File f3 = new File(tmpDir + File.separator + "standard" + File.separator + "f3");
 		assertThat(f3.exists()).isTrue();
 		assertThat(f1.delete()).isTrue();
 		assertThat(f2.delete()).isTrue();
@@ -109,11 +109,11 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3);
-		File f1 = new File(tmpDir + File.separator + "f1");
+		File f1 = new File(tmpDir + File.separator + "fair" + File.separator + "f1");
 		assertThat(f1.exists()).isTrue();
-		File f2 = new File(tmpDir + File.separator + "f2");
+		File f2 = new File(tmpDir + File.separator + "fair" + File.separator + "f2");
 		assertThat(f2.exists()).isTrue();
-		File f3 = new File(tmpDir + File.separator + "f3");
+		File f3 = new File(tmpDir + File.separator + "fair" + File.separator + "f3");
 		assertThat(f3.exists()).isTrue();
 		assertThat(f1.delete()).isTrue();
 		assertThat(f2.delete()).isTrue();
@@ -129,11 +129,11 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
-		File f1 = new File(tmpDir + File.separator + "foo" + File.separator + "f1");
+		File f1 = new File(tmpDir + File.separator + "variable" + File.separator + "foo" + File.separator + "f1");
 		assertThat(f1.exists()).isTrue();
-		File f2 = new File(tmpDir + File.separator + "baz" + File.separator + "f2");
+		File f2 = new File(tmpDir + File.separator + "variable" + File.separator + "baz" + File.separator + "f2");
 		assertThat(f2.exists()).isTrue();
-		File f3 = new File(tmpDir + File.separator + "fiz" + File.separator + "f3");
+		File f3 = new File(tmpDir + File.separator + "variable" + File.separator + "fiz" + File.separator + "f3");
 		assertThat(f3.exists()).isTrue();
 		assertThat(f1.delete()).isTrue();
 		assertThat(f2.delete()).isTrue();
@@ -243,11 +243,15 @@ public class RotatingServersTests extends FtpTestSupport {
 		public IntegrationFlow flow() {
 			return IntegrationFlows.from(Ftp.inboundAdapter(sf())
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
-							.localDirectory(new File(tmpDir))
+							.localDirectory(localDir())
 							.remoteDirectory("."),
 						e -> e.poller(Pollers.fixedDelay(1).advice(advice())))
 					.channel(MessageChannels.queue("files"))
 					.get();
+		}
+
+		protected File localDir() {
+			return new File(tmpDir, "standard");
 		}
 
 	}
@@ -260,6 +264,10 @@ public class RotatingServersTests extends FtpTestSupport {
 			return new RotatingServerAdvice(sf(), keyDirectories, true);
 		}
 
+		@Override
+		protected File localDir() {
+			return new File(tmpDir, "fair");
+		}
 	}
 
 	@Configuration
@@ -270,7 +278,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		public IntegrationFlow flow() {
 			return IntegrationFlows.from(Ftp.inboundAdapter(sf())
 							.filter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "rotate"))
-							.localDirectory(new File(tmpDir))
+							.localDirectory(new File(tmpDir, "variable"))
 							.localFilenameExpression("#remoteDirectory + T(java.io.File).separator + #root")
 							.remoteDirectory("."),
 						e -> e.poller(Pollers.fixedDelay(1).advice(advice())))

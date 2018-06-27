@@ -169,7 +169,7 @@ You can even return a different message
 ====
 You should not configure the poller with a `TaskExecutor` if an advice mutates the `MessageSource`.
 If an advice mutates the source, such mutations are not thread safe and could cause unexpected results, especially with high frequency pollers.
-Consider using a downstream ExecutorChannel instead of adding an executor to the poller if you need to process poll results concurrently.
+Consider using a downstream `ExecutorChannel` instead of adding an executor to the poller if you need to process poll results concurrently.
 ====
 
 .Advice Chain Ordering
