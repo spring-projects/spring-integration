@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,10 @@ import org.springframework.messaging.Message;
  * should be ignored and/or take action after the receive.
  *
  * @author Gary Russell
+ *
  * @since 4.2
  */
-public abstract class AbstractMessageSourceAdvice implements MethodInterceptor {
+public abstract class AbstractMessageSourceAdvice implements MethodInterceptor, MessageSourceMutator {
 
 	@Override
 	public final Object invoke(MethodInvocation invocation) throws Throwable {
@@ -44,21 +45,5 @@ public abstract class AbstractMessageSourceAdvice implements MethodInterceptor {
 		}
 		return afterReceive(result, (MessageSource<?>) target);
 	}
-
-	/**
-	 * Subclasses can decide whether to proceed with this poll.
-	 * @param source the message source.
-	 * @return true to proceed.
-	 */
-	public abstract boolean beforeReceive(MessageSource<?> source);
-
-	/**
-	 * Subclasses can take actions based on the result of the poll; e.g.
-	 * adjust the {@code trigger}. The message can also be replaced with a new one.
-	 * @param result the received message.
-	 * @param source the message source.
-	 * @return a message to continue to process the result, null to discard whatever the poll returned.
-	 */
-	public abstract Message<?> afterReceive(Message<?> result, MessageSource<?> source);
 
 }

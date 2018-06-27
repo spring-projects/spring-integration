@@ -202,6 +202,10 @@ New filters for detecting incomplete remote files are now provided.
 
 The `FtpOutboundGateway` and `SftpOutboundGateway` now support an option to remove the remote file after a successful transfer using the `GET` or `MGET` commands.
 
+A `RotatingServerAdvice` is now available to poll multiple servers and/or directories with the inbound channel adapters.
+
+Also inbound adapter `localFilenameExpression` s can contain the variable `#remoteDirectory` which contains the remote directory being polled.
+
 See <<ftp>> and <<sftp>> for more information.
 
 ==== Integration Properties

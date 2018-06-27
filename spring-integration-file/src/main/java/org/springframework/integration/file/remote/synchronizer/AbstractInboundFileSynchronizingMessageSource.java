@@ -164,6 +164,15 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 		this.scannerExplicitlySet = true;
 	}
 
+	/**
+	 * Return the underlying synchronizer.
+	 * @return the synchronizer.
+	 * @since 5.0.7
+	 */
+	public AbstractInboundFileSynchronizer<F> getSynchronizer() {
+		return this.synchronizer;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();

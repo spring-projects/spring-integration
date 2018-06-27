@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,16 +75,16 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	private final RemoteFileTemplate<F> remoteFileTemplate;
 
-	private volatile EvaluationContext evaluationContext;
+	private EvaluationContext evaluationContext;
 
-	private volatile String remoteFileSeparator = "/";
+	private String remoteFileSeparator = "/";
 
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
-	private volatile String temporaryFileSuffix = ".writing";
+	private String temporaryFileSuffix = ".writing";
 
-	private volatile Expression localFilenameGeneratorExpression;
+	private Expression localFilenameGeneratorExpression;
 
 	/**
 	 * the path on the remote mount as a String.
@@ -92,21 +92,26 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	private volatile Expression remoteDirectoryExpression;
 
 	/**
+	 * The current evaluation of the expression.
+	 */
+	private volatile String evaluatedRemoteDirectory;
+
+	/**
 	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
-	private volatile FileListFilter<F> filter;
+	private FileListFilter<F> filter;
 
 	/**
 	 * Should we <em>delete</em> the remote <b>source</b> files
 	 * after copying to the local directory? By default this is false.
 	 */
-	private volatile boolean deleteRemoteFiles;
+	private boolean deleteRemoteFiles;
 
 	/**
 	 * Should we <em>transfer</em> the remote file <b>timestamp</b>
 	 * to the local file? By default this is false.
 	 */
-	private volatile boolean preserveTimestamp;
+	private boolean preserveTimestamp;
 
 	private BeanFactory beanFactory;
 
@@ -164,6 +169,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 */
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectoryExpression = new LiteralExpression(remoteDirectory);
+		evaluateRemoteDirectory();
 	}
 
 	/**
@@ -182,13 +188,14 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	 * @see #setRemoteDirectoryExpression(Expression)
 	 */
 	public void setRemoteDirectoryExpressionString(String remoteDirectoryExpression) {
-		setRemoteDirectoryExpression(EXPRESSION_PARSER.parseExpression(remoteDirectoryExpression));
+		doSetRemoteDirectoryExpression(EXPRESSION_PARSER.parseExpression(remoteDirectoryExpression));
 	}
 
 
 	protected final void doSetRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		Assert.notNull(remoteDirectoryExpression, "'remoteDirectoryExpression' must not be null");
 		this.remoteDirectoryExpression = remoteDirectoryExpression;
+		evaluateRemoteDirectory();
 	}
 
 	/**
@@ -231,8 +238,10 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		if (this.evaluationContext == null) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
 		}
+		evaluateRemoteDirectory();
 		doInit();
 	}
+
 
 	/**
 	 * Subclasses can override to perform initialization - called from
@@ -269,10 +278,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			}
 			return;
 		}
-		final String remoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext, String.class);
+		if (this.logger.isTraceEnabled()) {
+			this.logger.trace("Synchronizing " + this.evaluatedRemoteDirectory + " to " + localDirectory);
+		}
 		try {
 			int transferred = this.remoteFileTemplate.execute(session -> {
-				F[] files = session.list(remoteDirectory);
+				F[] files = session.list(this.evaluatedRemoteDirectory);
 				if (!ObjectUtils.isEmpty(files)) {
 					List<F> filteredFiles = filterFiles(files);
 					if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
@@ -288,10 +299,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 					for (F file : filteredFiles) {
 						try {
-							if (file != null) {
-								if (!copyFileToLocalDirectory(remoteDirectory, file, localDirectory, session)) {
-									copied--;
-								}
+							if (file != null && !copyFileToLocalDirectory(this.evaluatedRemoteDirectory, file,
+									localDirectory, session)) {
+								copied--;
 							}
 						}
 						catch (RuntimeException e1) {
@@ -328,8 +338,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory,
 			Session<F> session) throws IOException {
-		String remoteFileName = this.getFilename(remoteFile);
-		String localFileName = this.generateLocalFileName(remoteFileName);
+		String remoteFileName = getFilename(remoteFile);
+		String localFileName = generateLocalFileName(remoteFileName);
 		String remoteFilePath = remoteDirectoryPath != null
 				? (remoteDirectoryPath + this.remoteFileSeparator + remoteFileName)
 				: remoteFileName;
@@ -438,9 +448,18 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	private String generateLocalFileName(String remoteFileName) {
 		if (this.localFilenameGeneratorExpression != null) {
-			return this.localFilenameGeneratorExpression.getValue(this.evaluationContext, remoteFileName, String.class);
+			return this.localFilenameGeneratorExpression.getValue(this.evaluationContext, remoteFileName,
+					String.class);
 		}
 		return remoteFileName;
+	}
+
+	protected void evaluateRemoteDirectory() {
+		if (this.evaluationContext != null) {
+			this.evaluatedRemoteDirectory = this.remoteDirectoryExpression.getValue(this.evaluationContext,
+					String.class);
+			this.evaluationContext.setVariable("remoteDirectory", this.evaluatedRemoteDirectory);
+		}
 	}
 
 	protected abstract boolean isFile(F file);

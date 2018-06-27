@@ -81,14 +81,17 @@ public class FtpTestSupport extends RemoteFileTestSupport {
 	}
 
 	public static SessionFactory<FTPFile> sessionFactory() {
+		return new CachingSessionFactory<FTPFile>(rawSessionFactory());
+	}
+
+	protected static DefaultFtpSessionFactory rawSessionFactory() {
 		DefaultFtpSessionFactory sf = new DefaultFtpSessionFactory();
 		sf.setHost("localhost");
 		sf.setPort(port);
 		sf.setUsername("foo");
 		sf.setPassword("foo");
 		sf.setClientMode(FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE);
-
-		return new CachingSessionFactory<FTPFile>(sf);
+		return sf;
 	}
 
 	private static class TestUserManager implements UserManager {
