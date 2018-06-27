@@ -75,7 +75,7 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 	 * to the {@link org.springframework.integration.util.ErrorHandlingTaskExecutor}.
 	 * @param errorHandler the {@link ErrorHandler} to use.
 	 * @return the spec.
-	 * @see #taskExecutor
+	 * @see #taskExecutor(Executor)
 	 */
 	public PollerSpec errorHandler(ErrorHandler errorHandler) {
 		this.target.setErrorHandler(errorHandler);

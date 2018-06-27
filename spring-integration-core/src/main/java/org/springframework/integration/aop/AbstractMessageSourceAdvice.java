@@ -27,6 +27,7 @@ import org.springframework.messaging.Message;
  * should be ignored and/or take action after the receive.
  *
  * @author Gary Russell
+ *
  * @since 4.2
  */
 public abstract class AbstractMessageSourceAdvice implements MethodInterceptor, MessageSourceMutator {

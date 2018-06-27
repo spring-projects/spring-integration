@@ -24,6 +24,7 @@ import org.springframework.messaging.Message;
  * {@link MessageSource#receive()} is called.
  *
  * @author Gary Russell
+ *
  * @since 5.0.7.
  *
  */

@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * A smart poller advice that rotates across multiple remote servers/directories.
  *
  * @author Gary Russell
+ *
  * @since 5.0.7
  *
  */
@@ -87,8 +88,6 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	/**
 	 * Implementations can reconfigure the message source before and/or after
 	 * a poll.
-	 * @since 5.0.7
-	 *
 	 */
 	public interface RotationPolicy {
 
@@ -112,8 +111,6 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	 * is reached, starts again at the beginning. If the fair option is true
 	 * the rotation occurs on every poll, regardless of result. Otherwise rotation
 	 * occurs when the current pair returns no message.
-	 * @since 5.0.7
-	 *
 	 */
 	public static class StandardRotationPolicy implements RotationPolicy {
 
@@ -218,10 +215,7 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 
 	/**
 	 * A {@link DelegatingSessionFactory} key/directory pair.
-	 * @since 5.0.7
-	 *
 	 */
-
 	public static class KeyDirectory {
 
 		private final String key;

@@ -58,6 +58,7 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
 
 /**
  * @author Gary Russell
+ *
  * @since 5.0.7
  *
  */
