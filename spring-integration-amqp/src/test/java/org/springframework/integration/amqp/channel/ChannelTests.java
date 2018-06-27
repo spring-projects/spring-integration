@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
@@ -124,20 +123,21 @@ public class ChannelTests {
 			catch (Exception e) {
 			}
 		});
-		this.channel.send(new GenericMessage<String>("foo"));
+		this.channel.send(new GenericMessage<>("foo"));
 		latch.await(10, TimeUnit.SECONDS);
 		latch.reset();
 		BlockingQueueConsumer consumer = (BlockingQueueConsumer) TestUtils.getPropertyValue(this.channel,
 				"container.consumers", Set.class).iterator().next();
 		connectionFactory.destroy();
 		waitForNewConsumer(this.channel, consumer);
-		this.channel.send(new GenericMessage<String>("bar"));
+		this.channel.send(new GenericMessage<>("bar"));
 		latch.await(10, TimeUnit.SECONDS);
 		this.channel.destroy();
 		this.pubSubWithEP.destroy();
 		this.withEP.destroy();
 		this.pollableWithEP.destroy();
-		assertEquals(0, TestUtils.getPropertyValue(connectionFactory, "connectionListener.delegates", Collection.class).size());
+		assertEquals(0,
+				TestUtils.getPropertyValue(connectionFactory, "connectionListener.delegates", Collection.class).size());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -151,8 +151,7 @@ public class ChannelTests {
 			synchronized (consumersMonitor) {
 				if (!consumers.isEmpty()) {
 					BlockingQueueConsumer newConsumer = consumers.iterator().next();
-					if (newConsumer != consumer && TestUtils.getPropertyValue(newConsumer,
-							"consumerTags", Map.class).size() > 0) {
+					if (newConsumer != consumer && newConsumer.getConsumerTags().size() > 0) {
 						break;
 					}
 				}
@@ -221,7 +220,7 @@ public class ChannelTests {
 	}
 
 	@Test
-	public void extractPayloadTests() throws Exception {
+	public void extractPayloadTests() {
 		Foo foo = new Foo("bar");
 		Message<?> message = MessageBuilder.withPayload(foo).setHeader("baz", "qux").build();
 		this.pollableWithEP.send(message);
@@ -247,7 +246,7 @@ public class ChannelTests {
 	}
 
 	@Test
-	public void messageConversionTests() throws Exception {
+	public void messageConversionTests() {
 		RabbitTemplate amqpTemplate = new RabbitTemplate(this.connectionFactory);
 		MessageConverter messageConverter = mock(MessageConverter.class);
 		amqpTemplate.setMessageConverter(messageConverter);
@@ -303,14 +302,11 @@ public class ChannelTests {
 			}
 			Foo other = (Foo) obj;
 			if (this.bar == null) {
-				if (other.bar != null) {
-					return false;
-				}
+				return other.bar == null;
 			}
-			else if (!this.bar.equals(other.bar)) {
-				return false;
+			else {
+				return this.bar.equals(other.bar);
 			}
-			return true;
 		}
 
 	}
