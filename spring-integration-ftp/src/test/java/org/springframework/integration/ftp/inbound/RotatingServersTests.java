@@ -58,6 +58,7 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0.7
  *
@@ -103,10 +104,6 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(f2.exists()).isTrue();
 		File f3 = new File(tmpDir + File.separator + "standard" + File.separator + "f3");
 		assertThat(f3.exists()).isTrue();
-		assertThat(f1.delete()).isTrue();
-		assertThat(f2.delete()).isTrue();
-		assertThat(f3.delete()).isTrue();
-		ctx.getBean("files", QueueChannel.class);
 		assertThat(ctx.getBean("files", QueueChannel.class).getQueueSize()).isEqualTo(3);
 		ctx.close();
 	}
@@ -124,9 +121,6 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(f2.exists()).isTrue();
 		File f3 = new File(tmpDir + File.separator + "fair" + File.separator + "f3");
 		assertThat(f3.exists()).isTrue();
-		assertThat(f1.delete()).isTrue();
-		assertThat(f2.delete()).isTrue();
-		assertThat(f3.delete()).isTrue();
 		assertThat(ctx.getBean("files", QueueChannel.class).getQueueSize()).isEqualTo(3);
 		ctx.close();
 	}
@@ -144,12 +138,6 @@ public class RotatingServersTests extends FtpTestSupport {
 		assertThat(f2.exists()).isTrue();
 		File f3 = new File(tmpDir + File.separator + "variable" + File.separator + "fiz" + File.separator + "f3");
 		assertThat(f3.exists()).isTrue();
-		assertThat(f1.delete()).isTrue();
-		assertThat(f2.delete()).isTrue();
-		assertThat(f3.delete()).isTrue();
-		assertThat(f1.getParentFile().delete()).isTrue();
-		assertThat(f2.getParentFile().delete()).isTrue();
-		assertThat(f3.getParentFile().delete()).isTrue();
 		assertThat(ctx.getBean("files", QueueChannel.class).getQueueSize()).isEqualTo(3);
 		ctx.close();
 	}
@@ -162,7 +150,6 @@ public class RotatingServersTests extends FtpTestSupport {
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		// there's an extra getSession() with this adapter in listFiles
 		assertThat(sfCalls).containsExactly(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1, 1, 2, 2, 3);
-		ctx.getBean("files", QueueChannel.class);
 		assertThat(ctx.getBean("files", QueueChannel.class).getQueueSize()).isEqualTo(3);
 		ctx.close();
 	}
