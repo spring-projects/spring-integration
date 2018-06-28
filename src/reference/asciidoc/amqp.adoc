@@ -1314,7 +1314,11 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_clusterId`
 * `amqp_contentEncoding`
 * `amqp_contentLength`
+<<<<<<< HEAD
 * `content-type` (see <<amqp-content-type>>)
+=======
+* `content-type` (see "`<<amqp-content-type>>`")
+>>>>>>> Accommodating changes that came while I was editing
 * `amqp_correlationId`
 * `amqp_delay`
 * `amqp_deliveryMode`
@@ -1341,7 +1345,10 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_consumerTag`
 * `amqp_consumerQueue`
 
+<<<<<<< HEAD
 [[header-copy-caution]]
+=======
+>>>>>>> Accommodating changes that came while I was editing
 CAUTION: As mentioned earlier in this section, using a header mapping pattern of`*` is a common way to copy all headers.
 However, this can have some unexpected side effects, because certain RabbitMQ proprietary properties/headers are also
 copied.

@@ -69,7 +69,7 @@ See <<json-transformers>> for more information.
 
 Starting with version 5.0.5, generated bean names for the components in an `IntegrationFlow` include the flow bean name, followed by a dot, as a prefix. For example, if a flow bean were named `flowBean`, a generated bean might be named `flowBean.generatedBean`.
 
-See <<java-dsl-flows>> for more information.
+See "`<<java-dsl-flows>>`" for more information.
 
 [[x5.1-aggregator]]
 ==== Aggregator Changes
@@ -77,14 +77,14 @@ See <<java-dsl-flows>> for more information.
 If the `groupTimeout` is evaluated to a negative value, an aggregator now expires the group immediately.
 Only `null` is considered as a signal to do nothing for the current message.
 
-See <<aggregator>> for more information.
+See "`<<aggregator>>`" for more information.
 
 [[x5.1-publisher]]
 ==== @Publisher annotation changes
 
 Starting with version 5.1, you must explicitly turn on the `@Publisher` AOP functionality by using `@EnablePublisher` or by using the `<int:enable-publisher>` child element on `<int:annotation-config>`.
 
-See <<publisher-annotation>> for more information.
+See "`<<publisher-annotation>>`" for more information.
 
 [[x5.1-amqp]]
 === AMQP Changes
@@ -100,7 +100,7 @@ See <<amqp-content-type>> for more information.
 
 A confusing `max-rows-per-poll` property on the JDBC Inbound Channel Adapter and JDBC Outbound Gateway has been deprecated in favor of the newly introduced `max-rows` property.
 
-See <<jdbc>> for more information.
+See "`<<jdbc>>`" for more information.
 
 [[x5.1-ftp-sftp]]
 === FTP and SFTP Changes
@@ -109,7 +109,8 @@ A `RotatingServerAdvice` is now available to poll multiple servers and directori
 See <<ftp-rotating-server-advice>> and <<sftp-rotating-server-advice>> for more information.
 
 Also, inbound adapter `localFilenameExpression` instances can contain the `#remoteDirectory` variable, which contains the remote directory being polled.
-The generic type of the comparators, used to sort the fetched file list for the streaming adapters, has changed from `Comparator<AbstractFileInfo<F>>` to simply `Comparator<F>`.
+The generic type of the comparators (used to sort the fetched file list for the streaming adapters) has changed from `Comparator<AbstractFileInfo<F>>` to `Comparator<F>`.
 See <<ftp-streaming>> and <<sftp-streaming>> for more information.
 
-In addition, the synchronizers for inbound channel adapters can now be provided with a `Comparator`; this is useful when using `maxFetchSize` to limit the files retrieved.
+In addition, the synchronizers for inbound channel adapters can now be provided with a `Comparator`.
+This is useful when using `maxFetchSize` to limit the files retrieved.
