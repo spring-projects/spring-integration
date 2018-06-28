@@ -2,6 +2,12 @@
 = Preface
 [preface]
 
+This chapter includes:
+
+* <<system-requirements>>
+* <<code-conventions>>
+* <<guide-conventions>>
+
 [[system-requirements]]
 == Requirements
 
@@ -10,25 +16,26 @@ This section details the compatible http://www.oracle.com/technetwork/java/javas
 [[supported-java-versions]]
 === Compatible Java Versions
 
-For _Spring Integration_ *5.0.x*, the *minimum* compatible Java version is *Java SE 8*.
+For Spring Integration 5.0.x, the minimum compatible Java version is Java SE 8.
 Older versions of Java are not supported.
 
 [[supported-spring-versions]]
 === Compatible Versions of the Spring Framework
 
-_Spring Integration_ *5.0.x* requires _Spring Framework_ *5.0* or later.
+Spring Integration 5.0.x requires Spring Framework 5.0 or later.
 
 [[code-conventions]]
-=== Code Conventions
+== Code Conventions
 
-The Spring Framework 2.0 introduced support for namespaces, which simplifies the XML configuration of the application context, and consequently Spring Integration provides broad namespace support.
-This reference guide applies the following conventions for all code examples that use namespace support:
+Spring Framework 2.0 introduced support for namespaces, which simplifies the XML configuration of the application context and lets Spring Integration provide broad namespace support.
 
-The *int* namespace prefix will be used for Spring Integration's core namespace support.
-Each Spring Integration adapter type (module) will provide its own namespace, which is configured using the following convention:
+In this reference guide, the `int` namespace prefix is used for Spring Integration's core namespace support.
+Each Spring Integration adapter type (also called a module) provides its own namespace, which is configured by using the following convention:
 
-*int-* followed by the name of the module, e.g.
-*int-twitter*, *int-stream*, …
+`int-` followed by the name of the module -- for example, `int-twitter`, `int-stream`, and so on.
+The following example shows the `int`, `int-twitter`, and `int-stream` namespaces in use:
+
+====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -49,17 +56,18 @@ Each Spring Integration adapter type (module) will provide its own namespace, wh
 …
 </beans>
 ----
+====
 
-For a detailed explanation regarding Spring Integration's namespace support see _<<configuration-namespace>>_.
+For a detailed explanation regarding Spring Integration's namespace support, see "`<<configuration-namespace>>`".
 
-NOTE: Please note that the namespace prefix can be freely chosen.
+NOTE: The namespace prefix can be freely chosen.
 You may even choose not to use any namespace prefixes at all.
-Therefore, apply the convention that suits your application needs best.
+Therefore, you should apply the convention that best suits your application.
 Be aware, though, that SpringSource Tool Suite™ (STS) uses the same namespace conventions for Spring Integration as used in this reference guide.
 
+[[guide-conventions]]
+== Conventions in This Guide
 
-== Conventions in this Book
-
-In some cases, to aid formatting, when specifying long fully-qualified class names, we shorten
-the package `org.springframework` to `o.s` and `org.springframework.integration` to `o.s.i`, such as with
+In some cases, to aid formatting when specifying long fully qualified class names, we shorten
+`org.springframework` to `o.s` and `org.springframework.integration` to `o.s.i`, such as with
 `o.s.i.transaction.TransactionSynchronizationFactory`.

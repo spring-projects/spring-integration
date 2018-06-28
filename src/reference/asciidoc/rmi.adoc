@@ -1,22 +1,22 @@
 [[rmi]]
 == RMI Support
 
-[[rmi-intro]]
-=== Introduction
 
-This Chapter explains how to use RMI specific channel adapters to distribute a system over multiple JVMs.
-The first section will deal with sending messages over RMI.
+This chapter explains how to use channel adapters that are specific to RMI (Remote Method Invocation) to distribute a system over multiple JVMs.
+The first section deals with sending messages over RMI.
 The second section shows how to receive messages over RMI.
-The last section shows how to define rmi channel adapters through the namespace support.
+The last section shows how to define RMI channel adapters by using the namespace support.
 
 [[rmi-outbound]]
 === Outbound RMI
 
-To send messages from a channel over RMI, simply define an `RmiOutboundGateway`.
-This gateway will use Spring's RmiProxyFactoryBean internally to create a proxy for a remote gateway.
-Note that to invoke a remote interface that doesn't use Spring Integration you should use a service activator in combination with Spring's RmiProxyFactoryBean.
+To send messages from a channel over RMI, you can define an `RmiOutboundGateway`.
+This gateway uses Spring's `RmiProxyFactoryBean` internally to create a proxy for a remote gateway.
+Note that, to invoke a remote interface that does not use Spring Integration, you should use a service activator in combination with Spring's RmiProxyFactoryBean.
 
-To configure the outbound gateway write a bean definition like this:
+To configure the outbound gateway, you can write a bean definition similar the following:
+
+====
 [source,xml]
 ----
 <bean id="rmiOutGateway" class=org.spf.integration.rmi.RmiOutboundGateway>
@@ -24,30 +24,35 @@ To configure the outbound gateway write a bean definition like this:
     <property name="replyChannel" value="replies"/>
 </bean>
 ----
+====
 
 [[rmi-inbound]]
 === Inbound RMI
 
-To receive messages over RMI you need to use a `RmiInboundGateway`.
-This gateway can be configured like this
+To receive messages over RMI, you need to use an `RmiInboundGateway`.
+You can configure the gateway as shown in the following example:
+
+====
 [source,xml]
 ----
 <bean id="rmiInGateway" class=org.spf.integration.rmi.RmiInboundGateway>
     <property name="requestChannel" value="requests"/>
 </bean>
 ----
+====
 
-IMPORTANT: If you use an `errorChannel` on an inbound gateway, it would be normal for the error flow to return a result (or throw an exception).
+IMPORTANT: If you use an `errorChannel` on an inbound gateway, it the error flow normally returns a result or throws an exception.
 This is because it is likely that there is a corresponding outbound gateway waiting for a response of some kind.
-Consuming a message on the error flow, and not replying, will result in no reply at the inbound gateway.
-Exceptions (on the main flow when there is no errorChannel, or on the error flow) will be propagated to the corresponding inbound gateway.
+Consuming a message on the error flow and not replying results in no reply for the inbound gateway.
+Exceptions (on the main flow when there is no `errorChannel` or on the error flow) propagate to the corresponding inbound gateway.
 
 [[rmi-namespace]]
 === RMI namespace support
 
-To configure the inbound gateway you can choose to use the namespace support for it.
-The following code snippet shows the different configuration options that are supported.
+To configure the inbound gateway, you can use the namespace support for it.
+The following code snippet shows the different configuration options that are supported:
 
+====
 [source,xml]
 ----
 <int-rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel"/>
@@ -64,10 +69,12 @@ The following code snippet shows the different configuration options that are su
 <int-rmi:inbound-gateway id="gatewayWithExecutorRef" request-channel="testChannel"
     remote-invocation-executor="invocationExecutor"/>
 ----
+====
 
-To configure the outbound gateway you can use the namespace support as well.
-The following code snippet shows the different configuration for an outbound rmi gateway.
+You can also use the namespace support to configure the outbound gateway.
+The following code snippet shows the different configuration for an outbound RMI gateway:
 
+====
 [source,xml]
 ----
 <int-rmi:outbound-gateway id="gateway"
@@ -75,9 +82,13 @@ The following code snippet shows the different configuration for an outbound rmi
     remote-channel="testChannel"
     host="localhost"/>
 ----
+====
 
 === Configuring with Java Configuration
 
+The following example shows how to configure an inbound gateway and an outbound gateway with Java:
+
+====
 [source, java]
 ----
 @Bean
@@ -97,9 +108,10 @@ public RmiOutboundGateway outbound() {
     return gateway;
 }
 ----
+====
 
-Starting with _version 4.3_, the outbound gateway has a second constructor that takes a RmiProxyFactoryBeanConfigurer instance along with the service url argument.
-This allows further configuration before the proxy is created; for example, to inject a Spring Security `ContextPropagatingRemoteInvocationFactory`:
+As of version 4.3, the outbound gateway has a second constructor that takes an `RmiProxyFactoryBeanConfigurer` instance, along with the service url argument.
+It allows further configuration before the proxy is created -- for example, to inject a Spring Security `ContextPropagatingRemoteInvocationFactory`, as the following example shows:
 
 [source, java]
 ----
@@ -115,4 +127,4 @@ public RmiOutboundGateway outbound() {
 }
 ----
 
-Starting with _version 5.0_, this can be set using the XML namespace, using the `configurer` attribute.
+Starting with version 5.0, you can set this with the XML namespace by using the `configurer` attribute.

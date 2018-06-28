@@ -1,18 +1,17 @@
 [[splitter]]
 === Splitter
 
-[[splitter-annotation]]
-==== Introduction
+The splitter is a component whose role is to partition a message into several parts and send the resulting messages to be processed independently.
+Very often, they are upstream producers in a pipeline that includes an aggregator.
 
-The Splitter is a component whose role is to partition a message in several parts, and send the resulting messages to be processed independently.
-Very often, they are upstream producers in a pipeline that includes an Aggregator.
+==== Programming Model
 
-==== Programming model
+The API for performing splitting consists of one base class, `AbstractMessageSplitter`.
+It is a `MessageHandler` implementation that encapsulates features common to splitters, such as filling in the appropriate message headers (`CORRELATION_ID`, `SEQUENCE_SIZE`, and `SEQUENCE_NUMBER`) on the messages that are produced.
+This filling enables tracking down the messages and the results of their processing (in a typical scenario, these headers get copied to the messages that are produced by the various transforming endpoints).
+The values can then be used, for example, by a http://www.eaipatterns.com/DistributionAggregate.html[composed message processor].
 
-The API for performing splitting consists of one base class, `AbstractMessageSplitter`, which is a `MessageHandler` implementation, encapsulating features which are common to splitters, such as filling in the appropriate message headers `CORRELATION_ID`, `SEQUENCE_SIZE`, and `SEQUENCE_NUMBER` on the messages that are produced.
-This enables tracking down the messages and the results of their processing (in a typical scenario, these headers would be copied over to the messages that are produced by the various transforming endpoints), and use them, for example, in a http://www.eaipatterns.com/DistributionAggregate.html[Composed Message Processor] scenario.
-
-An excerpt from `AbstractMessageSplitter` can be seen below:
+The following example shows an excerpt from `AbstractMessageSplitter`:
 
 [source,java]
 ----
@@ -24,26 +23,27 @@ public abstract class AbstractMessageSplitter
 }
 ----
 
-To implement a specific Splitter in an application, extend `AbstractMessageSplitter` and implement the `splitMessage` method, which contains logic for splitting the messages.
-The return value may be one of the following:
+To implement a specific splitter in an application, you can extend `AbstractMessageSplitter` and implement the `splitMessage` method, which contains logic for splitting the messages.
+The return value can be one of the following:
 
-* A `Collection` or an array of Messages, or an `Iterable` (or `Iterator`) that iterates over Messages - in this case the messages will be sent as such (after the `CORRELATION_ID`, `SEQUENCE_SIZE` and `SEQUENCE_NUMBER` are populated).
-Using this approach gives more control to the developer, for example for populating custom message headers as part of the splitting process.
+* A `Collection` or an array of messages or an `Iterable` (or `Iterator`) that iterates over messages.
+In this case, the messages are sent as messages (after the `CORRELATION_ID`, `SEQUENCE_SIZE` and `SEQUENCE_NUMBER` are populated).
+Using this approach gives you more control -- for example, to populate custom message headers as part of the splitting process.
 
-* A `Collection` or an array of non-Message objects, or an `Iterable` (or `Iterator`) that iterates over non-Message objects - works like the prior case, except that each collection element will be used as a Message payload.
-Using this approach allows developers to focus on the domain objects without having to consider the Messaging system and produces code that is easier to test.
+* A `Collection` or an array of non-message objects or an `Iterable` (or `Iterator`) that iterates over non-message objects.
+It works like the prior case, except that each collection element is used as a message payload.
+Using this approach lets you focus on the domain objects without having to consider the messaging system and produces code that is easier to test.
 
-* a `Message` or non-Message object (but not a Collection or an Array) - it works like the previous cases, except a single message will be sent out.
-
-
+* a `Message` or non-message object (but not a collection or an array).
+It works like the previous cases, except that a single message is sent out.
 
 In Spring Integration, any POJO can implement the splitting algorithm, provided that it defines a method that accepts a single argument and has a return value.
-In this case, the return value of the method will be interpreted as described above.
+In this case, the return value of the method is interpreted as described earlier.
 The input argument might either be a `Message` or a simple POJO.
-In the latter case, the splitter will receive the payload of the incoming message.
-Since this decouples the code from the Spring Integration API and will typically be easier to test, it is the recommended approach.
+In the latter case, the splitter receives the payload of the incoming message.
+We recommend this approach, because it decouples the code from the Spring Integration API and is typically easier to test.
 
-*Iterators*
+===== Iterators
 
 Starting with _version 4.1_, the `AbstractMessageSplitter` supports the `Iterator` type for the `value` to split.
 Note, in the case of an `Iterator` (or `Iterable`), we don't have access to the number of underlying items and the `SEQUENCE_SIZE` header is set to `0`.
@@ -57,61 +57,49 @@ An `Iterator` object is useful to avoid the need for building an entire collecti
 For example, when underlying items are populated from some external system (e.g.
 DataBase or FTP `MGET`) using iterations or streams.
 
-*Stream and Flux*
+===== Stream and Flux
 
-Starting with _version 5.0_, the `AbstractMessageSplitter` supports the Java `Stream` and Reactive Streams `Publisher` types for the `value` to split.
-In this case the target `Iterator` is built on their iteration functionality.
+Starting with version 5.0, the `AbstractMessageSplitter` supports the Java `Stream` and Reactive Streams `Publisher` types for the `value` to split.
+In this case, the target `Iterator` is built on their iteration functionality.
 
-In addition, if Splitter's output channel is an instance of a `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` produces a `Flux` result instead of an `Iterator` and the output channel is _subscribed_ to this `Flux` for back-pressure based splitting on downstream flow demand.
+In addition, if the splitter's output channel is an instance of a `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` produces a `Flux` result instead of an `Iterator`, and the output channel is subscribed to this `Flux` for back-pressure-based splitting on downstream flow demand.
 
-[[splitter-config]]
-==== Configuring Splitter
-
-===== Configuring a Splitter using XML
+==== Configuring a Splitter with XML
 
 A splitter can be configured through XML as follows:
+
+====
 [source,xml]
 ----
 <int:channel id="inputChannel"/>
 
-<int:splitter id="splitter"  <1>
-  ref="splitterBean"  <2>
-  method="split"  <3>
-  input-channel="inputChannel"  <4>
+<int:splitter id="splitter"         <1>
+  ref="splitterBean"                <2>
+  method="split"                    <3>
+  input-channel="inputChannel"      <4>
   output-channel="outputChannel" /> <5>
 
 <int:channel id="outputChannel"/>
 
 <beans:bean id="splitterBean" class="sample.PojoSplitter"/>
 ----
-
-
-
-<1> The id of the splitter is _optional_.
-
-
-
+<1> The ID of the splitter is optional.
 <2> A reference to a bean defined in the application context.
-The bean must implement the splitting logic as described in the section above ._Optional_.
-If reference to a bean is not provided, then it is assumed that the _payload_ of the Message that arrived on the `input-channel` is an implementation of `java.util.Collection` and the default splitting logic will be applied to the Collection, incorporating each individual element into a Message and sending it to the `output-channel`.
-
-
-
-<3> The method (defined on the bean specified above) that implements the splitting logic._Optional_.
-
-
-
+The bean must implement the splitting logic, as described in the earlier section.
+Optional.
+If a reference to a bean is not provided, it is assumed that the payload of the message that arrived on the `input-channel` is an implementation of `java.util.Collection` and the default splitting logic is applied to the collection, incorporating each individual element into a message and sending it to the `output-channel`.
+<3> The method (defined on the bean) that implements the splitting logic.
+Optional.
 <4> The input channel of the splitter.
-_Required_.
+Required.
+<5> The channel to which the splitter sends the results of splitting the incoming message.
+Optional (because incoming messages can specify a reply channel themselves).
+====
 
+We recommend using a `ref` attribute if the custom splitter implementation can be referenced in other `<splitter>` definitions.
+However if the custom splitter handler implementation should be scoped to a single definition of the `<splitter>`, you can configure an inner bean definition, as the following example follows:
 
-
-<5> The channel to which the splitter will send the results of splitting the incoming message.
-_Optional (because incoming
-          messages can specify a reply channel themselves)_.
-
-Using a `ref` attribute is generally recommended if the custom splitter implementation may be referenced in other `<splitter>` definitions.
-However if the custom splitter handler implementation should be scoped to a single definition of the `<splitter>`, configure an inner bean definition:
+====
 [source,xml]
 ----
 <int:splitter id="testSplitter" input-channel="inChannel" method="split"
@@ -119,19 +107,24 @@ However if the custom splitter handler implementation should be scoped to a sing
   <beans:bean class="org.foo.TestSplitter"/>
 </int:splitter>
 ----
+====
 
-NOTE: Using both a `ref` attribute and an inner handler definition in the same `<int:splitter>` configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
+NOTE: Using both a `ref` attribute and an inner handler definition in the same `<int:splitter>` configuration is not allowed, as it creates an ambiguous condition and results in an exception being thrown.
 
-IMPORTANT: If the "ref" attribute references a bean that extends `AbstractMessageProducingHandler` (such as splitters provided by the framework itself), the configuration is optimized by injecting the output channel into the handler directly.
-In this case, each "ref" must be to a separate bean instance (or a `prototype`-scoped bean), or use the inner `<bean/>` configuration type.
-However, this optimization only applies if you don't provide any splitter-specific attributes in the splitter XML definition.
-If you inadvertently reference the same message handler from multiple beans, you will get a configuration exception.
+IMPORTANT: If the `ref` attribute references a bean that extends `AbstractMessageProducingHandler` (such as splitters provided by the framework itself), the configuration is optimized by injecting the output channel into the handler directly.
+In this case, each `ref` must be a separate bean instance (or a `prototype`-scoped bean) or use the inner `<bean/>` configuration type.
+However, this optimization applies only if you do not provide any splitter-specific attributes in the splitter XML definition.
+If you inadvertently reference the same message handler from multiple beans, you get a configuration exception.
 
-===== Configuring a Splitter with Annotations
+==== Configuring a Splitter with Annotations
 
 The `@Splitter` annotation is applicable to methods that expect either the `Message` type or the message payload type, and the return values of the method should be a `Collection` of any type.
-If the returned values are not actual `Message` objects, then each item will be wrapped in a Message as its payload.
-Each message will be sent to the designated output channel for the endpoint on which the `@Splitter` is defined.
+If the returned values are not actual `Message` objects, each item is wrapped in a `Message` as the payload of the `Message`.
+Each resulting `Message` is sent to the designated output channel for the endpoint on which the `@Splitter` is defined.
+
+The following example shows how to configure a splitter by using the `@Splitter` annotation:
+
+====
 [source,java]
 ----
 @Splitter
@@ -139,7 +132,8 @@ List<LineItem> extractItems(Order order) {
     return order.getItems()
 }
 ----
+====
 
-Also see <<advising-with-annotations>>.
+See also "`<<advising-with-annotations>>`".
 
-Also see <<java-dsl-splitters>> in Java DSL chapter.
+See also "`<<java-dsl-splitters>>`" in the Java DSL chapter.

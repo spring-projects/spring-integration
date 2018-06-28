@@ -1,38 +1,52 @@
 [[ws]]
 == Web Services Support
 
+This chapter describes Spring Integration's support for web services, including:
+
+* <<webservices-outbound>>
+* <<webservices-inbound>>
+* <<webservices-namespace>>
+* <<outbound-uri>>
+* <<ws-message-headers>>
+* <<mtom-support>>
+
 [[webservices-outbound]]
 === Outbound Web Service Gateways
 
-To invoke a Web Service upon sending a message to a channel, there are two options - both of which build upon the http://projects.spring.io/spring-ws/[Spring Web Services] project: `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway`.
-The former will accept either a `String` or `javax.xml.transform.Source` as the message payload.
-The latter provides support for any implementation of the `Marshaller` and `Unmarshaller` interfaces.
-Both require a Spring Web Services `DestinationProvider` for determining the URI of the Web Service to be called.
+To invoke a web service when you send a message to a channel, you have two options, both of which build upon the http://projects.spring.io/spring-ws/[Spring Web Services] project: `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway`.
+The former accepts either a `String` or `javax.xml.transform.Source` as the message payload.
+The latter supports any implementation of the `Marshaller` and `Unmarshaller` interfaces.
+Both require a Spring Web Services `DestinationProvider`, to determine the URI of the web service to be called.
+The following example shows both options for invoking a web service:
+
+====
 [source,java]
 ----
  simpleGateway = new SimpleWebServiceOutboundGateway(destinationProvider);
 
  marshallingGateway = new MarshallingWebServiceOutboundGateway(destinationProvider, marshaller);
-
 ----
+====
 
-NOTE: When using the namespace support described below, you will only need to set a URI.
-Internally, the parser will configure a fixed URI `DestinationProvider` implementation.
-If you do need dynamic resolution of the URI at runtime, however, then the `DestinationProvider` can provide such behavior as looking up the URI from a registry.
-See the Spring Web Services http://docs.spring.io/spring-ws/docs/current/api/org/springframework/ws/client/support/destination/DestinationProvider.html[DestinationProvider] JavaDoc for more information about this strategy.
+NOTE: When using the namespace support (<<webservices-namespace,described later>>), you need only set a URI.
+Internally, the parser configures a fixed URI `DestinationProvider` implementation.
+If you need dynamic resolution of the URI at runtime, however, then the `DestinationProvider` can provide such behavior as looking up the URI from a registry.
+See the Spring Web Services http://docs.spring.io/spring-ws/docs/current/api/org/springframework/ws/client/support/destination/DestinationProvider.html[`DestinationProvider`] Javadoc for more information about this strategy.
 
-Starting with _version 5.0_ the `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway` can be supplied with an external `WebServiceTemplate` instance, which may be configured for any custom properties, including `checkConnectionForFault` allowing your application to deal with non-conforming services.
+Starting with version 5.0, you can supply the `SimpleWebServiceOutboundGateway` and `MarshallingWebServiceOutboundGateway` with an external `WebServiceTemplate` instance, which you can configure for any custom properties, including `checkConnectionForFault` (which allows your application to deal with non-conforming services).
 
-For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/client.html[client access] as well as the chapter covering http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[Object/XML mapping].
+For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/client.html[client access] and the chapter covering http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[Object/XML mapping].
 
 [[webservices-inbound]]
 === Inbound Web Service Gateways
 
-To send a message to a channel upon receiving a Web Service invocation, there are two options again: `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway`.
-The former will extract a `javax.xml.transform.Source` from the `WebServiceMessage` and set it as the message payload.
-The latter provides support for implementation of the `Marshaller` and `Unmarshaller` interfaces.
-If the incoming web service message is a SOAP message the SOAP Action header will be added to the headers of the`Message` that is forwarded onto the request channel.
+To send a message to a channel upon receiving a web service invocation, you again have two options: `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway`.
+The former extracts a `javax.xml.transform.Source` from the `WebServiceMessage` and sets it as the message payload.
+The latter supports implementation of the `Marshaller` and `Unmarshaller` interfaces.
+If the incoming web service message is a SOAP message, the SOAP action header is added to the headers of the `Message` that is forwarded onto the request channel.
+The following example shows both options:
 
+====
 [source,java]
 ----
  simpleGateway = new SimpleWebServiceInboundGateway();
@@ -41,18 +55,18 @@ If the incoming web service message is a SOAP message the SOAP Action header wil
 
  marshallingGateway = new MarshallingWebServiceInboundGateway(marshaller);
  //set request and optionally reply channel
-
 ----
+====
 
 Both gateways implement the Spring Web Services `MessageEndpoint` interface, so they can be configured with a `MessageDispatcherServlet` as per standard Spring Web Services configuration.
 
-For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/server.html[creating a Web Service].
+For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/server.html[creating a web service].
 The chapter covering http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[Object/XML mapping] is also applicable again.
 
-To include the `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway` configurations to the Spring WS
-infrastructure you should add the `EndpointMapping` definition between `MessageDispatcherServlet` and the target
-`MessageEndpoint` implementations like you do that with normal Spring WS application.
-For this purpose (from Spring Integration perspective), the Spring WS provides these convenient `EndpointMapping`
+To add the `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway` configurations to the Spring WS
+infrastructure, you should add the `EndpointMapping` definition between `MessageDispatcherServlet` and the target
+`MessageEndpoint` implementations, as you would for a normal Spring WS application.
+For this purpose (from the Spring Integration perspective), Spring WS provides the following convenient `EndpointMapping`
 implementations:
 
 * `o.s.ws.server.endpoint.mapping.UriEndpointMapping`
@@ -60,42 +74,50 @@ implementations:
 * `o.s.ws.soap.server.endpoint.mapping.SoapActionEndpointMapping`
 * `o.s.ws.server.endpoint.mapping.XPathPayloadEndpointMapping`
 
-The beans for these classes must be specified in the application context referencing to the
+You must specify the beans for these classes in the application context and reference the
 `SimpleWebServiceInboundGateway` and/or `MarshallingWebServiceInboundGateway` bean definitions according to the WS
 mapping algorithm.
 
-Please, refer to the http://docs.spring.io/spring-ws/docs/current/reference/html/server.html#server-endpoint-mapping[Endpoint mappings]
-for the more information.
+See the http://docs.spring.io/spring-ws/docs/current/reference/html/server.html#server-endpoint-mapping[endpoint mappings] for more information.
 
 [[webservices-namespace]]
 === Web Service Namespace Support
 
-To configure an outbound Web Service Gateway, use the "outbound-gateway" element from the "ws" namespace:
+To configure an outbound web service gateway, use the `outbound-gateway` element from the `ws` namespace, as the following example shows:
+
+====
 [source,xml]
 ----
 <int-ws:outbound-gateway id="simpleGateway"
                      request-channel="inputChannel"
                      uri="http://example.org"/>
 ----
+====
 
-NOTE: Notice that this example does not provide a 'reply-channel'.
-If the Web Service were to return a non-empty response, the Message containing that response would be sent to the reply
-channel provided in the request Message's `REPLY_CHANNEL` header, and if that were not available a channel resolution Exception would be thrown.
-If you want to send the reply to another channel instead, then provide a 'reply-channel' attribute on the 'outbound-gateway' element.
+NOTE: This example does not provide a 'reply-channel'.
+If the web service returns a non-empty response, the `Message` containing that response is sent to the reply channel defined in the request message's `REPLY_CHANNEL` header.
+If that is not available, a channel resolution exception is thrown.
+If you want to send the reply to another channel instead, provide a 'reply-channel' attribute on the 'outbound-gateway' element.
 
-TIP: When invoking a Web Service that returns an empty response after using a String payload for the request Message, _no reply Message will be sent by default_.
-Therefore you don't need to set a 'reply-channel' or have a REPLY_CHANNEL header in the request Message.
-If for any reason you actually _do_ want to receive the empty response as a Message, then provide the 'ignore-empty-responses' attribute with a value of _false_ (this only applies for Strings, because using a Source or Document object simply leads to a NULL response and will therefore _never_ generate a reply Message).
+TIP: By default, when you invoke a web service that returns an empty response after using a String payload for the request `Message`, no reply `Message` is sent.
+Therefore, you need not set a 'reply-channel' or have a `REPLY_CHANNEL` header in the request `Message`.
+If you actually do want to receive the empty response as a `Message`, you can set the 'ignore-empty-responses' attribute to `false`.
+Doing so works only for `String` objects, because using a `Source` or a `Document` object leads to a null response and consequently never generates a reply `Message`.
 
-To set up an inbound Web Service Gateway, use the "inbound-gateway":
+To set up an inbound Web Service Gateway, use the `inbound-gateway` element, as the following example shows:
+
+====
 [source,xml]
 ----
 <int-ws:inbound-gateway id="simpleGateway"
                     request-channel="inputChannel"/>
 ----
+====
 
-To use Spring OXM Marshallers and/or Unmarshallers, provide bean references.
-For outbound:
+To use Spring OXM marshallers or unmarshallers, you must provide bean references.
+The following example shows how to provide a bean reference for an outbound marshalling gateway:
+
+====
 [source,xml]
 ----
 <int-ws:outbound-gateway id="marshallingGateway"
@@ -104,8 +126,11 @@ For outbound:
                      marshaller="someMarshaller"
                      unmarshaller="someUnmarshaller"/>
 ----
+====
 
-And for inbound:
+The following example shows how to provide a bean reference for an inbound marshalling gateway:
+
+====
 [source,xml]
 ----
 <int-ws:inbound-gateway id="marshallingGateway"
@@ -113,33 +138,34 @@ And for inbound:
                     marshaller="someMarshaller"
                     unmarshaller="someUnmarshaller"/>
 ----
+====
 
 NOTE: Most `Marshaller` implementations also implement the `Unmarshaller` interface.
-When using such a `Marshaller`, only the "marshaller" attribute is necessary.
-Even when using a `Marshaller`, you may also provide a reference for the "request-callback" on the outbound gateways.
+When using such a `Marshaller`, only the `marshaller` attribute is necessary.
+Even when using a `Marshaller`, you may also provide a reference for the `request-callback` on the outbound gateways.
 
-For either outbound gateway type, a "destination-provider" attribute can be specified instead of the "uri" (exactly one of them is required).
-You can then reference any Spring Web Services DestinationProvider implementation (e.g.
-to lookup the URI at runtime from a registry).
+For either outbound gateway type, you can specify a `destination-provider` attribute instead of the `uri` (exactly one of them is required).
+You can then reference any Spring Web Services `DestinationProvider` implementation (for example, to lookup the URI from a registry at runtime).
 
-For either outbound gateway type, the "message-factory" attribute can also be configured with a reference to any Spring Web Services `WebServiceMessageFactory` implementation.
+For either outbound gateway type, the `message-factory` attribute can also be configured with a reference to any Spring Web Services `WebServiceMessageFactory` implementation.
 
-For the simple inbound gateway type, the "extract-payload" attribute can be set to false to forward the entire `WebServiceMessage` instead of just its payload as a `Message` to the request channel.
-This might be useful, for example, when a custom Transformer works against the `WebServiceMessage` directly.
+For the simple inbound gateway type, you can set the `extract-payload` attribute to `false` to forward the entire `WebServiceMessage` instead of just its payload as a `Message` to the request channel.
+Doing so might be useful, for example, when a custom transformer works against the `WebServiceMessage` directly.
 
-Starting with _version 5.0_ the `web-service-template` reference attribute is presented for the injection of a `WebServiceTemplate` with any possible custom properties.
+Starting with version 5.0, the `web-service-template` reference attribute lets you inject a `WebServiceTemplate` with any possible custom properties.
 
 [[outbound-uri]]
 === Outbound URI Configuration
 
-For all URI-schemes supported by Spring Web Services (http://docs.spring.io/spring-ws/docs/current/reference/html/client.html#client-transports[URIs and Transports]) `<uri-variable/>` substitution is provided:
+For all URI schemes supported by Spring Web Services (see http://docs.spring.io/spring-ws/docs/current/reference/html/client.html#client-transports[URIs and Transports]) `<uri-variable/>` substitution is provided.
+The following example shows how to define it:
 
 [source,xml]
 ----
 <ws:outbound-gateway id="gateway" request-channel="input"
-        uri="http://springsource.org/{foo}-{bar}">
-    <ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
-    <ws:uri-variable name="bar" expression="headers.x"/>
+        uri="http://springsource.org/{thing1}-{thing2}">
+    <ws:uri-variable name="thing1" expression="payload.substring(1,7)"/>
+    <ws:uri-variable name="thing2" expression="headers.x"/>
 </ws:outbound-gateway>
 
 <ws:outbound-gateway request-channel="inputJms"
@@ -151,15 +177,17 @@ For all URI-schemes supported by Spring Web Services (http://docs.spring.io/spri
 </ws:outbound-gateway>
 ----
 
-If a `DestinationProvider` is supplied, variable substitution is not supported and a configuration error will result if variables are provided.
+If you supply a `DestinationProvider`, variable substitution is not supported and a configuration error occurs if you provide variables.
 
-_Controlling URI Encoding_
+==== Controlling URI Encoding
 
-By default, the URL string is encoded (see http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[UriComponentsBuilder]) to the URI object before sending the request.
-In some scenarios with a non-standard URI it is undesirable to perform the encoding.
-Since _version 4.1_ the `<ws:outbound-gateway/>` provides an `encode-uri` attribute.
-To disable encoding the URL, this attribute should be set to `false` (by default it is `true`).
-If you wish to partially encode some of the URL, this can be achieved using an `expression` within a `<uri-variable/>`:
+By default, the URL string is encoded (see http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/util/UriComponentsBuilder.html[`UriComponentsBuilder`]) to the URI object before sending the request.
+In some scenarios with a non-standard URI, it is undesirable to perform the encoding.
+Since version 4.1, the `<ws:outbound-gateway/>` element provides an `encode-uri` attribute.
+To disable encoding the URL, set this attribute `false` (it defaults to `true`).
+If you wish to partially encode some of the URL, you can do so by using an `expression` within a `<uri-variable/>`, as the following example shows:
+
+====
 [source,xml]
 ----
 <ws:outbound-gateway url="http://somehost/%2f/fooApps?bar={param}" encode-uri="false">
@@ -168,48 +196,45 @@ If you wish to partially encode some of the URL, this can be achieved using an `
                                              .encodeWithinQuery('Hello World!')"/>
 </ws:outbound-gateway>
 ----
+====
 
-Note, `encode-uri` is ignored, if `DestinationProvider` is supplied.
+NOTE: If you set `DestinationProvider`, `encode-uri` is ignored.
 
 [[ws-message-headers]]
 === WS Message Headers
 
-The Spring Integration WebService Gateways will map the SOAP Action header automatically.
-It will be copied by default to and from Spring Integration `MessageHeaders` using the
-http://docs.spring.io/spring-integration/api/org/springframework/integration/ws/DefaultSoapHeaderMapper.html[DefaultSoapHeaderMapper].
+The Spring Integration web service gateways automatically map the SOAP action header.
+By default, it is copied to and from Spring Integration `MessageHeaders` by using the
+http://docs.spring.io/spring-integration/api/org/springframework/integration/ws/DefaultSoapHeaderMapper.html[`DefaultSoapHeaderMapper`].
 
-Of course, you can pass in your own implementation of SOAP specific header mappers, as the gateways have respective
-properties to support that.
+You can pass in your own implementation of SOAP-specific header mappers, as the gateways have properties to support doing so.
 
-Any user-defined SOAP headers will NOT
-be copied to or from a SOAP Message, unless explicitly specified by the _requestHeaderNames_ and/or
-_replyHeaderNames_ properties of the `DefaultSoapHeaderMapper`.
+Unless explicitly specified by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultSoapHeaderMapper`, any user-defined SOAP headers are not copied to or from a SOAP Message.
 
-When using the XML namespace for configuration, these properties can be set using the `mapped-request-headers` and
-`mapped-reply-headers`, or a custom mapper can be provided using the `header-mapper` attribute.
+When you use the XML namespace for configuration, you can set these properties by using the `mapped-request-headers` and
+`mapped-reply-headers` attributes, you can provide a custom mapper by setting the `header-mapper` attribute.
 
-TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
-For example, if you need to copy all user-defined headers simply use the wildcard character `*`.
+TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (such `myheader*` or `*myheader`).
+For example, if you need to copy all user-defined headers, you can use the wildcard character: `*`.
 
-Starting with _version 4.1_, the `AbstractHeaderMapper` (a `DefaultSoapHeaderMapper` superclass) allows the
-`NON_STANDARD_HEADERS` token to be configured for the _requestHeaderNames_ and/or _replyHeaderNames_
-properties (in addition to existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all
-user-defined headers.
-Note, it is recommended to use the combination like this `STANDARD_REPLY_HEADERS, NON_STANDARD_HEADERS` instead of a
-`*`, to avoid mapping of _request_ headers to the reply.
+Starting with version 4.1, the `AbstractHeaderMapper` (a `DefaultSoapHeaderMapper` superclass) lets the `NON_STANDARD_HEADERS` token be configured for the `requestHeaderNames` and `replyHeaderNames` properties (in addition to existing `STANDARD_REQUEST_HEADERS` and `STANDARD_REPLY_HEADERS`) to map all user-defined headers.
 
-Starting with _version 4.3_, patterns in the header mappings can be negated by preceding the pattern with `!`.
+NOTE: Rather than using the wildcard (`*`), we recommend using the following combination : `STANDARD_REPLY_HEADERS, NON_STANDARD_HEADERS`.
+Doing so avoids mapping `request` headers to the reply.
+
+Starting with version 4.3, you can negate patterns in the header mappings by preceding the pattern with `!`.
 Negated patterns get priority, so a list such as
-`STANDARD_REQUEST_HEADERS,foo,ba*,!bar,!baz,qux,!foo` will *NOT* map `foo`
-(nor `bar` nor `baz`); the standard headers plus `bad`, `qux` will be mapped.
+`STANDARD_REQUEST_HEADERS,thing1,thing*,!thing2,!thing3,qux,!thing1` does not map `thing1`, `thing2`, or `thing3`. It does map the standard headers, `thing4`, and `qux`.
+(Note that `thing1` is included in both non-negated and negated forms. Because negated values take precedence, `thing1` is not mapped.)
 
-IMPORTANT: If you have a user defined header that begins with `!` that you *do* wish to map, you need to escape it with
-`\` thus: `STANDARD_REQUEST_HEADERS,\!myBangHeader` and it *WILL* be mapped.
+IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you can escape it with
+`\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`. `!myBangHeader` is then mapped.
 
-Inbound SOAP headers (request headers for the inbound gateway, reply-headers for the outbound gateway) are mapped as
+Inbound SOAP headers (request headers for the inbound gateway and reply headers for the outbound gateway) are mapped as
 `SoapHeaderElement` objects.
-The contents can be explored by accessing the `Source`:
+You can explore the contents by accessing the `Source`:
 
+====
 [source, xml]
 ----
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
@@ -227,9 +252,13 @@ The contents can be explored by accessing the `Source`:
     </soapenv:Body>
 </soapenv:Envelope>
 ----
+====
 
-If `mapped-request-headers` is `"auth, ba*"`, the `auth`, `bar` and `baz` headers are mapped but `qux` is not.
+If `mapped-request-headers` is `auth, ca*`, the `auth`, `cat`, and `can` headers are mapped, but `qux` is not mapped.
 
+The following example shows how to get a value named `user` from a header named `auth`:
+
+====
 [source, java]
 ----
 ...
@@ -240,8 +269,12 @@ assertEquals("username", nodeList.item(0).getNodeName());
 assertEquals("user", nodeList.item(0).getFirstChild().getNodeValue());
 ...
 ----
+====
 
-Starting with _version 5.0_, the `DefaultSoapHeaderMapper` supports user-defined headers of type `javax.xml.transform.Source` and populates them as child nodes of the `<soapenv:Header>`:
+Starting with version 5.0, the `DefaultSoapHeaderMapper` supports user-defined headers of type `javax.xml.transform.Source` and populates them as child nodes of the `<soapenv:Header>`.
+The following example shows how to do so:
+
+====
 [source, java]
 ----
 Map<String, Object> headers = new HashMap<>();
@@ -256,7 +289,11 @@ headers.put("auth", new StringSource(authXml));
 DefaultSoapHeaderMapper mapper = new DefaultSoapHeaderMapper();
 mapper.setRequestHeaderNames("auth");
 ----
-And in the end we have SOAP envelope as:
+====
+
+The result of the preceding examples is the following SOAP envelope:
+
+====
 [source, xml]
 ----
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
@@ -271,13 +308,17 @@ And in the end we have SOAP envelope as:
     </soapenv:Body>
 </soapenv:Envelope>
 ----
+====
 
 [[mtom-support]]
 === MTOM Support
 
-The Marshalling Inbound and Outbound WebService Gateways support attachments directly via built-in functionality of the marshaller, e.g. `Jaxb2Marshaller` provides the `mtomEnabled` option.
-Starting with _version 5.0_, the Simple WebService Gateways can operate with inbound and outbound `MimeMessage` s directly, which have an API to manipulate attachments.
-When you need to send WebService message with attachments (either a reply from a server, or a client request) you should use the `WebServiceMessageFactory` directly and send a `WebServiceMessage` with attachments as a `payload` to the request or reply channel of the gateway:
+The marshalling inbound and outbound web service gateways support attachments directly through built-in functionality of the marshaller (for example, `Jaxb2Marshaller` provides the `mtomEnabled` option).
+Starting with version 5.0, the simple web service gateways can directly operate with inbound and outbound `MimeMessage` instances, which have an API to manipulate attachments.
+When you need to send web service message with attachments (either a reply from a server or a client request) you should use the `WebServiceMessageFactory` directly and send a `WebServiceMessage` with attachments as a `payload` to the request or reply channel of the gateway.
+The following example shows how to do so:
+
+====
 [source, java]
 ----
 WebServiceMessageFactory messageFactory = new SaajSoapMessageFactory(MessageFactory.newInstance());
@@ -293,3 +334,4 @@ webServiceMessage.addAttachment("myAttachment", new ByteArrayResource("my_data".
 
 this.webServiceChannel.send(new GenericMessage<>(webServiceMessage));
 ----
+====

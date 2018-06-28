@@ -1,17 +1,18 @@
 [[groovy]]
 === Groovy support
 
-In Spring Integration 2.0 we added Groovy support allowing you to use the Groovy scripting language to provide the logic for various integration components similar to the way the Spring Expression Language (SpEL) is supported for routing, transformation and other integration concerns.
-For more information about Groovy please refer to the Groovy documentation which you can find on the http://www.groovy-lang.org/[project website].
+In Spring Integration 2.0, we added Groovy support, letting you use the Groovy scripting language to provide the logic for various integration components -- similar to the way the Spring Expression Language (SpEL) is supported for routing, transformation, and other integration concerns.
+For more information about Groovy, see the Groovy documentation, which you can find on the http://www.groovy-lang.org/[project website].
 
 [[groovy-config]]
-==== Groovy configuration
+==== Groovy Configuration
 
-With Spring Integration 2.1, Groovy Support's configuration namespace is an extension of Spring Integration's Scripting Support and shares the core configuration and behavior described in detail in the <<scripting,Scripting Support>> section.
-Even though Groovy scripts are well supported by generic Scripting Support, Groovy Support provides the _Groovy_ configuration namespace which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
-Below are a couple of sample configurations:
+With Spring Integration 2.1, the configuration namespace for the Groovy support is an extension of Spring Integration's scripting support and shares the core configuration and behavior described in detail in the "`<<scripting>>`" section.
+Even though Groovy scripts are well supported by generic scripting support, the Groovy support provides the `Groovy` configuration namespace, which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
+The following listing shows two sample configurations:
 
-_Filter_
+.Filter
+====
 [source,xml]
 ----
 <int:filter input-channel="referencedScriptInput">
@@ -24,29 +25,37 @@ _Filter_
    ]]></int-groovy:script>
 </int:filter>
 ----
+====
 
-As the above examples show, the configuration looks identical to the general Scripting Support configuration.
-The only difference is the use of the Groovy namespace as indicated in the examples by the _int-groovy_ namespace prefix.
+As the preceding examples show, the configuration looks identical to the general scripting support configuration.
+The only difference is the use of the Groovy namespace, as indicated by the `int-groovy` namespace prefix.
 Also note that the `lang` attribute on the `<script>` tag is not valid in this namespace.
 
-_Groovy object customization_
+==== Groovy Object Customization
 
-If you need to customize the Groovy object itself, beyond setting variables, you can reference a bean that implements `GroovyObjectCustomizer` via the `customizer` attribute.
-For example, this might be useful if you want to implement a domain-specific language (DSL) by modifying the `MetaClass` and registering functions to be available within the script:
+If you need to customize the Groovy object itself (beyond setting variables) you can reference a bean that implements `GroovyObjectCustomizer` by using the `customizer` attribute.
+For example, this might be useful if you want to implement a domain-specific language (DSL) by modifying the `MetaClass` and registering functions to be available within the script.
+The following example shows how to do so:
+
+====
 [source,xml]
 ----
 <int:service-activator input-channel="groovyChannel">
-    <int-groovy:script location="foo/SomeScript.groovy" customizer="groovyCustomizer"/>
+    <int-groovy:script location="somewhere/SomeScript.groovy" customizer="groovyCustomizer"/>
 </int:service-activator>
 
-<beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>
+<beans:bean id="groovyCustomizer" class="org.something.MyGroovyObjectCustomizer"/>
 ----
+====
 
-Setting a custom `GroovyObjectCustomizer` is not mutually exclusive with `<variable>` sub-elements or the `script-variable-generator` attribute.
+Setting a custom `GroovyObjectCustomizer` is not mutually exclusive with `<variable>` elements or the `script-variable-generator` attribute.
 It can also be provided when defining an inline script.
 
-With _Spring Integration 3.0_, in addition to the `variable` sub-element, the `variables` attribute has been introduced.
-Also, groovy scripts have the ability to resolve a variable to a bean in the `BeanFactory`, if a binding variable was not provided with the name:
+Spring Integration 3.0 introduced the `variables` attribute, which works in conjunction with the `variable` element.
+Also, groovy scripts have the ability to resolve a variable to a bean in the `BeanFactory`, if a binding variable was not provided with the name.
+The following example shows how to use a variable (`entityManager`):
+
+====
 [source,xml]
 ----
 <int-groovy:script>
@@ -56,28 +65,30 @@ Also, groovy scripts have the ability to resolve a variable to a bean in the `Be
     ]]>
 </int-groovy:script>
 ----
+====
 
-where variable `entityManager` is an appropriate bean in the application context.
+`entityManager` must be an appropriate bean in the application context.
 
-For more information regarding `<variable>`, `variables`, and `script-variable-generator`, see the paragraph '_Script variable bindings_' of <<scripting-config>>.
+For more information regarding the `<variable>` element, the `variables` attribute, and the `script-variable-generator` attribute, see  "`<<scripting-script-variable-bindings>>`".
 
-_Groovy Script Compiler Customization_
+==== Groovy Script Compiler Customization
 
-The `@CompileStatic` hint is the most popular Groovy compiler customization option,
-which can be used on the class or method level.
-See more information in the Groovy
-http://docs.groovy-lang.org/latest/html/documentation/index.html#_static_compilation[Reference Manual] and,
-specifically, http://docs.groovy-lang.org/latest/html/documentation/index.html#compilestatic-annotation[@CompileStatic].
-To utilize this feature for short scripts (in integration scenarios), we are forced to change a simple script like this
-(a `<filter>` script):
+The `@CompileStatic` hint is the most popular Groovy compiler customization option.
+It can be used on the class or method level.
+For more information, see the Groovy http://docs.groovy-lang.org/latest/html/documentation/index.html#_static_compilation[Reference Manual] and, specifically, http://docs.groovy-lang.org/latest/html/documentation/index.html#compilestatic-annotation[@CompileStatic].
+To utilize this feature for short scripts (in integration scenarios), we are forced to change simple scripts to more Java-like code.
+Consider the following `<filter>` script:
 
+====
 [source,groovy]
 ----
 headers.type == 'good'
 ----
+====
 
-to more Java-like code:
+The preceding script becomes the following method in Spring Integration:
 
+====
 [source,groovy]
 ----
 @groovy.transform.CompileStatic
@@ -87,61 +98,60 @@ String filter(Map headers) {
 
 filter(headers)
 ----
+====
 
-With that, the `filter()` method will be transformed and compiled to static Java code, bypassing the Groovy
-dynamic phases of invocation, like `getProperty()` factories and `CallSite` proxies.
+With that, the `filter()` method is transformed and compiled to static Java code, bypassing the Groovy
+dynamic phases of invocation, such as `getProperty()` factories and `CallSite` proxies.
 
-Starting with _version 4.3_, Spring Integration Groovy components can be configured with the `compile-static` `boolean`
-option, specifying that `ASTTransformationCustomizer` for `@CompileStatic` should be added to the internal
-`CompilerConfiguration`.
-With that in place, we can omit the method declaration with `@CompileStatic` in our script code and still get compiled
+Starting with version 4.3, you can configure the Spring Integration Groovy components with the `compile-static` `boolean` option, specifying that `ASTTransformationCustomizer` for `@CompileStatic` should be added to the internal `CompilerConfiguration`.
+With that in place, you can omit the method declaration with `@CompileStatic` in our script code and still get compiled
 plain Java code.
-In this case our script can still be short but still needs to be a little more verbose than interpreted script:
+In this case, the preceding script can be short but still needs to be a little more verbose than interpreted script, as the following example shows:
 
+====
 [source,groovy]
 ----
 binding.variables.headers.type == 'good'
 ----
-Where we can access the `headers` and `payload` (or any other) variables only through the `groovy.lang.Script`
-`binding` property since, with `@CompileStatic`, we don't have the  dynamic `GroovyObject.getProperty()` capability.
+====
 
-In addition, the `compiler-configuration` bean reference has been introduced.
-With this attribute, you can provide any other required Groovy compiler customizations, e.g. `ImportCustomizer`.
-For more information about this feature, please, refer to the Groovy Documentation:
-http://groovy.jmiguel.eu/groovy.codehaus.org/Advanced+compiler+configuration.html[Advanced compiler configuration].
+You must access the `headers` and `payload` (or any other) variables through the `groovy.lang.Script` `binding` property because, with `@CompileStatic`, we do not have the  dynamic `GroovyObject.getProperty()` capability.
 
-NOTE: Using `compilerConfiguration` does not automatically add a `ASTTransformationCustomizer` for `@CompileStatic`
-and overrides the `compileStatic` option.
-If `CompileStatic` is still requirement, a `new ASTTransformationCustomizer(CompileStatic.class)` should be manually
-added into the `CompilationCustomizers` of that custom `compilerConfiguration`.
+In addition, we introduced the `compiler-configuration` bean reference.
+With this attribute, you can provide any other required Groovy compiler customizations, such as `ImportCustomizer`.
+For more information about this feature, see the Groovy Documentation for http://groovy.jmiguel.eu/groovy.codehaus.org/Advanced+compiler+configuration.html[advanced compiler configuration].
 
-NOTE: The Groovy compiler customization does not have any effect to the `refresh-check-delay` option
-and reloadable scripts can be statically compiled, too.
+NOTE: Using `compilerConfiguration` does not automatically add an `ASTTransformationCustomizer` for the `@CompileStatic` annotation, and it overrides the `compileStatic` option.
+If you still need `CompileStatic`, you should manually add a `new ASTTransformationCustomizer(CompileStatic.class)` into the `CompilationCustomizers` of that custom `compilerConfiguration`.
+
+NOTE: The Groovy compiler customization does not have any effect on the `refresh-check-delay` option, and reloadable scripts can be statically compiled, too.
 
 [[groovy-control-bus]]
 ==== Control Bus
 
-As described in (http://www.eaipatterns.com/ControlBus.html[EIP]), the idea behind the Control Bus is that the same messaging system can be used for monitoring and managing the components within the framework as is used for "application-level" messaging.
-In Spring Integration we build upon the adapters described above so that it's possible to send Messages as a means of invoking exposed operations.
+As described in (http://www.eaipatterns.com/ControlBus.html[Enterprise Integration Patterns]), the idea behind the control bus is that you can use the same messaging system for monitoring and managing the components within the framework as is used for "`application-level`" messaging.
+In Spring Integration, we build upon the adapters described earlier so that you can send Messages as a means of invoking exposed operations.
 One option for those operations is Groovy scripts.
+The following example configures a Groovy script for the control bus:
+
+====
 [source,xml]
 ----
 <int-groovy:control-bus input-channel="operationChannel"/>
 ----
+====
 
-The Control Bus has an input channel that can be accessed for invoking operations on the beans in the application context.
+The control bus has an input channel that can be accessed to invoke operations on the beans in the application context.
 
-The Groovy Control Bus executes messages on the input channel as Groovy scripts.
-It takes a message, compiles the body to a Script, customizes it with a `GroovyObjectCustomizer`, and then executes it.
-The Control Bus' `MessageProcessor` exposes all beans in the application context that are annotated with `@ManagedResource`, implement Spring's `Lifecycle` interface or extend Spring's `CustomizableThreadCreator` base class (e.g.
-several of the `TaskExecutor` and `TaskScheduler` implementations).
+The Groovy control bus runs messages on the input channel as Groovy scripts.
+It takes a message, compiles the body to a script, customizes it with a `GroovyObjectCustomizer`, and runs it.
+The control bus' `MessageProcessor` exposes all beans in the application context that are annotated with `@ManagedResource` and implement Spring's `Lifecycle` interface or extend Spring's `CustomizableThreadCreator` base class (for example, several of the `TaskExecutor` and `TaskScheduler` implementations).
 
-IMPORTANT: Be careful about using managed beans with custom scopes (e.g.
-'request') in the Control Bus' command scripts, especially inside an _async_ message flow.
-If The Control Bus' `MessageProcessor` can't expose a bean from the application context, you may end up with some `BeansException` during _command script's_ executing.
-For example, if a custom scope's context is not established, the attempt to get a bean within that scope will trigger a `BeanCreationException`.
+IMPORTANT: Be careful about using managed beans with custom scopes (such as 'request') in the Control Bus' command scripts, especially inside an asynchronous message flow.
+If `MessageProcessor` of the control bus cannot expose a bean from the application context, you may end up with some `BeansException` during the command script's run.
+For example, if a custom scope's context is not established, the attempt to get a bean within that scope triggers a `BeanCreationException`.
 
-If you need to further customize the Groovy objects, you can also provide a reference to a bean that implements `GroovyObjectCustomizer` via the `customizer` attribute.
+If you need to further customize the Groovy objects, you can also provide a reference to a bean that implements `GroovyObjectCustomizer` through the `customizer` attribute, as the following example shows:
 
 [source,xml]
 ----

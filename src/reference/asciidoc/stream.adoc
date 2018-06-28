@@ -1,23 +1,22 @@
 [[stream]]
 == Stream Support
 
-[[stream-intro]]
-=== Introduction
-
-In many cases application data is obtained from a stream.
-It is _not_ recommended to send a reference to a Stream as a message payload to a consumer.
-Instead messages are created from data that is read from an input stream and message payloads are written to an output stream one by one.
+In many cases, application data is obtained from a stream.
+It is not recommended to send a reference to a stream as a message payload to a consumer.
+Instead, messages are created from data that is read from an input stream, and message payloads are written to an output stream one by one.
 
 [[stream-reading]]
-=== Reading from streams
+=== Reading from Streams
 
 Spring Integration provides two adapters for streams.
 Both `ByteStreamReadingMessageSource` and `CharacterStreamReadingMessageSource` implement `MessageSource`.
-By configuring one of these within a channel-adapter element, the polling period can be configured, and the Message Bus can automatically detect and schedule them.
+By configuring one of these within a channel-adapter element, the polling period can be configured and the message bus can automatically detect and schedule them.
 The byte stream version requires an `InputStream`, and the character stream version requires a `Reader` as the single constructor argument.
-The `ByteStreamReadingMessageSource` also accepts the 'bytesPerMessage' property to determine how many bytes it will attempt to read into each `Message`.
+The `ByteStreamReadingMessageSource` also accepts the 'bytesPerMessage' property to determine how many bytes it tries to read into each `Message`.
 The default value is 1024.
+The following example creates an input stream that creates messages that each contain 2048 bytes:
 
+====
 [source,xml]
 ----
 <bean class="org.springframework.integration.stream.ByteStreamReadingMessageSource">
@@ -29,40 +28,45 @@ The default value is 1024.
   <constructor-arg ref="someReader"/>
 </bean>
 ----
+====
 
-The `CharacterStreamReadingMessageSource` wraps the reader in a `BufferedReader` (if it's not one already).
+The `CharacterStreamReadingMessageSource` wraps the reader in a `BufferedReader` (if it is not one already).
 You can set the buffer size used by the buffered reader in the second constructor argument.
-Starting with _version 5.0_, a third constructor argument (`blockToDetectEOF`) controls the behavior of the `CharacterStreamReadingMessageSource`.
-When `false` (default), the `receive()` method checks if the reader is `ready()` and returns null if not.
-EOF is not detected in this case.
-When `true`, the `receive()` method blocks until data is available, or EOF is detected on the underlying stream.
-When EOF is detected, a `StreamClosedEvent` (application event) is published; you can consume this event with a bean implementing `ApplicationListener<StreamClosedEvent>`.
+Starting with version 5.0, a third constructor argument (`blockToDetectEOF`) controls the behavior of the `CharacterStreamReadingMessageSource`.
+When `false` (the default), the `receive()` method checks whether the reader is `ready()` and returns null if not.
+EOF (end of file) is not detected in this case.
+When `true`, the `receive()` method blocks until data is available or EOF is detected on the underlying stream.
+When EOF is detected, a `StreamClosedEvent` (application event) is published.
+You can consume this event with a bean that implements `ApplicationListener<StreamClosedEvent>`.
 
-NOTE: To facilitate EOF detection, the poller thread will block in the `receive()` method until either data arrives or EOF is detected.
+NOTE: To facilitate EOF detection, the poller thread blocks in the `receive()` method until either data arrives or EOF is detected.
 
-IMPORTANT: The poller will continue to publish an event on each poll once EOF has been detected; the application listener can stop the adapter to prevent this.
-The event is published on the poller thread and stopping the adapter will cause the thread to be interrupted.
-If you intend to perform some interruptible task after stopping the adapter, you must either perform the `stop()` on a different thread, or use a different thread for those downstream activities.
-Note that sending to a `QueueChannel` is interruptible so if you wish to send a message from the listener, do it before stopping the adapter.
+IMPORTANT: The poller continues to publish an event on each poll once EOF has been detected.
+The application listener can stop the adapter to prevent this.
+The event is published on the poller thread.
+Stopping the adapter causes the thread to be interrupted.
+If you intend to perform some interruptible task after stopping the adapter, you must either perform the `stop()` on a different thread or use a different thread for those downstream activities.
+Note that sending to a `QueueChannel` is interruptible, so, if you wish to send a message from the listener, do it before stopping the adapter.
 
-This facilitates "piping" or redirecting data to `stdin`, such as...
+This facilitates "`piping`" or redirecting data to `stdin`, as the following two examples shows:
 
+====
 [source]
 ----
-cat foo.txt | java -jar my.jar
+cat myfile.txt | java -jar my.jar
 ----
-
-or
 
 [source]
 ----
 java -jar my.jar < foo.txt
 ----
+====
 
-allowing the application to terminate when the pipe is closed.
+This approach lets the application terminate when the pipe is closed.
 
 Four convenient factory methods are available:
 
+====
 [source, java]
 ----
 public static final CharacterStreamReadingMessageSource stdin() { ... }
@@ -73,14 +77,16 @@ public static final CharacterStreamReadingMessageSource stdinPipe() { ... }
 
 public static final CharacterStreamReadingMessageSource stdinPipe(String charsetName) { ... }
 ----
+====
 
 [[stream-writing]]
-=== Writing to streams
+=== Writing to Streams
 
-For target streams, there are also two implementations: `ByteStreamWritingMessageHandler` and `CharacterStreamWritingMessageHandler`.
-Each requires a single constructor argument - `OutputStream` for byte streams or `Writer` for character streams, and each provides a second constructor that adds the optional 'bufferSize'.
-Since both of these ultimately implement the `MessageHandler` interface, they can be referenced from a _channel-adapter_ configuration as described in more detail in <<channel-adapter>>.
+For target streams, you can use either of two implementations: `ByteStreamWritingMessageHandler` or `CharacterStreamWritingMessageHandler`.
+Each requires a single constructor argument (`OutputStream` for byte streams or `Writer` for character streams), and each provides a second constructor that adds the optional 'bufferSize'.
+Since both of these ultimately implement the `MessageHandler` interface, you can reference them from a `channel-adapter` configuration, as described in "`<<channel-adapter>>`".
 
+====
 [source,xml]
 ----
 <bean class="org.springframework.integration.stream.ByteStreamWritingMessageHandler">
@@ -91,15 +97,16 @@ Since both of these ultimately implement the `MessageHandler` interface, they ca
 <bean class="org.springframework.integration.stream.CharacterStreamWritingMessageHandler">
   <constructor-arg ref="someWriter"/>
 </bean>
-
 ----
+====
 
 [[stream-namespace]]
-=== Stream namespace support
+=== Stream Namespace Support
 
-To reduce the configuration needed for stream related channel adapters there is a namespace defined.
-The following schema locations are needed to use it.
+Spring Integration defines a namespace to reduce the configuration needed for stream-related channel adapters.
+The following schema locations are needed to use it:
 
+====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -111,21 +118,26 @@ The following schema locations are needed to use it.
       http://www.springframework.org/schema/integration/stream
       http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 ----
+====
 
-To configure the inbound channel adapter the following code snippet shows the different configuration options that are supported.
+The following code snippet shows the different configuration options that are supported to configure the inbound channel adapter:
 
+====
 [source,xml]
 ----
 <int-stream:stdin-channel-adapter id="adapterWithDefaultCharset"/>
 
 <int-stream:stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8"/>
 ----
+====
 
-Starting with _version 5.0_ you can set the `detect-eof` attribute which sets the `blockToDetectEOF` property - see <<stream-reading>> for more information.
+Starting with version 5.0, you can set the `detect-eof` attribute, which sets the `blockToDetectEOF` property.
+See "`<<stream-reading>>`" for more information.
 
-To configure the outbound channel adapter you can use the namespace support as well.
-The following code snippet shows the different configuration for an outbound channel adapters.
+To configure the outbound channel adapter, you can use the namespace support as well.
+The following example shows the different configuration for an outbound channel adapters:
 
+====
 [source,xml]
 ----
 <int-stream:stdout-channel-adapter id="stdoutAdapterWithDefaultCharset"
@@ -139,3 +151,4 @@ The following code snippet shows the different configuration for an outbound cha
 <int-stream:stdout-channel-adapter id="newlineAdapter" append-newline="true"
     channel="testChannel"/>
 ----
+====

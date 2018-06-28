@@ -1,33 +1,36 @@
 [[sftp]]
 == SFTP Adapters
 
-Spring Integration provides support for file transfer operations via SFTP.
+Spring Integration provides support for file transfer operations over SFTP.
 
-[[sftp-intro]]
-=== Introduction
+The Secure File Transfer Protocol (SFTP) is a network protocol that lets you transfer files between two computers on the Internet over any reliable stream.
 
-The Secure File Transfer Protocol (SFTP) is a network protocol which allows you to transfer files between two computers on the Internet over any reliable stream.
+The SFTP protocol requires a secure channel, such as SSH, and visibility to a client's identity throughout the SFTP session.
 
-The SFTP protocol requires a secure channel, such as SSH, as well as visibility to a client's identity throughout the SFTP session.
+Spring Integration supports sending and receiving files over SFTP by providing three client side endpoints: inbound channel adapter, outbound channel adapter, and outbound gateway.
+It also provides convenient namespace configuration to define these client components.
 
-Spring Integration supports sending and receiving files over SFTP by providing three _client_ side endpoints: _Inbound Channel Adapter_, _Outbound Channel Adapter_, and _Outbound Gateway_ It also provides convenient namespace configuration to define these _client_ components.
+To include the SFTP namespace in your xml configuration, include the following attributes on the root element:
 
+====
 [source,xml]
 ----
 xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
     http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
 ----
+====
 
 [[sftp-session-factory]]
 === SFTP Session Factory
 
-IMPORTANT: Starting with version 3.0, sessions are no longer cached by default.
-See <<sftp-session-caching>>.
+IMPORTANT: As of version 3.0, sessions are no longer cached by default.
+See "`<<sftp-session-caching>>`".
 
-Before configuring SFTP adapters, you must configure an _SFTP Session Factory_.
-You can configure the _SFTP Session Factory_ via a regular bean definition:
+Before configuring SFTP adapters, you must configure an SFTP session factory.
+You can configure the SFTP session factory with a regular bean definition, as the following example shows:
 
+====
 [source,xml]
 ----
 <beans:bean id="sftpSessionFactory"
@@ -39,155 +42,120 @@ You can configure the _SFTP Session Factory_ via a regular bean definition:
     <beans:property name="user" value="kermit"/>
 </beans:bean>
 ----
+====
 
-Every time an adapter requests a session object from its `SessionFactory`, a new SFTP session is being created.
+Every time an adapter requests a session object from its `SessionFactory`, a new SFTP session is created.
 Under the covers, the SFTP Session Factory relies on the http://www.jcraft.com/jsch/[JSch] library to provide the SFTP capabilities.
 
-However, Spring Integration also supports the caching of SFTP sessions, please see <<sftp-session-caching>> for more information.
+However, Spring Integration also supports the caching of SFTP sessions.
+See "`<<sftp-session-caching>>`" for more information.
 
 [IMPORTANT]
 =====
 JSch supports multiple channels (operations) over a connection to the server.
 By default, the Spring Integration session factory uses a separate physical connection for each channel.
-Since _Spring Integration 3.0_, you can configure the session factory (using a boolean constructor arg - default `false`) to use a single connection to the server and create multiple `JSch` channels on that single connection.
+Since Spring Integration 3.0, you can configure the session factory (using a boolean constructor arg - default `false`) to use a single connection to the server and create multiple `JSch` channels on that single connection.
 
-When using this feature, you must wrap the session factory in a caching session factory, as described below, so that the connection is not physically closed when an operation completes.
+When using this feature, you must wrap the session factory in a caching session factory, as <<sftp-session-caching,described later>>, so that the connection is not physically closed when an operation completes.
 
 If the cache is reset, the session is disconnected only when the last channel is closed.
 
-The connection will be refreshed if it is found to be disconnected when a new operation obtains a session.
+The connection is refreshed if it is found to be disconnected when a new operation obtains a session.
 =====
 
-NOTE: If you experience connectivity problems and would like to trace Session creation as well as see which Sessions are polled you may enable it by setting the logger to TRACE level (e.g., log4j.category.org.springframework.integration.sftp=TRACE).
-Please also see <<sftp-jsch-logging>>.
+NOTE: If you experience connectivity problems and would like to trace session creation and see which sessions are polled, you may enable tracing by setting the logger to `TRACE` level (for example, `log4j.category.org.springframework.integration.sftp=TRACE`).
+See "`<<sftp-jsch-logging>>`".
 
-Now all you need to do is inject this _SFTP Session Factory_ into your adapters.
+Now all you need to do is inject this SFTP session factory into your adapters.
 
-NOTE: A more practical way to provide values for the _SFTP Session Factory_ would be via Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer[property placeholder support].
+NOTE: A more practical way to provide values for the SFTP session factory is to use Spring's http://static.springsource.org/spring/docs/current/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer[property placeholder support].
 
 [[sftp-session-factory-properties]]
 ==== Configuration Properties
 
-Below you will find all properties that are exposed by the http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[DefaultSftpSessionFactory].
+The following list describes all the properties that are exposed by the http://static.springsource.org/spring-integration/api/org/springframework/integration/sftp/session/DefaultSftpSessionFactory.html[`DefaultSftpSessionFactory`].
 
-*isSharedSession (constructor argument)*
+`isSharedSession` (constructor argument)::When `true`, a single connection is used, and `JSch Channels` are multiplexed.
+It defaults to `false`.
 
-When true, a single connection will be used and `JSch Channels` will be multiplexed.
-Defaults to false.
-
-*clientVersion*
-
-Allows you to set the client version property.
+`clientVersion`::Lets you set the client version property.
 It's default depends on the underlying JSch version but it will look like:_SSH-2.0-JSCH-0.1.45_
 
-*enableDaemonThread*
+`enableDaemonThread`::If `true`, all threads are daemon threads.
+If set to `false`, normal non-daemon threads are used instead.
+This property is set on the underlying http://epaul.github.io/jsch-documentation/javadoc/com/jcraft/jsch/Session.html[session].
+There, this property defaults to `false`.
 
-If `true`, all threads will be daemon threads.
-If set to `false`, normal non-daemon threads will be used instead.
-This property will be set on the underlying http://epaul.github.io/jsch-documentation/javadoc/com/jcraft/jsch/Session.html[Session].
-There, this property will default to `false`, if not explicitly set.
+`host`::The URL of the host to which you want to connect.
+Required.
 
-*host*
+`hostKeyAlias`::Sets the host key alias, which is used when comparing the host key to the known hosts list.
 
-The url of the host you want connect to.
-_Mandatory_.
+`knownHosts`::Specifies the filename that used for a host key repository.
+The file has the same format as OpenSSH's `known_hosts` file and is required and must be pre-populated if `allowUnknownKeys` is false.
 
-*hostKeyAlias*
+`password`::The password to authenticate against the remote host.
+If a password is not provided, then the `privateKey` property is required.
+It is not allowed if you set `userInfo`.
+The password is obtained from that object.
 
-Sets the host key alias, used when comparing the host key to the known hosts list.
-
-*knownHosts*
-
-Specifies the filename that will be used for a host key repository.
-The file has the same format as OpenSSH's _known_hosts_ file and is required and must be pre-populated if
-`allowUnknownKeys` is false.
-
-*password*
-
-The password to authenticate against the remote host.
-If a _password_ is not provided, then the _privateKey_ property is mandatory.
-Not allowed if `userInfo` is set; the password is obtained from that object.
-
-*port*
-
-The port over which the SFTP connection shall be established.
+`port`::The port over which the SFTP connection shall be established.
 If not specified, this value defaults to `22`.
 If specified, this properties must be a positive number.
 
-*privateKey*
+`privateKey`::Lets you set a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[resource] that represents the location of the private key used for authenticating against the remote host.
+If the `privateKey` is not provided, then the `password` property is required.
 
-Allows you to set a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource],
-which represents the location of the private key used for authenticating against the remote host.
-If the _privateKey_ is not provided, then the _password_ property is mandatory.
-
-*privateKeyPassphrase*
-
-The password for the private key.
-Not allowed if `userInfo` is set; the passphrase is obtained from that object.
+`privateKeyPassphrase`::The password for the private key.
+If you set `userInfo`, `privateKeyPassphrase` is not allowed .
+The passphrase is obtained from that object.
 Optional.
 
-*proxy*
+`proxy`::Allows for specifying a JSch-based http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[proxy].
+If set, the proxy object is used to create the connection to the remote host through the proxy.
+See "`<<sftp-proxy-factory-bean>>`" for a convenient way to configure the proxy.
 
-Allows for specifying a JSch-based http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/Proxy.html[Proxy].
-If set, then the proxy object is used to create the connection to the remote host via the proxy.
-See <<sftp-proxy-factory-bean>> for a convenient way to configure the proxy.
-
-*serverAliveCountMax*
-
-Specifies the number of server-alive messages, which will be sent without any reply from the server before disconnecting.
+`serverAliveCountMax`::Specifies the number of server-alive messages, which are sent without any reply from the server before disconnecting.
 If not set, this property defaults to `1`.
 
-*serverAliveInterval*
+`serverAliveInterval`::Sets the timeout interval (in milliseconds) before a server-alive message is sent, in case no message is received from the server.
 
-Sets the timeout interval (milliseconds) before a server alive message is sent, in case no message is received from the server.
+`sessionConfig`::By using `Properties`, you can set additional configuration setting on the underlying JSch Session.
 
-*sessionConfig*
-
-Using `Properties`, you can set additional configuration setting on the underlying JSch Session.
-
-*socketFactory*
-
-Allows you to pass in a http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[SocketFactory].
+`socketFactory`:Lets you pass in a http://epaul.github.com/jsch-documentation/javadoc/com/jcraft/jsch/SocketFactory.html[`SocketFactory`].
 The socket factory is used to create a socket to the target host.
 When a proxy is used, the socket factory is passed to the proxy.
-By default plain TCP sockets are used.
+By default, plain TCP sockets are used.
 
-*timeout*
-
-The timeout property is used as the socket timeout parameter, as well as the default connection timeout.
+`timeout`::The timeout property is used as the socket timeout parameter, as well as the default connection timeout.
 Defaults to `0`, which means, that no timeout will occur.
 
-*user*
+`user`::The remote user to use.
+Required.
 
-The remote user to use.
-_Mandatory_.
+[[sftp-unk-keys]]
+`allowUnknownKeys`::Set to `true` to allow connections to hosts with unknown (or changed) keys.
+Its default is 'false'.
+It is applied only if no `userInfo` is provided.
+If `false`, a pre-populated `knownHosts` file is required.
 
-[[sftp-unk-hosts]]
-*allowUnknownKeys*
-
-Set to `true` to allow connections to hosts with unknown (or changed) keys.
-Default 'false' (since 4.2 - defaults to `true` in 4.1.7 and was not configurable before that version).
-Only applied if no `userInfo` is provided.
-If false, a pre-populated knownHosts file is required.
-
-*userInfo*
-
-Set a custom `UserInfo` used during authentication.
-In particular, be aware that `promptYesNo()` is invoked when an unknown (or changed) host key is received.
-Also see `allowUnknownHosts`.
-When a `UserInfo` is provided, the `password` and private key `passphrase` is obtained from it, and discrete
-`password` and `privateKeyPassprase` properties cannot be set.
+`userInfo`::Set a custom `UserInfo` to be used during authentication.
+In particular, `promptYesNo()` is invoked when an unknown (or changed) host key is received.
+See also <<sftp-unk-keys,`allowUnknownKeys`>>.
+When you provide a `UserInfo`, the `password` and private key `passphrase` are obtained from it, and you cannot set discrete
+`password` and `privateKeyPassprase` properties.
 
 [[sftp-proxy-factory-bean]]
 === Proxy Factory Bean
 
-`Jsch` provides a mechanism to connect to the server via an HTTP or SOCKS proxy.
-To use this feature, configure the `Proxy` and provide a reference to the `DefaultSftpSessionFactory` as discussed
-above.
-Three implementations are provided by `Jsch`, `HTTP`, `SOCKS4` and `SOCKS5`.
-_Spring Integration 4.3_ provides a `FactoryBean` making configuration of these proxies easier, allowing property
-injection:
+`Jsch` provides a mechanism to connect to the server over an HTTP or SOCKS proxy.
+To use this feature, configure the `Proxy` and provide a reference to the `DefaultSftpSessionFactory`, as discussed
+earlier.
+Three implementations are provided by `Jsch`: `HTTP`, `SOCKS4`, and `SOCKS5`.
+Spring Integration 4.3 introduced a `FactoryBean`, easing configuration of these proxies by allowing property
+injection, as the following example shows:
 
+====
 [source, xml]
 ----
 <bean id="proxySocks5" class="org.springframework.integration.sftp.session.JschProxyFactoryBean">
@@ -205,18 +173,20 @@ injection:
     ...
 </bean>
 ----
+====
 
 [[sftp-dsf]]
 === Delegating Session Factory
 
-_Version 4.2_ introduced the `DelegatingSessionFactory` which allows the selection of the actual session factory at
+Version 4.2 introduced the `DelegatingSessionFactory`, which allows the selection of the actual session factory at
 runtime.
-Prior to invoking the ftp endpoint, call `setThreadKey()` on the factory to associate a key with the current thread.
-That key is then used to lookup the actual session factory to be used.
-The key can be cleared by calling `clearThreadKey()` after use.
+Prior to invoking the FTP endpoint, you can call `setThreadKey()` on the factory to associate a key with the current thread.
+That key is then used to look up the actual session factory to be used.
+You can clear the key by calling `clearThreadKey()` after use.
 
-Convenience methods have been added so this can easily be done from a message flow:
+We added convenience methods so that you can more easily do so from a message flow, as the following example shows:
 
+====
 [source, xml]
 ----
 <bean id="dsf" class="org.springframework.integration.file.remote.session.DelegatingSessionFactory">
@@ -235,28 +205,31 @@ Convenience methods have been added so this can easily be done from a message fl
 <int:service-activator input-channel="c2" output-channel="out"
         expression="@dsf.clearThreadKey(#root)" />
 ----
+====
 
-IMPORTANT: When using session caching (see <<sftp-session-caching>>), each of the delegates should be cached; you
-cannot cache the `DelegatingSessionFactory` itself.
+IMPORTANT: When using session caching (see "`<<sftp-session-caching>>`"), each of the delegates should be cached.
+You cannot cache the `DelegatingSessionFactory` itself.
 
 Starting with _version 5.0.7_, the `DelegatingSessionFactory` can be used in conjuction with a `RotatingServerAdvice` to poll multiple servers; see <<sftp-rotating-server-advice>>.
 
 [[sftp-session-caching]]
 === SFTP Session Caching
 
-IMPORTANT: Starting with _Spring Integration version 3.0_, sessions are no longer cached by default; the `cache-sessions` attribute is no longer supported on endpoints.
-You must use a `CachingSessionFactory` (see below) if you wish to cache sessions.
+IMPORTANT: Starting with Spring Integration version 3.0, sessions are no longer cached by default.
+The `cache-sessions` attribute is no longer supported on endpoints.
+If you wish to cache sessions, you must use a `CachingSessionFactory` (see the next example).
 
-In versions prior to 3.0, the sessions were cached automatically by default.
-A `cache-sessions` attribute was available for disabling the auto caching, but that solution did not provide a way to configure other session caching attributes.
+In versions prior to 3.0, the sessions were automatically cached by default.
+A `cache-sessions` attribute was available for disabling the auto caching, but that solution did not provide a way to configure other session-caching attributes.
 For example, you could not limit on the number of sessions created.
-To support that requirement and other configuration options, a `CachingSessionFactory` was provided.
+To support that requirement and other configuration options, we added a `CachingSessionFactory`.
 It provides `sessionCacheSize` and `sessionWaitTimeout` properties.
-As its name suggests, the `sessionCacheSize` property controls how many active sessions the factory will maintain in its cache (the DEFAULT is unbounded).
-If the `sessionCacheSize` threshold has been reached, any attempt to acquire another session will block until either one of the cached sessions becomes available or until the wait time for a Session expires (the DEFAULT wait time is Integer.MAX_VALUE).
-The `sessionWaitTimeout` property enables configuration of that value.
+As its name suggests, the `sessionCacheSize` property controls how many active sessions the factory maintains in its cache (the default is unbounded).
+If the `sessionCacheSize` threshold has been reached, any attempt to acquire another session blocks until either one of the cached sessions becomes available or until the wait time for a session expires (the default wait time is `Integer.MAX_VALUE`).
+The `sessionWaitTimeout` property enables configuration of the wait time.
 
-If you want your Sessions to be cached, simply configure your default Session Factory as described above and then wrap it in an instance of `CachingSessionFactory` where you may provide those additional properties.
+If you want your sessions to be cached, configure your default session factory (as <<sftp-session-factory,described earlier>>) and then wrap it in an instance of `CachingSessionFactory` where you may provide those additional properties.
+The following example shows how to do so:
 
 [source,xml]
 ----
@@ -273,35 +246,38 @@ If you want your Sessions to be cached, simply configure your default Session Fa
 </bean>
 ----
 
-In the above example you see a `CachingSessionFactory` created with the `sessionCacheSize` set to 10 and the `sessionWaitTimeout` set to 1 second (its value is in milliseconds).
+The preceding example creates a `CachingSessionFactory` with its `sessionCacheSize` set to `10` and its `sessionWaitTimeout` set to one second (1000 milliseconds).
 
-Starting with _Spring Integration version 3.0_, the `CachingConnectionFactory` provides a `resetCache()` method.
+Starting with Spring Integration version 3.0, the `CachingConnectionFactory` provides a `resetCache()` method.
 When invoked, all idle sessions are immediately closed and in-use sessions are closed when they are returned to the cache.
-When using `isSharedSession=true`, the channel is closed, and the shared session is closed only when the last channel is closed.
-New requests for sessions will establish new sessions as necessary.
+When using `isSharedSession=true`, the channel is closed and the shared session is closed only when the last channel is closed.
+New requests for sessions establish new sessions as necessary.
 
 [[sftp-rft]]
-=== RemoteFileTemplate
+=== Using `RemoteFileTemplate`
 
-Starting with _Spring Integration version 3.0_, a new abstraction is provided over the `SftpSession` object.
+Spring Integration version 3.0 provides a new abstraction over the `SftpSession` object.
 The template provides methods to send, retrieve (as an `InputStream`), remove, and rename files.
-In addition an `execute` method is provided allowing the caller to execute multiple operations on the session.
+In addition, we provide an `execute` method to let the caller run multiple operations on the session.
 In all cases, the template takes care of reliably closing the session.
-For more information, refer to the http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[javadocs for `RemoteFileTemplate`] There is a subclass for SFTP: `SftpRemoteFileTemplate`.
+For more information, see the http://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html[Javadoc for `RemoteFileTemplate`] There is a subclass for SFTP: https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/session/SftpRemoteFileTemplate.html[`SftpRemoteFileTemplate`].
 
-Additional methods were added in _version 4.1_ including `getClientInstance()` which provides access to the underlying `ChannelSftp` enabling access to low-level APIs.
+We added additional methods in version 4.1, including `getClientInstance()`.
+It provides access to the underlying `ChannelSftp`, which enables access to low-level APIs.
 
-Starting with _version 5.0_, the new `RemoteFileOperations.invoke(OperationsCallback<F, T> action)` method is available.
-This method allows several `RemoteFileOperations` calls to be called in the scope of the same, thread-bounded, `Session`.
+Version 5.0 introduced the `RemoteFileOperations.invoke(OperationsCallback<F, T> action)` method.
+This method lets several `RemoteFileOperations` calls be called in the scope of the same thread-bounded `Session`.
 This is useful when you need to perform several high-level operations of the `RemoteFileTemplate` as one unit of work.
-For example `AbstractRemoteFileOutboundGateway` uses it with the _mput_ command implementation, where we perform a _put_ operation for each file in the provided directory and recursively for its sub-directories.
-See the JavaDocs for more information.
-
+For example, `AbstractRemoteFileOutboundGateway` uses it with the `mput` command implementation, where we perform a `put` operation for each file in the provided directory and recursively for its sub-directories.
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/RemoteFileTemplate.html#invoke-org.springframework.integration.file.remote.OperationsCallback-[Javadoc] for more information.
 
 [[sftp-inbound]]
 === SFTP Inbound Channel Adapter
 
-The _SFTP Inbound Channel Adapter_ is a special listener that will connect to the server and listen for the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
+The SFTP inbound channel adapter is a special listener that connects to the server and listens for the remote directory events (such as a new file being created), at which point it initiates a file transfer.
+The following example shows how to configure an SFTP inbound channel adapter:
+
+====
 [source,xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
@@ -321,77 +297,88 @@ The _SFTP Inbound Channel Adapter_ is a special listener that will connect to th
         <int:poller fixed-rate="1000"/>
 </int-sftp:inbound-channel-adapter>
 ----
+====
 
-As you can see from the configuration above you can configure the _SFTP Inbound Channel Adapter_ via the `inbound-channel-adapter` element while also providing values for various attributes such as `local-directory` - where files are going to be transferred TO and `remote-directory` - the remote source directory where files are going to be transferred FROM - as well as other attributes including a `session-factory` reference to the bean we configured earlier.
+The preceding configuration example shows how to provide values for various attributes, including the following:
 
-By default the transferred file will carry the same name as the original file.
-If you want to override this behavior you can set the `local-filename-generator-expression` attribute which allows you to provide a SpEL Expression to generate the name of the local file.
-Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context is a `Message`, this inbound adapter does not yet have the Message at the time of evaluation since that's what it ultimately generates with the transferred file as its payload.
-So, the root object of the SpEL Evaluation Context is the original name of the remote file (String).
+* `local-directory`: The location to which files are going to be transferred
+* `remote-directory`: The remote source directory from which files are going to be transferred
+* `session-factory`: A reference to the bean we configured earlier
+
+By default, the transferred file carries the same name as the original file.
+If you want to override this behavior, you can set the `local-filename-generator-expression` attribute, which lets you provide a SpEL expression to generate the name of the local file.
+Unlike outbound gateways and adapters, where the root object of the SpEL evaluation context is a `Message`, this inbound adapter does not yet have the message at the time of evaluation, since that is what it ultimately generates with the transferred file as its payload.
+Consequently, the root object of the SpEL evaluation context is the original name of the remote file (a `String`).
 
 The inbound channel adapter first retrieves the file to a local directory and then emits each file according to the poller configuration.
-Starting with _version 5.0_ you can now limit the number of files fetched from the FTP server when new file retrievals are needed.
-This can be beneficial when the target files are very large and/or when running in a clustered system with a persistent file list filter discussed below.
-Use `max-fetch-size` for this purpose; a negative value (default) means no limit and all matching files will be retrieved; see <<sftp-max-fetch>> for more information.
-Since _version 5.0_, you can also provide a custom `DirectoryScanner` implementation to the `inbound-channel-adapter` via the `scanner` attribute.
+Starting with version 5.0, you can limit the number of files fetched from the FTP server when new file retrievals are needed.
+This can be beneficial when the target files are large or when running in a clustered system with a persistent file list filter, discussed later in this section.
+Use `max-fetch-size` for this purpose.
+A negative value (the default) means no limit and all matching files are retrieved.
+See "`<<sftp-max-fetch>>`" for more information.
+Since version 5.0, you can also provide a custom `DirectoryScanner` implementation to the `inbound-channel-adapter` by setting the `scanner` attribute.
 
-Starting with _Spring Integration 3.0_, you can specify the `preserve-timestamp` attribute (default `false`); when `true`, the local file's modified timestamp will be set to the value retrieved from the server; otherwise it will be set to the current time.
+Starting with Spring Integration 3.0, you can specify the `preserve-timestamp` attribute (the default is `false`).
+When `true`, the local file's modified timestamp is set to the value retrieved from the server.
+Otherwise, it is set to the current time.
 
-Starting with _version 4.2_, you can specify `remote-directory-expression` instead of `remote-directory`, allowing
-you to dynamically determine the directory on each poll.
-e.g `remote-directory-expression="@myBean.determineRemoteDir()"`.
+Starting with version 4.2, you can specify `remote-directory-expression` instead of `remote-directory`, which lets
+you dynamically determine the directory on each poll -- for example, `remote-directory-expression="@myBean.determineRemoteDir()"`.
 
-Sometimes file filtering based on the simple pattern specified via `filename-pattern` attribute might not be sufficient.
-If this is the case, you can use the `filename-regex` attribute to specify a Regular Expression (e.g.
-`filename-regex=".*\.test$"`).
-And of course if you need complete control you can use the `filter` attribute to provide a reference to a custom implementation of the `org.springframework.integration.file.filters.FileListFilter` - a strategy interface for filtering a list of files.
+Sometimes, file filtering based on the simple pattern specified via `filename-pattern` attribute might not suffice.
+If this is the case, you can use the `filename-regex` attribute to specify a regular expression (for example, `filename-regex=".*\.test$"`).
+If you need complete control, you can use the `filter` attribute to provide a reference to a custom implementation of the `org.springframework.integration.file.filters.FileListFilter`, which is a strategy interface for filtering a list of files.
 This filter determines which remote files are retrieved.
-You can also combine a pattern based filter with other filters, such as an `AcceptOnceFileListFilter` to avoid synchronizing files that have previously been fetched, by using a `CompositeFileListFilter`.
+You can also combine a pattern-based filter with other filters (such as an `AcceptOnceFileListFilter`, to avoid synchronizing files that have previously been fetched) by using a `CompositeFileListFilter`.
 
 The `AcceptOnceFileListFilter` stores its state in memory.
 If you wish the state to survive a system restart, consider using the `SftpPersistentAcceptOnceFileListFilter` instead.
-This filter stores the accepted file names in an instance of the `MetadataStore` strategy (<<metadata-store>>).
+This filter stores the accepted file names in an instance of the `MetadataStore` strategy (see "`<<metadata-store>>`").
 This filter matches on the filename and the remote modified time.
 
-Since _version 4.0_, this filter requires a `ConcurrentMetadataStore`.
-When used with a shared data store (such as `Redis` with the `RedisMetadataStore`) this allows filter keys to be shared across multiple application or server instances.
+Since version 4.0, this filter requires a `ConcurrentMetadataStore`.
+When used with a shared data store (such as `Redis` with the `RedisMetadataStore`), this lets filter keys be shared across multiple application or server instances.
 
-Starting with _version 5.0_, the `SftpPersistentAcceptOnceFileListFilter` with in-memory `SimpleMetadataStore` is applied by default for the `SftpInboundFileSynchronizer`.
-This filter is also applied together with the `regex` or `pattern` option in the XML configuration as well as via `FtpInboundChannelAdapterSpec` in Java DSL.
-Any other use-cases can be reached via `CompositeFileListFilter` (or `ChainFileListFilter`).
+Starting with version 5.0, the `SftpPersistentAcceptOnceFileListFilter` with an in-memory `SimpleMetadataStore` is applied by default for the `SftpInboundFileSynchronizer`.
+This filter is also applied, together with the `regex` or `pattern` option in the XML configuration, as well as through `FtpInboundChannelAdapterSpec` in Java DSL.
+You can handle any other use-cases by using `CompositeFileListFilter` (or `ChainFileListFilter`).
 
 The above discussion refers to filtering the files before retrieving them.
 Once the files have been retrieved, an additional filter is applied to the files on the file system.
-By default, this is an`AcceptOnceFileListFilter` which, as discussed, retains state in memory and does not consider the file's modified time.
-Unless your application removes files after processing, the adapter will re-process the files on disk by default after an application restart.
+By default, this is an`AcceptOnceFileListFilter`, which, as discussed in this section, retains state in memory and does not consider the file's modified time.
+Unless your application removes files after processing, the adapter re-processes the files on disk by default after an application restart.
 
-Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter`, and the remote file timestamp changes (causing it to be re-fetched), the default local filter will not allow this new file to be processed.
+Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFilter` and the remote file timestamp changes (causing it to be re-fetched), the default local filter does not allow this new file to be processed.
 
-Use the `local-filter` attribute to configure the behavior of the local file system filter.
-Starting with _version 4.3.8_, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
-This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (<<metadata-store>>), and will detect changes to the local file modified time.
-The default `MetadataStore` is a `SimpleMetadataStore` which stores state in memory.
+You can use the `local-filter` attribute to configure the behavior of the local file system filter.
+Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
+This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (see "`<<metadata-store>>`") and detects changes to the local file modified time.
+The default `MetadataStore` is a `SimpleMetadataStore` that stores state in memory.
 
-Since __version 4.1.5__, these filters have a new property `flushOnUpdate` which will cause them to flush the
+Since version 4.1.5, these filters have a new property called `flushOnUpdate`, which causes them to flush the
 metadata store on every update (if the store implements `Flushable`).
 
-IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<redis-metadata-store>> or <<gemfire-metadata-store>>) you can have multiple instances of the same adapter/application and be sure that one and only one will process a file.
+IMPORTANT: Further, if you use a distributed `MetadataStore` (such as <<redis-metadata-store>> or <<gemfire-metadata-store>>), you can have multiple instances of the same adapter or application and be sure that one and only one instance processes a file.
 
-The actual local filter is a `CompositeFileListFilter` containing the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`); files are downloaded with this suffix (default: `.writing`) and the file is renamed to its final name when the transfer is complete, making it 'visible' to the filter.
+The actual local filter is a `CompositeFileListFilter` that contains the supplied filter and a pattern filter that prevents processing files that are in the process of being downloaded (based on the `temporary-file-suffix`).
+Files are downloaded with this suffix (the default is `.writing`), and the files are renamed to their final names when the transfer is complete, making them 'visible' to the filter.
 
-Please refer to the schema for more detail on these attributes.
+See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
 
-It is also important to understand that _SFTP Inbound Channel Adapter_ is a Polling Consumer and therefore you must configure a poller (either a global default or a local sub-element).
-Once the file has been transferred to a local directory, a Message with `java.io.File` as its payload type will be generated and sent to the channel identified by the `channel` attribute.
+SFTP inbound channel adapter is a polling consumer.
+Therefore, you must configure a poller (either a global default or a local element).
+Once the file has been transferred to a local directory, a message with `java.io.File` as its payload type is generated and sent to the channel identified by the `channel` attribute.
 
-_More on File Filtering and Large Files_
+==== More on File Filtering and Large Files
 
-Sometimes a file that just appeared in the monitored (remote) directory is not complete.
-Typically such a file will be written with some temporary extension (e.g., foo.txt.writing) and then renamed after the writing process completes.
-As a user in most cases you are only interested in files that are complete and would like to filter only those files.
-To handle these scenarios, use filtering support provided via the `filename-pattern`, `filename-regex` and `filter` attributes.
-If you need a custom filter implementation simply include a reference in your adapter via the `filter` attribute.
+Sometimes, a file that just appeared in the monitored (remote) directory is not complete.
+Typically such a file is written with some temporary extension (such as `.writing` on a file named `something.txt.writing`) and then renamed after the writing process completes.
+In most cases, developers are interested only in files that are complete and would like to filter only those files.
+To handle these scenarios, you can use the filtering support provided by the `filename-pattern`, `filename-regex`, and `filter` attributes.
+If you need a custom filter implementation, you can include a reference in your adapter by setting the `filter` attribute.
+The following example shows how to do so:
 
+====
 [source,xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
@@ -404,32 +391,30 @@ If you need a custom filter implementation simply include a reference in your ad
 </int-sftp:inbound-channel-adapter>
 
 <bean id="customFilter" class="org.foo.CustomFilter"/>
-
-
 ----
+====
 
 ==== Recovering from Failures
 
-It is important to understand the architecture of the adapter.
-There is a file synchronizer which fetches the files, and a `FileReadingMessageSource` to emit a message for each
-synchronized file.
-As discussed above, there are two filters involved.
-The `filter` attribute (and patterns) refers to the remote (SFTP) file list - to avoid fetching files that have already
+You should understand the architecture of the adapter.
+A file synchronizer fetches the files, and a `FileReadingMessageSource` emits a message for each synchronized file.
+As <<sftp-inbound,discussed earlier>>, two filters are involved.
+The `filter` attribute (and patterns) refers to the remote (SFTP) file list, to avoid fetching files that have already
 been fetched.
-The `local-filter` is used by the `FileReadingMessageSource` to determine which files are to be sent as messages.
+the `FileReadingMessageSource` uses the `local-filter` to determine which files are to be sent as messages.
 
-The synchronizer lists the remote files and consults its filter; the files are then transferred.
-If an IO error occurs during file transfer, any files that have already been added to the filter are removed so they
+The synchronizer lists the remote files and consults its filter.
+The files are then transferred.
+If an IO error occurs during file transfer, any files that have already been added to the filter are removed so that they
 are eligible to be re-fetched on the next poll.
-This only applies if the filter implements `ReversibleFileListFilter` (such as the `AcceptOnceFileListFilter`).
+This applies only if the filter implements `ReversibleFileListFilter` (such as the `AcceptOnceFileListFilter`).
 
-If, after synchronizing the files, an error occurs on the downstream flow processing a file, there is _no_ automatic
-rollback of the filter so the failed file will _not_ be reprocessed by default.
+If, after synchronizing the files, an error occurs on the downstream flow processing a file, no automatic rollback of the filter occurs, so the failed file is not reprocessed by default.
 
-If you wish to reprocess such files after a failure, you can use configuration similar to the following to facilitate
-the removal of the failed file from the filter.
-This will work for any `ResettableFileListFilter`.
+If you wish to reprocess such files after a failure, you can use a configuration similar to the following to facilitate
+the removal of the failed file from the filter:
 
+====
 [source, xml]
 ----
 <int-sftp:inbound-channel-adapter id="sftpAdapter"
@@ -454,19 +439,24 @@ This will work for any `ResettableFileListFilter`.
 <bean id="transactionManager"
     class="org.springframework.integration.transaction.PseudoTransactionManager" />
 ----
+====
 
-Starting with _version 5.0_, the Inbound Channel Adapter can build sub-directories locally according the generated local file name.
+The preceding configuration works for any `ResettableFileListFilter`.
+
+Starting with version 5.0, the inbound channel adapter can build sub-directories locally, according to the generated local file name.
 That can be a remote sub-path as well.
-To be able to read local directory recursively for modification according the hierarchy support, an internal `FileReadingMessageSource` now can bve supplied with a new `RecursiveDirectoryScanner` based on the `Files.walk()` algorithm.
-See `AbstractInboundFileSynchronizingMessageSource.setScanner()` for more information.
-Also the `AbstractInboundFileSynchronizingMessageSource` can now be switched to the `WatchService` -based `DirectoryScanner` via `setUseWatchService()` option.
-It is also configured for all the `WatchEventType` s to react for any modifications in local directory.
-The reprocessing sample above is based on the build-in functionality of the `FileReadingMessageSource.WatchServiceDirectoryScanner` to perform `ResettableFileListFilter.remove()` when the file is deleted (`StandardWatchEventKinds.ENTRY_DELETE`) from the local directory.
-See <<watch-service-directory-scanner>> for more information.
+To be able to read a local directory recursively for modification according to the hierarchy support, you can now supply an internal `FileReadingMessageSource` with a new `RecursiveDirectoryScanner` based on the `Files.walk()` algorithm.
+See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/remote/synchronizer/AbstractInboundFileSynchronizingMessageSource.html#setScanner-org.springframework.integration.file.DirectoryScanner[`AbstractInboundFileSynchronizingMessageSource.setScanner()]` for more information.
+Also, you can now switch the `AbstractInboundFileSynchronizingMessageSource` to the `WatchService`-based `DirectoryScanner` by using `setUseWatchService()` option.
+It is also configured for all the `WatchEventType` instances to react for any modifications in local directory.
+The reprocessing sample shown earlier is based on the built-in functionality of the `FileReadingMessageSource.WatchServiceDirectoryScanner`, which uses `ResettableFileListFilter.remove()` when the file is deleted (`StandardWatchEventKinds.ENTRY_DELETE`) from the local directory.
+See "`<<watch-service-directory-scanner>>`" for more information.
 
 ==== Configuring with Java Configuration
 
-The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
+The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
+
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -525,11 +515,13 @@ public class SftpJavaApplication {
 
 }
 ----
+====
 
 ==== Configuring with the Java DSL
 
-The following Spring Boot application provides an example of configuring the inbound adapter using the Java DSL:
+The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -558,27 +550,28 @@ public class SftpJavaApplication {
     }
 }
 ----
+====
 
 [[sftp-incomplete]]
 ==== Dealing With Incomplete Data
 
-See <<file-incomplete>>.
+See "`<<file-incomplete>>`".
 
 The `SftpSystemMarkerFilePresentFileListFilter` is provided to filter remote files that don't have the corresponding marker file on the remote system.
-See the javadocs for configuration information.
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/sftp/filters/SftpSystemMarkerFilePresentFileListFilter.html[Javadoc] for configuration information.
 
 [[sftp-streaming]]
 === SFTP Streaming Inbound Channel Adapter
 
-The streaming inbound channel adapter was introduced in _version 4.3_.
-This adapter produces message with payloads of type `InputStream`, allowing files to be fetched without writing to the
-local file system.
-Since the session remains open, the consuming application is responsible for closing the session when the file has been
-consumed.
+Version 4.3 introduced the streaming inbound channel adapter.
+This adapter produces message with payloads of type `InputStream`, letting you fetch files without writing to the local file system.
+Since the session remains open, the consuming application is responsible for closing the session when the file has been consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
-Standard framework components, such as the `FileSplitter` and `StreamTransformer` will automatically close the session.
-See <<file-splitter>> and <<stream-transformer>> for more information about these components.
+Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
+See "`<<file-splitter>>`" and "`<<stream-transformer>>`" for more information about these components.
+The following example shows how to configure an SFTP streaming inbound channel adapter:
 
+====
 [source, xml]
 ----
 <int-sftp:inbound-streaming-channel-adapter id="ftpInbound"
@@ -595,28 +588,33 @@ See <<file-splitter>> and <<stream-transformer>> for more information about thes
         <int:poller fixed-rate="1000" />
 </int-sftp:inbound-streaming-channel-adapter>
 ----
+====
 
-Only one of `filename-pattern`, `filename-regex`, `filter` or `filter-expression` is allowed.
+You can use only one of `filename-pattern`, `filename-regex`, `filter`, or `filter-expression`.
 
-IMPORTANT: Starting with _version 5.0_, by default, the `SftpStreamingMessageSource` adapter prevents duplicates for remote files via `SftpPersistentAcceptOnceFileListFilter` based on the in-memory `SimpleMetadataStore`.
-This filter is also applied by default together with the filename pattern (or regex) as well.
-If there is a requirement to allow duplicates, the `AcceptAllFileListFilter` can be used.
-Any other use-cases can be reached via `CompositeFileListFilter` (or `ChainFileListFilter`).
-The java configuration below shows one technique to remove the remote file after processing, avoiding duplicates.
+IMPORTANT: Starting with version 5.0, by default, the `SftpStreamingMessageSource` adapter prevents duplicates for remote files by using `SftpPersistentAcceptOnceFileListFilter` based on the in-memory `SimpleMetadataStore`.
+By default, this filter is also applied together with the filename pattern (or regex) as well.
+If you need to allow duplicates, you can use the `AcceptAllFileListFilter`.
+You can handle any other use cases by using `CompositeFileListFilter` (or `ChainFileListFilter`).
+The Java configuration <<sftp-streaming-java-config,shown later>> shows one technique to remove the remote file after processing, avoiding duplicates.
 
-Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary; set to 1 and use a persistent filter when running in a clustered environment; see <<sftp-max-fetch>> for more information.
+You can use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary.
+Set it to `1` and use a persistent filter when running in a clustered environment.
+See "`<<sftp-max-fetch>>`" for more information.
 
-The adapter puts the remote directory and file name in headers `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` respectively.
-Starting with _version 5.0_, additional remote file information, in JSON, is provided in the `FileHeaders.REMOTE_FILE_INFO` header.
-If you set the `fileInfoJson` property on the `SftpStreamingMessageSource` to `false`, the header will contain an `SftpFileInfo` object.
-The `LsEntry` object provided by the underlying Jsch library can be accessed using the `SftpFileInfo.getFileInfo()` method.
-The `fileInfoJson` property is not available when using XML configuration but you can set it by injecting the `SftpStreamingMessageSource` into one of your configuration classes.
+The adapter puts the remote directory and the file name in headers (`FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE`, respectively).
+Starting with version 5.0, the `FileHeaders.REMOTE_FILE_INFO` header provides additional remote file information (in JSON).
+If you set the `fileInfoJson` property on the `SftpStreamingMessageSource` to `false`, the header contains an `SftpFileInfo` object.
+You can access the `LsEntry` object provided by the underlying Jsch library by using the `SftpFileInfo.getFileInfo()` method.
+The `fileInfoJson` property is not available when you use XML configuration, but you can set it by injecting the `SftpStreamingMessageSource` into one of your configuration classes.
 
 Starting with version 5.1, the `comparator` 's generic type is now `LsEntry`; previously it was `AbstractFileInfo<LsEntry>`; this is because the sort is now performed earlier in the processing, before filtering and applying `maxFetch`.
-
+[[sftp-streaming-java-config]]
 ==== Configuring with Java Configuration
 
-The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
+The following Spring Boot application shows an example of how to configure the inbound adapter with Java:
+
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -666,6 +664,7 @@ public class SftpJavaApplication {
 
 }
 ----
+====
 
 Notice that, in this example, the message handler downstream of the transformer has an advice that removes the remote file after processing.
 
@@ -757,22 +756,26 @@ IMPORTANT: Do not configure a `TaskExecutor` on the poller when using this advic
 [[sftp-max-fetch]]
 === Inbound Channel Adapters: Controlling Remote File Fetching
 
-There are two properties that should be considered when configuring inbound channel adapters.
+You should consider two properties when configuring inbound channel adapters.
 `max-messages-per-poll`, as with all pollers, can be used to limit the number of messages emitted on each poll (if more than the configured value are ready).
-`max-fetch-size` (since _version 5.0_) can limit the number of files retrieved from the remote server at a time.
+`max-fetch-size` (since version 5.0) can limit the number of files retrieved from the remote server at a time.
 
-The following scenarios assume the starting state is an empty local directory.
+The following scenarios assume the starting state is an empty local directory:
 
-* `max-messages-per-poll=2` and `max-fetch-size=1`, the adapter will fetch one file, emit it, fetch the next file, emit it; then sleep until the next poll.
-* `max-messages-per-poll=2` and `max-fetch-size=2`), the adapter will fetch both files, then emit each one.
-* `max-messages-per-poll=2` and `max-fetch-size=4`, the adapter will fetch up to 4 files (if available) and emit the first two (if there are at least two); the next two files will be emitted on the next poll.
-* `max-messages-per-poll=2` and `max-fetch-size` not specified, the adapter will fetch all remote files and emit the first two (if there are at least two); the subsequent files will be emitted on subsequent polls (2-at-a-time); when all are consumed, the remote fetch will be attempted again, to pick up any new files.
+* `max-messages-per-poll=2` and `max-fetch-size=1`: The adapter fetches one file, emits it, fetches the next file, and emit it.
+Then it sleeps until the next poll.
+* `max-messages-per-poll=2` and `max-fetch-size=2`): The adapter fetch both files and then emits each one.
+* `max-messages-per-poll=2` and `max-fetch-size=4`: The adapter fetches up to 4 files (if available) and emits the first two (if there are at least two).
+The next two files will be emitted on the next poll.
+* `max-messages-per-poll=2` and `max-fetch-size` not specified: The adapter fetches all remote files and emits the first two (if there are at least two).
+The subsequent files are emitted on subsequent polls (two at a time).
+When all are consumed, the remote fetch is attempted again, to pick up any new files.
 
-IMPORTANT: When deploying multiple instances of an application, a small `max-fetch-size` is recommended to avoid one instance "grabbing" all the files and starving other instances.
+IMPORTANT: When you deploy multiple instances of an application, we recommend setting a small `max-fetch-size`, to avoid one instance "`grabbing`" all the files and starving other instances.
 
-Another use for `max-fetch-size` is if you want to stop fetching remote files, but continue to process files that have already been fetched.
-Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<control-bus, control bus>>) effectively stops the adapter from fetching more files, but allows the poller to continue to emit messages for files that have previously been fetched.
-If the poller is active when the property is changed, the change will take effect on the next poll.
+Another use for `max-fetch-size` is when you want to stop fetching remote files but continue to process files that have already been fetched.
+Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<control-bus, control bus>>) effectively stops the adapter from fetching more files but lets the poller continue to emit messages for files that have previously been fetched.
+If the poller is active when the property is changed, the change takes effect on the next poll.
 
 Starting with version 5.1, the synchronizer can be provided with a `Comparator<LsEntry>`.
 This is useful when restricting the number of files fetched with `maxFetchSize`.
@@ -780,14 +783,17 @@ This is useful when restricting the number of files fetched with `maxFetchSize`.
 [[sftp-outbound]]
 === SFTP Outbound Channel Adapter
 
-The _SFTP Outbound Channel Adapter_ is a special `MessageHandler` that will connect to the remote directory and will
-initiate a file transfer for every file it will receive as the payload of an incoming `Message`.
-It also supports several representations of the File so you are not limited to the File object.
-Similar to the FTP outbound adapter, the _SFTP Outbound Channel Adapter_ supports the following payloads:
-1) `java.io.File` - the actual file object;
-2) `byte[]` - byte array that represents the file contents;
-3) `java.lang.String` - text that represents the file contents.
+The SFTP outbound channel adapter is a special `MessageHandler` that connects to the remote directory and initiates a file transfer for every file it receives as the payload of an incoming `Message`.
+It also supports several representations of the file so that you are not limited to the `File` object.
+Similar to the FTP outbound adapter, the SFTP outbound channel adapter supports the following payloads:
 
+* `java.io.File`: The actual file object
+* `byte[]`: A byte array that represents the file contents
+* `java.lang.String`: Text that represents the file contents
+
+The following example shows how to configure an SFTP outbound channel adapter:
+
+====
 [source,xml]
 ----
 <int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
@@ -796,45 +802,51 @@ Similar to the FTP outbound adapter, the _SFTP Outbound Channel Adapter_ support
     charset="UTF-8"
     remote-file-separator="/"
     remote-directory="foo/bar"
-    remote-filename-generator-expression="payload.getName() + '-foo'"
+    remote-filename-generator-expression="payload.getName() + '-mysuffix'"
     filename-generator="fileNameGenerator"
     use-temporary-filename="true"
     chmod="600"
     mode="REPLACE"/>
 ----
+====
 
-As you can see from the configuration above you can configure the _SFTP Outbound Channel Adapter_ via the `outbound-channel-adapter` element.
-Please refer to the schema for more detail on these attributes.
+See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema] for more detail on these attributes.
 
-_SpEL and the SFTP Outbound Adapter_
+==== SpEL and the SFTP Outbound Adapter
 
-As with many other components in Spring Integration, you can benefit from the Spring Expression Language (SpEL) support when configuring an _SFTP Outbound Channel Adapter_, by specifying two attributes `remote-directory-expression` and `remote-filename-generator-expression` (see above).
-The expression evaluation context will have the Message as its root object, thus allowing you to provide expressions which can dynamically compute the _file name_ or the existing _directory path_ based on the data in the Message (either from 'payload' or 'headers').
-In the example above we are defining the `remote-filename-generator-expression` attribute with an expression value that computes the _file name_ based on its original name while also appending a suffix: '-foo'.
+As with many other components in Spring Integration, you can use the Spring Expression Language (SpEL) when you configure an SFTP outbound channel adapter by specifying two attributes: `remote-directory-expression` and `remote-filename-generator-expression` (<<sftp-inbound,described earlier>>).
+The expression evaluation context has the message as its root object, which lets you use expressions that can dynamically compute the file name or the existing directory path based on the data in the message (from either the 'payload' or the 'headers').
+In the preceding example, we define the `remote-filename-generator-expression` attribute with an expression value that computes the file name based on its original name while also appending a suffix: '-mysuffix'.
 
-Starting with _version 4.1_, you can specify the `mode` when transferring the file.
-By default, an existing file will be overwritten; the modes are defined on `enum` `FileExistsMode`, having values `REPLACE` (default), `APPEND`, `IGNORE`, and `FAIL`.
-With `IGNORE` and `FAIL`, the file is not transferred; `FAIL` causes an exception to be thrown whereas `IGNORE` silently ignores the transfer (although a `DEBUG` log entry is produced).
+Starting with version 4.1, you can specify the `mode` when you transferring the file.
+By default, an existing file is overwritten.
+The modes are defined by the `FileExistsMode` enumeration, which has the following values: `REPLACE` (default), `APPEND`, `IGNORE`, and `FAIL`.
+With `IGNORE` and `FAIL`, the file is not transferred.
+`FAIL` causes an exception to be thrown, while `IGNORE` silently ignores the transfer (although a `DEBUG` log entry is produced).
 
-_Avoiding Partially Written Files_
+==== Avoiding Partially Written Files
 
-One of the common problems, when dealing with file transfers, is the possibility of processing a _partial file_ - a file might appear in the file system before its transfer is actually complete.
+One of the common problems when dealing with file transfers is the possibility of processing a partial file.
+A file might appear in the file system before its transfer is actually complete.
 
-To deal with this issue, Spring Integration SFTP adapters use a very common algorithm where files are transferred under a temporary name and than renamed once they are fully transferred.
+To deal with this issue, Spring Integration SFTP adapters use a common algorithm in which files are transferred under a temporary name and than renamed once they are fully transferred.
 
-By default, every file that is in the process of being transferred will appear in the file system with an additional suffix which, by default, is `.writing`; this can be changed using the `temporary-file-suffix` attribute.
+By default, every file that is in the process of being transferred appear in the file system with an additional suffix, which, by default, is `.writing`.
+You can change by setting the `temporary-file-suffix` attribute.
 
-However, there may be situations where you don't want to use this technique (for example, if the server does not permit renaming files).
-For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (default is `true`).
-When this attribute is `false`, the file is written with its final name and the consuming application will need some other mechanism to detect that the file is completely uploaded before accessing it.
+However, there may be situations where you do not want to use this technique (for example, if the server does not permit renaming files).
+For situations like this, you can disable this feature by setting `use-temporary-file-name` to `false` (the default is `true`).
+When this attribute is `false`, the file is written with its final name, and the consuming application needs some other mechanism to detect that the file is completely uploaded before accessing it.
 
-_Version 4.3_ introduced the `chmod` attribute which changes the remote file permissions after upload.
-Use the conventional Unix octal format, e.g. `600` allows read-write for the file owner only.
+Version 4.3 introduced the `chmod` attribute, which you can use to change the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
 When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
 
 ==== Configuring with Java Configuration
 
-The following Spring Boot application provides an example of configuring the Outbound Adapter using Java configuration:
+The following Spring Boot application shows an example of how to configure the outbound adapter with Java:
+
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -886,11 +898,13 @@ public class SftpJavaApplication {
     }
 }
 ----
+====
 
 ==== Configuring with the Java DSL
 
-The following Spring Boot application provides an example of configuring the Outbound Adapter using the Java DSL:
+The following Spring Boot application shows an example of how to configure the outbound adapter with the Java DSL:
 
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -913,82 +927,79 @@ public class SftpJavaApplication {
 
 }
 ----
+====
 
 [[sftp-outbound-gateway]]
 === SFTP Outbound Gateway
 
-The _SFTP Outbound Gateway_ provides a limited set of commands to interact with a remote SFTP server.
-Commands supported are:
+The SFTP outbound gateway provides a limited set of commands that let you interact with a remote SFTP server:
 
-* ls (list files)
-* nlst (list file names)
-* get (retrieve file)
-* mget (retrieve file(s))
-* rm (remove file(s))
-* mv (move/rename file)
-* put (send file)
-* mput (send multiple files)
+* `ls` (list files)
+* `nlst` (list file names)
+* `get` (retrieve a file)
+* `mget` (retrieve multiple files)
+* `rm` (remove file(s))
+* `mv` (move and rename file)
+* `put` (send a file)
+* `mput` (send multiple files)
 
-*ls*
+==== Using the `ls` Command
 
-ls lists remote file(s) and supports the following options:
+`ls` lists remote files and supports the following options:
 
-* -1 - just retrieve a list of filenames, default is to retrieve a list of `FileInfo` objects.
-* -a - include all files (including those starting with '.')
-* -f - do not sort the list
-* -dirs - include directories (excluded by default)
-* -links - include symbolic links (excluded by default)
-* -R - list the remote directory recursively
+* `-1`: Retrieve a list of filenames.
+The default is to retrieve a list of `FileInfo` objects
+* `-a`: Include all files (including those starting with '.')
+* `-f`: Do not sort the list
+* `-dirs`: Include directories (excluded by default)
+* `-links`: Include symbolic links (excluded by default)
+* `-R`: List the remote directory recursively
 
-In addition, filename filtering is provided, in the same manner as the `inbound-channel-adapter`.
+In addition, filename filtering is provided in the same manner as the `inbound-channel-adapter`.
 
-The message payload resulting from an _ls_ operation is a list of file names, or a list of `FileInfo` objects.
-These objects provide information such as modified time, permissions etc.
+The message payload resulting from an `ls` operation is a list of file names or a list of `FileInfo` objects (depending on whether you usr the `-1` switch).
+These objects provide information such as modified time, permissions, and others.
 
-The remote directory that the _ls_ command acted on is provided in the `file_remoteDirectory` header.
+The remote directory that the `ls` command acted on is provided in the `file_remoteDirectory` header.
 
-When using the recursive option (`-R`), the `fileName` includes any subdirectory elements, representing a relative path to the file (relative to the remote directory).
-If the `-dirs` option is included, each recursive directory is also returned as an element in the list.
-In this case, it is recommended that the `-1` is not used because you would not be able to determine files Vs.
-directories, which is achievable using the `FileInfo` objects.
+When using the recursive option (`-R`), the `fileName` includes any subdirectory elements and represents the relative path to the file (relative to the remote directory).
+If you use the `-dirs` option, each recursive directory is also returned as an element in the list.
+In this case, we recommend that you not use the `-1` option, because you would not be able to distinguish files from directories, which you can do when you use `FileInfo` objects.
 
-*nlst*
+Using `nlst` Command
 
-(Since _version 5.0_)
+Version 5 introduced support for the `nlst` command.
 
-Lists remote file names and supports the following options:
+`nlst` lists remote file names and supports only one option:
 
-* -f - do not sort the list
+* `-f`: Do not sort the list
 
-The message payload resulting from an _nlst_ operation is a list of file names.
+The message payload resulting from an `nlst` operation is a list of file names.
 
-The remote directory that the _nlst_ command acted on is provided in the `file_remoteDirectory` header.
+The `file_remoteDirectory` header holds the remote directory on which the `nlst` command acted.
 
-The SFTP protocol doesn't provide _list names_ functionality, s this command is fully equivalent of the _ls_ command with `-1` option and added here for convenience.
+The SFTP protocol does not provide the ability to list names.
+This command is the equivalent of the `ls` command with the `-1` option and is added here for convenience.
 
-*get*
+==== Using the `get` Command
 
-_get_ retrieves a remote file and supports the following option:
+`get` retrieves a remote file and supports the following options:
 
-* -P - preserve the timestamp of the remote file.
+* `-P`: Preserve the timestamp of the remote file.
+* `-stream`: Retrieve the remote file as a stream.
+* `-D`: Delete the remote file after successful transfer.
+The remote file is not deleted if the transfer is ignored, because the `FileExistsMode` is `IGNORE` and the local file already exists.
 
-* -stream - retrieve the remote file as a stream.
+The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the filename.
 
-* -D - delete the remote file after successful transfer.
-The remote file is NOT deleted if the transfer is ignored because the `FileExistsMode` is `IGNORE` and the local file already exists.
+The message payload resulting from a `get` operation is a `File` object representing the retrieved file.
+If you use the `-stream` option, the payload is an `InputStream` rather than a `File`.
+For text files, a common use case is to combine this operation with a <<file-splitter,file splitter>> or a
+<<stream-transformer,stream transformer>>.
+When consuming remote files as streams, you are responsible for closing the `Session` after the stream is consumed.
+For convenience, the `Session` is provided in the `closeableResource` header, and `IntegrationMessageHeaderAccessor` offers convenience method:
 
-The remote directory is provided in the `file_remoteDirectory` header, and the filename is provided in the `file_remoteFile` header.
-
-The message payload resulting from a _get_ operation is a `File` object representing the retrieved file, or
-an `InputStream` when the `-stream` option is provided.
-This option allows retrieving the file as a stream.
-For text files, a common use case is to combine this operation with a <<file-splitter,File Splitter>> or
-<<stream-transformer,Stream Transformer>>.
-When consuming remote files as streams, the user is responsible for closing the `Session` after the stream is
-consumed.
-For convenience, the `Session` is provided in the `closeableResource` header, a convenience method is provided on the
-`IntegrationMessageHeaderAccessor`:
-
+====
 [source, java]
 ----
 Closeable closeable = new IntegrationMessageHeaderAccessor(message).getCloseableResource();
@@ -996,12 +1007,14 @@ if (closeable != null) {
     closeable.close();
 }
 ----
+====
 
-Framework components such as the <<file-splitter,File Splitter>> and <<stream-transformer,Stream Transformer>> will
+Framework components, such as the <<file-splitter,File Splitter>> and <<stream-transformer,Stream Transformer>>,
 automatically close the session after the data is transferred.
 
-The following shows an example of consuming a file as a stream:
+The following example shows how to consume a file as a stream:
 
+====
 [source, xml]
 ----
 <int-sftp:outbound-gateway session-factory="ftpSessionFactory"
@@ -1014,61 +1027,65 @@ The following shows an example of consuming a file as a stream:
 
 <int-file:splitter input-channel="stream" output-channel="lines" />
 ----
+====
 
-Note: if you consume the input stream in a custom component, you *must* close the `Session`.
-You can either do that in your custom code, or route a copy of the message to a `service-activator` and use SpEL:
+NOTE: If you consume the input stream in a custom component, you must close the `Session`.
+You can either do that in your custom code or route a copy of the message to a `service-activator` and use SpEL, as the following example shows:
 
+====
 [source, xml]
 ----
 <int:service-activator input-channel="closeSession"
     expression="headers['closeableResource'].close()" />
 ----
+====
 
-*mget*
+==== Using the `mget` Command
 
-_mget_ retrieves multiple remote files based on a pattern and supports the following options:
+`mget` retrieves multiple remote files based on a pattern and supports the following options:
 
-* -P - preserve the timestamps of the remote files.
+* `-P`: Preserve the timestamps of the remote files.
 
-* -R - retrieve the entire directory tree recursively.
+* `-R`: Retrieve the entire directory tree recursively.
 
-* -x - Throw an exception if no files match the pattern (otherwise an empty list is returned).
+* `-x`: Throw an exception if no files match the pattern (otherwise, an empty list is returned).
 
-* -D - delete each remote file after successful transfer.
-The remote file is NOT deleted if the transfer is ignored because the `FileExistsMode` is `IGNORE` and the local file already exists.
+* `-D`: Delete each remote file after successful transfer.
+If the transfer is ignored, the remote file is not deleted, because the `FileExistsMode` is `IGNORE` and the local file already exists.
 
-The message payload resulting from an _mget_ operation is a `List<File>` object - a List of File objects, each representing a retrieved file.
+The message payload resulting from an `mget` operation is a `List<File>` object (that is, a `List` of `File` objects, each representing a retrieved file).
 
-IMPORTANT: Starting with _version 5.0_, if the `FileExistsMode` is `IGNORE`, the payload of the output message will no longer contain files that were not fetched due to the file already existing.
+IMPORTANT: Starting with version 5.0, if the `FileExistsMode` is `IGNORE`, the payload of the output message no longer contain files that were not fetched due to the file already existing.
 Previously, the array contained all files, including those that already existed.
 
+The expression you use determine the remote path should produce a result that ends with `*` for example `myfiles/*` fetches the complete tree under `myfiles`.
 
-The expression used to determine the remote path should produce a result that ends with `*` - e.g. `foo/*` will fetch the complete tree under `foo`.
-
-Starting with _version 5.0_, a recursive `MGET`, combined with the new `FileExistsMode.REPLACE_IF_MODIFIED` mode, can be used to periodically synchronize an entire remote directory tree locally.
-This mode will set the local file last modified timestamp to the remote file timestamp, regardless of the `-P` (preserve timestamp) option.
+Starting with version 5.0, you can use a recursive `MGET`, combined with the `FileExistsMode.REPLACE_IF_MODIFIED` mode, to periodically synchronize an entire remote directory tree locally.
+This mode sets the local file's last modified timestamp to the remote file's timestamp, regardless of the `-P` (preserve timestamp) option.
 
 .Notes for when using recursion (`-R`)
 [IMPORTANT]
 =====
 
-The pattern is ignored, and `*` is assumed.
+The pattern is ignored and `*` is assumed.
 By default, the entire remote tree is retrieved.
-However, files in the tree can be filtered, by providing a `FileListFilter`; directories in the tree can also be filtered this way.
+However, you can filter files in the tree by providing a `FileListFilter`.
+You can also filter directories in the tree this way.
 A `FileListFilter` can be provided by reference or by `filename-pattern` or `filename-regex` attributes.
-For example, `filename-regex="(subDir|.*1.txt)"` will retrieve all files ending with `1.txt` in the remote directory and the subdirectory `subDir`.
-However, see below for an alternative available in _version 5.0_.
+For example, `filename-regex="(subDir|.*1.txt)"` retrieves all files ending with `1.txt` in the remote directory and the subdirectory `subDir`.
+However, we describe an alternative available after this note.
 
-If a subdirectory is filtered, no additional traversal of that subdirectory is performed.
+If you filter a subdirectory, no additional traversal of that subdirectory is performed.
 
-The `-dirs` option is not allowed (the recursive mget uses the recursive `ls` to obtain the directory tree and the directories themselves cannot be included in the list).
+The `-dirs` option is not allowed (the recursive `mget` uses the recursive `ls` to obtain the directory tree and the directories themselves cannot be included in the list).
 
 Typically, you would use the `#remoteDirectory` variable in the `local-directory-expression` so that the remote directory structure is retained locally.
 =====
 
-Starting with _version 5.0_, the `SftpSimplePatternFileListFilter` and `SftpRegexPatternFileListFilter` can be configured to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
-This allows recursion for a simple pattern; examples follow:
+Starting with version 5.0, you can configure the `SftpSimplePatternFileListFilter` and `SftpRegexPatternFileListFilter` to always pass directories by setting the `alwaysAcceptDirectorties` to `true`.
+Doing so allows recursion for a simple pattern, as the following examples show:
 
+====
 [source, xml]
 ----
 <bean id="starDotTxtFilter"
@@ -1083,81 +1100,89 @@ This allows recursion for a simple pattern; examples follow:
     <property name="alwaysAcceptDirectories" value="true" />
 </bean>
 ----
+====
 
-and provide one of these filters using `filter` property on the gateway.
+You can provide one of these filters by using the `filter` property on the gateway.
 
 
-See also <<sftp-partial>>
+See also "`<<sftp-partial>>`".
 
-*put*
+[[sftp-put-command]]
+====Using the `put` Command
 
-_put_ sends a file to the remote server; the payload of the message can be a `java.io.File`, a `byte[]` or a `String`.
+`put` sends a file to the remote server.
+The payload of the message can be a `java.io.File`, a `byte[]`, or a `String`.
 A `remote-filename-generator` (or expression) is used to name the remote file.
-Other available attributes include `remote-directory`, `temporary-remote-directory` (and their `*-expression`) equivalents, `use-temporary-file-name`, and `auto-create-directory`.
-Refer to the schema documentation for more information.
+Other available attributes include `remote-directory`, `temporary-remote-directory` and their `*-expression` equivalents: `use-temporary-file-name` and `auto-create-directory`.
+See the https://github.com/spring-projects/spring-integration/tree/master/spring-integration-core/src/main/resources/org/springframework/integration/config[schema documentation] for more information.
 
-The message payload resulting from a _put_ operation is a `String` representing the full path of the file on the server after transfer.
+The message payload resulting from a `put` operation is a `String` that contains the full path of the file on the server after transfer.
 
-_Version 4.3_ introduced the `chmod` attribute which changes the remote file permissions after upload.
-Use the conventional Unix octal format, e.g. `600` allows read-write for the file owner only.
+Version 4.3 introduced the `chmod` attribute, which changes the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
 When configuring the adapter using java, you can use `setChmod(0600)`.
 
-*mput*
+==== Using the `mput` Command
 
-_mput_ sends multiple files to the server and supports the following option:
+`mput` sends multiple files to the server and supports the following option:
 
-* -R - Recursive - send all files (possibly filtered) in the directory and subdirectories
+* `-R`: Recursive -- send all files (possibly filtered) in the directory and subdirectories
 
-The message payload must be a `java.io.File` representing a local directory.
+The message payload must be a `java.io.File` that represents a local directory.
 
-The same attributes as the `put` command are supported.
-In addition, files in the local directory can be filtered with one of `mput-pattern`, `mput-regex`, `mput-filter` or `mput-filter-expression`.
+The same attributes as the <<sftp-put-command,`put` command>> are supported.
+In addition, you can filter files in the local directory with one of `mput-pattern`, `mput-regex`, `mput-filter`, or `mput-filter-expression`.
 The filter works with recursion, as long as the subdirectories themselves pass the filter.
 Subdirectories that do not pass the filter are not recursed.
 
-The message payload resulting from an _mget_ operation is a `List<String>` object - a List of remote file paths resulting from the transfer.
+The message payload resulting from an `mget` operation is a `List<String>` object (that is, a `List` of remote file paths resulting from the transfer).
 
-See also <<sftp-partial>>
+See also "`<<sftp-partial>>`".
 
-_Version 4.3_ introduced the `chmod` attribute which changes the remote file permissions after upload.
-Use the conventional Unix octal format, e.g. `600` allows read-write for the file owner only.
-When configuring the adapter using java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
+Version 4.3 introduced the `chmod` attribute, which lets you change the remote file permissions after upload.
+You can use the conventional Unix octal format (for example, `600` allows read-write for the file owner only).
+When configuring the adapter with Java, you can use `setChmodOctal("600")` or `setChmodDecimal(384)`.
 
-*rm*
+Using the `rm` Command
 
-The _rm_ command has no options.
+The `rm` command has no options.
 
-The message payload resulting from an _rm_ operation is Boolean.TRUE if the remove was successful, Boolean.FALSE otherwise.
-The remote directory is provided in the `file_remoteDirectory` header, and the filename is provided in the `file_remoteFile` header.
+If the remove operation was successful, the resulting message payload is `Boolean.TRUE`. Otherwise, the message payload is `Boolean.FALSE`.
+The `file_remoteDirectory` header holds the remote directory, and the `file_remoteFile` header holds the file name.
 
-*mv*
+==== Using the `mv` Command
 
-The _mv_ command has no options.
+The `mv` command has no options.
 
-The _expression_ attribute defines the "from" path and the _rename-expression_ attribute defines the "to" path.
-By default, the _rename-expression_ is `headers['file_renameTo']`.
-This expression must not evaluate to null, or an empty `String`.
-If necessary, any remote directories needed will be created.
+The `expression` attribute defines the "`from`" path, and the `rename-expression` attribute defines the "`to`" path.
+By default, the `rename-expression` is `headers['file_renameTo']`.
+This expression must not evaluate to null or an empty `String`.
+If necessary, any remote directories needed are created.
 The payload of the result message is `Boolean.TRUE`.
-The original remote directory is provided in the `file_remoteDirectory` header, and the filename is provided in the `file_remoteFile` header.
-The new path is in the `file_renameTo` header.
+The the `file_remoteDirectory` header holds the original remote directory, and the `file_remoteFile` header holds the filename.
+The `file_renameTo` header holds the new path.
 
-*Additional Information*
+==== Additional Command Information
 
-The _get_ and _mget_ commands support the _local-filename-generator-expression_ attribute.
-It defines a SpEL expression to generate the name of local file(s) during the transfer.
-The root object of the evaluation context is the request Message but, in addition, the `remoteFileName` variable is also available, which is particularly useful for _mget_, for example: `local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.foo"`
+The `get` and `mget` commands support the `local-filename-generator-expression` attribute.
+It defines a SpEL expression to generate the names of local files during the transfer.
+The root object of the evaluation context is the request message.
+The `remoteFileName` variable is also available.
+It is particularly useful for `mget` (for example: `local-filename-generator-expression="#remoteFileName.toUpperCase() + headers.foo"`).
 
-The _get_ and _mget_ commands support the _local-directory-expression_ attribute.
-It defines a SpEL expression to generate the name of local directory(ies) during the transfer.
-The root object of the evaluation context is the request Message but, in addition, the `remoteDirectory` variable is also available, which is particularly useful for _mget_, for example: `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.foo"`.
-This attribute is mutually exclusive with _local-directory_ attribute.
+The `get` and `mget` commands support the `local-directory-expression` attribute.
+It defines a SpEL expression to generate the names of local directories during the transfer.
+The root object of the evaluation context is the request message.
+The `remoteDirectory` variable is also available.
+It is particularly useful for mget (for example: `local-directory-expression="'/tmp/local/' + #remoteDirectory.toUpperCase() + headers.myheader"`).
+This attribute is mutually exclusive with the `local-directory` attribute.
 
-For all commands, the PATH that the command acts on is provided by the 'expression' property of the gateway.
-For the mget command, the expression might evaluate to '*', meaning retrieve all files, or 'somedirectory/*' etc.
+For all commands, the 'expression' property of the gateway holds the path on which the command acts.
+For the `mget` command, the expression might evaluate to '*', meaning to retrieve all files, 'somedirectory/*', and other values that end with `*`.
 
-Here is an example of a gateway configured for an ls command...
+The following example shows a gateway configured for an `ls` command:
 
+====
 [source,xml]
 ----
 <int-ftp:outbound-gateway id="gateway1"
@@ -1167,23 +1192,24 @@ Here is an example of a gateway configured for an ls command...
         command-options="-1"
         expression="payload"
         reply-channel="toSplitter"/>
-
 ----
+====
 
-The payload of the message sent to the toSplitter channel is a list of String objects containing the filename of each file.
-If the `command-options` was omitted, it would be a list of `FileInfo` objects.
-Options are provided space-delimited, e.g.
-`command-options="-1 -dirs -links"`.
+The payload of the message sent to the `toSplitter` channel is a list of `String` objects, each of which contains the name of a file.
+If you omitted `command-options="-1"`, the payload would be a list of `FileInfo` objects.
+You can provide options as a space-delimited list (for example, `command-options="-1 -dirs -links"`).
 
-Starting with _version 4.2_, the `GET`, `MGET`, `PUT` and `MPUT` commands support a `FileExistsMode` property (`mode`
+Starting with version 4.2, the `GET`, `MGET`, `PUT`, and `MPUT` commands support a `FileExistsMode` property (`mode`
 when using the namespace support). This affects the behavior when the local file exists (`GET` and `MGET`) or the remote
-file exists (`PUT` and `MPUT`). Supported modes are `REPLACE`, `APPEND`, `FAIL` and `IGNORE`.
-For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE` and for `GET` and `MGET`
+file exists (`PUT` and `MPUT`). The supported modes are `REPLACE`, `APPEND`, `FAIL`, and `IGNORE`.
+For backwards compatibility, the default mode for `PUT` and `MPUT` operations is `REPLACE`. For `GET` and `MGET`
 operations, the default is `FAIL`.
 
 ==== Configuring with Java Configuration
 
-The following Spring Boot application provides an example of configuring the Outbound Gateway using Java configuration:
+The following Spring Boot application shows an example of how to configure the outbound gateway with Java:
+
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -1203,11 +1229,13 @@ public class SftpJavaApplication {
 
 }
 ----
+====
 
 ==== Configuring with the Java DSL
 
-The following Spring Boot application provides an example of configuring the Outbound Gateway using the Java DSL:
+The following Spring Boot application shows an example of how to configure the outbound gateway with the Java DSL:
 
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -1250,25 +1278,26 @@ public class SftpJavaApplication {
 
 }
 ----
+====
 
 [[sftp-partial]]
-==== Outbound Gateway Partial Success (mget and mput)
+==== Outbound Gateway Partial Success (`mget` and `mput`)
 
-When performing operations on multiple files (`mget` and `mput`) it is possible that an exception occurs some time after
-one or more files have been transferred.
-In this case (starting with _version 4.2_), a `PartialSuccessException` is thrown.
+When performing operations on multiple files (by using `mget` and `mput`) an exception can occur some time after one or more files have been transferred.
+In this case (starting with version 4.2), a `PartialSuccessException` is thrown.
 As well as the usual `MessagingException` properties (`failedMessage` and `cause`), this exception has two additional
 properties:
 
-- `partialResults` - the successful transfer results.
-- `derivedInput` - the list of files generated from the request message (e.g. local files to transfer for an `mput`).
+* `partialResults`: The successful transfer results.
+* `derivedInput`: The list of files generated from the request message (such as local files to transfer for an `mput`).
 
-This will enable you to determine which files were successfully transferred, and which were not.
+These attributes let you determine which files were successfully transferred and which were not.
 
-In the case of a recursive `mput`, the `PartialSuccessException` may have nested `PartialSuccessException` s.
+In the case of a recursive `mput`, the `PartialSuccessException` may have nested `PartialSuccessException` instances.
 
-Consider:
+Consider the following directory structure:
 
+====
 [source]
 ----
 root/
@@ -1278,34 +1307,35 @@ root/
    | - file3.txt
 |- zoo.txt
 ----
+====
 
-If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway will have `derivedInput`
-of `file1.txt`, `subdir`, `zoo.txt` and `partialResults` of `file1.txt`.
-It's `cause` will be another `PartialSuccessException` with `derivedInput` of `file2.txt`, `file3.txt` and
-`partialResults` of `file2.txt`.
+If the exception occurs on `file3.txt`, the `PartialSuccessException` thrown by the gateway has `derivedInput` of `file1.txt`, `subdir`, and `zoo.txt` and `partialResults` of `file1.txt`.
+Its `cause` is another `PartialSuccessException` with `derivedInput` of `file2.txt` and `file3.txt` and `partialResults` of `file2.txt`.
 
 [[sftp-jsch-logging]]
 === SFTP/JSCH Logging
 
-Since we use JSch libraries (http://www.jcraft.com/jsch/) to provide SFTP support, at times you may require more information from the JSch API itself, especially if something is not working properly (e.g., Authentication exceptions).
-Unfortunately JSch does not use commons-logging but instead relies on custom implementations of their `com.jcraft.jsch.Logger` interface.
+Since we use JSch libraries (http://www.jcraft.com/jsch/) to provide SFTP support, you may at times require more information from the JSch API itself, especially if something is not working properly (such as authentication exceptions).
+Unfortunately JSch does not use `commons-logging` but instead relies on custom implementations of their `com.jcraft.jsch.Logger` interface.
 As of Spring Integration 2.0.1, we have implemented this interface.
-So, now all you need to do to enable JSch logging is to configure your logger the way you usually do.
-For example, here is valid configuration of a logger using Log4J.
+So now, to enable JSch logging, you can configure your logger the way you usually do.
+For example, the following example is valid configuration of a logger that uses Log4J:
+
+====
 [source,java]
 ----
 log4j.category.com.jcraft.jsch=DEBUG
 ----
+====
 
 [[sftp-session-callback]]
 === MessageSessionCallback
 
-Starting with _Spring Integration version 4.2_, a `MessageSessionCallback<F, T>` implementation can be used with the
-`<int-sftp:outbound-gateway/>` (`SftpOutboundGateway`) to perform any operation(s) on the `Session<LsEntry>` with
-the `requestMessage` context.
-It can be used for any non-standard or low-level FTP operation (or several); for example, allowing access
-from an integration flow definition, and _functional_ interface (Lambda) implementation injection:
+Starting with Spring Integration version 4.2, you can use a `MessageSessionCallback<F, T>` implementation with the `<int-sftp:outbound-gateway/>` (`SftpOutboundGateway`) to perform any operation on the `Session<LsEntry>` with the `requestMessage` context.
+You can use it for any non-standard or low-level FTP operation (or several), such as allowing access from an integration flow definition, or functional interface (lambda) implementation injection.
+The following example uses a lambda:
 
+====
 [source,java]
 ----
 @Bean
@@ -1315,11 +1345,11 @@ public MessageHandler sftpOutboundGateway(SessionFactory<ChannelSftp.LsEntry> se
          (session, requestMessage) -> session.list(requestMessage.getPayload()));
 }
 ----
+====
 
-Another example might be to pre- or post- process the file data being sent/retrieved.
+Another example might be to pre- or post-process the file data being sent or retrieved.
 
-When using XML configuration, the `<int-sftp:outbound-gateway/>` provides a `session-callback` attribute to allow you
-to specify the `MessageSessionCallback` bean name.
+When using XML configuration, the `<int-sftp:outbound-gateway/>` provides a `session-callback` attribute that lets you specify the `MessageSessionCallback` bean name.
 
 NOTE: The `session-callback` is mutually exclusive with the `command` and `expression` attributes.
-When configuring with Java, different constructors are available in the `SftpOutboundGateway` class.
+When configuring with Java, the `SftpOutboundGateway` class offers different constructors.

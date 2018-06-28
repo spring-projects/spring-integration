@@ -1,22 +1,23 @@
 [[message-handler-advice-chain]]
 === Adding Behavior to Endpoints
 
-[[mhac-intro]]
-==== Introduction
-
-Prior to Spring Integration _2.2_, you could add behavior to an entire Integration flow by adding an AOP Advice to a poller's `<advice-chain/>` element.
-However, let's say you want to retry, say, just a REST Web Service call, and not any downstream endpoints.
+Prior to Spring Integration 2.2, you could add behavior to an entire Integration flow by adding an AOP Advice to a poller's `<advice-chain/>` element.
+However, suppose you want to retry, say, just a REST Web Service call, and not any downstream endpoints.
 
 For example, consider the following flow:
 
-_inbound-adapter->poller->http-gateway1->http-gateway2->jdbc-outbound-adapter_
 
-If you configure some retry-logic into an advice chain on the poller, and, the call to _http-gateway2_ failed because of a network glitch, the retry would cause both _http-gateway1_ and _http-gateway2_ to be called a second time.
-Similarly, after a transient failure in the _jdbc-outbound-adapter_, both http-gateways would be called a second time before again calling the _jdbc-outbound-adapter_.
+====
+[source]
+inbound-adapter->poller->http-gateway1->http-gateway2->jdbc-outbound-adapter
+====
+
+If you configure some retry-logic into an advice chain on the poller and the call to `http-gateway2` failed because of a network glitch, the retry causes both `http-gateway1` and `http-gateway2` to be called a second time.
+Similarly, after a transient failure in the jdbc-outbound-adapter, both HTTP gateways aree called a second time before again calling the `jdbc-outbound-adapter`.
 
 Spring Integration 2.2 adds the ability to add behavior to individual endpoints.
 This is achieved by the addition of the `<request-handler-advice-chain/>` element to many endpoints.
-For example:
+The following example shows how to the `<request-handler-advice-chain/>` element within an `outbound-gateway`:
 
 [source,xml]
 ----
@@ -30,78 +31,75 @@ For example:
 </int-http:outbound-gateway>
 ----
 
-In this case, _myRetryAdvice_ will only be applied locally to this gateway and will not apply to further actions taken downstream after the reply is sent to the _nextChannel_.
+In this case, `myRetryAdvice` is applied only locally to this gateway and does not apply to further actions taken downstream after the reply is sent to `nextChannel`.
 The scope of the advice is limited to the endpoint itself.
 
 [IMPORTANT]
 =====
 At this time, you cannot advise an entire `<chain/>` of endpoints.
-The schema does not allow a `<request-handler-advice-chain/>` as a child element of the chain itself.
+The schema does not allow a `<request-handler-advice-chain>` as a child element of the chain itself.
 
-However, a `<request-handler-advice-chain/>` can be added to individual reply-producing endpoints _within_ a `<chain/>` element.
-An exception is that, in a chain that produces no reply, because the last element in the chain is an _outbound-channel-adapter_, that _last_ element cannot be advised.
-If you need to advise such an element, it must be moved outside of the chain (with the _output-channel_ of the chain being the _input-channel_ of the adapter.
-The adapter can then be advised as normal.
+However, a `<request-handler-advice-chain>` can be added to individual reply-producing endpoints within a `<chain>` element.
+An exception is that, in a chain that produces no reply, because the last element in the chain is an `outbound-channel-adapter`, that last element cannot be advised.
+If you need to advise such an element, it must be moved outside of the chain (with the `output-channel` of the chain being the `input-channel` of the adapter).
+The adapter can then be advised as usual.
 For chains that produce a reply, every child element can be advised.
 =====
 
 [[advice-classes]]
 ==== Provided Advice Classes
 
-In addition to providing the general mechanism to apply AOP Advice classes in this way, three standard Advices are provided:
+In addition to providing the general mechanism to apply AOP advice classes, Spring Integration provides three standard advice classes:
 
-* `RequestHandlerRetryAdvice`
-* `RequestHandlerCircuitBreakerAdvice`
-* `ExpressionEvaluatingRequestHandlerAdvice`
-
-These are each described in detail in the following sections.
+* `RequestHandlerRetryAdvice` (described in <<retry-advice>>)
+* `RequestHandlerCircuitBreakerAdvice` (described in <<circuit-breaker-advice>>)
+* `ExpressionEvaluatingRequestHandlerAdvice` (described in <<expression-advice>>)
 
 [[retry-advice]]
 ===== Retry Advice
 
 The retry advice (`o.s.i.handler.advice.RequestHandlerRetryAdvice`) leverages the rich retry mechanisms provided by the https://github.com/spring-projects/spring-retry[Spring Retry] project.
-The core component of `spring-retry` is the `RetryTemplate`, which allows configuration of sophisticated retry scenarios, including `RetryPolicy` and `BackoffPolicy` strategies, with a number of implementations, as well as a `RecoveryCallback` strategy to determine the action to take when retries are exhausted.
+The core component of `spring-retry` is the `RetryTemplate`, which allows configuration of sophisticated retry scenarios, including `RetryPolicy` and `BackoffPolicy` strategies (with a number of implementations) as well as a `RecoveryCallback` strategy to determine the action to take when retries are exhausted.
 
-*Stateless Retry*
+Stateless Retry::
+Stateless retry is the case where the retry activity is handled entirely within the advice. The thread pauses (if configured to do so) and retries the action.
 
-Stateless retry is the case where the retry activity is handled entirely within the advice, where the thread pauses (if so configured) and retries the action.
-
-*Stateful Retry*
-
-Stateful retry is the case where the retry state is managed within the advice, but where an exception is thrown and the caller resubmits the request.
-An example for stateful retry is when we want the message originator (e.g.
-JMS) to be responsible for resubmitting, rather than performing it on the current thread.
+Stateful Retry::
+Stateful retry is the case where the retry state is managed within the advice but where an exception is thrown and the caller resubmits the request.
+An example for stateful retry is when we want the message originator (for example,JMS) to be responsible for resubmitting, rather than performing it on the current thread.
 Stateful retry needs some mechanism to detect a retried submission.
 
-*Further Information*
+For more information on `spring-retry`, see https://docs.spring.io/spring-integration/api/[the project's Javadoc] and the reference documentation for http://docs.spring.io/spring-batch/reference/html/retry.html[Spring Batch], where `spring-retry` originated.
 
-For more information on `spring-retry`, refer to the project's javadocs, as well as the reference documentation for http://docs.spring.io/spring-batch/reference/html/retry.html[Spring Batch], where `spring-retry` originated.
-
-WARNING: The default back off behavior is no back off - retries are attempted immediately.
+WARNING: The default back off behavior is to not back off. Retries are attempted immediately.
 Using a back off policy that causes threads to pause between attempts may cause performance issues, including excessive memory use and thread starvation.
-In high volume environments, back off policies should be used with caution.
+In high-volume environments, back off policies should be used with caution.
 
 [[retry-config]]
 ====== Configuring the Retry Advice
 
-The following examples use a simple `<service-activator/>` that always throws an exception:
+The examples in this section use the following `<service-activator>` that always throws an exception:
+
+====
 [source,java]
 ----
 public class FailingService {
 
     public void service(String message) {
-        throw new RuntimeException("foo");
+        throw new RuntimeException("error");
     }
 }
 ----
+====
 
-*Simple Stateless Retry*
-
-This example uses the default `RetryTemplate` which has a `SimpleRetryPolicy` which tries 3 times.
-There is no `BackOffPolicy` so the 3 attempts are made back-to-back-to-back with no delay between attempts.
-There is no `RecoveryCallback` so, the result is to throw the exception to the caller after the final failed retry occurs.
-In a _Spring Integration_ environment, this final exception might be handled using an `error-channel` on the inbound endpoint.
-
+Simple Stateless Retry::
+The default `RetryTemplate` has a `SimpleRetryPolicy` which tries three times.
+There is no `BackOffPolicy`, so the three attempts are made back-to-back-to-back with no delay between attempts.
+There is no `RecoveryCallback`, so the result is to throw the exception to the caller after the final failed retry occurs.
+In a Spring Integration environment, this final exception might be handled by using an `error-channel` on the inbound endpoint.
+The following example uses `RetryTemplate` and shows its `DEBUG` output:
++
+====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -119,11 +117,12 @@ DEBUG [task-scheduler-2]Retry: count=2
 DEBUG [task-scheduler-2]Checking for rethrow: count=3
 DEBUG [task-scheduler-2]Retry failed last attempt: count=3
 ----
+====
 
-*Simple Stateless Retry with Recovery*
-
-This example adds a `RecoveryCallback` to the above example; it uses a `ErrorMessageSendingRecoverer` to send an `ErrorMessage` to a channel.
-
+Simple Stateless Retry with Recovery::
+The following example adds a `RecoveryCallback` to the preceding example and uses an `ErrorMessageSendingRecoverer` to send an `ErrorMessage` to a channel:
++
+====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -148,13 +147,15 @@ DEBUG [task-scheduler-2]Checking for rethrow: count=3
 DEBUG [task-scheduler-2]Retry failed last attempt: count=3
 DEBUG [task-scheduler-2]Sending ErrorMessage :failedMessage:[Payload=...]
 ----
+====
 
-*Stateless Retry with Customized Policies, and Recovery*
-
+Stateless Retry with Customized Policies, and Recovery::
 For more sophistication, we can provide the advice with a customized `RetryTemplate`.
-This example continues to use the `SimpleRetryPolicy` but it increases the attempts to 4.
-It also adds an `ExponentialBackoffPolicy` where the first retry waits 1 second, the second waits 5 seconds and the third waits 25 (for 4 attempts in all).
-
+This example continues to use the `SimpleRetryPolicy` but increases the attempts to four.
+It also adds an `ExponentialBackoffPolicy` where the first retry waits one second, the second waits five seconds and the third waits 25 (for four attempts in all).
+The following listing shows the example and its `DEBUG` output:
++
+====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -200,11 +201,12 @@ It also adds an `ExponentialBackoffPolicy` where the first retry waits 1 second,
 58.084 DEBUG [task-scheduler-1]Retry failed last attempt: count=4
 58.086 DEBUG [task-scheduler-1]Sending ErrorMessage :failedMessage:[Payload=...]
 ----
+====
 
-*Namespace Support for Stateless Retry*
-
-Starting with _version 4.0_, the above configuration can be greatly simplified with the namespace support for the retry advice:
-
+Namespace Support for Stateless Retry::
+Starting with version 4.0, the preceding configuration can be greatly simplified, thanks to the namespace support for the retry advice, as the following example shows:
++
+====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -217,10 +219,12 @@ Starting with _version 4.0_, the above configuration can be greatly simplified w
     <int:exponential-back-off initial="1000" multiplier="5.0" maximum="60000" />
 </int:handler-retry-advice>
 ----
-
-In this example, the advice is defined as a top level bean so it can be used in multiple `request-handler-advice-chain` s.
-You can also define the advice directly within the chain:
-
+====
++
+In the preceding example, the advice is defined as a top-level bean so that it can be used in multiple `request-handler-advice-chain` instances.
+You can also define the advice directly within the chain, as the following example shows:
++
+====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -231,20 +235,24 @@ You can also define the advice directly within the chain:
     </request-handler-advice-chain>
 </int:service-activator>
 ----
-
-A `<handler-retry-advice/>` with no child element uses no back off; it can have a `fixed-back-off` or `exponential-back-off` child element.
+====
++
+A `<handler-retry-advice>` can have a `<fixed-back-off>` or `<exponential-back-off>` child element or have no child element.
+A `<handler-retry-advice>` with no child element uses no back off.
 If there is no `recovery-channel`, the exception is thrown when retries are exhausted.
 The namespace can only be used with stateless retry.
++
+For more complex environments (custom policies etc), use normal `<bean>` definitions.
 
-For more complex environments (custom policies etc), use normal `<bean/>` definitions.
-
-*Simple Stateful Retry with Recovery*
-
-To make retry stateful, we need to provide the Advice with a RetryStateGenerator implementation.
+Simple Stateful Retry with Recovery::
+To make retry stateful, we need to provide the advice with a `RetryStateGenerator` implementation.
 This class is used to identify a message as being a resubmission so that the `RetryTemplate` can determine the current state of retry for this message.
-The framework provides a `SpelExpressionRetryStateGenerator` which determines the message identifier using a SpEL expression.
-This is shown below; this example again uses the default policies (3 attempts with no back off); of course, as with stateless retry, these policies can be customized.
-
+The framework provides a `SpelExpressionRetryStateGenerator`, which determines the message identifier by using a SpEL expression.
+This example again uses the default policies (three attempts with no back off).
+As with stateless retry, these policies can be customized.
+The following listing shows the example and its `DEBUG` output:
++
+====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -301,42 +309,45 @@ Caused by: java.lang.RuntimeException: foo
 27.426 DEBUG [Container#0-1]Retry failed last attempt: count=3
 27.426 DEBUG [Container#0-1]Sending ErrorMessage :failedMessage:[Payload=...]
 ----
+====
++
+If you compare the preceding example with the stateless examples, you can see that, with stateful retry, the exception is thrown to the caller on each failure.
 
-Comparing with the stateless examples, you can see that with stateful retry, the exception is thrown to the caller on each failure.
-
-*Exception Classification for Retry*
-
+Exception Classification for Retry::
 Spring Retry has a great deal of flexibility for determining which exceptions can invoke retry.
-The default configuration will retry for all exceptions and the exception classifier just looks at the top level exception.
-If you configure it to, say, only retry on `BarException` and your application throws a `FooException` where the cause is a `BarException`, retry will not occur.
-
-Since _Spring Retry 1.0.3_, the `BinaryExceptionClassifier` has a property `traverseCauses` (default `false`).
-When `true` it will traverse exception causes until it finds a match or there is no cause.
-
-To use this classifier for retry, use a `SimpleRetryPolicy` created with the constructor that takes the max attempts, the `Map` of `Exception` s and the boolean (traverseCauses), and inject this policy into the `RetryTemplate`.
+The default configuration retries for all exceptions and the exception classifier looks at the top-level exception.
+If you configure it to, say, retry only on `MyException` and your application throws a `SomeOtherException` where the cause is a `MyException`, retry does not occur.
++
+Since Spring Retry 1.0.3, the `BinaryExceptionClassifier` has a property called `traverseCauses` (the default is `false`).
+When `true`, it traverses exception causes until it finds a match or runs out of causes to traverse.
++
+To use this classifier for retry, use a `SimpleRetryPolicy` created with the constructor that takes the max attempts, the `Map` of `Exception` objects, and the `traverseCauses` boolean. Then you can inject this policy into the `RetryTemplate`.
 
 [[circuit-breaker-advice]]
 ===== Circuit Breaker Advice
 
-The general idea of the Circuit Breaker Pattern is that, if a service is not currently available, then don't waste time (and resources) trying to use it.
+The general idea of the circuit breaker pattern is that, if a service is not currently available, do not waste time (and resources) trying to use it.
 The `o.s.i.handler.advice.RequestHandlerCircuitBreakerAdvice` implements this pattern.
-When the circuit breaker is in the _closed_ state, the endpoint will attempt to invoke the service.
-The circuit breaker goes to the _open_ state if a certain number of consecutive attempts fail; when it is in the _open_ state, new requests will "fail fast" and no attempt will be made to invoke the service until some time has expired.
+When the circuit breaker is in the closed state, the endpoint attempts to invoke the service.
+The circuit breaker goes to the open state if a certain number of consecutive attempts fail.
+When it is in the open state, new requests "`fail fast`" and no attempt is made to invoke the service until some time has expired.
 
-When that time has expired, the circuit breaker is set to the _half-open_ state.
-When in this state, if even a single attempt fails, the breaker will immediately go to the _open_ state; if the attempt succeeds, the breaker will go to the _closed_ state, in which case, it won't go to the _open_ state again until the configured number of consecutive failures again occur.
-Any successful attempt resets the state to zero failures for the purpose of determining when the breaker might go to the _open_ state again.
+When that time has expired, the circuit breaker is set to the half-open state.
+When in this state, if even a single attempt fails, the breaker immediately goes to the open state.
+If the attempt succeeds, the breaker goes to the closed state, in which case it does not go to the open state again until the configured number of consecutive failures again occur.
+Any successful attempt resets the state to zero failures for the purpose of determining when the breaker might go to the open state again.
 
-Typically, this Advice might be used for external services, where it might take some time to fail (such as a timeout attempting to make a network connection).
+Typically, this advice might be used for external services, where it might take some time to fail (such as a timeout attempting to make a network connection).
 
 The `RequestHandlerCircuitBreakerAdvice` has two properties: `threshold` and `halfOpenAfter`.
-The _threshold_ property represents the number of consecutive failures that need to occur before the breaker goes _open_.
-It defaults to 5.
-The _halfOpenAfter_ property represents the time after the last failure that the breaker will wait before attempting another request.
-Default is 1000 milliseconds.
+The `threshold` property represents the number of consecutive failures that need to occur before the breaker goes open.
+It defaults to `5`.
+The `halfOpenAfter` property represents the time after the last failure that the breaker waits before attempting another request.
+The default is 1000 milliseconds.
 
-Example:
+The following example configures a circuit breaker and shows its `DEBUG` and `ERROR` output:
 
+====
 [source,xml]
 ----
 <int:service-activator input-channel="input" ref="failer" method="service">
@@ -366,10 +377,14 @@ Example:
 30.598 DEBUG [task-scheduler-1]preSend on channel 'input', message: [Payload=foo...]
 30.599 ERROR [task-scheduler-1]org.springframework.messaging.MessagingException: Circuit Breaker is Open for ServiceActivator
 ----
+====
 
-In the above example, the threshold is set to 2 and halfOpenAfter is set to 12 seconds; a new request arrives every 5 seconds.
-You can see that the first two attempts invoked the service; the third and fourth failed with an exception indicating the circuit breaker is open.
-The fifth request was attempted because the request was 15 seconds after the last failure; the sixth attempt fails immediately because the breaker immediately went to _open_.
+In the preceding example, the threshold is set to `2` and `halfOpenAfter` is set to `12` seconds.
+A new request arrives every 5 seconds.
+The first two attempts invoked the service.
+The third and fourth failed with an exception indicating that the circuit breaker is open.
+The fifth request was attempted because the request was 15 seconds after the last failure.
+The sixth attempt fails immediately because the breaker immediately went to open.
 
 [[expression-advice]]
 ===== Expression Evaluating Advice
@@ -377,21 +392,22 @@ The fifth request was attempted because the request was 15 seconds after the las
 The final supplied advice class is the `o.s.i.handler.advice.ExpressionEvaluatingRequestHandlerAdvice`.
 This advice is more general than the other two advices.
 It provides a mechanism to evaluate an expression on the original inbound message sent to the endpoint.
-Separate expressions are available to be evaluated, either after success, or failure.
+Separate expressions are available to be evaluated, after either success or failure.
 Optionally, a message containing the evaluation result, together with the input message, can be sent to a message channel.
 
-A typical use case for this advice might be with an `<ftp:outbound-channel-adapter/>`, perhaps to move the file to one directory if the transfer was successful, or to another directory if it fails:
+A typical use case for this advice might be with an `<ftp:outbound-channel-adapter/>`, perhaps to move the file to one directory if the transfer was successful or to another directory if it fails:
 
-The Advice has properties to set an expression when successful, an expression for failures, and corresponding channels for each.
-For the successful case, the message sent to the _successChannel_ is an `AdviceMessage`, with the payload being the result of the expression evaluation, and an additional property `inputMessage` which contains the original message sent to the handler.
-A message sent to the _failureChannel_ (when the handler throws an exception) is an `ErrorMessage` with a payload of `MessageHandlingExpressionEvaluatingAdviceException`.
-Like all `MessagingException` s, this payload has `failedMessage` and `cause` properties, as well as an additional property `evaluationResult`, containing the result of the expression evaluation.
+The advice has properties to set an expression when successful, an expression for failures, and corresponding channels for each.
+For the successful case, the message sent to the `successChannel` is an `AdviceMessage`, with the payload being the result of the expression evaluation.
+An additional property, called `inputMessage`, contains the original message sent to the handler.
+A message sent to the `failureChannel` (when the handler throws an exception) is an `ErrorMessage` with a payload of `MessageHandlingExpressionEvaluatingAdviceException`.
+Like all `MessagingException` instances, this payload has `failedMessage` and `cause` properties, as well as an additional property called `evaluationResult`, which contains the result of the expression evaluation.
 
-When an exception is thrown in the scope of the advice, by default, that exception is thrown to caller after any
-`failureExpression` is evaluated.
+When an exception is thrown in the scope of the advice, by default, that exception is thrown to the caller after any `failureExpression` is evaluated.
 If you wish to suppress throwing the exception, set the `trapException` property to `true`.
+The following advice shows how to configure an advice with Java DSL:
 
-.Example - Configuring the Advice with Java DSL
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -441,16 +457,18 @@ public class EerhaApplication {
 
 }
 ----
+====
 
 [[custom-advice]]
 ==== Custom Advice Classes
 
-In addition to the provided Advice classes above, you can implement your own Advice classes.
-While you can provide any implementation of `org.aopalliance.aop.Advice` (usually `org.aopalliance.intercept.MethodInterceptor`), it is generally recommended that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
-This has the benefit of avoiding writing low-level _Aspect Oriented Programming_ code as well as providing a starting point that is specifically tailored for use in this environment.
+In addition to the provided advice classes <<advice-classes,described earlier>>, you can implement your own advice classes.
+While you can provide any implementation of `org.aopalliance.aop.Advice` (usually `org.aopalliance.intercept.MethodInterceptor`), we generally recommend that you subclass `o.s.i.handler.advice.AbstractRequestHandlerAdvice`.
+This has the benefit of avoiding the writing of low-level aspect-oriented programming code as well as providing a starting point that is specifically tailored for use in this environment.
 
-Subclasses need to implement the `doInvoke()`` method:
+Subclasses need to implement the `doInvoke()`` method, the definition of which follows:
 
+====
 [source,java]
 ----
 /**
@@ -464,20 +482,25 @@ Subclasses need to implement the `doInvoke()`` method:
  */
 protected abstract Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception;
 ----
+====
 
-The _callback_ parameter is simply a convenience to avoid subclasses dealing with AOP directly; invoking the `callback.execute()` method invokes the message handler.
+The callback parameter is a convenience to avoid subclasses that deal with AOP directly.
+Invoking the `callback.execute()` method invokes the message handler.
 
-The _target_ parameter is provided for those subclasses that need to maintain state for a specific handler, perhaps by maintaining that state in a `Map`, keyed by the target.
-This allows the same advice to be applied to multiple handlers.
-The `RequestHandlerCircuitBreakerAdvice` uses this to keep circuit breaker state for each handler.
+The `target` parameter is provided for those subclasses that need to maintain state for a specific handler, perhaps by maintaining that state in a `Map` keyed by the target.
+This feature allows the same advice to be applied to multiple handlers.
+The `RequestHandlerCircuitBreakerAdvice` uses advice this to keep circuit breaker state for each handler.
 
-The _message_ parameter is the message that will be sent to the handler.
+The `message` parameter is the message sent to the handler.
 While the advice cannot modify the message before invoking the handler, it can modify the payload (if it has mutable properties).
-Typically, an advice would use the message for logging and/or to send a copy of the message somewhere before or after invoking the handler.
+Typically, an advice would use the message for logging or to send a copy of the message somewhere before or after invoking the handler.
 
-The return value would normally be the value returned by `callback.execute()`; but the advice does have the ability to modify the return value.
-Note that only `AbstractReplyProducingMessageHandler` s return a value.
+The return value would normally be the value returned by `callback.execute()`.
+However, the advice does have the ability to modify the return value.
+Note that only `AbstractReplyProducingMessageHandler` instances return values.
+The following example shows a custom advice class that extends `AbstractRequestHandlerAdvice`:
 
+====
 [source,java]
 ----
 public class MyAdvice extends AbstractRequestHandlerAdvice {
@@ -491,38 +514,44 @@ public class MyAdvice extends AbstractRequestHandlerAdvice {
     }
 }
 ----
+====
 
 [NOTE]
 =====
-In addition to the `execute()` method, the `ExecutionCallback` provides an additional method `cloneAndExecute()`.
+In addition to the `execute()` method, `ExecutionCallback` provides an additional method: `cloneAndExecute()`.
 This method must be used in cases where the invocation might be called multiple times within a single execution of `doInvoke()`, such as in the `RequestHandlerRetryAdvice`.
-This is required because the Spring AOP `org.springframework.aop.framework.ReflectiveMethodInvocation` object maintains state of which advice in a chain was last invoked; this state must be reset for each call.
+This is required because the Spring AOP `org.springframework.aop.framework.ReflectiveMethodInvocation` object maintains state by keeping track of which advice in a chain was last invoked.
+This state must be reset for each call.
 
-For more information, see the http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html[ReflectiveMethodInvocation] JavaDocs.
+For more information, see the http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/aop/framework/ReflectiveMethodInvocation.html[ReflectiveMethodInvocation] Javadoc.
 =====
 
 [[other-advice]]
 ==== Other Advice Chain Elements
 
-While the abstract class mentioned above is provided as a convenience, you can add any `Advice` to the chain, including a transaction advice.
+While the abstract class mentioned above is a convenience, you can add any `Advice`, including a transaction advice, to the chain.
 
 [[handle-message-advice]]
-==== Handle Message Advice
+==== Handling Message Advice
 
 As discussed in <<mhac-intro, the introduction to this section>>, advice objects in a request handler advice chain are applied to just the current endpoint, not the downstream flow (if any).
-For `MessageHandler` s that produce a reply (`AbstractReplyProducingMessageHandler`), the advice is applied to an internal method
-`handleRequestMessage()` (called from `MessageHandler.handleMessage()`).
+For `MessageHandler` objects that produce a reply (such as those that extend `AbstractReplyProducingMessageHandler`), the advice is applied to an internal method: `handleRequestMessage()` (called from `MessageHandler.handleMessage()`).
 For other message handlers, the advice is applied to `MessageHandler.handleMessage()`.
 
-There are some circumstances where, even if a message handler is an `AbstractReplyProducingMessageHandler`, the advice must be applied to the `handleMessage` method - for example, the <<idempotent-receiver, Idempotent Receiver>> might return `null` and this would cause an exception if the handler's `replyRequired` property is true.
-Another example is the `BoundRabbitChannelAdvice` - see <<amqp-strict-ordering>>.
+There are some circumstances where, even if a message handler is an `AbstractReplyProducingMessageHandler`, the advice must be applied to the `handleMessage` method.
+For example, the <<idempotent-receiver, idempotent receiver>> might return `null`, which would cause an exception if the handler's `replyRequired` property is set to `true`.
+Another example is the `BoundRabbitChannelAdvice` -- see "`<<amqp-strict-ordering>>`".
 
-Starting with _version 4.3.1_, a new `HandleMessageAdvice` and the `AbstractHandleMessageAdvice` base implementation have been introduced.
-`Advice` s that implement `HandleMessageAdvice` will always be applied to the `handleMessage()` method, regardless of the handler type.
+Starting with version 4.3.1, a new `HandleMessageAdvice` interface and its base implementation (`AbstractHandleMessageAdvice`) have been introduced.
+`Advice` objects that implement `HandleMessageAdvice` are always applied to the `handleMessage()` method, regardless of the handler type.
 
-It is important to understand that `HandleMessageAdvice` implementations (such as <<idempotent-receiver, Idempotent Receiver>>), when applied to a handler that returns a response, are dissociated from the `adviceChain` and properly applied to the `MessageHandler.handleMessage()` method.
-Bear in mind, however, that this means the advice chain order is not complied with; and, with configuration such as:
+It is important to understand that `HandleMessageAdvice` implementations (such as <<idempotent-receiver, idempotent receiver>>), when applied to a handlers that return responses, are dissociated from the `adviceChain` and properly applied to the `MessageHandler.handleMessage()` method.
 
+NOTE: Because of this disassociation, the advice chain order is not honored.
+
+Consider the following configuration:
+
+====
 [source,xml]
 ----
 <some-reply-producing-endpoint ... >
@@ -532,20 +561,24 @@ Bear in mind, however, that this means the advice chain order is not complied wi
     </int:request-handler-advice-chain>
 </some-reply-producing-endpoint>
 ----
+====
 
-The `<tx:advice>` is applied to the `AbstractReplyProducingMessageHandler.handleRequestMessage()`, but `myHandleMessageAdvice` is applied for to `MessageHandler.handleMessage()` and, therefore, invoked **before** the `<tx:advice>`.
-To retain the order, you should follow with standard http://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop-api.html[Spring AOP] configuration approach and use endpoint `id` together with the `.handler` suffix to obtain the target `MessageHandler` bean.
-Note, however, that in that case, the entire downstream flow would be within the transaction scope.
+In the preceding example, the `<tx:advice>` is applied to the `AbstractReplyProducingMessageHandler.handleRequestMessage()`.
+However, `myHandleMessageAdvice` is applied for to `MessageHandler.handleMessage()`.
+Therefore, it is invoked *before* the `<tx:advice>`.
+To retain the order, you should follow the standard http://docs.spring.io/spring/docs/current/spring-framework-reference/html/aop-api.html[Spring AOP] configuration approach and use an endpoint `id` together with the `.handler` suffix to obtain the target `MessageHandler` bean.
+Note that, in that case, the entire downstream flow is within the transaction scope.
 
-In the case of a `MessageHandler` that does **not** return a response, the advice chain order is retained.
+In the case of a `MessageHandler` that does not return a response, the advice chain order is retained.
 
 [[tx-handle-message-advice]]
 ==== Transaction Support
 
-Starting with _version 5.0_ a new `TransactionHandleMessageAdvice` has been introduced to make the whole downstream flow transactional, thanks to the `HandleMessageAdvice` implementation.
-When regular `TransactionInterceptor` is used in the `<request-handler-advice-chain>`, for example via `<tx:advice>` configuration, a started transaction is only applied only for an internal `AbstractReplyProducingMessageHandler.handleRequestMessage()` and isn't propagated to the downstream flow.
+Starting with version 5.0, a new `TransactionHandleMessageAdvice` has been introduced to make the whole downstream flow transactional, thanks to the `HandleMessageAdvice` implementation.
+When a regular `TransactionInterceptor` is used in the `<request-handler-advice-chain>` element (for example, through configuring `<tx:advice>`), a started transaction is only applied only for an internal `AbstractReplyProducingMessageHandler.handleRequestMessage()` and is not propagated to the downstream flow.
 
-To simplify XML configuration, alongside with the `<request-handler-advice-chain>`, a `<transactional>` sub-element has been added to all `<outbound-gateway>` and `<service-activator>` & family components:
+To simplify XML configuration, along with the `<request-handler-advice-chain>`, a `<transactional>` element has been added to all `<outbound-gateway>` and `<service-activator>` and related components.
+The following example shows `<transactional>` in use:
 
 [source,xml]
 ----
@@ -559,9 +592,9 @@ To simplify XML configuration, alongside with the `<request-handler-advice-chain
 </bean>
 ----
 
-For whom is familiar with <<jpa, JPA Integration components>> such a configuration isn't new, but now we can start transaction from any point in our flow, not only from the `<poller>` or Message Driven Channel Adapter like in <<jms-message-driven-channel-adapter, JMS>>.
+If you are familiar with the <<jpa, JPA integration components>>, such a configuration is not new, but now we can start a transaction from any point in our flow -- not only from the `<poller>` or a message-driven channel adapter such as <<jms-message-driven-channel-adapter, JMS>>.
 
-Java & Annotation configuration can be simplified via newly introduced `TransactionInterceptorBuilder` and the result bean name can be used in the <<annotations, Messaging Annotations>> `adviceChain` attribute:
+Java configuration can be simplified by using the `TransactionInterceptorBuilder`, and the result bean name can be used in the <<annotations, messaging annotations>> `adviceChain` attribute, as the following example shows:
 
 [source,java]
 ----
@@ -598,9 +631,12 @@ public Transformer transformer() {
 }
 ----
 
-Note the `true` for the `TransactionInterceptorBuilder` constructor, which means produce `TransactionHandleMessageAdvice`, not regular `TransactionInterceptor`.
+Note the `true` parameter on the `TransactionInterceptorBuilder` constructor.
+It causes the creation of a `TransactionHandleMessageAdvice`, not a regular `TransactionInterceptor`.
 
-Java DSL supports such an `Advice` via `.transactional()` options on the endpoint configuration:
+Java DSL supports an `Advice` through the `.transactional()` options on the endpoint configuration, as the following example shows:
+
+====
 [source,java]
 ----
 @Bean
@@ -611,24 +647,25 @@ public IntegrationFlow updatingGatewayFlow() {
         .channel(c -> c.queue("persistResults"));
 }
 ----
+====
 
 [[advising-filters]]
 ==== Advising Filters
 
-There is an additional consideration when advising `Filter` s.
-By default, any discard actions (when the filter returns false) are performed _within_ the scope of the advice chain.
-This could include all the flow downstream of the _discard channel_.
-So, for example if an element downstream of the _discard-channel_ throws an exception, and there is a retry advice, the process will be retried.
-This is also the case if _throwExceptionOnRejection_ is set to true (the exception is thrown within the scope of the advice).
+There is an additional consideration when advising `Filter` advices.
+By default, any discard actions (when the filter returns `false`) are performed within the scope of the advice chain.
+This could include all the flow downstream of the discard channel.
+So, for example, if an element downstream of the discard channel throws an exception and there is a retry advice, the process is retried.
+Also, if `throwExceptionOnRejection` is set to `true` (the exception is thrown within the scope of the advice).
 
-Setting _discard-within-advice_ to "false" modifies this behavior and the discard (or exception) occurs after the advice chain is called.
+Setting `discard-within-advice` to `false` modifies this behavior and the discard (or exception) occurs after the advice chain is called.
 
 [[advising-with-annotations]]
 ==== Advising Endpoints Using Annotations
 
-When configuring certain endpoints using annotations (`@Filter`, `@ServiceActivator`, `@Splitter`, and `@Transformer`), you can supply a bean name for the advice chain in the `adviceChain` attribute.
-In addition, the `@Filter` annotation also has the `discardWithinAdvice` attribute, which can be used to configure the discard behavior as discussed in <<advising-filters>>.
-An example with the discard being performed after the advice is shown below.
+When configuring certain endpoints by using annotations (`@Filter`, `@ServiceActivator`, `@Splitter`, and `@Transformer`), you can supply a bean name for the advice chain in the `adviceChain` attribute.
+In addition, the `@Filter` annotation also has the `discardWithinAdvice` attribute, which can be used to configure the discard behavior, as discussed in "`<<advising-filters>>`".
+The following example causes the discard to be performed after the advice:
 
 [source,java]
 ----
@@ -646,43 +683,46 @@ public class MyAdvisedFilter {
 [[advice-order]]
 ==== Ordering Advices within an Advice Chain
 
-Advice classes are "around" advices and are applied in a nested fashion.
-The first advice is the outermost, the last advice the innermost (closest to the handler being advised).
+Advice classes are "`around`" advices and are applied in a nested fashion.
+The first advice is the outermost, while the last advice is the innermost (that is, closest to the handler being advised).
 It is important to put the advice classes in the correct order to achieve the functionality you desire.
 
-For example, let's say you want to add a retry advice and a transaction advice.
+For example, suppose you want to add a retry advice and a transaction advice.
 You may want to place the retry advice advice first, followed by the transaction advice.
-Then, each retry will be performed in a new transaction.
-On the other hand, if you want all the attempts, and any recovery operations (in the retry `RecoveryCallback`), to be scoped within the transaction, you would put the transaction advice first.
+Consequently, each retry is performed in a new transaction.
+On the other hand, if you want all the attempts and any recovery operations (in the retry `RecoveryCallback`) to be scoped within the transaction, you could put the transaction advice first.
 
 [[advised-handler-properties]]
 ==== Advised Handler Properties
 
 Sometimes, it is useful to access handler properties from within the advice.
-For example, most handlers implement `NamedComponent` and you can access the component name.
+For example, most handlers implement `NamedComponent` to let you access the component name.
 
-The target object can be accessed via the `target` argument when subclassing `AbstractRequestHandlerAdvice` or
-`invocation.getThis()` when implementing `org.aopalliance.intercept.MethodInterceptor`.
+The target object can be accessed through the `target` argument (when subclassing `AbstractRequestHandlerAdvice`) or
+`invocation.getThis()` (when implementing `org.aopalliance.intercept.MethodInterceptor`).
 
-When the entire handler is advised (such as when the handler does not produce replies, or the advice implements `HandleMessageAdvice`), you can simply cast the target object to the desired implemented interface, such as `NamedComponent`.
+When the entire handler is advised (such as when the handler does not produce replies or the advice implements `HandleMessageAdvice`), you can cast the target object to an interface, such as `NamedComponent`, as shown in the following example:
 
+====
 [source, java]
 ----
 String componentName = ((NamedComponent) target).getComponentName();
 ----
 
-or
+When you implement `MethodInterceptor` directly, you could cast the target object as follows:
 
+====
 [source, java]
 ----
 String componentName = ((NamedComponent) invocation.getThis()).getComponentName();
 ----
-
-when implementing `MethodInterceptor` directly.
+====
 
 When only the `handleRequestMessage()` method is advised (in a reply-producing handler), you need to access the
-full handler, which is an `AbstractReplyProducingMessageHandler`...
+full handler, which is an `AbstractReplyProducingMessageHandler`.
+The following example shows how to do so:
 
+====
 [source, java]
 ----
 AbstractReplyProducingMessageHandler handler =
@@ -690,30 +730,36 @@ AbstractReplyProducingMessageHandler handler =
 
 String componentName = handler.getComponentName();
 ----
+====
 
 [[idempotent-receiver]]
 ==== Idempotent Receiver Enterprise Integration Pattern
 
-Starting with _version 4.1_, Spring Integration provides an implementation of the http://www.eaipatterns.com/IdempotentReceiver.html[Idempotent Receiver] Enterprise Integration Pattern.
-It is a _functional_ pattern and the whole _idempotency_ logic should be implemented in the application, however to simplify the decision-making, the `IdempotentReceiverInterceptor` component is provided.
-This is an AOP `Advice`, which is applied to the `MessageHandler.handleMessage()` method and can `filter` a request message or mark it as a `duplicate`, according to its configuration.
+Starting with version 4.1, Spring Integration provides an implementation of the http://www.eaipatterns.com/IdempotentReceiver.html[Idempotent Receiver] Enterprise Integration Pattern.
+It is a functional pattern and the whole idempotency logic should be implemented in the application.
+However, to simplify the decision-making, the `IdempotentReceiverInterceptor` component is provided.
+This is an AOP `Advice` that is applied to the `MessageHandler.handleMessage()` method and that can `filter` a request message or mark it as a `duplicate`, according to its configuration.
 
-Previously, users could have implemented this pattern, by using a custom MessageSelector in a `<filter/>` (<<filter>>), for example.
-However, since this pattern is really behavior of an endpoint rather than being an endpoint itself, the Idempotent Receiver implementation doesn't provide an _endpoint_ component; rather, it is applied to endpoints declared in the application.
+Previously, you could have implemented this pattern by using a custom `MessageSelector` in a `<filter/>` (see "`<<filter>>`"), for example.
+However, since this pattern really defines the behavior of an endpoint rather than being an endpoint itself, the idempotent receiver implementation does not provide an endpoint component.
+Rather, it is applied to endpoints declared in the application.
 
-The logic of the `IdempotentReceiverInterceptor` is based on the provided `MessageSelector` and, if the message isn't accepted by that selector, it will be enriched with the `duplicateMessage` header set to `true`.
-The target `MessageHandler` (or downstream flow) can consult this header to implement the correct _idempotency_ logic.
-If the `IdempotentReceiverInterceptor` is configured with a `discardChannel` and/or `throwExceptionOnRejection = true`, the _duplicate_ Message won't be sent to the target `MessageHandler.handleMessage()`, but discarded.
-If you simply want to discard (do nothing with) the _duplicate_ Message, the `discardChannel` should be configured with a `NullChannel`, such as the default `nullChannel` bean.
+The logic of the `IdempotentReceiverInterceptor` is based on the provided `MessageSelector` and, if the message is not accepted by that selector, it is enriched with the `duplicateMessage` header set to `true`.
+The target `MessageHandler` (or downstream flow) can consult this header to implement the correct idempotency logic.
+If the `IdempotentReceiverInterceptor` is configured with a `discardChannel` or `throwExceptionOnRejection = true`, the duplicate message is not sent to the target `MessageHandler.handleMessage()`.
+Rather, it is discarded.
+If you want to discard (do nothing with) the duplicate message, the `discardChannel` should be configured with a `NullChannel`, such as the default `nullChannel` bean.
 
-To maintain _state_ between messages and provide the ability to compare messages for the idempotency, the `MetadataStoreSelector` is provided.
+To maintain state between messages and provide the ability to compare messages for the idempotency, we provide the `MetadataStoreSelector`.
 It accepts a `MessageProcessor` implementation (which creates a lookup key based on the `Message`) and an optional `ConcurrentMetadataStore` (<<metadata-store>>).
-See the `MetadataStoreSelector` JavaDocs for more information.
-The `value` for `ConcurrentMetadataStore` also can be customized using additional `MessageProcessor`.
-By default `MetadataStoreSelector` uses `timestamp` message header.
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/selector/MetadataStoreSelector.html[`MetadataStoreSelector` Javadoc] for more information.
+You can also customize the `value` for `ConcurrentMetadataStore` by using an additional `MessageProcessor`.
+By default, `MetadataStoreSelector` uses the `timestamp` message header.
 
-For convenience, the `MetadataStoreSelector` options are configurable directly on the `<idempotent-receiver>` component:
+For convenience, the `MetadataStoreSelector` options are configurable directly on the `<idempotent-receiver>` component.
+The following listing shows all the possible attributes:
 
+====
 [source,xml]
 ----
 <idempotent-receiver
@@ -729,78 +775,53 @@ For convenience, the `MetadataStoreSelector` options are configurable directly o
         throw-exception-on-rejection="" />  <10>
 ----
 
-<1> The id of the `IdempotentReceiverInterceptor` bean.
-_Optional_.
-
-
-
-<2> Consumer Endpoint name(s) or pattern(s) to which this interceptor will be applied.
-Separate names (patterns) with commas (`,`) e.g.
-`endpoint="aaa, bbb*, *ccc, *ddd*, eee*fff"`.
-Endpoint bean names matching these patterns are then used to retrieve the target endpoint's `MessageHandler` bean (using its `.handler` suffix), and the `IdempotentReceiverInterceptor` will be applied to those beans.
-_Required_.
-
-
-
+<1> The ID of the `IdempotentReceiverInterceptor` bean.
+Optional.
+<2> Consumer endpoint name(s) or pattern(s) to which this interceptor is applied.
+Separate names (patterns) with commas (`,`), such as `endpoint="aaa, bbb*, *ccc, *ddd*, eee*fff"`.
+Endpoint bean names matching these patterns are then used to retrieve the target endpoint's `MessageHandler` bean (using its `.handler` suffix), and the `IdempotentReceiverInterceptor` is applied to those beans.
+Required.
 <3> A `MessageSelector` bean reference.
 Mutually exclusive with `metadata-store` and `key-strategy (key-expression)`.
 When `selector` is not provided, one of `key-strategy` or `key-strategy-expression` is required.
-
-
-
-<4> Identifies the channel to which to send a message when the `IdempotentReceiverInterceptor` doesn't accept it.
+<4> Identifies the channel to which to send a message when the `IdempotentReceiverInterceptor` does not accept it.
 When omitted, duplicate messages are forwarded to the handler with a `duplicateMessage` header.
-_Optional_.
-
-
-
+Optional.
 <5> A `ConcurrentMetadataStore` reference.
 Used by the underlying `MetadataStoreSelector`.
 Mutually exclusive with `selector`.
-_Optional_.
-The default `MetadataStoreSelector` uses an internal `SimpleMetadataStore` which does not maintain state across application executions.
-
-
-
+Optional.
+The default `MetadataStoreSelector` uses an internal `SimpleMetadataStore` that does not maintain state across application executions.
 <6> A `MessageProcessor` reference.
 Used by the underlying `MetadataStoreSelector`.
-Evaluates an `idempotentKey` from the request Message.
+Evaluates an `idempotentKey` from the request message.
 Mutually exclusive with `selector` and `key-expression`.
 When a `selector` is not provided, one of `key-strategy` or `key-strategy-expression` is required.
-
-
-
 <7> A SpEL expression to populate an `ExpressionEvaluatingMessageProcessor`.
 Used by the underlying `MetadataStoreSelector`.
-Evaluates an `idempotentKey` using the request Message as the evaluation context root object.
+Evaluates an `idempotentKey` by using the request message as the evaluation context root object.
 Mutually exclusive with `selector` and `key-strategy`.
 When a `selector` is not provided, one of `key-strategy` or `key-strategy-expression` is required.
-
-
-
 <8> A `MessageProcessor` reference.
 Used by the underlying `MetadataStoreSelector`.
-Evaluates a `value` for the `idempotentKey` from the request Message.
+Evaluates a `value` for the `idempotentKey` from the request message.
 Mutually exclusive with `selector` and `value-expression`.
 By default, the 'MetadataStoreSelector' uses the 'timestamp' message header as the Metadata 'value'.
-
-
-
 <9> A SpEL expression to populate an `ExpressionEvaluatingMessageProcessor`.
 Used by the underlying `MetadataStoreSelector`.
-Evaluates a `value` for the `idempotentKey` using the request Message as the evaluation context root object.
+Evaluates a `value` for the `idempotentKey` by using the request message as the evaluation context root object.
 Mutually exclusive with `selector` and `value-strategy`.
-By default, the 'MetadataStoreSelector' uses the 'timestamp' message header as the Metadata 'value'.
-
-
-
-<10> Throw an exception if the `IdempotentReceiverInterceptor` rejects the message defaults to `false`.
+By default, the 'MetadataStoreSelector' uses the 'timestamp' message header as the metadata 'value'.
+<10> Whether to throw an exception if the `IdempotentReceiverInterceptor` rejects the message.
+Defaults to `false`.
 It is applied regardless of whether or not a `discard-channel` is provided.
+====
 
+For Java configuration, Spring Integration provides the method-level `@IdempotentReceiver` annotation.
+It is used to mark a `method` that has a messaging annotation (`@ServiceActivator`, `@Router, and others) to specify which `IdempotentReceiverInterceptor` objects are applied to this endpoint.
+The following example shows how to use the `@IdempotentReceiver` annotation:
 
-For Java configuration, the method level `IdempotentReceiver` annotation is provided.
-It is used to mark a `method` that has a Messaging annotation (`@ServiceActivator`, `@Router` etc.) to specify which `IdempotentReceiverInterceptor` s will be applied to this endpoint:
-
+====
 [source,java]
 ----
 @Bean
@@ -816,9 +837,11 @@ public MessageHandler myService() {
     ....
 }
 ----
+====
 
-And with the Java DSL, the interceptor is added to the endpoint's advice chain:
+When you use the Java DSL, you can add the interceptor to the endpoint's advice chain, as the following example shows:
 
+====
 [source, java]
 ----
 @Bean
@@ -829,6 +852,8 @@ public IntegrationFlow flow() {
     ...
 }
 ----
+====
 
-NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method and starting with _version 4.3.1_ it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
-See <<handle-message-advice>> for more information.
+NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method.
+Starting with version 4.3.1, it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
+See "`<<handle-message-advice>>`" for more information.

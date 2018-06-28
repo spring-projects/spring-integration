@@ -1,70 +1,80 @@
 [[transactions]]
 == Transaction Support
 
+This chapter covers Spring Integration's support for transactions. It covers the following topics:
+
+* <<transaction-support>>
+* <<transaction-boundaries>>
+* <<transaction-synchronization>>
+* <<pseudo-transactions>>
+
 [[transaction-support]]
 === Understanding Transactions in Message flows
 
-Spring Integration exposes several hooks to address transactional needs of you message flows.
-But to better understand these hooks and how you can benefit from them we must first revisit the 6 mechanisms that could be used to initiate Message flows and see how transactional needs of these flows could be addressed within each of these mechanisms.
+Spring Integration exposes several hooks to address the transactional needs of your message flows.
+To better understand these hooks and how you can benefit from them, we must first revisit the six mechanisms that you can use to initiate message flows and see how you can address the transactional needs of these flows within each of these mechanisms.
 
-Here are the 6 mechanisms to initiate a Message flow and their short summary (details for each are provided throughout this manual):
+The following six mechanisms initiate a message flow (details for each are provided throughout this manual):
 
-* _Gateway Proxy_ - Your basic Messaging Gateway
+* Gateway proxy: A basic messaging gateway.
 
-* _MessageChannel_ - Direct interactions with MessageChannel methods (e.g., channel.send(message))
+* Message channel: Direct interactions with `MessageChannel` methods (for example, `channel.send(message)`).
 
-* _Message Publisher_ - the way to initiate message flow as the by-product of method invocations on Spring beans
+* Message publisher: The way to initiate a message flow as the by-product of method invocations on Spring beans.
 
-* _Inbound Channel Adapters/Gateways_ - the way to initiate message flow based on connecting third-party system with Spring Integration messaging system(e.g., [JmsMessage] -> Jms Inbound Adapter[SI Message] -> SI Channel)
+* Inbound channel adapters and gateways: The way to initiate a message flow based on connecting third-party system with the Spring Integration messaging system (for example, `[JmsMessage] -> Jms Inbound Adapter[SI Message] -> SI Channel`).
 
-* _Scheduler_ - the way to initiate message flow based on scheduling events distributed by a pre-configured Scheduler
+* Scheduler: The way to initiate a message flow based on scheduling events distributed by a pre-configured scheduler.
 
-* _Poller_ - similar to the Scheduler and is the way to initiate message flow based on scheduling or interval-based events distributed by a pre-configured Poller
+* Poller: Similar to the scheduler, this is the way to initiate message flow based on scheduling or interval-based events distributed by a pre-configured poller.
 
-These 6 could be split in 2 general categories:
+We can split these six mechanisms into two general categories:
 
-* _Message flows initiated by a USER process_ - Example scenarios in this category would be invoking a Gateway method or explicitly sending a Message to a MessageChannel.
-In other words, these message flows depend on a third party process (e.g., some code that we wrote) to be initiated.
+* Message flows initiated by a user process: Example scenarios in this category would be invoking a gateway method or explicitly sending a `Message` to a `MessageChannel`.
+In other words, these message flows depend on a third party process (such as some code that you wrote) to be initiated.
 
-* _Message flows initiated by a DAEMON process_ - Example scenarios in this category would be a Poller polling a Message queue to initiate a new Message flow with the polled Message or a Scheduler scheduling the process by creating a new Message and initiating a message flow at a predefined time.
+* Message flows initiated by a daemon process: Example scenarios in this category include a Poller polling a message queue to initiate a new message flow with the polled message or a scheduler scheduling the process by creating a new message and initiating a message flow at a predefined time.
 
-Clearly the _Gateway Proxy_, _MessageChannel.send(..)_ and _MessagePublisher_ all belong to the 1st category and _Inbound Adapters/Gateways_, _Scheduler_ and _Poller_ belong to the 2nd.
+Clearly the gateway proxy, `MessageChannel.send(...)` and `MessagePublisher` all belong to the first category, and inbound adapters and gateways, scheduler, and poller belong to the second category.
 
-So, how do we address transactional needs in various scenarios within each category and is there a need for Spring Integration to provide something explicitly with regard to transactions for a particular scenario? Or, can Spring's Transaction Support be leveraged instead?.
+So, how can you address transactional needs in various scenarios within each category, and is there a need for Spring Integration to provide something explicit with regard to transactions for a particular scenario?
+Or can you use Spring's transaction support instead?
 
-The first and most obvious goal is NOT to re-invent something that has already been invented unless you can provide a better solution.
-In our case Spring itself provides first class support for transaction management.
-So our goal here is not to provide something new but rather delegate/use Spring to benefit from the existing support for transactions.
-In other words as a framework we must expose hooks to the Transaction management functionality provided by Spring.
-But since Spring Integration configuration is based on Spring Configuration it is not always necessary to expose these hooks as they are already exposed via Spring natively.
-Remember every Spring Integration component is a Spring Bean after all.
+Spring itself provides first class support for transaction management.
+So our goal here is not to provide something new but rather use Spring to benefit from its existing support for transactions.
+In other words, as a framework, we must expose hooks to Spring's transaction management functionality.
+However, since Spring Integration configuration is based on Spring configuration, we need not always expose these hooks, because Spring already exposes them .
+After all, every Spring Integration component is a Spring Bean.
 
-With this goal in mind let's look at the two scenarios. 
+With this goal in mind, we can again consider the two scenarios: messgae flows initiated by a user process and message flows initiated by a daemon.
 
-If you think about it, Message flows that are initiated by the _USER process_ (Category 1) and obviously configured in a Spring Application Context, are subject to transactional configuration of such processes and therefore don't need to be explicitly configured by Spring Integration to support transactions.
-The transaction could and should be initiated through standard Transaction support provided by Spring.
-The Spring Integration message flow will honor the transactional semantics of the components naturally because it is Spring configured.
-For example, a Gateway or ServiceActivator method could be annotated with `@Transactional` or `TransactionInterceptor` could be defined in an XML configuration with a point-cut expression pointing to specific methods that should be transactional.
+Message flows that are initiated by a user process and configured in a Spring application context are subject to the usual transactional configuration of such processes.
+Therefore they need not be explicitly configured by Spring Integration to support transactions.
+The transaction could and should be initiated through Spring's standard transaction support.
+The Spring Integration message flow naturally honors the transactional semantics of the components, because it is itself configured by Spring.
+For example, a gateway or service activator method could be annotated with `@Transactional`, or a `TransactionInterceptor` could be defined in an XML configuration with a pointcut expression that pointa to specific methods that should be transactional.
 The bottom line is that you have full control over transaction configuration and boundaries in these scenarios.
 
-However, things are a bit different when it comes to Message flows initiated by the _DAEMON process_ (Category 2).
-Although configured by the developer these flows do not directly involve a human or some other process to be initiated.
-These are trigger-based flows that are initiated by a trigger process (DAEMON process) based on the configuration of such process.
-For example, we could have a Scheduler initiating a message flow every Friday night of every week.
-We can also configure a trigger that initiates a Message flow every second, etc.
-So, we obviously need a way to let these trigger-based processes know of our intention to make the resulting Message flows transactional so that a Transaction context could be created whenever a new Message flow is initiated.
-In other words we need to expose some Transaction configuration, but ONLY enough to delegate to Transaction support already provided by Spring (as we do in other scenarios).
-
-Spring Integration provides transactional support for Pollers.
-Pollers are a special type of component because we can call receive() within that poller task against a resource that is itself transactional thus including _receive()_ call in the the boundaries of the Transaction allowing it to be rolled back in case of a task failure.
-If we were to add the same support for channels, the added transactions would affect all downstream components starting with that _send()_ call.
-That is providing a rather wide scope for transaction demarcation without any strong reason especially when Spring already provides several ways to address the transactional needs of any component downstream.
-However the _receive()_ method being included in a transaction boundary is the "strong reason" for pollers.
+However, things are a bit different when it comes to message flows initiated by a daemon process.
+Although configured by the developer, these flows do not directly involve a human or some other process to be initiated.
+These are trigger-based flows that are initiated by a trigger process (a daemon process) based on the configuration of the process.
+For example, we could have a scheduler initiate a message flow every Friday night.
+We can also configure a trigger that initiates a message flow every second and so on.
+As a result, we need a way to let these trigger-based processes know of our intention to make the resulting message flows be transactional, so that a Transaction context can be created whenever a new message flow is initiated.
+In other words, we need to expose some transaction configuration, but only enough to delegate to the transaction support already provided by Spring (as we do in other scenarios).
 
 [[transaction-poller]]
 ==== Poller Transaction Support
 
-Any time you configure a Poller you can provide transactional configuration via the _transactional_ sub-element and its attributes:
+Spring Integration provides transactional support for pollers.
+Pollers are a special type of component because, within a poller task, we can call `receive()` against a resource that is itself transactional, thus including the `receive()` call in the the boundaries of the transaction, which lets it be rolled back in case of a task failure.
+If we were to add the same support for channels, the added transactions would affect all downstream components starting with the `send()` call.
+That provides a rather wide scope for transaction demarcation without any strong reason, especially when Spring already provides several ways to address the transactional needs of any component downstream.
+However the `receive()` method being included in a transaction boundary is the "`strong reason`" for pollers.
+
+Any time you configure a Poller, you can provide transactional configuration by using the `transactional` child element and its attributes,as the following example shows:
+
+====
 [source,xml]
 ----
 <int:poller max-messages-per-poll="1" fixed-rate="1000">
@@ -75,21 +85,25 @@ Any time you configure a Poller you can provide transactional configuration via 
                    timeout="1000"/>
 </poller>
 ----
+====
 
-As you can see this configuration looks very similar to native Spring transaction configuration.
-You must still provide a reference to a Transaction manager and specify transaction attributes or rely on defaults (e.g., if the 'transaction-manager' attribute is not specified, it will default to the bean with the name 'transactionManager').
-Internally the process would be wrapped in Spring's native Transaction where `TransactionInterceptor` is responsible for handling transactions.
-For more information on how to configure a Transaction Manager, the types of Transaction Managers (e.g., JTA, Datasource etc.) and other details related to transaction configuration please refer to Spring's Reference manual (Chapter 10 - Transaction Management).
+The preceding configuration looks similar to a native Spring transaction configuration.
+You must still provide a reference to a transaction manager and either specify transaction attributes or rely on defaults (for example, if the 'transaction-manager' attribute is not specified, it defaults to the bean named 'transactionManager').
+Internally, the process is wrapped in Spring's native transaction, where `TransactionInterceptor` is responsible for handling transactions.
+For more information on how to configure a transaction manager, the types of transaction managers (such as JTA, Datasource, and others), and other details related to transaction configuration, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/data-access.html#transaction[Spring Framework Reference Guide].
 
-With the above configuration all Message flows initiated by this poller will be transactional.
-For more information and details on a Poller's transactional configuration please refer to section - _21.1.1.
-Polling and Transactions_.
+With the preceding configuration, all message flows initiated by this poller are transactional.
+For more information and details on a poller's transactional configuration, see "`<<jdbc-polling-transactions>>`".
 
-Along with transactions, several more cross cutting concerns might need to be addressed when running a Poller.
-To help with that, the Poller element accepts an _<advice-chain> _ sub-element which allows you to define a custom chain of Advice instances to be applied on the Poller.
-(see section 4.4 for more details) In Spring Integration 2.0, the Poller went through the a refactoring effort and is now using a proxy mechanism to address transactional concerns as well as other cross cutting concerns.
-One of the significant changes evolving from this effort is that we made _<transactional>_ and _<advice-chain>_ elements mutually exclusive.
-The rationale behind this is that if you need more than one advice, and one of them is Transaction advice, then you can simply include it in the _<advice-chain>_ with the same convenience as before but with much more control since you now have an option to position any advice in the desired order.
+Along with transactions, you might need to address several more cross-cutting concerns when you run a poller.
+To help with that, the poller element accepts an `<advice-chain>` child element, which lets you define a custom chain of advice instances to be applied on the Poller.
+(See "`<<pollable-message-source>>`" for more details.)
+In Spring Integration 2.0, the Poller went through a refactoring effort and now uses a proxy mechanism to address transactional concerns as well as other cross-cutting concerns.
+One of the significant changes evolving from this effort is that we made the `<transactional>` and `<advice-chain>` elements be mutually exclusive.
+The rationale behind this is that, if you need more than one advice and one of them is Transaction advice, you can include it in the `<advice-chain>` with the same convenience as before but with much more control, since you now have an option to position the advice in the desired order.
+The following example shows how to do so:
+
+====
 [source,xml]
 ----
 <int:poller max-messages-per-poll="1" fixed-rate="10000">
@@ -106,11 +120,11 @@ The rationale behind this is that if you need more than one advice, and one of t
     <tx:method name="*"/>
   </tx:attributes>
 </tx:advice>
-
 ----
+====
 
-As you can see from the example above, we have provided a very basic XML-based configuration of Spring Transaction advice  - "txAdvice" and included it within the _<advice-chain>_ defined by the Poller.
-If you only need to address transactional concerns of the Poller, then you can still use the _<transactional>_ element as a convenience.
+The preceding example shows a basic XML-based configuration of Spring Transaction advice (`txAdvice`) and included it within the `<advice-chain>` defined by the Poller.
+If you need to address only the transactional concerns of the poller, you can still use the `<transactional>` element as a convenience.
 
 [[transaction-boundaries]]
 === Transaction Boundaries
@@ -127,15 +141,17 @@ For example, you can use a Queue-backed Channel that delegates to a transactiona
 [[transaction-synchronization]]
 === Transaction Synchronization
 
-In some environments, it is advantageous to synchronize operations with a transaction that encompasses the entire flow.
-For example, consider a <file:inbound-channel-adapter/> at the start of a flow, that performs a number of database updates.
-If the transaction commits, we might want to move the file to a _success_ directory, while we might want to move it to a _failures_ directory if the transaction rolls back.
+In some environments, it help to synchronize operations with a transaction that encompasses the entire flow.
+For example, consider a `<file:inbound-channel-adapter/>` at the start of a flow that performs a number of database updates.
+If the transaction commits, we might want to move the file to a `success` directory, while we might want to move it to a `failure` directory if the transaction rolls back.
 
-Spring Integration 2.2 introduces the capability of synchronizing these operations with a transaction.
-In addition, you can configure a `PseudoTransactionManager` if you don't have a 'real' transaction, but still want to perform different actions on success, or failure.
-For more information, see <<pseudo-transactions>>.
+Spring Integration 2.2 introduced the capability of synchronizing these operations with a transaction.
+In addition, you can configure a `PseudoTransactionManager` if you do not have a 'real' transaction but still want to perform different actions on success or failure.
+For more information, see "`<<pseudo-transactions>>`".
 
-Key strategy interfaces for this feature are
+The following listing shows the key strategy interfaces for this feature:
+
+====
 [source,java]
 ----
 public interface TransactionSynchronizationFactory {
@@ -153,27 +169,31 @@ public interface TransactionSynchronizationProcessor {
 
 }
 ----
+====
 
-The factory is responsible for creating a http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html[TransactionSynchronization] object.
-You can implement your own, or use the one provided by the framework: `DefaultTransactionSynchronizationFactory`.
-This implementation returns a `TransactionSynchronization` that delegates to a default implementation of `TransactionSynchronizationProcessor`, the `ExpressionEvaluatingTransactionSynchronizationProcessor`.
-This processor supports three SpEL expressions, _beforeCommitExpression_, _afterCommitExpression_, and _afterRollbackExpression_.
+The factory is responsible for creating a http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/support/TransactionSynchronization.html[`TransactionSynchronization`] object.
+You can implement your own or use the one provided by the framework: `DefaultTransactionSynchronizationFactory`.
+This implementation returns a `TransactionSynchronization` that delegates to a default implementation of `TransactionSynchronizationProcessor`: `ExpressionEvaluatingTransactionSynchronizationProcessor`.
+This processor supports three SpEL expressions: `beforeCommitExpression`, `afterCommitExpression`, and `afterRollbackExpression`.
 
 These actions should be self-explanatory to those familiar with transactions.
-In each case, the _#root_ variable is the original `Message`; in some cases, other SpEL variables are made available, depending on the `MessageSource` being polled by the poller.
-For example, the `MongoDbMessageSource` provides the _#mongoTemplate_ variable which references the message source's `MongoTemplate`; the `RedisStoreMessageSource` provides the _#store_ variable which references the `RedisStore` created by the poll.
+In each case, the `#root` variable is the original `Message`.
+In some cases, other SpEL variables are made available, depending on the `MessageSource` being polled by the poller.
+For example, the `MongoDbMessageSource` provides the `#mongoTemplate` variable, which references the message source's `MongoTemplate`.
+Similarly, the `RedisStoreMessageSource` provides the `#store` variable, which references the `RedisStore` created by the poll.
 
-To enable the feature for a particular poller, you provide a reference to the `TransactionSynchronizationFactory` on the poller's <transactional/> element using the _synchronization-factory_ attribute.
+To enable the feature for a particular poller, you can provide a reference to the `TransactionSynchronizationFactory` on the poller's `<transactional/>` element by using the `synchronization-factory` attribute.
 
-Starting with _version 5.0_, a new `PassThroughTransactionSynchronizationFactory` is provided which is applied by default to polling endpoints when no `TransactionSynchronizationFactory` is configured but an advice of type TransactionInterceptor exists in the advice chain.
-When using any out-of-the-box `TransactionSynchronizationFactory` implementation, polling endpoints bind a polled message to the current transactional context and provide it as a `failedMessage` in a `MessagingException` if an exception is thrown after the TX advice.
-When using a custom TX advice that does not implement `TransactionInterceptor`, a `PassThroughTransactionSynchronizationFactory` can be configured explicitly to achieve this behavior.
-In either case, the `MessagingException` becomes the payload of the `ErrorMessage` that is sent to the `errorChannel` and the cause is the raw exception thrown by the advice.
+Starting with version 5.0, Spring Integration provides `PassThroughTransactionSynchronizationFactory`, which is applied by default to polling endpoints when no `TransactionSynchronizationFactory` is configured but an advice of type `TransactionInterceptor` exists in the advice chain.
+When using any out-of-the-box `TransactionSynchronizationFactory` implementation, polling endpoints bind a polled message to the current transactional context and provide it as a `failedMessage` in a `MessagingException` if an exception is thrown after the transaction advice.
+When using a custom transaction advice that does not implement `TransactionInterceptor`, you can explicitly configure a `PassThroughTransactionSynchronizationFactory` to achieve this behavior.
+In either case, the `MessagingException` becomes the payload of the `ErrorMessage` that is sent to the `errorChannel`, and the cause is the raw exception thrown by the advice.
 Previously, the `ErrorMessage` had a payload that was the raw exception thrown by the advice and did not provide a reference to the `failedMessage` information, making it difficult to determine the reasons for the transaction commit problem.
 
-To simplify configuration of these components, namespace support for the default factory has been provided.
-Configuration is best described using an example:
+To simplify configuration of these components, Spring Integration provides namespace support for the default factory.
+The following example shows how to use the namespace to configure a file inbound channel adapter:
 
+====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="inputDirPoller"
@@ -191,38 +211,44 @@ Configuration is best described using an example:
     <int:after-rollback expression="payload.renameTo('/failed/' + payload.name)" channel="rolledBackChannel" />
 </int:transaction-synchronization-factory>
 ----
+====
 
-The result of the SpEL evaluation is sent as the payload to either the _committedChannel_ or _rolledBackChannel_ (in this case, this would be `Boolean.TRUE` or `Boolean.FALSE` - the result of the `java.io.File.renameTo()` method call).
+The result of the SpEL evaluation is sent as the payload to either `committedChannel` or `rolledBackChannel` (in this case, this would be `Boolean.TRUE` or `Boolean.FALSE` -- the result of the `java.io.File.renameTo()` method call).
 
-If you wish to send the entire payload for further Spring Integration processing, simply use the expression 'payload'.
+If you wish to send the entire payload for further Spring Integration processing, use the 'payload' expression.
 
 [IMPORTANT]
 =====
-It is important to understand that this is simply synchronizing the actions with a transaction, it does not make a resource that is not inherently transactional actually transactional.
-Instead, the transaction (be it JDBC or otherwise) is started before the poll, and committed/rolled back when the flow completes, followed by the synchronized action.
+It is important to understand that this synchronizes the actions with a transaction.
+It does not make a resource that is not inherently transactional actually be transactional.
+Instead, the transaction (be it JDBC or otherwise) is started before the poll and either committed or rolled back when the flow completes, followed by the synchronized action.
 
-It is also important to understand that if you provide a custom `TransactionSynchronizationFactory`, it is responsible for creating a resource synchronization that will cause the bound resource to be unbound automatically, when the transaction completes.
-The default `TransactionSynchronizationFactory` does this by returning a subclass of `ResourceHolderSynchronization`, with the default _shouldUnbindAtCompletion()_ returning `true`.
+If you provide a custom `TransactionSynchronizationFactory`, it is responsible for creating a resource synchronization that causes the bound resource to be unbound automatically when the transaction completes.
+The default `TransactionSynchronizationFactory` does so by returning a subclass of `ResourceHolderSynchronization`, with the default `shouldUnbindAtCompletion()` returning `true`.
 =====
 
-In addition to the _after-commit_ and _after-rollback_ expressions, _before-commit_ is also supported.
-In that case, if the evaluation (or downstream processing) throws an exception, the transaction will be rolled back instead of being committed.
+In addition to the `after-commit` and `after-rollback` expressions, `before-commit` is also supported.
+In that case, if the evaluation (or downstream processing) throws an exception, the transaction is rolled back instead of being committed.
 
 [[pseudo-transactions]]
 === Pseudo Transactions
 
-Referring to the above section, you may be thinking it would be useful to take these 'success' or 'failure' actions when a flow completes, even if there is no 'real' transactional resources (such as JDBC) downstream of the poller.
-For example, consider a <file:inbound-channel-adapter/> followed by an <ftp:outbout-channel-adapter/>.
-Neither of these components is transactional but we might want to move the input file to different directories, based on the success or failure of the ftp transfer.
+After reading the "`<<transaction-synchronization>>`" section, you might think it would be useful to take these 'success' or 'failure' actions when a flow completes, even if there is no "`real`" transactional resources (such as JDBC) downstream of the poller.
+For example, consider a "`<file:inbound-channel-adapter/>`" followed by an "`<ftp:outbout-channel-adapter/>`".
+Neither of these components is transactional, but we might want to move the input file to different directories, based on the success or failure of the FTP transfer.
 
 To provide this functionality, the framework provides a `PseudoTransactionManager`, enabling the above configuration even when there is no real transactional resource involved.
-If the flow completes normally, the _beforeCommit_ and _afterCommit_ synchronizations will be called, on failure the _afterRollback_ will be called.
-Of course, because it is not a real transaction there will be no actual commit or rollback.
-The pseudo transaction is simply a vehicle used to enable the synchronization features.
+If the flow completes normally, the `beforeCommit` and `afterCommit` synchronizations are called.
+On failure, the `afterRollback` synchronization is called.
+Because it is not a real transaction, no actual commit or rollback occurs.
+The pseudo transaction is a vehicle used to enable the synchronization features.
 
-To use a `PseudoTransactionManager`, simply define it as a <bean/>, in the same way you would configure a real transaction manager:
+To use a `PseudoTransactionManager`, you can define it as a <bean/>, in the same way you would configure a real transaction manager.
+The following example shows how to do so:
 
+====
 [source,xml]
 ----
 <bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager" />
 ----
+====

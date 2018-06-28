@@ -1,29 +1,23 @@
 [[stomp]]
 == STOMP Support
 
-[[stomp-introduction]]
-=== Introduction
-
-Spring Integration _version 4.2_ introduced _STOMP Client_ support.
-It is based on the architecture, infrastructure and API from the Spring Framework's _messaging_ module, _stomp_ package.
-Many of Spring STOMP components (e.g. `StompSession` or `StompClientSupport`)
-are used within Spring Integration.
-For more information, please, refer to the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html#websocket-stomp-client[Spring Framework STOMP Support]
-chapter in the Spring Framework reference manual.
+Spring Integration version 4.2 introduced STOMP (Simple Text Orientated Messaging Protocol) client support.
+It is based on the architecture, infrastructure, and API from the Spring Framework's messaging module, stomp package.
+Spring Integration uses many of Spring STOMP components (such as `StompSession` and `StompClientSupport`).
+For more information, see the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html#websocket-stomp-client[Spring Framework STOMP Support] chapter in the Spring Framework reference manual.
 
 [[stomp-overview]]
 === Overview
 
-To configure STOMP (Simple [or Streaming] Text Orientated Messaging Protocol) let's start with the _STOMP Client_ object.
-The Spring Framework provides these implementations:
+To configure STOMP, you should start with the STOMP client object.
+The Spring Framework provides the following implementations:
 
-* `WebSocketStompClient` - built on the Spring WebSocket API with support for standard JSR-356 WebSocket, Jetty 9,
-as well as SockJS for HTTP-based WebSocket emulation with SockJS Client.
+* `WebSocketStompClient`: Built on the Spring WebSocket API with support for standard JSR-356 WebSocket, Jetty 9, and SockJS for HTTP-based WebSocket emulation with SockJS Client.
 
-* `ReactorNettyTcpStompClient` - built on `ReactorNettyTcpClient` from the `reactor-netty` project.
+* `ReactorNettyTcpStompClient`: Built on `ReactorNettyTcpClient` from the `reactor-netty` project.
 
-Any other `StompClientSupport` implementation can be provided.
-See the JavaDocs of those classes for more information.
+You can provide any other `StompClientSupport` implementation.
+See the https://docs.spring.io/spring-integration/api/[Javadoc] of those classes.
 
 The `StompClientSupport` class is designed as a _factory_ to produce a `StompSession` for the provided
 `StompSessionHandler` and all the remaining work is done through the _callbacks_ to that `StompSessionHandler`
@@ -38,28 +32,27 @@ See `StompSessionManager` (and its implementations) JavaDocs for more informatio
 [[stomp-inbound-adapter]]
 === STOMP Inbound Channel Adapter
 
-The `StompInboundChannelAdapter` is a one-stop `MessageProducer` component to subscribe our Spring Integration
-application to the provided STOMP destinations and receive messages from them, converted from the STOMP
-frames using the provided `MessageConverter` on the connected `StompSession`.
-The destinations (and therefore STOMP subscriptions) can be changed at runtime using appropriate `@ManagedOperation` s
-on the `StompInboundChannelAdapter`.
+The `StompInboundChannelAdapter` is a one-stop `MessageProducer` component that subscribes your Spring Integration application to the provided STOMP destinations and receives messages from them (converted from the STOMP frames by using the provided `MessageConverter` on the connected `StompSession`).
+You can change the destinations (and therefore STOMP subscriptions) at runtime by using appropriate `@ManagedOperation` annotations on the `StompInboundChannelAdapter`.
 
-For more configuration options see <<stomp-namespace>> and the `StompInboundChannelAdapter` JavaDocs.
+For more configuration options, see "`<<stomp-namespace>>`" and the `StompInboundChannelAdapter` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/inbound/StompInboundChannelAdapter.html[Javadoc].
 
 [[stomp-outbound-adapter]]
 === STOMP Outbound Channel Adapter
 
-The `StompMessageHandler` is the `MessageHandler` for the `<int-stomp:outbound-channel-adapter>`
-to send the outgoing `Message<?>` s to the STOMP `destination` (pre-configured or determined at runtime via a SpEL expression) STOMP through the `StompSession`, provided by the shared `StompSessionManager`.
+The `StompMessageHandler` is the `MessageHandler` for the `<int-stomp:outbound-channel-adapter>` and is used
+to send the outgoing `Message<?>` instances to the STOMP `destination` (pre-configured or determined at runtime with a SpEL expression) through the `StompSession` (which is provided by the shared `StompSessionManager`).
 
-For more configuration option see <<stomp-namespace>> and the `StompMessageHandler` JavaDocs.
+For more configuration options see "`<<stomp-namespace>>`" and the `StompMessageHandler` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/outbound/StompMessageHandler.html[Javadoc].
 
 [[stomp-headers]]
 === STOMP Headers Mapping
 
-The STOMP protocol provides _headers_ as part of frame; the entire structure of the STOMP frame
-has this format:
+The STOMP protocol provides headers as part of its frame.
+The entire structure of the STOMP frame has the following format:
 
+====
+----
 ....
 COMMAND
 header1:value1
@@ -67,53 +60,50 @@ header2:value2
 
 Body^@
 ....
+----
+====
 
-Spring Framework provides `StompHeaders`, to represent these headers.
-See the JavaDocs for more details.
-STOMP frames are converted to/from `Message<?>` and these headers are mapped to/from `MessageHeaders`.
+Spring Framework provides `StompHeaders` to represent these headers.
+See the https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/simp/stomp/StompHeaders.html[Javadoc] for more details.
+STOMP frames are converted to and from `Message<?>` instances and these headers are mapped to and from `MessageHeaders` instances.
 Spring Integration provides a default `HeaderMapper` implementation for the STOMP adapters.
-The implementation is `StompHeaderMapper` which provides `fromHeaders()` and `toHeaders()` operations for the
-_inbound_ and _outbound_ adapters respectively.
+The implementation is `StompHeaderMapper`.
+It provides `fromHeaders()` and `toHeaders()` operations for the inbound and outbound adapters, respectively.
 
-As with many other Spring Integration modules, the `IntegrationStompHeaders` class has been
-introduced to map standard STOMP headers to `MessageHeaders` with `stomp_` as the header name prefix.
-In addition, all `MessageHeaders` with that prefix are mapped to the `StompHeaders` when sending to a destination.
+As with many other Spring Integration modules, the `IntegrationStompHeaders` class has been introduced to map standard STOMP headers to `MessageHeaders`, with `stomp_` as the header name prefix.
+In addition, all `MessageHeaders` instances with that prefix are mapped to the `StompHeaders` when sending to a destination.
 
-For more information, see the JavaDocs of those classes and the `mapped-headers` attribute description in the
-<<stomp-namespace>>.
+For more information, see the https://docs.spring.io/spring-integration/api/[Javadoc] for those classes and the `mapped-headers` attribute description in the
+"`<<stomp-namespace>>`".
 
 [[stomp-events]]
 === STOMP Integration Events
 
 Many STOMP operations are asynchronous, including error handling.
-For example, STOMP has a `RECEIPT` server frame that is returned when a client frame has requested one by adding
+For example, STOMP has a `RECEIPT` server frame that it returns when a client frame has requested one by adding
 the `RECEIPT` header.
-To provide access to these asynchronous events, Spring Integration emits `StompIntegrationEvent` s which can be
-obtained by implementing an `ApplicationListener` or using an `<int-event:inbound-channel-adapter>` (see <<appevent-inbound>>).
+To provide access to these asynchronous events, Spring Integration emits `StompIntegrationEvent` instances, which you can obtain by implementing an `ApplicationListener` or by using an `<int-event:inbound-channel-adapter>` (see "`<<appevent-inbound>>`").
 
-Specifically, a `StompExceptionEvent` is emitted from the `AbstractStompSessionManager`, when a
-`stompSessionListenableFuture` receives `onFailure()` in case of failure to connect to STOMP Broker.
-Another example is the `StompMessageHandler` which processes
-`ERROR` STOMP frames, which are server responses to improper, unaccepted, messages sent by this `StompMessageHandler`.
+Specifically, a `StompExceptionEvent` is emitted from the `AbstractStompSessionManager` when a
+`stompSessionListenableFuture` receives `onFailure()` due to failure to connect to STOMP broker.
+Another example is the `StompMessageHandler`.
+It processes `ERROR` STOMP frames, which are server responses to improper (unaccepted) messages sent by this `StompMessageHandler`.
 
-The `StompReceiptEvent` s are emitted from the `StompMessageHandler` as a part of `StompSession.Receiptable`
-callbacks in the asynchronous answers for the sent messages to the `StompSession`.
-The `StompReceiptEvent` can be positive and negative depending on whether or not the `RECEIPT` frame was received
-from the server within the `receiptTimeLimit` period, which can be configured on the `StompClientSupport` instance.
-Defaults to `15 * 1000`.
+The `StompMessageHandler` emits `StompReceiptEvent` as a part of `StompSession.Receiptable` callbacks in the asynchronous answers for the messages sent to the `StompSession`.
+The `StompReceiptEvent` can be positive or negative, depending on whether or not the `RECEIPT` frame was received from the server within the `receiptTimeLimit` period, which you can configure on the `StompClientSupport` instance.
+It defaults to `15 * 1000` (in milliseconds, so 15 seconds).
 
-NOTE: The `StompSession.Receiptable` callbacks are added only if the `RECEIPT` STOMP header of the message to send
-is not `null`.
-Automatic `RECEIPT` header generation can be enabled on the `StompSession` through its `autoReceipt` option and
-on the `StompSessionManager` respectively.
+NOTE: The `StompSession.Receiptable` callbacks are added only if the `RECEIPT` STOMP header of the message to send is not `null`.
+You can enable automatic `RECEIPT` header generation on the `StompSession` through its `autoReceipt` option and on the `StompSessionManager` respectively.
 
-See the next paragraph for more information how to configure Spring Integration to accept those `ApplicationEvent` s.
+See "`<<stomp-java-config>>`" for more information how to configure Spring Integration to accept those `ApplicationEvent` instances.
 
 [[stomp-java-config]]
 === STOMP Adapters Java Configuration
 
-A comprehensive Java & Annotation Configuration for STOMP Adapters may look like this:
+The following example shows a comprehensive Java configuration for STOMP adapters:
 
+====
 [source,java]
 ----
 @Configuration
@@ -174,13 +164,13 @@ public class StompConfiguration {
 
 }
 ----
+====
 
 [[stomp-namespace]]
 === STOMP Namespace Support
 
-Spring Integration _STOMP_ namespace implements the _inbound_ and _outbound_ channel adapter components described below.
-To include it in your configuration, simply provide the following namespace declaration in your application context
-configuration file:
+The Spring Integration STOMP namespace implements the inbound and outbound channel adapter components.
+To include it in your configuration, provide the following namespace declaration in your application context configuration file:
 
 [source,xml]
 ----
@@ -200,134 +190,97 @@ configuration file:
 </beans>
 ----
 
-*<int-stomp:outbound-channel-adapter>*
+[[stomp-outbound-channel-adapter]]
+==== Understanding the <int-stomp:outbound-channel-adapter> Element
+
+The following listing shows the available attributes for the STOMP outbound channel adapter:
 
 [source,xml]
 ----
 <int-stomp:outbound-channel-adapter
-                           id=""  <1>
-                           channel=""  <2>
-                           stomp-session-manager=""  <3>
-                           header-mapper=""  <4>
-                           mapped-headers=""  <5>
-                           destination=""  <6>
+                           id=""                      <1>
+                           channel=""                 <2>
+                           stomp-session-manager=""   <3>
+                           header-mapper=""           <4>
+                           mapped-headers=""          <5>
+                           destination=""             <6>
                            destination-expression=""  <7>
-                           auto-startup=""  <8>
-                           phase=""/>  <9>
+                           auto-startup=""            <8>
+                           phase=""/>                 <9>
 ----
 
-
-
 <1> The component bean name.
-The `MessageHandler` is registered with the bean alias `id + '.handler'`.
-If the `channel` attribute isn't provided, a `DirectChannel` is created and registered with the application context
-with this `id` attribute as the bean name.
-In this case, the endpoint is registered with the bean name `id + '.adapter'`.
-
-
-<2> Identifies the channel attached to this adapter.
-_Optional_ - if `id` is present - see `id`.
-
-
-<3> Reference to a `StompSessionManager` bean, which encapsulates the low-level connection and `StompSession`
-handling operations.
-_Required_.
-
-
-<4> Reference to a bean implementing `HeaderMapper<StompHeaders>` that maps Spring Integration MessageHeaders to/from
+The `MessageHandler` is registered with a bean alias of `id` plus `.handler`.
+If you do not set the `channel` attribute, a `DirectChannel` is created and registered in the application context with the value of this `id` attribute as the bean name.
+In this case, the endpoint is registered with a bean name `id` plus `.adapter`.
+<2> Identifies the channel attached to this adapter if `id` is present.
+See `id`.
+Optional.
+<3> Reference to a `StompSessionManager` bean, which encapsulates the low-level connection and `StompSession` handling operations.
+Required.
+<4> Reference to a bean that implements `HeaderMapper<StompHeaders>`, which maps Spring Integration `MessageHeaders` to and from
 STOMP frame headers.
-This is mutually exclusive with `mapped-headers`.
-Defaults to `StompHeaderMapper`.
-
-
+It is mutually exclusive with `mapped-headers`.
+It defaults to `StompHeaderMapper`.
 <5> Comma-separated list of names of STOMP Headers to be mapped to the STOMP frame headers.
-This can only be provided if the `header-mapper` reference is not set.
-The values in this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
-A special token `STOMP_OUTBOUND_HEADERS` represents all the standard STOMP headers
-(content-length, receipt, heart-beat etc); they are included by default.
-If you wish to add your own headers, you must also include this token if you wish the standard headers to also be
-mapped or provide your own `HeaderMapper` implementation using `header-mapper`.
-
-
-<6> Name of the destination to which STOMP Messages will be sent.
-Mutually exclusive with the `destination-expression`.
-
-
+It can be provided only if the `header-mapper` reference is not set.
+The values in this list can also be simple patterns to be matched against the header names (such as `myheader*` or `*myheader`).
+A special token (`STOMP_OUTBOUND_HEADERS`) represents all the standard STOMP headers (content-length, receipt, heart-beat, and so on).
+They are included by default.
+If you want to add your own headers and want the standard headers to also be mapped, you must include this token or provide your own `HeaderMapper` implementation by using `header-mapper`.
+<6> Name of the destination to which STOMP Messages are sent.
+It is mutually exclusive with the `destination-expression`.
 <7> A SpEL expression to be evaluated at runtime against each Spring Integration `Message` as the root object.
-Mutually exclusive with the `destination`.
-
-
+It is mutually exclusive with the `destination`.
 <8> Boolean value indicating whether this endpoint should start automatically.
-Default to `true`.
-
-
+It defaults to `true`.
 <9> The lifecycle phase within which this endpoint should start and stop.
-The lower the value the earlier this endpoint will start and the later it will stop.
+The lower the value, the earlier this endpoint starts and the later it stops.
 The default is `Integer.MIN_VALUE`.
 Values can be negative.
-See `SmartLifeCycle`.
+See https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/SmartLifecycle.html[`SmartLifeCycle`].
+====
 
-*<int-stomp:inbound-channel-adapter>*
+==== Understanding the `<int-stomp:inbound-channel-adapter>` Element
 
+The following listing shows the available attributes for the STOMP inbound channel adapter:
+
+====
 [source,xml]
 ----
 <int-stomp:inbound-channel-adapter
-                           id=""  <1>
-                           channel=""  <2>
-                           error-channel=""  <3>
+                           id=""                     <1>
+                           channel=""                <2>
+                           error-channel=""          <3>
                            stomp-session-manager=""  <4>
-                           header-mapper=""  <5>
-                           mapped-headers=""  <6>
-                           destinations=""  <7>
-                           send-timeout=""  <8>
-                           payload-type=""  <9>
-                           auto-startup=""  <10>
-                           phase=""/>  <11>
+                           header-mapper=""          <5>
+                           mapped-headers=""         <6>
+                           destinations=""           <7>
+                           send-timeout=""           <8>
+                           payload-type=""           <9>
+                           auto-startup=""           <10>
+                           phase=""/>                <11>
 ----
 
-
-
 <1> The component bean name.
-If the `channel` attribute isn't provided, a `DirectChannel` is created and registered with the application context
-with this `id` attribute as the bean name.
-In this case, the endpoint is registered with the bean name `id + '.adapter'`.
-
-
+If you do not set the `channel` attribute, a `DirectChannel` is created and registered in the application context with the value of this `id` attribute as the bean name.
+In this case, the endpoint is registered with the bean name `id` plus `.adapter`.
 <2> Identifies the channel attached to this adapter.
-
-
-<3> The `MessageChannel` bean reference to which the `ErrorMessages` should be sent.
-
-
-<4> See the same option on the `<int-stomp:outbound-channel-adapter>`.
-
-
+<3> The `MessageChannel` bean reference to which `ErrorMessage` instances should be sent.
+<4> See the same option on the <<stomp-outbound-channel-adapter,`<int-stomp:outbound-channel-adapter>`>>.
 <5> Comma-separated list of names of STOMP Headers to be mapped from the STOMP frame headers.
-This can only be provided if the `header-mapper` reference is not set.
-The values in this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
-A special token `STOMP_INBOUND_HEADERS` represents all the standard STOMP headers
-(content-length, receipt, heart-beat etc); they are included by default.
-If you wish to add your own headers, you must also include this token if you wish the standard headers to also be
-mapped or provide your own `HeaderMapper` implementation using `header-mapper`.
-
-
-<6> See the same option on the `<int-stomp:outbound-channel-adapter>`.
-
-
+You can only provide this if the `header-mapper` reference is not set.
+The values in this list can also be simple patterns to be matched against the header names (for example, `myheader*` or `*myheader`).
+A special token (`STOMP_INBOUND_HEADERS`) represents all the standard STOMP headers (content-length, receipt, heart-beat, and so on).
+They are included by default.
+If you want to add your own headers and want the standard headers to also be mapped, you must also include this token or provide your own `HeaderMapper` implementation using `header-mapper`.
+<6> See the same option on the <<stomp-outbound-channel-adapter,`<int-stomp:outbound-channel-adapter>`>>.
 <7> Comma-separated list of STOMP destination names to subscribe.
-The list of destinations (and therefore subscriptions) can be modified at runtime
-through the `addDestination()` and `removeDestination()` `@ManagedOperation` s.
-
-
-<8> Maximum amount of time in milliseconds to wait when sending a message to the channel if the channel may block.
+The list of destinations (and therefore subscriptions) can be modified at runtime through the `addDestination()` and `removeDestination()` `@ManagedOperation` annotations.
+<8> Maximum amount of time (in milliseconds) to wait when sending a message to the channel if the channel can block.
 For example, a `QueueChannel` can block until space is available if its maximum capacity has been reached.
-
-
-<9> Fully qualified name of the java type for the target `payload` to convert from the incoming STOMP Frame.
-Default to `String.class`.
-
-
-<10> See the same option on the `<int-stomp:outbound-channel-adapter>`.
-
-
-<11> See the same option on the `<int-stomp:outbound-channel-adapter>`.
+<9> Fully qualified name of the Java type for the target `payload` to convert from the incoming STOMP frame.
+It defaults to `String.class`.
+<10> See the same option on the <<stomp-outbound-channel-adapter,`<int-stomp:outbound-channel-adapter>`>>.
+<11> See the same option on the <<stomp-outbound-channel-adapter,`<int-stomp:outbound-channel-adapter>`>>.
+====

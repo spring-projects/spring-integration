@@ -1,301 +1,307 @@
 [[migration-4.2-4.3]]
 === Changes between 4.2 and 4.3
 
-Please be sure to also see the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.2-to-4.3-Migration-Guide[Migration Guide]
+See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.2-to-4.3-Migration-Guide[Migration Guide]
 for important changes that might affect your applications.
-Migration guides for all versions back to _2.1_ can be found on the https://github.com/spring-projects/spring-integration/wiki[Wiki].
+You can find migration guides for all versions back to 2.1 on the https://github.com/spring-projects/spring-integration/wiki[Wiki].
 
 [[x4.3-new-components]]
 === New Components
 
+Version 4.3 added a number of new components.
+
 ==== AMQP Async Outbound Gateway
 
-See <<amqp-async-outbound-gateway>>.
+See "`<<amqp-async-outbound-gateway>>`".
 
-==== MessageGroupFactory
+==== `MessageGroupFactory`
 
-The new `MessageGroupFactory` strategy has been introduced to allow a control over `MessageGroup` instances
-in `MessageGroupStore` logic.
-The `SimpleMessageGroupFactory` is provided for the `SimpleMessageGroup` with the `GroupType.HASH_SET` as the default
+We introduced the `MessageGroupFactory` strategy to allow control over `MessageGroup` instances in `MessageGroupStore` logic.
+We added `SimpleMessageGroupFactory` implementation for the `SimpleMessageGroup`, with the `GroupType.HASH_SET` as the default
 factory for the standard `MessageGroupStore` implementations.
-See <<message-store>> for more information.
+See "`<<message-store>>`" for more information.
 
-==== PersistentMessageGroup
+==== `PersistentMessageGroup`
 
-The `PersistentMessageGroup`, - lazy-load proxy, - implementation is provided for persistent `MessageGroupStore` s,
-which return this instance for the `getMessageGroup()` when their `lazyLoadMessageGroups` is `true` (defaults).
-See <<message-store>> for more information.
+We added the `PersistentMessageGroup` (lazy-load proxy) implementation for persistent `MessageGroupStore` instances,
+which return this instance for the `getMessageGroup()` when their `lazyLoadMessageGroups` is `true` (the default).
+See "`<<message-store>>`" for more information.
 
-==== FTP/SFTP Streaming Inbound Channel Adapters
+==== FTP and SFTP Streaming Inbound Channel Adapters
 
-New inbound channel adapters are provided that return an `InputStream` for each file allowing you to retrieve remote
-files without writing them to the local file system
-See <<ftp-streaming>> and <<sftp-streaming>> for more information.
+We added inbound channel adapters that return an `InputStream` for each file, letting you retrieve remote files without writing them to the local file system.
+See "`<<ftp-streaming>>`" and "`<<sftp-streaming>>`" for more information.
 
-==== Stream Transformer
+==== `StreamTransformer`
 
-A new `StreamTransformer` is provided to transform an `InputStream` payload to either a `byte[]` or `String`.
-See <<stream-transformer>> for more information.
+We added `StreamTransformer` to transform an `InputStream` payload to either a `byte[]` or a `String`.
+See "`<<stream-transformer>>`" for more information.
 
 ==== Integration Graph
 
-A new `IntegrationGraphServer` together with the `IntegrationGraphController` REST service are provided to expose the runtime model of a Spring Integration application as a graph.
-See <<integration-graph>> for more information.
+We added `IntegrationGraphServer`, together with the `IntegrationGraphController` REST service, to expose the runtime model of a Spring Integration application as a graph.
+See "`<<integration-graph>>`" for more information.
 
 ==== JDBC Lock Registry
 
-A new `JdbcLockRegistry` is provided for distributed locks shared through the data base table.
-See <<jdbc-lock-registry>> for more information.
+We added `JdbcLockRegistry` for distributed locks shared through a database table.
+See "`<<jdbc-lock-registry>>`" for more information.
 
-==== Leader Initiator for Lock Registry
+==== `LeaderInitiator` for `LockRegistry`
 
-A new `LeaderInitiator` implementation is provided based on the `LockRegistry` strategy.
-See <<leadership-event-handling>> for more information.
+We added `LeaderInitiator` implementation based on the `LockRegistry` strategy.
+See "`<<leadership-event-handling>>`" for more information.
 
 [[x4.3-general]]
 === General Changes
 
+This section describes general changes that version 4.3 brought to Spring Integration.
+
 ==== Core Changes
 
-===== Outbound Gateway within Chain
+This section describes general changes to the core of Spring Integration.
 
-Previously, it was possible to specify a `reply-channel` on an outbound gateway within a chain.
-It was completely ignored; the gateway's reply goes to the next chain element, or to the chain's output channel
-if the gateway is the last element.
+===== Outbound Gateway within a Chain
+
+Previously, you could specify a `reply-channel` on an outbound gateway within a chain.
+It was completely ignored.
+The gateway's reply goes to the next chain element or, if the gateway is the last element, to the chain's output channel.
 This condition is now detected and disallowed.
-If you have such configuration, simply remove the `reply-channel`.
+If you have such a configuration, remove the `reply-channel`.
 
-===== Async Service Activator
+===== Asynchronous Service Activator
 
-An option to make the Service Asynchronous has been added.
-See <<async-service-activator>> for more information.
+We added an option to make the service activator be synchronous.
+See "`<<async-service-activator>>`" for more information.
 
 ===== Messaging Annotation Support changes
 
-The Messaging Annotation Support doesn't require any more `@MessageEndpoint` (or any other `@Component`) annotation
-declaration on the class level.
-To restore the previous behaviour specify the `spring.integration.messagingAnnotations.require.componentAnnotation` of
-`spring.integration.properties` as `true`.
-See <<global-properties>> and <<annotations>> for more information.
+The messaging annotation support does not require a `@MessageEndpoint` (or any other `@Component`) annotation declaration on the class level.
+To restore the previous behavior, set the `spring.integration.messagingAnnotations.require.componentAnnotation` of
+`spring.integration.properties` to `true`.
+See "`<<global-properties>>`" and "`<<annotations>>`" for more information.
 
 ==== Mail Changes
 
+This section describes general changes to the Spring Integration Mail functionality.
+
 ===== Customizable User Flag
 
-The customizable `userFlag` added in 4.2.2 to provide customization of the flag used to denote that the mail has been
-seen is now available using the XML namespace.
-See <<imap-seen>> for more information.
+The customizable `userFlag` (added in 4.2.2 to provide customization of the flag used to denote that the mail has been
+seen) is now available in the XML namespace.
+See "`<<imap-seen>>`" for more information.
 
 ===== Mail Message Mapping
 
-There is now an option to map inbound mail messages with the `MessageHeaders` containing the mail headers and the
-payload containing the email content.
+You can now map inbound mail messages with the `MessageHeaders` containing the mail headers and the payload containing the email content.
 Previously, the payload was always the raw `MimeMessage`.
-See <<mail-mapping>> for more information.
+See "`<<mail-mapping>>`" for more information.
 
 ==== JMS Changes
 
+This section describes general changes to the Spring Integration JMS functionality.
+
 ===== Header Mapper
 
-The `DefaultJmsHeaderMapper` now maps the standard `correlationId` header as a message property by invoking its
-`toString()` method.
-See <<jms-header-mapping>> for more information.
+The `DefaultJmsHeaderMapper` now maps the standard `correlationId` header as a message property by invoking its `toString()` method.
+See "`<<jms-header-mapping>>`" for more information.
 
-===== Async Gateway
+===== Asynchronous Gateway
 
-The JMS Outbound gateway now has an `async` property.
-See <<jms-async-gateway>> for more information.
+The JMS outbound gateway now has an `async` property.
+See "`<<jms-async-gateway>>`" for more information.
 
 ==== Aggregator Changes
 
-There is a change in behavior when a POJO aggregator releases a collection of `Message<?>` objects; this is rare but if
-your application does that, you will need to make a small change to your POJO. See this <<agg-message-collection>> note
-for more information.
+There is a change in behavior when a POJO aggregator releases a collection of `Message<?>` objects.
+This is rare, but, if your application does that, you need to make a small change to your POJO.
+See this "`<<agg-message-collection>>`" note for more information.
 
 ==== TCP/UDP Changes
+
+This section describes general changes to the Spring Integration TCP/UDP functionality.
 
 ===== Events
 
 A new `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
-See <<tcp-events>> for more information.
+See "`<<tcp-events>>`" for more information.
 
-The `destination-expression` and `socket-expression` are now available for the `<int-ip:udp-outbound-channel-adapter>`.
-See <<udp-adapters>> for more information.
+You can now use the `destination-expression` and `socket-expression` attributes on `<int-ip:udp-outbound-channel-adapter>`.
+See "`<<udp-adapters>>`" for more information.
 
 ===== Stream Deserializers
 
-The various deserializers that can't allocate the final buffer until the whole message has been assembled now support
-pooling of the raw buffer into which the data is received, rather than creating and discarding a buffer for each
-message.
-See <<tcp-connection-factories>> for more information.
+The various deserializers that cannot allocate the final buffer until the whole message has been assembled now support pooling the raw buffer into which the data is received rather than creating and discarding a buffer for each message.
+See "`<<tcp-connection-factories>>`" for more information.
 
 ===== TCP Message Mapper
 
 The message mapper now, optionally, sets a configured content type header.
-See <<ip-msg-headers>> for more information.
+See "`<<ip-msg-headers>>`" for more information.
 
 ==== File Changes
 
+This section describes general changes to the Spring Integration File functionality.
+
 ===== Destination Directory Creation
 
-The generated file name for the `FileWritingMessageHandler` can represent _sub-path_ to save the desired directory
-structure for file in the target directory.
-See <<file-writing-file-names>> for more information.
+The generated file name for the `FileWritingMessageHandler` can represent a sub-path to save the desired directory structure for a file in the target directory.
+See "`<<file-writing-file-names>>`" for more information.
 
 The `FileReadingMessageSource` now hides the `WatchService` directory scanning logic in the inner class.
-The `use-watch-service` and `watch-events` options are provided to enable such a behaviour.
-The top level `WatchServiceDirectoryScanner` has been deprecated because of inconsistency around API.
-See <<watch-service-directory-scanner>> for more information.
+We added the `use-watch-service` and `watch-events` options to enable this behavior.
+We deprecated the top-level `WatchServiceDirectoryScanner` because of inconsistency around the API.
+See "`<<watch-service-directory-scanner>>`" for more information.
 
 ===== Buffer Size
 
-When writing files, you can now specify the buffer size to use.
+When writing files, you can now specify the buffer size.
 
 ===== Appending and Flushing
 
 You can now avoid flushing files when appending and use a number of strategies to flush the data during idle periods.
-See <<file-flushing>> for more information.
+See "`<<file-flushing>>`" for more information.
 
 ===== Preserving Timestamps
 
-The outbound channel adapter can now be configured to set the destination file's `lastmodified` timestamp.
-See <<file-timestamps>> for more information.
+You can now configure the outbound channel adapter to set the destination file's `lastmodified` timestamp.
+See "`<<file-timestamps>>`" for more information.
 
 ===== Splitter Changes
 
-The `FileSplitter` will now automatically close an (S)FTP session when the file is completely read.
-This applies when the outbound gateway returns an `InputStream` or the new (S)FTP streaming channel adapters are being used.
-Also a new `markers-json` options has been introduced to convert `FileSplitter.FileMarker` to JSON `String` for relaxed downstream network interaction.
-See <<file-splitter>> for more information.
+The `FileSplitter` now automatically closes an FTP or SFTP session when the file is completely read.
+This applies when the outbound gateway returns an `InputStream` or when you use the new FTP or SFTP streaming channel adapters.
+We also introduced a new `markers-json` option to convert `FileSplitter.FileMarker` to JSON `String` for relaxed downstream network interaction.
+See "`<<file-splitter>>`" for more information.
 
 ===== File Filters
 
-A new `ChainFileListFilter` is provided as an alternative to `CompositeFileListFilter`.
-See <<file-reading>> for more information.
-
+We added `ChainFileListFilter` as an alternative to `CompositeFileListFilter`.
+See "`<<file-reading>>`" for more information.
 
 ==== AMQP Changes
+
+This section describes general changes to the Spring Integration AMQP functionality.
 
 ===== Content Type Message Converter
 
 The outbound endpoints now support a `RabbitTemplate` configured with a `ContentTypeDelegatingMessageConverter` such
-that the converter can be chosen based on the message content type.
-See <<content-type-conversion-outbound>> for more information.
+that you can choose the converter based on the message content type.
+See "`<<content-type-conversion-outbound>>`" for more information.
 
 ===== Headers for Delayed Message Handling
 
-Spring AMQP 1.6 adds support for
-https://www.rabbitmq.com/blog/2015/04/16/scheduling-messages-with-rabbitmq/[Delayed Message Exchanges].
+Spring AMQP 1.6 adds support for https://www.rabbitmq.com/blog/2015/04/16/scheduling-messages-with-rabbitmq/[delayed message exchanges].
 Header mapping now supports the headers (`amqp_delay` and `amqp_receivedDelay`) used by this feature.
 
 ===== AMQP-Backed Channels
 
 AMQP-backed channels now support message mapping.
-See <<amqp-channels>> for more information.
+See "`<<amqp-channels>>`" for more information.
 
 ==== Redis Changes
 
+This section describes general changes to the Spring Integration Redis functionality.
+
 ===== List Push/Pop Direction
 
-Previously, the queue channel adapters always used the Redis List in a fixed direction,
-pushing to the left end and reading from the right end.
-It is now possible to configure the reading and writing direction using `rightPop` and `leftPush` options for the
-`RedisQueueMessageDrivenEndpoint` and `RedisQueueOutboundChannelAdapter` respectively.
-See <<redis-queue-inbound-channel-adapter>> and <<redis-queue-outbound-channel-adapter>> for more information.
+Previously, the queue channel adapters always used the Redis list in a fixed direction, pushing to the left end and reading from the right end.
+You can now configure the reading and writing direction with the `rightPop` and `leftPush` options for the
+`RedisQueueMessageDrivenEndpoint` and `RedisQueueOutboundChannelAdapter`, respectively.
+See "`<<redis-queue-inbound-channel-adapter>>`" and "`<<redis-queue-outbound-channel-adapter>>`" for more information.
 
 ===== Queue Inbound Gateway Default Serializer
 
-The default serializer in the inbound gateway has been changed to a `JdkSerializationRedisSerializer` for compatibility
-with the outbound gateway.
-See <<redis-queue-inbound-gateway>> for more information.
+The default serializer in the inbound gateway has been changed to a `JdkSerializationRedisSerializer` for compatibility with the outbound gateway.
+See "`<<redis-queue-inbound-gateway>>`" for more information.
 
 ==== HTTP Changes
 
 Previously, with requests that had a body (such as `POST`) that had no `content-type` header, the body was ignored.
 With this release, the content type of such requests is considered to be `application/octet-stream` as recommended
 by RFC 2616.
-See <<http-inbound>> for more information.
+See "`<<http-inbound>>`" for more information.
 
 `uriVariablesExpression` now uses a `SimpleEvaluationContext` by default (since 4.3.15).
-
-See <<mapping-uri-variables>> for more information.
+See "`<<mapping-uri-variables>>`" for more information.
 
 ==== SFTP Changes
 
+This section describes general changes to the Spring Integration SFTP functionality.
+
 ===== Factory Bean
-A new factory bean is provided to simplify the configuration of Jsch proxies for SFTP.
-See <<sftp-proxy-factory-bean>> for more information.
 
-===== chmod
+We added a new factory bean to simplify the configuration of Jsch proxies for SFTP.
+See "`<<sftp-proxy-factory-bean>>`" for more information.
 
-The SFTP outbound gateway (for `put` and `mput` commands) and the SFTP outbound channel adapter now support the
-`chmod` attribute to change the remote file permissions after uploading.
-See <<sftp-outbound>> and <<sftp-outbound-gateway>> for more information.
+===== `chmod` Changes
+
+The SFTP outbound gateway (for `put` and `mput` commands) and the SFTP outbound channel adapter now support the `chmod` attribute to change the remote file permissions after uploading.
+See `<<sftp-outbound>>` and `<<sftp-outbound-gateway>>` for more information.
 
 ==== FTP Changes
 
+This section describes general changes to the Spring Integration FTP functionality.
+
 ===== Session Changes
 
-The `FtpSession` now supports `null` for the `list()` and `listNames()` method, since it is possible by the
-underlying FTP Client.
-With that the `FtpOutboundGateway` can now be configured without `remoteDirectory` expression.
-And the `<int-ftp:inbound-channel-adapter>` can be configured without `remote-directory`/`remote-directory-expression`.
-See <<ftp>> for more information.
+The `FtpSession` now supports `null` for the `list()` and `listNames()` methods, since underlying FTP Client can use it.
+With that, you can now configure the `FtpOutboundGateway` without the `remoteDirectory` expression.
+You can also configure the `<int-ftp:inbound-channel-adapter>` without `remote-directory` or `remote-directory-expression`.
+See "`<<ftp>>`" for more information.
 
 ==== Router Changes
 
-The `ErrorMessageExceptionTypeRouter` supports now the `Exception` superclass mappings to avoid duplication
-for the same channel in case of several inheritors.
-For this purpose the `ErrorMessageExceptionTypeRouter` loads mapping classes during initialization to fail-fast
-for a `ClassNotFoundException`.
+The `ErrorMessageExceptionTypeRouter` now supports the `Exception` superclass mappings to avoid duplication for the same channel in case of multiple inheritors.
+For this purpose, the `ErrorMessageExceptionTypeRouter` loads mapping classes during initialization to fail-fast for a `ClassNotFoundException`.
 
-See <<router>> for more information.
+See "`<<router>>`" for more information.
 
 ==== Header Mapping
 
+This section describes the changes to header mapping between version 4.2 and 4.3.
+
 ===== General
 
-AMQP, WS and XMPP header mappings (e.g. `request-header-mapping`, `reply-header-mapping`) now support negated
-patterns.
-See <<amqp-message-headers>>, <<ws-message-headers>>, and <<xmpp-message-headers>> for more information.
+AMQP, WS, and XMPP header mappings (such as `request-header-mapping` and `reply-header-mapping`) now support negated patterns.
+See "`<<amqp-message-headers>>`", "`<<ws-message-headers>>`", and "`<<xmpp-message-headers>>`" for more information.
 
 ===== AMQP Header Mapping
 
-Previously, only standard AMQP headers were mapped by default; users had to explicitly enable mapping of user-defined
-headers.
-With this release all headers are mapped by default.
+Previously, only standard AMQP headers were mapped by default.
+You had to explicitly enable mapping of user-defined headers.
+With this release, all headers are mapped by default.
 In addition, the inbound `amqp_deliveryMode` header is no longer mapped by default.
-See <<amqp-message-headers>> for more information.
+See "`<<amqp-message-headers>>`" for more information.
 
 ==== Groovy Scripts
 
-Groovy scripts can now be configured with the `compile-static` hint or any other `CompilerConfiguration` options.
-See <<groovy-config>> for more information.
+You can now configure groovy scripts with the `compile-static` hint or any other `CompilerConfiguration` options.
+See "`<<groovy-config>>`" for more information.
 
-==== @InboundChannelAdapter
+==== `@InboundChannelAdapter` Changes
 
-The `@InboundChannelAdapter` has now an alias `channel` attribute for regular `value`.
-In addition the target `SourcePollingChannelAdapter` components can now resolve the target `outputChannel` bean
-from its provided name (`outputChannelName` options) in late-binding manner.
-See <<annotations>> for more information.
+The `@InboundChannelAdapter` now has an alias `channel` attribute for the regular `value`.
+In addition, the target `SourcePollingChannelAdapter` components can now resolve the target `outputChannel` bean from its provided name (`outputChannelName` options) in a late-binding manner.
+See "`<<annotations>>`" for more information.
 
-==== XMPP changes
+==== XMPP Changes
 
-The XMPP Extensions (XEP) are now supported by the XMPP channel adapters.
-See <<xmpp-extensions>> for more information.
+The XMPP channel adapters now support the XMPP Extensions (XEP).
+See "`<<xmpp-extensions>>`" for more information.
 
 ==== WireTap Late Binding
 
-The `WireTap` `ChannelInterceptor` now can accept a `channelName` which is resolved to the target `MessageChannel`
+The `WireTap` `ChannelInterceptor` now can accept a `channelName` that is resolved to the target `MessageChannel`
 later, during the first active interceptor operation.
-See <<channel-wiretap>> for more information.
+See "`<<channel-wiretap>>`" for more information.
 
-==== ChannelMessageStoreQueryProvider
+==== `ChannelMessageStoreQueryProvider` Changes
 
-The `ChannelMessageStoreQueryProvider` now supports H2 database.
-See <<jdbc-message-store-channels>> for more information.
+The `ChannelMessageStoreQueryProvider` now supports H2 databases.
+See "`<<jdbc-message-store-channels>>`" for more information.
 
 ==== WebSocket Changes
 
-The `ServerWebSocketContainer` now exposes `allowedOrigins` option and `SockJsServiceOptions` a `suppressCors` option.
-See <<web-sockets>> for more information.
+The `ServerWebSocketContainer` now exposes an `allowedOrigins` option, and `SockJsServiceOptions` exposes a `suppressCors` option.
+See "`<<web-sockets>>`" for more information.

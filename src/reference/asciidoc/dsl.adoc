@@ -1,11 +1,28 @@
 [[java-dsl]]
 == Java DSL
 
-The Spring Integration JavaConfig and DSL provides a set of convenient Builders and a fluent API to configure Spring Integration message flows from Spring `@Configuration` classes.
+The Spring Integration Java configuration and DSL provides a set of convenient builders and a fluent API that lets you configure Spring Integration message flows from Spring `@Configuration` classes.
 
-[[java-dsl-example]]
-=== Example Configurations
+The Java DSL for Spring Integration is essentially a facade for Spring Integration.
+The DSL provides a simple way to embed Spring Integration Message Flows into your application by using the fluent `Builder` pattern together with existing Java configuration from Spring Framework and Spring Integration.
+We also use and support lambdas (available with Java 8) to further simplify Java configuration.
 
+The https://github.com/spring-projects/spring-integration-samples/tree/master/dsl/cafe-dsl[cafe] offers a good example of using the DSL.
+
+The DSL is  presented by the `IntegrationFlows` factory for the `IntegrationFlowBuilder`.
+This produces the `IntegrationFlow` component, which should be registered as a Spring bean (by using the `@Bean` annotation).
+The builder pattern is used to express arbitrarily complex structures as a hierarchy of methods that can accept lambdas as arguments.
+
+The `IntegrationFlowBuilder` only collects integration components (`MessageChannel` instances, `AbstractEndpoint` instances, and so on) in the `IntegrationFlow` bean for further parsing and registration of concrete beans in the application context by the `IntegrationFlowBeanPostProcessor`.
+
+The Java DSL uses Spring Integration classes directly and bypasses any XML generation and parsing.
+However, the DSL offers more than syntactic sugar on top of XML.
+One of its most compelling features is the ability to define inline lambdas to implement endpoint logic, eliminating the need for external classes to implement custom logic.
+In some sense, Spring Integration's support for the Spring Expression Language (SpEL) and inline scripting address this, but lambdas are easier and much more powerful.
+
+The following example shows how to use Java Configuration for Spring Integration:
+
+====
 [source,java]
 ----
 @Configuration
@@ -29,35 +46,18 @@ public class MyConfiguration {
     }
 }
 ----
+====
 
-As the result after `ApplicationContext` start up Spring Integration endpoints and Message Channels will be created as is the case after XML parsing.
-Such configuration can be used to replace XML configuration or along side with it.
+The result of the preceding configuration example is that it creates, after `ApplicationContext` start up, Spring Integration endpoints and message channels.
+Java configuration can be used both to replace and augment XML configuration.
+You need not replace all of your existing XML configuration to use Java configuration.
 
-[[java-dsl-introduction]]
-=== Introduction
-
-The Java DSL for Spring Integration is essentially a facade for Spring Integration.
-The DSL provides a simple way to embed Spring Integration Message Flows into your application using the fluent `Builder` pattern together with existing Java and Annotation configurations from Spring Framework and Spring Integration as well.
-Another useful tool to simplify configuration is Java 8 Lambdas.
-
-The https://github.com/spring-projects/spring-integration-samples/tree/master/dsl/cafe-dsl[cafe] is a good example of using the DSL.
-
-The DSL is  presented by the `IntegrationFlows` Factory for the `IntegrationFlowBuilder`.
-This produces the `IntegrationFlow` component, which should be registered as a Spring bean (`@Bean`).
-The builder pattern is used to express arbitrarily complex structures as a hierarchy of methods that may accept Lambdas as arguments.
-
-The `IntegrationFlowBuilder` just collects integration components (`MessageChannel` s, `AbstractEndpoint` s etc.) in the `IntegrationFlow` bean for further parsing and registration of concrete beans in the application context by the `IntegrationFlowBeanPostProcessor`.
-
-The Java DSL uses Spring Integration classes directly and bypasses any XML generation and parsing.
-However, the DSL offers more than syntactic sugar on top of XML.
-One of its most compelling features is the ability to define inline Lambdas to implement endpoint logic, eliminating the need for external classes to implement custom logic.
-In some sense, Spring Integration's support for the Spring Expression Language (SpEL) and inline scripting address this, but Java Lambdas are easier and much more powerful.
 
 [[java-dsl-basics]]
 === DSL Basics
 
-The `org.springframework.integration.dsl` package contains the `IntegrationFlowBuilder` API mentioned above and a bunch of `IntegrationComponentSpec` implementations which are builders too and provide the fluent API to configure concrete endpoints.
-The `IntegrationFlowBuilder` infrastructure provides common http://www.eaipatterns.com[EIP] for message based applications, such as channels, endpoints, pollers and channel interceptors.
+The `org.springframework.integration.dsl` package contains the `IntegrationFlowBuilder` API mentioned earlier and a number of `IntegrationComponentSpec` implementations, which are also builders and provide the fluent API to configure concrete endpoints.
+The `IntegrationFlowBuilder` infrastructure provides common http://www.eaipatterns.com[enterprise integration patterns] (EIP) for message-based applications, such as channels, endpoints, pollers, and channel interceptors.
 
 Endpoints are expressed as verbs in the DSL to improve readability.
 The following list includes the common DSL method names and the associated EIP endpoint:
@@ -72,8 +72,10 @@ The following list includes the common DSL method names and the associated EIP e
 
 Conceptually, integration processes are constructed by composing these endpoints into one or more message flows.
 Note that EIP does not formally define the term 'message flow', but it is useful to think of it as a unit of work that uses well known messaging patterns.
-The DSL provides an `IntegrationFlow` component to define a composition of channels and endpoints between them, but now `IntegrationFlow` plays only the configuration role to populate real beans in the application context and isn't used at runtime:
+The DSL provides an `IntegrationFlow` component to define a composition of channels and endpoints between them, but now `IntegrationFlow` plays only the configuration role to populate real beans in the application context and is not used at runtime.
+The following example uses the `IntegrationFlows` factory to define an `IntegrationFlow` bean by using EIP-methods from `IntegrationFlowBuilder`:
 
+====
 [source,java]
 ----
 @Bean
@@ -83,15 +85,16 @@ public IntegrationFlow integerFlow() {
             .get();
 }
 ----
+====
 
-Here we use the `IntegrationFlows` factory to define an `IntegrationFlow` bean using EIP-methods from `IntegrationFlowBuilder`.
+The `transform` method accepts a lambda as an endpoint argument to operate on the message payload.
+The real argument of this method is `GenericTransformer<S, T>`.
+Consequently, any of the provided transformers  (`ObjectToJsonTransformer`, `FileToStringTransformer`, and other) can be used here.
 
-The `transform` method accepts a Lambda as an endpoint argument to operate on the message payload.
-The real argument of this method is `GenericTransformer<S, T>`, hence any out-of-the-box transformers  (`ObjectToJsonTransformer`, `FileToStringTransformer` etc.) can be used here.
+Under the covers, `IntegrationFlowBuilder` recognizes the `MessageHandler` and the endpoint for it, with `MessageTransformingHandler` and `ConsumerEndpointFactoryBean`, respectively.
+Consider another example:
 
-Under the covers, `IntegrationFlowBuilder` recognizes the `MessageHandler` and endpoint for that: `MessageTransformingHandler` and `ConsumerEndpointFactoryBean`, respectively.
-Let's look at another example:
-
+====
 [source,java]
 ----
 @Bean
@@ -103,17 +106,21 @@ public IntegrationFlow myFlow() {
                 .get();
 }
 ----
+====
 
-The above example composes a sequence of `Filter -> Transformer -> Service Activator`.
-The flow is 'one way', that is it does not provide a a reply message but simply prints the payload to STDOUT.
-The endpoints are automatically wired together using direct channels.
+The preceding example composes a sequence of `Filter -> Transformer -> Service Activator`.
+The flow is "'one way'".
+That is, it does not provide a reply message but only prints the payload to STDOUT.
+The endpoints are automatically wired together by using direct channels.
 
 [[java-dsl-channels]]
 === Message Channels
 
-In addition to the `IntegrationFlowBuilder` with EIP-methods the Java DSL provides a fluent API to configure `MessageChannel` s.
-For this purpose the `MessageChannels` builder factory is provided:
+In addition to the `IntegrationFlowBuilder` with EIP methods, the Java DSL provides a fluent API to configure `MessageChannel` instances.
+For this purpose the `MessageChannels` builder factory is provided.
+The following example shows how to use it:
 
+====
 [source,java]
 ----
 @Bean
@@ -123,13 +130,14 @@ public MessageChannel priorityChannel() {
                         .get();
 }
 ----
+====
 
-The same `MessageChannels` builder factory can be used in the `channel()` EIP-method from `IntegrationFlowBuilder` to wire endpoints similar to an `input-channel`/`output-channel` pair in the XML configuration.
-By default endpoints are wired via `DirectChannel` s where the bean name is based on the pattern: `[IntegrationFlow.beanName].channel#[channelNameIndex]`.
-This rule is applied for unnamed channels produced by inline `MessageChannels` builder factory usage, too.
-However all `MessageChannels` methods have a `channelId` -aware variant to create the bean names for `MessageChannel` s.
-The `MessageChannel` references can be used as well as `beanName`, as bean-method invocations.
-Here is a sample with possible variants of `channel()` EIP-method usage:
+The same `MessageChannels` builder factory can be used in the `channel()` EIP method from `IntegrationFlowBuilder` to wire endpoints, similar to wiring an `input-channel`/`output-channel` pair in the XML configuration.
+By default, endpoints are wired with `DirectChannel` instances where the bean name is based on the following pattern: `[IntegrationFlow.beanName].channel#[channelNameIndex]`.
+This rule is also applied for unnamed channels produced by inline `MessageChannels` builder factory usage.
+However all `MessageChannels` methods have a variant that is aware of the `channelId` that you can use to set the bean names for `MessageChannel` instances.
+The `MessageChannel` references and `beanName` can be used as bean-method invocations.
+The following example shows the possible ways to use the `channel()` EIP method:
 
 [source,java]
 ----
@@ -155,18 +163,18 @@ public IntegrationFlow channelFlow() {
 }
 ----
 
-* `from("input")` means: 'find and use the `MessageChannel` with the "input" id, or create one';
-* `fixedSubscriberChannel()` produces an instance of `FixedSubscriberChannel` and registers it with name `channelFlow.channel#0`;
-* `channel("queueChannel")` works the same way but, of course, uses an existing "queueChannel" bean;
-* `channel(publishSubscribe())` - the bean-method reference;
-* `channel(MessageChannels.executor("executorChannel", this.taskExecutor))` the `IntegrationFlowBuilder` unwraps `IntegrationComponentSpec` to the `ExecutorChannel` and registers it as "executorChannel";
-* `channel("output")` - registers the `DirectChannel` bean with "output" name as long as there are no beans with this name.
+* `from("input")` means "'find and use the `MessageChannel` with the "input" id, or create one'".
+* `fixedSubscriberChannel()` produces an instance of `FixedSubscriberChannel` and registers it with a name of `channelFlow.channel#0`.
+* `channel("queueChannel")` works the same way but uses an existing `queueChannel` bean.
+* `channel(publishSubscribe())` is the bean-method reference.
+* `channel(MessageChannels.executor("executorChannel", this.taskExecutor))` is the `IntegrationFlowBuilder` that exposes `IntegrationComponentSpec` to the `ExecutorChannel` and registers it as `executorChannel`.
+* `channel("output")` registers the `DirectChannel` bean with `output` as its name, as long as no beans with this name already exist.
 
-Note: the `IntegrationFlow` definition shown above is valid and all of its channels are applied to  endpoints with `BridgeHandler` s.
+Note: The preceding `IntegrationFlow` definition is valid, and all of its channels are applied to endpoints with `BridgeHandler` instances.
 
-IMPORTANT: Be careful to use the same inline channel definition via `MessageChannels` factory from different `IntegrationFlow` s.
-Even if the DSL parsers register non-existing objects as beans, it can't determine the same object (`MessageChannel`) from different `IntegrationFlow` containers.
-This is wrong:
+IMPORTANT: Be careful to use the same inline channel definition through `MessageChannels` factory from different `IntegrationFlow` instances.
+Even if the DSL parser registers non-existent objects as beans, it cannot determine the same object (`MessageChannel`) from different `IntegrationFlow` containers.
+The following example is wrong:
 
 [source,java]
 ----
@@ -186,7 +194,7 @@ public IntegrationFlow endFlow() {
 }
 ----
 
-You end up with:
+The result of that bad example is the following exception:
 
 ```
 Caused by: java.lang.IllegalStateException:
@@ -195,13 +203,13 @@ Could not register object [queueChannel] under bean name 'queueChannel':
 	    at o.s.b.f.s.DefaultSingletonBeanRegistry.registerSingleton(DefaultSingletonBeanRegistry.java:129)
 ```
 
-To make it working there is just need to declare `@Bean` for that channel and use its bean-method from different `IntegrationFlow` s.
+To make it work, you need to declare `@Bean` for that channel and use its bean method from different `IntegrationFlow` instances.
 
 [[java-dsl-pollers]]
 === Pollers
 
-A similar fluent API is provided to configure `PollerMetadata` for `AbstractPollingEndpoint` implementations.
-The `Pollers` builder factory can be used to configure common bean definitions or those created from `IntegrationFlowBuilder` EIP-methods:
+Spring Integration also provides a fluent API that lets you configure `PollerMetadata` for `AbstractPollingEndpoint` implementations.
+You can use the `Pollers` builder factory to configure common bean definitions or those created from `IntegrationFlowBuilder` EIP methods, as the following example shows:
 
 [source,java]
 ----
@@ -212,16 +220,18 @@ public PollerSpec poller() {
 }
 ----
 
-See `Pollers` and `PollerSpec` Java Docs for more information.
+See https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Pollers.html[`Pollers`] and https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/PollerSpec.html[`PollerSpec`] in the Javadoc for more information.
 
-IMPORTANT: If you use the DSL to construct a `PollerSpec` as a `@Bean`, do not call the `get()` method in the bean definition; the `PollerSpec` is a `FactoryBean` that will generate the `PollerMetadata` object from the specification and initialize all of its properties as needed.
+IMPORTANT: If you use the DSL to construct a `PollerSpec` as a `@Bean`, do not call the `get()` method in the bean definition.
+The `PollerSpec` is a `FactoryBean` that generates the `PollerMetadata` object from the specification and initializes all of its properties.
 
 [[java-dsl-endpoints]]
 === DSL and Endpoint Configuration
 
-All `IntegrationFlowBuilder` EIP-methods have a variant to apply the Lambda parameter to provide options for `AbstractEndpoint` s: `SmartLifecycle`, `PollerMetadata`, `request-handler-advice-chain` etc.
-Each of them has generic arguments, so it allows you to simply configure an endpoint and even its `MessageHandler` in the context:
+All `IntegrationFlowBuilder` EIP methods have a variant that applies the lambda parameter to provide options for `AbstractEndpoint` instances: `SmartLifecycle`, `PollerMetadata`, `request-handler-advice-chain`, and others.
+Each of them has generic arguments, so it lets you configure an endpoint and even its `MessageHandler` in the context, as the following example shows:
 
+====
 [source,java]
 ----
 @Bean
@@ -233,8 +243,9 @@ public IntegrationFlow flow2() {
                 .get();
 }
 ----
+====
 
-In addition the `EndpointSpec` provides an `id()` method to allow you to register an endpoint bean with a  given bean name, rather than a generated one.
+In addition, the `EndpointSpec` provides an `id()` method to let you register an endpoint bean with a given bean name, rather than a generated one.
 
 If the `MessageHandler` is referenced as a bean, then any existing `adviceChain` configuration will be overridden if the `.advice()` method is present in the DSL definition:
 
@@ -261,8 +272,10 @@ i.e. they are not merged, only the `testAdvice()` bean is used in this case.
 [[java-dsl-transformers]]
 === Transformers
 
-The DSL API provides a convenient, fluent `Transformers` factory to be used as inline target object definition within `.transform()` EIP-method:
+The DSL API provides a convenient, fluent `Transformers` factory to be used as inline target object definition within the `.transform()` EIP method.
+The following example shows how to use it:
 
+====
 [source,java]
 ----
 @Bean
@@ -273,28 +286,31 @@ public IntegrationFlow transformFlow() {
             .get();
 }
 ----
+====
 
 It avoids inconvenient coding using setters and makes the flow definition more straightforward.
-Note, that `Transformers` can be use to declare target `Transformer` s as `@Bean` s and, again, use them from `IntegrationFlow` definition as bean-methods.
-Nevertheless, the DSL parser takes care about bean declarations for inline objects, if they aren't defined as beans yet.
+Note that you can use `Transformers` to declare target `Transformer` instances as `@Bean` instances and, again, use them from `IntegrationFlow` definition as bean methods.
+Nevertheless, the DSL parser takes care of bean declarations for inline objects, if they are not yet defined as beans.
 
-See `Transformers` Java Docs for more information and supported factory methods.
+See [https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Transformers.html] in the Javadoc for more information and supported factory methods.
 
 [[java-dsl-inbound-adapters]]
 === Inbound Channel Adapters
 
-Typically message flows start from some Inbound Channel Adapter (e.g. `<int-jdbc:inbound-channel-adapter>`).
-The adapter is configured with `<poller>` and it asks a `MessageSource<?>` for producing messages periodically.
-Java DSL allows to start `IntegrationFlow` from a `MessageSource<?>`, too.
-For this purpose `IntegrationFlows` builder factory provides overloaded `IntegrationFlows.from(MessageSource<?> messageSource)` method.
-The `MessageSource<?>` may be configured as a bean and provided as argument for that method.
-The second parameter of `IntegrationFlows.from()` is a `Consumer<SourcePollingChannelAdapterSpec>` Lambda and allows to provide options for the `SourcePollingChannelAdapter`, e.g. `PollerMetadata` or `SmartLifecycle`:
+Typically, message flows start from an inbound channel adapter (such as `<int-jdbc:inbound-channel-adapter>`).
+The adapter is configured with `<poller>`, and it asks a `MessageSource<?>` to periodically produce messages.
+Java DSL allows for starting `IntegrationFlow` from a `MessageSource<?>`, too.
+For this purpose, the `IntegrationFlows` builder factory provides an overloaded `IntegrationFlows.from(MessageSource<?> messageSource)` method.
+You can configure the `MessageSource<?>` as a bean and provide it as an argument for that method.
+The second parameter of `IntegrationFlows.from()` is a `Consumer<SourcePollingChannelAdapterSpec>` lambda that lets you provide options (such as `PollerMetadata` or `SmartLifecycle`) for the `SourcePollingChannelAdapter`.
+The following example shows how to use the fluent API and a lambda to create an `IntegrationFlow`:
 
+====
 [source,java]
 ----
 @Bean
 public MessageSource<Object> jdbcMessageSource() {
-    return new JdbcPollingChannelAdapter(this.dataSource, "SELECT * FROM foo");
+    return new JdbcPollingChannelAdapter(this.dataSource, "SELECT * FROM something");
 }
 
 @Bean
@@ -306,16 +322,15 @@ public IntegrationFlow pollingFlow() {
             .get();
 }
 ----
+====
 
-There is also an `IntegrationFlows.from()` variant based on the `java.util.function.Supplier` if there is no requirements to build `Message` objects directly.
-The result of the `Supplier.get()` is wrapped to the `Message` (if it isn't message already) by Framework automatically.
-
-The next sections discuss selected endpoints which require further explanation.
+For those cases that have no requirements to build `Message` objects directly, you can use the `IntegrationFlows.from()` variant that is based on the `java.util.function.Supplier` .
+The result of the `Supplier.get()` is automatically wrapped in a `Message` (if it is not already a `Message`).
 
 [[java-dsl-routers]]
 === Message Routers
 
-Spring Integration natively provides specialized router types including:
+Spring Integration natively provides specialized router types, including:
 
 * `HeaderValueRouter`
 * `PayloadTypeRouter`
@@ -323,10 +338,11 @@ Spring Integration natively provides specialized router types including:
 * `RecipientListRouter`
 * `XPathRouter`
 
-As with many other DSL `IntegrationFlowBuilder` EIP-methods the `route()` method can apply any out-of-the-box `AbstractMessageRouter` implementation, or for convenience a `String` as a SpEL expression, or a `ref`/`method` pair.
-In addition `route()` can be configured with a Lambda - the inline method invocation case, and with a Lambda for a `Consumer<RouterSpec<MethodInvokingRouter>>`.
-The fluent API also provides `AbstractMappingMessageRouter` options like `channelMapping(String key, String channelName)` pairs:
+As with many other DSL `IntegrationFlowBuilder` EIP methods, the `route()` method can apply any `AbstractMessageRouter` implementation or, for convenience, a `String` as a SpEL expression or a `ref`-`method` pair.
+In addition, you can configure `route()` with a lambda and use a lambda for a `Consumer<RouterSpec<MethodInvokingRouter>>`.
+The fluent API also provides `AbstractMappingMessageRouter` options such as `channelMapping(String key, String channelName)` pairs, as the following example shows:
 
+====
 [source,java]
 ----
 @Bean
@@ -340,9 +356,11 @@ public IntegrationFlow routeFlow() {
             .get();
 }
 ----
+====
 
-A simple expression-based router:
+The following example shows a simple expression-based router:
 
+====
 [source,java]
 ----
 @Bean
@@ -352,9 +370,11 @@ public IntegrationFlow routeFlow() {
             .get();
 }
 ----
+====
 
-The `routeToRecipients()` method takes a `Consumer<RecipientListRouterSpec>`:
+The `routeToRecipients()` method takes a `Consumer<RecipientListRouterSpec>`, as the following example shows:
 
+====
 [source,java]
 ----
 @Bean
@@ -362,33 +382,35 @@ public IntegrationFlow recipientListFlow() {
     return IntegrationFlows.from("recipientListInput")
             .<String, String>transform(p -> p.replaceFirst("Payload", ""))
                         .routeToRecipients(r -> r
-                .recipient("foo-channel", "'foo' == payload")
-                .recipient("bar-channel", m ->
+                .recipient("thing1-channel", "'thing1' == payload")
+                .recipient("thing2-channel", m ->
                     m.getHeaders().containsKey("recipient")
                         && (boolean) m.getHeaders().get("recipient"))
-                .recipientFlow("'foo' == payload or 'bar' == payload or 'baz' == payload",
+                .recipientFlow("'thing1' == payload or 'thing2' == payload or 'thing3' == payload",
                     f -> f.<String, String>transform(String::toUpperCase)
                         .channel(c -> c.queue("recipientListSubFlow1Result")))
-                .recipientFlow((String p) -> p.startsWith("baz"),
+                .recipientFlow((String p) -> p.startsWith("thing3"),
                     f -> f.transform("Hello "::concat)
                         .channel(c -> c.queue("recipientListSubFlow2Result")))
                 .recipientFlow(new FunctionExpression<Message<?>>(m ->
-                                             "bax".equals(m.getPayload())),
+                                             "thing3".equals(m.getPayload())),
                     f -> f.channel(c -> c.queue("recipientListSubFlow3Result")))
                 .defaultOutputToParentFlow())
             .get();
 }
 ----
+====
 
-The `.defaultOutputToParentFlow()` of the `.routeToRecipients()` allows to make the router's `defaultOutput` as a gateway to continue a process for the unmatched messages in the main flow.
+The `.defaultOutputToParentFlow()` of the `.routeToRecipients()` definition lets you set the router's `defaultOutput` as a gateway to continue a process for the unmatched messages in the main flow.
 
 [[java-dsl-splitters]]
 === Splitters
 
-A splitter is created using the `split()` EIP-method.
-By default, if the payload is a `Iterable`, `Iterator`, `Array`, `Stream` or Reactive `Publisher`, this will output each item as an individual message.
-This takes a Lambda, SpEL expression, any `AbstractMessageSplitter` implementation, or can be used without parameters to provide the `DefaultMessageSplitter`.
-For example:
+To create a splitter, use the `split()` EIP method.
+By default, if the payload is an `Iterable`, an `Iterator`, an `Array`, a `Stream`, or a reactive `Publisher`, the `split()` method outputs each item as an individual message.
+It accepts a lambda, a SpEL expression, or any `AbstractMessageSplitter` implementation.
+Alternatively, you can use it without parameters to provide the `DefaultMessageSplitter`.
+The following example shows how to use the `split()` method by providing a lambda:
 
 [source,java]
 ----
@@ -402,16 +424,17 @@ public IntegrationFlow splitFlow() {
 }
 ----
 
-This creates a splitter that splits a message containing a comma delimited String.
-Note: the `getT2()` method comes from `Tuple` `Collection` which is the result of `EndpointSpec.get()` and represents a pair of `ConsumerEndpointFactoryBean` and `DefaultMessageSplitter` for the example above.
+The preceding example creates a splitter that splits a message containing a comma-delimited `String`.
+Note: The `getT2()` method comes from a `Tuple` `Collection`, which is the result of `EndpointSpec.get()`, and represents a pair of `ConsumerEndpointFactoryBean` and `DefaultMessageSplitter` for the preceding example.
 
 [[java-dsl-aggregators]]
 === Aggregators and Resequencers
 
-An `Aggregator` is conceptually the converse of a `Splitter`.
+An `Aggregator` is conceptually the opposite of a `Splitter`.
 It aggregates a sequence of individual messages into a single message and is necessarily more complex.
-By default, an aggregator will return a message containing a collection of payloads from incoming messages.
-The same rules are applied for the `Resequencer`:
+By default, an aggregator returns a message that contains a collection of payloads from incoming messages.
+The same rules are applied for the `Resequencer`.
+The following example shows a canonical example of the splitter-aggregator pattern:
 
 [source,java]
 ----
@@ -426,14 +449,14 @@ public IntegrationFlow splitAggregateFlow() {
 }
 ----
 
-The above is a canonical example of splitter/aggregator pattern.
 The `split()` method splits the list into individual messages and sends them to the `ExecutorChannel`.
-The `resequence()` method reorders messages by sequence details from message headers.
-The `aggregate()` method just collects those messages to the result list.
+The `resequence()` method reorders messages by sequence details found in the message headers.
+The `aggregate()` method collects those messages.
 
-However, you may change the default behavior by specifying a release strategy and correlation strategy, among other things.
-Consider the following:
+However, you can change the default behavior by specifying a release strategy and correlation strategy, among other things.
+Consider the following example:
 
+====
 [source,java]
 ----
 .aggregate(a ->
@@ -441,18 +464,22 @@ Consider the following:
             .releaseStrategy(g -> g.size() > 10)
             .messageStore(messageStore()))
 ----
+====
 
-The similar Lambda configurations are provided for the `resequence()` EIP-method.
+The preceding example correlates messages that have `myCorrelationKey` headers and releases the messages once at least ten have been accumulated.
+
+Similar lambda configurations are provided for the `resequence()` EIP method.
 
 [[java-dsl-handle]]
-=== ServiceActivators (.handle())
+=== Service Activators and the `.handle()` method
 
-The `.handle()` EIP-method's goal is to invoke any `MessageHandler` implementation or any method on some POJO.
-Another option to define "activity" via Lambda expression.
-Hence a generic `GenericHandler<P>` functional interface has been introduced.
-Its `handle` method requires two arguments - `P payload` and `Map<String, Object> headers`.
-Having that we can define a flow like this:
+The `.handle()` EIP method's goal is to invoke any `MessageHandler` implementation or any method on some POJO.
+Another option is to define an "`activity`" by using lambda expressions.
+Consequently, we introduced a generic `GenericHandler<P>` functional interface.
+Its `handle` method requires two arguments: `P payload` and `Map<String, Object> headers`.
+Having that, we can define a flow as follows:
 
+====
 [source,java]
 ----
 @Bean
@@ -462,11 +489,16 @@ public IntegrationFlow myFlow() {
         .get();
 }
 ----
+====
 
-However one main goal of Spring Integration an achieving of `loose coupling` via runtime type conversion from message payload to target arguments of message handler.
-Since Java doesn't support generic type resolution for Lambda classes, we introduced a workaround with additional `payloadType` argument for the most EIP-methods and `LambdaMessageProcessor`, which delegates the hard conversion work to the Spring's `ConversionService` using provided `type` and requested message to target method arguments.
-The `IntegrationFlow` might look like this:
+The preceding example doubles any integer it receives.
 
+However, one main goal of Spring Integration is `loose coupling`, through runtime type conversion from message payload to the target arguments of the message handler.
+Since Java does not support generic type resolution for lambda classes, we introduced a workaround with an additional `payloadType` argument for the most EIP methods and `LambdaMessageProcessor`.
+Doing so delegates the hard conversion work to Spring's `ConversionService`, which uses the provided `type` and the requested message to target method arguments.
+The following example shows what the resulting `IntegrationFlow` might look like:
+
+====
 [source,java]
 ----
 @Bean
@@ -477,31 +509,37 @@ public IntegrationFlow integerFlow() {
             .get();
 }
 ----
+====
 
-Of course we register some custom `BytesToIntegerConverter` within `ConversionService` and get rid of that additional `.transform()`.
+We also register a `BytesToIntegerConverter` within `ConversionService` to get rid of that additional `.transform()`.
+// TODO We don't show how to register a `BytesToIntegerConverter` within `ConversionService` to get rid of that additional `.transform()`.
 
 [[java-dsl-log]]
 === Operator log()
 
-For convenience to log the message journey throw the Spring Integration flow (`<logging-channel-adapter>`), a `log()` operator is presented.
-Underneath it is represented by the `WireTap` `ChannelInterceptor` and `LoggingHandler` as subscriber.
-It is responsible to log message incoming into the next endpoint or for the current channel:
+For convenience, to log the message journey through the Spring Integration flow (`<logging-channel-adapter>`), a `log()` operator is presented.
+Internally, it is represented by the `WireTap` `ChannelInterceptor` and `LoggingHandler` as subscriber.
+It is responsible for logging the incoming message into the next endpoint or the current channel.
+The following example shows how to use `LoggingHandler`:
 
+====
 [source,java]
 ----
 .filter(...)
 .log(LoggingHandler.Level.ERROR, "test.category", m -> m.getHeaders().getId())
 .route(...)
 ----
+====
 
-In this example an `id` header will be logged with `ERROR` level onto "test.category" only for messages passed the filter and before routing.
+In the preceding example, an `id` header is logged at the `ERROR` level onto `test.category` only for messages that passed the filter and before routing.
 
 [[java-dsl-wiretap]]
-=== MessageChannelSpec.wireTap()
+=== `MessageChannelSpec.wireTap()`
 
-A `.wireTap()` fluent API exists for `MessageChannelSpec` builders.
-A target configuration gains much more from Java DSL usage:
+Spring Integration includes a `.wireTap()` fluent API `MessageChannelSpec` builders.
+The following example shows how to use the `wireTap` method to log input:
 
+====
 [source,java]
 ----
 @Bean
@@ -515,12 +553,13 @@ public IntegrationFlow loggingFlow() {
     return f -> f.log();
 }
 ----
+====
 
 [IMPORTANT]
 ====
-The `log()` or `wireTap()` opearators are applied to the current `MessageChannel` (if it is an instance of `ChannelInterceptorAware`) or an intermediate `DirectChannel` is injected into the flow for the currently configured endpoint.
-In the example below the `WireTap` interceptor is added to the `myChannel` directly, because `DirectChannel` implements `ChannelInterceptorAware`:
-====
+If the `MessageChannel` is an instance of `ChannelInterceptorAware`, the `log()` or `wireTap()` operators are applied to the current `MessageChannel`.
+Otherwise, an intermediate `DirectChannel` is injected into the flow for the currently configured endpoint.
+In the following example, the `WireTap` interceptor is added to `myChannel` directly, because `DirectChannel` implements `ChannelInterceptorAware`:
 
 [source,java]
 ----
@@ -534,24 +573,26 @@ MessageChannel myChannel() {
     .log()
 }
 ----
+====
 
-When current `MessageChannel` doesn't implement `ChannelInterceptorAware`, an implicit `DirectChannel` and `BridgeHandler` are injected into the `IntegrationFlow` and the `WireTap` is added to this new `DirectChannel`.
-And when there is not any channel declaration like in this sample:
+When the current `MessageChannel` does not implement `ChannelInterceptorAware`, an implicit `DirectChannel` and `BridgeHandler` are injected into the `IntegrationFlow`, and the `WireTap` is added to this new `DirectChannel`.
+The following example does not have any channel declaration:
 
+====
 [source,java]
 ----
 .handle(...)
 .log()
 }
 ----
+====
 
-an implicit `DirectChannel` is injected in the current position of the `IntegrationFlow` and it is used as an output channel for the currently configured `ServiceActivatingHandler` (the `.handle()` above).
+In the preceding example (and any time no channel has been declared), an implicit `DirectChannel` is injected in the current position of the `IntegrationFlow` and used as an output channel for the currently configured `ServiceActivatingHandler` (from the `.handle()`, <<java-dsl-handle,described earlier>>).
 
 [IMPORTANT]
-=====
-If `log()` or `wireTap()` are used in the end of flow they are considered one-way `MessageHandler` s.
-If the integration flow is expected to return a reply, a `bridge()` should be added to the end, after `log()` or `wireTap()`:
-=====
+====
+If `log()` or `wireTap()` are used in the end of the flow, they are considered to be one-way `MessageHandler` instances.
+If you expect the integration flow to return a reply, you should add a `bridge()` should to the end, after `log()` or `wireTap()`, as the following example shows:
 
 [source,java]
 ----
@@ -567,25 +608,28 @@ public IntegrationFlow sseFlow() {
         .get();
 }
 ----
+====
 
 [[java-dsl-flows]]
 === Working With Message Flows
 
-As we have seen, `IntegrationFlowBuilder` provides a top level API to produce Integration components wired to message flows.
-This is convenient if your integration may be accomplished with a single flow (which is often the case).
-Alternately `IntegrationFlow` s can be joined via `MessageChannel` s.
+`IntegrationFlowBuilder` provides a top-level API to produce integration components wired to message flows.
+When your integration may be accomplished with a single flow (which is often the case), this is convenient.
+Alternately `IntegrationFlow` instances can be joined via `MessageChannel` instances.
 
-By default, the *MessageFlow* behaves as a *Chain* in Spring Integration parlance.
-That is, the endpoints are automatically wired implicitly via `DirectChannel` s.
-The message flow is not actually constructed as a chain, affording much more flexibility.
-For example, you may send a message to any component within the flow, if you know its `inputChannel` name, i.e., explicitly define it.
-You may also reference externally defined channels within a flow to allow the use of channel adapters to enable remote transport protocols, file I/O, and the like, instead of direct channels.
-As such, the DSL does not support the Spring Integration *chain* element since it doesn't add much value.
+By default, `MessageFlow` behaves as a "`chain`" in Spring Integration parlance.
+That is, the endpoints are automatically and implicitly wired by `DirectChannel` instances.
+The message flow is not actually constructed as a chain, which offers much more flexibility.
+For example, you may send a message to any component within the flow, if you know its `inputChannel` name (that is, if you explicitly define it).
+You may also reference externally defined channels within a flow to allow the use of channel adapters (to enable remote transport protocols, file I/O, and so on), instead of direct channels.
+As such, the DSL does not support the Spring Integration `chain` element, because it does not add much value in this case.
 
-Since the Spring Integration Java DSL produces the same bean definition model as any other configuration options and is based on the existing Spring Framework `@Configuration` infrastructure, it can be used together with Integration XML definitions and wired with Spring Integration Messaging Annotations configuration.
+Since the Spring Integration Java DSL produces the same bean definition model as any other configuration options and is based on the existing Spring Framework `@Configuration` infrastructure, it can be used together with XML definitions and wired with Spring Integration messaging annotation configuration.
 
-Another alternative to define *direct* `IntegrationFlow` s is based on a fact that `IntegrationFlow` can be declared as **Lambda** too:
+You can also define direct `IntegrationFlow` instances by using a lambda.
+The following example shows how to do so:
 
+====
 [source,java]
 ----
 @Bean
@@ -595,26 +639,27 @@ public IntegrationFlow lambdaFlow() {
                    .handle(System.out::println);
 }
 ----
+====
 
-The result of this definition is the same bunch of Integration components wired with implicit direct channel.
-Only limitation is here, that this flow is started with named direct channel - `lambdaFlow.input`.
-And Lambda flow can't start from `MessageSource` or `MessageProducer`.
+The result of this definition is the same set of integration components that are wired with an implicit direct channel.
+The only limitation here is that this flow is started with a named direct channel - `lambdaFlow.input`.
+Also, a Lambda flow cannot start from `MessageSource` or `MessageProducer`.
 
-Starting _version 5.1_, this kind of `IntegrationFlow` are wrapped to the proxy for exposing lifecycle control and provide access to the `inputChannel` of the internally associated `StandardIntegrationFlow`.
+Starting with version 5.1, this kind of `IntegrationFlow` is wrapped to the proxy to expose lifecycle control and provide access to the `inputChannel` of the internally associated `StandardIntegrationFlow`.
 
-Starting with _version 5.0.6_, the generated bean names for the components in an `IntegrationFlow` include the flow bean followed by a dot as a prefix.
-For example the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::concat)` in the sample above, will result with a bean name `lambdaFlow.o.s.integration.config.ConsumerEndpointFactoryBean#0`.
-The `Transformer` implementation bean for that endpoint will have a bean name `lambdaFlow.o.s.integration.transformer.MethodInvokingTransformer#0`.
-(In both cases, `o.s` is `org.springframework`; shortened here to fit on the page).
-These generated bean names are prepended with the flow id prefix for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
-See <<java-dsl-runtime-flows>> for more information.
+Starting with version 5.0.6, the generated bean names for the components in an `IntegrationFlow` include the flow bean followed by a dot (`.`) as a prefix.
+For example, the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::concat)` in the preceding sample results in a bean name of `lambdaFlow.o.s.i.config.ConsumerEndpointFactoryBean#0`.
+The `Transformer` implementation bean for that endpoint  has a bean name of `lambdaFlow.o.s.i.transformer.MethodInvokingTransformer#0`.
+(In both cases, `o.s.i` is `org.springframework.integration`, shortened here to fit on the page.)
+These generated bean names are prepended with the flow ID for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
+See "`<<java-dsl-runtime-flows>>`" for more information.
 
 [[java-dsl-function-expression]]
-=== FunctionExpression
+=== `FunctionExpression`
 
-The `FunctionExpression` (an implementation of SpEL `Expression`) has been introduced to get a gain of Java and Lambda usage for the method and its `generics` context.
-The `Function<T, R>` option is provided for the DSL components alongside with `expression` option, when there is the implicit `Strategy` variant from Core Spring Integration.
-The usage may look like:
+We introduced the `FunctionExpression` class (an implementation of SpEL's `Expression` interface) to let us use lambdas and `generics`.
+The `Function<T, R>` option is provided for the DSL components, along with an `expression` option, when there is the implicit `Strategy` variant from Core Spring Integration.
+The following example shows how to use a function expression:
 
 [source,java]
 ----
@@ -623,13 +668,13 @@ The usage may look like:
             .propertyFunction("date", m -> new Date()))
 ----
 
-The `FunctionExpression` also supports runtime type conversion as it is done in the standard `SpelExpression`.
+The `FunctionExpression` also supports runtime type conversion, as is done in `SpelExpression`.
 
 [[java-dsl-subflows]]
-=== Sub Flows support
+=== Sub-flows support
 
-Some of `if...else` and `publish-subscribe` components provide the support to specify their logic or mapping using **Sub Flows**.
-The simplest sample is `.publishSubscribeChannel()`:
+Some of `if...else` and `publish-subscribe` components provide the ability to specify their logic or mapping by using sub-flows.
+The simplest sample is `.publishSubscribeChannel()`, as the following example shows:
 
 [source,java]
 ----
@@ -648,15 +693,16 @@ public IntegrationFlow subscribersFlow() {
 }
 ----
 
-Of course the same result we can achieve with separate `IntegrationFlow` `@Bean` definitions, but we hope you'll find the subflow style of logic composition useful.
+You can achieve the same result with separate `IntegrationFlow` `@Bean` definitions, but we hope you find the sub-flow style of logic composition useful. We find that it results in shorter (and so more readable) code.
 
-Similar `publish-subscribe` subflow composition provides `.routeToRecipients()`.
+A similar `publish-subscribe` sub-flow composition provides the `.routeToRecipients()` method.
 
-Another sample is `.discardFlow()` on the `.filter()` instead of `.discardChannel()`.
+Another example is using `.discardFlow()` instead of `.discardChannel()` on the `.filter()` method.
 
 The `.route()` deserves special attention.
-As a sample:
+Consider the following example:
 
+====
 [source,java]
 ----
 @Bean
@@ -670,13 +716,16 @@ public IntegrationFlow routeFlow() {
             .channel(c -> c.queue("oddChannel"));
 }
 ----
+====
 
-The `.channelMapping()` continues to work as in regular `Router` mapping, but the `.subFlowMapping()` tied that subflow with main flow.
-In other words, any router's subflow returns to the main flow after `.route()`.
+The `.channelMapping()` continues to work as it does in regular `Router` mapping, but the `.subFlowMapping()` tied that sub-flow to the main flow.
+In other words, any router's sub-flow returns to the main flow after `.route()`.
 
 [IMPORTANT]
-=====
-Sometimes it is necessary to refer to an existing `IntegrationFlow` `@Bean` from the `.subFlowMapping()`:
+====
+Sometimes, you need to refer to an existing `IntegrationFlow` `@Bean` from the `.subFlowMapping()`.
+The following example shows how to do so:
+
 [source,java]
 ----
 @Bean
@@ -701,31 +750,39 @@ public IntegrationFlow evenFlow() {
 }
 ----
 
-In this case, when you need to receive a reply from such a sub-flow and continue the main flow, this `IntegrationFlow` bean reference (or its input channel) has to be wrapped with a `.gateway()` as shown above.
-The `oddFlow()` referece in the sample above is not wrapped to the `.gateway()` - therefore we don't expect a reply from this routing branch.
-Otherwise you end up with an exception like:
-....
-Caused by: org.springframework.beans.factory.BeanCreationException: The 'currentComponent' (org.springframework.integration.router.MethodInvokingRouter@7965a51c) is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'. This is the end of the integration flow.
-....
-When a sub-flow is configured as a lambda, the Framework handles the request-reply interaction with the sub-flow and a gateway is not needed.
-=====
+In this case, when you need to receive a reply from such a sub-flow and continue the main flow, this `IntegrationFlow` bean reference (or its input channel) has to be wrapped with a `.gateway()` as shown in the preceding example.
+The `oddFlow()` reference in the preceding example is not wrapped to the `.gateway()`.
+Therefore, we do not expect a reply from this routing branch.
+Otherwise, you end up with an exception similar to the following:
 
-Of course, subflows can be nested with any depth, but we don't recommend to do that because, in fact, even in the router case, adding complex subflows within a flow would quickly begin to look like a plate of spaghetti and difficult for a human to parse.
+[source]
+----
+Caused by: org.springframework.beans.factory.BeanCreationException: The 'currentComponent' (org.springframework.integration.router.MethodInvokingRouter@7965a51c) is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'. This is the end of the integration flow.
+----
+
+When you configure a sub-flow as a lambda, the framework handles the request-reply interaction with the sub-flow and a gateway is not needed.
+====
+
+Sub-flows can be nested to any depth, but we do not recommend doing so.
+In fact, even in the router case, adding complex sub-flows within a flow would quickly begin to look like a plate of spaghetti and be difficult for a human to parse.
 
 [[java-dsl-protocol-adapters]]
 === Using Protocol Adapters
 
-All of the examples so far illustrate how the DSL supports a messaging architecture using the Spring Integration programming model, but we haven't done any real integration yet.
-This requires access to remote resources via http, jms, amqp, tcp, jdbc, ftp, smtp, and the like, or access to the local file system.
+All of the examples shown so far illustrate how the DSL supports a messaging architecture by using the Spring Integration programming model.
+However, we have yet to do any real integration.
+Doing so requires access to remote resources over HTTP, JMS, AMQP, TCP, JDBC, FTP, SMTP, and so on or access to the local file system.
 Spring Integration supports all of these and more.
-Ideally, the DSL should offer first class support for all of them but it is a daunting task to implement all of these and keep up as new adapters are added to Spring Integration.
-So the expectation is that the DSL will continually be catching up with Spring Integration.
+Ideally, the DSL should offer first class support for all of them, but it is a daunting task to implement all of these and keep up as new adapters are added to Spring Integration.
+So the expectation is that the DSL is continually catching up with Spring Integration.
 
-Anyway we are providing the hi-level API to define protocol-specific seamlessly.
-This is achieved with **Factory** and **Builder** patterns and, of course, with Lambdas.
-The factory classes can be considered "Namespace Factories", because they play the same role as XML namespace for components from the concrete protocol-specific Spring Integration modules.
-Currently, Spring Integration Java DSL supports `Amqp`, `Feed`, `Jms`, `Files`, `(S)Ftp`, `Http`, `JPA`, `MongoDb`,  `TCP/UDP`, `Mail`, `WebFlux` and `Scripts` namespace factories:
+Consequently, we provide the high-level API to seamlessly define protocol-specific messaging.
+We do so with the factory and builder patterns and with lambdas.
+You can think of the factory classes as "`Namespace Factories`", because they play the same role as the XML namespace for components from the concrete protocol-specific Spring Integration modules.
+Currently, Spring Integration Java DSL supports the `Amqp`, `Feed`, `Jms`, `Files`, `(S)Ftp`, `Http`, `JPA`, `MongoDb`,  `TCP/UDP`, `Mail`, `WebFlux`, and `Scripts` namespace factories.
+The following example shows how to use three of them (`Amqp`, `Jms`, and `Mail`):
 
+====
 [source,java]
 ----
 @Bean
@@ -759,15 +816,19 @@ public IntegrationFlow sendMailFlow() {
             .get();
 }
 ----
+====
 
-We show here the usage of namespace factories as inline adapters declarations, however they can be used from `@Bean` definitions to make the `IntegrationFlow` method-chain more readable.
+The preceding example shows how to use the "`namespace factories`" as inline adapters declarations.
+However, you can use them from `@Bean` definitions to make the `IntegrationFlow` method chain more readable.
 
-We are soliciting community feedback on these namespace factories before we spend effort on others; we'd also appreciate some prioritization for which adapters/gateways we should support next.
+NOTE: We are soliciting community feedback on these namespace factories before we spend effort on others.
+We also appreciate any input into prioritization for which adapters and gateways we should support next.
 
-See more Java DSL samples in the protocol-specific chapter throughout this reference manual.
+You can find more Java DSL samples in the protocol-specific chapters throughout this reference manual.
 
-All other protocol channel adapters may be configured as generic beans and wired to the `IntegrationFlow`:
+All other protocol channel adapters may be configured as generic beans and wired to the `IntegrationFlow`, as the following examples show:
 
+====
 [source,java]
 ----
 @Bean
@@ -798,12 +859,14 @@ public AbstractMappingMessageRouter xpathRouter(MessageChannel wrongMessagesChan
     return router;
 }
 ----
+====
 
 [[java-dsl-flow-adapter]]
-=== IntegrationFlowAdapter
+=== `IntegrationFlowAdapter`
 
-The `IntegrationFlow` as an interface can be implemented directly and specified as component for scanning:
+The `IntegrationFlow` interface can be implemented directly and specified as a component for scanning, as the following example shows:
 
+====
 [source,java]
 ----
 @Component
@@ -816,18 +879,20 @@ public class MyFlow implements IntegrationFlow {
 
 }
 ----
+====
 
-And yes, it is picked up by the `IntegrationFlowBeanPostProcessor` and correctly parsed and registered in the application context.
+It is picked up by the `IntegrationFlowBeanPostProcessor` and correctly parsed and registered in the application context.
 
-For convenience and loosely coupled architecture the `IntegrationFlowAdapter` base class implementation is provided.
-It requires a `buildFlow()` method implementation to produce an `IntegrationFlowDefinition` using one of `from()` support methods:
+For convenience and to gain the benefits of loosely coupled architecture, we provide the `IntegrationFlowAdapter` base class implementation.
+It requires a `buildFlow()` method implementation to produce an `IntegrationFlowDefinition` by using one of `from()` methods, as the following example shows:
 
+====
 [source,java]
 ----
 @Component
 public class MyFlowAdapter extends IntegrationFlowAdapter {
 
-    private final AtomicBoolean invoked = new tomicBoolean();
+    private final AtomicBoolean invoked = new AtomicBoolean();
 
     public Date nextExecutionTime(TriggerContext triggerContext) {
           return this.invoked.getAndSet(true) ? null : new Date();
@@ -838,16 +903,16 @@ public class MyFlowAdapter extends IntegrationFlowAdapter {
         return from(this, "messageSource",
                       e -> e.poller(p -> p.trigger(this::nextExecutionTime)))
                  .split(this)
-  	   .transform(this)
-  	   .aggregate(a -> a.processor(this, null), null)
-  	   .enrichHeaders(Collections.singletonMap("foo", "FOO"))
-  	   .filter(this)
-  	   .handle(this)
-  	   .channel(c -> c.queue("myFlowAdapterOutput"));
+                 .transform(this)
+                 .aggregate(a -> a.processor(this, null), null)
+                 .enrichHeaders(Collections.singletonMap("thing1", "THING1"))
+                 .filter(this)
+                 .handle(this)
+                 .channel(c -> c.queue("myFlowAdapterOutput"));
     }
 
     public String messageSource() {
-         return "B,A,R";
+         return "T,H,I,N,G,2";
     }
 
     @Splitter
@@ -866,24 +931,28 @@ public class MyFlowAdapter extends IntegrationFlowAdapter {
     }
 
     @Filter
-    public boolean filter(@Header Optional<String> foo) {
-            return foo.isPresent();
+    public boolean filter(@Header Optional<String> thing1) {
+            return thing1.isPresent();
     }
 
     @ServiceActivator
-    public String handle(String payload, @Header String foo) {
-           return payload + ":" + foo;
+    public String handle(String payload, @Header String thing1) {
+           return payload + ":" + thing1;
     }
 
 }
 ----
+====
 
 [[java-dsl-runtime-flows]]
-=== Dynamic and runtime Integration Flows
+=== Dynamic and Runtime Integration Flows
 
-The `IntegrationFlow` s and therefore all its dependant components can be registered at runtime.
-This was done previously by the `BeanFactory.registerSingleton()` hook and now via newly introduced in the Spring Framework `5.0` programmatic `BeanDefinition` registration with the `instanceSupplier` hook:
+`IntegrationFlow` and all its dependent components can be registered at runtime.
+Before version 5.0, we used the `BeanFactory.registerSingleton()` hook.
+Starting in the Spring Framework `5.0`, we use the `instanceSupplier` hook for programmatic `BeanDefinition` registration.
+The following example shows how to programmatically register a bean:
 
+====
 [source,java]
 ----
 BeanDefinition beanDefinition =
@@ -892,11 +961,15 @@ BeanDefinition beanDefinition =
 
 ((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
 ----
+====
 
-and all the necessary bean initialization and lifecycle is done automatically as it is with the standard context configuration bean definitions.
+Note that, in the preceding example, the `instanceSupplier` hook is the last parameter to the `genericBeanDefinition` method, provided by a lambda in this case.
 
-To simplify the development experience Spring Integration introduced `IntegrationFlowContext` to register and manage `IntegrationFlow` instances at runtime:
+All the necessary bean initialization and lifecycle is done automatically, as it is with the standard context configuration bean definitions.
 
+To simplify the development experience, Spring Integration introduced `IntegrationFlowContext` to register and manage `IntegrationFlow` instances at runtime, as the following example shows:
+
+====
 [source,java]
 ----
 @Autowired
@@ -923,12 +996,14 @@ public void testTcpGateways() {
     assertThat(theFlow.getMessagingTemplate().convertSendAndReceive("foo", String.class), equalTo("FOO"));
 }
 ----
+====
 
-This is useful when we have multi configuration options and have to create several instances of similar flows.
-So, we can iterate our options and create and register `IntegrationFlow` s within loop.
-Another variant when our source of data isn't Spring-based and we must create it on the fly.
-Such a sample is Reactive Streams event source:
+This is useful when we have multiple configuration options and have to create several instances of similar flows.
+To do so, we can iterate our options and create and register `IntegrationFlow` instances within a loop.
+Another variant is when our source of data is not Spring-based and we must create it on the fly.
+Such a sample is Reactive Streams event source, as the following example shows:
 
+====
 [source,java]
 ----
 Flux<Message<?>> messageFlux =
@@ -949,22 +1024,23 @@ IntegrationFlow integrationFlow =
 this.integrationFlowContext.registration(integrationFlow)
             .register();
 ----
+====
 
-The `IntegrationFlowRegistrationBuilder` (as a result of the `IntegrationFlowContext.registration()`) can be used to specify a bean name for the `IntegrationFlow` to register, to control its `autoStartup` and also for additional, non Integration beans registration.
-Usually those additional beans are connection factories (AMQP, JMS, (S)FTP, TCP/UDP etc.), serializers/deserializers or any other required support components.
+The `IntegrationFlowRegistrationBuilder` (as a result of the `IntegrationFlowContext.registration()`) can be used to specify a bean name for the `IntegrationFlow` to register, to control its `autoStartup`, and to register, non-Spring Integration beans.
+Usually, those additional beans are connection factories (AMQP, JMS, (S)FTP, TCP/UDP, and others.), serializers and deserializers, or any other required support components.
 
-Such a dynamically registered `IntegrationFlow` and all its dependant beans can be removed afterwards using `IntegrationFlowRegistration.destroy()` callback.
-See `IntegrationFlowContext` JavaDocs for more information.
+You can use the `IntegrationFlowRegistration.destroy()` callback to remove a dynamically registered `IntegrationFlow` and all its dependent beans when you no longer need them.
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/context/IntegrationFlowContext.html[`IntegrationFlowContext` Javadoc] for more information.
 
-NOTE: Starting with _version 5.0.6_, all generated bean names in an `IntegrationFlow` definition are prepended with flow id as a prefix.
-It is recommended to always specify an explicit flow id, otherwise a synchronization barrier is initiated in the `IntegrationFlowContext` to generate the bean name for the `IntegrationFlow` and register its beans.
+NOTE: Starting with version 5.0.6, all generated bean names in an `IntegrationFlow` definition are prepended with the flow ID as a prefix.
+We recommend always specifying an explicit flow ID.
+Otherwise, a synchronization barrier is initiated in the `IntegrationFlowContext`, to generate the bean name for the `IntegrationFlow` and register its beans.
 We synchronize on these two operations to avoid a race condition when the same generated bean name may be used for different `IntegrationFlow` instances.
 
-Also, starting with _version 5.0.6_, the registration builder API has a new method `useFlowIdAsPrefix()`.
-This is useful if you wish to declare multiple instances of the same flow and avoid bean name collisions if components in the flows have the same id.
+Also, starting with version 5.0.6, the registration builder API has a new method: `useFlowIdAsPrefix()`.
+This is useful if you wish to declare multiple instances of the same flow and avoid bean name collisions when components in the flows have the same ID, as the following example shows:
 
-For example:
-
+====
 [source, java]
 ----
 private void registerFlows() {
@@ -991,16 +1067,18 @@ private IntegrationFlow buildFlow(int port) {
             .transform(Transformers.objectToString());
 }
 ----
+====
 
-In this case, the message handler for the first flow can be referenced with bean name `tcp1.client.handler`.
+In this case, the message handler for the first flow can be referenced with bean a name of `tcp1.client.handler`.
 
-NOTE: an `id` is required when using `useFlowIdAsPrefix()`.
+NOTE: An `id` attribute is required when you usE `useFlowIdAsPrefix()`.
 
 [[java-dsl-gateway]]
-=== IntegrationFlow as Gateway
+=== `IntegrationFlow` as Gateway
 
-The `IntegrationFlow` can start from the service interface providing `GatewayProxyFactoryBean` component:
+The `IntegrationFlow` can start from the service interface that provides a `GatewayProxyFactoryBean` component, as the following example shows:
 
+====
 [source,java]
 ----
 public interface ControlBusGateway {
@@ -1017,17 +1095,19 @@ public IntegrationFlow controlBusFlow() {
             .get();
 }
 ----
+====
 
 All the proxy for interface methods are supplied with the channel to send messages to the next integration component in the `IntegrationFlow`.
-The service interface can be marked with the `@MessagingGateway` as well as methods with the `@Gateway` annotations.
-Nevertheless the `requestChannel` is ignored and overridden with that internal channel for the next component in the `IntegrationFlow`.
-Otherwise such a configuration via `IntegrationFlow` won't make sense.
+You can mark the service interface with the `@MessagingGateway` annotation and mark the methods with the `@Gateway` annotations.
+Nevertheless, the `requestChannel` is ignored and overridden with that internal channel for the next component in the `IntegrationFlow`.
+Otherwise, creating such a configuration by using `IntegrationFlow` does not make sense.
 
-By default a `GatewayProxyFactoryBean` gets a conventional bean name like `[FLOW_BEAN_NAME.gateway]`.
-That id can be changed via `@MessagingGateway.name()` attribute or the overloaded `from(Class<?> serviceInterface, String beanName)` factory method.
+By default a `GatewayProxyFactoryBean` gets a conventional bean name, such as `[FLOW_BEAN_NAME.gateway]`.
+You can change that ID by using the `@MessagingGateway.name()` attribute or the overloaded `from(Class<?> serviceInterface, String beanName)` factory method.
 
-With the Java 8 on board we even can create such an Integration Gateway with the `java.util.function` interfaces:
+With Java 8, you can even create an integration fateway with the `java.util.function` interfaces, as the following example shows:
 
+====
 [source,java]
 ----
 @Bean
@@ -1039,12 +1119,15 @@ public IntegrationFlow errorRecovererFlow() {
             .get();
 }
 ----
+====
 
-That can be used lately as:
+That `errorRecovererFlow` can be used as follows:
 
+====
 [source,java]
 ----
 @Autowired
 @Qualifier("errorRecovererFunction")
 private Function<String, String> errorRecovererFlowGateway;
 ----
+====

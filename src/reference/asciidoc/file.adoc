@@ -1,63 +1,65 @@
 [[files]]
 == File Support
 
-[[file-intro]]
-=== Introduction
+Spring Integration's file support extends the Spring Integration core with a dedicated vocabulary to deal with reading, writing, and transforming files.
+It provides a namespace that enables elements defining channel adapters dedicated to files and support for transformers that can read file contents into strings or byte arrays.
 
-Spring Integration's File support extends the Spring Integration Core with a dedicated vocabulary to deal with reading, writing, and transforming files.
-It provides a namespace that enables elements defining Channel Adapters dedicated to files and support for Transformers that can read file contents into strings or byte arrays.
-
-This section will explain the workings of `FileReadingMessageSource` and `FileWritingMessageHandler` and how to configure them as _beans_.
-Also the support for dealing with files through file specific implementations of `Transformer` will be discussed.
-Finally the file specific namespace will be explained.
+This section explains the workings of `FileReadingMessageSource` and `FileWritingMessageHandler` and how to configure them as beans.
+It also discusses the support for dealing with files through file-specific implementations of `Transformer`.
+Finally, it explains the file-specific namespace.
 
 [[file-reading]]
 === Reading Files
 
 A `FileReadingMessageSource` can be used to consume files from the filesystem.
 This is an implementation of `MessageSource` that creates messages from a file system directory.
+The following example shows how to configure a `FileReadingMessageSource`:
 
+====
 [source,xml]
 ----
 <bean id="pollableFileSource"
     class="org.springframework.integration.file.FileReadingMessageSource"
     p:directory="${input.directory}"/>
 ----
+====
 
-To prevent creating messages for certain files, you may supply a `FileListFilter`.
-By default the following 2 filters are used:
+To prevent creating messages for certain files, you can supply a `FileListFilter`.
+By default, we use the following filters:
 
 * `IgnoreHiddenFileListFilter`
 * `AcceptOnceFileListFilter`
 
-The `IgnoreHiddenFileListFilter` ensures that *hidden* files are not being processed.
-Please keep in mind that the exact definition of *hidden* is system-dependent. For example,
-on _UNIX_-based systems, a file beginning with a period character is considered to be hidden.
-_Microsoft Windows_, on the other hand, has a dedicated file attribute to indicate
-hidden files.
+The `IgnoreHiddenFileListFilter` ensures that hidden files are not processed.
+Note that the exact definition of hidden is system-dependent.
+For example, on UNIX-based systems, a file beginning with a period character is considered to be hidden.
+Microsoft Windows, on the other hand, has a dedicated file attribute to indicate hidden files.
 
 [IMPORTANT]
-=====
-The `IgnoreHiddenFileListFilter` was introduced with _version 4.2_. In prior versions hidden files were included.
-With the default configuration, the `IgnoreHiddenFileListFilter` will be triggered first, then the `AcceptOnceFileListFilter`.
-=====
+====
+Version 4.2 introduced the `IgnoreHiddenFileListFilter`. In prior versions, hidden files were included.
+With the default configuration, the `IgnoreHiddenFileListFilter` is triggered first, followed by the `AcceptOnceFileListFilter`.
+====
 
 The `AcceptOnceFileListFilter` ensures files are picked up only once from the directory.
 
 [NOTE]
-=====
+====
 The `AcceptOnceFileListFilter` stores its state in memory.
-If you wish the state to survive a system restart, consider using the `FileSystemPersistentAcceptOnceFileListFilter` instead.
-This filter stores the accepted file names in a `MetadataStore` implementation (<<metadata-store>>).
+If you wish the state to survive a system restart, you can use the `FileSystemPersistentAcceptOnceFileListFilter`.
+This filter stores the accepted file names in a `MetadataStore` implementation (see "`<<metadata-store>>`").
 This filter matches on the filename and modified time.
 
-Since _version 4.0_, this filter requires a `ConcurrentMetadataStore`.
-When used with a shared data store (such as `Redis` with the `RedisMetadataStore`) this allows filter keys to be shared across multiple application instances, or when a network file share is being used by multiple servers.
+Since version 4.0, this filter requires a `ConcurrentMetadataStore`.
+When used with a shared data store (such as `Redis` with the `RedisMetadataStore`), it lets filter keys be shared across multiple application instances or across a network file share being used by multiple servers.
 
-Since __version 4.1.5__, this filter has a new property `flushOnUpdate` which will cause it to flush the
+Since version 4.1.5, this filter has a new property (`flushOnUpdate`), which causes it to flush the
 metadata store on every update (if the store implements `Flushable`).
-=====
+====
 
+The following example configures a `FileReadingMessageSource` with a filter:
+
+====
 [source,xml]
 ----
 <bean id="pollableFileSource"
@@ -65,13 +67,15 @@ metadata store on every update (if the store implements `Flushable`).
     p:inputDirectory="${input.directory}"
     p:filter-ref="customFilterBean"/>
 ----
+====
 
-A common problem with reading files is that a file may be detected before it is ready.
+A common problem with reading files is that a file may be detected before it is ready (that is, some other process may still be writing the file).
 The default `AcceptOnceFileListFilter` does not prevent this.
 In most cases, this can be prevented if the file-writing process renames each file as soon as it is ready for reading.
-A `filename-pattern` or `filename-regex` filter that accepts only files that are ready (e.g.
-based on a known suffix), composed with the default `AcceptOnceFileListFilter` allows for this.
-The `CompositeFileListFilter` enables the composition.
+A `filename-pattern` or `filename-regex` filter that accepts only files that are ready (perhaps based on a known suffix), composed with the default `AcceptOnceFileListFilter`, allows for this situation.
+The `CompositeFileListFilter` enables the composition, as the following example shows:
+
+====
 [source,xml]
 ----
 <bean id="pollableFileSource"
@@ -91,37 +95,41 @@ The `CompositeFileListFilter` enables the composition.
     </constructor-arg>
 </bean>
 ----
+====
 
-If it is not possible to create the file with a temporary name and rename to the final name, another alternative is
-provided.
-The `LastModifiedFileListFilter` was added in _version 4.2_.
-This filter can be configured with an `age` property and only files older than this will be passed by the filter.
-The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early, due
-to, say, network glitches.
+If it is not possible to create the file with a temporary name and rename to the final name, Spring Integratio provides another alternative.
+Version 4.2 added the `LastModifiedFileListFilter`.
+This filter can be configured with an `age` property so that only files older than this value are passed by the filter.
+The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early (due to, say, network glitches).
+The following example shows how to configure a `LastModifiedFileListFilter`:
 
+====
 [source, xml]
 ----
 <bean id="filter" class="org.springframework.integration.file.filters.LastModifiedFileListFilter">
     <property name="age" value="120" />
 </bean>
 ----
+====
 
-Starting with _version 4.3.7_ a `ChainFileListFilter` (an extension of `CompositeFileListFilter`) has been introduced to allow scenarios when subsequent filters should only see the result of the previous filter.
-(With the `CompositeFileListFilter`, all filters see all the files, but only files that pass all filters are passed by the `CompositeFileListFilter`).
+Starting with version 4.3.7, a `ChainFileListFilter` (an extension of `CompositeFileListFilter`) has been introduced to allow scenarios when subsequent filters should only see the result of the previous filter.
+(With the `CompositeFileListFilter`, all filters see all the files, but it passes only files that have passed all filters).
 An example of where the new behavior is required is a combination of `LastModifiedFileListFilter` and `AcceptOnceFileListFilter`, when we do not wish to accept the file until some amount of time has elapsed.
-With the `CompositeFileListFilter`, since the `AcceptOnceFileListFilter` sees all the files on the first pass, it won't pass it later when the other filter does.
-The `CompositeFileListFilter` approach is useful when a pattern filter is combined with a custom filter that looks for a secondary indicating file transfer is complete.
-The pattern filter might only pass the primary file (e.g. `foo.txt`) but the "done" filter needs to see if, say `foo.done` is present.
+With the `CompositeFileListFilter`, since the `AcceptOnceFileListFilter` sees all the files on the first pass, it does not pass it later when the other filter does.
+The `CompositeFileListFilter` approach is useful when a pattern filter is combined with a custom filter that looks for a secondary file to indicate that file transfer is complete.
+The pattern filter might only pass the primary file (such as `something.txt`) but the "`done`" filter needs to see whether (for example) `something.done` is present.
 
 Say we have files `a.txt`, `a.done`, and `b.txt`.
 
-The pattern filter only passes `a.txt` and `b.txt`, the "done" filter will see all three files and only pass `a.txt`.
-The final result of the composite filter is only `a.txt` is released.
+The pattern filter passes only `a.txt` and `b.txt`, while the "`done`" filter sees all three files and passes only `a.txt`.
+The final result of the composite filter is that only `a.txt` is released.
 
 NOTE: With the `ChainFileListFilter`, if any filter in the chain returns an empty list, the remaining filters are not invoked.
 
-Starting with _version 5.0_ an `ExpressionFileListFilter` has been introduced to allow to execute SpEL expression against file as a context evaluation root object.
-For this purpose all the XML components for file handling (local and remote), alongside with an existing `filter` attribute, have been supplied with the `filter-expression` option:
+Version 5.0 introduced an `ExpressionFileListFilter` to execute SpEL expression against a file as a context evaluation root object.
+For this purpose, all the XML components for file handling (local and remote), along with an existing `filter` attribute, have been supplied with the `filter-expression` option, as the following example shows:
+
+====
 [source, xml]
 ----
 <int-file:inbound-channel-adapter
@@ -129,34 +137,35 @@ For this purpose all the XML components for file handling (local and remote), al
         filter-expression="name matches '.text'"
         auto-startup="false"/>
 ----
+====
 
-Starting with _version 5.0.5_, a `DiscardAwareFileListFilter` is provided for implementations when there is an interest in the event of the rejected files.
-For this purpose such a filter implementation should be supplied with a callback via `addDiscardCallback(Consumer<File>)`.
-In the Framework this functionality is used from the `FileReadingMessageSource.WatchServiceDirectoryScanner` in combination with `LastModifiedFileListFilter`.
-Unlike the regular `DirectoryScanner`, the `WatchService` provides files for processing according the events on the target file system.
-At the moment of polling an internal queue with those files, the `LastModifiedFileListFilter` may discard them because they are too young in regards to its configured `age`.
-Therefore we lose the file for the future possible considerations.
-The discard callback hook allows us to retain the file in the internal queue, so it is available to be checked against the `age` in the subsequent polls.
-The `CompositeFileListFilter` also implements a `DiscardAwareFileListFilter` and populates provided discard callback to all its `DiscardAwareFileListFilter` delegates.
+Version 5.0.5 introduced the `DiscardAwareFileListFilter` implementations that have an interest in rejected files.
+For this purpose, such a filter implementation should be supplied with a callback through `addDiscardCallback(Consumer<File>)`.
+In the framework, this functionality is used from the `FileReadingMessageSource.WatchServiceDirectoryScanner`, in combination with `LastModifiedFileListFilter`.
+Unlike the regular `DirectoryScanner`, the `WatchService` provides files for processing according to the events on the target file system.
+At the moment of polling an internal queue with those files, the `LastModifiedFileListFilter` may discard them because they are too young relative to its configured `age`.
+Therefore, we lose the file for future possible considerations.
+The discard callback hook lets us retain the file in the internal queue so that it is available to be checked against the `age` in subsequent polls.
+The `CompositeFileListFilter` also implements a `DiscardAwareFileListFilter` and populates a discard callback to all its `DiscardAwareFileListFilter` delegates.
 
 NOTE: Since `CompositeFileListFilter` matches the files against all delegates, the `discardCallback` may be called several times for the same file.
 
-*Message Headers*
+==== Message Headers
 
-Starting with _version 5.0_ the `FileReadingMessageSource`, in addition to the `payload` as a polled `File`, populates these headers to the outbound `Message`:
+Starting with version 5.0, the `FileReadingMessageSource` (in addition to the `payload` as a polled `File`) populates the following headers to the outbound `Message`:
 
-- `FileHeaders.FILENAME` - the `File.getName()` of the file to send.
-Can be used for subsequent rename or copy logic;
-- `FileHeaders.ORIGINAL_FILE` - the `File` object itself.
-Typically this header is populated automatically by Framework components, like <<file-splitter>> or <<file-transforming>>, when we lose the original `File` object.
-But for consistency and convenience with any other custom use-cases this header can be useful to get access to the original file;
-- `FileHeaders.RELATIVE_PATH` - a new header introduced to represent the part of file path relative to the root directory for the scan.
+* `FileHeaders.FILENAME`: The `File.getName()` of the file to send.
+Can be used for subsequent rename or copy logic.
+* `FileHeaders.ORIGINAL_FILE`: The `File` object itself.
+Typically, this header is populated automatically by framework components (such as "`<<file-splitter,splitters>>`" or "`<<file-transforming,transformers>>`") when we lose the original `File` object.
+However, for consistency and convenience with any other custom use cases, this header can be useful to get access to the original file.
+* `FileHeaders.RELATIVE_PATH`: A new header introduced to represent the part of file path relative to the root directory for the scan.
 This header can be useful when the requirement is to restore a source directory hierarchy in the other places.
-For this purpose the `DefaultFileNameGenerator` (<<file-writing-file-names>>) can be configured to use this header.
+For this purpose, the `DefaultFileNameGenerator` (see "`<<file-writing-file-names>>`") can be configured to use this header.
 
-*Directory scanning and polling*
+==== Directory scanning and polling
 
-The `FileReadingMessageSource` doesn't produce messages for files from the directory immediately.
+The `FileReadingMessageSource` does not produce messages for files from the directory immediately.
 It uses an internal queue for 'eligible files' returned by the `scanner`.
 The `scanEachPoll` option is used to ensure that the internal queue is refreshed with the latest input directory
 content on each poll.
@@ -164,27 +173,30 @@ By default (`scanEachPoll = false`), the `FileReadingMessageSource` empties its 
 again.
 This default behavior is particularly useful to reduce scans of large numbers of files in a directory.
 However, in cases where custom ordering is required, it is important to consider the effects of setting this flag to
-`true`; the order in which files are processed may not be as expected.
+`true`.
+The order in which files are processed may not be as expected.
 By default, files in the queue are processed in their natural (`path`) order.
 New files added by a scan, even when the queue already has files, are inserted in the appropriate position to maintain
 that natural order.
 To customize the order, the `FileReadingMessageSource` can accept a `Comparator<File>` as a constructor argument.
 It is used by the internal (`PriorityBlockingQueue`) to reorder its content according to the business requirements.
-Therefore, to process files in a specific order, you should provide a comparator to the `FileReadingMessageSource`,
+Therefore, to process files in a specific order, you should provide a comparator to the `FileReadingMessageSource`
 rather than ordering the list produced by a custom `DirectoryScanner`.
 
-Starting with _version 5.0_, a new `RecursiveDirectoryScanner` is presented to perform file tree visiting.
+Version 5.0 introduced `RecursiveDirectoryScanner` to perform file tree visiting.
 The implementation is based on the `Files.walk(Path start, int maxDepth, FileVisitOption... options)` functionality.
-The root directory (`DirectoryScanner.listFiles(File)` argument) is excluded from the result.
-All other sub-directories includes/excludes are based on the target `FileListFilter` implementation.
-For example the `SimplePatternFileListFilter` filters directories by default.
-See `AbstractDirectoryAwareFileListFilter` and its implementations for more information.
+The root directory (`DirectoryScanner.listFiles(File)`) argument is excluded from the result.
+All other sub-directories inclusions and exclusions are based on the target `FileListFilter` implementation.
+For example, the `SimplePatternFileListFilter` filters out directories by default.
+See https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/AbstractDirectoryAwareFileListFilter.html[`AbstractDirectoryAwareFileListFilter`] and its implementations for more information.
 
 [[file-namespace-support]]
 ==== Namespace Support
 
-The configuration for file reading can be simplified using the file specific namespace.
-To do this use the following template.
+The configuration for file reading can be simplified by using the file-specific namespace.
+To do so, use the following template:
+
+====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -200,8 +212,11 @@ To do this use the following template.
     http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 </beans>
 ----
+====
 
-Within this namespace you can reduce the `FileReadingMessageSource` and wrap it in an inbound Channel Adapter like this:
+Within this namespace, you can reduce the `FileReadingMessageSource` and wrap it in an inbound Channel Adapter, as follows:
+
+====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn1"
@@ -219,28 +234,31 @@ Within this namespace you can reduce the `FileReadingMessageSource` and wrap it 
     directory="file:${input.directory}"
     filename-regex="test[0-9]+\.txt" />
 ----
+====
 
-The first channel adapter example is relying on the default `FileListFilter` s:
+The first channel adapter example relies on the default `FileListFilter` implementations:
 
-* `IgnoreHiddenFileListFilter` (Do not process hidden files)
-* `AcceptOnceFileListFilter` (Prevents duplication)
+* `IgnoreHiddenFileListFilter` (do not process hidden files)
+* `AcceptOnceFileListFilter` (prevent duplication)
 
-Therefore, you can also leave off the 2 attributes `prevent-duplicates` and `ignore-hidden` as they are `true` by default.
+Therefore, you can also leave off the `prevent-duplicates` and `ignore-hidden` attributes, as they are `true` by default.
 
 [IMPORTANT]
 =====
-The `ignore-hidden` attribute was introduced with _Spring Integration 4.2_. In prior versions hidden files were included.
+Spring Integration 4.2 introduced the `ignore-hidden` attribute. In prior versions, hidden files were included.
 =====
 
-The second channel adapter example is using a custom filter, the third is using the _filename-pattern_ attribute to
-add an `AntPathMatcher` based filter, and the fourth is using the _filename-regex_ attribute to add a regular expression Pattern based filter to the `FileReadingMessageSource`.
-The _filename-pattern_ and _filename-regex_ attributes are each mutually exclusive with the regular _filter_ reference attribute.
-However, you can use the _filter_ attribute to reference an instance of `CompositeFileListFilter` that combines any number of filters, including one or more pattern based filters to fit your particular needs.
+The second channel adapter example uses a custom filter, the third uses the `filename-pattern` attribute to
+add an `AntPathMatcher` based filter, and the fourth uses the `filename-regex` attribute to add a regular expression pattern-based filter to the `FileReadingMessageSource`.
+The `filename-pattern` and `filename-regex` attributes are each mutually exclusive with the regular `filter` reference attribute.
+However, you can use the `filter` attribute to reference an instance of `CompositeFileListFilter` that combines any number of filters, including one or more pattern-based filters to fit your particular needs.
 
-When multiple processes are reading from the same directory it can be desirable to lock files to prevent them from being picked up concurrently.
-To do this you can use a `FileLocker`.
-There is a java.nio based implementation available out of the box, but it is also possible to implement your own locking scheme.
-The nio locker can be injected as follows
+When multiple processes read from the same directory, you may want to lock files to prevent them from being picked up concurrently.
+To do so, you can use a `FileLocker`.
+There is a `java.nio`-based implementation available, but it is also possible to implement your own locking scheme.
+The `nio` locker can be injected as follows:
+
+====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn"
@@ -248,8 +266,11 @@ The nio locker can be injected as follows
     <int-file:nio-locker/>
 </int-file:inbound-channel-adapter>
 ----
+====
 
-A custom locker you can configure like this:
+You can configure a custom locker as follows:
+
+====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn"
@@ -257,77 +278,74 @@ A custom locker you can configure like this:
     <int-file:locker ref="customLocker"/>
 </int-file:inbound-channel-adapter>
 ----
+====
 
-NOTE: When a file inbound adapter is configured with a locker, it will take the responsibility to acquire a lock before the file is allowed to be received.
-*It will not assume the responsibility to unlock the file.* If you have processed the file and keeping the locks hanging around you have a memory leak.
-If this is a problem in your case you should call `FileLocker.unlock(File file)` yourself at the appropriate time.
+NOTE: When a file inbound adapter is configured with a locker, it takes responsibility for acquiring a lock before the file is allowed to be received.
+It does not assume the responsibility to unlock the file.
+If you have processed the file and keep the locks hanging around, you have a memory leak.
+If this is a problem, you should call `FileLocker.unlock(File file)` yourself at the appropriate time.
 
-When filtering and locking files is not enough it might be needed to control the way files are listed entirely.
-To implement this type of requirement you can use an implementation of `DirectoryScanner`.
-This scanner allows you to determine entirely what files are listed each poll.
-This is also the interface that Spring Integration uses internally to wire `FileListFilter` s and `FileLocker` to the `FileReadingMessageSource`.
-A custom `DirectoryScanner` can be injected into the `<int-file:inbound-channel-adapter/>` on the `scanner` attribute.
+When filtering and locking files is not enough, you might need to control the way files are listed entirely.
+To implement this type of requirement, you can use an implementation of `DirectoryScanner`.
+This scanner lets you determine exactly what files are listed in each poll.
+This is also the interface that Spring Integration uses internally to wire `FileListFilter` instances and `FileLocker` to the `FileReadingMessageSource`.
+You can inject a custom `DirectoryScanner` into the `<int-file:inbound-channel-adapter/>` on the `scanner` attribute, as the following example shows:
 
+====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="filesIn" directory="file:${input.directory}"
      scanner="customDirectoryScanner"/>
 ----
+====
 
-This gives you full freedom to choose the ordering, listing and locking strategies.
+Doing so gives you full freedom to choose the ordering, listing, and locking strategies.
 
-It is also important to understand that filters (including `patterns`, `regex`, `prevent-duplicates` etc) and `locker` s,
-are actually used by the `scanner`.
+It is also important to understand that filters (including `patterns`, `regex`, `prevent-duplicates`, and otehrs) and `locker` instances are actually used by the `scanner`.
 Any of these attributes set on the adapter are subsequently injected into the internal `scanner`.
-For the case of an external `scanner`, all filter and locker attributes are prohibited on the
-`FileReadingMessageSource`; they must be specified (if required) on that custom `DirectoryScanner`.
-In other words, if you inject a `scanner` into the `FileReadingMessageSource`, you should supply `filter` and `locker`
-on that `scanner` not on the `FileReadingMessageSource`.
+For the case of an external `scanner`, all filter and locker attributes are prohibited on the `FileReadingMessageSource`.
+They must be specified (if required) on that custom `DirectoryScanner`.
+In other words, if you inject a `scanner` into the `FileReadingMessageSource`, you should supply `filter` and `locker` on that `scanner`, not on the `FileReadingMessageSource`.
 
-NOTE: The `DefaultDirectoryScanner` uses a `IgnoreHiddenFileListFilter` and `AcceptOnceFileListFilter` by default.
-To prevent their use, you should configure your own filter (e.g. `AcceptAllFileListFilter`) or even set it to `null`.
+NOTE: By default, the `DefaultDirectoryScanner` uses an `IgnoreHiddenFileListFilter` and an `AcceptOnceFileListFilter`.
+To prevent their use, you can configure your own filter (such as `AcceptAllFileListFilter`) or even set it to `null`.
 
 [[watch-service-directory-scanner]]
-==== WatchServiceDirectoryScanner
+==== `WatchServiceDirectoryScanner`
 
-The `FileReadingMessageSource.WatchServiceDirectoryScanner` relies on file system events when new files are added to the directory.
-During initialization, the directory is registered to generate events; the initial file list is also built.
+The `FileReadingMessageSource.WatchServiceDirectoryScanner` relies on file-system events when new files are added to the directory.
+During initialization, the directory is registered to generate events.
+The initial file list is also built during initialization.
 While walking the directory tree, any subdirectories encountered are also registered to generate events.
 On the first poll, the initial file list from walking the directory is returned.
 On subsequent polls, files from new creation events are returned.
-If a new subdirectory is added, its creation event is used to walk the new subtree to find existing files, as well
-as registering any new subdirectories found.
+If a new subdirectory is added, its creation event is used to walk the new subtree to find existing files and register any new subdirectories found.
 
-NOTE: There is a case with `WatchKey`, when its internal events `queue` isn't drained by the program as quickly as
-the directory modification events occur.
-If the queue size is exceeded, a `StandardWatchEventKinds.OVERFLOW` is emitted to indicate that
-some file system events may be lost.
+NOTE: There is an issue with `WatchKey` when its internal events `queue` is not drained by the program as quickly as the directory modification events occur.
+If the queue size is exceeded, a `StandardWatchEventKinds.OVERFLOW` is emitted to indicate that some file system events may be lost.
 In this case, the root directory is re-scanned completely.
-To avoid duplicates consider using an appropriate `FileListFilter` such as the `AcceptOnceFileListFilter` and/or
-remove files when processing is completed.
+To avoid duplicates, consider using an appropriate `FileListFilter` (such as the `AcceptOnceFileListFilter`) or
+removing files when processing is complete.
 
-The `WatchServiceDirectoryScanner` can be enable via `FileReadingMessageSource.use-watch-service` option, which is mutually exclusive with the `scanner` option.
+The `WatchServiceDirectoryScanner` can be enabled through the `FileReadingMessageSource.use-watch-service` option, which is mutually exclusive with the `scanner` option.
 An internal `FileReadingMessageSource.WatchServiceDirectoryScanner` instance is populated for the provided `directory`.
 
 In addition, now the `WatchService` polling logic can track the `StandardWatchEventKinds.ENTRY_MODIFY` and
-`StandardWatchEventKinds.ENTRY_DELETE`, too.
+`StandardWatchEventKinds.ENTRY_DELETE`.
 
-The `ENTRY_MODIFY` events logic should be implemented properly in the `FileListFilter` to track not only new files but
-also the modification, if that is requirement.
-Otherwise the files from those events are treated the same way.
+If you need to track the modification of existing files as well as new files, you should implement the `ENTRY_MODIFY` events logic in the `FileListFilter`.
+Otherwise, the files from those events are treated the same way.
 
-The `ENTRY_DELETE` events have effect for the `ResettableFileListFilter` implementations and, therefore, their files
-are provided for the `remove()` operation.
-This means that (when this event is enabled), filters such as the `AcceptOnceFileListFilter` will have the file removed,
-meaning that, if a file with the same name appears, it will pass the filter and be sent as a message.
+The `ResettableFileListFilter` implementations pick up the `ENTRY_DELETE` events.
+Consequently, their files are provided for the `remove()` operation.
+When this event is enabled, filters such as the `AcceptOnceFileListFilter` have the file removed
+As a result, if a file with the same name appears, it passes the filter and is sent as a message.
 
-For this purpose the `watch-events`
-(`FileReadingMessageSource.setWatchEvents(WatchEventType... watchEvents)`) has been introduced
-(`WatchEventType` is a public inner enum in `FileReadingMessageSource`).
-With such an option we can implement some scenarios, when we would like to do one downstream flow logic for new files,
-and other for modified.
-We can achieve that with different `<int-file:inbound-channel-adapter>` definitions, but for the same directory:
-
+For this purpose, the `watch-events` property (`FileReadingMessageSource.setWatchEvents(WatchEventType... watchEvents)`) has been introduced.
+(`WatchEventType` is a public inner enumeration in `FileReadingMessageSource`.)
+With such an option, we can use one downstream flow logic for new files and use some other logic for modified files.
+The following example shows how to configure different logic for create and modify events in the same directory:
+====
 [source,xml]
 ----
 <int-file:inbound-channel-adapter id="newFiles"
@@ -338,16 +356,17 @@ We can achieve that with different `<int-file:inbound-channel-adapter>` definiti
      directory="${input.directory}"
      use-watch-service="true"
      filter="acceptAllFilter"
-     watch-events="MODIFY"/> <!-- CREATE by default -->
+     watch-events="MODIFY"/> <!-- The default is CREATE. -->
 ----
+====
 
 ==== Limiting Memory Consumption
 
-A `HeadDirectoryScanner` can be used to limit the number of files retained in memory.
+You can use a `HeadDirectoryScanner` to limit the number of files retained in memory.
 This can be useful when scanning large directories.
-With XML configuration, this is enabled using the `queue-size` property on the inbound channel adapter.
+With XML configuration, this is enabled by setting the `queue-size` property on the inbound channel adapter.
 
-Prior to _version 4.2_, this setting was incompatible with the use of any other filters.
+Prior to version 4.2, this setting was incompatible with the use of any other filters.
 Any other filters (including `prevent-duplicates="true"`) overwrote the filter used to limit the size.
 
 [NOTE]
@@ -356,15 +375,17 @@ The use of a `HeadDirectoryScanner` is incompatible with an `AcceptOnceFileListF
 Since all filters are consulted during the poll decision, the `AcceptOnceFileListFilter` does not know
 that other filters might be temporarily filtering files.
 Even if files that were previously filtered by the `HeadDirectoryScanner.HeadFilter` are now available, the
-`AcceptOnceFileListFilter` will filter them.
+`AcceptOnceFileListFilter` filters them.
 
-Generally, instead of using an `AcceptOnceFileListFilter` in this case, one would simply remove the processed
-files so that the previously filtered files will be available on a future poll.
+Generally, instead of using an `AcceptOnceFileListFilter` in this case, you should remove the processed
+files so that the previously filtered files are available on a future poll.
 =====
 
 ==== Configuring with Java Configuration
 
-The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
+The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
+
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -398,11 +419,13 @@ public class FileReadingJavaApplication {
 
 }
 ----
+====
 
 ==== Configuring with the Java DSL
 
-The following Spring Boot application provides an example of configuring the inbound adapter using the Java DSL:
+The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -427,48 +450,61 @@ public class FileReadingJavaApplication {
 
 }
 ----
+====
 
 [[file-tailing]]
-==== 'Tail'ing Files
+==== 'tail'ing Files
 
 Another popular use case is to get 'lines' from the end (or tail) of a file, capturing new lines when they are added.
-Two implementations are provided; the first, `OSDelegatingFileTailingMessageProducer`, uses the native `tail` command (on operating systems that have one).
-This is likely the most efficient implementation on those platforms.
-For operating systems that do not have a `tail` command, the second implementation `ApacheCommonsFileTailingMessageProducer`
-which uses the Apache `commons-io` `Tailer` class.
+Two implementations are provided.
+The first, `OSDelegatingFileTailingMessageProducer`, uses the native `tail` command (on operating systems that have one).
+This is generally the most efficient implementation on those platforms.
+For operating systems that do not have a `tail` command, the second implementation, `ApacheCommonsFileTailingMessageProducer`, uses the Apache `commons-io` `Tailer` class.
 
-In both cases, file system events, such as files being unavailable etc, are published as `ApplicationEvent` s using the normal Spring event publishing mechanism.
-Examples of such events are:
+In both cases, file system events, such as files being unavailable and other events, are published as `ApplicationEvent` instances by using the normal Spring event publishing mechanism.
+Examples of such events include the following:
 
-`[message=tail: cannot open `/tmp/foo' for reading:
-               No such file or directory, file=/tmp/foo]`
+====
+[source,bash]
+----
+[message=tail: cannot open `/tmp/somefile' for reading:
+               No such file or directory, file=/tmp/somefile]
 
-`[message=tail: `/tmp/foo' has become accessible, file=/tmp/foo]`
+[message=tail: `/tmp/somefile' has become accessible, file=/tmp/somefile]
 
-`[message=tail: `/tmp/foo' has become inaccessible:
-               No such file or directory, file=/tmp/foo]`
+[message=tail: `/tmp/somefile' has become inaccessible:
+               No such file or directory, file=/tmp/somefile]
 
-`[message=tail: `/tmp/foo' has appeared;
-               following end of new file, file=/tmp/foo]`
+[message=tail: `/tmp/somefile' has appeared;
+               following end of new file, file=/tmp/somefile]
+----
+====
 
-This sequence of events might occur, for example, when a file is rotated.
+The sequence of events shown in the preceding example might occur, for example, when a file is rotated.
 
-Starting with _version 5.0_, a `FileTailingIdleEvent` is emitted when there is no data in the file during `idleEventInterval`.
+Starting with version 5.0, a `FileTailingIdleEvent` is emitted when there is no data in the file during `idleEventInterval`.
+The following example shows what such an event looks like:
 
-`[message=Idle timeout, file=/tmp/foo] [idle time=5438]`
+====
+[source,bash]
+----
+[message=Idle timeout, file=/tmp/somefile] [idle time=5438]
+----
+====
 
-NOTE: Not all platforms supporting a `tail` command provide these status messages.
+NOTE: Not all platforms that support a `tail` command provide these status messages.
 
 Messages emitted from these endpoints have the following headers:
 
-- `FileHeaders.ORIGINAL_FILE` - the `File` object
-- `FileHeaders.FILENAME` - the file name (`File.getName()`)
+* `FileHeaders.ORIGINAL_FILE`: The `File` object
+* `FileHeaders.FILENAME`: The file name (`File.getName()`)
 
-NOTE: In versions prior to _version 5.0_, the `FileHeaders.FILENAME` header contained a string representation of the file's absolute path.
-You can now obtain that by calling `getAbsolutePath()` on the original file header.
+NOTE: In versions prior to version 5.0, the `FileHeaders.FILENAME` header contained a string representation of the file's absolute path.
+You can now obtain that string representation by calling `getAbsolutePath()` on the original file header.
 
-Example configurations:
+The following example creates a native adapter with the default options ('-F -n 0', meaning to follow the file name from the current end).
 
+====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="native"
@@ -476,9 +512,11 @@ Example configurations:
 	task-executor="exec"
 	file="/tmp/foo"/>
 ----
+====
 
-This creates a native adapter with default '-F -n 0' options (follow the file name from the current end).
+The following example creates a native adapter with '-F -n +0' options (meaning follow the file name, emitting all existing lines).
 
+====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="native"
@@ -488,10 +526,15 @@ This creates a native adapter with default '-F -n 0' options (follow the file na
 	file-delay=10000
 	file="/tmp/foo"/>
 ----
+====
 
-This creates a native adapter with '-F -n +0' options (follow the file name, emitting all existing lines).
-If the tail command fails (on some platforms, a missing file causes the `tail` to fail, even with `-F` specified), the command will be retried every 10 seconds.
+If the `tail` command fails (on some platforms, a missing file causes the `tail` to fail, even with `-F` specified), the command is retried every 10 seconds.
 
+By default, native adapters capture from standard output and send the content as messages.
+They also capture from standard error to raise events.
+Starting with version 4.3.6, you can discard the standard error events by setting the `enable-status-reader` to `false`, as the following example shows:
+
+====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="native"
@@ -500,22 +543,27 @@ If the tail command fails (on some platforms, a missing file causes the `tail` t
 	task-executor="exec"
 	file="/tmp/foo"/>
 ----
+====
 
-By default native adapter capture from standard output and send them as messages and from standard error to raise events.
-Starting with _version 4.3.6_, you can discard the standard error events by setting the `enable-status-reader` to `false`.
+In the following example, `IdleEventInterval` is set to `5000`, meaning that, if no lines are written for five seconds, `FileTailingIdleEvent` is triggered every five seconds:
 
+====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="native"
 	channel="input"
 	idle-event-interval="5000"
 	task-executor="exec"
-	file="/tmp/foo"/>
+	file="/tmp/somefile"/>
 ----
+====
 
-`IdleEventInterval` is set to 5000 then, if no lines are written for 5 second, `FileTailingIdleEvent` will be triggered every 5 second.
-This can be useful if we need to stop the adapter.
+This can be useful when you need to stop the adapter.
+// TODO How does this stop the adapter?
 
+The following example creates an Apache `commons-io` `Tailer` adapter that examines the file for new lines every two seconds and checks for existence of a missing file every ten seconds:
+
+====
 [source,xml]
 ----
 <int-file:tail-inbound-channel-adapter id="apache"
@@ -523,260 +571,257 @@ This can be useful if we need to stop the adapter.
 	task-executor="exec"
 	file="/tmp/bar"
 	delay="2000"
-	end="false"
-	reopen="true"
+	end="false"             <1>
+	reopen="true"           <2>
 	file-delay="10000"/>
 ----
 
-This creates an Apache commons-io `Tailer` adapter that examines the file for new lines every 2 seconds, and checks for existence of a missing file every 10 seconds.
-The file will be tailed from the beginning (`end="false"`) instead of the end (which is the default).
-The file will be reopened for each chunk (the default is to keep the file open).
+<1> The file is tailed from the beginning (`end="false"`) instead of the end (which is the default).
+<2> The file is reopened for each chunk (the default is to keep the file open).
+====
 
-IMPORTANT: Specifying the `delay`, `end` or `reopen` attributes, forces the use of the Apache commons-io adapter and the `native-options` attribute is not allowed.
+IMPORTANT: Specifying the `delay`, `end` or `reopen` attributes forces the use of the Apache `commons-io` adapter and makes the `native-options` attribute unavailable.
 
 [[file-incomplete]]
 ==== Dealing With Incomplete Data
 
-A common problem in file transfer scenarios is how to determine that the transfer is complete, so you don't start reading an incomplete file.
+A common problem in file-transfer scenarios is how to determine that the transfer is complete so that you do not start reading an incomplete file.
 A common technique to solve this problem is to write the file with a temporary name and then atomically rename it to the final name.
-This, together with a filter that masks the temporary file from being picked up by the consumer provides a robust solution.
-This technique is used by Spring Integration components that write files (locally or remotely); by default, they append `.writing` to the file name and remove it when the transfer is complete.
+This technique, together with a filter that masks the temporary file from being picked up by the consumer, provides a robust solution.
+This technique is used by Spring Integration components that write files (locally or remotely).
+By default, they append `.writing` to the file name and remove it when the transfer is complete.
 
-Another common technique is to write a second "marker" file to indicate the file transfer is complete.
-In this scenario, say, you should not consider `foo.txt` to be available for use until `foo.txt.complete` is also present.
-Spring Integration _version 5.0_ introduces new filters to support this mechanism.
+Another common technique is to write a second "`marker`" file to indicate that the file transfer is complete.
+In this scenario, you should not consider `somefile.txt` (for example) to be available for use until `somefile.txt.complete` is also present.
+Spring Integration version 5.0 introduced new filters to support this mechanism.
 Implementations are provided for the file system (`FileSystemMarkerFilePresentFileListFilter`), <<ftp-incomplete, FTP>> and <<sftp-incomplete, SFTP>>.
-They are configurable such that the marker file can have any name, although it will usually be related to the file being transferred.
-See the javadocs for more information.
+They are configurable such that the marker file can have any name, although it is usually related to the file being transferred.
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/filters/FileSystemMarkerFilePresentFileListFilter.html[Javadoc] for more information.
 
 [[file-writing]]
 === Writing files
 
-To write messages to the file system you can use a http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html[FileWritingMessageHandler].
+To write messages to the file system, you can use a http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileWritingMessageHandler.html[`FileWritingMessageHandler`].
 This class can deal with the following payload types:
 
-* _File_,
-* _String_
-* _byte array_
-* _InputStream_ (since _version 4.2_)
+* `File`
+* `String`
+* byte array
+* `InputStream` (since _version 4.2_)
 
-You can configure the encoding and the charset that will be used in case of a String payload.
+For a String payload, you can configure the encoding and the charset.
 
-To make things easier, you can configure the `FileWritingMessageHandler` as part of an _Outbound Channel Adapter_ or
-_Outbound Gateway_ using the provided XML namespace support.
+To make things easier, you can configure the `FileWritingMessageHandler` as part of an outbound channel adapter or
+outbound gateway by using the XML namespace.
 
-Starting with _version 4.3_, you can specify the buffer size to use when writing files.
+Starting with version 4.3, you can specify the buffer size to use when writing files.
 
 [[file-writing-file-names]]
 ==== Generating File Names
 
-In its simplest form, the `FileWritingMessageHandler` only requires a destination directory for writing the files.
-The name of the file to be written is determined by the handler's http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html[FileNameGenerator].
-The http://docs.spring.io/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html[default implementation] looks for a Message header whose key matches the constant defined as http://docs.spring.io/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME[FileHeaders.FILENAME].
+In its simplest form, the `FileWritingMessageHandler` requires only a destination directory for writing the files.
+The name of the file to be written is determined by the handler's http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileNameGenerator.html[`FileNameGenerator`].
+The http://docs.spring.io/spring-integration/api/org/springframework/integration/file/DefaultFileNameGenerator.html[default implementation] looks for a message header whose key matches the constant defined as http://docs.spring.io/spring-integration/api/constant-values.html#org.springframework.integration.file.FileHeaders.FILENAME[`FileHeaders.FILENAME`].
 
-Alternatively, you can specify an expression to be evaluated against the Message in order to generate a file name, e.g. _headers['myCustomHeader'] + '.foo'_.
+Alternatively, you can specify an expression to be evaluated against the message to generate a file name -- for example, `headers['myCustomHeader'] + '.something'`.
 The expression must evaluate to a `String`.
-For convenience, the `DefaultFileNameGenerator` also provides the _setHeaderName_ method, allowing you to explicitly specify the Message header whose value shall be used as the filename.
+For convenience, the `DefaultFileNameGenerator` also provides the `setHeaderName` method, letting you explicitly specify the message header whose value is to be used as the filename.
 
-Once setup, the `DefaultFileNameGenerator` will employ the following resolution steps to determine the filename for a given Message payload:
+Once set up, the `DefaultFileNameGenerator` employs the following resolution steps to determine the filename for a given message payload:
 
-. Evaluate the expression against the Message and, if the result is a non-empty `String`, use it as the filename.
-. Otherwise, if the payload is a `java.io.File`, use the file's filename.
-. Otherwise, use the Message ID appended with .`msg` as the filename.
+. Evaluate the expression against the message and, if the result is a non-empty `String`, use it as the filename.
+. Otherwise, if the payload is a `java.io.File`, use the `File` object's filename.
+. Otherwise, use the message ID appended with .`msg` as the filename.
 
-When using the XML namespace support, both, the _File Outbound Channel Adapter_ and the _File Outbound Gateway_ support the following two mutually exclusive configuration attributes:
+When you use the XML namespace support, both the file outbound channel adapter and the file outbound gateway support the following mutually exclusive configuration attributes:
 
 * `filename-generator` (a reference to a `FileNameGenerator` implementation)
-* `filename-generator-expression` (an expression evaluating to a `String`)
+* `filename-generator-expression` (an expression that evaluates to a `String`)
 
-While writing files, a temporary file suffix will be used (default: `.writing`).
+While writing files, a temporary file suffix is used (its default is `.writing`).
 It is appended to the filename while the file is being written.
-To customize the suffix, you can set the _temporary-file-suffix_ attribute on both the _File Outbound Channel Adapter_ and the _File Outbound Gateway_.
+To customize the suffix, you can set the `temporary-file-suffix` attribute on both the file outbound channel adapter and the file outbound gateway.
 
-NOTE: When using the _APPEND_ file _mode_, the _temporary-file-suffix_ attribute is ignored, since the data is appended to the file directly.
+NOTE: When using the `APPEND` file `mode`, the `temporary-file-suffix` attribute is ignored, since the data is appended to the file directly.
 
-Starting with _version 4.2.5_ the generated file name (as a result of `filename-generator`/`filename-generator-expression`
-evaluation) can represent a _sub-path_ together with the target file name.
-It is used as a second constructor argument for `File(File parent, String child)` as before, but in the past we didn't
-created (`mkdirs()`) directories for _sub-path_ assuming only the _file name_.
-This approach is useful for cases when we need to restore the file system tree according the source directory.
-For example we unzipping the archive and want to save all file in the target directory at the same order.
+Starting with ,version 4.2.5, the generated file name (as a result of `filename-generator` or `filename-generator-expression`
+evaluation) can represent a child path together with the target file name.
+It is used as a second constructor argument for `File(File parent, String child)` as before.
+However, in the past we did not create (`mkdirs()`) directories for the child path, assuming only the file name.
+This approach is useful for cases when we need to restore the file system tree to match the source directory -- for example, when unzipping the archive and saving all the files in the target directory in the original order.
 
 [[file-writing-output-directory]]
 ==== Specifying the Output Directory
 
-Both, the _File Outbound Channel Adapter_ and the _File Outbound Gateway_ provide two configuration attributes for specifying the output directory:
+Both, the file outbound channel adapter and the file outbound gateway provide two mutually exclusive configuration attributes for specifying the output directory:
 
-* _directory_
-* _directory-expression_
+* `directory`
+* `directory-expression`
 
-NOTE: The _directory-expression_ attribute is available since Spring Integration 2.2.
+NOTE: Spring Integration 2.2 introduced the `directory-expression` attribute.
 
-*Using the directory attribute*
+===== Using the `directory` Attribute
 
-When using the _directory_ attribute, the output directory will be set to a fixed value, that is set at initialization time of the `FileWritingMessageHandler`.
-If you don't specify this attribute, then you must use the _directory-expression_ attribute.
+When you use the `directory` attribute, the output directory is set to a fixed value, which is set when the `FileWritingMessageHandler` is initialized.
+If you do not specify this attribute, you must use the `directory-expression` attribute.
 
-*Using the directory-expression attribute*
+===== Using the `directory-expression` Attribute
 
-If you want to have full SpEL support you would choose the _directory-expression_ attribute.
+If you want to have full SpEL support, you can use the `directory-expression` attribute.
 This attribute accepts a SpEL expression that is evaluated for each message being processed.
-Thus, you have full access to a Message's payload and its headers to dynamically specify the output file directory.
+Thus, you have full access to a message's payload and its headers when you dynamically specify the output file directory.
 
 The SpEL expression must resolve to either a `String` or to `java.io.File`.
-Furthermore the resulting `String` or `File` must point to a directory.
-If you don't specify the _directory-expression_ attribute, then you must set the _directory_ attribute.
+Furthermore, the resulting `String` or `File` must point to a directory.
+If you do not specify the `directory-expression` attribute, then you must set the `directory` attribute.
 
-*Using the auto-create-directory attribute*
+===== Using the `auto-create-directory` Attribute
 
-If the destination directory does not exists, yet, by default the respective destination directory and any non-existing parent directories are being created automatically.
-You can set the _auto-create-directory_ attribute to _false_ in order to prevent that.
-This attribute applies to both, the _directory_ and the _directory-expression_ attribute.
+By default, if the destination directory does not exist, the respective destination directory and any non-existing parent directories are  automatically created.
+To prevent that behavior, you can set the `auto-create-directory` attribute to `false`.
+This attribute applies to both the `directory` and the `directory-expression` attributes.
 
 [NOTE]
-=====
-When using the _directory_ attribute and _auto-create-directory_ is `false`, the following change was made starting with Spring Integration 2.2:
+====
+When using the `directory` attribute and `auto-create-directory` is `false`, the following change was made starting with Spring Integration 2.2:
 
-Instead of checking for the existence of the destination directory at initialization time of the adapter, this check is now performed for each message being processed.
+Instead of checking for the existence of the destination directory when the adapter is initialized, this check is now performed for each message being processed.
 
-Furthermore, if _auto-create-directory_ is `true` and the directory was deleted between the processing of messages, the directory will be re-created for each message being processed.
-=====
+Furthermore, if `auto-create-directory` is `true` and the directory was deleted between the processing of messages, the directory is re-created for each message being processed.
+====
 
 [[file-writing-destination-exists]]
 ==== Dealing with Existing Destination Files
 
-When writing files and the destination file already exists, the default behavior is to overwrite that target file.
-This behavior, though, can be changed by setting the _mode_ attribute on the respective File Outbound components.
+When you write files and the destination file already exists, the default behavior is to overwrite that target file.
+You can change this behavior by setting the `mode` attribute on the relevant file outbound components.
 The following options exist:
 
-* REPLACE (Default)
-* REPLACE_IF_MODIFIED
-* APPEND
-* APPEND_NO_FLUSH
-* FAIL
-* IGNORE
+* `REPLACE` (Default)
+* `REPLACE_IF_MODIFIED`
+* `APPEND`
+* `APPEND_NO_FLUSH`
+* `FAIL`
+* `IGNORE`
 
+NOTE: Spring Integration 2.2 introduced the `mode` attribute and the `APPEND`, `FAIL`, and `IGNORE` options.
 
-
-NOTE: The _mode_ attribute and the options _APPEND_, _FAIL_ and _IGNORE_, are available since _Spring Integration 2.2_.
-
-_REPLACE_
-
-If the target file already exists, it will be overwritten.
-If the _mode_ attribute is not specified, then this is the default behavior when writing files.
-
-_REPLACE_IF_MODIFIED_
-
-If the target file already exists, it will be overwritten only if the last modified timestamp is different to the source file.
+`REPLACE`::
+If the target file already exists, it is overwritten.
+If the `mode` attribute is not specified, this is the default behavior when writing files.
+`REPLACE_IF_MODIFIED`::
+If the target file already exists, it is overwritten only if the last modified timestamp differs from that of the source file.
 For `File` payloads, the payload `lastModified` time is compared to the existing file.
 For other payloads, the `FileHeaders.SET_MODIFIED` (`file_setModified`) header is compared to the existing file.
-If the header is missing, or has a value that is not a `Number`, the file is always replaced.
-
-_APPEND_
-
-This mode allows you to append Message content to the existing file instead of creating a new file each time.
-Note that this attribute is mutually exclusive with _temporary-file-suffix_ attribute since when appending content to
+If the header is missing or has a value that is not a `Number`, the file is always replaced.
+`APPEND`::
+This mode lets you append message content to the existing file instead of creating a new file each time.
+Note that this attribute is mutually exclusive with the `temporary-file-suffix` attribute because, when it appends content to
 the existing file, the adapter no longer uses a temporary file.
 The file is closed after each message.
-
-__APPEND_NO_FLUSH__
-
-This has the same semantics as *APPEND* but the data is not flushed and the file is not closed after each message.
-This can provide a significant performance at the risk of data loss in the case of a failure.
-See <<file-flushing>> for more information.
-
-_FAIL_
-
-If the target file exists, a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html[MessageHandlingException] is thrown.
-
-_IGNORE_
-
+`APPEND_NO_FLUSH`::
+This option has the same semantics as `APPEND`, but the data is not flushed and the file is not closed after each message.
+This can provide a significant performance at the risk of data loss in the event of a failure.
+See "`<<file-flushing>>`" for more information.
+`FAIL`::
+If the target file exists, a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html[`MessageHandlingException`] is thrown.
+`IGNORE`::
 If the target file exists, the message payload is silently ignored.
 
-NOTE: When using a temporary file suffix (default: `.writing`), the _IGNORE_ mode will apply if the final file name exists, or the temporary file name exists.
+NOTE: When using a temporary file suffix (the default is `.writing`), the `IGNORE` option applies if either the final file name or the temporary file name exists.
 
 [[file-flushing]]
-==== Flushing Files When using APPEND_NO_FLUSH
+==== Flushing Files When Using `APPEND_NO_FLUSH`
 
-The *APPEND_NO_FLUSH* mode was added in _version 4.3_.
-This can improve performance because the file is not closed after each message.
+The `APPEND_NO_FLUSH` mode was added in version 4.3.
+Using it can improve performance because the file is not closed after each message.
 However, this can cause data loss in the event of a failure.
 
-Several flushing strategies, to mitigate this data loss, are provided:
+Spring Integration provides several flushing strategies to mitigate this data loss:
 
-- `flushInterval` - if a file is not written to for this period of time, it is automatically flushed.
+* Use `flushInterval`. If a file is not written to for this period of time, it is automatically flushed.
 This is approximate and may be up to `1.33x` this time (with an average of `1.167x`).
-- Send a message to the message handler's `trigger` method containing a regular expression.
-Files with absolute path names matching the pattern will be flushed.
-- Provide the handler with a custom `MessageFlushPredicate` implementation to modify the action taken when a message
+* Send a message containing a regular expression to the message handler's `trigger` method.
+Files with absolute path names matching the pattern are flushed.
+* Provide the handler with a custom `MessageFlushPredicate` implementation to modify the action taken when a message
 is sent to the `trigger` method.
-- Invoke one of the handler's `flushIfNeeded` methods passing in a custom `FileWritingMessageHandler.FlushPredicate`
+* Invoke one of the handler's `flushIfNeeded` methods by passing in a custom `FileWritingMessageHandler.FlushPredicate`
 or `FileWritingMessageHandler.MessageFlushPredicate` implementation.
 
 The predicates are called for each open file.
-See the java docs for these interfaces for more information.
-Note that, since _version 5.0_, the predicate methods provide another parameter - the time that the current file was first written to if new or previously closed.
+See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for these interfaces for more information.
+Note that, since version 5.0, the predicate methods provide another parameter: the time that the current file was first written to if new or previously closed.
 
-When using `flushInterval`, the interval starts at the last write - the file is flushed only if it is idle for the interval.
-Starting with _version 4.3.7_, and additional property `flushWhenIdle` can be set to `false`, meaning that the interval starts with the first write to a previously flushed (or new) file.
+When using `flushInterval`, the interval starts at the last write.
+The file is flushed only if it is idle for the interval.
+Starting with version 4.3.7, an additional property (`flushWhenIdle`) can be set to `false`, meaning that the interval starts with the first write to a previously flushed (or new) file.
 
 [[file-timestamps]]
 ==== File Timestamps
 
-By default, the destination file `lastModified` timestamp will be the time the file was created (except a rename
-in-place will retain the current timestamp).
-Starting with _version 4.3_, you can now configure `preserve-timestamp` (or `setPreserveTimestamp(true)` when using
-Java configuration).
-For `File` payloads, this will transfer the timestamp from the inbound file to the outbound (regardless of whether a
-copy was required).
-For other payloads, if the `FileHeaders.SET_MODIFIED` header (`file_setModified`) is present, it will be used to set
-the destination file's `lastModified` timestamp, as long as the header is a `Number`.
+By default, the destination file's `lastModified` timestamp is the time when the file was created (except that an in-place rename retains the current timestamp).
+Starting with version 4.3, you can now configure `preserve-timestamp` (or `setPreserveTimestamp(true)` when using Java configuration).
+For `File` payloads, this transfers the timestamp from the inbound file to the outbound (regardless of whether a copy was required).
+For other payloads, if the `FileHeaders.SET_MODIFIED` header (`file_setModified`) is present, it is used to set the destination file's `lastModified` timestamp, as long as the header is a `Number`.
 
 [[file-permissions]]
 ==== File Permissions
 
-Starting with _version 5.0_, when writing files to a file system that supports Posix permissions, you can specify those permissions on the outbound channel adapter or gateway.
-The property is an integer and is usually supplied in the familiar octal format; e.g. `0640` meaning the owner has read/write permissions, the group has read only permission and others have no access.
+Starting with version 5.0, when writing files to a file system that supports Posix permissions, you can specify those permissions on the outbound channel adapter or gateway.
+The property is an integer and is usually supplied in the familiar octal format -- for example, `0640`, meaning that the owner has read/write permissions, the group has read-only permission, and others have no access.
 
 [[file-outbound-channel-adapter]]
 ==== File Outbound Channel Adapter
 
+The following example configures a file outbound channel adapter:
+
+====
 [source,xml]
 ----
 <int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>
 ----
+====
 
-The namespace based configuration also supports a `delete-source-files` attribute.
-If set to `true`, it will trigger the deletion of the original source files after writing to a destination.
+The namespace-based configuration also supports a `delete-source-files` attribute.
+If set to `true`, it triggers the deletion of the original source files after writing to a destination.
 The default value for that flag is `false`.
+The following example shows how to set it to `true`:
 
+====
 [source,xml]
 ----
 <int-file:outbound-channel-adapter id="filesOut"
     directory="${output.directory}"
     delete-source-files="true"/>
 ----
+====
 
-NOTE: The `delete-source-files` attribute will only have an effect if the inbound Message has a File payload or if the `FileHeaders.ORIGINAL_FILE` header value contains either the source File instance or a String representing the original file path.
+NOTE: The `delete-source-files` attribute has an effect only if the inbound message has a `File` payload or if the `FileHeaders.ORIGINAL_FILE` header value contains either the source `File` instance or a `String` representing the original file path.
 
-Starting with _version 4.2_ The `FileWritingMessageHandler` supports an `append-new-line` option.
+Starting with version 4.2, the `FileWritingMessageHandler` supports an `append-new-line` option.
 If set to `true`, a new line is appended to the file after a message is written.
 The default attribute value is `false`.
+The following example shows how to use the `append-new-line` option:
 
+====
 [source,xml]
 ----
 <int-file:outbound-channel-adapter id="newlineAdapter"
 	append-new-line="true"
     directory="${output.directory}"/>
 ----
+====
 
 [[file-writing-output-gateway]]
 ==== Outbound Gateway
 
 In cases where you want to continue processing messages based on the written file, you can use the `outbound-gateway` instead.
-It plays a very similar role as the `outbound-channel-adapter`.
-However, after writing the file, it will also send it to the reply channel as the payload of a Message.
+It plays a role similar to that of the `outbound-channel-adapter`.
+However, after writing the file, it also sends it to the reply channel as the payload of a message.
 
+The following example configures an outbound gateway:
+
+====
 [source,xml]
 ----
 <int-file:outbound-gateway id="mover" request-channel="moveInput"
@@ -784,23 +829,27 @@ However, after writing the file, it will also send it to the reply channel as th
     directory="${output.directory}"
     mode="REPLACE" delete-source-files="true"/>
 ----
+====
 
-As mentioned earlier, you can also specify the _mode_ attribute, which defines the behavior of how to deal with situations where the destination file already exists.
-Please see <<file-writing-destination-exists>> for further details.
-Generally, when using the _File Outbound Gateway_, the result file is returned as the Message payload on the reply channel.
+As mentioned earlier, you can also specify the `mode` attribute, which defines the behavior of how to deal with situations where the destination file already exists.
+See "`<<file-writing-destination-exists>>`" for further details.
+Generally, when using the file outbound gateway, the result file is returned as the message payload on the reply channel.
 
-This also applies when specifying the _IGNORE_ mode.
+This also applies when specifying the `IGNORE` mode.
 In that case the pre-existing destination file is returned.
-If the payload of the request message was a file, you still have access to that original file through the Message Header http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileHeaders.html[FileHeaders.ORIGINAL_FILE].
+If the payload of the request message was a file, you still have access to that original file through the message header.
+See http://docs.spring.io/spring-integration/api/org/springframework/integration/file/FileHeaders.html[FileHeaders.ORIGINAL_FILE].
 
 NOTE: The 'outbound-gateway' works well in cases where you want to first move a file and then send it through a processing pipeline.
 In such cases, you may connect the file namespace's `inbound-channel-adapter` element to the `outbound-gateway` and then connect that gateway's `reply-channel` to the beginning of the pipeline.
 
-If you have more elaborate requirements or need to support additional payload types as input to be converted to file content you could extend the `FileWritingMessageHandler`, but a much better option is to rely on a `Transformer`.
+If you have more elaborate requirements or need to support additional payload types as input to be converted to file content, you can extend the `FileWritingMessageHandler`, but a much better option is to rely on a <<file-transforming,`Transformer`>>.
 
 ==== Configuring with Java Configuration
 
-The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
+The following Spring Boot application shows an example of how to configure the inbound adapter with Java configuration:
+
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -834,11 +883,13 @@ public class FileWritingJavaApplication {
     }
 }
 ----
+====
 
 ==== Configuring with the Java DSL
 
-The following Spring Boot application provides an example of configuring the inbound adapter using the Java DSL:
+The following Spring Boot application shows an example of how to configure the inbound adapter with the Java DSL:
 
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -865,26 +916,30 @@ public class FileWritingJavaApplication {
 
 }
 ----
-
+====
 
 [[file-transforming]]
 === File Transformers
 
-To transform data read from the file system to objects and the other way around you need to do some work.
-Contrary to `FileReadingMessageSource` and to a lesser extent `FileWritingMessageHandler`, it is very likely that you will need your own mechanism to get the job done.
-For this you can implement the `Transformer` interface.
-Or extend the `AbstractFilePayloadTransformer` for inbound messages.
-Some obvious implementations have been provided.
+To transform data read from the file system to objects and the other way around, you need to do some work.
+Unlike `FileReadingMessageSource` and to a lesser extent `FileWritingMessageHandler`, you probably need your own mechanism to get the job done.
+For this, you can implement the `Transformer` interface.
+Alternatively, you can extend the `AbstractFilePayloadTransformer` for inbound messages.
+Spring Integration provides some obvious implementations.
 
-`FileToByteArrayTransformer` transforms Files into `byte[]` using Spring's `FileCopyUtils`.
+See the https://docs.spring.io/spring-integration/api/org/springframework/integration/transformer/Transformer.html[Javadoc for the `Transformer` interface] to see which Spring Integration classes implement it.
+Similarly, you can check the https://docs.spring.io/spring-integration/api/org/springframework/integration/file/transformer/AbstractFilePayloadTransformer.html[Javadoc for the `AbstractFilePayloadTransformer` class] to see which Spring Integration classes extend it.
+
+`FileToByteArrayTransformer` extends `AbstractFilePayloadTransformer` and transforms a `File` object into a `byte[]` by using Spring's `FileCopyUtils`.
 It is often better to use a sequence of transformers than to put all transformations in a single class.
 In that case the `File` to `byte[]` conversion might be a logical first step.
 
-`FileToStringTransformer` will convert Files to Strings as the name suggests.
-If nothing else, this can be useful for debugging (consider using with a Wire Tap).
+`FileToStringTransformer` extends `AbstractFilePayloadTransformer` convert a `File` object to a `String`.
+If nothing else, this can be useful for debugging (consider using it with a <<channel-wiretap,wire tap>>).
 
-To configure File specific transformers you can use the appropriate elements from the file namespace.
+To configure file-specific transformers, you can use the appropriate elements from the file namespace, as the following example shows:
 
+====
 [source,xml]
 ----
 <int-file:file-to-bytes-transformer  input-channel="input" output-channel="output"
@@ -893,116 +948,109 @@ To configure File specific transformers you can use the appropriate elements fro
 <int-file:file-to-string-transformer input-channel="input" output-channel="output"
     delete-files="true" charset="UTF-8"/>
 ----
+====
 
-The _delete-files_ option signals to the transformer that it should delete the inbound File after the transformation is complete.
-This is in no way a replacement for using the `AcceptOnceFileListFilter` when the `FileReadingMessageSource` is being used in a multi-threaded environment (e.g.
-Spring Integration in general).
-
+The `delete-files` option signals to the transformer that it should delete the inbound file after the transformation is complete.
+This is in no way a replacement for using an `AcceptOnceFileListFilter` when the `FileReadingMessageSource` is being used in a multi-threaded environment (such as when you use Spring Integration in general).
 
 [[file-splitter]]
 === File Splitter
 
-The `FileSplitter` was added in _version 4.1.2_ and namespace support was added in _version 4.2_.
+The `FileSplitter` was added in version 4.1.2, and its namespace support was added in version 4.2.
 The `FileSplitter` splits text files into individual lines, based on `BufferedReader.readLine()`.
-By default, the splitter uses an `Iterator` to emit lines one-at-a-time as they are read from the file.
+By default, the splitter uses an `Iterator` to emit lines one at a time as they are read from the file.
 Setting the `iterator` property to `false` causes it to read all the lines into memory before emitting them as messages.
-One use case for this might be if you want to detect I/O errors on the file before sending any messages containing
-lines.
+One use case for this might be if you want to detect I/O errors on the file before sending any messages containing lines.
 However, it is only practical for relatively short files.
 
 Inbound payloads can be `File`, `String` (a `File` path), `InputStream`, or `Reader`.
-Other payload types will be emitted unchanged.
+Other payload types are emitted unchanged.
 
+The following listing shows all the possible attributes for `<int-file:splitter>`:
+
+====
 [source, xml]
 ----
 <int-file:splitter id="splitter" <1>
-    iterator="" <2>
-    markers="" <3>
-    markers-json="" <4>
-    apply-sequence="" <5>
-    requires-reply="" <6>
-    charset="" <7>
-    first-line-as-header="" <8>
-    input-channel="" <9>
-    output-channel="" <10>
-    send-timeout="" <11>
-    auto-startup="" <12>
-    order="" <13>
-    phase="" /> <14>
+    iterator=""                  <2>
+    markers=""                   <3>
+    markers-json=""              <4>
+    apply-sequence=""            <5>
+    requires-reply=""            <6>
+    charset=""                   <7>
+    first-line-as-header=""      <8>
+    input-channel=""             <9>
+    output-channel=""            <10>
+    send-timeout=""              <11>
+    auto-startup=""              <12>
+    order=""                     <13>
+    phase="" />                  <14>
 ----
 
 <1> The bean name of the splitter.
-
-<2> Set to `true` to use an iterator (default); `false` to load the file into memory before sending lines.
-
-<3> Set to `true` to emit start/end of file marker messages before and after the file data.
+<2> Set to `true` (the default) to use an iterator or `false` to load the file into memory before sending lines.
+<3> Set to `true` to emit start-of-file and end-of-file marker messages before and after the file data.
 Markers are messages with `FileSplitter.FileMarker` payloads (with `START` and `END` values in the `mark` property).
-Markers might be used when sequentially processing files in a downstream flow where some lines are filtered.
+You might use markers when sequentially processing files in a downstream flow where some lines are filtered.
 They enable the downstream processing to know when a file has been completely processed.
-In addition, a header `file_marker` containing `START` or `END` are added to these messages.
+In addition, a `file_marker` header that contains `START` or `END` is added to these messages.
 The `END` marker includes a line count.
 If the file is empty, only `START` and `END` markers are emitted with `0` as the `lineCount`.
-Default: `false`.
+The default is `false`.
 When `true`, `apply-sequence` is `false` by default.
-Also see `markers-json`.
-
-<4> When `markers` is true, set this to `true` and the `FileMarker` objects will be converted to a JSON String.
-Requires a supported JSON processor library on the classpath (Jackson, Boon).
-
+See also `markers-json` (the next attribute).
+<4> When `markers` is true, set this to `true` to have the `FileMarker` objects be converted to a JSON string.
+Requires a supported JSON processor library (Jackson or Boon) on the classpath.
 <5> Set to `false` to disable the inclusion of `sequenceSize` and `sequenceNumber` headers in messages.
-Default: `true`, unless `markers` is `true`.
+The default is `true`, unless `markers` is `true`.
 When `true` and `markers` is `true`, the markers are included in the sequencing.
-When `true` and `iterator` is `true`, the `sequenceSize` header is set to `0` because the size is unknown.
-
+When `true` and `iterator` is `true`, the `sequenceSize` header is set to `0`, because the size is unknown.
 <6> Set to `true` to cause a `RequiresReplyException` to be thrown if there are no lines in the file.
-Default: `false`.
-
-<7> Set the charset name to be used when reading the text data into `String` payloads.
-Default: platform charset.
-
+The default is `false`.
+<7> Set the charset name to be used when reading text data into `String` payloads.
+The default is the platform charset.
 <8> The header name for the first line to be carried as a header in the messages emitted for the remaining lines.
-Since _version 5.0_.
-
+Since version 5.0.
 <9> Set the input channel used to send messages to the splitter.
-
-<10> Set the output channel to which messages will be sent.
-
-<11> Set the send timeout - only applies if the `output-channel` can block - such as a full `QueueChannel`.
-
+<10> Set the output channel to which messages are sent.
+<11> Set the send timeout.
+Only applies if the `output-channel` can block -- such as a full `QueueChannel`.
 <12> Set to `false` to disable automatically starting the splitter when the context is refreshed.
-Default: `true`.
-
+The default is `true`.
 <13> Set the order of this endpoint if the `input-channel` is a `<publish-subscribe-channel/>`.
-
 <14> Set the startup phase for the splitter (used when `auto-startup` is `true`).
+====
 
-The `FileSplitter` will also split any text-based `InputStream` into lines.
-When used in conjunction with an FTP or SFTP streaming inbound channel adapter, or an FTP or SFTP outbound gateway
-using the `stream` option to retrieve a file, starting with _version 4.3_, the splitter will automatically close
-the session supporting the stream, when the file is completely consumed.
-See <<ftp-streaming>> and <<sftp-streaming>> as well as <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more
+The `FileSplitter` also splits any text-based `InputStream` into lines.
+Starting with version 4.3, when used in conjunction with an FTP or SFTP streaming inbound channel adapter or an FTP or SFTP outbound gateway that uses the `stream` option to retrieve a file, the splitter automatically closes the session that supports the stream when the file is completely consumed
+See "`<<ftp-streaming>>`" and "`<<sftp-streaming>>`" as well as "`<<ftp-outbound-gateway>>`" and "`<<sftp-outbound-gateway>>`" for more
 information about these facilities.
 
-When using Java configuration, an additional constructor is available:
+When using Java configuration, an additional constructor is available, as the following example shows:
 
+====
 [source, java]
 ----
 public FileSplitter(boolean iterator, boolean markers, boolean markersJson)
 ----
+====
 
-When `markersJson` is true, the markers will be represented as a JSON string, as long as a suitable JSON processor library, such as Jackson or Boon, is on the classpath.
+When `markersJson` is true, the markers are represented as a JSON string, as long as a suitable JSON processor library (such as Jackson or Boon) is on the classpath.
 
-Starting with _version 5.0_, the `firstLineAsHeader` option is introduced to specify that the first line of content is a header (such as column names in a CSV file).
-The argument passed to this property is the header name under which the first line will be carried as a header in the messages emitted for the remaining lines.
-This line is not included in the sequence header (if `applySequence` is true) nor in the `FileMarker.END` `lineCount`.
-If file contains only the header line, the file is treated as empty and therefore only `FileMarker` s are emitted during splitting (if markers are enabled, otherwise no messages are emitted).
-By default (if no header name is set), the first line is considered to be data and will be the payload of the first emitted message.
+Version 5.0 introduced the `firstLineAsHeader` option to specify that the first line of content is a header (such as column names in a CSV file).
+The argument passed to this property is the header name under which the first line is carried as a header in the messages emitted for the remaining lines.
+This line is not included in the sequence header (if `applySequence` is true) nor in the `lineCount` associated with `FileMarker.END` .
+If a file contains only the header line, the file is treated as empty and, therefore, only `FileMarker` instances are emitted during splitting (if markers are enabled -- otherwise, no messages are emitted).
+By default (if no header name is set), the first line is considered to be data and becomes the payload of the first emitted message.
 
-If you need more complex logic about headers extraction from the file content (not first line, not the whole content of the line, not one header etc.), consider to use <<header-enricher, Header Enricher>> upfront of the `FileSplitter`.
-The lines which have been moved to the headers might be filtered downstream from the normal content process.
+If you need more complex logic about header extraction from the file content (not first line, not the whole content of the line, not one particular header, and so on), consider using  <<header-enricher, header enricher>> ahead of the `FileSplitter`.
+Note that the lines that have been moved to the headers might be filtered downstream from the normal content process.
 
 ==== Configuring with Java Configuration
 
+The following Spring Boot application shows an example of how to configure a file splitter with Java configuration:
+
+====
 [source, java]
 ----
 @Splitter(inputChannel="toSplitter")
@@ -1014,11 +1062,13 @@ public MessageHandler fileSplitter() {
     return splitter;
 }
 ----
+====
 
 ==== Configuring with the Java DSL
 
-The following Spring Boot application provides an example of configuring the inbound adapter using the Java DSL:
+The following Spring Boot application shows an example of how to configure a file splitter with the Java DSL:
 
+====
 [source, java]
 ----
 @SpringBootApplication
@@ -1049,3 +1099,4 @@ public class FileSplitterApplication {
 
 }
 ----
+====

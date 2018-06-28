@@ -1,30 +1,37 @@
 [[mail]]
 == Mail Support
 
+This section describes how to work with mail messages in Spring Integration.
+
 [[mail-outbound]]
-=== Mail-Sending Channel Adapter
+=== Mail-sending Channel Adapter
 
 Spring Integration provides support for outbound email with the `MailSendingMessageHandler`.
-It delegates to a configured instance of Spring's `JavaMailSender`:
+It delegates to a configured instance of Spring's `JavaMailSender`, as the following example shows:
+
+====
 [source,java]
 ----
  JavaMailSender mailSender = context.getBean("mailSender", JavaMailSender.class);
 
  MailSendingMessageHandler mailSendingHandler = new MailSendingMessageHandler(mailSender);
 ----
+====
 
 `MailSendingMessageHandler` has various mapping strategies that use Spring's `MailMessage` abstraction.
-If the received Message's payload is already a `MailMessage` instance, it will be sent directly.
-Therefore, it is generally recommended to precede this consumer with a Transformer for non-trivial `MailMessage` construction requirements.
-However, a few simple Message mapping strategies are supported out-of-the-box.
-For example, if the message payload is a byte array, then that will be mapped to an attachment.
-For simple text-based emails, you can provide a String-based Message payload.
-In that case, a MailMessage will be created with that String as the text content.
-If you are working with a Message payload type whose `toString()` method returns appropriate mail text content, then consider adding Spring Integration's _ObjectToStringTransformer_ prior to the outbound Mail adapter (see the example within <<transformer-namespace>> for more detail).
+If the received message's payload is already a `MailMessage` instance, it is sent directly.
+Therefore, we generally recommend that you precede this consumer with a transformer for non-trivial `MailMessage` construction requirements.
+However, Spring Integration supports a few simple message mapping strategies.
+For example, if the message payload is a byte array, that is mapped to an attachment.
+For simple text-based emails, you can provide a string-based message payload.
+In that case, a `MailMessage` is created with that `String` as the text content.
+If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in "`<<transformer-namespace>>`" for more detail).
 
-The outbound MailMessage may also be configured with certain values from the `MessageHeaders`.
-If available, values will be mapped to the outbound mail's properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject.
+You can also configure the outbound `MailMessage` with certain values from `MessageHeaders`.
+If available, values are mapped to the outbound mail's properties, such as the recipients (To, Cc, and BCc), the from, the reply-to, and the subject.
 The header names are defined by the following constants:
+
+====
 [source,java]
 ----
  MailHeaders.SUBJECT
@@ -34,104 +41,109 @@ The header names are defined by the following constants:
  MailHeaders.FROM
  MailHeaders.REPLY_TO
 ----
+====
 
-NOTE: `MailHeaders` also allows you to override corresponding `MailMessage` values.
-For example: If `MailMessage.to` is set to 'foo@bar.com' and `MailHeaders.TO` Message header is provided it will take precedence and override the corresponding value in `MailMessage`.
+NOTE: `MailHeaders` also lets you override corresponding `MailMessage` values.
+For example, if `MailMessage.to` is set to 'thing1@things.com' and the `MailHeaders.TO` message header is provided, it takes precedence and overrides the corresponding value in `MailMessage`.
 
 [[mail-inbound]]
-=== Mail-Receiving Channel Adapter
+=== Mail-receiving Channel Adapter
 
 Spring Integration also provides support for inbound email with the `MailReceivingMessageSource`.
-It delegates to a configured instance of Spring Integration's own `MailReceiver` interface, and there are two implementations: `Pop3MailReceiver` and `ImapMailReceiver`.
-The easiest way to instantiate either of these is by passing the 'uri' for a Mail store to the receiver's constructor.
-For example:
+It delegates to a configured instance of Spring Integration's own `MailReceiver` interface.
+There are two implementations: `Pop3MailReceiver` and `ImapMailReceiver`.
+The easiest way to instantiate either of these is by passing the 'uri' for a mail store to the receiver's constructor, as the following example shows:
+
+====
 [source,java]
 ----
 MailReceiver receiver = new Pop3MailReceiver("pop3://usr:pwd@localhost/INBOX");
 ----
+====
 
-Another option for receiving mail is the IMAP "idle" command (if supported by the mail server you are using).
-Spring Integration provides the `ImapIdleChannelAdapter` which is itself a Message-producing endpoint.
-It delegates to an instance of the `ImapMailReceiver` but enables asynchronous reception of Mail Messages.
-There are examples in the next section of configuring both types of inbound Channel Adapter with Spring Integration's namespace support in the 'mail' schema.
+Another option for receiving mail is the IMAP `idle` command (if supported by your mail server).
+Spring Integration provides the `ImapIdleChannelAdapter`, which is itself a message-producing endpoint.
+It delegates to an instance of the `ImapMailReceiver` but enables asynchronous reception of mail messages.
+The next section has examples of configuring both types of inbound channel adapter with Spring Integration's namespace support in the 'mail' schema.
 
 [[imap-format-important]]
 [IMPORTANT]
 ====
-Normally, when `IMAPMessage.getContent()` method is called, certain headers as well as the body are rendered (for a simple text email):
+Normally, when the `IMAPMessage.getContent()` method is called, certain headers as well as the body are rendered (for a simple text email), as the following example shows:
 
+====
 [source]
 ----
-To: foo@bar
-From: bar@baz
+To: thing1@things.com
+From: thing2@morethings.com
 Subject: Test Email
 
-foo
+something
 ----
+====
 
-With a simple `MimeMessage`, `getContent()` just returns the mail body (`foo` in this case).
+With a simple `MimeMessage`, `getContent()` returns the mail body (`something` in the preceding example).
 
-Starting with _version 2.2_, the framework eagerly fetches IMAP messages and exposes them as an internal subclass of `MimeMessage`.
+Starting with version 2.2, the framework eagerly fetches IMAP messages and exposes them as an internal subclass of `MimeMessage`.
 This had the undesired side effect of changing the `getContent()` behavior.
-This inconsistency was further exacerbated by the <<mail-mapping, Mail Mapping>> enhancement in _version 4.3_ in that, when a header mapper was provided, the payload was rendered by the `IMAPMessage.getContent()` method.
-This meant that IMAP content differed depending on whether or not a header mapper was provided.
-Starting with _version 5.0_, messages originating from an IMAP source will now render the content in accordance with `IMAPMessage.getContent()` behavior, regardless of whether a header mapper is provided.
-If you are not using a header mapper, and you wish to revert to the previous behavior of just rendering the body, set the `simpleContent` boolean property on the mail receiver to `true`.
-This property now controls the rendering regardless of whether a header mapper is used; it now allows the simple body-only rendering when a header mapper is provided.
+This inconsistency was further exacerbated by the <<mail-mapping, Mail Mapping>> enhancement introduced in version 4.3, because, when a header mapper was provided, the payload was rendered by the `IMAPMessage.getContent()` method.
+This meant that the IMAP content differed, depending on whether or not a header mapper was provided.
+Starting with version 5.0, messages originating from an IMAP source render the content in accordance with `IMAPMessage.getContent()` behavior, regardless of whether a header mapper is provided.
+If you do not use a header mapper and you wish to revert to the previous behavior of rendering only the body, set the `simpleContent` boolean property on the mail receiver to `true`.
+This property now controls the rendering regardless of whether a header mapper is used.
+It now allows body-only rendering when a header mapper is provided.
 ====
 
 [[mail-mapping]]
 === Inbound Mail Message Mapping
 
-By default, the payload of messages produced by the inbound adapters is the raw `MimeMessage`; you can interrogate
-the headers and content using that object.
-Starting with _version 4.3_, you can provide a `HeaderMapper<MimeMessage>` to map the headers to `MessageHeaders`; for
-convenience, a `DefaultMailHeaderMapper` is provided for this purpose.
-This maps the following headers:
+By default, the payload of messages produced by the inbound adapters is the raw `MimeMessage`.
+You can use that object to interrogate the headers and content.
+Starting with version 4.3, you can provide a `HeaderMapper<MimeMessage>` to map the headers to `MessageHeaders`.
+For convenience, Spring Integration provides a `DefaultMailHeaderMapper` for this purpose.
+It maps the following headers:
 
-- `mail_from` - A String representation of the `from` address.
-- `mail_bcc` - A String array containing the `bcc` addresses.
-- `mail_cc` - A String array containing the `cc` addresses.
-- `mail_to` - A String array containing the `to` addresses.
-- `mail_replyTo` - A String representation of the `replyTo` address.
-- `mail_subject` - The mail subject.
-- `mail_lineCount` - A line count (if available).
-- `mail_receivedDate` - The received date (if available).
-- `mail_size` - The mail size (if available).
-- `mail_expunged` - A boolean indicating if the message is expunged.
-- `mail_raw` - A `MultiValueMap` containing all the mail headers and their values.
-- `mail_contentType` - The content type of the original mail message.
-- `contentType` - The payload content type (see below).
+* `mail_from`: A `String` representation of the `from` address.
+* `mail_bcc`: A `String` array containing the `bcc` addresses.
+* `mail_cc`: A `String` array containing the `cc` addresses.
+* `mail_to`: A `String` array containing the `to` addresses.
+* `mail_replyTo`: A `String` representation of the `replyTo` address.
+* `mail_subject`: The mail subject.
+* `mail_lineCount`: A line count (if available).
+* `mail_receivedDate`: The received date (if available).
+* `mail_size`: The mail size (if available).
+* `mail_expunged`: A boolean indicating if the message is expunged.
+* `mail_raw`: A `MultiValueMap` containing all the mail headers and their values.
+* `mail_contentType`: The content type of the original mail message.
+* `contentType`: The payload content type (see below).
 
 When message mapping is enabled, the payload depends on the mail message and its implementation.
 Email contents are usually rendered by a `DataHandler` within the `MimeMessage`.
 
-- For a simple `text/*` email, the payload will be a String and the `contentType` header will be the same as
-`mail_contentType`.
+For a `text/*` email, the payload is a `String` and the `contentType` header is the same as `mail_contentType`.
 
-- For a messages with embedded `javax.mail.Part` s, the `DataHandler` usually renders a `Part` object - these objects
-are not `Serializable`, and are not suitable for serialization using alternative technologies such as `Kryo`.
-For this reason, by default, when mapping is enabled, such payloads are rendered as a raw `byte[]` containing the
-`Part` data.
+For a messages with embedded `javax.mail.Part` instances, the `DataHandler` usually renders a `Part` object.
+These objects are not `Serializable` and are not suitable for serialization with alternative technologies such as `Kryo`.
+For this reason, by default, when mapping is enabled, such payloads are rendered as a raw `byte[]` containing the `Part` data.
 Examples of `Part` are `Message` and `Multipart`.
 The `contentType` header is `application/octet-stream` in this case.
-To change this behavior, and receive a `Multipart` object payload, set `embeddedPartsAsBytes` to `false` on the
-`MailReceiver`.
-For content types that are unknown to the `DataHandler`, the contents are rendered as a `byte[]` with a `contentType`
-header of `application/octet-stream`.
+To change this behavior and receive a `Multipart` object payload, set `embeddedPartsAsBytes` to `false` on `MailReceiver`.
+For content types that are unknown to the `DataHandler`, the contents are rendered as a `byte[]` with a `contentType` header of `application/octet-stream`.
 
 When you do not provide a header mapper, the message payload is the `MimeMessage` presented by `javax.mail`.
-The framework provides a `MailToStringTransformer` which can be used to convert the message using a simple strategy
-to convert the mail contents to a String.
-This is also available using the XML namespace:
+The framework provides a `MailToStringTransformer` that you can use to convert the message by using a strategy to convert the mail contents to a `String`.
+This is also available by using the XML namespace, as the following example shows:
 
+====
 [source, xml]
 ----
 <int-mail:mail-to-string-transformer ... >
 ----
+====
 
-and with Java configuration:
+The following example does the same thing with Java configuration:
 
+====
 [source, java]
 ----
 @Bean
@@ -140,27 +152,30 @@ public Transformer transformer() {
     return new MailToStringTransformer();
 }
 ----
+====
 
-and with the Java DSL:
+The following example does the same thing with the Java DSL:
 
+====
 [source, java]
 ----
    ...
    .transform(Mail.toStringTransformer())
    ...
 ----
+====
 
-Starting with _version 4.3_, the transformer will handle embedded `Part` as well as `Multipart` which was handled
-previously.
-The transformer is a subclass of `AbstractMailTransformer` which maps the address and subject headers from the list
-above.
+Starting with version 4.3, the transformer handles embedded `Part` instances (as well as `Multipart` instances, which were handled previously).
+The transformer is a subclass of `AbstractMailTransformer` that maps the address and subject headers from the preceding list.
 If you wish to perform some other transformation on the message, consider subclassing `AbstractMailTransformer`.
 
 [[mail-namespace]]
 === Mail Namespace Support
 
 Spring Integration provides a namespace for mail-related configuration.
-To use it, configure the following schema locations.
+To use it, configure the following schema locations:
+
+====
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
@@ -172,27 +187,36 @@ To use it, configure the following schema locations.
     http://www.springframework.org/schema/integration/mail
     http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
 ----
+====
 
-To configure an outbound Channel Adapter, provide the channel to receive from, and the MailSender:
+To configure an outbound channel adapter, provide the channel from which to receive and the MailSender, as the following example shows:
+
+====
 [source,xml]
 ----
 <int-mail:outbound-channel-adapter channel="outboundMail"
     mail-sender="mailSender"/>
 ----
+====
 
-Alternatively, provide the host, username, and password:
+Alternatively, you can provide the host, username, and password, as the following example shows:
+
+====
 [source,xml]
 ----
 <int-mail:outbound-channel-adapter channel="outboundMail"
     host="somehost" username="someuser" password="somepassword"/>
 ----
+====
 
-NOTE: Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`,
-a `<poller>` sub-element should be provided (see <<endpoint-namespace>>).
+NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see "`<<endpoint-namespace>>`").
 
-When using the namespace support, a _header-enricher_ Message Transformer is also available.
-This simplifies the application of the headers mentioned above to any Message prior to sending to the Mail Outbound Channel Adapter.
+When you use the namespace support, you can also use a `header-enricher` message transformer.
+Doing so simplifies the application of the headers mentioned earlier to any message prior to sending to the mail outbound channel adapter.
 
+The following example assumes the payload is a Java bean with appropriate getters for the specified properties, but you can use any SpEL expression:
+
+====
 [source,xml]
 ----
 <int-mail:header-enricher input-channel="expressionsInput" default-overwrite="false">
@@ -204,14 +228,17 @@ This simplifies the application of the headers mentioned above to any Message pr
 	<int-mail:subject expression="payload.subject" overwrite="true"/>
 </int-mail:header-enricher>
 ----
+====
 
-This example assumes the payload is a JavaBean with appropriate getters for the specified properties, but any SpEL expression can be used.
-Alternatively, use the `value` attribute to specify a literal.
-Notice also that you can specify `default-overwrite` and individual `overwrite` attributes to control the behavior with existing headers.
+Alternatively, you can use the `value` attribute to specify a literal.
+You also can specify `default-overwrite` and individual `overwrite` attributes to control the behavior with existing headers.
 
-To configure an Inbound Channel Adapter, you have the choice between polling or event-driven (assuming your mail server supports IMAP IDLE - if not, then polling is the only option).
-A polling Channel Adapter simply requires the store URI and the channel to send inbound Messages to.
-The URI may begin with "pop3" or "imap":
+To configure an inbound channel adapter, you have the choice between polling or event-driven (assuming your mail server supports IMAP `idle` -- if not, then polling is the only option).
+A polling channel adapter requires the store URI and the channel to which to send inbound messages.
+The URI may begin with `pop3` or `imap`.
+The following example uses an `imap` URI:
+
+====
 [source,xml]
 ----
 <int-mail:inbound-channel-adapter id="imapAdapter"
@@ -224,10 +251,14 @@ The URI may begin with "pop3" or "imap":
       <int:poller max-messages-per-poll="1" fixed-rate="5000"/>
 </int-mail:inbound-channel-adapter>
 ----
+====
 
-If you do have IMAP idle support, then you may want to configure the "imap-idle-channel-adapter" element instead.
-Since the "idle" command enables event-driven notifications, no poller is necessary for this adapter.
-It will send a Message to the specified channel as soon as it receives the notification that new mail is available:
+If you do have IMAP `idle` support, you may want to configure the `imap-idle-channel-adapter` element instead.
+Since the `idle` command enables event-driven notifications, no poller is necessary for this adapter.
+It sends a message to the specified channel as soon as it receives the notification that new mail is available.
+The following example configures an IMAP `idle` mail channel:
+
+====
 [source,xml]
 ----
 <int-mail:imap-idle-channel-adapter id="customAdapter"
@@ -238,13 +269,15 @@ It will send a Message to the specified channel as soon as it receives the notif
       should-mark-messages-as-read="true"
       java-mail-properties="javaMailProperties"/>
 ----
+====
 
-\...where _javaMailProperties_ could be provided by creating and populating a regular `java.utils.Properties` object.
-For example via _util_ namespace provided by Spring.
+You can provide `javaMailProperties` by creating and populating a regular `java.utils.Properties` object -- for example, by using the `util` namespace provided by Spring.
 
-IMPORTANT: If your username contains the '@' character use '%40' instead of '@' to avoid parsing errors from the underlying JavaMail API.
+IMPORTANT: If your username contains the '@' character, use '%40' instead of '@' to avoid parsing errors from the underlying JavaMail API.
 
+The following example shows how to configure a `java.util.Properties` object:
 
+====
 [source,xml]
 ----
 <util:properties id="javaMailProperties">
@@ -254,20 +287,24 @@ IMPORTANT: If your username contains the '@' character use '%40' instead of '@' 
   <prop key="mail.debug">false</prop>
 </util:properties>
 ----
+====
 
 [[search-term]]
-By default, the `ImapMailReceiver` will search for Messages based on the default `SearchTerm` which is _All mails that
-are RECENT (if supported), that are NOT ANSWERED, that are NOT DELETED, that are NOT SEEN and have not
-been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not
-supported)_.
-The custom user flag is `spring-integration-mail-adapter` but can be configured.
-Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable via the `SearchTermStrategy`
-which you can inject via the `search-term-strategy` attribute.
-`SearchTermStrategy` is a simple strategy interface with a single method that allows you to create an instance of the
-`SearchTerm` that will be used by the `ImapMailReceiver`.
+By default, the `ImapMailReceiver` searches for messages based on the default `SearchTerm`, which is all mail messages that:
 
-See <<imap-seen>> regarding message flagging.
+* Are RECENT (if supported)
+* Are NOT ANSWERED
+* Are NOT DELETED
+* Are NOT SEEN
+* hHave not been processed by this mail receiver (enabled by the use of the custom USER flag or simply NOT FLAGGED if not supported)
 
+The custom user flag is `spring-integration-mail-adapter`, but you can configure it.
+Since version 2.2, the `SearchTerm` used by the `ImapMailReceiver` is fully configurable with `SearchTermStrategy`,
+which you can inject by using the `search-term-strategy` attribute.
+`SearchTermStrategy` is a strategy interface with a single method that lets you create an instance of the `SearchTerm` used by the `ImapMailReceiver`.
+The following listing shows the `SearchTermStrategy` interface:
+
+====
 [source,java]
 ----
 public interface SearchTermStrategy {
@@ -276,121 +313,129 @@ public interface SearchTermStrategy {
 
 }
 ----
+====
 
-For example:
+The following example relies `TestSearchTermStrategy` rather than the default `SearchTermStrategy`:
 
+====
 [source,xml]
 ----
 <mail:imap-idle-channel-adapter id="customAdapter"
-			store-uri="imap:foo"
+			store-uri="imap:something"
 			…
 			search-term-strategy="searchTermStrategy"/>
 
 <bean id="searchTermStrategy"
   class="o.s.i.mail.config.ImapIdleChannelAdapterParserTests.TestSearchTermStrategy"/>
 ----
+====
 
-In the above example instead of relying on the default `SearchTermStrategy` the `TestSearchTermStrategy` will be used instead
+See "`<<imap-seen>>`" for information about message flagging.
 
 [[imap-peek]]
 [IMPORTANT]
 .Important: IMAP PEEK
 =====
-Starting with _version 4.1.1_, the IMAP mail receiver will use the `mail.imap.peek` or `mail.imaps.peek` javamail property, if specified.
-Previously, the receiver ignored the property and always set the PEEK flag.
-Now, if you explicitly set this property to `false`, the message will be marked as `\Seen` regardless of the setting of `shouldMarkMessagesRead`.
+Starting with version 4.1.1, the IMAP mail receiver uses the `mail.imap.peek` or `mail.imaps.peek` JavaMail property, if specified.
+Previously, the receiver ignored the property and always set the `PEEK` flag.
+Now, if you explicitly set this property to `false`, the message ise marked as `\Seen` regardless of the setting of `shouldMarkMessagesRead`.
 If not specified, the previous behavior is retained (peek is `true`).
 =====
 
-*IMAP IDLE and lost connection*
+==== IMAP `idle` and Lost Connections
 
-When using IMAP IDLE channel adapter there might be situations where connection to the server may be lost (e.g., network failure) and since Java Mail documentation explicitly states that the actual IMAP API is EXPERIMENTAL it is important to understand the differences in the API and how to deal with them when configuring IMAP IDLE adapters.
-Currently Spring Integration Mail adapters was tested with Java Mail 1.4.1 and Java Mail 1.4.3 and depending on which one is used special attention must be payed to some of the java mail properties that needs to be set with regard to auto-reconnect.
+When using an IMAP `idle` channel adapter, connections to the server may be lost (for example, through network failure) and, since the JavaMail documentation explicitly states that the actual IMAP API is experimental, it is important to understand the differences in the API and how to deal with them when configuring IMAP `idle` adapters.
+Currently, Spring Integration mail adapters were tested with JavaMail 1.4.1 and JavaMail 1.4.3,.
+Depending on which one is used, you must pay special attention to some of the JavaMail properties that need to be set with regard to auto-reconnect.
 
-NOTE: The following behavior was observed with GMAIL but should provide you with some tips on how to solve re-connect
-issue with other providers, however feedback is always welcome.
-Again, below notes are based on GMAIL.
+NOTE: The following behavior was observed with Gmail but should provide you with some tips on how to solve re-connect
+issue with other providers. However feedback is always welcome.
+Again, the following notes are based on Gmail.
 
-With Java Mail 1.4.1 if `mail.imaps.timeout` property is set for a relatively short period of time (e.g., ~ 5 min) then `IMAPFolder.idle()` will throw `FolderClosedException` after this timeout.
-However if this property is not set (should be indefinite) the behavior that was observed is that `IMAPFolder.idle()` method never returns nor it throws an exception.
-It will however reconnect automatically if connection was lost for a short period of time (e.g., under 10 min), but if connection was lost for a long period of time (e.g., over 10 min), then `IMAPFolder.idle()` will not throw `FolderClosedException` nor it will re-establish connection and will remain in the blocked state indefinitely, thus leaving you no possibility to reconnect without restarting the adapter.
-So the only way to make re-connect to work with Java Mail 1.4.1 is to set `mail.imaps.timeout` property explicitly to some value, but it also means that such value should be relatively short (under 10 min) and the connection should be re-established relatively quickly.
-Again, it may be different with other providers.
-With Java Mail 1.4.3 there was significant improvements to the API ensuring that there will always be a condition which will force `IMAPFolder.idle()` method to return via `StoreClosedException` or `FolderClosedException` or simply return, thus allowing us to proceed with auto-reconnect.
-Currently auto-reconnect will run infinitely making attempts to reconnect every 10 sec.
+With JavaMail 1.4.1, if you set the `mail.imaps.timeout` property to a relatively short period of time (approximately 5 min in our testing), `IMAPFolder.idle()` throws `FolderClosedException` after this timeout.
+However, if this property is not set (it should be indefinite) the  `IMAPFolder.idle()` method never returns and never throws an exception.
+It does, however, reconnect automatically if the connection was lost for a short period of time (under 10 min in our testing).
+However, if the connection was lost for a long period of time (over 10 min), `IMAPFolder.idle()`, does not throw `FolderClosedException` and does not re-establish the connection, and remains in the blocked state indefinitely, thus leaving you no possibility to reconnect without restarting the adapter.
+Consequently, the only way to make re-connecting work with JavaMail 1.4.1 is to set the `mail.imaps.timeout` property explicitly to some value, but it also means that such value should be relatively short (under 10 min) and the connection should be re-established relatively quickly.
+Again, it may be different with providers other than Gmail.
+With JavaMail 1.4.3 introduced significant improvements to the API, ensuring that there is always a condition that forces the `IMAPFolder.idle()` method to return  `StoreClosedException` or `FolderClosedException` or to simply return, thus letting you proceed with auto-reconnecting.
+Currently auto-reconnecting runs infinitely making attempts to reconnect every ten seconds.
 
-IMPORTANT: In both configurations `channel` and `should-delete-messages` are the _REQUIRED_ attributes.
-The important thing to understand is why `should-delete-messages` is required.
-The issue is with the POP3 protocol, which does NOT have any knowledge of messages that were READ.
-It can only know what's been read within a single session.
-This means that when your POP3 mail adapter is running, emails are successfully consumed as as they become available during each poll
-and no single email message will be delivered more then once.
-However, as soon as you restart your adapter and begin a new session all the email messages that might have been retrieved in the previous session will be retrieved again.
+IMPORTANT: In both configurations, `channel` and `should-delete-messages` are required attributes.
+You should understand why `should-delete-messages` is required.
+The issue is with the POP3 protocol, which does not have any knowledge of messages that were read.
+It can only know what has been read within a single session.
+This means that, when your POP3 mail adapter runs, emails are successfully consumed as as they become available during each poll
+and no single email message is delivered more then once.
+However, as soon as you restart your adapter and begin a new session, all the email messages that might have been retrieved in the previous session are retrieved again.
 That is the nature of POP3.
-Some might argue that `should-delete-messages` should be TRUE by default.
-In other words, there are two valid and mutually exclusive use cases which make it very hard to pick a single "best" default.
-You may want to configure your adapter as the only email receiver in which case you want to be able to restart such adapter without fear that messages that were delivered before will not be redelivered again.
-In this case setting `should-delete-messages` to TRUE would make most sense.
-However, you may have another use case where you may want to have multiple adapters that simply monitor email servers and their content.
-In other words you just want to 'peek but not touch'.
-Then setting `should-delete-messages` to FALSE would be much more appropriate.
-So since it is hard to choose what should be the right default value for the `should-delete-messages` attribute, we simply made it a required attribute, to be set by the user.
-Leaving it up to the user also means, you will be less likely to end up with unintended behavior.
+Some might argue that `should-delete-messages` should be `true` by default.
+In other words, there are two valid and mutually exclusive use that make it very hard to pick a single best default.
+You may want to configure your adapter as the only email receiver, in which case you want to be able to restart your adapter without fear that previously delivered messages are not delivered again.
+In this case, setting `should-delete-messages` to `true` would make the most sense.
+However, you may have another use case where you may want to have multiple adapters monitor email servers and their content.
+In other words, you want to 'peek but not touch'.
+Then setting `should-delete-messages` to `false` is much more appropriate.
+So since it is hard to choose what should be the right default value for the `should-delete-messages` attribute, we made it a required attribute to be set by you.
+Leaving it up to you also means that you are less likely to end up with unintended behavior.
 
-NOTE: When configuring a polling email adapter's _should-mark-messages-as-read_ attribute, be aware of the protocol you are configuring to retrieve messages.
-For example POP3 does not support this flag which means setting it to either value will have no effect as messages will NOT be marked as read.
+NOTE: When configuring a polling email adapter's `should-mark-messages-as-read` attribute, you should be aware of the protocol you are configuring to retrieve messages.
+For example, POP3 does not support this flag, which means setting it to either value has no effect, as messages are not marked as read.
 
 [IMPORTANT]
 =====
-It is important to understand that that these actions (marking messages read, and deleting messages) are performed after the messages are received, but before they are processed.
+You should understand that that these actions (marking messages read and deleting messages) are performed after the messages are received but before they are processed.
 This can cause messages to be lost.
 
-You may wish to consider using transaction synchronization instead - see <<mail-tx-sync>>
+You may wish to consider using transaction synchronization instead.
+See "`<<mail-tx-sync>>`".
 =====
 
 The `<imap-idle-channel-adapter/>` also accepts the 'error-channel' attribute.
-If a downstream exception is thrown and an 'error-channel' is specified, a MessagingException message containing the failed message and original exception, will be sent to this channel.
-Otherwise, if the downstream channels are synchronous, any such exception will simply be logged as a warning by the channel adapter.
+If a downstream exception is thrown and an 'error-channel' is specified, a `MessagingException` message containing the failed message and the original exception is sent to this channel.
+Otherwise, if the downstream channels are synchronous, any such exception is logged as a warning by the channel adapter.
 
-NOTE: Beginning with the 3.0 release, the IMAP idle adapter emits application events (specifically `ImapIdleExceptionEvent` s) when exceptions occur.
+NOTE: Beginning with the 3.0 release, the IMAP `idle` adapter emits application events (specifically `ImapIdleExceptionEvent` instances) when exceptions occur.
 This allows applications to detect and act on those exceptions.
-The events can be obtained using an `<int-event:inbound-channel-adapter>` or any `ApplicationListener` configured to receive an `ImapIdleExceptionEvent` or one of its super classes.
+You can obtain the events by using an `<int-event:inbound-channel-adapter>` or any `ApplicationListener` configured to receive an `ImapIdleExceptionEvent` or one of its super classes.
 
 [[imap-seen]]
-=== Marking IMAP Messages When \Recent is Not Supported
+=== Marking IMAP Messages When `\Recent` Is Not Supported
 
 If `shouldMarkMessagesAsRead` is true, the IMAP adapters set the `\Seen` flag.
 
 In addition, when an email server does not support the `\Recent` flag, the IMAP adapters mark messages with a user
-flag (`spring-integration-mail-adapter` by default) as long as the server supports user flags.
+flag (by default, `spring-integration-mail-adapter`), as long as the server supports user flags.
 If not, `Flag.FLAGGED` is set to `true`.
 These flags are applied regardless of the `shouldMarkMessagesRead` setting.
 
-As discussed in <<search-term>>, the default `SearchTermStrategy` will ignore messages so flagged.
+As discussed in "`<<search-term>>`", the default `SearchTermStrategy` ignore messages that are so flagged.
 
-Starting with _version 4.2.2_, the name of the user flag can be set using `setUserFlag` on the `MailReceiver` - this
-allows multiple receivers to use a different flag (as long as the mail server supports user flags).
-The attribute `user-flag` is available when configuring the adapter with the namespace.
+Starting with version 4.2.2, you can set the name of the user flag by using `setUserFlag` on the `MailReceiver`.
+Doing so lets multiple receivers use a different flag (as long as the mail server supports user flags).
+The `user-flag` attribute is available when configuring the adapter with the namespace.
 
 [[mail-filtering]]
 === Email Message Filtering
 
-Very often you may encounter a requirement to filter incoming messages (e.g., You want to only read emails that have 'Spring Integration' in the _Subject_ line).
-This could be easily accomplished by connecting Inbound Mail adapter with an expression-based _Filter_.
+Very often, you may encounter a requirement to filter incoming messages (for example, you want to read only emails that have 'Spring Integration' in the `Subject` line).
+You can accomplish this by connecting an inbound mail adapter with an expression-based `Filter`.
 Although it would work, there is a downside to this approach.
-Since messages would be filtered after going through inbound mail adapter all such messages would be marked as read (SEEN) or Un-read (depending on the value of `should-mark-messages-as-read` attribute).
-However in reality what would be more useful is to mark messages as SEEN only if they passed the filtering criteria.
-This is very similar to looking at your email client while scrolling through all the messages in the preview pane, but only flagging messages as SEEN that were actually opened and read.
+Since messages would be filtered after going through the inbound mail adapter, all such messages would be marked as read (`SEEN`) or unread (depending on the value of `should-mark-messages-as-read` attribute).
+However, in reality, it be more useful to mark messages as `SEEN` only if they pass the filtering criteria.
+This is similar to looking at your email client while scrolling through all the messages in the preview pane, but only flagging messages that were actually opened and read as `SEEN`.
 
-In Spring Integration 2.0.4 we've introduced `mail-filter-expression` attribute on `inbound-channel-adapter` and `imap-idle-channel-adapter`.
-This attribute allows you to provide an expression which is a combination of SpEL and Regular Expression.
-For example if you would like to read only emails that contain 'Spring Integration' in the Subject line, you would configure `mail-filter-expression` attribute like this this: `mail-filter-expression="subject matches '(?i).*Spring Integration.*"`
+Spring Integration 2.0.4 introduced the `mail-filter-expression` attribute on `inbound-channel-adapter` and `imap-idle-channel-adapter`.
+This attribute lets you provide an expression that is a combination of SpEL and a regular expression.
+For example if you would like to read only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).*Spring Integration.*"`
 
-Since `javax.mail.internet.MimeMessage` is the root context of SpEL Evaluation Context, you can filter on any value available through MimeMessage including the actual body of the message.
-This one is particularly important since reading the body of the message would typically result in such message to be marked as SEEN by default, but since we now setting PEAK flag of every incomming message to 'true', only messages that were explicitly marked as SEEN will be seen as read.
+Since `javax.mail.internet.MimeMessage` is the root context of the SpEL evaluation context, you can filter on any value available through `MimeMessage`, including the actual body of the message.
+This one is particularly important, since reading the body of the message typically results in such messages being marked as `SEEN` by default.
+However, since we now set the `PEEK` flag of every incoming message to 'true', only messages that were explicitly marked as `SEEN` are marked as read.
 
-So in the below example only messages that match the filter expression will be output by this adapter and only those messages will be marked as SEEN.
-In this case based on the `mail-filter-expression` only messages that contain 'Spring Integration' in the subject line will be produced by this adapter.
+So, in the following example, only messages that match the filter expression are output by this adapter and only those messages are marked as read:
+
+====
 [source,xml]
 ----
 <int-mail:imap-idle-channel-adapter id="customAdapter"
@@ -400,31 +445,36 @@ In this case based on the `mail-filter-expression` only messages that contain 'S
 	java-mail-properties="javaMailProperties"
 	mail-filter-expression="subject matches '(?i).*Spring Integration.*'"/>
 ----
+====
 
-Another reasonable question is what happens on the next poll, or idle event, or what happens when such adapter is restarted.
-Will there be a potential duplication of massages to be filtered? In other words if on the last retrieval where you had 5 new messages and only 1 passed the filter what would happen with the other 4.
-Would they go through the filtering logic again on the next poll or idle? After all they were not marked as SEEN.
-The actual answer is no.
-They would not be subject of duplicate processing due to another flag (RECENT) that is set by the Email server and is used by Spring Integration mail search filter.
-Folder implementations set this flag to indicate that this message is new to this folder, that is, it has arrived since the last time this folder was opened.
-In other while our adapter may peek at the email it also lets the email server know that such email was touched and therefore will be marked as RECENT by the email server.
+In the preceding example, thanks to the `mail-filter-expression` attribute, only messages that contain 'Spring Integration' in the subject line are produced by this adapter.
+
+Another reasonable question is what happens on the next poll or idle event or what happens when such an adapter is restarted.
+Can there be duplication of massages to be filtered? In other words, if, on the last retrieval where you had five new messages and only one passed the filter, what would happen with the other four?
+Would they go through the filtering logic again on the next poll or idle? After all, they were not marked as `SEEN`.
+The answer is no.
+They would not be subject to duplicate processing due to another flag (`RECENT`) that is set by the email server and is used by the Spring Integration mail search filter.
+Folder implementations set this flag to indicate that this message is new to this folder.
+That is, it has arrived since the last time this folder was opened.
+In other words, while our adapter may peek at the email, it also lets the email server know that such email was touched and should therefore be marked as `RECENT` by the email server.
 
 [[mail-tx-sync]]
 === Transaction Synchronization
 
-Transaction synchronization for inbound adapters allows you to take different actions after a transaction commits, or rolls back.
-Transaction synchronization is enabled by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>`, or to the `<imap-idle-inbound-adapter/>`.
+Transaction synchronization for inbound adapters lets you take different actions after a transaction commits or rolls back.
+You can enable transaction synchronization by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>` or to the `<imap-idle-inbound-adapter/>`.
 Even if there is no 'real' transaction involved, you can still enable this feature by using a `PseudoTransactionManager` with the `<transactional/>` element.
-For more information, see <<transaction-synchronization>>.
+For more information, see "`<<transaction-synchronization>>`".
 
-Because of the many different mail servers, and specifically the limitations that some have, at this time we only provide a strategy for these transaction synchronizations.
-You can send the messages to some other Spring Integration components, or invoke a custom bean to perform some action.
+Because of the many different mail servers and specifically the limitations that some have, at this time we provide only a strategy for these transaction synchronizations.
+You can send the messages to some other Spring Integration components or invoke a custom bean to perform some action.
 For example, to move an IMAP message to a different folder after the transaction commits, you might use something similar to the following:
 
+====
 [source,xml]
 ----
 <int-mail:imap-idle-channel-adapter id="customAdapter"
-    store-uri="imaps://foo.com:password@imap.foo.com/INBOX"
+    store-uri="imaps://something.com:password@imap.something.com/INBOX"
     channel="receiveChannel"
     auto-startup="true"
     should-delete-messages="false"
@@ -436,9 +486,13 @@ For example, to move an IMAP message to a different folder after the transaction
     <int:after-commit expression="@syncProcessor.process(payload)"/>
 </int:transaction-synchronization-factory>
 
-<bean id="syncProcessor" class="foo.bar.Mover"/>
+<bean id="syncProcessor" class="thing1.thing2.Mover"/>
 ----
+====
 
+The following example shows what the `Mover` class might look like:
+
+====
 [source,java]
 ----
 public class Mover {
@@ -461,13 +515,14 @@ public class Mover {
             }
         }
 
-        Folder fooFolder = store.getFolder("FOO"));
-        fooFolder.appendMessages(new MimeMessage[]{message});
+        Folder somethingFolder = store.getFolder("SOMETHING"));
+        somethingFolder.appendMessages(new MimeMessage[]{message});
         folder.expunge();
         folder.close(true);
-        fooFolder.close(false);
+        somethingFolder.close(false);
     }
 }
 ----
+====
 
 IMPORTANT: For the message to be still available for manipulation after the transaction, _should-delete-messages_ must be set to 'false'.

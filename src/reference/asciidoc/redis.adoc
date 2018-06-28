@@ -1,25 +1,25 @@
 [[redis]]
 == Redis Support
 
-Since version 2.1 Spring Integration introduces support for http://redis.io/[Redis]: _"an open source advanced key-value store".
-_ This support comes in the form of a Redis-based MessageStore as well as Publish-Subscribe Messaging adapters that are supported by Redis via its http://redis.io/topics/pubsub[PUBLISH, SUBSCRIBE and UNSUBSCRIBE] commands.
+Spring Integration 2.1 introduced support for http://redis.io/[Redis]: "`an open source advanced key-value store`".
+This support comes in the form of a Redis-based `MessageStore` as well as publish-subscribe messaging adapters that are supported by Redis through its http://redis.io/topics/pubsub[`PUBLISH`, `SUBSCRIBE`, and `UNSUBSCRIBE`] commands.
 
-[[redis-intro]]
-=== Introduction
-
-To download, install and run Redis please refer to the http://redis.io/download[Redis documentation].
+To download, install, and run Redis, see the http://redis.io/download[Redis documentation].
 
 [[redis-connection]]
 === Connecting to Redis
 
-To begin interacting with Redis you first need to connect to it.
+To begin interacting with Redis, you first need to connect to it.
 Spring Integration uses support provided by another Spring project, https://github.com/SpringSource/spring-data-redis[Spring Data Redis], which provides typical Spring constructs: `ConnectionFactory` and `Template`.
-Those abstractions simplify integration with several Redis-client Java APIs.
-Currently Spring-Data-Redis supportshttps://github.com/xetorthio/jedis[jedis], http://code.google.com/p/jredis/[jredis] and https://github.com/e-mzungu/rjc[rjc]
+Those abstractions simplify integration with several Redis client Java APIs.
+\Currently Spring Data Redis supports https://github.com/xetorthio/jedis[jedis], http://code.google.com/p/jredis/[jredis] and https://github.com/e-mzungu/rjc[Redis Java Client (RJC)].
 
-_RedisConnectionFactory_
+==== Using `RedisConnectionFactory`
 
-To connect to Redis you would use one of the implementations of the `RedisConnectionFactory` interface:
+To connect to Redis, you can use one of the implementations of the `RedisConnectionFactory` interface.
+The following listing shows the interface definition:
+
+====
 [source,java]
 ----
 public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
@@ -32,17 +32,21 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
     RedisConnection getConnection();
 }
 ----
+====
 
-The example below shows how to create a `JedisConnectionFactory`.
+The following example shows how to create a `JedisConnectionFactory` in Java:
 
-In Java:
+====
 [source,java]
 ----
 JedisConnectionFactory jcf = new JedisConnectionFactory();
 jcf.afterPropertiesSet();
 ----
+====
 
-Or in Spring's XML configuration:
+The following example shows how to create a `JedisConnectionFactory` in Spring's XML configuration:
+
+====
 [source,xml]
 ----
 <bean id="redisConnectionFactory"
@@ -50,65 +54,80 @@ Or in Spring's XML configuration:
     <property name="port" value="7379" />
 </bean>
 ----
+====
 
-The implementations of RedisConnectionFactory provide a set of properties such as port and host that can be set if needed.
-Once an instance of RedisConnectionFactory is created, you can create an instance of RedisTemplate and inject it with the RedisConnectionFactory.
+The implementations of `RedisConnectionFactory` provide a set of properties, such as port and host, that you can set if needed.
+Once you have an instance of `RedisConnectionFactory`, you can create an instance of `RedisTemplate` and inject it with the `RedisConnectionFactory`.
 
-_RedisTemplate_
+==== Using `RedisTemplate`
 
-As with other template classes in Spring (e.g., `JdbcTemplate`, `JmsTemplate`) `RedisTemplate` is a helper class that simplifies Redis data access code.
-For more information about `RedisTemplate` and its variations (e.g., `StringRedisTemplate`) please refer to the http://static.springsource.org/spring-data/data-redis/docs/current/reference/[Spring-Data-Redis documentation]
+As with other template classes in Spring (such as `JdbcTemplate` and `JmsTemplate`) `RedisTemplate` is a helper class that simplifies Redis data access code.
+For more information about `RedisTemplate` and its variations (such as `StringRedisTemplate`) see the http://static.springsource.org/spring-data/data-redis/docs/current/reference/[Spring Data Redis documentation].
 
-The code below shows how to create an instance of `RedisTemplate`:
+The following example shows how to create an instance of `RedisTemplate` in Java:
 
-In Java:
+====
 [source,java]
 ----
 RedisTemplate rt = new RedisTemplate<String, Object>();
 rt.setConnectionFactory(redisConnectionFactory);
 ----
+====
 
-Or in Spring's XML configuration::
+The following example shows how to create an instance of `RedisTemplate` in Spring's XML configuration:
+
+====
 [source,xml]
 ----
 <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
     <property name="connectionFactory" ref="redisConnectionFactory"/>
 </bean>
 ----
+====
 
 [[redis-messages]]
 === Messaging with Redis
 
-As mentioned in the introduction Redis provides support for Publish-Subscribe messaging via its PUBLISH, SUBSCRIBE and UNSUBSCRIBE commands.
-As with JMS and AMQP, Spring Integration provides Message Channels and adapters for sending and receiving messages via Redis.
+As mentioned in <<redis,the introduction>>, Redis provides support for publish-subscribe messaging through its `PUBLISH`, `SUBSCRIBE`, and `UNSUBSCRIBE` commands.
+As with JMS and AMQP, Spring Integration provides message channels and adapters for sending and receiving messages through Redis.
 
 [[redis-pub-sub-channel]]
 ==== Redis Publish/Subscribe channel
 
-Similar to the JMS there are cases where both the producer and consumer are intended to be part of the same application, running within the same process.
-This could be accomplished by using a pair of inbound and outbound Channel Adapters, however just like with Spring Integration's JMS support, there is a simpler approach to address this use case.
+Similarly to JMS, there are cases where both the producer and consumer are intended to be part of the same application, running within the same process.
+You can accomplished this by using a pair of inbound and outbound channel adapters.
+However, as with Spring Integration's JMS support, there is a simpler way to address this use case.
+You can create a publish-subscribe channel, as the following example shows:
+
+====
 [source,xml]
 ----
 <int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic"/>
 ----
+====
 
-The publish-subscribe-channel (above) will behave much like a normal `<publish-subscribe-channel/>` element from the main Spring Integration namespace.
-It can be referenced by both `input-channel` and `output-channel` attributes of any endpoint.
-The difference is that this channel is backed by a Redis topic name - a String value specified by the `topic-name` attribute.
-However unlike JMS this topic doesn't have to be created in advance or even auto-created by Redis.
-In Redis topics are simple String values that play the role of an address, and all the producer and consumer need to do to communicate is use the same String value as their topic name.
-A simple subscription to this channel means that asynchronous pub-sub messaging is possible between the producing and consuming endpoints, but unlike the asynchronous Message Channels created by adding a `<queue/>` sub-element within a simple Spring Integration `<channel/>` element, the Messages are not just stored in an in-memory queue.
-Instead those Messages are passed through Redis allowing you to rely on its support for persistence and clustering as well as its interoperability with other non-java platforms.
+A `publish-subscribe-channel` behaves much like a normal `<publish-subscribe-channel/>` element from the main Spring Integration namespace.
+It can be referenced by both the `input-channel` and the `output-channel` attributes of any endpoint.
+The difference is that this channel is backed by a Redis topic name: a `String` value specified by the `topic-name` attribute.
+However, unlike JMS, this topic does not have to be created in advance or even auto-created by Redis.
+In Redis, topics are simple `String` values that play the role of an address.
+The producer and consumer can communicate by using the same `String` value as their topic name.
+A simple subscription to this channel means that asynchronous publish-subcribe messaging is possible between the producing and consuming endpoints.
+However, unlike the asynchronous message channels created by adding a `<queue/>` element within a simple Spring Integration `<channel/>` element, the messages are not stored in an in-memory queue.
+Instead, those messages are passed through Redis, which lets you rely on its support for persistence and clustering as well as its interoperability with other non-Java platforms.
 
 [[redis-inbound-channel-adapter]]
 ==== Redis Inbound Channel Adapter
 
-The Redis-based Inbound Channel Adapter (`RedisInboundChannelAdapter`) adapts incoming Redis messages into Spring Messages in the same way as other inbound adapters.
-It receives platform-specific messages (Redis in this case) and converts them to Spring Messages using a `MessageConverter` strategy.
+The Redis inbound channel adapter (`RedisInboundChannelAdapter`) adapts incoming Redis messages into Spring messages in the same way as other inbound adapters.
+It receives platform-specific messages (Redis in this case) and converts them to Spring messages by using a `MessageConverter` strategy.
+The following example shows how to configure a Redis inbound channel adapter:
+
+====
 [source,xml]
 ----
 <int-redis:inbound-channel-adapter id="redisAdapter"
-       topics="foo, bar"
+       topics="thing1, thing2"
        channel="receiveChannel"
        error-channel="testErrorChannel"
        message-converter="testConverter" />
@@ -118,42 +137,46 @@ It receives platform-specific messages (Redis in this case) and converts them to
     <property name="port" value="7379" />
 </bean>
 
-<bean id="testConverter" class="foo.bar.SampleMessageConverter" />
+<bean id="testConverter" class="things.something.SampleMessageConverter" />
 ----
+====
 
-Above is a simple but complete configuration of a Redis Inbound Channel Adapter.
-Note that the above configuration relies on the familiar Spring paradigm of auto-discovering certain beans.
-In this case the `redisConnectionFactory` is implicitly injected into the adapter.
-You can of course specify it explicitly using the `connection-factory` attribute instead.
+The preceding examle shows a simple but complete configuration of a Redis inbound channel adapter.
+Note that the preceding configuration relies on the familiar Spring paradigm of auto-discovering certain beans.
+In this case, the `redisConnectionFactory` is implicitly injected into the adapter.
+You can specify it explicitly by using the `connection-factory` attribute instead.
 
-Also, note that the above configuration injects the adapter with a custom `MessageConverter`.
-The approach is similar to JMS where `MessageConverters` are used to convert between Redis Messages and the Spring Integration Message payloads.
+Also, note that the preceding configuration injects the adapter with a custom `MessageConverter`.
+The approach is similar to JMS, where `MessageConverter` instances are used to convert between Redis messages and the Spring Integration message payloads.
 The default is a `SimpleMessageConverter`.
 
-Inbound adapters can subscribe to multiple topic names hence the comma-delimited set of values in the `topics` attribute.
+Inbound adapters can subscribe to multiple topic names, hence the comma-separated set of values in the `topics` attribute.
 
-Since _version 3.0_, the Inbound Adapter, in addition to the existing `topics` attribute, now has the `topic-patterns` attribute.
-This attribute contains a comma-delimited set of Redis topic patterns.
-For more information regarding Redis publish/subscribe, see http://redis.io/topics/pubsub[Redis Pub/Sub].
+Since version 3.0, the inbound adapter, in addition to the existing `topics` attribute, now has the `topic-patterns` attribute.
+This attribute contains a comma-separated set of Redis topic patterns.
+For more information regarding Redis publish-subscribe, see http://redis.io/topics/pubsub[Redis Pub/Sub].
 
-Inbound adapters can use a `RedisSerializer` to deserialize the body of Redis Messages.
+Inbound adapters can use a `RedisSerializer` to deserialize the body of Redis messages.
 The `serializer` attribute of the `<int-redis:inbound-channel-adapter>` can be set to an empty string, which results in a `null` value for the `RedisSerializer` property.
-In this case the raw `byte[]` bodies of Redis Messages are provided as the message payloads.
+In this case, the raw `byte[]` bodies of Redis messages are provided as the message payloads.
 
-Since _version 5.0_, an `Executor` instance can be provided to the Inbound Adapter via the `task-executor` attribute of the `<int-redis:inbound-channel-adapter>`.
-Also the received Spring Integration Messages have now `RedisHeaders.MESSAGE_SOURCE` header to indicate the source of the published message - topic or pattern.
-This can be used downstream for routing logic.
+Since version 5.0, you can provide an `Executor` instance to the inbound adapter by using the `task-executor` attribute of the `<int-redis:inbound-channel-adapter>`.
+Also, the received Spring Integration messages now have the `RedisHeaders.MESSAGE_SOURCE` header to indicate the source of the published message: topic or pattern.
+You can use this downstream for routing logic.
 
 [[redis-outbound-channel-adapter]]
 ==== Redis Outbound Channel Adapter
 
-The Redis-based Outbound Channel Adapter adapts outgoing Spring Integration messages into Redis messages in the same way as other outbound adapters.
-It receives Spring Integration messages and converts them to platform-specific messages (Redis in this case) using a `MessageConverter` strategy.
+The Redis outbound channel adapter adapts outgoing Spring Integration messages into Redis messages in the same way as other outbound adapters.
+It receives Spring Integration messages and converts them to platform-specific messages (Redis in this case) by using a `MessageConverter` strategy.
+The following example shows how to configure a Redis outbound channel adapter:
+
+====
 [source,xml]
 ----
 <int-redis:outbound-channel-adapter id="outboundAdapter"
     channel="sendChannel"
-    topic="foo"
+    topic="thing1"
     message-converter="testConverter"/>
 
 <bean id="redisConnectionFactory"
@@ -161,22 +184,27 @@ It receives Spring Integration messages and converts them to platform-specific m
     <property name="port" value="7379"/>
 </bean>
 
-<bean id="testConverter" class="foo.bar.SampleMessageConverter" />
+<bean id="testConverter" class="things.something.SampleMessageConverter" />
 ----
+====
 
-As you can see the configuration is similar to the Redis Inbound Channel Adapter.
-The adapter is implicitly injected with a `RedisConnectionFactory` which was defined with `redisConnectionFactory` as its bean name.
-This example also includes the optional, custom `MessageConverter` (the `testConverter` bean).
+The configuration parallels the Redis inbound channel adapter.
+The adapter is implicitly injected with a `RedisConnectionFactory`, which is defined with `redisConnectionFactory` as its bean name.
+This example also includes the optional (and custom) `MessageConverter` (the `testConverter` bean).
 
-Since _Spring Integration 3.0_, the `<int-redis:outbound-channel-adapter>`, as an alternative to the `topic` attribute, has the `topic-expression` attribute to determine the Redis topic against the Message at runtime.
+Since Spring Integration 3.0, the `<int-redis:outbound-channel-adapter>` offers an alternative to the `topic` attribute: You can use the `topic-expression` attribute to determine the Redis topic for the message at runtime.
 These attributes are mutually exclusive.
 
 [[redis-queue-inbound-channel-adapter]]
 ==== Redis Queue Inbound Channel Adapter
 
-Since _Spring Integration 3.0_, a Queue Inbound Channel Adapter is available to 'pop' messages from a Redis List. By default it uses 'right pop', but
-it can be configured to use 'left pop' instead.
-The adapter is message-driven using an internal listener thread and does not use a poller.
+Spring Integration 3.0 introduced a queue inbound channel adapter to "`pop`" messages from a Redis list. By default, it uses "`right pop`", but you can configure it to use "`left pop`" instead.
+The adapter is message-driven.
+It uses an internal listener thread and does not use a poller.
+
+The following listing shows all the available attributes for `queue-inbound-channel-adapter`:
+
+====
 [source,xml]
 ----
 <int-redis:queue-inbound-channel-adapter id=""  <1>
@@ -195,69 +223,47 @@ The adapter is message-driven using an internal listener thread and does not use
 
 ----
 
-
-
 <1> The component bean name.
-If the `channel` attribute isn't provided a `DirectChannel` is created and registered with application context with this `id` attribute as the bean name.
-In this case, the endpoint itself is registered with the bean name `id + '.adapter'`.
-
-
-<2> The `MessageChannel` to which to send `Message` s from this Endpoint.
-
-
-<3> A `SmartLifecycle` attribute to specify whether this Endpoint should start automatically after the application context start or not.
-Default is `true`.
-
-
-<4> A `SmartLifecycle` attribute to specify the _phase_ in which this Endpoint will be started.
-Default is `0`.
-
-
+If you do not provide the `channel` attribute, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
+In this case, the endpoint itself is registered with the bean name `id` plus `.adapter`.
+(If the bean name were `thing1`, the endpoint is registered as `thing1.adapter`.)
+<2> The `MessageChannel` to which to send `Message` instances from this Endpoint.
+<3> A `SmartLifecycle` attribute to specify whether this endpoint should start automatically after the application context start or not.
+It defaults to `true`.
+<4> A `SmartLifecycle` attribute to specify the phase in which this endpoint is started.
+It defaults to `0`.
 <5> A reference to a `RedisConnectionFactory` bean.
-Defaults to `redisConnectionFactory`.
-
-
-<6> The name of the Redis List on which the queue-based 'pop' operation is performed to get Redis messages.
-
-
-<7> The `MessageChannel` to which to send `ErrorMessage` s with `Exception` s from the listening task of the Endpoint.
-By default the underlying `MessagePublishingErrorHandler` uses the default `errorChannel` from the application context.
-
-
+It defaults to `redisConnectionFactory`.
+<6> The name of the Redis list on which the queue-based 'pop' operation is performed to get Redis messages.
+<7> The `MessageChannel` to which to send `ErrorMessage` instances when exceptions are received from the listening task of the endpoint.
+By default, the underlying `MessagePublishingErrorHandler` uses the default `errorChannel` from the application context.
 <8> The `RedisSerializer` bean reference.
-Can be an empty string, which means 'no serializer'.
-In this case the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
+It can be an empty string, which means 'no serializer'.
+In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
 By default it is a `JdkSerializationRedisSerializer`.
-
-
 <9> The timeout in milliseconds for 'pop' operation to wait for a Redis message from the queue.
-Default is 1 second.
-
-
+The default is 1 second.
 <10> The time in milliseconds for which the listener task should sleep after exceptions on the 'pop' operation, before restarting the listener task.
-
-
-<11> Specify if this Endpoint expects data from the Redis queue to contain entire `Message` s.
-If this attribute is set to `true`, the `serializer` can't be an empty string because messages require some form of deserialization (JDK serialization by default).
-Default is `false`.
-
-
+<11> Specifies whether this endpoint expects data from the Redis queue to contain entire `Message` instances.
+If this attribute is set to `true`, the `serializer` cannot be an empty string, because messages require some form of deserialization (JDK serialization by default).
+Its default is `false`.
 <12> A reference to a Spring `TaskExecutor` (or standard JDK 1.5+ `Executor`) bean.
 It is used for the underlying listening task.
-By default a `SimpleAsyncTaskExecutor` is used.
-
-
-<13> Specify whether this Endpoint should use 'right pop' (when `true`) or 'left pop' (when `false`) to read messages from the Redis List.
-If `true`, the Redis List acts as a `FIFO` queue when used with a default _Redis Queue Outbound Channel Adapter_. Set to `false` to use with software
-that writes to the list with 'right push', or to achieve a stack-like message order.
-Default is `true`.
-Since _version 4.3_.
+It defaults to a `SimpleAsyncTaskExecutor`.
+<13> Specifies whether this endpoint should use "`right pop`" (when `true`) or "`left pop`" (when `false`) to read messages from the Redis list.
+If `true`, the Redis List acts as a `FIFO` queue when used with a default Redis queue outbound channel adapter. Set it to `false` to use with software that writes to the list with "`right push`" or to achieve a stack-like message order.
+Its default is `true`.
+Since version 4.3.
+====
 
 [[redis-queue-outbound-channel-adapter]]
 ==== Redis Queue Outbound Channel Adapter
 
-Since _Spring Integration 3.0_, a Queue Outbound Channel Adapter is available to 'push' to a Redis List from Spring Integration messages. By default,
-it uses 'left push', but it can be configured to use 'right push' instead.
+Spring Integration 3.0 introduced a queue outbound channel adapter to "`push`" to a Redis list from Spring Integration messages. By default,
+it uses "`left push`", but you can configure it to use "`right push`" instead.
+The following listing shows all the available attributes for a Redis `queue-outbound-channel-adapter`:
+
+====
 [source,xml]
 ----
 <int-redis:queue-outbound-channel-adapter id=""  <1>
@@ -271,62 +277,50 @@ it uses 'left push', but it can be configured to use 'right push' instead.
 
 ----
 
-
-
 <1> The component bean name.
-If the `channel` attribute isn't provided, a `DirectChannel` is created and registered with the application context with this `id` attribute as the bean name.
-In this case, the endpoint is registered with the bean name `id + '.adapter'`.
-
-
-<2> The `MessageChannel` from which this Endpoint receives `Message` s.
-
-
+If you do not provide the `channel` attribute, a `DirectChannel` is created and registered in the application context with this `id` attribute as the bean name.
+In this case, the endpoint is registered with a bean name of `id` plus `.adapter`.
+(If the bean name were `thing1`, the endpoint is registered as `thing1.adapter`.)
+<2> The `MessageChannel` from which this endpoint receives `Message` instances.
 <3> A reference to a `RedisConnectionFactory` bean.
-Defaults to `redisConnectionFactory`.
-
-
-<4> The name of the Redis List on which the queue-based 'push' operation is performed to send Redis messages.
+It defaults to `redisConnectionFactory`.
+<4> The name of the Redis list on which the queue-based 'push' operation is performed to send Redis messages.
 This attribute is mutually exclusive with `queue-expression`.
-
-
-<5> A SpEL `Expression` to determine the name of the Redis List using the incoming `Message` at runtime as the `#root` variable.
+<5> A SpEL `Expression` to determine the name of the Redis list.
+It uses the incoming `Message` at runtime as the `#root` variable.
 This attribute is mutually exclusive with `queue`.
-
-
 <6> A `RedisSerializer` bean reference.
-By default it is a `JdkSerializationRedisSerializer`.
-However, for `String` payloads, a `StringRedisSerializer` is used, if a `serializer` reference isn't provided.
-
-
-<7> Specify if this Endpoint should send just the _payload_ to the Redis queue, or the entire `Message`.
-Default is `true`.
-
-
-<8> Specify whether this Endpoint should use 'left push' (when `true`) or 'right push' (when `false`) to write messages to the Redis List.
-If `true`, the Redis List acts as a `FIFO` queue when used with a default _Redis Queue Inbound Channel Adapter_. Set to `false` to use with software
-that reads from the list with 'left pop', or to achieve a stack-like message order.
-Default is `true`.
-Since _version 4.3_.
-
+It defaults to a `JdkSerializationRedisSerializer`.
+However, for `String` payloads, a `StringRedisSerializer` is used, if a `serializer` reference is not provided.
+<7> Specifies whether this endpoint should send only the payload or the entire `Message` to the Redis queue.
+It defaults to `true`.
+<8> Specifies whether this endpoint should use "`left push`" (when `true`) or "`right push`" (when `false`) to write messages to the Redis list.
+If `true`, the Redis list acts as a `FIFO` queue when used with a default Redis queue inbound channel adapter.
+Set it to `false` to use with software that reads from the list with "`left pop`" or to achieve a stack-like message order.
+It defaults to `true`.
+Since version 4.3.
+====
 
 [[redis-application-events]]
 ==== Redis Application Events
 
-Since _Spring Integration 3.0_, the Redis module provides an implementation of `IntegrationEvent` - which, in turn, is a `org.springframework.context.ApplicationEvent`.
-The `RedisExceptionEvent` encapsulates an `Exception` s from Redis operations (with the Endpoint being the `source` of the event).
-For example, the `<int-redis:queue-inbound-channel-adapter/>` emits those events after catching `Exception` s from the `BoundListOperations.rightPop` operation.
+Since Spring Integration 3.0, the Redis module provides an implementation of `IntegrationEvent`, which, in turn, is a `org.springframework.context.ApplicationEvent`.
+The `RedisExceptionEvent` encapsulates exceptions from Redis operations (with the endpoint being the "`source`" of the event).
+For example, the `<int-redis:queue-inbound-channel-adapter/>` emits those events after catching exceptions from the `BoundListOperations.rightPop` operation.
 The exception may be any generic `org.springframework.data.redis.RedisSystemException` or a `org.springframework.data.redis.RedisConnectionFailureException`.
-Handling these events using an `<int-event:inbound-channel-adapter/>` can be useful to determine problems with background Redis tasks and to take administrative actions.
+Handling these events with an `<int-event:inbound-channel-adapter/>` can be useful to determine problems with background Redis tasks and to take administrative actions.
 
 [[redis-message-store]]
 === Redis Message Store
 
-As described in EIP, a http://www.eaipatterns.com/MessageStore.html[Message Store] allows you to persist Messages.
-This can be very useful when dealing with components that have a capability to buffer messages (_Aggregator, Resequencer_, etc.) if reliability is a concern.
-In Spring Integration, the MessageStore strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[ClaimCheck] pattern, which is described in EIP as well.
+As described in the _Enterprise Integration Patterns_ (EIP) book, a http://www.eaipatterns.com/MessageStore.html[message store] lets you persist messages.
+This can be useful when dealing with components that have a capability to buffer messages (aggregator, resequencer, and others) when reliability is a concern.
+In Spring Integration, the `MessageStore` strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[ claim check] pattern, which is described in EIP as well.
 
 Spring Integration's Redis module provides the `RedisMessageStore`.
+The following example shows how to use it with a aggregator:
 
+====
 [source,xml]
 ----
 <bean id="redisMessageStore" class="o.s.i.redis.store.RedisMessageStore">
@@ -336,20 +330,21 @@ Spring Integration's Redis module provides the `RedisMessageStore`.
 <int:aggregator input-channel="inputChannel" output-channel="outputChannel"
          message-store="redisMessageStore"/>
 ----
+====
 
-Above is a sample `RedisMessageStore` configuration that shows its usage by an _Aggregator_.
-As you can see it is a simple bean configuration, and it expects a `RedisConnectionFactory` as a constructor argument.
+The preceding example is a bean configuration, and it expects a `RedisConnectionFactory` as a constructor argument.
 
-By default the `RedisMessageStore` will use Java serialization to serialize the Message.
-However if you want to use a different serialization technique (e.g., JSON), you can provide your own serializer via the `valueSerializer` property of the `RedisMessageStore`.
+By default, the `RedisMessageStore` uses Java serialization to serialize the message.
+However, if you want to use a different serialization technique (such as JSON), you can provide your own serializer by setting the `valueSerializer` property of the `RedisMessageStore`.
 
-Starting with _version 4.3.10_, the Framework provides Jackson Serializer and Deserializer implementations for `Message` s and `MessageHeaders` - `MessageHeadersJacksonSerializer` and `MessageJacksonDeserializer`, respectively.
-They have to be configured via the `SimpleModule` options for the `ObjectMapper`.
-In addition, `enableDefaultTyping` should be configured on the `ObjectMapper` to add type information for each serialized complex object.
+Starting with version 4.3.10, the Framework provides Jackson serializer and deserializer implementations for `Message` instances and `MessageHeaders` instances -- `MessageJacksonDeserializer` and `MessageHeadersJacksonSerializer`, respectively.
+They have to be configured with the `SimpleModule` options for the `ObjectMapper`.
+In addition, you should set `enableDefaultTyping` on the `ObjectMapper` to add type information for each serialized complex object.
 That type information is then used during deserialization.
-The Framework provides a utility method `JacksonJsonUtils.messagingAwareMapper()`, which is already supplied with all the above-mentioned properties and serializers.
-To manage JSON serialization in the `RedisMessageStore`, it must be configured like so:
+The framework provides a utility method called `JacksonJsonUtils.messagingAwareMapper()`, which is already supplied with all the previously mentioned properties and serializers.
+To manage JSON serialization in the `RedisMessageStore`, you must configure it in a fashion similar to the following example:
 
+====
 [source,java]
 ----
 RedisMessageStore store = new RedisMessageStore(jedisConnectionFactory);
@@ -357,19 +352,22 @@ ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
 RedisSerializer<Object> serializer = new GenericJackson2JsonRedisSerializer(mapper);
 store.setValueSerializer(serializer);
 ----
+====
 
-Starting with version _4.3.12_, the `RedisMessageStore` supports the key `prefix` option to allow distinguishing between instances of the store on the same Redis server.
+Starting with version 4.3.12, `RedisMessageStore` supports the `prefix` option to allow distinguishing between instances of the store on the same Redis server.
 
 [[redis-cms]]
 ==== Redis Channel Message Stores
 
-The `RedisMessageStore` above maintains each group as a value under a single key (the group id).
-While this can be used to back a `QueueChannel` for persistence, a specialized `RedisChannelMessageStore` is provided for that purpose (since _version 4.0_).
-This store uses a `LIST` for each channel and `LPUSH` when sending and `RPOP` when receiving messages.
-This store also uses JDK serialization by default, but the value serializer can be modified as described above.
+The `RedisMessageStore` <<redis-message-store,shown earlier>> maintains each group as a value under a single key (the group ID).
+While you can use this to back a `QueueChannel` for persistence, a specialized `RedisChannelMessageStore` is provided for that purpose (since version 4.0).
+This store uses a `LIST` for each channel, `LPUSH` when sending messages, and `RPOP` when receiving messages.
+By default, this store also uses JDK serialization, but you can modify the value serializer, as <<redis-message-store,described earlier>>.
 
-It is recommended that this store is used for backing channels, instead of the general `RedisMessageStore`.
+We recommend using this store backing channels, instead of using the general `RedisMessageStore`.
+The following example defines a Redis message store and uses it in a channel with a queue:
 
+====
 [source,xml]
 ----
 <bean id="redisMessageStore" class="o.s.i.redis.store.RedisChannelMessageStore">
@@ -380,53 +378,60 @@ It is recommended that this store is used for backing channels, instead of the g
     <int:queue message-store="redisMessageStore"/>
 <int:channel>
 ----
+====
 
-The keys that are used to store the data have the form `<storeBeanName>:<channelId>` (in the above example, `redisMessageStore:somePersistentQueueChannel`).
+The keys used to store the data have the form: `<storeBeanName>:<channelId>` (in the preceding example, `redisMessageStore:somePersistentQueueChannel`).
 
 In addition, a subclass `RedisChannelPriorityMessageStore` is also provided.
-When this is used with a `QueueChannel`, the messages are received in (FIFO within) priority order.
-It uses the standard `IntegrationMessageHeaderAccessor.PRIORITY` header and supports priority values `0 - 9`; messages with other priorities (and messages with no priority) are retrieved in FIFO order after any messages with priority.
+When you use this with a `QueueChannel`, the messages are received in (FIFO) priority order.
+It uses the standard `IntegrationMessageHeaderAccessor.PRIORITY` header and supports priority values (`0 - 9`).
+Messages with other priorities (and messages with no priority) are retrieved in FIFO order after any messages with priority.
 
-IMPORTANT: These stores implement only `BasicMessageGroupStore` and do not implement `MessageGroupStore`; they can only be used for situations such as backing a `QueueChannel`.
+IMPORTANT: These stores implement only `BasicMessageGroupStore` and do not implement `MessageGroupStore`.
+They can be used only for situations such as backing a `QueueChannel`.
 
 [[redis-metadata-store]]
 === Redis Metadata Store
 
-As of _Spring Integration 3.0_ a new Redis-based http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[MetadataStore] (<<metadata-store>>) implementation is available.
-The `RedisMetadataStore` can be used to maintain state of a `MetadataStore` across application restarts.
-This new `MetadataStore` implementation can be used with adapters such as:
+Spring Integration 3.0 introduced a new Redis-based http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[`MetadataStore`] (see "`<<metadata-store>>`") implementation.
+You can use the `RedisMetadataStore` to maintain the state of a `MetadataStore` across application restarts.
+You can use this new `MetadataStore` implementation with adapters such as:
 
-* <<twitter-inbound>>
-* <<feed-inbound-channel-adapter>>
-* <<file-reading>>
-* <<ftp-inbound>>
-* <<sftp-inbound>>
+* <<twitter-inbound,Twitter>>
+* <<feed-inbound-channel-adapter,Feed>>
+* <<file-reading,File>>
+* <<ftp-inbound,FTP>>
+* <<sftp-inbound,SFTP>>
 
+To instruct these adapters to use the new `RedisMetadataStore`, declare a Spring bean named `metadataStore`.
+The Twitter inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `RedisMetadataStore`.
+The following example shows how to declare such a bean:
 
-
-In order to instruct these adapters to use the new `RedisMetadataStore` simply declare a Spring bean using the bean name *metadataStore*.
-The _Twitter Inbound Channel Adapter_ and the _Feed Inbound Channel Adapter_ will both automatically pick up and use the declared `RedisMetadataStore`.
-
+====
 [source,xml]
 ----
 <bean name="metadataStore" class="o.s.i.redis.store.metadata.RedisMetadataStore">
     <constructor-arg name="connectionFactory" ref="redisConnectionFactory"/>
 </bean>
 ----
+====
 
-The `RedisMetadataStore` is backed by http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/support/collections/RedisProperties.html[`RedisProperties`] and interaction with it uses http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/core/BoundHashOperations.html[`BoundHashOperations`], which, in turn, requires a `key` for the entire `Properties` store.
-In the case of the `MetadataStore`, this `key` plays the role of a _region_, which is useful in distributed environment, when several applications use the same Redis server.
-By default this `key` has the value `MetaData`.
+The `RedisMetadataStore` is backed by http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/support/collections/RedisProperties.html[`RedisProperties`].
+Interaction with it uses http://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/core/BoundHashOperations.html[`BoundHashOperations`], which, in turn, requires a `key` for the entire `Properties` store.
+In the case of the `MetadataStore`, this `key` plays the role of a region, which is useful in a distributed environment, when several applications use the same Redis server.
+By default, this `key` has a value of `MetaData`.
 
-Starting with _version 4.0_, this store now implements `ConcurrentMetadataStore`, allowing it to be reliably shared across multiple application instances where only one instance will be allowed to store or modify a key's value.
+Starting with version 4.0, this store implements `ConcurrentMetadataStore`, letting it be reliably shared across multiple application instances where only one instance is allowed to store or modify a key's value.
 
-IMPORTANT: The `RedisMetadataStore.replace()` (for example in the `AbstractPersistentAcceptOnceFileListFilter`) can't be used with a Redis cluster since the `WATCH` command for atomicity is not currently supported.
+IMPORTANT: You canot use the `RedisMetadataStore.replace()` (for example, in the `AbstractPersistentAcceptOnceFileListFilter`) with a Redis cluster, since the `WATCH` command for atomicity is not currently supported.
 
 [[redis-store-inbound-channel-adapter]]
-=== RedisStore Inbound Channel Adapter
+=== Redis Store Inbound Channel Adapter
 
-The _RedisStore Inbound Channel Adapter_ is a polling consumer that reads data from a Redis collection and sends it as a Message payload.
+The Redis store inbound channel adapter is a polling consumer that reads data from a Redis collection and sends it as a `Message` payload.
+The following example shows how to configure a Redis store inbound channel adapter:
 
+====
 [source,xml]
 ----
 <int-redis:store-inbound-channel-adapter id="listAdapter"
@@ -437,26 +442,27 @@ The _RedisStore Inbound Channel Adapter_ is a polling consumer that reads data f
     <int:poller fixed-rate="2000" max-messages-per-poll="10"/>
 </int-redis:store-inbound-channel-adapter>
 ----
+====
 
-As you can see from the configuration above you configure a _Redis Store Inbound Channel Adapter_ using the `store-inbound-channel-adapter` element, providing values for various attributes such as:
+The preceding example shows how to configure a Redis store inbound channel adapter by using the `store-inbound-channel-adapter` element, providing values for various attributes, such as:
 
-* `key` or `key-expression` - The name of the key for the collection being used.
-* `collection-type` - enumeration of the Collection types supported by this adapter.
-Supported Collections are: LIST, SET, ZSET, PROPERTIES, MAP
-* `connection-factory` - reference to an instance of `o.s.data.redis.connection.RedisConnectionFactory`
-* `redis-template` - reference to an instance of `o.s.data.redis.core.RedisTemplate`
-
-
-
-and other attributes that are common across all other inbound adapters (e.g., 'channel').
+* `key` or `key-expression`: The name of the key for the collection being used.
+* `collection-type`: An enumeration of the collection types supported by this adapter.
+The supported Collections are `LIST`, `SET`, `ZSET`, `PROPERTIES`, and `MAP`.
+* `connection-factory`: Reference to an instance of `o.s.data.redis.connection.RedisConnectionFactory`.
+* `redis-template`: Reference to an instance of `o.s.data.redis.core.RedisTemplate`.
+* Other attributes that are common across all other inbound adapters (such as 'channel').
 
 NOTE: You cannot set both `redis-template` and `connection-factory`.
 
 [IMPORTANT]
 =====
-By default, the adapter uses a `StringRedisTemplate`; this uses `StringRedisSerializer` s for keys, values, hash keys and hash values.
+By default, the adapter uses a `StringRedisTemplate`.
+This uses `StringRedisSerializer` instances for keys, values, hash keys, and hash values.
 If your Redis store contains objects that are serialized with other techniques, you must supply a `RedisTemplate` configured with appropriate serializers.
-For example, if the store is written to using a RedisStore Outbound Adapter that has its `extract-payload-elements` set to false, you must provide a `RedisTemplate` configured thus:
+For example, if the store is written to using a Redis store outbound adapter that has its `extract-payload-elements` set to `false`, you must provide a `RedisTemplate` configured as follows:
+
+====
 [source,xml]
 ----
 <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
@@ -469,18 +475,21 @@ For example, if the store is written to using a RedisStore Outbound Adapter that
     </property>
 </bean>
 ----
+====
 
-This uses String serializers for keys and hash keys and the default JDK Serialization serializers for values and hash values.
+Th `RedisTemplate` uses `String` serializers for keys and hash keys and the default JDK Serialization serializers for values and hash values.
 =====
 
-The example above is relatively simple and static since it has a literal value for the `key`.
+Because it has a literal value for the `key`, the preceding example is relatively simple and static.
 Sometimes, you may need to change the value of the key at runtime based on some condition.
-To do that, simply use `key-expression` instead, where the provided expression can be any valid SpEL expression.
+To do so, use `key-expression` instead, where the provided expression can be any valid SpEL expression.
 
-Also, you may wish to perform some post-processing to the successfully processed data that was read from the Redis collection.
-For example; you may want to move or remove the value after its been processed.
-You can do this using the Transaction Synchronization feature that was added with Spring Integration 2.2.
+Also, you may wish to perform some post-processing on the successfully processed data that was read from the Redis collection.
+For example, you may want to move or remove the value after its been processed.
+You can do so by using the transaction synchronization feature that was added with Spring Integration 2.2.
+The following example uses `key-expression` and transaction synchronization:
 
+====
 [source,xml]
 ----
 <int-redis:store-inbound-channel-adapter id="zsetAdapterWithSingleScoreAndSynchronization"
@@ -500,30 +509,32 @@ You can do this using the Transaction Synchronization feature that was added wit
 
 <bean id="transactionManager" class="o.s.i.transaction.PseudoTransactionManager"/>
 ----
+====
 
-As you can see from the above all, you need to do is declare your poller to be transactional with a `transactional` element.
-This element can reference a real transaction manager (for example if some other part of your flow invokes JDBC).
-If you don't have a 'real' transaction, you can use a `o.s.i.transaction.PseudoTransactionManager` which is an implementation of Spring's `PlatformTransactionManager` and enables the use of the transaction synchronization features of the redis adapter when there is no actual transaction.
+You can declare your poller to be transactional by using a `transactional` element.
+This element can reference a real transaction manager (for example, if some other part of your flow invokes JDBC).
+If you do not have a "`real`" transaction, you can use an `o.s.i.transaction.PseudoTransactionManager`, which is an implementation of Spring's `PlatformTransactionManager` and enables the use of the transaction synchronization features of the Redis adapter when there is no actual transaction.
 
-IMPORTANT: This does NOT make the Redis activities themselves transactional, it simply allows the synchronization of actions to be taken before/after success (commit) or after failure (rollback).
+IMPORTANT: This does not make the Redis activities themselves transactional. It lets the synchronization of actions be taken before or after success (commit) or after failure (rollback).
 
-Once your poller is transactional all you need to do is set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
-`TransactionSynchronizationFactory` will create an instance of the `TransactionSynchronization`.
-For your convenience we've exposed a default SpEL-based `TransactionSynchronizationFactory` which allows you to configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
-Expressions for before-commit, after-commit, and after-rollback are supported, together with a channel for each where the evaluation result (if any) will be sent.
-For each sub-element you can specify `expression` and/or `channel` attributes.
-If only the `channel` attribute is present the received Message will be sent there as part of the particular synchronization scenario.
-If only the `expression` attribute is present and the result of an expression is a non-Null value, a Message with the result as the payload will be generated and sent to a default channel (NullChannel) and will appear in the logs (DEBUG).
-If you want the evaluation result to go to a specific channel add a `channel` attribute.
-If the result of an expression is null or void, no Message will be generated.
+Once your poller is transactional, you can set an instance of the `o.s.i.transaction.TransactionSynchronizationFactory` on the `transactional` element.
+`TransactionSynchronizationFactory` creates an instance of the `TransactionSynchronization`.
+For your convenience, we have exposed a default SpEL-based `TransactionSynchronizationFactory`, which lets you configure SpEL expressions, with their execution being coordinated (synchronized) with a transaction.
+Expressions for before-commit, after-commit, and after-rollback are supported, together with channels (one for each kind of event) where the evaluation result (if any) is sent.
+For each child element, you can specify `expression` and `channel` attributes.
+If only the `channel` attribute is present, the received message is sent there as part of the particular synchronization scenario.
+If only the `expression` attribute is present and the result of an expression is a non-null value, a message with the result as the payload is generated and sent to a default channel (`NullChannel`) and appears in the logs (at the `DEBUG` level).
+If you want the evaluation result to go to a specific channel, add a `channel` attribute.
+If the result of an expression is null or void, no message is generated.
 
-For more information about transaction synchronization, see <<transaction-synchronization>>.
+For more information about transaction synchronization, see "`<<transaction-synchronization>>`".
 
 [[redis-store-outbound-channel-adapter]]
 === RedisStore Outbound Channel Adapter
 
-The _RedisStore Outbound Channel Adapter_ allows you to write a Message payload to a Redis collection
+The RedisStore outbound channel adapter lets you write a message payload to a Redis collection, as the following example shows:
 
+====
 [source,xml]
 ----
 <int-redis:store-outbound-channel-adapter id="redisListAdapter"
@@ -531,44 +542,42 @@ The _RedisStore Outbound Channel Adapter_ allows you to write a Message payload 
           channel="requestChannel"
           key="myCollection" />
 ----
+====
 
-As you can see from the configuration above, you configure a _Redis Store Outbound Channel Adapter_ using the `store-inbound-channel-adapter` element, providing values for various attributes such as:
+The preceding configuration a Redis store outbound channel adapter by using the `store-inbound-channel-adapter` element.
+It provides values for various attributes, such as:
 
-* `key` or `key-expression` - The name of the key for the collection being used.
-
-* `extract-payload-elements` - If set to `true` (Default) and the payload is an instance of a "multi- value" object (i.e., Collection or Map) it will be stored using addAll/ putAll semantics.
-Otherwise, if set to `false` the payload will be stored as a single entry regardless of its type.
-If the payload is not an instance of a "multi-value" object, the value of this attribute is ignored and the payload will always be stored as a single entry.
-
-* `collection-type` - enumeration of the Collection types supported by this adapter.
-Supported Collections are: LIST, SET, ZSET, PROPERTIES, MAP
-
-* `map-key-expression` - SpEL expression that returns the name of the key for entry being stored.
-Only applies if the `collection-type` is MAP or PROPERTIES and 'extract-payload-elements' is false.
-
-* `connection-factory` - reference to an instance of `o.s.data.redis.connection.RedisConnectionFactory`
-
-* `redis-template` - reference to an instance of `o.s.data.redis.core.RedisTemplate`
-
-
-
-and other attributes that are common across all other inbound adapters (e.g., 'channel').
+* `key` or `key-expression`: The name of the key for the collection being used.
+* `extract-payload-elements`: If set to `true` (the default) and the payload is an instance of a "`multi-value`" object (that is, a `Collection` or a `Map`), it is stored by using "`addAll`" and "`putAll`" semantics.
+Otherwise, if set to `false`, the payload is stored as a single entry regardless of its type.
+If the payload is not an instance of a "`multi-value`" object, the value of this attribute is ignored and the payload is always stored as a single entry.
+* `collection-type`: An enumeration of the `Collection` types supported by this adapter.
+The supported Collections are `LIST`, `SET`, `ZSET`, `PROPERTIES`, and `MAP`.
+* `map-key-expression`: SpEL expression that returns the name of the key for the entry being stored.
+It applies only if the `collection-type` is `MAP` or `PROPERTIES` and 'extract-payload-elements' is false.
+* `connection-factory`: Reference to an instance of `o.s.data.redis.connection.RedisConnectionFactory`.
+* `redis-template`: Reference to an instance of `o.s.data.redis.core.RedisTemplate`.
+* Other attributes that are common across all other inbound adapters (such as 'channel').
 
 NOTE: You cannot set both `redis-template` and `connection-factory`.
 
-IMPORTANT: By default, the adapter uses a `StringRedisTemplate`; this uses `StringRedisSerializer` s for keys, values, hash keys and hash values.
-However, if `extract-payload-elements` is set to false, a `RedisTemplate` using `StringRedisSerializer` s for keys and hash keys, and `JdkSerializationRedisSerializer` s for values and hash values will be used.
-With the JDK serializer, it is important to understand that java serialization is used for all values, regardless of whether the value is actually a collection or not.
-If you need more control over the serialization of values, you may want to consider providing your own `RedisTemplate` rather than relying upon these defaults.
+IMPORTANT: By default, the adapter uses a `StringRedisTemplate`.
+This uses `StringRedisSerializer` instances for keys, values, hash keys, and hash values.
+However, if `extract-payload-elements` is set to `false`, a `RedisTemplate` that has `StringRedisSerializer` instances for keys and hash keys and `JdkSerializationRedisSerializer` instances s for values and hash values will be used.
+With the JDK serializer, it is important to understand that Java serialization is used for all values, regardless of whether the value is actually a collection or not.
+If you need more control over the serialization of values, consider providing your own `RedisTemplate` rather than relying upon these defaults.
 
-The example above is relatively simple and static since it has a literal values for the `key` and other attributes.
-Sometimes you may need to change the values dynamically at runtime based on some condition.
-To do that simply use their `-expression` equivalents (`key-expression`, `map-key-expression` etc.) where the provided expression can be any valid SpEL expression.
+Because it has literal values for the `key` and other attributes, the preceding example is relatively simple and static.
+Sometimes, you may need to change the values dynamically at runtime based on some condition.
+To do so, use their `-expression` equivalents (`key-expression`, `map-key-expression`, and so on), where the provided expression can be any valid SpEL expression.
 
 [[redis-outbound-gateway]]
 === Redis Outbound Command Gateway
 
-Since _Spring Integration 4.0_, the Redis Command Gateway is available to perform any standard Redis command using generic `RedisConnection#execute` method:
+Spring Integration 4.0 introduced the Redis command gateway to let you perform any standard Redis command by using the generic `RedisConnection#execute` method.
+The following listing shows the available attributes for the Redis outbound gateway:
+
+====
 [source,xml]
 ----
 <int-redis:outbound-gateway
@@ -585,74 +594,62 @@ Since _Spring Integration 4.0_, the Redis Command Gateway is available to perfor
         arguments-strategy="" /> <11>
 ----
 
-
-
-<1> The `MessageChannel` from which this Endpoint receives `Message` s.
-
-
-<2> The `MessageChannel` where this Endpoint sends reply `Message` s.
-
-
-<3> Specify whether this outbound gateway must return a non-null value.
-This value is `true` by default.
-A ReplyRequiredException will be thrown when the Redis returns a `null` value.
-
-
-<4> The timeout in milliseconds to wait until the reply message will be sent or not.
-Typically is applied for queue-based limited reply-channels.
-
-
+<1> The `MessageChannel` from which this endpoint receives `Message` instances.
+<2> The `MessageChannel` where this endpoint sends reply `Message` instances.
+<3> Specifies whether this outbound gateway must return a non-null value.
+It defaults to `true`.
+A `ReplyRequiredException` is thrown when Redis returns a `null` value.
+<4> The timeout (in milliseconds) to wait until the reply message is sent.
+It is typically applied for queue-based limited reply-channels.
 <5> A reference to a `RedisConnectionFactory` bean.
-Defaults to `redisConnectionFactory`.
-Mutually exclusive with 'redis-template' attribute.
-
-
+It defaults to `redisConnectionFactory`.
+It is mutually exclusive with 'redis-template' attribute.
 <6> A reference to a `RedisTemplate` bean.
-Mutually exclusive with 'connection-factory' attribute.
-
-
-<7> Reference to an instance of `org.springframework.data.redis.serializer.RedisSerializer`.
-Used to serialize each command argument to byte[] if necessary.
-
-
+It is mutually exclusive with 'connection-factory' attribute.
+<7> A reference to an instance of `org.springframework.data.redis.serializer.RedisSerializer`.
+It is used to serialize each command argument to byte[], if necessary.
 <8> The SpEL expression that returns the command key.
-Default is the `redis_command` message header.
-Must not evaluate to `null`.
-
-
-<9> Comma-separate SpEL expressions that will be evaluated as command arguments.
+It defaults to the `redis_command` message header.
+It must not evaluate to `null`.
+<9> Comma-separated SpEL expressions that are evaluated as command arguments.
 Mutually exclusive with the `arguments-strategy` attribute.
-If neither of them is provided the `payload` is used as the command argument(s).
-Argument expressions may evaluate to 'null', to support a variable number of arguments.
-
-
-<10> A `boolean` flag to specify if the evaluated Redis command string will be made available as the `#cmd` variable in the expression evaluation context in the `o.s.i.redis.outbound.ExpressionArgumentsStrategy` when `argument-expressions` is configured, otherwise this attribute is ignored.
-
-
+If you provide neither attribute, the `payload` is used as the command arguments.
+The argument expressions can evaluate to 'null' to support a variable number of arguments.
+<10> A `boolean` flag to specify whether the evaluated Redis command string is made available as the `#cmd` variable in the expression evaluation context in the `o.s.i.redis.outbound.ExpressionArgumentsStrategy` when `argument-expressions` is configured.
+Otherwise this attribute is ignored.
 <11> Reference to an instance of `o.s.i.redis.outbound.ArgumentsStrategy`.
-Mutually exclusive with `argument-expressions` attribute.
-If neither of them is provided the `payload` is used as the command argument(s).
+It is mutually exclusive with `argument-expressions` attribute.
+If you provide neither attribute, the `payload` is used as the command arguments.
+====
 
-The `<int-redis:outbound-gateway>` can be used as a common component to perform any desired Redis operation.
-For example to get incremented value from Redis Atomic Number:
+You can use the `<int-redis:outbound-gateway>` as a common component to perform any desired Redis operation.
+For example, the following examlpe shows how to get incremented values from Redis atomic number:
+
+====
 [source,xml]
 ----
 <int-redis:outbound-gateway request-channel="requestChannel"
     reply-channel="replyChannel"
     command-expression="'INCR'"/>
 ----
+====
 
-where the Message `payload` should be a name of `redisCounter`, which may be provided by `org.springframework.data.redis.support.atomic.RedisAtomicInteger` bean definition.
+The `Message` payload should have a name of `redisCounter`, which may be provided by `org.springframework.data.redis.support.atomic.RedisAtomicInteger` bean definition.
 
-The `RedisConnection#execute` has a generic `Object` as return type and real result depends on command type, for example `MGET` returns a `List<byte[]>`.
-For more information about commands, their arguments and result type seehttp://redis.io/commands[Redis Specification].
+The `RedisConnection#execute` method has a generic `Object` as its return type.
+Real result depends on command type.
+For example, `MGET` returns a `List<byte[]>`.
+For more information about commands, their arguments and result type, see http://redis.io/commands[Redis Specification].
 
 [[redis-queue-outbound-gateway]]
 === Redis Queue Outbound Gateway
 
-Since _Spring Integration 4.1_, the Redis Queue Outbound Gateway is available to perform request and reply scenarios.
-It pushes a _conversation_`UUID` to the provided `queue`, then pushes the value to a Redis List with that `UUID` as its key and waits for the reply from a Redis List with a key of `UUID + '.reply'`.
+Spring Integration introduced the Redis queue outbound gateway to perform request and reply scenarios.
+It pushes a conversation `UUID` to the provided `queue`, pushes the value with that `UUID` as its key to a Redis list, and waits for the reply from a Redis list with a key of `UUID' plus '.reply`.
 A different UUID is used for each interaction.
+The following listing shows the available attributes for a Redis outbound gateway:
+
+====
 [source,xml]
 ----
 <int-redis:queue-outbound-gateway
@@ -667,47 +664,34 @@ A different UUID is used for each interaction.
         extract-payload=""/>  <9>
 ----
 
-
-
-<1> The `MessageChannel` from which this Endpoint receives `Message` s.
-
-
-<2> The `MessageChannel` where this Endpoint sends reply `Message` s.
-
-
-<3> Specify whether this outbound gateway must return a non-null value.
-This value is `false` by default, otherwise a ReplyRequiredException will be thrown when the Redis returns a `null` value.
-
-
-<4> The timeout in milliseconds to wait until the reply message will be sent or not.
-Typically is applied for queue-based limited reply-channels.
-
-
+<1> The `MessageChannel` from which this endpoint receives `Message` instances.
+<2> The `MessageChannel` where this endpoint sends reply `Message` instances.
+<3> Specifies whether this outbound gateway must return a non-null value.
+This value is `false` by default.
+Otherwise, a `ReplyRequiredException` is thrown when Redis returns a `null` value.
+<4> The timeout (in milliseconds) to wait until the reply message is sent.
+It is typically applied for queue-based limited reply-channels.
 <5> A reference to a `RedisConnectionFactory` bean.
-Defaults to `redisConnectionFactory`.
-Mutually exclusive with 'redis-template' attribute.
-
-
-<6> The name of the Redis List to which outbound gateway will send a _conversation_`UUID`.
-
-
-<7> The order for this outbound gateway when multiple gateway are registered thereby
-
-
+It defaults to `redisConnectionFactory`.
+It is mutually exclusive with the 'redis-template' attribute.
+<6> The name of the Redis list to which the outbound gateway sends a conversation `UUID`.
+<7> The order of this outbound gateway when multiple gateways are registered.
 <8> The `RedisSerializer` bean reference.
-Can be an empty string, which means 'no serializer'.
-In this case the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
-By default it is a `JdkSerializationRedisSerializer`.
-
-
-<9> Specify if this Endpoint expects data from the Redis queue to contain entire `Message` s.
-If this attribute is set to `true`, the `serializer` can't be an empty string because messages require some form of deserialization (JDK serialization by default).
+It can be an empty string, which means "`no serializer`".
+In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
+By default, it is a `JdkSerializationRedisSerializer`.
+<9> Specifies whether this endpoint expects data from the Redis queue to contain entire `Message` instances.
+If this attribute is set to `true`, the `serializer` cannot be an empty string, because messages require some form of deserialization (JDK serialization by default).
+====
 
 [[redis-queue-inbound-gateway]]
 === Redis Queue Inbound Gateway
 
-Since _Spring Integration 4.1_, the Redis Queue Inbound Gateway is available to perform request and reply scenarios.
-It pops a _conversation_ `UUID` from the provided `queue`, then pops the value from the Redis List with that `UUID` as its key and pushes the reply to the Redis List with a key of `UUID + '.reply'`:
+Spring Integration 4.1 introduced the Redis queue inbound gateway to perform request and reply scenarios.
+It pops a conversation `UUID` from the provided `queue`, pops the value with that `UUID` as its key from the Redis list, and pushes the reply to the Redis list with a key of `UUID` plus `.reply`.
+The following listing shows the available attributes for a Redis queue inbound gateway:
+
+====
 [source,xml]
 ----
 <int-redis:queue-inbound-gateway
@@ -724,68 +708,48 @@ It pops a _conversation_ `UUID` from the provided `queue`, then pops the value f
         recovery-interval=""/>  <11>
 ----
 
-
-
-<1> The `MessageChannel` from which this Endpoint receives `Message` s.
-
-
-<2> The `MessageChannel` where this Endpoint sends reply `Message` s.
-
-
-<3> A reference to a Spring `TaskExecutor` (or standard JDK 1.5+ `Executor`) bean.
+<1> The `MessageChannel` from which this endpoint receives `Message` instances.
+<2> The `MessageChannel` where this endpoint sends reply `Message` instances.
+<3> A reference to a Spring `TaskExecutor` (or a standard JDK 1.5+ `Executor`) bean.
 It is used for the underlying listening task.
-By default a `SimpleAsyncTaskExecutor` is used.
-
-
-<4> The timeout in milliseconds to wait until the reply message will be sent or not.
-Typically is applied for queue-based limited reply-channels.
-
-
+It defaults to a `SimpleAsyncTaskExecutor`.
+<4> The timeout (in milliseconds) to wait until the reply message is sent.
+It is typically applied for queue-based limited reply-channels.
 <5> A reference to a `RedisConnectionFactory` bean.
-Defaults to `redisConnectionFactory`.
-Mutually exclusive with 'redis-template' attribute.
-
-
-<6> The name of the Redis List for the _conversation_ `UUID` s.
-
-
-<7> The order for this inbound gateway when multiple gateway are registered thereby
-
-
+It defaults to `redisConnectionFactory`.
+It is mutually exclusive with 'redis-template' attribute.
+<6> The name of the Redis list for the conversation `UUID`.
+<7> The order of this inbound gateway when multiple gateways are registered.
 <8> The `RedisSerializer` bean reference.
-Can be an empty string, which means 'no serializer'.
-In this case the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
-By default it is a `JdkSerializationRedisSerializer`. (Note that in releases before _version 4.3_, it was a
-`StringRedisSerializer` by default; to restore that behavior provide a reference to a `StringRedisSerializer`).
-
-
-<9> The timeout in milliseconds to wait until the receive message will be get or not.
-Typically is applied for queue-based limited request-channels.
-
-
-<10> Specify if this Endpoint expects data from the Redis queue to contain entire `Message` s.
-If this attribute is set to `true`, the `serializer` can't be an empty string because messages require some form of deserialization (JDK serialization by default).
-
-
-<11> The time in milliseconds for which the listener task should sleep after exceptions on the 'right pop' operation,
-before restarting the listener task.
+It can be an empty string, which means "`no serializer`".
+In this case, the raw `byte[]` from the inbound Redis message is sent to the `channel` as the `Message` payload.
+It default to a `JdkSerializationRedisSerializer`.
+(Note that, in releases before version 4.3, it was a `StringRedisSerializer` by default.
+To restore that behavior, provide a reference to a `StringRedisSerializer`).
+<9> The timeout (in milliseconds) to wait until the receive message is fetched.
+It is typically applied for queue-based limited request-channels.
+<10> Specifies whether this endpoint expects data from the Redis queue to contain entire `Message` instances.
+If this attribute is set to `true`, the `serializer` cannot be an empty string, because messages require some form of deserialization (JDK serialization by default).
+<11> The time (in milliseconds) the listener task should sleep after exceptions on the "`right pop`" operation before restarting the listener task.
+====
 
 [[redis-lock-registry]]
 === Redis Lock Registry
 
-Starting with _version 4.0_, the `RedisLockRegistry` is available.
-Certain components (for example aggregator and resequencer) use a lock obtained from a `LockRegistry` instance to ensure that only one thread is manipulating a group at a time.
-The `DefaultLockRegistry` performs this function within a single component; you can now configure an external lock registry on these components.
-When used with a shared `MessageGroupStore`, the `RedisLockRegistry` can be use to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
+Spring Integration 4.0 introduced the `RedisLockRegistry`.
+Certain components (for example, aggregator and resequencer) use a lock obtained from a `LockRegistry` instance to ensure that only one thread manipulates a group at a time.
+The `DefaultLockRegistry` performs this function within a single component.
+You can now configure an external lock registry on these components.
+When you use it with a shared `MessageGroupStore`, you can use the `RedisLockRegistry` to provide this functionality across multiple application instances, such that only one instance can manipulate the group at a time.
 
-When a lock is released by a local thread, another local thread will generally be able to acquire the lock immediately.
+When a lock is released by a local thread, another local thread can generally acquire the lock immediately.
 If a lock is released by a thread using a different registry instance, it can take up to 100ms to acquire the lock.
 
-To avoid "hung" locks (when a server fails), the locks in this registry are expired after a default 60 seconds, but this can be configured on the registry.
+To avoid "`hung`" locks (when a server fails), the locks in this registry are expired after a default 60 seconds, but you can configure this value on the registry.
 Locks are normally held for a much smaller time.
 
-IMPORTANT: Because the keys can expire, an attempt to unlock an expired lock will result in an exception being thrown.
-However, be aware that the resources protected by such a lock may have been compromised so such exceptions should be considered severe.
-The expiry should be set at a large enough value to prevent this condition, while small enough that the lock can be recovered after a server failure in a reasonable amount of time.
+IMPORTANT: Because the keys can expire, an attempt to unlock an expired lock results in an exception being thrown.
+However, the resources protected by such a lock may have been compromised, so such exceptions should be considered to be severe.
+You should set the expiry at a large enough value to prevent this condition, but set it low enough that the lock can be recovered after a server failure in a reasonable amount of time.
 
-Starting with _version 5.0_, the `RedisLockRegistry` implements `ExpirableLockRegistry` providing functionality to remove locks last acquired more than `age` ago that are not currently locked.
+Starting with version 5.0, the `RedisLockRegistry` implements `ExpirableLockRegistry`, which removes locks last acquired more than `age` ago and that are not currently locked.

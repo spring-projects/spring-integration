@@ -1,21 +1,20 @@
 [[zookeeper]]
 == Zookeeper Support
 
-=== Introduction
+Version 4.2 added https://zookeeper.apache.org/[Zookeeper] support to the framework in version 4.2, which consists of:
 
-https://zookeeper.apache.org/[Zookeeper] support was added to the framework in _version 4.2_, comprised of:
-
-* MetadataStore
-* LockRegistry
-* Leadership Event Handling
+* <<zk-metadata-store,A metadata store>>
+* <<zk-lock-registry,A lock registry>>
+* <<zk-leadership,Leadership event handling>>
 
 [[zk-metadata-store]]
 === Zookeeper Metadata Store
 
-The `ZookeeperMetadataStore` can be used where any `MetadataStore` is needed, such as peristent file list filters,
-etc.
-See <<metadata-store>> for more information.
+You ca use the `ZookeeperMetadataStore` where any `MetadataStore` is needed, such as for persistent file list filters.
+See "`<<metadata-store>>`" for more information.
+The following example configures a Zookeeper metadata store with XML:
 
+====
 [source, xml]
 ----
 <bean id="client" class="org.springframework.integration.zookeeper.config.CuratorFrameworkFactoryBean">
@@ -26,6 +25,9 @@ See <<metadata-store>> for more information.
     <constructor-arg ref="client" />
 </bean>
 ----
+====
+
+The following example shows how to configure a Zookeeper metadata store with Java:
 
 [source, java]
 ----
@@ -38,14 +40,13 @@ public MetadataStore zkStore(CuratorFramework client) {
 [[zk-lock-registry]]
 === Zookeeper Lock Registry
 
-The `ZookeeperLockRegistry` can be used where any `LockRegistry` is needed, such as when using an `Aggregator` in a
-clustered environment, with a shared `MessageStore`.
+The `ZookeeperLockRegistry` can be used where any `LockRegistry` is needed, such as when using an aggregator in a clustered environment with a shared `MessageStore`.
 
-A `LocRegistry` is used to "look up" a lock based on a key (the aggregator uses the `correlationId`).
-By default, locks in the `ZookeeperLockRegistry` are maintained in zookeeper under the path
-`/SpringIntegration-LockRegistry/`.
-You can customize the path by providing an implementation of `ZookeeperLockRegistry.KeyToPathStrategy`.
+A `LockRegistry` is used to "`look up`" a lock based on a key (the aggregator uses `correlationId`).
+By default, locks in the `ZookeeperLockRegistry` are maintained in zookeeper under the following path: `/SpringIntegration-LockRegistry/`.
+You can customize the path by providing an implementation of `ZookeeperLockRegistry.KeyToPathStrategy`, as the following example shows:
 
+====
 [source, java]
 ----
 public interface KeyToPathStrategy {
@@ -56,30 +57,34 @@ public interface KeyToPathStrategy {
 
 }
 ----
+====
 
 If the strategy returns `true` from `isBounded`, unused locks do not need to be harvested.
-For unbounded strategies (such as the default) you will need to invoke `expireUnusedOlderThan(long age)` from time
-to time, to remove old unused locks from memory.
+For unbounded strategies (such as the default), you need to periodicallyinvoke `expireUnusedOlderThan(long age)` to remove old unused locks from memory.
 
 [[zk-leadership]]
 === Zookeeper Leadership Event Handling
 
-To configure an application for leader election using Zookeeper in XML:
+The following example uses XML to configure an application for leader election in Zookeeper:
 
+====
 [source, xml]
 ----
 <int-zk:leader-listener client="client" path="/siNamespace" role="cluster" />
 ----
+====
 
-`client` is a reference to a `CuratorFramework` bean; a `CuratorFrameworkFactoryBean` is available.
-When a leader is elected, an `OnGrantedEvent` will be published for the role `cluster`; any endpoints in that role
-will be started.
-When leadership is revoked, an `OnRevokedEvent` will be published for the role `cluster`; any endpoints in that role
-will be stopped.
-See <<endpoint-roles>> for more information.
+`client` is a reference to a `CuratorFramework` bean.
+A `CuratorFrameworkFactoryBean` is available.
+When a leader is elected, an `OnGrantedEvent` is published for the role `cluster`.
+Any endpoints in that role are started.
+When leadership is revoked, an `OnRevokedEvent` is published for the role `cluster`.
+Any endpoints in that role are stopped.
+See "`<<endpoint-roles>>`" for more information.
 
-In Java configuration you can create an instance of the leader initiator like this:
+You can use Java configuration to create an instance of the leader initiator, as the following example shows:
 
+====
 [source, java]
 ----
 @Bean
@@ -90,3 +95,4 @@ public LeaderInitiatorFactoryBean leaderInitiator(CuratorFramework client) {
                 .setRole("cluster");
 }
 ----
+====

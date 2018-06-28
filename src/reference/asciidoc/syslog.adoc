@@ -1,33 +1,33 @@
 [[syslog]]
 == Syslog Support
 
-[[syslog-intro]]
-=== Introduction
+Spring Integration 2.2 introduced the syslog transformer: `SyslogToMapTransformer`.
+This transformer, together with a `UDP` or `TCP` inbound adapter, could be used to receive and analyze syslog records from other hosts.
+The transformer creates a message payload that contains a map of the elements from the syslog message.
 
-Spring Integration 2.2 introduced the Syslog transformer `SyslogToMapTransformer`.
-This transformer, together with a `UDP` or `TCP` inbound adapter could be used to receive and analyze syslog records from other hosts.
-The transformer creates a message payload containing a map of the elements from the syslog message.
+Spring Integration 3.0 introduced convenient namespace support for configuring a syslog inbound adapter in a single element.
 
-Spring Integration 3.0 introduced convenient namespace support for configuring a Syslog inbound adapter in a single element.
-
-Starting with _version 4.1.1_, the framework now supports the extended Syslog format, as specified in https://tools.ietf.org/html/rfc5424[RFC 5424>].
+Starting with version 4.1.1, the framework now supports the extended syslog format, as specified in https://tools.ietf.org/html/rfc5424[RFC 5424>].
 In addition, when using TCP and RFC5424, both `octet counting` and `non-transparent framing` described in https://tools.ietf.org/html/rfc6587[RFC 6587] are supported.
 
 [[syslog-inbound-adapter]]
-=== Syslog <inbound-channel-adapter>
+=== Syslog Inbound Channel Adapter
 
-This element encompasses a `UDP` or `TCP` inbound channel adapter and a `MessageConverter` to convert the Syslog message to a Spring Integration message.
-The `DefaultMessageConverter` delegates to the `SyslogToMapTransformer`, creating a message with its payload being the `Map` of Syslog fields.
-In addition, all fields except the message are also made available as headers in the message, prefixed with `syslog_`.
+This element encompasses a `UDP` or `TCP` inbound channel adapter and a `MessageConverter` to convert the syslog message to a Spring Integration message.
+The `DefaultMessageConverter` delegates to the `SyslogToMapTransformer`, creating a message with its payload being the `Map` of syslog fields.
+In addition, all fields except the message are also made available as headers in the message and are prefixed with `syslog_`.
 In this mode, only https://tools.ietf.org/html/rfc3164[RFC 3164] (BSD) syslogs are supported.
 
-Since _version 4.1_, the `DefaultMessageConverter` has a property `asMap` (default `true`); when it is `false`, the converter will leave the message payload as the original complete syslog message, in a `byte[]`, while still setting the headers.
+Since version 4.1, the `DefaultMessageConverter` has a property called `asMap` (the default is `true`).
+When it is `false`, the converter leaves the message payload as the original complete syslog message (in a `byte[]`) while still setting the headers.
 
-Since _version 4.1.1_, RFC 5424 is also supported, using the `RFC5424MessageConverter`; in this case the fields are not copied as headers, unless `asMap` is set to `false`, in which case the original message is the payload and the decoded fields are headers.
+Since version 4.1.1, RFC 5424 is also supported, by using the `RFC5424MessageConverter`.
+In this case, the fields are not copied as headers, unless `asMap` is set to `false`, in which case the original message is the payload and the decoded fields are headers.
 
-IMPORTANT: To use RFC 5424 with a TCP transport, additional configuration is required, to enable the different framing techniques described in RFC 6587.
-The adapter needs a TCP connection factory configured with a `RFC6587SyslogDeserializer`.
-By default, this deserializer will handle `octet counting` and `non-transparent framing`, using a linefeed (LF) to delimit syslog messages; it uses a `ByteArrayLfSerializer` when `octet counting` is not detected.
+IMPORTANT: To use RFC 5424 with a TCP transport, you must provide additional configuration to enable the different framing techniques described in RFC 6587.
+The adapter needs a TCP connection factory that is configured with a `RFC6587SyslogDeserializer`.
+By default, this deserializer handles `octet counting` and `non-transparent framing` by using a linefeed (LF) to delimit syslog messages.
+It uses a `ByteArrayLfSerializer` when `octet counting` is not detected.
 To use different `non-transparent` framing, you can provide it with some other deserializer.
 While the deserializer can support both `octet counting` and `non-transparent framing`, only one form of the latter is supported.
 If `asMap` is `false` on the converter, you must set the `retainOriginal` constructor argument in the `RFC6587SyslogDeserializer`.
@@ -35,34 +35,47 @@ If `asMap` is `false` on the converter, you must set the `retainOriginal` constr
 [[syslog-inbound-examplers]]
 ==== Example Configuration
 
+The following example defines a `UDP` adapter that sends messages to the `syslogIn` channel (the adapter bean name is `syslogIn.adapter`):
+
+====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="syslogIn" port="1514" />
 ----
+====
 
-A `UDP` adapter that sends messages to channel `syslogIn` (the adapter bean name is `syslogIn.adapter`).
 The adapter listens on port `1514`.
 
+The following example defines a `UDP` adapter that sends messages to the `fromSyslog` channel (the adapter bean name is `syslogIn`):
+
+====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="syslogIn"
 	channel="fromSyslog" port="1514" />
 ----
+====
 
-A `UDP` adapter that sends message to channel `fromSyslog` (the adapter bean name is `syslogIn`).
 The adapter listens on port `1514`.
 
+The following example defines a `TCP` adapter that sends messages to channel `syslogIn` (the adapter bean name is `syslogIn.adapter`):
+
+====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="bar" protocol="tcp" port="1514" />
 ----
+====
 
-A `TCP` adapter that sends messages to channel `syslogIn` (the adapter bean name is `syslogIn.adapter`).
 The adapter listens on port `1514`.
 
 Note the addition of the `protocol` attribute.
-This attribute can contain `udp` or `tcp`; it defaults to `udp`.
+This attribute can contain `udp` or `tcp`.
+It defaults to `udp`.
 
+The following example shows a `UDP` adapter that sends messages to channel `fromSyslog`:
+
+====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="udpSyslog"
@@ -75,15 +88,18 @@ This attribute can contain `udp` or `tcp`; it defaults to `udp`.
 		<int-syslog:udp-attributes port="1514" lookup-host="false" />
 </int-syslog:inbound-channel-adapter>
 ----
+====
 
-A `UDP` adapter that sends messages to channel `fromSyslog`.
-It also shows the `SmartLifecycle` attributes `auto-startup` and `phase`.
-It has a reference to a custom `org.springframework.integration.syslog.MessageConverter` with id `converter` and an `error-channel`.
+The preceding example also shows two `SmartLifecycle` attributes: `auto-startup` and `phase`.
+It has a reference to a custom `org.springframework.integration.syslog.MessageConverter` with an ID of `converter` and an `error-channel`.
 Also notice the `udp-attributes` child element.
-You can set various UDP attributes here, as defined in <<ip-udp-ib-atts>>.
+You can set various UDP attributes here, as defined in "`<<ip-udp-ib-atts>>`".
 
-NOTE: When using the `udp-attributes` element, the `port` attribute must be provided there rather than on the `inbound-channel-adapter` element itself.
+NOTE: When you use the `udp-attributes` element, you must provide the `port` attribute there rather than on the `inbound-channel-adapter` element itself.
 
+The following example shows a `TCP` adapter that sends messages to channel `fromSyslog`:
+
+====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="TcpSyslog"
@@ -93,13 +109,16 @@ NOTE: When using the `udp-attributes` element, the `port` attribute must be prov
 
 <int-ip:tcp-connection-factory id="cf" type="server" port="1514" />
 ----
+====
 
-A `TCP` adapter that sends messages to channel `fromSyslog`.
-It also shows how to reference an externally defined connection factory, which can be used for advanced configuration (socket keep alive etc).
-For more information, see <<tcp-connection-factories>>.
+It also shows how to reference an externally defined connection factory, which can be used for advanced configuration (socket keep-alive and other uses).
+For more information, see "`<<tcp-connection-factories>>`".
 
-NOTE: The externally configured `connection-factory` must be of type `server` and, the port is defined there rather than on the `inbound-channel-adapter` element itself.
+NOTE: The externally configured `connection-factory` must be of type `server`, and the port is defined there rather than on the `inbound-channel-adapter` element itself.
 
+The following example shows a `TCP` adapter that sends messages to channel `fromSyslog`:
+
+====
 [source,xml]
 ----
 <int-syslog:inbound-channel-adapter id="rfc5424Tcp"
@@ -118,6 +137,6 @@ NOTE: The externally configured `connection-factory` must be of type `server` an
 
 <bean id="rfc6587" class="org.springframework.integration.syslog.inbound.RFC6587SyslogDeserializer" />
 ----
+====
 
-A `TCP` adapter that sends messages to channel `fromSyslog`.
-It is configured to use the `RFC 5424` converter and is configured with a reference to an externally defined connection factory with the `RFC 6587` deserializer (required for RFC 5424).
+The preceding example is configured to use the `RFC 5424` converter and is configured with a reference to an externally defined connection factory with the `RFC 6587` deserializer (required for RFC 5424).

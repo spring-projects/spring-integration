@@ -1,25 +1,39 @@
 [[spring-integration-reference]]
-
 = Spring Integration Reference Manual
+Mark Fisher, Marius Bogoevici, Iwein Fuld, Jonas Partner, Oleg Zhurakousky, Gary Russell, Dave Syer, Josh Long, David Turanski, Gunnar Hillert, Artem Bilan, Amol Nayak, Jay Bryant
+:revnumber: {version}
+:revdate: {localdate}
+:linkcss:
+:doctype: book
+:docinfo: shared
+:toc: left
+:toclevels: 4
+:source-highlighter: prettify
+:icons: font
+:imagesdir: images
+ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1600]]
 
-:toc:
+(C) 2009-2018 Pivotal Software, Inc. All rights reserved.
+
+NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
 include::./preface.adoc[]
 [[whats-new-part]]
-= What's new?
+= What's New?
 
 [[spring-integration-intro-new]]
 For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 5.0.
-If you are interested in the changes and features, that were introduced in earlier versions, please see chapter: <<history>>
+If you are interested in the changes and features that were introduced in earlier versions, see the <<history>>.
 
 include::./whats-new.adoc[]
+
 [[spring-integration-introduction]]
 = Overview of Spring Integration Framework
 
 [[spring-integration-intro]]
-Spring Integration provides an extension of the Spring programming model to support the well-known http://www.eaipatterns.com/[Enterprise Integration Patterns].
-It enables lightweight messaging _within_ Spring-based applications and supports integration with external systems via declarative adapters.
-Those adapters provide a higher-level of abstraction over Spring's support for remoting, messaging, and scheduling.
+Spring Integration provides an extension of the Spring programming model to support the well known http://www.eaipatterns.com/[Enterprise Integration Patterns].
+It enables lightweight messaging within Spring-based applications and supports integration with external systems through declarative adapters.
+Those adapters provide a higher level of abstraction over Spring's support for remoting, messaging, and scheduling.
 Spring Integration's primary goal is to provide a simple model for building enterprise integration solutions while maintaining the separation of concerns that is essential for producing maintainable, testable code.
 
 include::./overview.adoc[]
@@ -29,14 +43,14 @@ include::./overview.adoc[]
 
 [[spring-integration-core-msg]]
 This section covers all aspects of the core messaging API in Spring Integration.
-Here you will learn about Messages, Message Channels, and Message Endpoints.
-Many of the Enterprise Integration Patterns are covered here as well, such as Filters, Routers, Transformers, Service-Activators, Splitters, and Aggregators.
-The section also contains material about System Management, including the Control Bus and Message History support.
+It covers messages, message channels, and message endpoints.
+It also covers many of the enterprise integration patterns, such as filter, router, transformer, service activator , splitter, and aggregator.
+The section also contains material about system management, including the control bus and message history support.
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 include::./messaging-channels.adoc[]
 
-include::./message-construction.adoc[]
+include::./message.adoc[leveloffset=-1]
 
 include::./message-routing.adoc[]
 
@@ -52,7 +66,7 @@ include::./system-management.adoc[]
 = Integration Endpoints
 
 [[spring-integration-adapters]]
-This section covers the various Channel Adapters and Messaging Gateways provided by Spring Integration to support Message-based communication with external systems.
+This section covers the various channel adapters and messaging gateways provided by Spring Integration to support message-based communication with external systems.
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 include::./endpoint-summary.adoc[]
@@ -115,7 +129,6 @@ include::./zookeeper.adoc[]
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 
 [[spring-integration-appendices]]
-
 = Appendices
 
 [[spring-integration-adapters-advanced]]
@@ -123,19 +136,27 @@ Advanced Topics and Additional Resources
 
 [appendix]
 include::./spel.adoc[]
+
 [appendix]
 include::./message-publishing.adoc[]
+
 [appendix]
 include::./transactions.adoc[]
+
 [appendix]
 include::./security.adoc[]
+
 [appendix]
 include::./configuration.adoc[]
+
 [appendix]
 include::./testing.adoc[]
+
 [appendix]
 include::./samples.adoc[]
+
 [appendix]
 include::./resources.adoc[]
+
 [appendix]
 include::./history.adoc[]

@@ -1,53 +1,58 @@
 [[migration-4.3-5.0]]
 === Changes between 4.3 and 5.0
 
+See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.3-to-5.0-Migration-Guide[Migration Guide] for important changes that might affect your applications.
+You can find migration guides for all versions back to 2.1 on the https://github.com/spring-projects/spring-integration/wiki[wiki].
+
 [[x5.0-new-components]]
 === New Components
+
+Version 5.0 added a number of new components.
 
 ==== Java DSL
 
 The separate https://github.com/spring-projects/spring-integration-java-dsl[Spring Integration Java DSL] project has now been merged into the core Spring Integration project.
 The `IntegrationComponentSpec` implementations for channel adapters and gateways are distributed to their specific modules.
-See <<java-dsl>> for more information about Java DSL support.
-Also see the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.3-to-5.0-Migration-Guide#java-dsl[4.3 to 5.0 Migration Guide] for the required steps to move to Spring Integration 5.0.
+See "`<<java-dsl>>`" for more information about Java DSL support.
+See also the https://github.com/spring-projects/spring-integration/wiki/Spring-Integration-4.3-to-5.0-Migration-Guide#java-dsl[4.3 to 5.0 Migration Guide] for the required steps to move to Spring Integration 5.0.
 
 ==== Testing Support
 
-A new Spring Integration Test Framework has been created to assist with testing Spring Integration applications.
-Now, with the `@SpringIntegrationTest` annotation on test class and `MockIntegration` factory you can make your JUnit tests for integration flows somewhat easier.
+We created a new Spring Integration Test Framework to help with testing Spring Integration applications.
+Now, with the `@SpringIntegrationTest` annotation on test classes and the `MockIntegration` factory, you can make your JUnit tests for integration flows somewhat easier.
 
-See <<testing>> for more information.
+See "`<<testing>>`" for more information.
 
 ==== MongoDB Outbound Gateway
 
-The new `MongoDbOutboundGateway` allows you to make queries to the database on demand by sending a message to its request channel.
+The new `MongoDbOutboundGateway` lets you make queries to the database on demand by sending a message to its request channel.
 
-See <<mongodb-outbound-gateway>> for more information.
+See "`<<mongodb-outbound-gateway>>`" for more information.
 
 ==== WebFlux Gateways and Channel Adapters
 
-The new WebFlux support module has been introduced for Spring WebFlux Framework gateways and channel adapters.
+We introduced the new WebFlux support module for Spring WebFlux Framework gateways and channel adapters.
 
-See <<webflux>> for more information.
+See "`<<webflux>>`" for more information.
 
 ==== Content Type Conversion
 
-Now that we use the new `InvocableHandlerMethod` -based infrastructure for service method invocations, we can perform `contentType` conversion from payload to target method argument.
+Now that we use the new `InvocableHandlerMethod`-based infrastructure for service method invocations, we can perform `contentType` conversion from the payload to a target method argument.
 
-See <<content-type-conversion>> for more information.
+See "`<<content-type-conversion>>`" for more information.
 
-==== ErrorMessagePublisher and ErrorMessageStrategy
+==== `ErrorMessagePublisher` and `ErrorMessageStrategy`
 
-The `ErrorMessagePublisher` and the `ErrorMessageStrategy` are provided for creating `ErrorMessage` instances.
+We added `ErrorMessagePublisher` and the `ErrorMessageStrategy` for creating `ErrorMessage` instances.
 
-See <<namespace-errorhandler>> for more information.
+See "`<<namespace-errorhandler>>`" for more information.
 
 ==== JDBC Metadata Store
 
-A JDBC implementation of `MetadataStore` implementation is now provided.
-This is useful when it is necessary to ensure transactional boundaries for metadata.
+We added a JDBC implementation of the `MetadataStore` implementation.
+This is useful when you need to ensure transactional boundaries for metadata.
 
-See <<jdbc-metadata-store>> for more information.
+See "`<<jdbc-metadata-store>>`" for more information.
 
 [[x5.0-general]]
 === General Changes
@@ -58,98 +63,82 @@ Previous Project Reactor versions are no longer supported.
 ==== Core Changes
 
 The `@Poller` annotation now has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
+See "`<<annotations>>`" for more information.
 
-See <<annotations>> for more information.
-
-All the request-reply endpoints (based on `AbstractReplyProducingMessageHandler`) can now start transaction and, therefore, make the whole downstream flow transactional.
-
-See <<tx-handle-message-advice>> for more information.
+All the request-reply endpoints (based on `AbstractReplyProducingMessageHandler`) can now start transactions and, therefore, make the whole downstream flow transactional.
+See "`<<tx-handle-message-advice>>`" for more information.
 
 The `SmartLifecycleRoleController` now provides methods to obtain status of endpoints in roles.
+See "`<<endpoint-roles>>`" for more information.
 
-See <<endpoint-roles>> for more information.
+By default, POJO methods are now invoked by using an `InvocableHandlerMethod`, but you can configure them to use SpEL, as before.
+See "`<<pojo-invocation>>`" for more information.
 
-POJO methods are now invoked using an `InvocableHandlerMethod` by default, but can be configured to use SpEL as before.
+When targeting POJO methods as message handlers, you can now mark one of the service methods with the `@Default` annotation to provide a fallback mechanism for non-matched conditions.
+See "`<<service-activator-namespace>>`" for more information.
 
-See <<pojo-invocation>> for more information.
-
-When targeting POJO methods as message handlers, one of the service methods can now be marked with the `@Default` annotation to provide a fallback mechanism for non-matched conditions.
-
-See <<service-activator-namespace>> for more information.
-
-A simple `PassThroughTransactionSynchronizationFactory` is provided to always store a polled message in the current transaction context.
-That message is used as a `failedMessage` property of the `MessagingException` which wraps a raw exception thrown during transaction completion.
-
-See <<transaction-synchronization>> for more information.
+We added a simple `PassThroughTransactionSynchronizationFactory` to always store a polled message in the current transaction context.
+That message is used as a `failedMessage` property of the `MessagingException`, which wraps any raw exception thrown during transaction completion.
+See "`<<transaction-synchronization>>`" for more information.
 
 The aggregator expression-based `ReleaseStrategy` now evaluates the expression against the `MessageGroup` instead of just the collection of `Message<?>`.
+See "`<<aggregator-spel>>`" for more information.
 
-See <<aggregator-spel>> for more information.
+You can now supply the `ObjectToMapTransformer` with a customized `JsonObjectMapper`.
 
-The `ObjectToMapTransformer` can now be supplied with a customised `JsonObjectMapper`.
-
-See <<aggregator-spel>> for more information.
+See "`<<aggregator-spel>>`" for more information.
 
 The `@GlobalChannelInterceptor` annotation and `<int:channel-interceptor>` now support negative patterns (via `!` prepending) for component names matching.
+See "`<<global-channel-configuration-interceptors>>`" for more information.
 
-See <<global-channel-configuration-interceptors>> for more information.
-
-A new `OnFailedToAcquireMutexEvent` is emitted now via `DefaultLeaderEventPublisher` by the `LockRegistryLeaderInitiator`, when candidate is failed to acquire the lock.
-
-See <<leadership-event-handling>> for more information.
+When a candidate failed to acquire the lock, the `LockRegistryLeaderInitiator` now emits a new `OnFailedToAcquireMutexEvent` through `DefaultLeaderEventPublisher`.
+See `<<leadership-event-handling>>` for more information.
 
 ==== Gateway Changes
 
-The gateway now correctly sets the `errorChannel` header when the gateway method has a `void` return type and an error channel is provided.
+When the gateway method has a `void` return type and an error channel is provided, the gateway now correctly sets the `errorChannel` header.
 Previously, the header was not populated.
-This had the effect that synchronous downstream flows (running on the calling thread) would send the exception to the configured channel but an exception on an async downstream flow would be sent to the default `errorChannel` instead.
+This caused synchronous downstream flows (running on the calling thread) to send the exception to the configured channel, but an exception on an asynchronous downstream flow would be sent to the default `errorChannel` instead.
 
-The `RequestReplyExchanger` interface now has a `throws MessagingException` clause to meet all the proposed messages exchange contract.
+The `RequestReplyExchanger` interface now has a `throws MessagingException` clause to meet the proposed messages exchange contract.
 
-The request and reply timeouts can now be specified as SpEL expressions.
-
-See <<gateway>> for more information.
+You can now specify the request and reply timeouts with SpEL expressions.
+See "`<<gateway>>`" for more information.
 
 ==== Aggregator Performance Changes
 
-Aggregators now use a `SimpleSequenceSizeReleaseStrategy` by default, which is more efficient, especially with large groups.
+By default, aggregators now use a `SimpleSequenceSizeReleaseStrategy`, which is more efficient, especially with large groups.
 Empty groups are now scheduled for removal after `empty-group-min-timeout`.
-
-See <<aggregator>> for more information.
+See "`<<aggregator>>`" for more information.
 
 ==== Splitter Changes
 
-The Splitter component now can handle and split Java `Stream` and Reactive Streams `Publisher` objects.
-If the output channel is a `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` builds a `Flux` for subsequent iteration instead of a regular `Iterator` independent of object being split.
-In addition, `AbstractMessageSplitter` provides `protected obtainSizeIfPossible()` methods to allow the determination of the size of the `Iterable` and `Iterator` objects if that is possible.
-
-See <<splitter>> for more information.
+The splitter component can now handle and split Java `Stream` and Reactive Streams `Publisher` objects.
+If the output channel is a `ReactiveStreamsSubscribableChannel`, the `AbstractMessageSplitter` builds a `Flux` for subsequent iteration instead of a regular `Iterator`, independent of the object being split.
+In addition, `AbstractMessageSplitter` provides `protected obtainSizeIfPossible()` methods to allow determination of the size of the `Iterable` and `Iterator` objects, if that is possible.
+See "`<<splitter>>`" for more information.
 
 ==== JMS Changes
 
-Previously, Spring Integration JMS XML configuration used a default bean name `connectionFactory` for the JMS Connection Factory, allowing the property to be omitted from component definitions.
-It has now been renamed to `jmsConnectionFactory`, which is the bean name used by Spring Boot to auto-configure the JMS Connection Factory bean.
+Previously, Spring Integration JMS XML configuration used a default bean name of `connectionFactory` for the JMS connection factory, letting the property be omitted from component definitions.
+We renamed it to `jmsConnectionFactory`, which is the bean name used by Spring Boot to auto-configure the JMS connection factory bean.
 
-If your application is relying on the previous behavior, rename your `connectionFactory` bean to `jmsConnectionFactory`, or specifically configure your components to use your bean using its current name.
-
-See <<jms>> for more information.
+If your application relies on the previous behavior, you can rename your `connectionFactory` bean to `jmsConnectionFactory` or specifically configure your components to use your bean by using its current name.
+See "`<<jms>>`" for more information.
 
 ==== Mail Changes
 
 Some inconsistencies with rendering IMAP mail content have been resolved.
-
-See <<imap-format-important, the note in the Mail-Receiving Channel Adapter Section>> for more information.
+See <<imap-format-important,the note in the "`Mail-receiving Channel Adapter`" section>> for more information.
 
 ==== Feed Changes
 
-Instead of the `com.rometools.fetcher.FeedFetcher`, which is deprecated in ROME, a new `Resource` property has been introduced to the `FeedEntryMessageSource`.
-
-See <<feed>> for more information.
-
+Instead of the `com.rometools.fetcher.FeedFetcher`, which is deprecated in ROME, we introduced a new `Resource` property for the `FeedEntryMessageSource`.
+See "`<<feed>>`" for more information.
 
 ==== File Changes
 
-The new `FileHeaders.RELATIVE_PATH` Message header has been introduced to represent relative path in the `FileReadingMessageSource`.
+We introduced the new `FileHeaders.RELATIVE_PATH` message header to represent relative path in `FileReadingMessageSource`.
 
 The tail adapter now supports `idleEventInterval` to emit events when there is no data in the file during that period.
 
@@ -159,158 +148,154 @@ The file outbound channel adapter and gateway (`FileWritingMessageHandler`) now 
 
 They also now support setting file permissions on the newly written file.
 
-A new `FileSystemMarkerFilePresentFileListFilter` is now available; see <<file-incomplete>> for more information.
+A new `FileSystemMarkerFilePresentFileListFilter` is now available.
+See "`<<file-incomplete>>`" for more information.
 
 The `FileSplitter` now provides a `firstLineAsHeader` option to carry the first line of content as a header in the messages emitted for the remaining lines.
 
-See <<files>> for more information.
+See "`<<files>>`" for more information.
 
-==== (S)FTP Changes
+==== FTP and SFTP Changes
 
-The Inbound Channel Adapters now have a property `max-fetch-size` which is used to limit the number of files fetched during a poll when there are no files currently in the local directory.
-They also are configured with a `FileSystemPersistentAcceptOnceFileListFilter` in the `local-filter` by default.
+The inbound channel adapters now have a property called `max-fetch-size`, which is used to limit the number of files fetched during a poll when no files are currently in the local directory.
+By default, they also are configured with a `FileSystemPersistentAcceptOnceFileListFilter` in the `local-filter`.
 
-You can also provide a custom `DirectoryScanner` implementation to Inbound Channel Adapters via the newly introduced `scanner` attribute.
+You can also provide a custom `DirectoryScanner` implementation to inbound channel adapters by setting the newly introduced `scanner` attribute.
 
-The regex and pattern filters can now be configured to always pass directories.
-This can be useful when using recursion in the outbound gateways.
+You can now configure the regex and pattern filters to always pass directories.
+This can be useful when you use recursion in the outbound gateways.
 
-All the Inbound Channel Adapters (streaming and synchronization-based) now use an appropriate `AbstractPersistentAcceptOnceFileListFilter` implementation by default to prevent remote files duplicate downloads.
+By default, all the inbound channel adapters (streaming and synchronization-based) now use an appropriate `AbstractPersistentAcceptOnceFileListFilter` implementation to prevent duplicate downloads of remote files.
 
 The FTP and SFTP outbound gateways now support the `REPLACE_IF_MODIFIED` `FileExistsMode` when fetching remote files.
 
-The (S)FTP streaming inbound channel adapters now add remote file information in a message header.
+The FTP and SFTP streaming inbound channel adapters now add remote file information in a message header.
 
-The FTP and SFTP outbound channel adapters, as well as `PUT` command of the outbound gateways, now support `InputStream` as `payload`, too.
+The FTP and SFTP outbound channel adapters (as well as the `PUT` command for outbound gateways) now support `InputStream` as `payload`, too.
 
-The inbound channel adapters now can build file tree locally using a newly introduced `RecursiveDirectoryScanner`.
-See `scanner` option for injection.
-Also these adapters can now be switched to the `WatchService` instead.
+The inbound channel adapters can now build file trees locally by using a newly introduced `RecursiveDirectoryScanner`.
+See the `scanner` option in the "`<<ftp-inbound>>`" section for injection.
+Also, you can now switch these adapters to the `WatchService` instead.
 
-The `NLST` command has been added to the `AbstractRemoteFileOutboundGateway` to perform only list files names remote command.
+We added The `NLST` command to the `AbstractRemoteFileOutboundGateway` to perform the list files names remote command.
 
-The `FtpOutboundGateway` can now be supplied with `workingDirExpression` to change the FTP client working directory for the current request message.
+You can now supply the `FtpOutboundGateway` with `workingDirExpression` to change the FTP client working directory for the current request message.
 
 The `RemoteFileTemplate` is supplied now with the `invoke(OperationsCallback<F, T> action)` to perform several `RemoteFileOperations` calls in the scope of the same, thread-bounded, `Session`.
 
-New filters for detecting incomplete remote files are now provided.
+We added new filters for detecting incomplete remote files.
 
-The `FtpOutboundGateway` and `SftpOutboundGateway` now support an option to remove the remote file after a successful transfer using the `GET` or `MGET` commands.
+The `FtpOutboundGateway` and `SftpOutboundGateway` now support an option to remove the remote file after a successful transfer by using the `GET` or `MGET` commands.
 
-See <<ftp>> and <<sftp>> for more information.
+See "`<<ftp>>`" and "`<<sftp>>`" for more information.
 
 ==== Integration Properties
 
-Since _version 4.3.2_ a new `spring.integration.readOnly.headers` global property has been added to customize the list of headers which should not be copied to a newly created `Message` by the `MessageBuilder`.
-
-See <<global-properties>> for more information.
+Version 4.3.2 added a new `spring.integration.readOnly.headers` global property to let you customize the list of headers that should not be copied to a newly created `Message` by the `MessageBuilder`.
+See "`<<global-properties>>`" for more information.
 
 ==== Stream Changes
 
-There is a new option on the `CharacterStreamReadingMessageSource` to allow it to be used to "pipe" stdin and publish an application event when the pipe is closed.
-
-See <<stream-reading>> for more information.
+We added a new option on the `CharacterStreamReadingMessageSource` to let it be used to "`pipe`" stdin and publish an application event when the pipe is closed.
+See "`<<stream-reading>>`" for more information.
 
 ==== Barrier Changes
 
 The `BarrierMessageHandler` now supports a discard channel to which late-arriving trigger messages are sent.
-
-See <<barrier>> for more information.
+See "`<<barrier>>`" for more information.
 
 ==== AMQP Changes
 
-The AMQP outbound endpoints now support setting a delay expression for when using the RabbitMQ Delayed Message Exchange plugin.
+The AMQP outbound endpoints now support setting a delay expression when you use the RabbitMQ Delayed Message Exchange plugin.
 
 The inbound endpoints now support the Spring AMQP `DirectMessageListenerContainer`.
 
-Pollable AMQP-backed channels now block the poller thread for the poller's configured `receiveTimeout` (default 1 second).
+Pollable AMQP-backed channels now block the poller thread for the poller's configured `receiveTimeout` (default: one second).
 
-Headers, such as `contentType` that are added to message properties by the message converter are now used in the final message; previously, it depended on the converter type as to which headers/message properties appeared in the final message.
-To override headers set by the converter, set the `headersMappedLast` property to `true`.
-
-See <<amqp>> for more information.
+Headers, such as `contentType`, that are added to message properties by the message converter are now used in the final message.
+Previously, it depended on the converter type as to which headers and message properties appeared in the final message.
+To override the headers set by the converter, set the `headersMappedLast` property to `true`.
+See "`<<amqp>>`" for more information.
 
 ==== HTTP Changes
 
-The `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty string by default instead of `X-`.
+By default, the `DefaultHttpHeaderMapper.userDefinedHeaderPrefix` property is now an empty string instead of `X-`.
+See "`<<http-header-mapping>>`" for more information.
 
-See <<http-header-mapping>> for more information.
+By default, `uriVariablesExpression` now uses a `SimpleEvaluationContext` (since 5.0.4).
 
-`uriVariablesExpression` now uses a `SimpleEvaluationContext` by default (since 5.0.4).
-
-See <<mapping-uri-variables>> for more information.
+See "`<<mapping-uri-variables>>`" for more information.
 
 ==== MQTT Changes
 
-Inbound messages are now mapped with headers `RECEIVED_TOPIC`, `RECEIVED_QOS` and `RECEIVED_RETAINED` to avoid inadvertent propagation to outbound messages when an application is relaying messages.
+Inbound messages are now mapped with the `RECEIVED_TOPIC`, `RECEIVED_QOS`, and `RECEIVED_RETAINED` headers to avoid inadvertent propagation to outbound messages when an application relays messages.
 
-The outbound channel adapter now supports expressions for the topic, qos and retained properties; the defaults remain the same.
-
-See <<mqtt>> for more information.
+The outbound channel adapter now supports expressions for the topic, qos, and retained properties.
+The defaults remain the same.
+See "`<<mqtt>>`" for more information.
 
 ==== STOMP Changes
 
-The STOMP module has been changed to use `ReactorNettyTcpStompClient`, based on the Project Reactor `3.1` and `reactor-netty` extension.
-The `Reactor2TcpStompSessionManager` has been renamed to the `ReactorNettyTcpStompSessionManager` according to the `ReactorNettyTcpStompClient` foundation.
-
-See <<stomp>> for more information.
+We changed the STOMP module to use `ReactorNettyTcpStompClient`, based on the Project Reactor `3.1` and `reactor-netty` extension.
+We renamed `Reactor2TcpStompSessionManager` to `ReactorNettyTcpStompSessionManager`, according to the `ReactorNettyTcpStompClient` foundation.
+See "`<<stomp>>`" for more information.
 
 ==== Web Services Changes
 
-- The `WebServiceOutboundGateway` s can now be supplied with an externally configured `WebServiceTemplate` instances.
+You can now supply `WebServiceOutboundGateway` instances with an externally configured `WebServiceTemplate` instances.
 
-- The `DefaultSoapHeaderMapper` can now map a `javax.xml.transform.Source` user-defined header to a SOAP header element.
+`DefaultSoapHeaderMapper` can now map a `javax.xml.transform.Source` user-defined header to a SOAP header element.
 
-- Simple WebService Inbound and Outbound gateways can now deal with the complete `WebServiceMessage` as a `payload`, allowing the manipulation of MTOM attachments.
+Simple WebService inbound and outbound gateways can now deal with the complete `WebServiceMessage` as a `payload`, allowing the manipulation of MTOM attachments.
 
-See <<ws>> for more information.
+See "`<<ws>>`" for more information.
 
 ==== Redis Changes
 
-The `RedisStoreWritingMessageHandler` is supplied now with additional String-based setters for SpEL expressions - for convenience with Java configuration.
-The `zsetIncrementExpression` can now be configured on the `RedisStoreWritingMessageHandler`, as well.
-In addition this property has been changed from `true` to `false` since `INCR` option on `ZADD` Redis command is optional.
+The `RedisStoreWritingMessageHandler` is supplied now with additional `String`-based setters for SpEL expressions (for convenience with Java configuration).
+You can now configure the `zsetIncrementExpression` on the `RedisStoreWritingMessageHandler` as well.
+In addition, this property has been changed from `true` to `false` since the `INCR` option on `ZADD` Redis command is optional.
 
-The `RedisInboundChannelAdapter` can now be supplied with an `Executor` for executing Redis listener invokers.
-In addition the received messages now contains a `RedisHeaders.MESSAGE_SOURCE` header to indicate the source of the message - topic or pattern.
+You can now supply the `RedisInboundChannelAdapter` with an `Executor` for executing Redis listener invokers.
+In addition, the received messages now contain a `RedisHeaders.MESSAGE_SOURCE` header to indicate the source of the message (topic or pattern).
 
-See <<redis>> for more information.
+See "`<<redis>>`" for more information.
 
 ==== TCP Changes
 
-A new `ThreadAffinityClientConnectionFactory` is provided that binds TCP connections to threads.
+We added a new `ThreadAffinityClientConnectionFactory` to bind TCP connections to threads.
 
-You can now configure the TCP connection factories to support `PushbackInputStream` s, allowing deserializers to "unread" (push back) bytes after "reading ahead".
+You can now configure the TCP connection factories to support `PushbackInputStream` instances, letting deserializers "`unread`" (push back) bytes after "`reading ahead`".
 
-A `ByteArrayElasticRawDeserializer` has been added without `maxMessageSize` control and buffer incoming data as needed.
+We added a `ByteArrayElasticRawDeserializer` without `maxMessageSize` to control and buffer incoming data as needed.
 
-See <<ip>> for more information.
+See "`<<ip>>`" for more information.
 
 ==== Gemfire Changes
 
-The `GemfireMetadataStore` now implements `ListenableMetadataStore`, allowing users to listen to cache events by providing `MetadataStoreListener` instances to the store.
+The `GemfireMetadataStore` now implements `ListenableMetadataStore`, letting you listen to cache events by providing `MetadataStoreListener` instances to the store.
+See "`<<gemfire>>`" for more information.
 
-See <<gemfire>> for more information.
+==== JDBC Changes
 
-==== Jdbc Changes
+The `JdbcMessageChannelStore` now provides a setter for `ChannelMessageStorePreparedStatementSetter`, letting you customize message insertion in the store.
 
-The `JdbcMessageChannelStore` now provides setter for the `ChannelMessageStorePreparedStatementSetter` allowing users to customize a message insertion in the store.
+The `ExpressionEvaluatingSqlParameterSourceFactory` now provides a setter for `sqlParameterTypes`, letting you customize the SQL types of the parameters.
 
-The `ExpressionEvaluatingSqlParameterSourceFactory` now provides setter for the sqlParameterTypes allowing users to customize sql types of the parameters.
-
-See <<jdbc>> for more information.
+See "`<<jdbc>>`" for more information.
 
 
 ==== Metrics Changes
 
-http://micrometer.io/[Micrometer] application monitoring is now supported (since _version 5.0.2_).
-See <<micrometer-integration>> for more information.
+http://micrometer.io/[Micrometer] application monitoring is now supported (since version 5.0.2).
+See "`<<micrometer-integration>>`" for more information.
 
-IMPORTANT: Changes were made to the Micrometer `Meters` in _version 5.0.3_ to make them more suitable for use in dimensional systems.
-Further changes were made in 5.0.4; if using Micrometer, a minimum of version 5.0.4 is recommended.
+IMPORTANT: Changes were made to the Micrometer `Meters` in version 5.0.3 to make them more suitable for use in dimensional systems.
+Further changes were made in 5.0.4.
+If you usie Micrometer, we recommend a minimum of version 5.0.4.
 
 
-==== @EndpointId Annotations
+==== `@EndpointId` Annotations
 
-Introduced in _version 5.0.4_, this annotation provides control over bean naming when using Java configuration.
-See <<endpoint-bean-names>> for more information.
+Introduced in version 5.0.4, this annotation provides control over bean naming when you use Java configuration.
+See "`<<endpoint-bean-names>>`" for more information.

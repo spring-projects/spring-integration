@@ -1,91 +1,107 @@
 [[whats-new]]
 
-== What's new in Spring Integration 5.1?
+== What's New in Spring Integration 5.1?
 
 This chapter provides an overview of the new features and improvements that have been introduced with Spring
 Integration `5.1`.
-If you are interested in more details, please see the Issue Tracker tickets that were resolved as part of the 5.1 development process.
+If you are interested in more details, see the Issue Tracker tickets that were resolved as part of the 5.1 development process.
 
 [[x5.1-new-components]]
 === New Components
 
-==== AmqpDedicatedChannelAdvice
+The following components are new in 5.1:
+
+* <<AmqpDedicatedChannelAdvice>>
+
+<<AmqpDedicatedChannelAdvice>>
+==== `AmqpDedicatedChannelAdvice`
 
 See <<amqp-strict-ordering>>.
 
 [[x5.1-general]]
 === General Changes
 
+The following changes have been made in version 5.1:
+
+* <<java-dsl>>
+* <<dispatcher-exceptions>>
+* <<global-channel-interceptors>>
+* <<objecttojsontransformer>>
+* <<integration-flows-generated-bean-names>>
+
+[[java-dsl]]
 ==== Java DSL
 
-The `IntegrationFlowContext` is now an interface and `IntegrationFlowRegistration` is an inner interface of the `IntegrationFlowContext`.
+The `IntegrationFlowContext` is now an interface and `IntegrationFlowRegistration` is an inner interface of `IntegrationFlowContext`.
 
+[[dispatcher-exceptions]]
 ==== Dispatcher Exceptions
 
 Exceptions caught and re-thrown by `AbstractDispatcher` are now more consistent:
 
-- A `MessagingException` of any kind, with a `failedMessage` property, is re-thrown unchanged
-- All other exceptions are wrapped in a `MessageDeliveryException` with the `failedMessage` property set
+* A `MessagingException` of any kind that has a `failedMessage` property is re-thrown unchanged.
+* All other exceptions are wrapped in a `MessageDeliveryException` with the `failedMessage` property set.
 
 Previously:
 
-- A `MessagingException` of any kind, with a `failedMessage` property, was re-thrown unchanged
-- A `MessagingException`, with no `failedMessage` property, was wrapped in a `MessagingException` with the `failedMessage` property set
-- Other `RuntimeException` s were re-thrown unchanged
-- Checked exceptions were wrapped in a `MessageDeliveryException` with the `failedMessage` property set
+* A `MessagingException` of any kind that has a `failedMessage` property was re-thrown unchanged
+* A `MessagingException` that had no `failedMessage` property was wrapped in a `MessagingException` with the `failedMessage` property set.
+* Other `RuntimeException` instances were re-thrown unchanged.
+* Checked exceptions were wrapped in a `MessageDeliveryException` with the `failedMessage` property set.
 
+[[global-channel-interceptors]]
 ==== Global Channel Interceptors
 
-Global channel interceptors are now applied to channels registered dynamically - such as via the `IntegrationFlowContext` when using the Java DSL, or beans that are initialized using `beanFactory.initializeBean()`.
-Previously, interceptors were not applied when beans were created after the application context was refreshed.
+Global channel interceptors now apply to dynamically registered channels, such as through the `IntegrationFlowContext` when using the Java DSL or beans that are initialized using `beanFactory.initializeBean()`.
+Previously, when beans were created after the application context was refreshed, interceptors were not applied.
 
-==== ObjectToJsonTransformer
+[[objecttojsontransformer]]
+==== `ObjectToJsonTransformer`
 
 A new `ResultType.BYTES` mode is introduced for the `ObjectToJsonTransformer`.
 
-See <<json-transformers>> for more information.
+See "`<<json-transformers>>`" for more information.
 
-==== Integration Flows: Generated bean names
+[[integration-flows-generated-bean-names]]
+==== Integration Flows: Generated Bean Names
 
-Starting with _version 5.0.5_, generated bean names for the components in an `IntegrationFlow` include the flow bean name, followed by a dot, as a prefix.
+Starting with version 5.0.5, generated bean names for the components in an `IntegrationFlow` include the flow bean name, followed by a dot, as a prefix. For example, if a flow bean were named `flowBean`, a generated bean might be named `flowBean.generatedBean`.
 
-See <<java-dsl-flows>> for more information.
+See "`<<java-dsl-flows>>`" for more information.
 
 ==== Aggregator Changes
 
-An aggregator now expires the group immediately, if the `groupTimeout` is evaluated to a negative value.
-Only `null` is considered as a signal do nothing for the current message.
+If the `groupTimeout` is evaluated to a negative value, an aggregator now expires the group immediately.
+Only `null` is considered as a signal to do nothing for the current message.
 
-See <<aggregator>> for more information.
+See "`<<aggregator>>`" for more information.
 
 ==== @Publisher annotation changes
 
-Starting with _version 5.1, the `@Publisher` AOP functionality has to be turned on explicitly via `@EnablePublisher` or via `<int:enable-publisher>` sub-element on the `<int:annotation-config>`.
+Starting with version 5.1, you must explicitly turn on the `@Publisher` AOP functionality by using `@EnablePublisher` or by using the `<int:enable-publisher>` child element on `<int:annotation-config>`.
 
-See <<publisher-annotation>> for more information.
+See "`<<publisher-annotation>>`" for more information.
 
 === AMQP Changes
 
-`ID` and `Timestamp` header mapping changes in the `DefaultAmqpHeaderMapper`.
-See the note near the bottom of <<amqp-message-headers>> for more information.
+We have made `ID` and `Timestamp` header mapping changes in the `DefaultAmqpHeaderMapper`.
+See the note near the bottom of "`<<amqp-message-headers>>`" for more information.
 
-The `contentType` header is no longer incorrectly mapped as an entry in the general headers map.
-See <<amqp-content-type>> for more information.
+The `contentType` header is now correctly mapped as an entry in the general headers map.
+See "`<<amqp-content-type>>`" for more information.
 
 === JDBC Changes
 
-A confusing `max-rows-per-poll` property on the JDBC Inbound Channel Adapter and JDBC Outbound Gateway has been deprecated in favor newly introduced `max-rows` property.
+A confusing `max-rows-per-poll` property on the JDBC Inbound Channel Adapter and JDBC Outbound Gateway has been deprecated in favor of the newly introduced `max-rows` property.
 
-See <<jdbc>> for more information.
+See "`<<jdbc>>`" for more information.
 
-=== (S)FTP Changes
+=== FTP and SFTP Changes
 
-A `RotatingServerAdvice` is now available to poll multiple servers and/or directories with the inbound channel adapters.
+A `RotatingServerAdvice` is now available to poll multiple servers and directories with the inbound channel adapters.
+See "`<<ftp-rotating-server-advice>>`" and "`<<sftp-rotating-server-advice>>`" for more information.
 
-See <<ftp-rotating-server-advice>> and <<sftp-rotating-server-advice>> for more information.
-
-Also inbound adapter `localFilenameExpression` s can contain the variable `#remoteDirectory` which contains the remote directory being polled.
-
+Also, inbound adapter `localFilenameExpression` instances can contain the `#remoteDirectory` variable, which contains the remote directory being polled.
 The generic type of the comparators, used to sort the fetched file list for the streaming adapters, has changed from `Comparator<AbstractFileInfo<F>>` to simply `Comparator<F>`.
 See <<ftp-streaming>> and <<sftp-streaming>> for more information.
 
