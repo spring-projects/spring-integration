@@ -826,7 +826,7 @@ An updating outbound gateway is functionally similar to an outbound channel adap
 
 A retrieving outbound gateway is similar to an inbound channel adapter.
 
-NOTE: We recommend you first read the "`<<jpa-outbound-channel-adapter>>`" section and the "`<<jpa-inbound-channel-adapter>>`" sections earlier in this chapter, as most of the common concepts are explained there.
+NOTE: We recommend you first read the <<jpa-outbound-channel-adapter>> section and the <<jpa-inbound-channel-adapter>> sections earlier in this chapter, as most of the common concepts are explained there.
 
 This similarity was the main factor to use the central `JpaExecutor` class to unify common functionality as much as possible.
 
@@ -837,7 +837,7 @@ Common for all JPA outbound gateways and similar to the `outbound-channel-adapte
 * Native query
 * Named query
 
-For configuration examples see "`<<outboundGatewaySamples>>`".
+For configuration examples see <<outboundGatewaySamples>>.
 
 [[jpa-outbound-gateway-common-parameters]]
 ==== Common Configuration Parameters
@@ -908,7 +908,7 @@ The value is specified in milliseconds.
 Optional.
 ====
 
-The remaining attributes are described earlier in this chapter. See "`<<jpaInboundChannelAdapterParameters>>`" and "`<<jpaOutboundChannelAdapterParameters>>`".
+The remaining attributes are described earlier in this chapter. See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
 
 ==== Configuring with Java Configuration
 
@@ -1050,7 +1050,7 @@ Version 3.0 introduced this attribute.
 Optional.
 ====
 
-The remaining attributes are described earlier in this chapter. See "`<<jpaInboundChannelAdapterParameters>>`" and "`<<jpaOutboundChannelAdapterParameters>>`".
+The remaining attributes are described earlier in this chapter. See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
 
 ==== Configuring with Java Configuration
 

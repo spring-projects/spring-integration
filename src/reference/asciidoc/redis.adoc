@@ -12,7 +12,7 @@ To download, install, and run Redis, see the http://redis.io/download[Redis docu
 To begin interacting with Redis, you first need to connect to it.
 Spring Integration uses support provided by another Spring project, https://github.com/SpringSource/spring-data-redis[Spring Data Redis], which provides typical Spring constructs: `ConnectionFactory` and `Template`.
 Those abstractions simplify integration with several Redis client Java APIs.
-\Currently Spring Data Redis supports https://github.com/xetorthio/jedis[jedis], http://code.google.com/p/jredis/[jredis] and https://github.com/e-mzungu/rjc[Redis Java Client (RJC)].
+Currently Spring Data Redis supports https://github.com/xetorthio/jedis[jedis], http://code.google.com/p/jredis/[jredis] and https://github.com/e-mzungu/rjc[Redis Java Client (RJC)].
 
 ==== Using `RedisConnectionFactory`
 
@@ -393,7 +393,7 @@ They can be used only for situations such as backing a `QueueChannel`.
 [[redis-metadata-store]]
 === Redis Metadata Store
 
-Spring Integration 3.0 introduced a new Redis-based http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[`MetadataStore`] (see "`<<metadata-store>>`") implementation.
+Spring Integration 3.0 introduced a new Redis-based http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/metadata/MetadataStore.html[`MetadataStore`] (see <<metadata-store>>) implementation.
 You can use the `RedisMetadataStore` to maintain the state of a `MetadataStore` across application restarts.
 You can use this new `MetadataStore` implementation with adapters such as:
 
@@ -527,7 +527,7 @@ If only the `expression` attribute is present and the result of an expression is
 If you want the evaluation result to go to a specific channel, add a `channel` attribute.
 If the result of an expression is null or void, no message is generated.
 
-For more information about transaction synchronization, see "`<<transaction-synchronization>>`".
+For more information about transaction synchronization, see <<transaction-synchronization>>.
 
 [[redis-store-outbound-channel-adapter]]
 === RedisStore Outbound Channel Adapter

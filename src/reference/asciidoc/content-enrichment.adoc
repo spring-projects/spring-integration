@@ -17,7 +17,7 @@ It also includes three adapter-specific header enrichers:
 
 See the adapter-specific sections of this reference manual to learn more about those adapters.
 
-For more information regarding expressions support, see "`<<spel>>`".
+For more information regarding expressions support, see <<spel>>.
 
 [[header-enricher]]
 ==== Header Enricher
@@ -54,7 +54,7 @@ The header enricher also provides helpful sub-elements to set well known header 
 The preceding configuration shows that, for well known headers (such as `errorChannel`, `correlationId`, `priority`, `replyChannel`, `routing-slip`, and others), instead of using generic `<header>` sub-elements where you would have to provide both header 'name' and 'value', you can use convenient sub-elements to set those values directly.
 
 Starting with version 4.1, the header enricher provides a `routing-slip` sub-element.
-See "`<<routing-slip>>`" for more information.
+See <<routing-slip>> for more information.
 
 ===== POJO Support
 
@@ -364,7 +364,7 @@ When the `enricher` returns null, it is evaluated, and the output of the evaluat
 This section contains several examples of using a payload enricher in various situations.
 
 TIP: The code samples shown here are part of the Spring Integration Samples project.
-See "`<<samples>>`".
+See <<samples>>.
 
 In the following example, a `User` object is passed as the payload of the `Message`:
 

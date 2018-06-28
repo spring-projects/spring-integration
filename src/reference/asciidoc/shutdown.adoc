@@ -21,7 +21,7 @@ It is therefore important to select an appropriate timeout when invoking this op
 +
 Doing so lets such components perform final shutdown tasks (closing all open sockets, for example).
 
-As discussed in "`<<jmx-mbean-shutdown>>`", this operation can be invoked by using JMX.
+As discussed in <<jmx-mbean-shutdown>>, this operation can be invoked by using JMX.
 If you wish to programmatically invoke the method, you need to inject or otherwise get a reference to the `IntegrationMBeanExporter`.
 If no `id` attribute is provided on the `<int-jmx:mbean-export/>` definition, the bean has a generated name.
 This name contains a random component to avoid `ObjectName` collisions if multiple Spring Integration contexts exist in the same JVM (`MBeanServer`).

@@ -18,7 +18,7 @@ This guide includes many samples.
 ===== Conversion Service and Converter
 
 You can now benefit from the conversion service support provided with Spring while configuring many Spring Integration components, such as a http://www.eaipatterns.com/DatatypeChannel.html[Datatype channel].
-See "`<<channel-implementations>>`" and "`<<service-activator-introduction>>`".
+See <<channel-implementations>> and <<service-activator-introduction>>.
 Also, the SpEL support mentioned in the previous point also relies upon the conversion service.
 Therefore, you can register converters once and take advantage of them anywhere you use SpEL expressions.
 
@@ -30,14 +30,14 @@ Spring Integration (which uses a lot of scheduling) now builds upon these.
 In fact, Spring Integration 1.0 had originally defined some of the components (such as `CronTrigger`) that have now been migrated into Spring 3.0's core API.
 Now you can benefit from reusing the same components within the entire application context (not just Spring Integration configuration).
 We also greatly simplified configuration of Spring Integration pollers by providing attributes for directly configuring rates, delays, cron expressions, and trigger references.
-See "`<<channel-adapter>>`" for sample configurations.
+See <<channel-adapter>> for sample configurations.
 
 [[rest-support]]
 ===== `RestTemplate` and `HttpMessageConverter`
 
 Our outbound HTTP adapters now delegate to Spring's `RestTemplate` for executing the HTTP request and handling its response.
 This also means that you can reuse any custom `HttpMessageConverter` implementations.
-See "`<<http-outbound>>`" for more details.
+See <<http-outbound>> for more details.
 
 [[new-eip]]
 ==== Enterprise Integration Pattern Additions
@@ -48,7 +48,7 @@ Also in 2.0, we have added support for even more of the patterns described in Ho
 ===== Message History
 
 We now provide support for the http://www.eaipatterns.com/MessageHistory.html[message history] pattern, letting you keep track of all traversed components, including the name of each channel and endpoint as well as the timestamp of that traversal.
-See "`<<message-history>>`" for more details.
+See <<message-history>> for more details.
 
 [[new-message-store]]
 ===== Message Store
@@ -56,7 +56,7 @@ See "`<<message-history>>`" for more details.
 We now provide support for the http://www.eaipatterns.com/MessageStore.html[message store] pattern.
 The message store provides a strategy for persisting messages on behalf of any process whose scope extends beyond a single transaction, such as the aggregator and the resequencer.
 Many sections of this guide include samples of how to use a message store, as it affects several areas of Spring Integration.
-See "`<<message-store>>`", "`<<claim-check>>`", "`<<channel>>`", "`<<aggregator>>`", "`<<jdbc>>`", and "`<<resequencer>>`" for more details.
+See <<message-store>>, <<claim-check>>, <<channel>>, <<aggregator>>, <<jdbc>>`", and <<resequencer>> for more details.
 
 [[new-claim-check]]
 ===== Claim Check
@@ -64,14 +64,14 @@ See "`<<message-store>>`", "`<<claim-check>>`", "`<<channel>>`", "`<<aggregator>
 We have added an implementation of the http://www.eaipatterns.com/StoreInLibrary.html[claim check] pattern.
 The idea behind the claim check pattern is that you can exchange a message payload for a "`claim ticket`".
 This lets you reduce bandwidth and avoid potential security issues when sending messages across channels.
-See "`<<claim-check>>`" for more details.
+See <<claim-check>> for more details.
 
 [[new-control-bus]]
 ===== Control Bus
 
 We have provided implementations of the http://www.eaipatterns.com/ControlBus.html[control bus] pattern, which lets you use messaging to manage and monitor endpoints and channels.
 The implementations include both a SpEL-based approach and one that runs Groovy scripts.
-See "`<<control-bus>>`" and "`<<groovy-control-bus>>`" for more details.
+See <<control-bus>> and <<groovy-control-bus>> for more details.
 
 [[new-adapters]]
 ==== New Channel Adapters and Gateways
@@ -82,7 +82,7 @@ We have added several new channel adapters and messaging gateways in Spring Inte
 ===== TCP and UDP Adapters
 
 We have added channel adapters for receiving and sending messages over the TCP and UDP internet protocols.
-See "`<<ip>>`" for more details.
+See <<ip>> for more details.
 See also the following blog: http://blog.springsource.com/2010/03/29/using-udp-and-tcp-adapters-in-spring-integration-2-0-m3/["`Using UDP and TCP Adapters in Spring Integration 2.0 M3`"].
 
 [[new-twitter]]
@@ -90,31 +90,31 @@ See also the following blog: http://blog.springsource.com/2010/03/29/using-udp-a
 
 Twitter adapters provide support for sending and receiving Twitter status updates and direct messages.
 You can also perform Twitter searches with an inbound channel adapter.
-See "`<<twitter>>`" for more details.
+See <<twitter>> for more details.
 
 [[new-xmpp]]
 ===== XMPP Adapters
 
 The new XMPP adapters support both chat messages and presence events.
-See "`<<xmpp>>`" for more details.
+See <<xmpp>> for more details.
 
 [[new-ftp]]
 ===== FTP and FTPS Adapters
 
 Inbound and outbound file transfer support over FTP and FTPS is now available.
-See "`<<ftp>>`" for more details.
+See <<ftp>> for more details.
 
 [[new-sftp]]
 ===== SFTP Adapters
 
 Inbound and outbound file transfer support over SFTP is now available.
-See "`<<sftp>>`" for more details.
+See <<sftp>> for more details.
 
 [[new-feed]]
 ===== Feed Adapters
 
 We have also added channel adapters for receiving news feeds (ATOM and RSS).
-See "`<<feed>>`" for more details.
+See <<feed>> for more details.
 
 [[new-other]]
 ==== Other Additions
@@ -124,33 +124,33 @@ Spring Integration adds a number of other features. This section describes them.
 ===== Groovy Support
 
 Spring Integration 2.0 added Groovy support, letting you use the Groovy scripting language to provide integration and business logic.
-See "`<<groovy>>`" for more details.
+See <<groovy>> for more details.
 
 [[new-map-transformer]]
 ===== Map Transformers
 
 These symmetrical transformers convert payload objects to and from `Map` objects.
-See "`<<transformer>>`" for more details.
+See <<transformer>> for more details.
 
 [[new-json-transformer]]
 ===== JSON Transformers
 
 These symmetrical transformers convert payload objects to and from JSON.
-See "`<<transformer>>`" for more details.
+See <<transformer>> for more details.
 
 [[new-serialize-transformer]]
 ===== Serialization Transformers
 
 These symmetrical transformers convert payload objects to and from byte arrays.
 They also support the serializer and deserializer strategy interfaces that Spring 3.0.5 added.
-See "`<<transformer>>`" for more details.
+See <<transformer>> for more details.
 
 [[new-refactoring]]
 ==== Framework Refactoring
 
 The core API went through some significant refactoring to make it simpler and more usable.
 Although we anticipate that the impact to developers should be minimal, you should read through this document to find what was changed.
-Specifically, you should read "`<<dynamic-routers>>`", "`<<gateway>>`", "`<<http-outbound>>`", "`<<message>>`", and "`<<aggregator>>`".
+Specifically, you should read <<dynamic-routers>>, <<gateway>>, <<http-outbound>>, <<message>>, and <<aggregator>>.
 If you directly depend on some of the core components (`Message`, `MessageHeaders`, `MessageChannel`, `MessageBuilder`, and others), you need to update any import statements.
 We restructured some packaging to provide the flexibility we needed for extending the domain model while avoiding any cyclical dependencies (it is a policy of the framework to avoid such "`tangles`").
 

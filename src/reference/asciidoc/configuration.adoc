@@ -114,7 +114,7 @@ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
 ====
 
 By default, Spring Integration relies on an instance of `ThreadPoolTaskScheduler`, as described in the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html[Task Execution and Scheduling] section of the Spring Framework reference manual.
-That default `TaskScheduler` starts up automatically with a pool of ten threads, but see "`<<global-properties>>`".
+That default `TaskScheduler` starts up automatically with a pool of ten threads, but see <<global-properties>>.
 If you provide your own `TaskScheduler` instance instead, you can set the 'autoStartup' property to `false` or provide your own pool size value.
 
 When polling consumers provide an explicit task executor reference in their configuration, the invocation of the handler methods happens within that executor's thread pool and not the main scheduler pool.
@@ -167,9 +167,9 @@ In that case, if an `Exception` is thrown, it can be caught by the sender (or it
 So far, everything is fine.
 This is the same behavior as an exception-throwing operation in a normal call stack.
 
-A message flow that runs on a caller thread might be invoked through a messaging gateway (see "`<<gateway>>`") or a `MessagingTemplate` (see "`<<channel-template>>`").
+A message flow that runs on a caller thread might be invoked through a messaging gateway (see <<gateway>>) or a `MessagingTemplate` (see <<channel-template>>).
 In either case, the default behavior is to throw any exceptions to the caller.
-For the messaging gateway, see "`<<gateway-error-handling>>`" for details about how the exception is thrown and how to configure the gateway to route the errors to an error channel instead.
+For the messaging gateway, see <<gateway-error-handling>> for details about how the exception is thrown and how to configure the gateway to route the errors to an error channel instead.
 When using a `MessagingTemplate` or sending to a `MessageChannel` directly, exceptions are always thrown to the caller.
 
 When adding asynchronous processing, things become rather more complicated.
@@ -257,18 +257,18 @@ It can be used to avoid inadvertently subscribing more than the expected number 
 You can override it on individual channels by setting the `max-subscribers` attribute.
 
 <4> The number of threads available in the default `taskScheduler` bean.
-See "`<<namespace-taskscheduler>>`".
+See <<namespace-taskscheduler>>.
 
 <5> When `true`, messages that arrive at a gateway reply channel throw an exception when the gateway is not
 expecting a reply (because the sending thread has timed out or already received a reply).
 
 <6> A comma-separated list of message header names that should not be populated into `Message` instances during a header copying operation.
-The list is used by the `DefaultMessageBuilderFactory` bean and propagated to the `IntegrationMessageHeaderAccessor` instances (see "`<<message-header-accessor>>`") used to build messages via `MessageBuilder` (see "`<<message-builder>>`").
+The list is used by the `DefaultMessageBuilderFactory` bean and propagated to the `IntegrationMessageHeaderAccessor` instances (see <<message-header-accessor>>) used to build messages via `MessageBuilder` (see <<message-builder>>).
 By default, only `MessageHeaders.ID` and `MessageHeaders.TIMESTAMP` are not copied during message building.
 Since version 4.3.2.
 
 <7> A comma-separated list of `AbstractEndpoint` bean names patterns (`xxx*`, `*xxx`, `*xxx*` or `xxx*yyy`) that should not be started automatically during application startup.
-You can manually start these endpoints later by their bean name through a `Control Bus` (see "`<<control-bus>>`"), by their role with the `SmartLifecycleRoleController` (see <<endpoint-roles>>), or by `Lifecycle` bean injection.
+You can manually start these endpoints later by their bean name through a `Control Bus` (see <<control-bus>>), by their role with the `SmartLifecycleRoleController` (see <<endpoint-roles>>), or by `Lifecycle` bean injection.
 You can explicitly override the effect of this global property by specifying `auto-startup` XML annotation or the `autoStartup` annotation attribute or by calling `AbstractEndpoint.setAutoStartup()` in the bean definition.
 Since version 4.3.12.
 
@@ -306,17 +306,17 @@ public class FooService {
 Exactly what it means for the method to "`handle`" the Message depends on the particular annotation.
 Annotations available in Spring Integration include:
 
-* `@Aggregator` (see "`<<aggregator>>`")
-* `@Filter` (see "`<<filter>>`")
-* `@Router` (see "`<<router>>`")
-* `@ServiceActivator` (see "`<<service-activator>>`")
-* `@Splitter` (see "`<<splitter>>`")
-* `@Transformer` (see "`<<transformer>>`")
-* `@InboundChannelAdapter` (see "`<<channel-adapter>>`")
-* `@BridgeFrom` (see "`<<bridge-annot>>`")
-* `@BridgeTo` (see "`<<bridge-annot>>`")
-* `@MessagingGateway` (see "`<<gateway>>`")
-* `@IntegrationComponentScan` (see "`<<configuration-enable-integration>>`")
+* `@Aggregator` (see <<aggregator>>)
+* `@Filter` (see <<filter>>)
+* `@Router` (see <<router>>)
+* `@ServiceActivator` (see <<service-activator>>)
+* `@Splitter` (see <<splitter>>)
+* `@Transformer` (see <<transformer>>)
+* `@InboundChannelAdapter` (see <<channel-adapter>>)
+* `@BridgeFrom` (see <<bridge-annot>>)
+* `@BridgeTo` (see <<bridge-annot>>)
+* `@MessagingGateway` (see <<gateway>>)
+* `@IntegrationComponentScan` (see <<configuration-enable-integration>>)
 
 NOTE: If you use XML configuration in combination with annotations, the `@MessageEndpoint` annotation is not required.
 If you want to configure a POJO reference from the `ref` attribute of a `<service-activator/>` element, you can provide only the method-level annotations.
@@ -403,7 +403,7 @@ public class ThingService {
 ====
 
 The processing of these annotations creates the same beans as the corresponding XML components -- `AbstractEndpoint` instances and `MessageHandler` instances (or `MessageSource` instances for the inbound channel adapter).
-See "`<<annotations_on_beans>>`".
+See <<annotations_on_beans>>.
 The bean names are generated from the following pattern: `[componentName].[methodName].[decapitalizedAnnotationClassShortName]`
 (for example, for the preceding example the bean name is `thingService.otherThing.serviceActivator`) for the `AbstractEndpoint` and the same name with an additional `.handler` (`.source`) suffix for the `MessageHandler` (`MessageSource`) bean.
 The `MessageHandler` instances (`MessageSource` instances) are also eligible to be tracked by <<message-history, the message history>>.
@@ -411,7 +411,7 @@ The `MessageHandler` instances (`MessageSource` instances) are also eligible to 
 Starting with version 4.0, all messaging annotations provide `SmartLifecycle` options (`autoStartup` and `phase`) to allow endpoint lifecycle control on application context initialization.
 They default to `true` and `0`, respectively.
 To change the state of an endpoint (such as ` start()` or `stop()`), you can obtain a reference to the endpoint bean by using the `BeanFactory` (or autowiring) and invoke the methods.
-Alternatively, you can send a command message to the `Control Bus` (see "`<<control-bus>>`").
+Alternatively, you can send a command message to the `Control Bus` (see <<control-bus>>).
 For these purposes, you should use the `beanName` mentioned earlier in the preceding paragraph.
 
 [[configuration-using-poller-annotation]]
@@ -501,7 +501,7 @@ public class AnnotationService {
 
 Starting with version 4.3.3, the `@Poller` annotation has the `errorChannel` attribute for easier configuration of the underlying `MessagePublishingErrorHandler`.
 This attribute plays the same role as `error-channel` in the `<poller>` XML component.
-See "`<<endpoint-namespace>>`" for more information.
+See <<endpoint-namespace>> for more information.
 
 ==== Using the `@InboundChannelAdapter` Annotation
 
@@ -536,12 +536,12 @@ The first example requires that the default poller has been declared elsewhere i
 
 Using the `@MessagingGateway` Annotation
 
-See "`<<messaging-gateway-annotation>>`".
+See <<messaging-gateway-annotation>>.
 
 ==== Using the `@IntegrationComponentScan` Annotation
 
 The standard Spring Framework `@ComponentScan` annotation does not scan interfaces for stereotype `@Component` annotations.
-To overcome this limitation and allow the configuration of `@MessagingGateway` (see "`<<messaging-gateway-annotation>>`"), we introduced the `@IntegrationComponentScan` mechanism.
+To overcome this limitation and allow the configuration of `@MessagingGateway` (see <<messaging-gateway-annotation>>), we introduced the `@IntegrationComponentScan` mechanism.
 This annotation must be placed with a `@Configuration` annotation and be customized to define its scanning options,
 such as `basePackages` and `basePackageClasses`.
 In this case, all discovered interfaces annotated with `@MessagingGateway` are parsed and registered as `GatewayProxyFactoryBean` instances.
@@ -667,7 +667,7 @@ NOTE: The bean names are generated with the following algorithm:
 This works as though there were no messaging annotation on the `@Bean` method.
 * The `AbstractEndpoint` bean name is generated with the following pattern: `[configurationComponentName].[methodName].[decapitalizedAnnotationClassShortName]`.
 For example, the `SourcePollingChannelAdapter` endpoint for the `consoleSource()` definition <<annotations_on_beans,shown earlier>> gets a bean name of `myFlowConfiguration.consoleSource.inboundChannelAdapter`.
-See also "`<<endpoint-bean-names>>`".
+See also <<endpoint-bean-names>>.
 
 IMPORTANT: When using these annotations on `@Bean` definitions, the `inputChannel` must reference a declared bean.
 Channels are not automatically declared in this case.
@@ -726,7 +726,7 @@ You can use these annotations as meta-annotations as well.
 
 ==== Advising Annotated Endpoints
 
-See "`<<advising-with-annotations>>`".
+See <<advising-with-annotations>>.
 
 [[message-mapping-rules]]
 === Message Mapping Rules and Conventions

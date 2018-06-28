@@ -7,7 +7,7 @@ For more information about Groovy, see the Groovy documentation, which you can f
 [[groovy-config]]
 ==== Groovy Configuration
 
-With Spring Integration 2.1, the configuration namespace for the Groovy support is an extension of Spring Integration's scripting support and shares the core configuration and behavior described in detail in the "`<<scripting>>`" section.
+With Spring Integration 2.1, the configuration namespace for the Groovy support is an extension of Spring Integration's scripting support and shares the core configuration and behavior described in detail in the <<scripting>> section.
 Even though Groovy scripts are well supported by generic scripting support, the Groovy support provides the `Groovy` configuration namespace, which is backed by the Spring Framework's `org.springframework.scripting.groovy.GroovyScriptFactory` and related components, offering extended capabilities for using Groovy.
 The following listing shows two sample configurations:
 
@@ -69,7 +69,7 @@ The following example shows how to use a variable (`entityManager`):
 
 `entityManager` must be an appropriate bean in the application context.
 
-For more information regarding the `<variable>` element, the `variables` attribute, and the `script-variable-generator` attribute, see  "`<<scripting-script-variable-bindings>>`".
+For more information regarding the `<variable>` element, the `variables` attribute, and the `script-variable-generator` attribute, see  <<scripting-script-variable-bindings>>.
 
 ==== Groovy Script Compiler Customization
 
