@@ -12,50 +12,50 @@ Version 4.1 added a number of new components.
 ===== Promise<?> Gateway
 
 The messaging gateway methods now support a Reactor `Promise` return type.
-See "`<<async-gateway>>`".
+See <<async-gateway>>.
 
 [[x4.1-web-socket-adapters]]
 ===== WebSocket support
 
 The `WebSocket` module is now available.
 It is fully based on the Spring WebSocket and Spring Messaging modules and provides an `<inbound-channel-adapter>` and an `<outbound-channel-adapter>`.
-See "`<<web-sockets>>`" for more information.
+See <<web-sockets>> for more information.
 
 [[x4.1-scatter-gather]]
 ===== Scatter-Gather Enterprise Integration Pattern
 
 We implemented the scatter-gather enterprise integration pattern.
-See "`<<scatter-gather>>`" for more information.
+See <<scatter-gather>> for more information.
 
 [[x4.1-Routing-Slip]]
 ===== Routing Slip Pattern
 
 We added the routing slip EIP pattern implementation.
-See "`<<routing-slip>>`" for more information.
+See <<routing-slip>> for more information.
 
 [[x4.1-idempotent-receiver]]
 ===== Idempotent Receiver Pattern
 
 We added the idempotent receiver enterprise integration pattern implementation by adding the `<idempotent-receiver>` component in XML or the `IdempotentReceiverInterceptor` and `IdempotentReceiver` annotations for Java configuration.
-See "`<<idempotent-receiver>>`" and the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for more information.
+See <<idempotent-receiver>> and the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for more information.
 
 [[x4.1-BoonJsonObjectMapper]]
 ===== Boon `JsonObjectMapper`
 
-We added T\the Boon `JsonObjectMapper` for the JSON transformers.
-See "`<<transformer>>`" for more information.
+We added the Boon `JsonObjectMapper` for the JSON transformers.
+See <<transformer>> for more information.
 
 [[x4.1-redis-queue-gateways]]
 ===== Redis Queue Gateways
 
 We added the `<redis-queue-inbound-gateway>` and `<redis-queue-outbound-gateway>` components.
-See "`<<redis-queue-inbound-gateway>>`" and "`<<redis-queue-outbound-gateway>>`".
+See <<redis-queue-inbound-gateway>> and <<redis-queue-outbound-gateway>>.
 
 [[x4.1-PollSkipAdvice]]
 ===== `PollSkipAdvice`
 
 We added the `PollSkipAdvice`, which you can use within the `<advice-chain>` of the `<poller>` to determine if the current poll should be suppressed (skipped) by some condition that you implement with `PollSkipStrategy`.
-See "`<<polling-consumer>>`" for more information.
+See <<polling-consumer>> for more information.
 
 [[x4.1-general]]
 ==== General Changes
@@ -66,7 +66,7 @@ This section describes general changes from version 4.0 to version 4.1.
 ===== AMQP Inbound Endpoints, Channel
 
 Elements that use a message listener container (inbound endpoints and channel) now support the `missing-queues-fatal` attribute.
-See "`<<amqp>>`" for more information.
+See <<amqp>> for more information.
 
 [[x4.1-amqp-outbound-lazy-connect]]
 ===== AMQP Outbound Endpoints
@@ -74,13 +74,13 @@ See "`<<amqp>>`" for more information.
 The AMQP outbound endpoints support a new property called `lazy-connect` (default: `true`).
 When `true`, the connection to the broker is not established until the first message arrives (assuming there are no inbound endpoints, which always try to establish the connection during startup).
 When set to `false`, an attempt to establish the connection is made during application startup.
-See "`<<amqp>>`" for more information.
+See <<amqp>> for more information.
 
 [[x4.1-sms-copy-on-get]]
 ===== SimpleMessageStore
 
 The `SimpleMessageStore` no longer makes a copy of the group when calling `getMessageGroup()`.
-See "`<<sms-caution>>`" for more information.
+See <<sms-caution>> for more information.
 
 [[x4.1-ws-encode-uri]]
 ===== Web Service Outbound Gateway: `encode-uri`
@@ -91,22 +91,22 @@ The `<ws:outbound-gateway/>` now provides an `encode-uri` attribute to allow dis
 ===== Http Inbound Channel Adapter and Status Code
 
 The `<http:inbound-channel-adapter>` can now be configured with a `status-code-expression` to override the default `200 OK` status.
-See "`<<http-namespace>>`" for more information.
+See <<http-namespace>> for more information.
 
 [[x4.1-mqtt]]
 ===== MQTT Adapter Changes
 
 You can now configure the MQTT channel adapters to connect to multiple servers -- for example, to support High Availability (HA).
-See "`<<mqtt>>`" for more information.
+See <<mqtt>> for more information.
 
 The MQTT message-driven channel adapter now supports specifying the QoS setting for each subscription.
-See "`<<mqtt-inbound>>`" for more information.
+See <<mqtt-inbound>> for more information.
 
 The MQTT outbound channel adapter now supports asynchronous sends, avoiding blocking until delivery is confirmed.
-See "`<<mqtt-outbound>>`" for more information.
+See <<mqtt-outbound>> for more information.
 
 It is now possible to programmatically subscribe to and unsubscribe from topics at runtime.
-See "`<<mqtt-inbound>>`" for more information.
+See <<mqtt-inbound>> for more information.
 
 [[x4.1-sftp]]
 ===== FTP and SFTP Adapter Changes
@@ -115,115 +115,115 @@ The FTP and SFTP outbound channel adapters now support appending to remote files
 The remote file templates now also supports this, as well as `rmdir()` and `exists()`.
 In addition, the remote file templates provide access to the underlying client object, enabling access to low-level APIs.
 
-See "`<<ftp>>`" and "`<<sftp>>`" for more information.
+See <<ftp>> and <<sftp>> for more information.
 
 [[x4.1-splitter-iterator]]
 ===== Splitter and Iterator
 
 `Splitter` components now support an `Iterator` as the result object for producing output messages.
-See "`<<splitter>>`" for more information.
+See <<splitter>> for more information.
 
 [[x4.1-aggregator]]
 ===== Aggregator
 
 `Aggregator` instancess now support a new attribute `expire-groups-upon-timeout`.
-See "`<<aggregator>>`" for more information.
+See <<aggregator>> for more information.
 
 [[x4.1-content-enricher-improvement]]
 ===== Content Enricher Improvements
 
 We added a `null-result-expression` attribute, which is evaluated and returned if `<enricher>` returns `null`.
 You can add it in `<header>` and `<property>`.
-See "`<<content-enricher>>`" for more information.
+See <<content-enricher>> for more information.
 
 We added an `error-channel` attribute, which is used to handle an error flow if an `Exception` occurs downstream of the `request-channel`.
 This lets you return an alternative object to use for enrichment.
-See "`<<content-enricher>>`" for more information.
+See <<content-enricher>> for more information.
 
 [[x4.1-header-channel-registry]]
 ===== Header Channel Registry
 
 The `<header-enricher/>` element's `<header-channels-to-string/>` child element can now override the header channel registry's default time for retaining channel mappings.
-See "`<<header-channel-registry>>`" for more information.
+See <<header-channel-registry>> for more information.
 
 [[x4.1-orderly-shutdown]]
 ===== Orderly Shutdown
 
 We made improvements to the orderly shutdown algorithm.
-See "`<<jmx-shutdown>>`" for more information.
+See <<jmx-shutdown>> for more information.
 
 [[x4.1-recipientListRouter]]
 ===== Management for `RecipientListRouter`
 
 The `RecipientListRouter` now provides several management operations to configure recipients at runtime.
 With that, you can now configure the `<recipient-list-router>` without any `<recipient>` from the start.
-See "`<<recipient-list-router-management>>`" for more information.
+See <<recipient-list-router-management>> for more information.
 
 [[x4.1-AbstractHeaderMapper-changes]]
 ===== AbstractHeaderMapper: NON_STANDARD_HEADERS token
 
 The `AbstractHeaderMapper` implementation now provides the additional `NON_STANDARD_HEADERS` token to map any user-defined headers, which are not mapped by default.
-See "`<<amqp-message-headers>>`" for more information.
+See <<amqp-message-headers>> for more information.
 
 [[x4.1-amqp-channels]]
 ===== AMQP Channels: `template-channel-transacted`
 
 We introduced the `template-channel-transacted` attribute for AMQP `MessageChannel` instances.
-See "`<<amqp-channels>>`" for more information.
+See <<amqp-channels>> for more information.
 
 [[x4.1-syslog]]
 ===== Syslog Adapter
 
 The default syslog message converter now has an option to retain the original message in the payload while still setting the headers.
-See "`<<syslog-inbound-adapter>>`" for more information.
+See <<syslog-inbound-adapter>> for more information.
 
 [[x4.1-async-gateway]]
 ===== Asynchronous Gateway
 
 In addition to the `Promise` return type <<x4.1-promise-gateway,mentioned earlier>>, gateway methods may now return a `ListenableFuture`, introduced in Spring Framework 4.0.
 You can also disable asynchronous processing in the gateway, letting a downstream flow directly return a `Future`.
-See "`<<async-gateway>>`".
+See <<async-gateway>>.
 
 [[x4.1-aggregator-advice-chain]]
 ===== Aggregator Advice Chain
 
 `Aggregator` and `Resequencer` now support `<expire-advice-chain/>` and `<expire-transactional/>` child elements to advise the `forceComplete` operation.
-See "`<<aggregator-config>>`" for more information.
+See <<aggregator-config>> for more information.
 
 [[x4.1-script-outbound-channel-adapter]]
 ===== Outbound Channel Adapter and Scripts
 
 The `<int:outbound-channel-adapter/>` now supports the `<script/>` child element.
 The underlying script must have a `void` return type or return `null`.
-See "`<<groovy>>`" and "`<<scripting>>`".
+See <<groovy>> and <<scripting>>.
 
 [[x4.1-reseq]]
 ===== Resequencer Changes
 
 When a message group in a resequencer times out (using `group-timeout` or a `MessageGroupStoreReaper`), late arriving messages are now, by default, discarded immediately.
-See "`<<resequencer>>`".
+See <<resequencer>>.
 
 [[x4.1-Optional-Parameter]]
 ===== Optional POJO method parameter
 
 Spring Integration now consistently handles the Java 8's `Optional` type.
-See "`<<service-activator-namespace>>`".
+See <<service-activator-namespace>>.
 
 [[x4.1-queue-channel-queue.typ]]
 ===== `QueueChannel` backed Queue type
 
 The `QueueChannel` backed `Queue type` has been changed from `BlockingQueue` to the more generic `Queue`.
 This change allows the use of any external `Queue` implementation (for example, Reactor's `PersistentQueue`).
-See "`<<channel-configuration-queuechannel>>`".
+See <<channel-configuration-queuechannel>>.
 
 [[x4.1-channel-interceptor]]
 ===== `ChannelInterceptor` Changes
 
 The `ChannelInterceptor` now supports additional `afterSendCompletion()` and `afterReceiveCompletion()` methods.
-See "`<<channel-interceptors>>`".
+See <<channel-interceptors>>.
 
 [[x4.1-mail-peek]]
 ===== IMAP PEEK
 
 Since version 4.1.1 there is a change of behavior if you explicitly set the `mail.[protocol].peek` JavaMail property to `false` (where `[protocol]` is `imap` or `imaps`).
-See "`<<imap-peek>>`".
+See <<imap-peek>>.

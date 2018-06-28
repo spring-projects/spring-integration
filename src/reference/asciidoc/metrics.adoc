@@ -7,11 +7,11 @@ This section describes how to capture metrics for Spring Integration. In recent 
 ==== Configuring Metrics Capture
 
 NOTE: Prior to version 4.2, metrics were only available when JMX was enabled.
-See "`<<jmx>>`".
+See <<jmx>>.
 
 To enable `MessageSource`, `MessageChannel`, and `MessageHandler` metrics, add an `<int:management/>` bean to the application context (in XML) or annotate one of your `@Configuration` classes with `@EnableIntegrationManagement` (in Java).
 `MessageSource` instances maintain only counts, `MessageChannel` instances and `MessageHandler` instances maintain duration statistics in addition to counts.
-See "`<<mgmt-channel-features>>`" and "`<<mgmt-handler-features>>`", later in this chapter.
+See <<mgmt-channel-features>> and <<mgmt-handler-features>>, later in this chapter.
 
 Doing so causes the automatic registration of the `IntegrationManagementConfigurer` bean in the application context.
 Only one such bean can exist in the context, and, if registered manually via a `<bean/>` definition, it must have the bean name set to `integrationManagementConfigurer`.
@@ -80,13 +80,13 @@ In the unlikely event that you have a bean name starting with `!`, escape the `!
 The collection of statistics implies the collection of counts.
 
 <6> A reference to a `MetricsFactory`.
-See "`<<mgmt-metrics-factory>>`".
+See <<mgmt-metrics-factory>>.
 
 At runtime, counts and statistics can be obtained by calling `getChannelMetrics`, `getHandlerMetrics` and `getSourceMetrics` (all from the `IntegrationManagementConfigurer` class), which return `MessageChannelMetrics`, `MessageHandlerMetrics`, and `MessageSourceMetrics`, respectively.
 
 See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for complete information about these classes.
 
-When JMX is enabled (see "`<<jmx>>`"), `IntegrationMBeanExporter` also exposes these metrics.
+When JMX is enabled (see <<jmx>>), `IntegrationMBeanExporter` also exposes these metrics.
 
 IMPORTANT:
 `defaultLoggingEnabled`, `defaultCountsEnabled`, and `defaultStatsEnabled` are applied only if you have not explicitly configured the corresponding setting in a bean definition.
@@ -162,7 +162,7 @@ In addition, there are three `Gauge` Meters:
 ==== `MessageChannel` Metric Features
 
 These legacy metrics will be removed in a future release.
-See "`<<micrometer-integration>>`".
+See <<micrometer-integration>>.
 
 Message channels report metrics according to their concrete type.
 If you are looking at a `DirectChannel`, you see statistics for the send operation.
@@ -267,7 +267,7 @@ To override the default `MetricsFactory`, configure it as <<configuring-metrics-
 You can either customize the default implementations, as described in the next section, or provide completely different
 implementations by extending `AbstractMessageChannelMetrics` or `AbstractMessageHandlerMetrics`.
 
-See also "`<<micrometer-integration>>`".
+See also <<micrometer-integration>>.
 
 In addition to the default metrics factory <<configuring-metrics-capture,described earlier>>, the framework provides the `AggregatingMetricsFactory`.
 This factory creates `AggregatingMessageChannelMetrics` and `AggregatingMessageHandlerMetrics` instances.
@@ -296,7 +296,7 @@ Counts (send and error) are maintained per-message, but the statistics are per 1
 
 ===== Customizing the Default Channel and Handler Statistics
 
-See "`<<mgmt-statistics>>`" and the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for the `ExponentialMovingAverage*` classes for more information about these values.
+See <<mgmt-statistics>> and the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for the `ExponentialMovingAverage*` classes for more information about these values.
 
 By default, the `DefaultMessageChannelMetrics` and `DefaultMessageHandlerMetrics` use a "`window`" of ten measurements,
 a rate period of one second (meaning rate per second) and a decay lapse period of one minute.
@@ -340,7 +340,7 @@ runtime (after the application context has been refreshed) by invoking the `conf
 
 ===== Performance Improvement
 
-Previously, the time-based metrics (see "`<<mgmt-statistics>>`") were calculated in real time.
+Previously, the time-based metrics (see <<mgmt-statistics>>) were calculated in real time.
 The statistics are now calculated when retrieved instead.
 This resulted in a significant performance improvement, at the expense of a small amount of additional memory for each statistic.
 As <<configuring-metrics-capture,discussed earlier>>, you can disable the statistics altogether while retaining the MBean that allows the invocation of `Lifecycle` methods.

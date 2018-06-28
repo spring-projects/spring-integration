@@ -3,13 +3,13 @@
 
 The first part of this chapter covers some background theory and reveals quite a bit about the underlying API that drives Spring Integration's various messaging components.
 This information can be helpful if you want to really understand what goes on behind the scenes.
-However, if you want to get up and running with the simplified namespace-based configuration of the various elements, feel free to skip ahead to "`<<endpoint-namespace>>`" for now.
+However, if you want to get up and running with the simplified namespace-based configuration of the various elements, feel free to skip ahead to <<endpoint-namespace>> for now.
 
 As mentioned in the overview, message endpoints are responsible for connecting the various messaging components to channels.
 Over the next several chapters, we cover a number of different components that consume messages.
 Some of these are also capable of sending reply messages.
 Sending messages is quite straightforward.
-As shown earlier in "`<<channel>>`", you can send a message to a message channel.
+As shown earlier in <<channel>>, you can send a message to a message channel.
 However, receiving is a bit more complicated.
 The main reason is that there are two types of consumers: http://www.eaipatterns.com/PollingConsumer.html[polling consumers] and http://www.eaipatterns.com/EventDrivenConsumer.html[event-driven consumers].
 
@@ -49,7 +49,7 @@ Spring Integration provides two endpoint implementations that host these callbac
 ==== Event-driven Consumer
 
 Because it is the simpler of the two, we cover the event-driven consumer endpoint first.
-You may recall that the `SubscribableChannel` interface provides a `subscribe()` method and that the method accepts a `MessageHandler` parameter (as shown in "`<<channel-interfaces-subscribablechannel>>`").
+You may recall that the `SubscribableChannel` interface provides a `subscribe()` method and that the method accepts a `MessageHandler` parameter (as shown in <<channel-interfaces-subscribablechannel>>).
 The following listing shows the definition of the `subscribe` method:
 
 ====
@@ -84,7 +84,7 @@ PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);
 ----
 ====
 
-NOTE: For more information regarding polling consumers, see "`<<polling-consumer>>`" and "`<<channel-adapter>>`".
+NOTE: For more information regarding polling consumers, see <<polling-consumer>> and <<channel-adapter>>.
 
 There are many other configuration options for the polling consumer.
 For example, the trigger is a required property.
@@ -167,7 +167,7 @@ consumer.setTaskExecutor(taskExecutor);
 Furthermore, a `PollingConsumer` has a property called `adviceChain`.
 This property lets you to specify a `List` of AOP advices for handling additional cross cutting concerns including transactions.
 These advices are applied around the `doPoll()` method.
-For more in-depth information, see the sections on AOP advice chains and transaction support under "`<<endpoint-namespace>>`".
+For more in-depth information, see the sections on AOP advice chains and transaction support under <<endpoint-namespace>>.
 
 The earlier examples show dependency lookups.
 However, keep in mind that these consumers are most often configured as Spring bean definitions.
@@ -230,7 +230,7 @@ If you do not use the `time-unit` attribute, the specified value is represented 
 If this attribute is set, none of the following attributes must be specified: `fixed-delay`, `trigger`, `cron`, and `ref`.
 <6> The ID referring to the poller's underlying bean-definition, which is of type `org.springframework.integration.scheduling.PollerMetadata`.
 The `id` attribute is required for a top-level poller element, unless it is the default poller (`default="true"`).
-<7> See "`<<channel-adapter-namespace-inbound>>`" for more information.
+<7> See <<channel-adapter-namespace-inbound>> for more information.
 If not specified, the default value depends on the context.
 If you use a `PollingConsumer`, this attribute defaults to `-1`.
 However, if you use a `SourcePollingChannelAdapter`, the `max-messages-per-poll` attribute defaults to `1`.
@@ -242,7 +242,7 @@ Optional.
 The `ref` attribute must not be present on the top-level `poller` element.
 However, if this attribute is set, none of the following attributes must be specified: `fixed-rate`, `trigger`, `cron`, and `fixed-delay`.
 <10> Provides the ability to reference a custom task executor.
-See "`<<taskexecutor-support>>`" for further information.
+See <<taskexecutor-support>> for further information.
 Optional.
 <11> This attribute specifies the `java.util.concurrent.TimeUnit` enum value on the underlying `org.springframework.scheduling.support.PeriodicTrigger`.
 Therefore, this attribute can be used only in combination with the `fixed-delay` or `fixed-rate` attributes.
@@ -256,10 +256,10 @@ For hourly, daily, and monthly settings, we recommend using a `cron` trigger ins
 However, if this attribute is set, none of the following attributes must be specified: `fixed-delay`, `fixed-rate`, `cron`, and `ref`.
 Optional.
 <13> Allows specifying extra AOP advices to handle additional cross-cutting concerns.
-See "`<<transaction-support>>`" for further information.
+See <<transaction-support>> for further information.
 Optional.
 <14> Pollers can be made transactional.
-See "`<<aop-advice-chains>>`" for further information.
+See <<aop-advice-chains>> for further information.
 Optional.
 
 ===== Examples
@@ -348,7 +348,7 @@ The following example shows the available attributes:
 </int:poller>
 ----
 
-For more information, see "`<<transaction-poller>>`".
+For more information, see <<transaction-poller>>.
 
 [[aop-advice-chains]]
 ===== AOP Advice chains
@@ -378,7 +378,7 @@ An advice chain can also be applied on a poller that does not have any transacti
 
 IMPORTANT: When using an advice chain, the `<transactional/>` child element cannot be specified.
 Instead, declare a `<tx:advice/>` bean and add it to the `<advice-chain/>`.
-See "`<<transaction-poller>>`" for complete configuration details.
+See <<transaction-poller>> for complete configuration details.
 
 [[taskexecutor-support]]
 ====== TaskExecutor Support
@@ -404,7 +404,7 @@ To enable concurrency for a polling endpoint that is configured with the XML nam
 ====
 
 If you do not provide a task-executor, the consumer's handler is invoked in the caller's thread.
-Note that the caller is usually the default `TaskScheduler` (see "`<<namespace-taskscheduler>>`").
+Note that the caller is usually the default `TaskScheduler` (see <<namespace-taskscheduler>>).
 You should also keep in mind that the `task-executor` attribute can provide a reference to any implementation of Spring's `TaskExecutor` interface by specifying the bean name.
 The `executor` element shown earlier is provided for convenience.
 
@@ -587,7 +587,7 @@ Those two new converters are registered in the composite before the defaults.
 You can also not use a `ConfigurableCompositeMessageConverter` but provide your own `MessageConverter` by registering a bean with the name, `integrationArgumentResolverMessageConverter` (by setting the `IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME` property).
 
 NOTE: The `MessageConverter`-based (including `contentType` header) conversion is not available when using SpEL method invocation.
-In this case, only the regular class-to-class conversion mentioned above in the "`<<payload-type-conversion>>`" is available.
+In this case, only the regular class-to-class conversion mentioned above in the <<payload-type-conversion>> is available.
 
 [[async-polling]]
 ==== Asynchronous Polling
@@ -769,7 +769,7 @@ public Map<String, Boolean> getEndpointsRunningStatus(String role) <4>
 Groups of endpoints can be started and stopped based on leadership being granted or revoked, respectively.
 This is useful in clustered scenarios where shared resources must be consumed by only a single instance.
 An example of this is a file inbound channel adapter that is polling a shared directory.
-(See "`<<file-reading>>`").
+(See <<file-reading>>).
 
 To participate in a leader election and be notified when elected leader, when leadership is revoked, or on failure to acquire the resources to become leader, an application creates a component in the application context called a "`leader initiator`".
 Normally, a leader initiator is a `SmartLifecycle`, so it starts (optionally) when the context starts and then publishes notifications when leadership changes.
@@ -814,4 +814,4 @@ If the lock registry is implemented correctly, there is only ever at most one le
 If the lock registry also provides locks that throw exceptions (ideally, `InterruptedException`) when they expire or are broken, the duration of the leaderless periods can be as short as is allowed by the inherent latency in the lock implementation.
 By default, the `busyWaitMillis` property adds some additional latency to prevent CPU starvation in the (more usual) case that the locks are imperfect and you only know they expired when you try to obtain one again.
 
-See "`<<zk-leadership>>`" for more information about leadership election and events that use Zookeeper.
+See <<zk-leadership>> for more information about leadership election and events that use Zookeeper.

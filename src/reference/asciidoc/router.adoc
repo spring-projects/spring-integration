@@ -630,7 +630,7 @@ The following example creates a `RecipientListRouter`:
 ----
 ====
 
-Spring Integration also provides namespace support for the `RecipientListRouter` configuration (see "`<<configuration-namespace>>`") as the following example shows:
+Spring Integration also provides namespace support for the `RecipientListRouter` configuration (see <<configuration-namespace>>) as the following example shows:
 
 ====
 [source,xml]
@@ -686,7 +686,7 @@ public IntegrationFlow routerFlow() {
 ====
 
 NOTE: The 'apply-sequence' flag here has the same effect as it does for a publish-subscribe-channel, and, as with a publish-subscribe-channel, it is disabled by default on the `recipient-list-router`.
-See "`<<channel-configuration-pubsubchannel>>`" for more information.
+See <<channel-configuration-pubsubchannel>> for more information.
 
 Another convenient option when configuring a `RecipientListRouter` is to use Spring Expression Language (SpEL) support as selectors for individual recipient channels.
 Doing so is similar to using a filter at the beginning of a 'chain' to act as a "`selective consumer`".
@@ -709,7 +709,7 @@ If this attribute is not defined, the channel is always among the list of recipi
 
 Starting with version 4.1, the `RecipientListRouter` provides several operations to manipulate recipients dynamically at runtime.
 These management operations are presented by `RecipientListRouterManagement` through the `@ManagedResource` annotation.
-They are available by using "`<<control-bus>>`" as well as by using JMX, as the following example shows:
+They are available by using <<control-bus>> as well as by using JMX, as the following example shows:
 
 ====
 [source,xml]
@@ -742,7 +742,7 @@ Otherwise the `MessageDeliveryException` is thrown.
 ===== XPath Router
 
 The XPath Router is part of the XML Module.
-See "`<<xml-xpath-routing>>`".
+See <<xml-xpath-routing>>.
 
 [[router-implementations-exception-router]]
 ===== Routing and Error Handling
@@ -1001,7 +1001,7 @@ public List<String> route(Foo payload) {...}
 ====
 
 In addition to payload-based routing, a message may be routed based on metadata available within the message header as either a property or an attribute.
-In this case, a method annotated with `@Router` may include a parameter annotated with `@Header`, which is mapped to a header value as the following example shows and documented in "`<<annotations>>`":
+In this case, a method annotated with `@Router` may include a parameter annotated with `@Header`, which is mapped to a header value as the following example shows and documented in <<annotations>>:
 
 ====
 [source,java]
@@ -1011,9 +1011,9 @@ public List<String> route(@Header("orderStatus") OrderStatus status)
 ----
 ====
 
-NOTE: For routing of XML-based Messages, including XPath support, see "`<<xml>>`".
+NOTE: For routing of XML-based Messages, including XPath support, see <<xml>>.
 
-See also "`<<java-dsl-routers>>`" in the Java DSL chapter for more information about router configuration.
+See also <<java-dsl-routers>> in the Java DSL chapter for more information about router configuration.
 
 [[dynamic-routers]]
 ==== Dynamic Routers
@@ -1120,14 +1120,14 @@ In fact, it applies to every other router, including expression-based routers, s
 Any router that is a subclass of the `AbstractMappingMessageRouter` (which includes most framework-defined routers) is a dynamic router, because the `channelMapping` is defined at the `AbstractMappingMessageRouter` level.
 That map's setter method is exposed as a public method along with the 'setChannelMapping' and 'removeChannelMapping' methods.
 These let you  change, add, and remove router mappings at runtime, as long as you have a reference to the router itself.
-It also means that you could expose these same configuration options through JMX (see "`<<jmx>>`") or the Spring Integration control bus (see "`<<control-bus>>`") functionality. 
+It also means that you could expose these same configuration options through JMX (see <<jmx>>) or the Spring Integration control bus (see <<control-bus>>) functionality. 
 
 [[dynamic-routers-control-bus]]
 ===== Manage Router Mappings using the Control Bus
 
 One way to manage the router mappings is through the http://www.eaipatterns.com/ControlBus.html[control bus] pattern, which exposes a control channel to which you can send control messages to manage and monitor Spring Integration components, including routers.
 
-NOTE: For more information about the control bus, see "`<<control-bus>>`".
+NOTE: For more information about the control bus, see <<control-bus>>.
 
 Typically, you would send a control message asking to invoke a particular operation on a particular managed component (such as a
 router).
@@ -1163,7 +1163,7 @@ For programmatic changes to the map, we recommend that you use the `setChannelMa
 
 You can also use Spring's JMX support to expose a router instance and then use your favorite JMX client (for example, JConsole) to manage those operations (methods) for changing the router's configuration.
 
-NOTE: For more information about Spring Integration's JMX support, see "`<<jmx>>`".
+NOTE: For more information about Spring Integration's JMX support, see <<jmx>>.
 
 [[routing-slip]]
 ===== Routing Slip

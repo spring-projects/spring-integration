@@ -4,7 +4,7 @@
 The WebFlux Spring Integration module (`spring-integration-webflux`) allows for the execution of HTTP requests and the processing of inbound HTTP requests in a reactive manner.
 The WebFlux support consists of the following gateway implementations: `WebFluxInboundEndpoint` and `WebFluxRequestExecutingMessageHandler`.
 The support is fully based on the Spring https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#spring-webflux[WebFlux] and https://projectreactor.io/[Project Reactor] foundations.
-See "`<<http>>`" for more information, since many options are shared between reactive and regular HTTP components.
+See <<http>> for more information, since many options are shared between reactive and regular HTTP components.
 
 [[webflux-inbound]]
 === WebFlux Inbound Components
@@ -64,7 +64,7 @@ public IntegrationFlow sseFlow() {
 ----
 ====
 
-See "`<<http-request-mapping>>`" and "`<<http-cors>>`" for more possible configuration options.
+See <<http-request-mapping>> and <<http-cors>> for more possible configuration options.
 
 When the request body is empty or `payloadExpression` returns `null`, the request params (`MultiValueMap<String, String>`) is used for a `payload` of the target message to process.
 
@@ -115,7 +115,7 @@ In addition a `BodyExtractor<?, ClientHttpResponse>` can be injected into the `W
 It can be used for low-level access to the `ClientHttpResponse` and more control over body and HTTP headers conversion.
 Spring Integration provides `ClientHttpResponseBodyExtractor` as a identity function to produce (downstream) the whole `ClientHttpResponse` and any other possible custom logic.
 
-See "`<<http-outbound>>`" for more possible configuration options.
+See <<http-outbound>> for more possible configuration options.
 
 [[webflux-namespace]]
 === WebFlux Namespace Support
@@ -310,4 +310,4 @@ public IntegrationFlow outboundReactive() {
 === WebFlux Header Mappings
 
 Since WebFlux components are fully based on the HTTP protocol, there is no difference in the HTTP headers mapping.
-See "`<<http-header-mapping>>`" for more possible options and components to use for mapping headers.
+See <<http-header-mapping>> for more possible options and components to use for mapping headers.

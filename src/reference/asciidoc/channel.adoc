@@ -127,7 +127,7 @@ In other words, with a `RendezvousChannel`, the sender knows that some receiver 
 
 TIP: Keep in mind that all of these queue-based channels are storing messages in-memory only by default.
 When persistence is required, you can either provide a 'message-store' attribute within the 'queue' element to reference a persistent `MessageStore` implementation or you can replace the local channel with one that is backed by a persistent broker, such as a JMS-backed channel or channel adapter.
-The latter option lets you take advantage of any JMS provider's implementation for message persistence, as discussed in "`<<jms>>`".
+The latter option lets you take advantage of any JMS provider's implementation for message persistence, as discussed in <<jms>>.
 However, when buffering in a queue is not necessary, the simplest approach is to rely upon the `DirectChannel`, discussed in the next section.
 
 The `RendezvousChannel` is also useful for implementing request-reply operations.
@@ -280,7 +280,7 @@ Therefore, the `preReceive(...)`, `postReceive(...)`, and `afterReceiveCompletio
 Spring Integration also provides an implementation of the http://eaipatterns.com/WireTap.html[Wire Tap] pattern.
 It is a simple interceptor that sends the `Message` to another channel without otherwise altering the existing flow.
 It can be very useful for debugging and monitoring.
-An example is shown in "`<<channel-wiretap>>`".
+An example is shown in <<channel-wiretap>>.
 
 Because it is rarely necessary to implement all of the interceptor methods, a `ChannelInterceptorAdapter` class is also available for sub-classing.
 It provides no-op methods (the `void` method is empty, the `Message`-returning methods return the `Message` as-is, and the `boolean` method returns `true`).
@@ -353,7 +353,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ...
 ----
 ====
 
-NOTE: A less invasive approach that lets you invoke simple interfaces with payload or header values instead of `Message` instances is described in "`<<gateway-proxy>>`".
+NOTE: A less invasive approach that lets you invoke simple interfaces with payload or header values instead of `Message` instances is described in <<gateway-proxy>>.
 
 [[channel-configuration]]
 ==== Configuring Message Channels
@@ -379,7 +379,7 @@ To create a publish-subscribe channel, use the `<publish-subscribe-channel/>` el
 
 When you use the `<channel/>` element without any sub-elements, it creates a `DirectChannel` instance (a `SubscribableChannel`).
 
-However, you can alternatively provide a variety of `<queue/>` sub-elements to create any of the pollable channel types (as described in "`<<channel-implementations>>`").
+However, you can alternatively provide a variety of `<queue/>` sub-elements to create any of the pollable channel types (as described in <<channel-implementations>>).
 The following sections shows examples of each channel type.
 
 [[channel-configuration-directchannel]]
@@ -395,7 +395,7 @@ The following listing shows who to define one in XML:
 ----
 ====
 
-A default channel has a round-robin load-balancer and also has failover enabled (see "`<<channel-implementations-directchannel>>`" for more detail).
+A default channel has a round-robin load-balancer and also has failover enabled (see <<channel-implementations-directchannel>> for more detail).
 To disable one or both of these, add a `<dispatcher/>` sub-element and configure the attributes as follows:
 
 ====
@@ -493,7 +493,7 @@ Then we can register it as a converter with the Integration Conversion Service, 
 When the 'converter' element is parsed, it creates the `integrationConversionService` bean if one is not already defined.
 With that converter in place, the `send` operation would now be successful, because the datatype channel uses that converter to convert the `String` payload to an `Integer`.
 
-For more information regarding payload type conversion, see "`<<payload-type-conversion>>`".
+For more information regarding payload type conversion, see <<payload-type-conversion>>.
 
 Beginning with version 4.0, the `integrationConversionService` is invoked by the `DefaultDatatypeChannelMessageConverter`, which looks up the conversion service in the application context.
 To use a different conversion technique, you can specify the `message-converter` attribute on the channel.
@@ -527,7 +527,7 @@ To avoid issues such as running out of memory, we highly recommend that you set 
 
 Since a `QueueChannel` provides the capability to buffer messages but does so in-memory only by default, it also introduces a possibility that messages could be lost in the event of a system failure.
 To mitigate this risk, a `QueueChannel` may be backed by a persistent implementation of the `MessageGroupStore` strategy interface.
-For more details on `MessageGroupStore` and `MessageStore`, see "`<<message-store>>`".
+For more details on `MessageGroupStore` and `MessageStore`, see <<message-store>>.
 
 IMPORTANT: The `capacity` attribute is not allowed when the `message-store` attribute is used.
 
@@ -639,13 +639,13 @@ If you provide a resequencer or aggregator downstream from a `PublishSubscribeCh
 Doing so indicates that the channel should set the `sequence-size` and `sequence-number` message headers as well as the correlation ID prior to passing along the messages.
 For example, if there are five subscribers, the `sequence-size` would be set to `5`, and the messages would have `sequence-number` header values ranging from `1` to `5`.
 
-Alongside with the `Executor`, an `ErrorHandler` can be configured as well.
-By default the `PublishSubscribeChannel` uses a `MessagePublishingErrorHandler` implementation to send error to the `MessageChannel` from the `errorChannel` header or a global `errorChannel` instance.
-If an `Executor` is not configured, the `ErrorHandler` is ignored and exceptions are thrown directly to the caller's Thread.
+Along with the `Executor`, you can also configure an `ErrorHandler`.
+By default, the `PublishSubscribeChannel` uses a `MessagePublishingErrorHandler` implementation to send an error to the `MessageChannel` from the `errorChannel` header or into the global `errorChannel` instance.
+If an `Executor` is not configured, the `ErrorHandler` is ignored and exceptions are thrown directly to the caller's thread.
 
-If you are providing a _Resequencer_ or _Aggregator_ downstream from a `PublishSubscribeChannel`, then you can set the 'apply-sequence' property on the channel to `true`.
-That will indicate that the channel should set the sequence-size and sequence-number Message headers as well as the correlation id prior to passing the Messages along.
-For example, if there are 5 subscribers, the sequence-size would be set to 5, and the Messages would have sequence-number header values ranging from 1 to 5.
+If you provide a `Resequencer` or `Aggregator` downstream from a `PublishSubscribeChannel`, you can set the 'apply-sequence' property on the channel to `true`.
+Doing so indicates that the channel should set the sequence-size and sequence-number message headers as well as the correlation ID prior to passing along the messages.
+For example, if there are five subscribers, the sequence-size would be set to `5`, and the messages would have sequence-number header values ranging from `1` to `5`.
 
 The following example shows how to set the `apply-sequence` header to `true`:
 
@@ -679,7 +679,7 @@ The following example shows how to use the `dispatcher` element and specify an e
 
 [NOTE]
 =====
-The `load-balancer` and `failover` options are also both available on the <dispatcher/> sub-element, as described earlier in "`<<channel-configuration-directchannel>>`".
+The `load-balancer` and `failover` options are also both available on the <dispatcher/> sub-element, as described earlier in <<channel-configuration-directchannel>>.
 The same defaults apply.
 Consequently, the channel has a round-robin load-balancing strategy with failover enabled unless explicit configuration is provided for one or both of those attributes, as the following example shows:
 
@@ -726,8 +726,8 @@ The following example demonstrates all of these:
 Since version 4.0, the `priority-channel` child element supports the `message-store` option (`comparator` and `capacity` are not allowed in that case).
 The message store must be a `PriorityCapableChannelMessageStore`.
 Implementations of the `PriorityCapableChannelMessageStore` are currently provided for `Redis`, `JDBC`, and `MongoDB`.
-See "`<<channel-configuration-queuechannel>>`" and "`<<message-store>>`" for more information.
-You can find sample configuration in "`<<jdbc-message-store-channels>>`".
+See <<channel-configuration-queuechannel>> and <<message-store>> for more information.
+You can find sample configuration in <<jdbc-message-store-channels>>.
 
 [[channel-configuration-rendezvouschannel]]
 ===== `RendezvousChannel` Configuration
@@ -761,7 +761,7 @@ Any channel can be configured with a `scope` attribute, as the following example
 [[channel-configuration-interceptors]]
 ===== Channel Interceptor Configuration
 
-Message channels may also have interceptors, as described in "`<<channel-interceptors>>`".
+Message channels may also have interceptors, as described in <<channel-interceptors>>.
 The `<interceptors/>` sub-element can be added to a `<channel/>` (or the more specific element types).
 You can provide the `ref` attribute to reference any Spring-managed object that implements the `ChannelInterceptor` interface, as the following example shows:
 
@@ -836,7 +836,7 @@ NOTE: Note that both the `order` and `pattern` attributes are optional.
 The default value for `order` will be 0 and for `pattern`, the default is '*' (to match all channels).
 
 Starting with version 4.3.15, you can configure the `spring.integration.postProcessDynamicBeans = true` property to apply any global interceptors to dynamically created `MessageChannel` beans.
-See "`<<global-properties>>`" for more information.
+See <<global-properties>> for more information.
 
 [[channel-wiretap]]
 ===== Wire Tap
@@ -960,7 +960,7 @@ If namespace support is enabled, two special channels are defined within the app
 The 'nullChannel' acts like `/dev/null`, logging any message sent to it at the `DEBUG` level and returning immediately.
 Any time you face channel resolution errors for a reply that you do not care about, you can set the affected component's `output-channel` attribute to 'nullChannel' (the name, 'nullChannel', is reserved within the application context).
 The 'errorChannel' is used internally for sending error messages and may be overridden with a custom configuration.
-This is discussed in greater detail in "`<<namespace-errorhandler>>`".
+This is discussed in greater detail in <<namespace-errorhandler>>.
 
 
-See also "`<<java-dsl-channels>>`" in the Java DSL chapter for more information about message channel and interceptors.
+See also <<java-dsl-channels>> in the Java DSL chapter for more information about message channel and interceptors.

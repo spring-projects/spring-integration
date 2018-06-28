@@ -34,7 +34,7 @@ If the associated connection factory is configured for single-use connections, a
 Otherwise, if the connection is in use, the calling thread blocks on the connection until either a response is received or a timeout or I/O error occurs.
 
 The TCP and UDP inbound channel adapters and the TCP inbound gateway support the `error-channel` attribute.
-This provides the same basic functionality as described in "`<<gateway-proxy>>`".
+This provides the same basic functionality as described in <<gateway-proxy>>.
 
 [[udp-adapters]]
 === UDP Adapters
@@ -291,7 +291,7 @@ Such sharing allows for asynchronous two-way communication over TCP.
 By default, only payload information is transferred using TCP.
 Therefore, any message correlation must be performed by downstream components such as aggregators or other endpoints.
 Support for transferring selected headers was introduced in version 3.0.
-For more information, see "`<<ip-correlation>>`".
+For more information, see <<ip-correlation>>.
 
 You may give  a reference to a connection factory to a maximum of one adapter of each type.
 
@@ -457,7 +457,7 @@ In environments where DNS is not configured, this can cause connection delays.
 You can override this default behavior by setting the `lookup-host` attribute to `false`.
 
 NOTE: You can also modify the attributes of sockets and socket factories.
-See "`<<ssl-tls>>`".
+See <<ssl-tls>>.
 As noted there, such modifications are possible whether or not SSL is being used.
 
 [[caching-cf]]
@@ -467,7 +467,7 @@ As <<ip-intro,noted earlier>>, TCP sockets can be 'single-use' (one request or r
 Shared sockets do not perform well with outbound gateways in high-volume environments, because the socket can only process one request or response at a time.
 
 To improve performance, you can use collaborating channel adapters instead of gateways, but that requires application-level message correlation.
-See "`<<ip-correlation>>`" for more information.
+See <<ip-correlation>> for more information.
 
 Spring Integration 2.2 introduced a caching client connection factory, which uses a pool of shared sockets, letting a gateway process multiple concurrent requests with a pool of shared connections.
 
@@ -605,9 +605,9 @@ Beginning with version 3.0, changes to `TcpConnection` instances are reported by
 * `throwable`: The `Throwable` (for `TcpConnectionExceptionEvent` events only).
 * `source`: The `TcpConnection`. You can use this, for example, to determine the remote IP Address with `getHostAddress()` (cast required).
 
-In addition, since version 4.0, the standard deserializers discussed in "`<<tcp-connection-factories>>`" now emit `TcpDeserializationExceptionEvent` instances when they encounter problems while decoding the data stream.
+In addition, since version 4.0, the standard deserializers discussed in <<tcp-connection-factories>> now emit `TcpDeserializationExceptionEvent` instances when they encounter problems while decoding the data stream.
 These events contain the exception, the buffer that was in the process of being built, and an offset into the buffer (if available) at the point where the exception occurred.
-Applications can use a normal `ApplicationListener` or an `ApplicationEventListeningMessageProducer` (see "`<<appevent-inbound>>`") to capture these events, allowing analysis of the problem.
+Applications can use a normal `ApplicationListener` or an `ApplicationEventListeningMessageProducer` (see <<appevent-inbound>>) to capture these events, allowing analysis of the problem.
 
 Starting with versions 4.0.7 and 4.1.3, `TcpConnectionServerExceptionEvent` instances are published whenever an unexpected exception occurs on a server socket (such as a `BindException` when the server socket is in use).
 These events have a reference to the connection factory and the cause.
@@ -783,7 +783,7 @@ remote-timeout-expression="headers['timeout']" -->
 One goal of the IP endpoints is to provide communication with systems other than Spring Integration applications.
 For this reason, only message payloads are sent and received by default.
 Since 3.0, you can transfer headers by using JSON, Java serialization, or custom serializers and deserializers.
-See "`<<ip-headers>>`" for more information.
+See <<ip-headers>> for more information.
 No message correlation is provided by the framework (except when using the gateways) or collaborating channel adapters on the server side.
 <<ip-collaborating-adapters,Later in this document>>, we discuss the various correlation techniques available to applications.
 In most cases, this requires specific application-level correlation of messages, even when message payloads contain some natural correlation data (such as an order number).
@@ -827,7 +827,7 @@ Such a transformer may transform the original payload to a new object that conta
 Of course, live objects (such as reply channels) from the headers cannot be included in the transformed payload.
 
 If you choose such a strategy, you need to ensure the connection factory has an appropriate serializer-deserializer pair to handle such a payload (such as `DefaultSerializer` and `DefaultDeserializer`, which use java serialization, or a custom serializer and deserializer).
-The `ByteArray*Serializer` options mentioned in "`<<tcp-connection-factories>>`", including the default `ByteArrayCrLfSerializer`, do not support such payloads unless the transformed payload is a `String` or `byte[]`.
+The `ByteArray*Serializer` options mentioned in <<tcp-connection-factories>>, including the default `ByteArrayCrLfSerializer`, do not support such payloads unless the transformed payload is a `String` or `byte[]`.
 
 [NOTE]
 =====
@@ -914,7 +914,7 @@ A message sent with the preceding configuration, with a payload of 'something' w
 [[note_nio]]
 === About Non-blocking I/O (NIO)
 
-Using NIO (see `using-nio` in "`<<ip-endpoint-reference>>`") avoids dedicating a thread to read from each socket.
+Using NIO (see `using-nio` in <<ip-endpoint-reference>>) avoids dedicating a thread to read from each socket.
 For a small number of sockets, you are likely to find that not using NIO, together with an asynchronous handoff (such as to a `QueueChannel`), performs as well as or better than using NIO.
 
 You should consider using NIO when handling a large number of connections.
@@ -1386,7 +1386,7 @@ Defaults to `ByteArrayCrLfSerializer`
 | `true`, `false`
 | Whether or not connection uses NIO.
 Refer to the `java.nio` package for more information.
-See "`<<note_nio>>`".
+See <<note_nio>>.
 Default: `false`.
 
 | `using-direct-buffers`
@@ -1403,7 +1403,7 @@ Must be `false` if `using-nio` is `false`.
 | `true`, `false`
 | When you use NIO, it may be necessary to resequence messages.
 When this attribute is set to `true`, `correlationId` and `sequenceNumber` headers are added to received messages.
-See "`<<note_nio>>`".
+See <<note_nio>>.
 Default: `false`.
 
 | `so-timeout`
@@ -1499,7 +1499,7 @@ Default: `true`.
 | Y
 | Y
 |
-| See "`<<ip-interceptors>>`".
+| See <<ip-interceptors>>.
 
 | `ssl-context-support`
 | Y
@@ -1517,13 +1517,13 @@ Default: `true`.
 | Y
 | Y
 |
-| See "`<<ssl-tls>>`".
+| See <<ssl-tls>>.
 
 | `nio-connection-support`
 | Y
 | Y
 |
-| See "`<<tcp-advanced-techniques>>`".
+| See <<tcp-advanced-techniques>>.
 
 | `read-delay`
 | Y
@@ -1739,7 +1739,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See "`<<namespace-taskscheduler>>`".
+See <<namespace-taskscheduler>>.
 |===
 
 The following table describes attributes that you can set to configure TCP outbound channel adapters:
@@ -1777,7 +1777,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See "`<<namespace-taskscheduler>>`".
+See <<namespace-taskscheduler>>.
 |===
 
 The following table describes attributes that you can set to configure TCP inbound gateways:
@@ -1828,7 +1828,7 @@ Default: 60000 (60 seconds).
 | `true`, `false`
 | Specifies a `TaskScheduler` to use for managing the `client-mode` connection.
 If not specified, it defaults to the global Spring Integration `taskScheduler` bean, which has a default pool size of 10.
-See "`<<namespace-taskscheduler>>`".
+See <<namespace-taskscheduler>>.
 |===
 
 The following table describes attributes that you can set to configure TCP outbound gateways:

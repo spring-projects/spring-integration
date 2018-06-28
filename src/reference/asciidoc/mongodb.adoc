@@ -156,7 +156,7 @@ To configure that scenario, you can extend one message store bean from the other
 [[mongodb-metadata-store]]
 ==== MongoDB Metadata Store
 
-Spring Integration 4.2 introduced a new MongoDB-based `MetadataStore` (see "`<<metadata-store>>`") implementation.
+Spring Integration 4.2 introduced a new MongoDB-based `MetadataStore` (see <<metadata-store>>) implementation.
 You can use the `MongoDbMetadataStore` to maintain metadata state across application restarts.
 You can use this new `MetadataStore` implementation with adapters such as:
 
@@ -281,7 +281,7 @@ If only the `expression` attribute is present and the result of an expression is
 If you want the evaluation result to go to a specific channel, add a `channel` attribute.
 If the result of an expression is null or void, no message is generated.
 
-For more information about transaction synchronization, see "`<<transaction-synchronization>>`".
+For more information about transaction synchronization, see <<transaction-synchronization>>.
 
 [[mongodb-outbound-channel-adapter]]
 === MongoDB Outbound Channel Adapter

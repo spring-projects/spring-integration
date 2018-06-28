@@ -155,7 +155,7 @@ Under normal circumstances, you would likely not want to set the poller's `max-m
 Its default value is `1`, which means that the JDBC inbound channel adapter's https://docs.spring.io/spring-integration/api/org/springframework/integration/jdbc/JdbcPollingChannelAdapter.html#receive()[`receive()`] method is executed exactly once for each poll interval.
 
 Setting the `max-messages-per-poll` attribute to a larger value means that the query is executed that many times back to back.
-For more information regarding the `max-messages-per-poll` attribute, see "`<<channel-adapter-namespace-inbound>>`".
+For more information regarding the `max-messages-per-poll` attribute, see <<channel-adapter-namespace-inbound>>.
 
 In contrast, the `max-rows` attribute, if greater than `0`, specifies the maximum number of rows to be used from the query result set created by the `receive()` method.
 If the attribute is set to `0`, all rows are included in the resulting message.
@@ -221,7 +221,7 @@ The following example uses a `ExpressionEvaluatingSqlParameterSourceFactory` to 
 ----
 ====
 
-For further information, see "`<<sp-defining-parameter-sources>>`".
+For further information, see <<sp-defining-parameter-sources>>.
 
 ==== Using the `PreparedStatement` Callback
 
@@ -339,7 +339,7 @@ It can also have a `SqlParameterSourceFactory` injected to control the binding o
 Starting with the version 4.2, the `request-prepared-statement-setter` attribute is available on the `<int-jdbc:outbound-gateway>` as an alternative to `request-sql-parameter-source-factory`.
 It lets you specify a `MessagePreparedStatementSetter` bean reference, which implements more sophisticated `PreparedStatement` preparation before its execution.
 
-See "`<<jdbc-outbound-channel-adapter>>`" for more information about `MessagePreparedStatementSetter`.
+See <<jdbc-outbound-channel-adapter>> for more information about `MessagePreparedStatementSetter`.
 
 [[jdbc-message-store]]
 === JDBC Message Store
@@ -636,14 +636,14 @@ A value of `0` disables caching.
 Negative values are not permitted.
 +
 If you enable JMX, statistical information about the `jdbc-call-operations-cache` is exposed as an MBean.
-See "`<<jmx-mbean-exporter>>`" for more information.
+See <<jmx-mbean-exporter>> for more information.
 * `sql-parameter-source-factory`: (Not available for the stored procedure inbound channel adapter.)
 Reference to a `SqlParameterSourceFactory`.
 By default, bean properties of the passed in `Message` payload are used as a source for the stored procedure's input parameters by using a `BeanPropertySqlParameterSourceFactory`.
 +
 This may suffice for basic use cases.
 For more sophisticated options, consider passing in one or more `ProcedureParameter` values.
-See "`<<sp-defining-parameter-sources>>`".
+See <<sp-defining-parameter-sources>>.
 Optional.
 * `use-payload-as-parameter-source`: (Not available for the stored procedure inbound channel adapter.)
 If set to `true`, the payload of the `Message` is used as a source for providing parameters.
@@ -987,7 +987,7 @@ public static void findCoffee(int coffeeId, String[] coffeeDescription)
 ----
 ====
 
-The following listing shows the corresponding SQL
+The following listing shows the corresponding SQL:
 
 ====
 [source,sql]
@@ -1030,6 +1030,7 @@ The `JdbcLockRegistry` is based on the `LockRepository` abstraction, which has a
 The database schema scripts are located in the `org.springframework.integration.jdbc` package, which is divided for the particular RDBMS vendors.
 For example, the following listing shows the H2 DDL for the lock table:
 
+====
 [source,sql]
 ----
 CREATE TABLE INT_LOCK  (
@@ -1040,6 +1041,7 @@ CREATE TABLE INT_LOCK  (
     constraint LOCK_PK primary key (LOCK_KEY, REGION)
 );
 ----
+====
 
 The `INT_` can be changed according to the target database design requirements.
 Therefore, you must use `prefix` property on the `DefaultLockRepository` bean definition.
@@ -1053,7 +1055,7 @@ If so, you can specify the `id` to be associated with the `DefaultLockRepository
 [[jdbc-metadata-store]]
 === JDBC Metadata Store
 
-Version 5.0 introduced the JDBC `MetadataStore` (see "`<<metadata-store>>`") implementation.
+Version 5.0 introduced the JDBC `MetadataStore` (see <<metadata-store>>) implementation.
 You can use the `JdbcMetadataStore` to maintain the metadata state across application restarts.
 This `MetadataStore` implementation can be used with adapters such as the following:
 
@@ -1102,6 +1104,6 @@ Inbound channel adapters can be supplied with a reference to the `TransactionMan
 Unlike non-transactional `MetadataStore` implementations, with `JdbcMetadataStore`, the entry appears in the target table only after the transaction commits.
 When a rollback occurs, no entries are added to the `INT_METADATA_STORE` table.
 
-Since version 5.0.7, the `JdbcMetadataStore` can be configured with the RDBMS vendor-specific `lockHint` option for lock-based queries on metadata store entries.
-It is `FOR UPDATE` by default and can be configured with an empty string, if the target data base doesn't support row locking functionality.
-Please, consult with your vendor for particular possible hint in the `SELECT` expression for locking rows before updates.
+Since version 5.0.7, you can configure the `JdbcMetadataStore` with the RDBMS vendor-specific `lockHint` option for lock-based queries on metadata store entries.
+By default, it is `FOR UPDATE` and can be configured with an empty string if the target database does not support row locking functionality.
+Consult with your vendor for particular and possible hints in the `SELECT` expression for locking rows before updates.
