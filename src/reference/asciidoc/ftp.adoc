@@ -33,7 +33,7 @@ Spring Integration provides factories you can use to create FTP (or FTPS) sessio
 ==== Default Factories
 
 IMPORTANT: Starting with version 3.0, sessions are no longer cached by default.
-See "`<<ftp-session-caching>>`".
+See <<ftp-session-caching>>.
 
 Before configuring FTP adapters, you must configure an FTP session factory.
 You can configure the FTP Session Factory with a regular bean definition where the implementation class is `o.s.i.ftp.session.DefaultFtpSessionFactory`.
@@ -244,7 +244,7 @@ The following example shows how to declare a delegating session factory:
 ----
 ====
 
-IMPORTANT: When you use session caching (see "`<<ftp-session-caching>>`"), each of the delegates should be cached.
+IMPORTANT: When you use session caching (see <<ftp-session-caching>>), each of the delegates should be cached.
 You cannot cache the `DelegatingSessionFactory` itself.
 
 Starting with _version 5.0.7_, the `DelegatingSessionFactory` can be used in conjuction with a `RotatingServerAdvice` to poll multiple servers; see <<ftp-rotating-server-advice>>.
@@ -290,7 +290,7 @@ Starting with version 5.0, you can now limit the number of files fetched from th
 This can be beneficial when the target files are very large or when you run in a clustered system with a persistent file list filter, discussed later.
 Use `max-fetch-size` for this purpose.
 A negative value (the default) means no limit and all matching files are retrieved.
-See "`<<ftp-max-fetch>>`" for more information.
+See <<ftp-max-fetch>> for more information.
 Since version 5.0, you can also provide a custom `DirectoryScanner` implementation to the `inbound-channel-adapter` by setting the `scanner` attribute.
 
 Starting with Spring Integration 3.0, you can specify the `preserve-timestamp` attribute (its default is `false`).
@@ -311,7 +311,7 @@ You can also combine a pattern-based filter with other filters (such as an `Acce
 
 The `AcceptOnceFileListFilter` stores its state in memory.
 If you wish the state to survive a system restart, consider using the `FtpPersistentAcceptOnceFileListFilter` instead.
-This filter stores the accepted file names in an instance of the `MetadataStore` strategy (see "`<<metadata-store>>`").
+This filter stores the accepted file names in an instance of the `MetadataStore` strategy (see <<metadata-store>>).
 This filter matches on the filename and the remote modified time.
 
 Since version 4.0, this filter requires a `ConcurrentMetadataStore`.
@@ -330,7 +330,7 @@ Also, if you configure the `filter` to use a `FtpPersistentAcceptOnceFileListFil
 
 You can use the `local-filter` attribute to configure the behavior of the local file system filter.
 Starting with version 4.3.8, a `FileSystemPersistentAcceptOnceFileListFilter` is configured by default.
-This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (see "`<<metadata-store>>`") and detects changes to the local file modified time.
+This filter stores the accepted file names and modified timestamp in an instance of the `MetadataStore` strategy (see <<metadata-store>>) and detects changes to the local file modified time.
 The default `MetadataStore` is a `SimpleMetadataStore`, which stores state in memory.
 
 Since version 4.1.5, these filters have a new property (`flushOnUpdate`) that causes them to flush the
@@ -456,7 +456,7 @@ See https://docs.spring.io/spring-integration/api/org/springframework/integratio
 Also, you can now switch the `AbstractInboundFileSynchronizingMessageSource` to the `WatchService`-based `DirectoryScanner` by using `setUseWatchService()` option.
 It is also configured for all the `WatchEventType` instances to react to any modifications in local directory.
 The reprocessing sample shown earlier is based on the built-in functionality of the `FileReadingMessageSource.WatchServiceDirectoryScanner` to perform `ResettableFileListFilter.remove()` when the file is deleted (`StandardWatchEventKinds.ENTRY_DELETE`) from the local directory.
-See "`<<watch-service-directory-scanner>>`" for more information.
+See <<watch-service-directory-scanner>> for more information.
 
 
 ==== Configuring with Java Configuration
@@ -561,7 +561,7 @@ public class FtpJavaApplication {
 [[ftp-incomplete]]
 ==== Dealing With Incomplete Data
 
-See "`<<file-incomplete>>`".
+See <<file-incomplete>>.
 
 The `FtpSystemMarkerFilePresentFileListFilter` is provided to filter remote files that do not have a corresponding marker file on the remote system.
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/ftp/filters/FtpSystemMarkerFilePresentFileListFilter.html[Javadoc] (and browse to the parent classes) for configuration information.
@@ -576,7 +576,7 @@ Since the session remains open, the consuming application is responsible for clo
 consumed.
 The session is provided in the `closeableResource` header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
 Standard framework components, such as the `FileSplitter` and `StreamTransformer`, automatically close the session.
-See "`<<file-splitter>>`" and "`<<stream-transformer>>`" for more information about these components.
+See <<file-splitter>> and <<stream-transformer>> for more information about these components.
 The follwoing example shows how to configure an `inbound-streaming-channel-adapter`:
 
 ====
@@ -608,7 +608,7 @@ The Java configuration (<<ftp-streaming-java,later in the document>>) shows one 
 
 Use the `max-fetch-size` attribute to limit the number of files fetched on each poll when a fetch is necessary.
 Set it to `1` and use a persistent filter when running in a clustered environment.
-See "`<<ftp-max-fetch>>`" for more information.
+See <<ftp-max-fetch>> for more information.
 
 The adapter puts the remote directory and file name in the `FileHeaders.REMOTE_DIRECTORY` and `FileHeaders.REMOTE_FILE` headers, respectively.
 Starting with version 5.0, the `FileHeaders.REMOTE_FILE_INFO` header provides additional remote file information (represented in JSON by default).
@@ -616,7 +616,10 @@ If you set the `fileInfoJson` property on the `FtpStreamingMessageSource` to `fa
 The `FTPFile` object provided by the underlying Apache Net library can be accessed by using the `FtpFileInfo.getFileInfo()` method.
 The `fileInfoJson` property is not available when you use XML configuration, but you can set it by injecting the `FtpStreamingMessageSource` into one of your configuration classes.
 
-Starting with version 5.1, the `comparator` 's generic type is now `FTPFile`; previously it was `AbstractFileInfo<FTPFile>`; this is because the sort is now performed earlier in the processing, before filtering and applying `maxFetch`.
+Starting with version 5.1, the generic type of the `comparator` is `FTPFile`.
+Previously, it was `AbstractFileInfo<FTPFile>`.
+This is because the sort is now performed earlier in the processing, before filtering and applying `maxFetch`.
+
 [[ftp-streaming-java]]
 ==== Configuring with Java Configuration
 
@@ -992,7 +995,7 @@ The default is to retrieve a list of `FileInfo` objects.
 * `-R`: List the remote directory recursively
 
 In addition, filename filtering is provided, in the same manner as the `inbound-channel-adapter`.
-See "`<<ftp-inbound>>`".
+See <<ftp-inbound>>.
 
 The message payload resulting from an `ls` operation is a list of file names or a list of `FileInfo` objects.
 These objects provide information such as modified time, permissions, and other details.
@@ -1150,7 +1153,7 @@ Doing so allows recursion for a simple pattern, as the following examples show:
 
 Once you have defined filters such as those in the preceding example, you can use one by setting the `filter` property on the gateway.
 
-See also "`<<ftp-partial>>`".
+See also <<ftp-partial>>.
 
 [[ftp-put-command]]
 ==== Using the `put` Command
@@ -1179,7 +1182,7 @@ Subdirectories that do not pass the filter are not recursed.
 
 The message payload resulting from an `mget` operation is a `List<String>` object (that is, a `List` of remote file paths that result from the transfer).
 
-See also "`<<ftp-partial>>`".
+See also <<ftp-partial>>.
 
 ==== Using the `rm` Command
 

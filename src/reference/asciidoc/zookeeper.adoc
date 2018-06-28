@@ -11,7 +11,7 @@ Version 4.2 added https://zookeeper.apache.org/[Zookeeper] support to the framew
 === Zookeeper Metadata Store
 
 You ca use the `ZookeeperMetadataStore` where any `MetadataStore` is needed, such as for persistent file list filters.
-See "`<<metadata-store>>`" for more information.
+See <<metadata-store>> for more information.
 The following example configures a Zookeeper metadata store with XML:
 
 ====
@@ -80,7 +80,7 @@ When a leader is elected, an `OnGrantedEvent` is published for the role `cluster
 Any endpoints in that role are started.
 When leadership is revoked, an `OnRevokedEvent` is published for the role `cluster`.
 Any endpoints in that role are stopped.
-See "`<<endpoint-roles>>`" for more information.
+See <<endpoint-roles>> for more information.
 
 You can use Java configuration to create an instance of the leader initiator, as the following example shows:
 

@@ -16,7 +16,7 @@ If you have a large number of disjoint sequences with many gaps, you may experie
 
 ==== Configuring a Resequencer
 
-See "`<<java-dsl-aggregators>>`" for configuring a resequencer in Java DSL.
+See <<java-dsl-aggregators>> for configuring a resequencer in Java DSL.
 
 Configuring a resequencer requires only including the appropriate element in XML.
 
@@ -66,7 +66,7 @@ Optional. (The default is `false`.)
 Optional. (The default is a volatile in-memory store.)
 <7> Whether, upon the expiration of the group, the ordered group should be sent out (even if some of the messages are missing).
 Optional. (The default is false.)
-See "`<<reaper>>`".
+See <<reaper>>.
 <8> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
 Defaults to `-1`, which blocks indefinitely.
 It is applied only if the output channel has some 'sending' limitations, such as a  `QueueChannel` with a fixed 'capacity'.
@@ -100,10 +100,10 @@ This is to enable the detection and discarding of late-arriving messages.
 If you wish to expire empty groups on a longer schedule than expiring partial groups, set this property.
 Empty groups are then not removed from the `MessageStore` until they have not been modified for at least this number of milliseconds.
 Note that the actual time to expire an empty group is also affected by the reaper's timeout property, and it could be as much as this value plus the timeout.
-<16> See "`<<aggregator-xml>>`".
-<17> See "`<<aggregator-xml>>`".
-<18> See "`<<aggregator-xml>>`".
-<19> See "`<<aggregator-xml>>`".
+<16> See <<aggregator-xml>>.
+<17> See <<aggregator-xml>>.
+<18> See <<aggregator-xml>>.
+<19> See <<aggregator-xml>>.
 <20> By default, when a group is completed due to a timeout (or by a `MessageGroupStoreReaper`), the empty group's metadata is retained.
 Late arriving messages are immediately discarded.
 Set this to `true` to remove the group completely.

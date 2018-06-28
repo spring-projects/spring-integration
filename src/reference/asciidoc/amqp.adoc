@@ -71,7 +71,7 @@ The user application is responsible for acknowledgement.
 `NONE` means no acknowledgements (`autoAck`).
 `AUTO` means the adapter's container acknowledges when the downstream flow completes.
 Optional (defaults to AUTO).
-See "`<<amqp-inbound-ack>>`".
+See <<amqp-inbound-ack>>.
 <5> Extra AOP Advices to handle cross-cutting behavior associated with this inbound channel adapter.
 Optional.
 <6> Flag to indicate that channels created by this component are transactional.
@@ -260,7 +260,7 @@ public class AmqpJavaApplication {
 === Polled Inbound Channel Adapter
 
 Version 5.0.1 introduced a polled channel adapter, letting you fetch individual messages on demand -- for example, with a `MessageSourcePollingTemplate` or a poller.
-See "`<<deferred-acks-message-source>>`" for more information.
+See <<deferred-acks-message-source>> for more information.
 
 It does not currently support XML configuration.
 
@@ -347,7 +347,7 @@ If this option is not specified and an external `amqp-template` is provided, no 
 You must either specify this option or configure a default `exchange` and `routingKey` on that template,
 if you anticipate cases when no `replyTo` property exists in the request message.
 
-See the note in "`<<amqp-inbound-channel-adapter>>`" about configuring the `listener-container` attribute.
+See the note in <<amqp-inbound-channel-adapter>> about configuring the `listener-container` attribute.
 
 ==== Configuring with Java Configuration
 
@@ -974,7 +974,7 @@ When `true` (the default), the connection is established (if it does not already
 it) when the first message is sent.
 ====
 
-See also "`<<async-service-activator>>`" for more information.
+See also <<async-service-activator>> for more information.
 
 [IMPORTANT]
 .RabbitTemplate
@@ -1194,7 +1194,7 @@ The entire message was converted (serialized) and sent to RabbitMQ.
 Now, you can set the `extract-payload` attribute (or `setExtractPayload()` when using Java configuration) to `true`.
 When this flag is `true`, the message payload is converted and the headers are mapped, in a manner similar to when you use channel adapters.
 This arrangement lets AMQP-backed channels be used with non-serializable payloads (perhaps with another message converter, such as the `Jackson2JsonMessageConverter`).
-See "`<<amqp-message-headers>>`" for more about the default mapped headers.
+See <<amqp-message-headers>> for more about the default mapped headers.
 You can modify the mapping by providing custom mappers that use the `outbound-header-mapper` and `inbound-header-mapper` attributes.
 You can now also specify a `default-delivery-mode`, which is used to set the delivery mode when there is no `amqp_deliveryMode` header.
 By default, Spring AMQP `MessageProperties` uses `PERSISTENT` delivery mode.
@@ -1314,7 +1314,11 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_clusterId`
 * `amqp_contentEncoding`
 * `amqp_contentLength`
+<<<<<<< HEAD
+* `content-type` (see <<amqp-content-type>>)
+=======
 * `content-type` (see "`<<amqp-content-type>>`")
+>>>>>>> Accommodating changes that came while I was editing
 * `amqp_correlationId`
 * `amqp_delay`
 * `amqp_deliveryMode`
@@ -1341,7 +1345,10 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_consumerTag`
 * `amqp_consumerQueue`
 
+<<<<<<< HEAD
 [[header-copy-caution]]
+=======
+>>>>>>> Accommodating changes that came while I was editing
 CAUTION: As mentioned earlier in this section, using a header mapping pattern of`*` is a common way to copy all headers.
 However, this can have some unexpected side effects, because certain RabbitMQ proprietary properties/headers are also
 copied.
@@ -1418,7 +1425,7 @@ This is because the template "`borrows`" a channel from the cache for each send 
 One solution is to start a transaction before the splitter, but transactions are expensive in RabbitMQ and can reduce performance several hundred fold.
 
 To solve this problem in a more efficient manner, starting with version 5.1, Spring Integration provides the `BoundRabbitChannelAdvice` which is a `HandleMessageAdvice`.
-See "`<<handle-message-advice>>`".
+See <<handle-message-advice>>.
 When applied before the splitter, it ensures that all downstream operations are performed on the same channel and, optionally, can wait until publisher confirmations for all sent messages are received (if the connection factory is configured for confirmations).
 The following example shows how to use `BoundRabbitChannelAdvice`:
 

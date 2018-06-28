@@ -172,6 +172,7 @@ This feature has an impact in terms of storage space, especially in the case of 
 Therefore, if you do not expect multiple claims to be made, we recommend that you set the `remove-message` attribute's value to `true`.
 The following example show how to use the `remove-message` attribute:
 
+====
 [source,xml]
 ----
 <int:claim-check-out id="checkout"
@@ -180,8 +181,9 @@ The following example show how to use the `remove-message` attribute:
         output-channel="output"
         remove-message="true"/>
 ----
+====
 
-==== A word on Message Store
+==== A Word on Message Store
 
 Although we rarely care about the details of the claim checks (as long as they work), you should know that the current implementation of the actual claim check (the pointer) in Spring Integration uses a UUID to ensure uniqueness.
 
