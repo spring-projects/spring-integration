@@ -41,10 +41,9 @@ public final class FileUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <F> F[] purgeUnwantedElements(F[] fileArray, Predicate<F> predicate) {
-		Object[] files = Arrays.stream(fileArray)
+		return (F[]) Arrays.stream(fileArray)
 				.filter(predicate.negate())
 				.toArray();
-		return (F[]) files;
 	}
 
 	private FileUtils() {
