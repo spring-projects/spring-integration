@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Comparator;
 
 import org.junit.Test;
@@ -130,6 +131,16 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	public void testMaxFetchNoFilter() {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(null);
+		messageSource.afterPropertiesSet();
+		Message<InputStream> received = messageSource.receive();
+		assertNotNull(received);
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" sftpSource1.txt"));
+	}
+
+	@Test
+	public void testMaxFetchLambdaFilter() {
+		SftpStreamingMessageSource messageSource = buildSource();
+		messageSource.setFilter(f -> Arrays.asList(f));
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.support;
 
+import java.lang.reflect.Array;
 import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.function.Predicate;
@@ -41,9 +42,9 @@ public final class FileUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <F> F[] purgeUnwantedElements(F[] fileArray, Predicate<F> predicate) {
-		return (F[]) Arrays.stream(fileArray)
+		return Arrays.stream(fileArray)
 				.filter(predicate.negate())
-				.toArray();
+				.toArray(size -> (F[]) Array.newInstance(fileArray[0].getClass(), size));
 	}
 
 	private FileUtils() {
