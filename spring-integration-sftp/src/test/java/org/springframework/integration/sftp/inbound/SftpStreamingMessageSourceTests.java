@@ -18,6 +18,7 @@ package org.springframework.integration.sftp.inbound;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -124,7 +125,8 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" sftpSource1.txt"));
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
+				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
 	}
 
 	@Test
@@ -134,7 +136,8 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" sftpSource1.txt"));
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
+				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
 	}
 
 	@Test
@@ -144,7 +147,8 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" sftpSource1.txt"));
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
+				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
 	}
 
 	private SftpStreamingMessageSource buildSource() {

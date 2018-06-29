@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.inbound;
 
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -49,7 +50,8 @@ public class SftpMessageSourceTests extends SftpTestSupport {
 		SftpInboundFileSynchronizingMessageSource messageSource = buildSource();
 		Message<?> received = messageSource.receive();
 		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.FILENAME), equalTo(" sftpSource1.txt"));
+		assertThat(received.getHeaders().get(FileHeaders.FILENAME),
+				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
 	}
 
 	private SftpInboundFileSynchronizingMessageSource buildSource() throws Exception {
