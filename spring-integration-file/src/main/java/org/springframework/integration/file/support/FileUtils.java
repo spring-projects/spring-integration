@@ -58,8 +58,4 @@ public final class FileUtils {
 		super();
 	}
 
-	public static void main(String[] args) {
-		purgeUnwantedElements(new String[0], s -> true);
-	}
-
 }
