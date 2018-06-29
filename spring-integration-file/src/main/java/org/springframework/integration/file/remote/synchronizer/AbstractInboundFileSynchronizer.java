@@ -46,6 +46,7 @@ import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.file.support.FileUtils;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -285,6 +286,9 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			int transferred = this.remoteFileTemplate.execute(session -> {
 				F[] files = session.list(this.evaluatedRemoteDirectory);
 				if (!ObjectUtils.isEmpty(files)) {
+					files = FileUtils.purgeUnwantedElements(files, e -> !isFile(e));
+				}
+				if (!ObjectUtils.isEmpty(files)) {
 					List<F> filteredFiles = filterFiles(files);
 					if (maxFetchSize >= 0 && filteredFiles.size() > maxFetchSize) {
 						rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
@@ -313,7 +317,6 @@ public abstract class AbstractInboundFileSynchronizer<F>
 							throw e1;
 						}
 					}
-
 					return copied;
 				}
 				else {
@@ -344,7 +347,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				? (remoteDirectoryPath + this.remoteFileSeparator + remoteFileName)
 				: remoteFileName;
 
-		if (!this.isFile(remoteFile)) {
+		if (!isFile(remoteFile)) {
 			if (this.logger.isDebugEnabled()) {
 				this.logger.debug("cannot copy, not a file: " + remoteFilePath);
 			}
