@@ -21,6 +21,8 @@ import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
+import org.springframework.util.ObjectUtils;
+
 /**
  * Utilities for operations on Files.
  *
@@ -42,13 +44,22 @@ public final class FileUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <F> F[] purgeUnwantedElements(F[] fileArray, Predicate<F> predicate) {
-		return Arrays.stream(fileArray)
-				.filter(predicate.negate())
-				.toArray(size -> (F[]) Array.newInstance(fileArray[0].getClass(), size));
+		if (ObjectUtils.isEmpty(fileArray)) {
+			return fileArray;
+		}
+		else {
+			return Arrays.stream(fileArray)
+					.filter(predicate.negate())
+					.toArray(size -> (F[]) Array.newInstance(fileArray[0].getClass(), size));
+		}
 	}
 
 	private FileUtils() {
 		super();
+	}
+
+	public static void main(String[] args) {
+		purgeUnwantedElements(new String[0], s -> true);
 	}
 
 }
