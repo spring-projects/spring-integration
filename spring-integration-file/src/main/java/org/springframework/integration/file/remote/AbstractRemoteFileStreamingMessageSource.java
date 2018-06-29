@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -38,8 +37,10 @@ import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.support.FileUtils;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * A message source that produces a message with an {@link InputStream} payload
@@ -192,31 +193,27 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	private void listFiles() {
 		String remoteDirectory = this.remoteDirectoryExpression.getValue(getEvaluationContext(), String.class);
 		F[] files = this.remoteFileTemplate.list(remoteDirectory);
-		int maxFetchSize = getMaxFetchSize();
-		List<F> filteredFiles = this.filter == null ? Arrays.asList(files) : this.filter.filterFiles(files);
-		if (maxFetchSize > 0 && filteredFiles.size() > maxFetchSize) {
-			rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
-			List<F> newList = new ArrayList<>(maxFetchSize);
-			for (int i = 0; i < maxFetchSize; i++) {
-				newList.add(filteredFiles.get(i));
-			}
-			filteredFiles = newList;
+		if (!ObjectUtils.isEmpty(files)) {
+			files = FileUtils.purgeUnwantedElements(files, f -> f == null || isDirectory(f));
 		}
-		List<AbstractFileInfo<F>> fileInfoList = asFileInfoList(filteredFiles);
-		Iterator<AbstractFileInfo<F>> iterator = fileInfoList.iterator();
-		while (iterator.hasNext()) {
-			AbstractFileInfo<F> next = iterator.next();
-			if (next.isDirectory()) {
-				iterator.remove();
+		if (!ObjectUtils.isEmpty(files)) {
+			int maxFetchSize = getMaxFetchSize();
+			List<F> filteredFiles = this.filter == null ? Arrays.asList(files) : this.filter.filterFiles(files);
+			if (maxFetchSize > 0 && filteredFiles.size() > maxFetchSize) {
+				rollbackFromFileToListEnd(filteredFiles, filteredFiles.get(maxFetchSize));
+				List<F> newList = new ArrayList<>(maxFetchSize);
+				for (int i = 0; i < maxFetchSize; i++) {
+					newList.add(filteredFiles.get(i));
+				}
+				filteredFiles = newList;
 			}
-			else {
-				next.setRemoteDirectory(remoteDirectory);
+			List<AbstractFileInfo<F>> fileInfoList = asFileInfoList(filteredFiles);
+			fileInfoList.forEach(fi -> fi.setRemoteDirectory(remoteDirectory));
+			if (this.comparator != null) {
+				Collections.sort(fileInfoList, this.comparator);
 			}
+			this.toBeReceived.addAll(fileInfoList);
 		}
-		if (this.comparator != null) {
-			Collections.sort(fileInfoList, this.comparator);
-		}
-		this.toBeReceived.addAll(fileInfoList);
 	}
 
 	protected void rollbackFromFileToListEnd(List<F> filteredFiles, F file) {
@@ -227,5 +224,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	abstract protected List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
+
+	abstract protected boolean isDirectory(F file);
 
 }

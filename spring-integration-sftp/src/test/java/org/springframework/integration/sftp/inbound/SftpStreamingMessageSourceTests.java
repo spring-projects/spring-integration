@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -49,7 +50,7 @@ import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
@@ -59,7 +60,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * @since 4.3
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 
@@ -72,9 +73,16 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	@Autowired
 	private SourcePollingChannelAdapter adapter;
 
+	@Autowired
+	private Config config;
+
+	@Autowired
+	private ApplicationContext context;
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testAllContents() {
+		this.adapter.start();
 		Message<byte[]> received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
 		assertThat(new String(received.getPayload()), equalTo("source1"));
@@ -108,6 +116,35 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		this.adapter.stop();
 	}
 
+	@Test
+	public void testMaxFetch() {
+		SftpStreamingMessageSource messageSource = buildSource();
+		messageSource.setFilter(new AcceptAllFileListFilter<>());
+		messageSource.afterPropertiesSet();
+		Message<InputStream> received = messageSource.receive();
+		assertNotNull(received);
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" sftpSource1.txt"));
+	}
+
+	@Test
+	public void testMaxFetchNoFilter() {
+		SftpStreamingMessageSource messageSource = buildSource();
+		messageSource.setFilter(null);
+		messageSource.afterPropertiesSet();
+		Message<InputStream> received = messageSource.receive();
+		assertNotNull(received);
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" sftpSource1.txt"));
+	}
+
+	private SftpStreamingMessageSource buildSource() {
+		SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(this.config.template(),
+				Comparator.comparing(FileInfo::getFilename));
+		messageSource.setRemoteDirectory("sftpSource/");
+		messageSource.setMaxFetchSize(1);
+		messageSource.setBeanFactory(this.context);
+		return messageSource;
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -126,7 +163,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		}
 
 		@Bean
-		@InboundChannelAdapter(channel = "stream")
+		@InboundChannelAdapter(channel = "stream", autoStartup = "false")
 		public MessageSource<InputStream> sftpMessageSource() {
 			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(),
 					Comparator.comparing(FileInfo::getFilename));

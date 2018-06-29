@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -52,7 +53,7 @@ import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Gary Russell
@@ -61,7 +62,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @since 4.3
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 
@@ -74,6 +75,12 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 	@Autowired
 	private SourcePollingChannelAdapter adapter;
 
+	@Autowired
+	private Config config;
+
+	@Autowired
+	private ApplicationContext context;
+
 	@Rule
 	public Log4j2LevelAdjuster adjuster =
 			Log4j2LevelAdjuster.debug()
@@ -82,6 +89,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testAllContents() {
+		this.adapter.start();
 		Message<byte[]> received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
 		assertThat(new String(received.getPayload()), equalTo("source1"));
@@ -115,6 +123,35 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		this.adapter.stop();
 	}
 
+	@Test
+	public void testMaxFetch() {
+		FtpStreamingMessageSource messageSource = buildsource();
+		messageSource.setFilter(new AcceptAllFileListFilter<>());
+		messageSource.afterPropertiesSet();
+		Message<InputStream> received = messageSource.receive();
+		assertNotNull(received);
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" ftpSource1.txt"));
+	}
+
+	@Test
+	public void testMaxFetchNoFilter() {
+		FtpStreamingMessageSource messageSource = buildsource();
+		messageSource.setFilter(null);
+		messageSource.afterPropertiesSet();
+		Message<InputStream> received = messageSource.receive();
+		assertNotNull(received);
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" ftpSource1.txt"));
+	}
+
+	private FtpStreamingMessageSource buildsource() {
+		FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(this.config.template(),
+				Comparator.comparing(FileInfo::getFilename));
+		messageSource.setRemoteDirectory("ftpSource/");
+		messageSource.setMaxFetchSize(1);
+		messageSource.setBeanFactory(this.context);
+		return messageSource;
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class Config {
@@ -133,7 +170,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		}
 
 		@Bean
-		@InboundChannelAdapter(channel = "stream")
+		@InboundChannelAdapter(channel = "stream", autoStartup = "false")
 		public MessageSource<InputStream> ftpMessageSource() {
 			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(),
 					Comparator.comparing(FileInfo::getFilename));
