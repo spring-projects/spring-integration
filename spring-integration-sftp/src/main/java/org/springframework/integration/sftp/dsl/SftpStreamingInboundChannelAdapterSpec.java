@@ -21,7 +21,6 @@ import java.util.Comparator;
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.sftp.filters.SftpPersistentAcceptOnceFileListFilter;
@@ -41,7 +40,7 @@ public class SftpStreamingInboundChannelAdapterSpec
 		SftpStreamingMessageSource> {
 
 	SftpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<LsEntry> remoteFileTemplate,
-			Comparator<AbstractFileInfo<LsEntry>> comparator) {
+			Comparator<LsEntry> comparator) {
 		this.target = new SftpStreamingMessageSource(remoteFileTemplate, comparator);
 	}
 

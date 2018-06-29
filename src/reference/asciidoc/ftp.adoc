@@ -567,6 +567,8 @@ If you set the `fileInfoJson` property on the `FtpStreamingMessageSource` to `fa
 The `FTPFile` object provided by the underlying Apache Net library can be accessed using the `FtpFileInfo.getFileInfo()` method.
 The `fileInfoJson` property is not available when using XML configuration but you can set it by injecting the `FtpStreamingMessageSource` into one of your configuration classes.
 
+Starting with version 5.1, the `comparator` 's generic type is now `FTPFile`; previously it was `AbstractFileInfo<FTPFile>`; this is because the sort is now performed earlier in the processing, before filtering and applying `maxFetch`.
+
 ==== Configuring with Java Configuration
 
 The following Spring Boot application provides an example of configuring the inbound adapter using Java configuration:
@@ -727,6 +729,8 @@ Another use for `max-fetch-size` is if you want to stop fetching remote files, b
 Setting the `maxFetchSize` property on the `MessageSource` (programmatically, via JMX, or via a <<control-bus, control bus>>) effectively stops the adapter from fetching more files, but allows the poller to continue to emit messages for files that have previously been fetched.
 If the poller is active when the property is changed, the change will take effect on the next poll.
 
+Starting with version 5.1, the synchronizer can be provided with a `Comparator<FTPFile>`.
+This is useful when restricting the number of files fetched with `maxFetchSize`.
 
 [[ftp-outbound]]
 === FTP Outbound Channel Adapter

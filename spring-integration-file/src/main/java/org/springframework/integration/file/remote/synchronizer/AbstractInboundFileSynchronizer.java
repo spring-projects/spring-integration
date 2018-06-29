@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -116,6 +117,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 
 	private BeanFactory beanFactory;
 
+	private Comparator<F> comparator;
+
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
 	 *
@@ -126,6 +129,20 @@ public abstract class AbstractInboundFileSynchronizer<F>
 		this.remoteFileTemplate = new RemoteFileTemplate<F>(sessionFactory);
 	}
 
+
+	protected Comparator<F> getComparator() {
+		return this.comparator;
+	}
+
+	/**
+	 * Set a comparator to sort the retrieved list of F prior to applying
+	 * filters and max fetch size.
+	 * @param comparator the comparator.
+	 * @since 5.1
+	 */
+	public void setComparator(Comparator<F> comparator) {
+		this.comparator = comparator;
+	}
 
 	/**
 	 * @param remoteFileSeparator the remote file separator.
@@ -286,7 +303,7 @@ public abstract class AbstractInboundFileSynchronizer<F>
 			int transferred = this.remoteFileTemplate.execute(session -> {
 				F[] files = session.list(this.evaluatedRemoteDirectory);
 				if (!ObjectUtils.isEmpty(files)) {
-					files = FileUtils.purgeUnwantedElements(files, e -> !isFile(e));
+					files = FileUtils.purgeUnwantedElements(files, e -> !isFile(e), this.comparator);
 				}
 				if (!ObjectUtils.isEmpty(files)) {
 					List<F> filteredFiles = filterFiles(files);

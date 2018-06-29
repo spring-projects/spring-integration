@@ -46,7 +46,6 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AcceptAllFileListFilter;
-import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
 import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
@@ -160,7 +159,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 
 	private FtpStreamingMessageSource buildSource() {
 		FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(this.config.template(),
-				Comparator.comparing(FileInfo::getFilename));
+				Comparator.comparing(FTPFile::getName));
 		messageSource.setRemoteDirectory("ftpSource/");
 		messageSource.setMaxFetchSize(1);
 		messageSource.setBeanFactory(this.context);
@@ -193,11 +192,10 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		@InboundChannelAdapter(channel = "stream", autoStartup = "false")
 		public MessageSource<InputStream> ftpMessageSource() {
 			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(),
-					Comparator.comparing(FileInfo::getFilename));
+					Comparator.comparing(FTPFile::getName));
 			messageSource.setFilter(
 					new FtpPersistentAcceptOnceFileListFilter(
 							new SimpleMetadataStore(metadataMap()), "testStreaming"));
-
 			messageSource.setRemoteDirectory("ftpSource/");
 			return messageSource;
 		}

@@ -23,7 +23,6 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.integration.file.dsl.RemoteFileStreamingInboundChannelAdapterSpec;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
@@ -43,7 +42,7 @@ public class FtpStreamingInboundChannelAdapterSpec
 				FtpStreamingMessageSource> {
 
 	FtpStreamingInboundChannelAdapterSpec(RemoteFileTemplate<FTPFile> remoteFileTemplate,
-			Comparator<AbstractFileInfo<FTPFile>> comparator) {
+			Comparator<FTPFile> comparator) {
 		this.target = new FtpStreamingMessageSource(remoteFileTemplate, comparator);
 	}
 

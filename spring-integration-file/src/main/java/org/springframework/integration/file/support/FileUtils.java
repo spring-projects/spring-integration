@@ -19,8 +19,10 @@ package org.springframework.integration.file.support;
 import java.lang.reflect.Array;
 import java.nio.file.FileSystems;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.function.Predicate;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -38,19 +40,29 @@ public final class FileUtils {
 	 * Remove entries from the array if the predicate returns true for an element.
 	 * @param fileArray the array.
 	 * @param predicate the predicate.
+	 * @param comparator an optional comparator to sort the results.
 	 * @param <F> the file type.
 	 * @return the array of remaining elements.
 	 * @since 5.0.7
 	 */
 	@SuppressWarnings("unchecked")
-	public static <F> F[] purgeUnwantedElements(F[] fileArray, Predicate<F> predicate) {
+	public static <F> F[] purgeUnwantedElements(F[] fileArray, Predicate<F> predicate,
+			@Nullable Comparator<F> comparator) {
 		if (ObjectUtils.isEmpty(fileArray)) {
 			return fileArray;
 		}
 		else {
-			return Arrays.stream(fileArray)
-					.filter(predicate.negate())
-					.toArray(size -> (F[]) Array.newInstance(fileArray[0].getClass(), size));
+			if (comparator == null) {
+				return Arrays.stream(fileArray)
+						.filter(predicate.negate())
+						.toArray(size -> (F[]) Array.newInstance(fileArray[0].getClass(), size));
+			}
+			else {
+				return Arrays.stream(fileArray)
+						.filter(predicate.negate())
+						.sorted(comparator)
+						.toArray(size -> (F[]) Array.newInstance(fileArray[0].getClass(), size));
+			}
 		}
 	}
 

@@ -56,8 +56,7 @@ public class FtpStreamingMessageSource extends AbstractRemoteFileStreamingMessag
 	 * @param template the template.
 	 * @param comparator the comparator.
 	 */
-	public FtpStreamingMessageSource(RemoteFileTemplate<FTPFile> template,
-			Comparator<AbstractFileInfo<FTPFile>> comparator) {
+	public FtpStreamingMessageSource(RemoteFileTemplate<FTPFile> template, Comparator<FTPFile> comparator) {
 		super(template, comparator);
 		doSetFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "ftpStreamingMessageSource"));
 	}
