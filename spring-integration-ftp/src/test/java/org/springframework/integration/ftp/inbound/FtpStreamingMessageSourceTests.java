@@ -17,16 +17,19 @@
 package org.springframework.integration.ftp.inbound;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Comparator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.net.ftp.FTPFile;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
@@ -45,10 +49,11 @@ import org.springframework.integration.file.filters.AcceptAllFileListFilter;
 import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.FtpTestSupport;
+import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
 import org.springframework.integration.ftp.session.FtpFileInfo;
 import org.springframework.integration.ftp.session.FtpRemoteFileTemplate;
+import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -81,10 +86,8 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 	@Autowired
 	private ApplicationContext context;
 
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.debug()
-					.categories(true, "org.apache.commons");
+	@Autowired
+	private ConcurrentMap<String, String> metadataMap;
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -116,34 +119,46 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		this.adapter.stop();
 		this.source.setFileInfoJson(false);
 		this.data.purge(null);
+		this.metadataMap.clear();
 		this.adapter.start();
 		received = (Message<byte[]>) this.data.receive(10000);
 		assertNotNull(received);
-		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(FtpFileInfo.class));
 		this.adapter.stop();
+
+		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE_INFO), instanceOf(FtpFileInfo.class));
 	}
 
 	@Test
-	public void testMaxFetch() {
-		FtpStreamingMessageSource messageSource = buildsource();
+	public void testMaxFetch() throws IOException {
+		FtpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(new AcceptAllFileListFilter<>());
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" ftpSource1.txt"));
+
+		Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(received);
+		if (closeableResource != null) {
+			closeableResource.close();
+		}
 	}
 
 	@Test
-	public void testMaxFetchNoFilter() {
-		FtpStreamingMessageSource messageSource = buildsource();
+	public void testMaxFetchNoFilter() throws IOException {
+		FtpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(null);
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE), equalTo(" ftpSource1.txt"));
+
+		Closeable closeableResource = StaticMessageHeaderAccessor.getCloseableResource(received);
+		if (closeableResource != null) {
+			closeableResource.close();
+		}
 	}
 
-	private FtpStreamingMessageSource buildsource() {
+	private FtpStreamingMessageSource buildSource() {
 		FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(this.config.template(),
 				Comparator.comparing(FileInfo::getFilename));
 		messageSource.setRemoteDirectory("ftpSource/");
@@ -170,11 +185,19 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 		}
 
 		@Bean
+		public ConcurrentMap<String, String> metadataMap() {
+			return new ConcurrentHashMap<>();
+		}
+
+		@Bean
 		@InboundChannelAdapter(channel = "stream", autoStartup = "false")
 		public MessageSource<InputStream> ftpMessageSource() {
 			FtpStreamingMessageSource messageSource = new FtpStreamingMessageSource(template(),
 					Comparator.comparing(FileInfo::getFilename));
-			messageSource.setFilter(new AcceptAllFileListFilter<>());
+			messageSource.setFilter(
+					new FtpPersistentAcceptOnceFileListFilter(
+							new SimpleMetadataStore(metadataMap()), "testStreaming"));
+
 			messageSource.setRemoteDirectory("ftpSource/");
 			return messageSource;
 		}
