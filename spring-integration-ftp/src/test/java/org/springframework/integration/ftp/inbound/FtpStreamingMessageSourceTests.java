@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.support.StaticMessageHeaderAccessor;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.QueueChannel;
