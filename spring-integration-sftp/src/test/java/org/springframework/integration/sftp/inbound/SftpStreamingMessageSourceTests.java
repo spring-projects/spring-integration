@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -59,6 +60,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -119,7 +121,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	}
 
 	@Test
-	public void testMaxFetch() {
+	public void testMaxFetch() throws IOException {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(new AcceptAllFileListFilter<>());
 		messageSource.afterPropertiesSet();
@@ -127,10 +129,12 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
 				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
+
+		received.getPayload().close();
 	}
 
 	@Test
-	public void testMaxFetchNoFilter() {
+	public void testMaxFetchNoFilter() throws IOException {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(null);
 		messageSource.afterPropertiesSet();
@@ -138,10 +142,12 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
 				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
+
+		received.getPayload().close();
 	}
 
 	@Test
-	public void testMaxFetchLambdaFilter() {
+	public void testMaxFetchLambdaFilter() throws IOException {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(f -> Arrays.asList(f));
 		messageSource.afterPropertiesSet();
@@ -149,6 +155,8 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		assertNotNull(received);
 		assertThat(received.getHeaders().get(FileHeaders.REMOTE_FILE),
 				anyOf(equalTo(" sftpSource1.txt"), equalTo("sftpSource2.txt")));
+
+		received.getPayload().close();
 	}
 
 	private SftpStreamingMessageSource buildSource() {
