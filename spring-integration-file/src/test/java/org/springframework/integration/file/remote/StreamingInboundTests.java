@@ -192,7 +192,7 @@ public class StreamingInboundTests {
 
 	public static class Streamer extends AbstractRemoteFileStreamingMessageSource<String> {
 
-		protected Streamer(RemoteFileTemplate<String> template, Comparator<AbstractFileInfo<String>> comparator) {
+		protected Streamer(RemoteFileTemplate<String> template, Comparator<String> comparator) {
 			super(template, comparator);
 		}
 

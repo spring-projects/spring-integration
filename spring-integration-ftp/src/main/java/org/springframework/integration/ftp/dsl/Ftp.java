@@ -21,7 +21,6 @@ import java.util.Comparator;
 
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -79,7 +78,7 @@ public final class Ftp {
 	 */
 	public static FtpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
 			RemoteFileTemplate<FTPFile> remoteFileTemplate,
-			Comparator<AbstractFileInfo<FTPFile>> receptionOrderComparator) {
+			Comparator<FTPFile> receptionOrderComparator) {
 		return new FtpStreamingInboundChannelAdapterSpec(remoteFileTemplate, receptionOrderComparator);
 	}
 

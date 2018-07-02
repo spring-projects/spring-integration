@@ -57,7 +57,7 @@ public class SftpStreamingMessageSource extends AbstractRemoteFileStreamingMessa
 	 * @param comparator the comparator.
 	 */
 	public SftpStreamingMessageSource(RemoteFileTemplate<LsEntry> template,
-			Comparator<AbstractFileInfo<LsEntry>> comparator) {
+			Comparator<LsEntry> comparator) {
 		super(template, comparator);
 		doSetFilter(new SftpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "sftpStreamingMessageSource"));
 	}

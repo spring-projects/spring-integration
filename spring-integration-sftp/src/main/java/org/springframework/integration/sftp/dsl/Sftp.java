@@ -19,7 +19,6 @@ package org.springframework.integration.sftp.dsl;
 import java.io.File;
 import java.util.Comparator;
 
-import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.MessageSessionCallback;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.gateway.AbstractRemoteFileOutboundGateway;
@@ -80,7 +79,7 @@ public final class Sftp {
 	 */
 	public static SftpStreamingInboundChannelAdapterSpec inboundStreamingAdapter(
 			RemoteFileTemplate<LsEntry> remoteFileTemplate,
-			Comparator<AbstractFileInfo<LsEntry>> receptionOrderComparator) {
+			Comparator<LsEntry> receptionOrderComparator) {
 		return new SftpStreamingInboundChannelAdapterSpec(remoteFileTemplate, receptionOrderComparator);
 	}
 

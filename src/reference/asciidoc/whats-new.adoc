@@ -85,3 +85,8 @@ A `RotatingServerAdvice` is now available to poll multiple servers and/or direct
 See <<ftp-rotating-server-advice>> and <<sftp-rotating-server-advice>> for more information.
 
 Also inbound adapter `localFilenameExpression` s can contain the variable `#remoteDirectory` which contains the remote directory being polled.
+
+The generic type of the comparators, used to sort the fetched file list for the streaming adapters, has changed from `Comparator<AbstractFileInfo<F>>` to simply `Comparator<F>`.
+See <<ftp-streaming>> and <<sftp-streaming>> for more information.
+
+In addition, the synchronizers for inbound channel adapters can now be provided with a `Comparator`; this is useful when using `maxFetchSize` to limit the files retrieved.

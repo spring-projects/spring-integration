@@ -43,7 +43,6 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AcceptAllFileListFilter;
-import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.sftp.SftpTestSupport;
@@ -161,7 +160,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 
 	private SftpStreamingMessageSource buildSource() {
 		SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(this.config.template(),
-				Comparator.comparing(FileInfo::getFilename));
+				Comparator.comparing(LsEntry::getFilename));
 		messageSource.setRemoteDirectory("sftpSource/");
 		messageSource.setMaxFetchSize(1);
 		messageSource.setBeanFactory(this.context);
@@ -189,7 +188,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 		@InboundChannelAdapter(channel = "stream", autoStartup = "false")
 		public MessageSource<InputStream> sftpMessageSource() {
 			SftpStreamingMessageSource messageSource = new SftpStreamingMessageSource(template(),
-					Comparator.comparing(FileInfo::getFilename));
+					Comparator.comparing(LsEntry::getFilename));
 			messageSource.setFilter(new AcceptAllFileListFilter<>());
 			messageSource.setRemoteDirectory("sftpSource/");
 			return messageSource;

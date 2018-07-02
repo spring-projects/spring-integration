@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -59,7 +58,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	private final BlockingQueue<AbstractFileInfo<F>> toBeReceived = new LinkedBlockingQueue<AbstractFileInfo<F>>();
 
-	private final Comparator<AbstractFileInfo<F>> comparator;
+	private final Comparator<F> comparator;
 
 	private boolean fileInfoJson = true;
 
@@ -76,7 +75,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	private volatile FileListFilter<F> filter;
 
 	protected AbstractRemoteFileStreamingMessageSource(RemoteFileTemplate<F> template,
-			Comparator<AbstractFileInfo<F>> comparator) {
+			Comparator<F> comparator) {
 		this.remoteFileTemplate = template;
 		this.comparator = comparator;
 	}
@@ -194,7 +193,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		String remoteDirectory = this.remoteDirectoryExpression.getValue(getEvaluationContext(), String.class);
 		F[] files = this.remoteFileTemplate.list(remoteDirectory);
 		if (!ObjectUtils.isEmpty(files)) {
-			files = FileUtils.purgeUnwantedElements(files, f -> f == null || isDirectory(f));
+			files = FileUtils.purgeUnwantedElements(files, f -> f == null || isDirectory(f), this.comparator);
 		}
 		if (!ObjectUtils.isEmpty(files)) {
 			int maxFetchSize = getMaxFetchSize();
@@ -209,9 +208,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 			}
 			List<AbstractFileInfo<F>> fileInfoList = asFileInfoList(filteredFiles);
 			fileInfoList.forEach(fi -> fi.setRemoteDirectory(remoteDirectory));
-			if (this.comparator != null) {
-				Collections.sort(fileInfoList, this.comparator);
-			}
 			this.toBeReceived.addAll(fileInfoList);
 		}
 	}
