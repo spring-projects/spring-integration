@@ -60,6 +60,8 @@ import org.springframework.util.ObjectUtils;
  * {@link org.springframework.integration.file.filters.FileListFilter}s to
  * ensure the file entry is acceptable.
  *
+ * @param <F> the Type that represents a remote file.
+ *
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -135,8 +137,8 @@ public abstract class AbstractInboundFileSynchronizer<F>
 	}
 
 	/**
-	 * Set a comparator to sort the retrieved list of F prior to applying
-	 * filters and max fetch size.
+	 * Set a comparator to sort the retrieved list of {@code F} (the Type that represents
+	 * the remote file) prior to applying filters and max fetch size.
 	 * @param comparator the comparator.
 	 * @since 5.1
 	 */
