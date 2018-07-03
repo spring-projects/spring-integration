@@ -3,12 +3,12 @@
 
 This chapter covers Spring Integration's support for transactions. It covers the following topics:
 
-* <<transaction-support>>
+* <<understanding-transaction>>
 * <<transaction-boundaries>>
 * <<transaction-synchronization>>
 * <<pseudo-transactions>>
 
-[[transaction-support]]
+[[understanding-transaction]]
 === Understanding Transactions in Message flows
 
 Spring Integration exposes several hooks to address the transactional needs of your message flows.

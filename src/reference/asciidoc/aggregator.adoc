@@ -148,6 +148,7 @@ This method is invoked after the arrival of each new message, to decide whether 
 
 The following example shows how to use the `@ReleaseStrategy` annotation for a `List` of type `Message`:
 
+====
 [source,java]
 ----
 public class MyReleaseStrategy {
@@ -156,9 +157,11 @@ public class MyReleaseStrategy {
     public boolean canMessagesBeReleased(List<Message<?>>) {...}
 }
 ----
+====
 
 The following example shows how to use the `@ReleaseStrategy` annotation for a `List` of type `String`:
 
+====
 [source,java]
 ----
 public class MyReleaseStrategy {
@@ -167,6 +170,7 @@ public class MyReleaseStrategy {
     public boolean canMessagesBeReleased(List<String>) {...}
 }
 ----
+====
 
 Based on the signatures in the preceding two examples, the POJO-based release strategy is passed a `Collection` of not-yet-released messages (if you need access to the whole `Message`) or a `Collection` of payload objects (if the type parameter is anything other than `Message`).
 This satisfies the majority of use cases.
@@ -234,7 +238,7 @@ The following example shows how to configure an aggregator with the previous imp
 ----
 ====
 
-===== CorrelationStrategy
+===== `CorrelationStrategy`
 
 The `CorrelationStrategy` interface is defined as follows:
 
@@ -266,7 +270,6 @@ Changes to groups are thread safe.
 A `LockRegistry` is used to obtain a lock for the resolved correlation ID.
 A `DefaultLockRegistry` is used by default (in-memory).
 For synchronizing updates across servers, where a shared `MessageGroupStore` is being used, you must configure a shared lock registry.
-See "`<<aggregator>>`" for more information.
 
 [[aggregator-java-dsl]]
 ==== Configuring an Aggregator in Java DSL
@@ -346,7 +349,7 @@ Optional.
 <6> A reference to a `MessageGroupStore` used to store groups of messages under their correlation key until they are complete.
 Optional.
 By default, it is a volatile in-memory store.
-// TODO How would one change it?
+See "`<<message-store>>`" for more information.
 <7> The order of this aggregator when more than one handle is subscribed to the same `DirectChannel` (use for load-balancing purposes).
 Optional.
 <8> Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel' once their containing `MessageGroup` is expired (see https://docs.spring.io/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html#expireMessageGroups-long[`MessageGroupStore.expireMessageGroups(long)`]).
@@ -356,8 +359,7 @@ You can accomplish that through a Control Bus operation or, if you have a refere
 Otherwise, by itself, this attribute does nothing.
 It serves only as an indicator of whether to discard or send to the output or reply channel any messages that are still in the `MessageGroup` that is about to be expired.
 Optional (the default is `false`).
-NOTE: This attribute might more properly be called `send-partial-result-on-timeout`, because the group may not actually expire if
-`expire-groups-upon-timeout` is set to `false`.
+NOTE: This attribute might more properly be called `send-partial-result-on-timeout`, because the group may not actually expire if `expire-groups-upon-timeout` is set to `false`.
 <9> The timeout interval to wait when sending a reply `Message` to the `output-channel` or `discard-channel`.
 Defaults to `-1`, which results in blocking indefinitely.
 It is applied only if the output channel has some 'sending' limitations, such as a `QueueChannel` with a fixed 'capacity'.
@@ -608,7 +610,7 @@ In the preceding example, the root object of the SpEL evaluation context is the 
 ====== Aggregator and Group Timeout
 
 Starting with version 4.0, two new mutually exclusive attributes have been introduced: `group-timeout` and `group-timeout-expression` (see the earlier description).
-// TODO This needs a link, but I don't see a target for it.
+See "`<<aggregator-xml>>`".
 In some cases, you may need to emit the aggregator result (or discard the group) after a timeout if the `ReleaseStrategy` does not release when the current message arrives.
 For this purpose, the `groupTimeout` option lets scheduling the `MessageGroup` be forced to complete, as the following example shows:
 
@@ -632,7 +634,7 @@ If the release strategy still does not release the group, it is expired.
 If `send-partial-result-on-expiry` is `true`, existing messages in the (partial) `MessageGroup` are released as a normal aggregator reply message to the `output-channel`.
 Otherwise, it is discarded.
 
-There is a difference between `groupTimeout` behavior and `MessageGroupStoreReaper` (see "`<<aggregator-config>>`").
+There is a difference between `groupTimeout` behavior and `MessageGroupStoreReaper` (see "`<<aggregator-xml>>`").
 The reaper initiates forced completion for all `MessageGroup` s in the `MessageGroupStore` periodically.
 The `groupTimeout` does it for each `MessageGroup` individually if a new message does not arrive during the `groupTimeout`.
 Also, the reaper can be used to remove empty groups (empty groups are retained in order to discard late messages if `expire-groups-upon-completion` is false).
@@ -642,7 +644,7 @@ Also, the reaper can be used to remove empty groups (empty groups are retained i
 
 The following example shows an aggregator configured with annotations:
 
-===
+====
 [source,java]
 ----
 public class Waiter {
@@ -680,6 +682,7 @@ The aggregator can be either referenced explicitly from XML or, if the `@Message
 Annotation configuration (`@Aggregator` and others) for the Aggregator component covers only simple use cases, where most default options are sufficient.
 If you need more control over those options when using annotation configuration, consider using a `@Bean` definition for the `AggregatingMessageHandler` and mark its `@Bean` method with `@ServiceActivator`, as the following example shows:
 
+====
 [source,java]
 ----
 @ServiceActivator(inputChannel = "aggregatorChannel")
@@ -694,6 +697,7 @@ public MessageHandler aggregator(MessageGroupStore jdbcMessageGroupStore) {
      return aggregator;
 }
 ----
+====
 
 See "`<<aggregator-api>>`" and "`<<annotations_on_beans>>`" for more information.
 

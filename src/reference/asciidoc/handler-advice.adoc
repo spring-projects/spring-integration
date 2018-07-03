@@ -13,7 +13,7 @@ inbound-adapter->poller->http-gateway1->http-gateway2->jdbc-outbound-adapter
 ====
 
 If you configure some retry-logic into an advice chain on the poller and the call to `http-gateway2` failed because of a network glitch, the retry causes both `http-gateway1` and `http-gateway2` to be called a second time.
-Similarly, after a transient failure in the jdbc-outbound-adapter, both HTTP gateways aree called a second time before again calling the `jdbc-outbound-adapter`.
+Similarly, after a transient failure in the jdbc-outbound-adapter, both HTTP gateways are called a second time before again calling the `jdbc-outbound-adapter`.
 
 Spring Integration 2.2 adds the ability to add behavior to individual endpoints.
 This is achieved by the addition of the `<request-handler-advice-chain/>` element to many endpoints.
@@ -534,7 +534,7 @@ While the abstract class mentioned above is a convenience, you can add any `Advi
 [[handle-message-advice]]
 ==== Handling Message Advice
 
-As discussed in <<mhac-intro, the introduction to this section>>, advice objects in a request handler advice chain are applied to just the current endpoint, not the downstream flow (if any).
+As discussed in <<message-handler-advice-chain, the introduction to this section>>, advice objects in a request handler advice chain are applied to just the current endpoint, not the downstream flow (if any).
 For `MessageHandler` objects that produce a reply (such as those that extend `AbstractReplyProducingMessageHandler`), the advice is applied to an internal method: `handleRequestMessage()` (called from `MessageHandler.handleMessage()`).
 For other message handlers, the advice is applied to `MessageHandler.handleMessage()`.
 

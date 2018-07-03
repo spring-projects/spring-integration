@@ -1,6 +1,5 @@
 [[preface]]
 = Preface
-[preface]
 
 This chapter includes:
 

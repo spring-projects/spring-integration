@@ -1341,6 +1341,7 @@ The `org.springframework.amqp.support.AmqpHeaders` class identifies the default 
 * `amqp_consumerTag`
 * `amqp_consumerQueue`
 
+[[header-copy-caution]]
 CAUTION: As mentioned earlier in this section, using a header mapping pattern of`*` is a common way to copy all headers.
 However, this can have some unexpected side effects, because certain RabbitMQ proprietary properties/headers are also
 copied.

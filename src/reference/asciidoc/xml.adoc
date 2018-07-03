@@ -107,7 +107,7 @@ You can define namespaces by using one of the following choices:
 All three options are mutually exclusive.
 Only one option can be set.
 
-The following example shows several different ways to use XPath expressions, including the options for setting the XML namespaces <<mentioned earlier,xpath-namespace-support>>:
+The following example shows several different ways to use XPath expressions, including the options for setting the XML namespaces <<xpath-namespace-support,mentioned earlier>>:
 
 ====
 [source,xml]
