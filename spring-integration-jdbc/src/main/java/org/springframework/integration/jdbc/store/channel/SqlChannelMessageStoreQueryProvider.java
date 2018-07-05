@@ -14,7 +14,7 @@
  * limitations under the License.
  */
  
- package org.springframework.integration.jdbc.store.channel;
+package org.springframework.integration.jdbc.store.channel;
 
 import org.springframework.integration.jdbc.store.channel.AbstractChannelMessageStoreQueryProvider;
 
