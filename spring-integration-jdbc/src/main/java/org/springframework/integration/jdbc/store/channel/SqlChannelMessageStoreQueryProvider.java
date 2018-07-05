@@ -50,7 +50,7 @@ public class SqlChannelMessageStoreQueryProvider extends AbstractChannelMessageS
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
 				"order by MESSAGE_PRIORITY DESC, CREATED_DATE, MESSAGE_SEQUENCE";
 	}
-	
+
 	@Override
 	public String getCreateMessageQuery() {
 		return "INSERT into %PREFIX%CHANNEL_MESSAGE(MESSAGE_ID, GROUP_KEY, REGION, CREATED_DATE, MESSAGE_PRIORITY, MESSAGE_SEQUENCE, MESSAGE_BYTES)"
