@@ -299,21 +299,6 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 	}
 
 	@Override
-	public boolean isSingleUse() {
-		return this.connectionFactory.isSingleUse();
-	}
-
-	@Override
-	public void setSingleUse(boolean singleUse) {
-		this.connectionFactory.setSingleUse(singleUse);
-	}
-
-	@Override
-	public void setLeaveOpen(boolean leaveOpen) {
-		this.connectionFactory.setLeaveOpen(leaveOpen);
-	}
-
-	@Override
 	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
 		this.connectionFactory.setInterceptorFactoryChain(interceptorFactoryChain);
 	}
@@ -370,7 +355,7 @@ public class ThreadAffinityClientConnectionFactory extends AbstractClientConnect
 
 	@Override
 	public boolean closeConnection(String connectionId) {
-		return this.connectionFactory.closeConnection(connectionId);
+		return false;
 	}
 
 	@Override
