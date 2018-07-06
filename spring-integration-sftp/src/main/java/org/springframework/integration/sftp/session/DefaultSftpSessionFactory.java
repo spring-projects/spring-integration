@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.session.SharedSessionCapable;
 import org.springframework.util.Assert;
-import org.springframework.util.StreamUtils;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -404,7 +404,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 
 		// private key
 		if (this.privateKey != null) {
-			byte[] keyByteArray = StreamUtils.copyToByteArray(this.privateKey.getInputStream());
+			byte[] keyByteArray = FileCopyUtils.copyToByteArray(this.privateKey.getInputStream());
 			String passphrase = this.userInfoWrapper.getPassphrase();
 			if (StringUtils.hasText(passphrase)) {
 				this.jsch.addIdentity(this.user, keyByteArray, null, passphrase.getBytes());
