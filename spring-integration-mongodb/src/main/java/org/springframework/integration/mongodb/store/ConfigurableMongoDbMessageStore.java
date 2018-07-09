@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Amol Nayak
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 3.0
  */
 public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDbMessageStore
@@ -58,7 +59,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	public final static String DEFAULT_COLLECTION_NAME = "configurableStoreMessages";
 
-	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
+	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<>();
 
 	private volatile boolean timeoutOnIdle;
 
@@ -133,7 +134,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	public long getMessageCount() {
 		Query query = Query.query(Criteria.where(MessageDocumentFields.MESSAGE_ID).exists(true)
 				.and(MessageDocumentFields.GROUP_ID).exists(false));
-		return this.mongoTemplate.getCollection(this.collectionName).count(query.getQueryObject());
+		return this.mongoTemplate.getCollection(this.collectionName).countDocuments(query.getQueryObject());
 	}
 
 

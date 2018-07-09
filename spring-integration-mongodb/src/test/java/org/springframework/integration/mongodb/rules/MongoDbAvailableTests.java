@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import com.mongodb.client.MongoCollection;
  *
  * @author Oleg Zhurakousky
  * @author Xavier Padró
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public abstract class MongoDbAvailableTests {
@@ -48,7 +50,7 @@ public abstract class MongoDbAvailableTests {
 	public MongoDbAvailableRule redisAvailableRule = new MongoDbAvailableRule();
 
 
-	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) throws Exception {
+	protected MongoDbFactory prepareMongoFactory(String... additionalCollectionsToDrop) {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(), "test");
 		cleanupCollections(mongoDbFactory, additionalCollectionsToDrop);
 		return mongoDbFactory;
@@ -151,6 +153,7 @@ public abstract class MongoDbAvailableTests {
 		public TestMongoConverter(
 				MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
+
 			super(new DefaultDbRefResolver(mongoDbFactory), mappingContext);
 		}
 
@@ -170,7 +173,7 @@ public abstract class MongoDbAvailableTests {
 
 		@Override
 		public Long doInCollection(MongoCollection<Document> collection) throws MongoException, DataAccessException {
-			return collection.count();
+			return collection.countDocuments();
 		}
 
 	}

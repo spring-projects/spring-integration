@@ -23,8 +23,6 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.Credentials.basicAuthenticationCredentials;
-import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
 import java.security.Principal;
 import java.util.Collections;
@@ -139,7 +137,6 @@ public class WebFluxDslTests {
 				WebTestClient.bindToApplicationContext(this.wac)
 						.apply(SecurityMockServerConfigurers.springSecurity())
 						.configureClient()
-						.filter(basicAuthentication())
 						.build();
 	}
 
@@ -217,7 +214,7 @@ public class WebFluxDslTests {
 	@SuppressWarnings("unchecked")
 	public void testHttpReactivePost() {
 		this.webTestClient.post().uri("/reactivePost")
-				.attributes(basicAuthenticationCredentials("guest", "guest"))
+				.headers(headers -> headers.setBasicAuth("guest", "guest"))
 				.body(Mono.just("foo\nbar\nbaz"), String.class)
 				.exchange()
 				.expectStatus().isAccepted();
@@ -239,7 +236,7 @@ public class WebFluxDslTests {
 	public void testSse() {
 		Flux<String> responseBody =
 				this.webTestClient.get().uri("/sse")
-						.attributes(basicAuthenticationCredentials("guest", "guest"))
+						.headers(headers -> headers.setBasicAuth("guest", "guest"))
 						.exchange()
 						.returnResult(String.class)
 						.getResponseBody();
@@ -263,7 +260,7 @@ public class WebFluxDslTests {
 				this.integrationFlowContext.registration(flow).register();
 
 		this.webTestClient.get().uri("/dynamic?name=BAR")
-				.attributes(basicAuthenticationCredentials("guest", "guest"))
+				.headers(headers -> headers.setBasicAuth("guest", "guest"))
 				.exchange()
 				.expectBody(String.class)
 				.isEqualTo("bar");
@@ -271,7 +268,7 @@ public class WebFluxDslTests {
 		flowRegistration.destroy();
 
 		this.webTestClient.get().uri("/dynamic?name=BAZ")
-				.attributes(basicAuthenticationCredentials("guest", "guest"))
+				.headers(headers -> headers.setBasicAuth("guest", "guest"))
 				.exchange()
 				.expectStatus()
 				.isNotFound();
