@@ -28,8 +28,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -91,7 +91,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.StreamUtils;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Artem Bilan
@@ -242,7 +242,7 @@ public class FileTests {
 		File resultFile = (File) receive.getPayload();
 		assertThat(resultFile.getAbsolutePath(),
 				endsWith(TestUtils.applySystemFileSeparator("fileWritingFlow/foo.write")));
-		String fileContent = StreamUtils.copyToString(new FileInputStream(resultFile), Charset.defaultCharset());
+		String fileContent = FileCopyUtils.copyToString(new FileReader(resultFile));
 		assertEquals(payload, fileContent);
 		if (FileUtils.IS_POSIX) {
 			assertThat(java.nio.file.Files.getPosixFilePermissions(resultFile.toPath()).size(), equalTo(9));
