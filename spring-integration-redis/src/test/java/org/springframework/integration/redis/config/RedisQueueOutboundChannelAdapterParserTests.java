@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Rainer Frey
+ *
  * @since 3.0
  */
 @ContextConfiguration
@@ -88,15 +89,17 @@ public class RedisQueueOutboundChannelAdapterParserTests {
 
 		assertSame(((Advised) handler).getTargetSource().getTarget(), this.defaultAdapter);
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"),
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 		assertTrue(TestUtils.getPropertyValue(this.defaultAdapter, "leftPush", Boolean.class));
 	}
 
 	@Test
 	public void testInt3017CustomConfig() {
-		assertSame(this.customRedisConnectionFactory, TestUtils.getPropertyValue(this.customAdapter, "template.connectionFactory"));
-		assertEquals("headers['redis_queue']", TestUtils.getPropertyValue(this.customAdapter, "queueNameExpression", Expression.class).getExpressionString());
+		assertSame(this.customRedisConnectionFactory,
+				TestUtils.getPropertyValue(this.customAdapter, "template.connectionFactory"));
+		assertEquals("headers['redis_queue']",
+				TestUtils.getPropertyValue(this.customAdapter, "queueNameExpression.expression"));
 		assertFalse(TestUtils.getPropertyValue(this.customAdapter, "extractPayload", Boolean.class));
 		assertTrue(TestUtils.getPropertyValue(this.customAdapter, "serializerExplicitlySet", Boolean.class));
 		assertSame(this.serializer, TestUtils.getPropertyValue(this.customAdapter, "serializer"));

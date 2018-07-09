@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,7 +48,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.StreamUtils;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -195,7 +195,7 @@ public class SimpleWebServiceOutboundGatewayTests {
 
 		assertNotNull(myAttachment);
 		assertEquals("text/plain", myAttachment.getContentType());
-		assertEquals("my_data", StreamUtils.copyToString(myAttachment.getInputStream(), Charset.forName("UTF-8")));
+		assertEquals("my_data", FileCopyUtils.copyToString(new InputStreamReader(myAttachment.getInputStream())));
 	}
 
 	@Test
