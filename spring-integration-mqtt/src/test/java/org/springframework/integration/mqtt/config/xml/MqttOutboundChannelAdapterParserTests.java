@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  */
 @ContextConfiguration
@@ -81,7 +82,7 @@ public class MqttOutboundChannelAdapterParserTests {
 
 		assertSame(((Advised) handler).getTargetSource().getTarget(), this.withConverterHandler);
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"),
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 

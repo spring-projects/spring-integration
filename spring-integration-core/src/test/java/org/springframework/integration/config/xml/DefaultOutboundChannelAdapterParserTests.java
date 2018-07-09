@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class DefaultOutboundChannelAdapterParserTests {
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
 		assertTrue(AopUtils.isAopProxy(handler));
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"),
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 
 		handler.handleMessage(new GenericMessage<>("foo"));

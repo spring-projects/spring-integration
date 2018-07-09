@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Base64Utils;
-import org.springframework.util.StreamUtils;
+import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
@@ -53,6 +53,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * @author Gary Russell
  * @author David Liu
  * @author Artem Bilan
+ *
  * @since 4.1
  *
  */
@@ -115,7 +116,7 @@ public class SftpServerTests {
 			f.setUser("user");
 			f.setAllowUnknownKeys(true);
 			InputStream stream = new ClassPathResource(privKey).getInputStream();
-			f.setPrivateKey(new ByteArrayResource(StreamUtils.copyToByteArray(stream)));
+			f.setPrivateKey(new ByteArrayResource(FileCopyUtils.copyToByteArray(stream)));
 			f.setPrivateKeyPassphrase(passphrase);
 			Session<LsEntry> session = f.getSession();
 			doTest(server, session);
@@ -127,7 +128,7 @@ public class SftpServerTests {
 
 	private PublicKey decodePublicKey(String key) throws Exception {
 		InputStream stream = new ClassPathResource(key).getInputStream();
-		byte[] keyBytes = StreamUtils.copyToByteArray(stream);
+		byte[] keyBytes = FileCopyUtils.copyToByteArray(stream);
 		// strip any newline chars
 		while (keyBytes[keyBytes.length - 1] == 0x0a || keyBytes[keyBytes.length - 1] == 0x0d) {
 			keyBytes = Arrays.copyOf(keyBytes, keyBytes.length - 1);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class RedisStoreOutboundChannelAdapterParserTests {
 
 		assertSame(((Advised) handler).getTargetSource().getTarget(), withStringTemplate);
 
-		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors.first.item.advice"),
+		assertThat(TestUtils.getPropertyValue(handler, "h.advised.advisors[0].advice"),
 				Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
