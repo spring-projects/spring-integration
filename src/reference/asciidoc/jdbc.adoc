@@ -298,6 +298,7 @@ The reply message is then generated from the result, like the inbound adapter, a
     reply-channel="output"
     data-source="dataSource"/>
 ----
+====
 
 [IMPORTANT]
 ====
@@ -306,7 +307,7 @@ This can be adjusted with the `max-rows-per-poll` option.
 Consider to specify `max-rows-per-poll="0"` if you need to return all the rows from the SELECT.
 ====
 
-As with the channel adapters, there is also the option to provide `SqlParameterSourceFactory` instances for request and reply.
+As with the channel adapters, you can also provide `SqlParameterSourceFactory` instances for request and reply.
 The default is the same as for the outbound adapter, so the request message is available as the root of an expression.
 If `keys-generated="true"` then the root of the expression is the generated keys (a map if there is only one or a list of maps if multi-valued).
 
@@ -1095,4 +1096,8 @@ All of these operations are _atomic_ via transaction guarantees.
 Transaction management is required to use `JdbcMetadataStore`.
 Inbound Channel Adapters can be supplied with a reference to the `TransactionManager` in the poller configuration.
 Unlike non-transactional `MetadataStore` implementations, with `JdbcMetadataStore`, the entry appears in the target table only after the transaction commits.
-When a rollback occurs, no entries is added to the `INT_METADATA_STORE` table.
+When a rollback occurs, no entries are added to the `INT_METADATA_STORE` table.
+
+Since version 5.0.7, the `JdbcMetadataStore` can be configured with the RDBMS vendor-specific `lockHint` option for lock-based queries on metadata store entries.
+It is `FOR UPDATE` by default and can be configured with an empty string, if the target data base doesn't support row locking functionality.
+Please, consult with your vendor for particular possible hint in the `SELECT` expression for locking rows before updates.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 	@Test
 	@RedisAvailable
 	public void testFileSystemWithRedisMetadataStore() throws Exception {
-		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
+		RedisTemplate<String, ?> template = new RedisTemplate<>();
 		template.setConnectionFactory(this.getConnectionFactoryForTest());
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
@@ -87,6 +87,7 @@ public class PersistentAcceptOnceFileListFilterExternalStoreTests extends RedisA
 				.build();
 
 		JdbcMetadataStore metadataStore = new JdbcMetadataStore(dataSource);
+		metadataStore.setLockHint("");
 		metadataStore.afterPropertiesSet();
 
 		try {
