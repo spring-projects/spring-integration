@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,32 +49,24 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	private final JdbcOperations jdbcTemplate;
 
-	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
+	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private volatile String region = "DEFAULT";
+	private String region = "DEFAULT";
 
-	private String getValueQuery = "SELECT METADATA_VALUE FROM %SMETADATA_STORE WHERE METADATA_KEY=? AND REGION=?";
+	private String lockHint = "FOR UPDATE";
 
-	private String getValueForUpdateQuery = "SELECT METADATA_VALUE FROM %SMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? FOR UPDATE";
+	private String getValueQuery = "SELECT METADATA_VALUE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=?";
 
-	private String replaceValueQuery = "UPDATE %SMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND METADATA_VALUE=? AND REGION=?";
+	private String getValueForUpdateQuery = "SELECT METADATA_VALUE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? %s";
 
-	private String replaceValueByKeyQuery = "UPDATE %SMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND REGION=?";
+	private String replaceValueQuery = "UPDATE %sMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND METADATA_VALUE=? AND REGION=?";
 
-	private String removeValueQuery = "DELETE FROM %SMETADATA_STORE WHERE METADATA_KEY=? AND REGION=?";
+	private String replaceValueByKeyQuery = "UPDATE %sMETADATA_STORE SET METADATA_VALUE=? WHERE METADATA_KEY=? AND REGION=?";
 
-	private String putIfAbsentValueQuery = "INSERT INTO %SMETADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION) "
-			+ "SELECT ?, ?, ? FROM %SMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? HAVING COUNT(*)=0";
+	private String removeValueQuery = "DELETE FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=?";
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		this.getValueQuery = String.format(this.getValueQuery, this.tablePrefix);
-		this.getValueForUpdateQuery = String.format(this.getValueForUpdateQuery, this.tablePrefix);
-		this.replaceValueQuery = String.format(this.replaceValueQuery, this.tablePrefix);
-		this.replaceValueByKeyQuery = String.format(this.replaceValueByKeyQuery, this.tablePrefix);
-		this.removeValueQuery = String.format(this.removeValueQuery, this.tablePrefix);
-		this.putIfAbsentValueQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix, this.tablePrefix);
-	}
+	private String putIfAbsentValueQuery = "INSERT INTO %sMETADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION) "
+			+ "SELECT ?, ?, ? FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? HAVING COUNT(*)=0";
 
 	/**
 	 * Instantiate a {@link JdbcMetadataStore} using provided dataSource {@link DataSource}.
@@ -89,7 +81,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	 * @param jdbcOperations a {@link JdbcOperations}
 	 */
 	public JdbcMetadataStore(JdbcOperations jdbcOperations) {
-		Assert.notNull(jdbcOperations, "'jdbcOperations' must not be null");
+		Assert.notNull(jdbcOperations, "'jdbcOperations' must not be null.");
 		this.jdbcTemplate = jdbcOperations;
 	}
 
@@ -100,7 +92,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	 * @param tablePrefix the tablePrefix to set
 	 */
 	public void setTablePrefix(String tablePrefix) {
-		Assert.notNull(tablePrefix, "'tablePrefix' must not be null");
+		Assert.notNull(tablePrefix, "'tablePrefix' must not be null.");
 		this.tablePrefix = tablePrefix;
 	}
 
@@ -112,8 +104,31 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	 * @param region the region name to set
 	 */
 	public void setRegion(String region) {
-		Assert.hasText(region, "Region must not be null or empty.");
+		Assert.hasText(region, "'region' must not be null or empty.");
 		this.region = region;
+	}
+
+	/**
+	 * Specify a row lock hint for the query in the lock-based operations.
+	 * Defaults to {@code FOR UPDATE}. Can be specified as an empty string,
+	 * if the target RDBMS doesn't support locking on tables from queries.
+	 * The value depends from RDBMS vendor, e.g. SQL Server requires {@code WITH (ROWLOCK)}.
+	 * @param lockHint the RDBMS vendor-specific lock hint.
+	 * @since 5.0.7
+	 */
+	public void setLockHint(String lockHint) {
+		Assert.notNull(lockHint, "'lockHint' cannot be null.");
+		this.lockHint = lockHint;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		this.getValueQuery = String.format(this.getValueQuery, this.tablePrefix);
+		this.getValueForUpdateQuery = String.format(this.getValueForUpdateQuery, this.tablePrefix, this.lockHint);
+		this.replaceValueQuery = String.format(this.replaceValueQuery, this.tablePrefix);
+		this.replaceValueByKeyQuery = String.format(this.replaceValueByKeyQuery, this.tablePrefix);
+		this.removeValueQuery = String.format(this.removeValueQuery, this.tablePrefix);
+		this.putIfAbsentValueQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix, this.tablePrefix);
 	}
 
 	@Override
