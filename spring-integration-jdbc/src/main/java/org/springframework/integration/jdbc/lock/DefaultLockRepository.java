@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,17 +69,17 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 
 	private String region = "DEFAULT";
 
-	private String deleteQuery = "DELETE FROM %SLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?";
+	private String deleteQuery = "DELETE FROM %sLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?";
 
-	private String deleteExpiredQuery = "DELETE FROM %SLOCK WHERE REGION=? AND LOCK_KEY=? AND CREATED_DATE<?";
+	private String deleteExpiredQuery = "DELETE FROM %sLOCK WHERE REGION=? AND LOCK_KEY=? AND CREATED_DATE<?";
 
-	private String deleteAllQuery = "DELETE FROM %SLOCK WHERE REGION=? AND CLIENT_ID=?";
+	private String deleteAllQuery = "DELETE FROM %sLOCK WHERE REGION=? AND CLIENT_ID=?";
 
-	private String updateQuery = "UPDATE %SLOCK SET CREATED_DATE=? WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?";
+	private String updateQuery = "UPDATE %sLOCK SET CREATED_DATE=? WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=?";
 
-	private String insertQuery = "INSERT INTO %SLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE) VALUES (?, ?, ?, ?)";
+	private String insertQuery = "INSERT INTO %sLOCK (REGION, LOCK_KEY, CLIENT_ID, CREATED_DATE) VALUES (?, ?, ?, ?)";
 
-	private String countQuery = "SELECT COUNT(REGION) FROM %SLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=? AND CREATED_DATE>=?";
+	private String countQuery = "SELECT COUNT(REGION) FROM %sLOCK WHERE REGION=? AND LOCK_KEY=? AND CLIENT_ID=? AND CREATED_DATE>=?";
 
 	/**
 	 * Constructor that initializes the client id that will be associated for
@@ -173,8 +173,8 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 				new Date(System.currentTimeMillis() - this.ttl)) == 1;
 	}
 
-	private int deleteExpired(String lock) {
-		return this.template.update(this.deleteExpiredQuery, this.region, lock,
+	private void deleteExpired(String lock) {
+		this.template.update(this.deleteExpiredQuery, this.region, lock,
 				new Date(System.currentTimeMillis() - this.ttl));
 	}
 
