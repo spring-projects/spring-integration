@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -63,10 +64,23 @@ public class MessageDocument {
 	private int sequence;
 
 	public MessageDocument(Message<?> message) {
+		this(message, message.getHeaders().getId());
+	}
+
+	/**
+	 * The special persistence constructor to populate a {@code final}
+	 * properties from the source MongoDB document.
+	 * @param message the {@link Message} this document is assigned.
+	 * @param messageId the id of the {@link Message} as a separate persistent property.
+	 * @since 5.1
+	 */
+	@PersistenceConstructor
+	MessageDocument(Message<?> message, UUID messageId) {
 		Assert.notNull(message, "'message' must not be null");
 		this.message = message;
-		this.messageId = message.getHeaders().getId();
+		this.messageId = messageId;
 	}
+
 
 	public Message<?> getMessage() {
 		return this.message;
