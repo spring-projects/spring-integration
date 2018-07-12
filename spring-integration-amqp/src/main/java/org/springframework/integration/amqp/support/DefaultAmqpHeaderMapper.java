@@ -126,7 +126,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 				headers.put(AmqpHeaders.CONTENT_TYPE, contentType);
 			}
 			String correlationId = amqpMessageProperties.getCorrelationId();
-			if (StringUtils.hasText(contentType)) {
+			if (StringUtils.hasText(correlationId)) {
 				headers.put(AmqpHeaders.CORRELATION_ID, correlationId);
 			}
 			MessageDeliveryMode receivedDeliveryMode = amqpMessageProperties.getReceivedDeliveryMode();
