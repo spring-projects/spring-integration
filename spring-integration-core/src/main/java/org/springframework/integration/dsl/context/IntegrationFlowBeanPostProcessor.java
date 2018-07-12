@@ -23,18 +23,30 @@ import java.util.Map;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.Aware;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.EmbeddedValueResolverAware;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.context.MessageSourceAware;
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.integration.channel.AbstractMessageChannel;
@@ -60,6 +72,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.StringValueResolver;
 
 /**
  * A {@link BeanPostProcessor} to parse {@link IntegrationFlow} beans and
@@ -72,20 +85,26 @@ import org.springframework.util.StringUtils;
  * @since 5.0
  */
 public class IntegrationFlowBeanPostProcessor
-		implements BeanPostProcessor, BeanFactoryAware, SmartInitializingSingleton {
+		implements BeanPostProcessor, ApplicationContextAware, SmartInitializingSingleton {
+
+	private ConfigurableApplicationContext applicationContext;
+
+	private StringValueResolver embeddedValueResolver;
 
 	private ConfigurableListableBeanFactory beanFactory;
 
 	private IntegrationFlowContext flowContext;
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.isInstanceOf(ConfigurableListableBeanFactory.class, beanFactory,
-				"To use Spring Integration Java DSL the 'beanFactory' has to be an instance of " +
-						"'ConfigurableListableBeanFactory'. Consider using 'GenericApplicationContext' implementation."
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		Assert.isInstanceOf(ConfigurableApplicationContext.class, applicationContext,
+				"To use Spring Integration Java DSL the 'applicationContext' has to be an instance of " +
+						"'ConfigurableApplicationContext'. Consider using 'GenericApplicationContext' implementation."
 		);
 
-		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		this.applicationContext = (ConfigurableApplicationContext) applicationContext;
+		this.beanFactory = this.applicationContext.getBeanFactory();
+		this.embeddedValueResolver = new EmbeddedValueResolver(this.beanFactory);
 		this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
 		Assert.notNull(this.flowContext, "There must be an IntegrationFlowContext in the application context");
 	}
@@ -99,7 +118,7 @@ public class IntegrationFlowBeanPostProcessor
 			return processIntegrationFlowImpl((IntegrationFlow) bean, beanName);
 		}
 		if (bean instanceof IntegrationComponentSpec) {
-			processIntegrationComponentSpec((IntegrationComponentSpec<?, ?>) bean);
+			processIntegrationComponentSpec(beanName, (IntegrationComponentSpec<?, ?>) bean);
 		}
 		return bean;
 	}
@@ -316,7 +335,11 @@ public class IntegrationFlowBeanPostProcessor
 		}
 	}
 
-	private void processIntegrationComponentSpec(IntegrationComponentSpec<?, ?> bean) {
+	private void processIntegrationComponentSpec(String beanName, IntegrationComponentSpec<?, ?> bean) {
+		Object target = bean.get();
+
+		invokeBeanInitializationHooks(beanName, target);
+
 		if (bean instanceof ComponentsRegistration) {
 			Map<Object, String> componentsToRegister = ((ComponentsRegistration) bean).getComponentsToRegister();
 			if (!CollectionUtils.isEmpty(componentsToRegister)) {
@@ -331,6 +354,38 @@ public class IntegrationFlowBeanPostProcessor
 								registerComponent(component.getKey(),
 										generateBeanName(component.getKey(), component.getValue())));
 
+			}
+		}
+	}
+
+	private void invokeBeanInitializationHooks(final String beanName, final Object bean) {
+		if (bean instanceof Aware) {
+			if (bean instanceof BeanNameAware) {
+				((BeanNameAware) bean).setBeanName(beanName);
+			}
+			if (bean instanceof BeanClassLoaderAware) {
+				((BeanClassLoaderAware) bean).setBeanClassLoader(this.beanFactory.getBeanClassLoader());
+			}
+			if (bean instanceof BeanFactoryAware) {
+				((BeanFactoryAware) bean).setBeanFactory(this.beanFactory);
+			}
+			if (bean instanceof EnvironmentAware) {
+				((EnvironmentAware) bean).setEnvironment(this.applicationContext.getEnvironment());
+			}
+			if (bean instanceof EmbeddedValueResolverAware) {
+				((EmbeddedValueResolverAware) bean).setEmbeddedValueResolver(this.embeddedValueResolver);
+			}
+			if (bean instanceof ResourceLoaderAware) {
+				((ResourceLoaderAware) bean).setResourceLoader(this.applicationContext);
+			}
+			if (bean instanceof ApplicationEventPublisherAware) {
+				((ApplicationEventPublisherAware) bean).setApplicationEventPublisher(this.applicationContext);
+			}
+			if (bean instanceof MessageSourceAware) {
+				((MessageSourceAware) bean).setMessageSource(this.applicationContext);
+			}
+			if (bean instanceof ApplicationContextAware) {
+				((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
 			}
 		}
 	}
