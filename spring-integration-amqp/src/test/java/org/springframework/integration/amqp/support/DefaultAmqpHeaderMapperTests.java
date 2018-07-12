@@ -224,7 +224,6 @@ public class DefaultAmqpHeaderMapperTests {
         amqpProperties.setCorrelationId(testCorrelationId);
         Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
         assertEquals(testCorrelationId, headerMap.get(AmqpHeaders.CORRELATION_ID));
-       
     }
 
 	
