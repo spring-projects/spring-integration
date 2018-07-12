@@ -214,6 +214,22 @@ public class DefaultAmqpHeaderMapperTests {
 	}
 
 	@Test
+    public void toHeadersNonContentype() {
+        DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+        MessageProperties amqpProperties = new MessageProperties();
+        amqpProperties.setAppId("test.appId");
+        amqpProperties.setClusterId("test.clusterId");
+        amqpProperties.setContentType(null);
+        String testCorrelationId = "foo";
+        amqpProperties.setCorrelationId(testCorrelationId);
+        Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
+        assertEquals(testCorrelationId, headerMap.get(AmqpHeaders.CORRELATION_ID));
+       
+    }
+
+	
+	
+	@Test
 	public void testToHeadersConsumerMetadata() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
 		MessageProperties amqpProperties = new MessageProperties();
