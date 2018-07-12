@@ -227,7 +227,6 @@ public class DefaultAmqpHeaderMapperTests {
     }
 
 	
-	
 	@Test
 	public void testToHeadersConsumerMetadata() {
 		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
