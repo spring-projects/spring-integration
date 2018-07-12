@@ -46,6 +46,8 @@ import org.springframework.util.MimeTypeUtils;
  * @author Oleg Zhurakousky
  * @author Stephane Nicoll
  * @author Artem Bilan
+ * @author Steve Singer
+ *
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapperTests {
@@ -200,6 +202,20 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals("test.correlation", headerMap.get(AmqpHeaders.SPRING_REPLY_CORRELATION));
 		assertEquals("test.replyTo2", headerMap.get(AmqpHeaders.SPRING_REPLY_TO_STACK));
 	}
+
+	@Test
+	public void toHeadersNonContenType() {
+		DefaultAmqpHeaderMapper headerMapper = DefaultAmqpHeaderMapper.inboundMapper();
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setAppId("test.appId");
+		amqpProperties.setClusterId("test.clusterId");
+		amqpProperties.setContentType(null);
+		String testCorrelationId = "foo";
+		amqpProperties.setCorrelationId(testCorrelationId);
+		Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
+		assertEquals(testCorrelationId, headerMap.get(AmqpHeaders.CORRELATION_ID));
+	}
+
 
 	@Test
 	public void testToHeadersConsumerMetadata() {

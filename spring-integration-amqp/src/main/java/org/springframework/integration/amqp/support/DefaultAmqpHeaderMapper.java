@@ -50,11 +50,13 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Stephane Nicoll
+ * @author Steve Singer
+ *
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
 
-	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
+	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<>();
 
 	static {
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.APP_ID);
@@ -123,7 +125,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 				headers.put(AmqpHeaders.CONTENT_TYPE, contentType);
 			}
 			String correlationId = amqpMessageProperties.getCorrelationId();
-			if (StringUtils.hasText(contentType)) {
+			if (StringUtils.hasText(correlationId)) {
 				headers.put(AmqpHeaders.CORRELATION_ID, correlationId);
 			}
 			MessageDeliveryMode receivedDeliveryMode = amqpMessageProperties.getReceivedDeliveryMode();
