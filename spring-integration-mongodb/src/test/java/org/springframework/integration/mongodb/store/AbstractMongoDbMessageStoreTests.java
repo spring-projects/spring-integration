@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.UUID;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
+import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -275,10 +276,12 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	public static class Foo implements Serializable {
+
 		/**
 		 *
 		 */
 		private static final long serialVersionUID = 1L;
+
 		private String name;
 
 		public String getName() {
@@ -291,10 +294,12 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	public static class Bar implements Serializable {
+
 		/**
 		 *
 		 */
 		private static final long serialVersionUID = 1L;
+
 		private final String name;
 
 		public Bar(String name) {
@@ -307,26 +312,41 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	public static class Baz implements Serializable {
-		/**
-		 *
-		 */
+
 		private static final long serialVersionUID = 1L;
-		private final String name = "baz";
+
+		private final String name;
+
+		Baz() {
+			this("baz");
+		}
+
+		@PersistenceConstructor
+		Baz(String name) {
+			this.name = name;
+		}
 
 		public String getName() {
 			return name;
 		}
+
 	}
 
 	public static class Abc implements Serializable {
-		/**
-		 *
-		 */
+
 		private static final long serialVersionUID = 1L;
 
-		private final String name = "abx";
+		private final String name;
 
-		Abc() { }
+		Abc() {
+			this("abx");
+		}
+
+		@PersistenceConstructor
+		Abc(String name) {
+			this.name = name;
+		}
+
 
 		public String getName() {
 			return name;
@@ -335,15 +355,20 @@ public abstract class AbstractMongoDbMessageStoreTests extends MongoDbAvailableT
 	}
 
 	public static class Xyz implements Serializable {
-		/**
-		 *
-		 */
+
 		private static final long serialVersionUID = 1L;
 
 		@SuppressWarnings("unused")
-		private final String name = "xyz";
+		private final String name;
 
-		Xyz() { }
+		Xyz() {
+			this("xyz");
+		}
+
+		@PersistenceConstructor
+		Xyz(String name) {
+			this.name = name;
+		}
 
 	}
 
