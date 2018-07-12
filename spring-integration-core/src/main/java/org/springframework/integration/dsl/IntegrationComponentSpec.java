@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package org.springframework.integration.dsl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -33,7 +35,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @since 5.0
  */
 public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpec<S, T>, T>
-		implements FactoryBean<T> {
+		implements FactoryBean<T>, InitializingBean, DisposableBean {
 
 	protected final static SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -81,6 +83,20 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	@Override
 	public boolean isSingleton() {
 		return true;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (this.target instanceof InitializingBean) {
+			((InitializingBean) this.target).afterPropertiesSet();
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		if (this.target instanceof DisposableBean) {
+			((DisposableBean) this.target).destroy();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
