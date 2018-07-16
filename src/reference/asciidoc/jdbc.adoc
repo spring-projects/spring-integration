@@ -770,9 +770,8 @@ Furthermore, if you need even more control over how parameters are retrieved, co
                                    id=""
                                    ignore-column-meta-data="false"
                                    is-function="false"
-                                   max-rows-per-poll=""                          <2>
-                                   skip-undeclared-results=""                    <3>
-                                   return-value-required="false"                 <4>
+                                   skip-undeclared-results=""                    <2>
+                                   return-value-required="false"                 <3>
     <int:poller/>
     <int-jdbc:sql-parameter-definition name="" direction="IN"
                                                type="STRING"
@@ -788,10 +787,8 @@ If the stored procedure or function does not return any data, the payload of the
 _Required_.
 
 
-<2> Limits the number of rows extracted per query.
-Otherwise all rows are extracted into the outgoing message. _Optional_.
-
-
+<2> If this attribute is set to `true`, all results from a stored procedure call that do not have a corresponding `SqlOutParameter` declaration are bypassed.
+For example, stored procedures can return an update count value, even though your stored procedure declared only a single result parameter.
 <3> If this attribute is set to `true`, then all results from a stored procedure call that don't have a corresponding `SqlOutParameter` declaration will be bypassed.
 E.g. Stored Procedures may return an update count value, even though your Stored Procedure only declared a single result parameter.
 The exact behavior depends on the used database.
@@ -800,12 +797,8 @@ Few developers will probably ever want to process update counts, thus the value 
 _Optional_.
 
 
-<4> Indicates whether this procedure's return value should be included.
+<3> Indicates whether this procedure's return value should be included.
 Since _Spring Integration 3.0_. _Optional_.
-
-NOTE: When you declare a Poller, you may notice the Poller's `max-messages-per-poll` attribute.
-For information about how it relates to the `max-rows-per-poll` attribute of the _Stored Procedure Inbound Channel Adapter_, please see <<jdbc-max-rows-per-poll-versus-max-messages-per-poll>> for a thorough discussion.
-The meaning of the attributes is the same as for the _JDBC Inbound Channel Adapter_.
 
 [[stored-procedure-outbound-channel-adapter]]
 ==== Stored Procedure Outbound Channel Adapter
