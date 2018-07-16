@@ -93,7 +93,7 @@ public class IntegrationFlowBeanPostProcessor
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	private IntegrationFlowContext flowContext;
+	private volatile IntegrationFlowContext flowContext;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -105,8 +105,6 @@ public class IntegrationFlowBeanPostProcessor
 		this.applicationContext = (ConfigurableApplicationContext) applicationContext;
 		this.beanFactory = this.applicationContext.getBeanFactory();
 		this.embeddedValueResolver = new EmbeddedValueResolver(this.beanFactory);
-		this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
-		Assert.notNull(this.flowContext, "There must be an IntegrationFlowContext in the application context");
 	}
 
 	@Override
@@ -140,6 +138,9 @@ public class IntegrationFlowBeanPostProcessor
 
 	private Object processStandardIntegrationFlow(StandardIntegrationFlow flow, String flowBeanName) {
 		String flowNamePrefix = flowBeanName + ".";
+		if (this.flowContext == null) {
+			this.flowContext = this.beanFactory.getBean(IntegrationFlowContext.class);
+		}
 		boolean useFlowIdAsPrefix = this.flowContext.isUseIdAsPrefix(flowBeanName);
 		int subFlowNameIndex = 0;
 		int channelNameIndex = 0;
