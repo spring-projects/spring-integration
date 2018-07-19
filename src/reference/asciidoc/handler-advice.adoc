@@ -848,7 +848,7 @@ When you use the Java DSL, you can add the interceptor to the endpoint's advice 
 public IntegrationFlow flow() {
     ...
         .handle("someBean", "someMethod",
-            e -> e.advice(idempotentReceiverInterceptor())
+            e -> e.advice(idempotentReceiverInterceptor()))
     ...
 }
 ----
