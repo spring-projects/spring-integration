@@ -21,10 +21,10 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -462,7 +462,7 @@ public class EnableIntegrationTests {
 		assertThat(result, containsString("SpelExpression"));
 		this.testGateway.sendAsync("foo");
 		assertTrue(this.asyncAnnotationProcessLatch.await(1, TimeUnit.SECONDS));
-		assertNotSame(Thread.currentThread(), this.asyncAnnotationProcessThread.get());
+		assertThat(this.asyncAnnotationProcessThread.get(), not(sameInstance(Thread.currentThread())));
 	}
 
 	@Test
@@ -1001,8 +1001,8 @@ public class EnableIntegrationTests {
 
 				@Override
 				public void handleMessage(Message<?> message) throws MessagingException {
-					asyncAnnotationProcessLatch().countDown();
 					asyncAnnotationProcessThread().set(Thread.currentThread());
+					asyncAnnotationProcessLatch().countDown();
 				}
 
 			};
