@@ -764,6 +764,30 @@ mono.subscribe(invoice -> handleInvoice(invoice));
 
 The calling thread continues, with `handleInvoice()` being called when the flow completes.
 
+===== Downstream Flows Returning an Async Type
+
+As mentioned in the `ListenableFuture` section above; if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, etc), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
+The flow is then invoked on the caller thread and the result can be retrieved later.
+
+===== `void` Return Type
+
+Unlike the return types above, when the method return type is `void`, the framework cannot implicitly determine that you wish the downstream flow to run asynchronously, with the caller thread returning immediately.
+In this case, it is necessary to annotate the interface method with `@Async`.
+
+[source, java]
+----
+@MessagingGateway
+public interface MyGateway {
+
+    @Gateway(requestChannel = "sendAsyncChannel")
+    @Async
+    void sendAsync(String payload);
+
+}
+----
+
+Of course, unlike the `Future<?>` return types, there is no way to inform the caller if some exception is thrown by the flow, unless some custom `TaskExecutor` (e.g. an `ErrorHandlingTaskExecutor`) is associated with the `@Async` annotation.
+
 [[gateway-no-response]]
 ==== Gateway Behavior When No response Arrives
 
