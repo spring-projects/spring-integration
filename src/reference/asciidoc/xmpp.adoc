@@ -444,4 +444,6 @@ smackMessage.addExtension(packetExtension);
 ----
 ====
 
-See "`<<xmpp-message-inbound-channel-adapter>>`" and "`<<xmpp-message-outbound-channel-adapter>>`" earlier in this chapter for more information.
+See "<<xmpp-message-inbound-channel-adapter>>" and "<<xmpp-message-outbound-channel-adapter>>" earlier in this chapter for more information.
+
+====

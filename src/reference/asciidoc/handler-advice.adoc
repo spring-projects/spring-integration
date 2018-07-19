@@ -856,4 +856,6 @@ public IntegrationFlow flow() {
 
 NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method.
 Starting with version 4.3.1, it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
-See "`<<handle-message-advice>>`" for more information.
+See "<<handle-message-advice>>" for more information.
+
+====
