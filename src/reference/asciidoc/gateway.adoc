@@ -709,7 +709,7 @@ String out = result.get(10, TimeUnit.SECONDS);
 ----
 ====
 
-===== Reactor Mono
+===== Reactor `Mono`
 
 Starting with version 5.0, the `GatewayProxyFactoryBean` allows the use of https://projectreactor.io/[Project Reactor] with gateway interface methods, using a https://github.com/reactor/reactor-core[`Mono<T>`] return type.
 The internal `AsyncInvocationTask` is wrapped in a `Mono.fromCallable()`.
@@ -769,7 +769,7 @@ The calling thread continues, with `handleInvoice()` being called when the flow 
 As mentioned in the `ListenableFuture` section above; if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, etc), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
 The flow is then invoked on the caller thread and the result can be retrieved later.
 
-===== void Return Type
+===== `void` Return Type
 
 Unlike the return types above, when the method return type is `void`, the framework cannot implicitly determine that you wish the downstream flow to run asynchronously, with the caller thread returning immediately.
 In this case, it is necessary to annotate the interface method with `@Async`.
@@ -786,7 +786,7 @@ public interface MyGateway {
 }
 ----
 
-Of course, unlike the `Future<?>` return types, there is no way to inform the caller if some exception is thrown by the flow (although an `ErrorMessage` will be sent to the error channel, if configured).
+Of course, unlike the `Future<?>` return types, there is no way to inform the caller if some exception is thrown by the flow, unless some custom `TaskExecutor` (e.g. an `ErrorHandlingTaskExecutor`) is associated with the `@Async` annotation.
 
 [[gateway-no-response]]
 ==== Gateway Behavior When No response Arrives
