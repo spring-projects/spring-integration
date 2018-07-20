@@ -162,7 +162,7 @@ See "<<tcp-connection-factories>>" for more information.
 ===== TCP Gateway Remote Timeout
 
 The `TcpOutboundGateway` now supports `remote-timeout-expression` as an alternative to the existing `remote-timeout` attribute.
-This allows setting the timeout based on each message.<<
+This allows setting the timeout based on each message.
 
 Also, the `remote-timeout` no longer defaults to the same value as `reply-timeout`, which has a completely different meaning.
 

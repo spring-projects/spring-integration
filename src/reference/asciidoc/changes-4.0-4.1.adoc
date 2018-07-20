@@ -42,7 +42,7 @@ See <<idempotent-receiver>> and the https://docs.spring.io/spring-integration/ap
 [[x4.1-BoonJsonObjectMapper]]
 ===== Boon `JsonObjectMapper`
 
-We added T\the Boon `JsonObjectMapper` for the JSON transformers.
+We added the Boon `JsonObjectMapper` for the JSON transformers.
 See <<transformer>> for more information.
 
 [[x4.1-redis-queue-gateways]]

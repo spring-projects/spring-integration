@@ -831,13 +831,11 @@ Since Spring Integration 3.0.
 Optional.
 ====
 
-<<<<<<< HEAD
 =======
 NOTE: When you declare a poller, you may notice the poller's `max-messages-per-poll` attribute.
 For information about how it relates to the `max-rows` attribute of the stored procedure inbound channel adapter, see "`<<jdbc-max-rows-versus-max-messages-per-poll>>`".
 The meaning of the attributes is the same as for the JDBC inbound channel adapter.
 
->>>>>>> Accommodating changes that came while I was editing
 [[stored-procedure-outbound-channel-adapter]]
 ==== Stored Procedure Outbound Channel Adapter
 

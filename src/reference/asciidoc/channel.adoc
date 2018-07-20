@@ -640,7 +640,7 @@ Doing so indicates that the channel should set the `sequence-size` and `sequence
 For example, if there are five subscribers, the `sequence-size` would be set to `5`, and the messages would have `sequence-number` header values ranging from `1` to `5`.
 
 Along with the `Executor`, you can also configure an `ErrorHandler`.
-By default, the `PublishSubscribeChannel` uses a `MessagePublishingErrorHandler` implementation to send an error to the `MessageChannel` from the `errorChannel` header or from a global `errorChannel` instance.
+By default, the `PublishSubscribeChannel` uses a `MessagePublishingErrorHandler` implementation to send an error to the `MessageChannel` from the `errorChannel` header or into the global `errorChannel` instance.
 If an `Executor` is not configured, the `ErrorHandler` is ignored and exceptions are thrown directly to the caller's thread.
 
 If you provide a `Resequencer` or `Aggregator` downstream from a `PublishSubscribeChannel`, you can set the 'apply-sequence' property on the channel to `true`.

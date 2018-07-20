@@ -652,11 +652,7 @@ For example, the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::con
 The `Transformer` implementation bean for that endpoint  has a bean name of `lambdaFlow.o.s.i.transformer.MethodInvokingTransformer#0`.
 (In both cases, `o.s.i` is `org.springframework.integration`, shortened here to fit on the page.)
 These generated bean names are prepended with the flow ID for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
-<<<<<<< HEAD
 See <<java-dsl-runtime-flows>> for more information.
-=======
-See "`<<java-dsl-runtime-flows>>`" for more information.
->>>>>>> Accommodating changes that came while I was editing
 
 [[java-dsl-function-expression]]
 === `FunctionExpression`

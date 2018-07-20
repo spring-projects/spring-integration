@@ -1,4 +1,4 @@
-<<[[xml]]
+[[xml]]
 == XML Support - Dealing with XML Payloads
 
 Spring Integration's XML support extends the core of Spring Integration with the following components:
