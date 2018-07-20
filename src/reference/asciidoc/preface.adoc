@@ -7,6 +7,12 @@ This chapter includes:
 * <<code-conventions>>
 * <<guide-conventions>>
 
+This chapter includes:
+
+* <<system-requirements>>
+* <<code-conventions>>
+* <<guide-conventions>>
+
 [[system-requirements]]
 == Requirements
 
@@ -57,7 +63,7 @@ The following example shows the `int`, `int-twitter`, and `int-stream` namespace
 ----
 ====
 
-For a detailed explanation regarding Spring Integration's namespace support, see "`<<configuration-namespace>>`".
+For a detailed explanation regarding Spring Integration's namespace support, see <<configuration-namespace>>.
 
 NOTE: The namespace prefix can be freely chosen.
 You may even choose not to use any namespace prefixes at all.

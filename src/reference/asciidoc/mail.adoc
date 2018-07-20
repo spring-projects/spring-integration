@@ -25,7 +25,7 @@ However, Spring Integration supports a few simple message mapping strategies.
 For example, if the message payload is a byte array, that is mapped to an attachment.
 For simple text-based emails, you can provide a string-based message payload.
 In that case, a `MailMessage` is created with that `String` as the text content.
-If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in "`<<transformer-namespace>>`" for more detail).
+If you work with a message payload type whose `toString()` method returns appropriate mail text content, consider adding Spring Integration's `ObjectToStringTransformer` prior to the outbound mail adapter (see the example in <<transformer-namespace>> for more detail).
 
 You can also configure the outbound `MailMessage` with certain values from `MessageHeaders`.
 If available, values are mapped to the outbound mail's properties, such as the recipients (To, Cc, and BCc), the from, the reply-to, and the subject.
@@ -209,7 +209,7 @@ Alternatively, you can provide the host, username, and password, as the followin
 ----
 ====
 
-NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see "`<<endpoint-namespace>>`").
+NOTE: As with any outbound Channel Adapter, if the referenced channel is a `PollableChannel`, you should provide a `<poller>` element (see <<endpoint-namespace>>).
 
 When you use the namespace support, you can also use a `header-enricher` message transformer.
 Doing so simplifies the application of the headers mentioned earlier to any message prior to sending to the mail outbound channel adapter.
@@ -330,7 +330,7 @@ The following example relies `TestSearchTermStrategy` rather than the default `S
 ----
 ====
 
-See "`<<imap-seen>>`" for information about message flagging.
+See <<imap-seen>> for information about message flagging.
 
 [[imap-peek]]
 [IMPORTANT]
@@ -388,7 +388,7 @@ You should understand that that these actions (marking messages read and deletin
 This can cause messages to be lost.
 
 You may wish to consider using transaction synchronization instead.
-See "`<<mail-tx-sync>>`".
+See <<mail-tx-sync>>.
 =====
 
 The `<imap-idle-channel-adapter/>` also accepts the 'error-channel' attribute.
@@ -409,7 +409,7 @@ flag (by default, `spring-integration-mail-adapter`), as long as the server supp
 If not, `Flag.FLAGGED` is set to `true`.
 These flags are applied regardless of the `shouldMarkMessagesRead` setting.
 
-As discussed in "`<<search-term>>`", the default `SearchTermStrategy` ignore messages that are so flagged.
+As discussed in <<search-term>>, the default `SearchTermStrategy` ignore messages that are so flagged.
 
 Starting with version 4.2.2, you can set the name of the user flag by using `setUserFlag` on the `MailReceiver`.
 Doing so lets multiple receivers use a different flag (as long as the mail server supports user flags).
@@ -464,7 +464,7 @@ In other words, while our adapter may peek at the email, it also lets the email 
 Transaction synchronization for inbound adapters lets you take different actions after a transaction commits or rolls back.
 You can enable transaction synchronization by adding a `<transactional/>` element to the poller for the polled `<inbound-adapter/>` or to the `<imap-idle-inbound-adapter/>`.
 Even if there is no 'real' transaction involved, you can still enable this feature by using a `PseudoTransactionManager` with the `<transactional/>` element.
-For more information, see "`<<transaction-synchronization>>`".
+For more information, see <<transaction-synchronization>>.
 
 Because of the many different mail servers and specifically the limitations that some have, at this time we provide only a strategy for these transaction synchronizations.
 You can send the messages to some other Spring Integration components or invoke a custom bean to perform some action.

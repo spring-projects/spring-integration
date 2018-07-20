@@ -13,19 +13,19 @@ Version 4.0 added a number of new components.
 ===== MQTT Channel Adapters
 
 The MQTT channel adapters (previously available in the Spring Integration Extensions repository) are now available as part of the normal Spring Integration distribution.
-See "`<<mqtt>>`".
+See <<mqtt>>.
 
 [[x4.0-enable-configuration]]
 ===== `@EnableIntegration`
 
 We added the `@EnableIntegration` annotation to permit declaration of standard Spring Integration beans when using `@Configuration` classes.
-See "`<<annotations>>`" for more information.
+See <<annotations>> for more information.
 
 [[x4.0-component-scan]]
 ===== `@IntegrationComponentScan`
 
 We added the `@IntegrationComponentScan` annotation to permit classpath scanning for Spring Integration-specific components.
-See "`<<annotations>>`" for more information.
+See <<annotations>> for more information.
 
 [[x4.0-message-history]]
 ===== "`@EnableMessageHistory`"
@@ -33,14 +33,14 @@ See "`<<annotations>>`" for more information.
 You can now enable message history with the `@EnableMessageHistory` annotation in a `@Configuration` class.
 In addition, a JMX MBean can modify the message history settings.
 Also, `MessageHistory` can track auto-created `MessageHandler` instances for annotated endpoints (such as `@ServiceActivator`, `@Splitter`, and others).
-For more information, see "`<<message-history>>`".
+For more information, see <<message-history>>.
 
 [[x4.0-messaging-gateway]]
 ===== `@MessagingGateway`
 
 You can now configure messaging gateway interfaces with the `@MessagingGateway` annotation.
 It is an analogue of the `<int:gateway/>` XML element.
-For more information, see "`<<messaging-gateway-annotation>>`".
+For more information, see <<messaging-gateway-annotation>>.
 
 [[x4.0-boot]]
 ===== Spring Boot `@EnableAutoConfiguration`
@@ -52,68 +52,68 @@ For more information, see http://docs.spring.io/spring-boot/docs/current/referen
 ===== `@GlobalChannelInterceptor`
 
 As well as the `@EnableIntegration` annotation mentioned above, we introduced the `@GlobalChannelInterceptor` annotation.
-For more information, see "`<<annotations>>`".
+For more information, see <<annotations>>.
 
 [[x4.0-integration-converter]]
 ===== `@IntegrationConverter`
 
 We introduced the `@IntegrationConverter` annotation as an analogue of the `<int:converter/>` component.
-For more information, see "`<<annotations>>`".
+For more information, see <<annotations>>.
 
 [[x4.0-enable-publisher]]
 ===== `@EnablePublisher`
 
 We added the `@EnablePublisher` annotation to allow the specification of a `default-publisher-channel` for `@Publisher` annotations.
-See "`<<annotations>>`" for more information.
+See <<annotations>> for more information.
 
 [[x4.0-redis-cms]]
 ===== Redis Channel Message Stores
 
 We added a Redis `MessageGroupStore` that is optimized for use when backing a `QueueChannel` for persistence.
-For more information, see "`<<redis-cms>>`".
+For more information, see <<redis-cms>>.
 
 We added a Redis `ChannelPriorityMessageStore`.
 You can use it to retrieve messages by priority.
-For more information, see "`<<redis-cms>>`".
+For more information, see <<redis-cms>>.
 
 [[x4.0-priority-channel-mondodb]]
 ===== MongodDB Channel Message Store
 
 The MongoDB support now provides the `MongoDbChannelMessageStore`, which is a channel-specific `MessageStore` implementation.
 With `priorityEnabled = true`, you can use it in `<int:priority-queue>` elements to achieve priority order polling of persisted messages.
-For more information see "`<<mongodb-priority-channel-message-store>>`".
+For more information see <<mongodb-priority-channel-message-store>>.
 
 [[x4.0-MBeanExport-annotation]]
 ===== `@EnableIntegrationMBeanExport`
 
 You can now enable the `IntegrationMBeanExporter` with the `@EnableIntegrationMBeanExport` annotation in a `@Configuration` class.
-For more information, see "`<<jmx-mbean-exporter>>`".
+For more information, see <<jmx-mbean-exporter>>.
 
 [[x4.0-channel-security-interceptor]]
 ===== `ChannelSecurityInterceptorFactoryBean`
 
 `ChannelSecurityInterceptorFactoryBean` now supports configuration of Spring Security for message channels that use `@Configuration` classes.
-For more information, see "`<<security>>`".
+For more information, see <<security>>.
 
 [[x4.0-redis-outbound-gateway]]
 ===== Redis Command Gateway
 
 The Redis support now provides the `<outbound-gateway>` component to perform generic Redis commands by using the `RedisConnection#execute` method.
-For more information, see "`<<redis-outbound-gateway>>`".
+For more information, see <<redis-outbound-gateway>>.
 
 [[x4.0-redis-gemfire-lock-registry]]
 ===== `RedisLockRegistry` and `GemfireLockRegistry`
 
 The `RedisLockRegistry` and `GemfireLockRegistry` are now available to support global locks visible to multiple application instances and servers.
 These can be used with aggregating message handlers across multiple application instances such that group release occurs on only one instance.
-For more information, see "`<<redis-lock-registry>>`", "`<<gemfire-lock-registry>>`", and "`<<aggregator>>`".
+For more information, see <<redis-lock-registry>>, <<gemfire-lock-registry>>, and <<aggregator>>.
 
 [[x4.0-poller-annotation]]
 ===== `@Poller`
 
 Annotation-based messaging configuration can now have a `poller` attribute.
 This means that methods annotated with `@ServiceActivator`, `@Aggregator`, and similar annotations can now use an `inputChannel` that is a reference to a `PollableChannel`.
-For more information, see "`<<annotations>>`".
+For more information, see <<annotations>>.
 
 [[x4.0-inbound-channel-adapter-annotation]]
 ===== `@InboundChannelAdapter` and `SmartLifecycle` for Annotated Endpoints
@@ -121,33 +121,33 @@ For more information, see "`<<annotations>>`".
 We added the `@InboundChannelAdapter` method annotation.
 It is an analogue of the `<int:inbound-channel-adapter>` XML component.
 In addition, all messaging annotations now provide `SmartLifecycle` options.
-For more information, see "`<<annotations>>`".
+For more information, see <<annotations>>.
 
 [[x4.0-twitter-sog]]
 ===== Twitter Search Outbound Gateway
 
 We added a new twitter endpoint: `<int-twitter-search-outbound-gateway/>`.
 Unlike the search inbound adapter, which polls by using the same search query each time, the outbound gateway allows on-demand customized queries.
-For more information, see "`<<twitter-sog>>`".
+For more information, see <<twitter-sog>>.
 
 [[x4.0-gemfire-metadata]]
 ===== Gemfire Metadata Store
 
 We added the `GemfireMetadataStore`, letting it be used, for example, in an `AbstractPersistentAcceptOnceFileListFilter` implementation in a multiple application instance or server environment.
-For more information, see "`<<metadata-store>>`", "`<<file-reading>>`", "`<<ftp-inbound>>`", and "`<<sftp-inbound>>`".
+For more information, see <<metadata-store>>, <<file-reading>>, <<ftp-inbound>>, and <<sftp-inbound>>.
 
 [[x4.0-bridge-annotations]]
 ===== `@BridgeFrom` and `@BridgeTo` Annotations
 
 We introduced `@BridgeFrom` and `@BridgeTo` `@Bean` method annotations to mark `MessageChannel` beans in `@Configuration` classes.
-For more information, see "`<<annotations>>`".
+For more information, see <<annotations>>.
 
 [[x4.0-meta-messaging-annotations]]
 ===== Meta-messaging Annotations
 
 Messaging annotations (`@ServiceActivator`, `@Router`, `@MessagingGateway`, and others) can now be configured as meta-annotations for user-defined messaging annotations.
 In addition, the user-defined annotations can have the same attributes (`inputChannel`, `@Poller`, `autoStartup`, and others).
-For more information, see "`<<annotations>>`".
+For more information, see <<annotations>>.
 
 [[x4.0-general]]
 ==== General Changes
@@ -164,7 +164,7 @@ Developers who reference these classes directly in their code need to make chang
 
 We introduced the `header-type` attribute for the `header` child element of the `<int-xml:xpath-header-enricher>`.
 This attribute provides the target type for the header value (to which the result of the XPath expression evaluation is converted).
-For more information see "`<<xml-xpath-header-enricher>>`".
+For more information see <<xml-xpath-header-enricher>>.
 
 [[x4.0-object-to-json-transformer-result-type]]
 ===== Object To JSON Transformer: Node Result
@@ -172,21 +172,21 @@ For more information see "`<<xml-xpath-header-enricher>>`".
 We introduced the `result-type` attribute for the `<int:object-to-json-transformer>`.
 This attribute provides the target type for the result of mapping an object to JSON.
 It supports `STRING` (the default) and `NODE`.
-For more information see "`<<transformer-xpath-spel-function>>`".
+For more information see <<transformer-xpath-spel-function>>.
 
 [[x4.0-jms-header-mapping]]
 ===== JMS Header Mapping
 
 The `DefaultJmsHeaderMapper` now maps an incoming `JMSPriority` header to the Spring Integration `priority` header.
 Previously, `priority` was only considered for outbound messages.
-For more information, see "`<<jms-header-mapping>>`".
+For more information, see <<jms-header-mapping>>.
 
 [[x4.0-jms-ob]]
 ===== JMS Outbound Channel Adapter
 
 The JMS outbound channel adapter now supports the `session-transacted` attribute (default: `false`).
 Previously, you had to inject a customized `JmsTemplate` to use transactions.
-See "`<<jms-outbound-channel-adapter>>`".
+See <<jms-outbound-channel-adapter>>.
 
 [[x4.0-jms-ib]]
 ===== JMS Inbound Channel Adapter
@@ -195,38 +195,38 @@ The JMS inbound channel adapter now supports the `session-transacted` attribute 
 Previously, you had to inject a customized `JmsTemplate` to use transactions.
 The adapter allowed 'transacted' in the `acknowledgeMode`, which was incorrect and didn't work.
 This value is no longer allowed.
-See "`<<jms-inbound-channel-adapter>>`".
+See <<jms-inbound-channel-adapter>>.
 
 [[x4.0-datatype-channel]]
 ===== Datatype Channels
 
 You can now specify a `MessageConverter` to be used when converting (if necessary) payloads to one of the accepted `datatype` instances in a Datatype channel.
-For more information, see "`<<channel-datatype-channel>>`".
+For more information, see <<channel-datatype-channel>>.
 
 [[x4.0-retry-config]]
 ===== Simpler Retry Advice Configuration
 
 We added simplified namespace support to configure a `RequestHandlerRetryAdvice`.
-For more information, see "`<<retry-config>>`".
+For more information, see <<retry-config>>.
 
 [[x4.0-release-strategy-group-timeout]]
 ===== Correlation Endpoint: Time-based Release Strategy
 
 We added the mutually exclusive `group-timeout` and `group-timeout-expression` attributes to `<int:aggregator>` and `<int:resequencer>`.
 These attributes allow forced completion of a partial `MessageGroup`, provided the `ReleaseStrategy` does not release a group and no further messages arrive within the time specified.
-For more information, see "`<<aggregator-config>>`".
+For more information, see <<aggregator-config>>.
 
 [[x4.0-redis-metadata]]
 ===== Redis Metadata Store
 
 The `RedisMetadataStore` now implements `ConcurrentMetadataStore`, letting it be used, for example, in an `AbstractPersistentAcceptOnceFileListFilter` implementation in a multiple application instance or server environment.
-For more information, see "`<<redis-metadata-store>>`", "`<<file-reading>>`", "`<<ftp-inbound>>`", and "`<<sftp-inbound>>`".
+For more information, see <<redis-metadata-store>>, <<file-reading>>, <<ftp-inbound>>, and <<sftp-inbound>>.
 
 [[x4.0-jdbc-cs]]
 ===== `JdbcChannelMessageStore` and `PriorityChannel`
 
 T`JdbcChannelMessageStore` now implements `PriorityCapableChannelMessageStore`, letting it be used as a `message-store` reference for `priority-queue` instances.
-For more information, see "`<<jdbc-message-store-channels>>`".
+For more information, see <<jdbc-message-store-channels>>.
 
 [[x4.0-amqp]]
 ===== AMQP Endpoints Delivery Mode
@@ -234,36 +234,36 @@ For more information, see "`<<jdbc-message-store-channels>>`".
 Spring AMQP, by default, creates persistent messages on the broker.
 You can override this behavior by setting the `amqp_deliveryMode` header or customizing the mappers.
 We added a convenient `default-delivery-mode` attribute to the adapters to provide easier configuration of this important setting.
-For more information, see "`<<amqp-outbound-channel-adapter>>`" and "`<<amqp-outbound-gateway>>`".
+For more information, see <<amqp-outbound-channel-adapter>> and <<amqp-outbound-gateway>>.
 
 [[x4.0-ftp]]
 ===== FTP Timeouts
 
 The `DefaultFtpSessionFactory` now exposes the `connectTimeout`, `defaultTimeout`, and `dataTimeout` properties, avoiding the need to subclass the factory to set these common properties.
 The `postProcess*` methods are still available for more advanced configuration.
-See "`<<ftp-session-factory>>`" for more information.
+See <<ftp-session-factory>> for more information.
 
 [[x4.0-twitter-status-updating]]
 ===== Twitter: `StatusUpdatingMessageHandler`
 
 The `StatusUpdatingMessageHandler` (`<int-twitter:outbound-channel-adapter>`) now supports the `tweet-data-expression` attribute to build a `org.springframework.social.twitter.api.TweetData` object for updating the timeline status.
 This feature allows, for example, attaching an image.
-See "`<<outbound-twitter-update>>`" for more information.
+See <<outbound-twitter-update>> for more information.
 
 [[x4.0-jpa-id-expression]]
 ===== JPA Retrieving Gateway: `id-expression`
 
 We introduced the `id-expression` attribute for `<int-jpa:retrieving-outbound-gateway>` to perform `EntityManager.find(Class entityClass, Object primaryKey)`.
-See "`<<jpa-retrieving-outbound-gateway>>`" for more information.
+See <<jpa-retrieving-outbound-gateway>> for more information.
 
 [[x4.0-tcp-deserializer-events]]
 ===== TCP Deserialization Events
 
 When one of the standard deserializers encounters a problem decoding the input stream to a message, it now emits a `TcpDeserializationExceptionEvent`, letting applications examine the data at the point at which the exception occurred.
-See "`<<tcp-events>>`" for more information.
+See <<tcp-events>> for more information.
 
 [[x4.0-bean-messaging-annotations]]
 ===== Messaging Annotations on `@Bean` Definitions
 
 You can now configure messaging annotations (`@ServiceActivator`, `@Router`, `@InboundChannelAdapter`, and others) on `@Bean` definitions in `@Configuration` classes.
-For more information, see "`<<annotations>>`".
+For more information, see <<annotations>>.

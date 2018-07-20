@@ -93,7 +93,7 @@ NOTE: Spring's WebSocket Support allows the configuration of only one broker rel
 Consequently, we do not require an `AbstractBrokerMessageHandler` reference.
 It is detected in the Application Context.
 
-For more configuration options, see "`<<web-sockets-namespace>>`".
+For more configuration options, see <<web-sockets-namespace>>.
 
 [[web-socket-outbound-adapter]]
 === WebSocket Outbound Channel Adapter

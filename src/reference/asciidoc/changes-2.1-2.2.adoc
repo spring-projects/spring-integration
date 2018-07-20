@@ -13,13 +13,13 @@ Version 2.2 added a number of new components.
 ===== `RedisStore` Inbound and Outbound Channel Adapters
 
 Spring Integration now has `RedisStore` Inbound and Outbound Channel Adapters, letting you write and read `Message` payloads to and from Redis collections.
-For more information, see "`<<redis-store-outbound-channel-adapter>>`" and "`<<redis-store-inbound-channel-adapter>>`".
+For more information, see <<redis-store-outbound-channel-adapter>> and <<redis-store-inbound-channel-adapter>>.
 
 [[x2.2-mongo-adapters]]
 ===== MongoDB Inbound and Outbound Channel Adapters
 
 Spring Integration now has MongoDB inbound and outbound channel adapters, letting you write and read `Message` payloads to and from a MongoDB document store.
-For more information, see "`<<mongodb-outbound-channel-adapter>>`" and "`<<mongodb-inbound-channel-adapter>>`".
+For more information, see <<mongodb-outbound-channel-adapter>> and <<mongodb-inbound-channel-adapter>>.
 
 [[x2.2-jpa]]
 ===== JPA Endpoints
@@ -32,7 +32,7 @@ The JPA Adapter includes the following components:
 * <<jpa-updating-outbound-gateway,Updating outbound gateway>>
 * <<jpa-retrieving-outbound-gateway,Retrieving outbound gateway>>
 
-For more information, see "`<<jpa>>`".
+For more information, see <<jpa>>.
 
 [[x2.2-general]]
 ==== General Changes
@@ -58,7 +58,7 @@ In addition, we added three standard advice classes for this purpose:
 * `MessageHandlerCircuitBreakerAdvice`
 * `ExpressionEvaluatingMessageHandlerAdvice`
 
-For more information, see "`<<message-handler-advice-chain>>`".
+For more information, see <<message-handler-advice-chain>>.
 
 [[x2.2-transaction-sync]]
 ===== Transaction Synchronization and Pseudo Transactions
@@ -68,7 +68,7 @@ This allows for synchronizing such operations as renaming files by an inbound ch
 
 In addition, you can enable these features when no "`real`" transaction is present, by means of a `PseudoTransactionManager`.
 
-For more information, see "`<<transaction-synchronization>>`".
+For more information, see <<transaction-synchronization>>.
 
 [[x2.2-file-adapter]]
 ===== File Adapter: Improved File Overwrite and Append Handling
@@ -82,7 +82,7 @@ Now you can specify the following options:
 * `FAIL`
 * `IGNORE`
 
-For more information, see "`<<file-writing-destination-exists>>`".
+For more information, see <<file-writing-destination-exists>>.
 
 [[x2.2-outbound-gateways]]
 ===== Reply-Timeout Added to More Outbound Gateways
@@ -116,7 +116,7 @@ When using the stored procedure components of the Spring Integration JDBC Adapte
 
 Doing so lets you specify the stored procedures to be invoked at runtime.
 For example, you can provide stored procedure names that you would like to execute through message headers.
-For more information, see "`<<stored-procedures>>`".
+For more information, see <<stored-procedures>>.
 
 ====== JMX Support
 
@@ -136,7 +136,7 @@ You can now provide only a select query by using the request message as a source
 ===== JDBC Support: Channel-specific Message Store Implementation
 
 We added a new message channel-specific message store implementation, providing a more scalable solution using database-specific SQL queries.
-For more information, see "`<<jdbc-message-store-channels>>`".
+For more information, see <<jdbc-message-store-channels>>.
 
 [[x2.2-shutdown]]
 ===== Orderly Shutdown
@@ -154,7 +154,7 @@ Doing so can improve performance of the gateway.
 ===== `ObjectToJsonTransformer`
 
 By default, the `ObjectToJsonTransformer` now sets the `content-type` header to `application/json`.
-For more information, see "`<<transformer>>`".
+For more information, see <<transformer>>.
 
 [[httpChanges]]
 ===== HTTP Support

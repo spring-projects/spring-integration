@@ -114,7 +114,7 @@ Often, though, processing logic can be performed on another thread, on several t
 Standard thread-bound behavior is easy to configure if our application is built on the Spring Integration components
 and its message channels.
 In this case, the secured objects can be any service activator or transformer, secured with a
-`MethodSecurityInterceptor` in their `<request-handler-advice-chain>` (see "`<<message-handler-advice-chain>>`") or even `MessageChannel` (see "`<<securing-channels>>`", earlier).
+`MethodSecurityInterceptor` in their `<request-handler-advice-chain>` (see <<message-handler-advice-chain>>) or even `MessageChannel` (see <<securing-channels>>, earlier).
 When using `DirectChannel` communication, the `SecurityContext` is automatically available, because the downstream flow runs on the current thread.
 However, in the cases of the `QueueChannel`, `ExecutorChannel`, and `PublishSubscribeChannel` with an `Executor`, messages are transferred from one thread to another (or several) by the nature of those channels.
 In order to support such scenarios, we have two choices:

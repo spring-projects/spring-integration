@@ -111,7 +111,7 @@ The `poller` element is not applicable for a message-driven channel adapter, as 
 For most scenarios, the message-driven approach is better, since the messages are passed along to the `MessageChannel` as soon as they are received from the underlying JMS consumer.
 
 Finally, the `<message-driven-channel-adapter>` element also accepts the 'error-channel' attribute.
-This provides the same basic functionality, as described in "`<<gateway-proxy>>`".
+This provides the same basic functionality, as described in <<gateway-proxy>>.
 The following example shows how to set an error channel on a message-driven channel adapter:
 
 ====
@@ -223,10 +223,10 @@ You can use the error-channel attribute to configure such a channel, as the foll
 ----
 ====
 
-You might notice that this example looks very similar to that included within "`<<gateway-proxy>>`".
+You might notice that this example looks very similar to that included within <<gateway-proxy>>.
 The same idea applies here: The `exceptionTransformer` could be a POJO that creates error-response objects, you could reference the `nullChannel` to suppress the errors, or you could leave 'error-channel' out to let the exception propagate.
 
-See "`<<jms-md-conversion-errors>>`".
+See <<jms-md-conversion-errors>>.
 
 When consuming from topics, set the `pub-sub-domain` attribute to true.
 Set `subscription-durable` to `true` for a durable subscription or `subscription-shared` for a shared subscription (requires a JMS 2.0 broker and has been available since version 4.2).
@@ -319,13 +319,13 @@ If all the reply listeners are active, the JMS broker has an active consumer for
 By enabling the idle timeout, each consumer exists only while the corresponding batch job is running (and
 for a short time after it finishes).
 
-See `idle-reply-listener-timeout` in "`<<jms-og-attributes>>`".
+See `idle-reply-listener-timeout` in <<jms-og-attributes>>.
 
 ==== Gateway Reply Correlation
 
 This section describes the mechanisms used for reply correlation (ensuring the originating gateway receives replies
 to only its requests), depending on how the gateway is configured.
-See "`<<jms-og-attributes>>`" for complete description of the attributes discussed here.
+See <<jms-og-attributes>> for complete description of the attributes discussed here.
 
 The following list describes the various scenarios (the numbers are for identification -- order does not matter):
 
@@ -558,7 +558,7 @@ The container continues to run until at least this time elapses with no requests
 are outstanding).
 The container is started again on the next request.
 The stop time is a minimum and may actually be up to 1.5x this value.
-<26> See "`<<jms-async-gateway>>`".
+<26> See <<jms-async-gateway>>.
 <27> When this element is included, replies are received by an asynchronous `MessageListenerContainer` rather than
 creating a consumer for each reply.
 This can be more efficient in many cases.

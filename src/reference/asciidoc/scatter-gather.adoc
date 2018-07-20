@@ -1,9 +1,6 @@
 [[scatter-gather]]
 === Scatter-Gather
 
-[[scatter-gather-introduction]]
-==== Introduction
-
 Starting with version 4.1, Spring Integration provides an implementation of the http://www.eaipatterns.com/BroadcastAggregate.html[scatter-gather] enterprise integration pattern.
 It is a compound endpoint for which the goal is to send a message to the recipients and aggregate the results.
 As noted in http://www.eaipatterns.com[_Enterprise Integration Patterns_], it is a component for scenarios such as "`best quote`", where we need to request information from several suppliers and decide which one provides us with the best term for the requested item.
@@ -20,17 +17,17 @@ The request message is sent to the `scatter` channel, and the `ScatterGatherHand
 The `Scatter-Gather` pattern suggests two scenarios: "`auction`" and "`distribution`".
 In both cases, the `aggregation` function is the same and provides all the options available for the `AggregatingMessageHandler`.
 (Actually, the `ScatterGatherHandler` requires only an `AggregatingMessageHandler` as a constructor argument.)
-See "`<<aggregator>>`" for more information.
+See <<aggregator>> for more information.
 
 ===== Auction
 
 The auction `Scatter-Gather` variant uses "`publish-subscribe`" logic for the request message, where the "`scatter`" channel is a `PublishSubscribeChannel` with `apply-sequence="true"`.
-However, this channel can be any `MessageChannel` implementation (as is the case with the `request-channel` in the `ContentEnricher` -- see "`<<content-enricher>>`").
+However, this channel can be any `MessageChannel` implementation (as is the case with the `request-channel` in the `ContentEnricher` -- see <<content-enricher>>).
 However, in this case, you should create your own custom `correlationStrategy` for the `aggregation` function.
 
 ===== Distribution
 
-The distribution `Scatter-Gather` variant is based on the `RecipientListRouter` (see "`<<router-implementations-recipientlistrouter>>`") with all available options for the `RecipientListRouter`.
+The distribution `Scatter-Gather` variant is based on the `RecipientListRouter` (see <<router-implementations-recipientlistrouter>>) with all available options for the `RecipientListRouter`.
 This is the second `ScatterGatherHandler` constructor argument.
 If you want to rely on only the default `correlationStrategy` for the `recipient-list-router` and the `aggregator`, you should specify `apply-sequence="true"`.
 Otherwise, you should supply a custom `correlationStrategy` for the `aggregator`.

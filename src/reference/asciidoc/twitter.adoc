@@ -131,7 +131,7 @@ In that situation, you get all the tweets you had before plus the new one.
 However, you really want only the new tweet.
 Spring Integration provides an elegant mechanism for handling these situations.
 The latest Tweet ID (the last retrieved tweet in this case) is stored in an instance of the `org.springframework.integration.metadata.MetadataStore` strategy .
-For more information, see "`<<metadata-store>>`".
+For more information, see <<metadata-store>>.
 
 NOTE: The key used to persist the latest Twitter ID is the value of the (required) `id` attribute of the Twitter inbound channel adapter component plus the `profileId` of the Twitter user.
 

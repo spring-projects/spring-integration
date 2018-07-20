@@ -47,7 +47,7 @@ The `AcceptOnceFileListFilter` ensures files are picked up only once from the di
 ====
 The `AcceptOnceFileListFilter` stores its state in memory.
 If you wish the state to survive a system restart, you can use the `FileSystemPersistentAcceptOnceFileListFilter`.
-This filter stores the accepted file names in a `MetadataStore` implementation (see "`<<metadata-store>>`").
+This filter stores the accepted file names in a `MetadataStore` implementation (see <<metadata-store>>).
 This filter matches on the filename and modified time.
 
 Since version 4.0, this filter requires a `ConcurrentMetadataStore`.
@@ -157,13 +157,13 @@ Starting with version 5.0, the `FileReadingMessageSource` (in addition to the `p
 * `FileHeaders.FILENAME`: The `File.getName()` of the file to send.
 Can be used for subsequent rename or copy logic.
 * `FileHeaders.ORIGINAL_FILE`: The `File` object itself.
-Typically, this header is populated automatically by framework components (such as "`<<file-splitter,splitters>>`" or "`<<file-transforming,transformers>>`") when we lose the original `File` object.
+Typically, this header is populated automatically by framework components (such as <<file-splitter,splitters>> or`<<file-transforming,transformers>>) when we lose the original `File` object.
 However, for consistency and convenience with any other custom use cases, this header can be useful to get access to the original file.
 * `FileHeaders.RELATIVE_PATH`: A new header introduced to represent the part of file path relative to the root directory for the scan.
 This header can be useful when the requirement is to restore a source directory hierarchy in the other places.
-For this purpose, the `DefaultFileNameGenerator` (see "`<<file-writing-file-names>>`") can be configured to use this header.
+For this purpose, the `DefaultFileNameGenerator` (see "`<<file-writing-file-names>>) can be configured to use this header.
 
-==== Directory scanning and polling
+==== Directory Scanning and Polling
 
 The `FileReadingMessageSource` does not produce messages for files from the directory immediately.
 It uses an internal queue for 'eligible files' returned by the `scanner`.
@@ -722,7 +722,7 @@ The file is closed after each message.
 `APPEND_NO_FLUSH`::
 This option has the same semantics as `APPEND`, but the data is not flushed and the file is not closed after each message.
 This can provide a significant performance at the risk of data loss in the event of a failure.
-See "`<<file-flushing>>`" for more information.
+See <<file-flushing>> for more information.
 `FAIL`::
 If the target file exists, a http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/MessageHandlingException.html[`MessageHandlingException`] is thrown.
 `IGNORE`::
@@ -832,7 +832,7 @@ The following example configures an outbound gateway:
 ====
 
 As mentioned earlier, you can also specify the `mode` attribute, which defines the behavior of how to deal with situations where the destination file already exists.
-See "`<<file-writing-destination-exists>>`" for further details.
+See <<file-writing-destination-exists>> for further details.
 Generally, when using the file outbound gateway, the result file is returned as the message payload on the reply channel.
 
 This also applies when specifying the `IGNORE` mode.
@@ -1023,7 +1023,7 @@ The default is `true`.
 
 The `FileSplitter` also splits any text-based `InputStream` into lines.
 Starting with version 4.3, when used in conjunction with an FTP or SFTP streaming inbound channel adapter or an FTP or SFTP outbound gateway that uses the `stream` option to retrieve a file, the splitter automatically closes the session that supports the stream when the file is completely consumed
-See "`<<ftp-streaming>>`" and "`<<sftp-streaming>>`" as well as "`<<ftp-outbound-gateway>>`" and "`<<sftp-outbound-gateway>>`" for more
+See <<ftp-streaming>> and <<sftp-streaming>> as well as <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more
 information about these facilities.
 
 When using Java configuration, an additional constructor is available, as the following example shows:
