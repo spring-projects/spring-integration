@@ -167,7 +167,7 @@ You can use this new `MetadataStore` implementation with adapters such as:
 * <<sftp-inbound,SFTP>>
 
 To instruct these adapters to use the new `MongoDbMetadataStore`, declare a Spring bean with a bean name of `metadataStore`.
-The Feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `MongoDbMetadataStore`.
+The feed inbound channel adapter automatically picks up and use the declared `MongoDbMetadataStore`.
 The following example shows how to declare a bean with a name of `metadataStore`:
 
 ====

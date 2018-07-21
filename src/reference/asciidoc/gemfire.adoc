@@ -252,7 +252,7 @@ This new `MetadataStore` implementation can be used with adapters such as:
 * <<sftp-inbound>>
 
 To get these adapters to use the new `GemfireMetadataStore`, declare a Spring bean with a bean name of `metadataStore`.
-The feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `GemfireMetadataStore`.
+The feed inbound channel adapter automatically picks up and use the declared `GemfireMetadataStore`.
 
 NOTE: The `GemfireMetadataStore` also implements `ConcurrentMetadataStore`, letting it be reliably shared across multiple application instances, where only one instance can store or modify a key's value.
 These methods give various levels of concurrency guarantees based on the scope and data policy of the region.
