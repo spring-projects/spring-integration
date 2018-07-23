@@ -85,6 +85,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Tony Falabella
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Alen Turkovic
  */
 public class FileWritingMessageHandlerTests {
 
