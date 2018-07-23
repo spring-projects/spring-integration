@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -553,7 +553,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (!exists && (FileExistsMode.APPEND.equals(this.fileExistsMode)
 				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode))) {
-			newFileCallback.handle(resultFile);
+			this.newFileCallback.handle(resultFile);
 		}
 
 		Object timestamp = requestMessage.getHeaders().get(FileHeaders.SET_MODIFIED);
