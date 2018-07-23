@@ -245,8 +245,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (FileExistsMode.APPEND.equals(fileExistsMode)
 				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
 			this.lockRegistry = this.lockRegistry instanceof PassThruLockRegistry
-			                    ? new DefaultLockRegistry()
-			                    : this.lockRegistry;
+			        ? new DefaultLockRegistry()
+			        : this.lockRegistry;
 		}
 	}
 
@@ -650,7 +650,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	private File handleInputStreamMessage(final InputStream sourceFileInputStream, File originalFile, File tempFile,
-	                                      final File resultFile) throws IOException {
+	        final File resultFile) throws IOException {
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode)
 				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
 
@@ -1108,7 +1108,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			Map<String, FileState> toRemove = new HashMap<>();
 			synchronized (FileWritingMessageHandler.this) {
 				long expired = FileWritingMessageHandler.this.flushTask == null ? Long.MAX_VALUE
-				                                                                : (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
+				        : (System.currentTimeMillis() - FileWritingMessageHandler.this.flushInterval);
 				Iterator<Entry<String, FileState>> iterator =
 						FileWritingMessageHandler.this.fileStates.entrySet().iterator();
 				while (iterator.hasNext()) {
@@ -1184,7 +1184,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		@Override
 		public boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite,
-		                           Message<?> triggerMessage) {
+		        Message<?> triggerMessage) {
 			Pattern pattern;
 			if (triggerMessage.getPayload() instanceof String) {
 				pattern = Pattern.compile((String) triggerMessage.getPayload());
