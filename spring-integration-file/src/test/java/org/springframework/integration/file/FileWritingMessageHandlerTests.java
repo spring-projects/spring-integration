@@ -669,7 +669,7 @@ public class FileWritingMessageHandlerTests {
 		handler.setCharset(DEFAULT_ENCODING);
 		handler.setOutputChannel(output);
 		handler.setPreserveTimestamp(true);
-		handler.setNewFileCallback(file -> {
+		handler.setNewFileCallback((file, msg) -> {
 			try {
 				FileCopyUtils.copy(("foo" + System.lineSeparator()).getBytes(DEFAULT_ENCODING),
 						new FileOutputStream(file, false));

@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -160,7 +161,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private Set<PosixFilePermission> permissions;
 
-	private volatile NewFileCallback newFileCallback = new NoopNewFileCallback();
+	private volatile BiConsumer<File, Message<?>> newFileCallback;
 
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
@@ -447,11 +448,15 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	/**
-	 * Set the callback to use when creating new files.
+	 * Set the callback to use when creating new files. This callback will only be called
+	 * if {@link #fileExistsMode} is {@link FileExistsMode#APPEND} or {@link FileExistsMode#APPEND_NO_FLUSH}
+	 * and new file has to be created. The callback receives the new result file and the message that
+	 * triggered the handler.
+	 * @since 5.1
 	 *
 	 * @param newFileCallback callback
 	 */
-	public void setNewFileCallback(final NewFileCallback newFileCallback) {
+	public void setNewFileCallback(final BiConsumer<File, Message<?>> newFileCallback) {
 		this.newFileCallback = newFileCallback;
 	}
 
@@ -551,11 +556,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					"The destination file already exists at '" + resultFile.getAbsolutePath() + "'.");
 		}
 
-		if (!exists && (FileExistsMode.APPEND.equals(this.fileExistsMode)
-				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode))) {
-			this.newFileCallback.handle(resultFile);
-		}
-
 		Object timestamp = requestMessage.getHeaders().get(FileHeaders.SET_MODIFIED);
 		if (payload instanceof File) {
 			timestamp = ((File) payload).lastModified();
@@ -572,6 +572,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 								.contains(File.separator)) {
 					resultFile.getParentFile().mkdirs(); //NOSONAR - will fail on the writing below
 				}
+
+				if (this.newFileCallback != null && !exists && (FileExistsMode.APPEND.equals(this.fileExistsMode)
+						|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode))) {
+					this.newFileCallback.accept(resultFile, requestMessage);
+				}
+
 				if (payload instanceof File) {
 					resultFile = handleFileMessage((File) payload, tempFile, resultFile);
 				}
