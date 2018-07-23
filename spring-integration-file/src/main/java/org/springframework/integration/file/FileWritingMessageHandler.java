@@ -752,8 +752,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
-				if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists() && (FileExistsMode.APPEND.equals(fileExistsMode)
-						|| FileExistsMode.APPEND_NO_FLUSH.equals(fileExistsMode))) {
+				if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists() &&
+						(FileExistsMode.APPEND.equals(FileWritingMessageHandler.this.fileExistsMode)
+								|| FileExistsMode.APPEND_NO_FLUSH.equals(FileWritingMessageHandler.this.fileExistsMode))) {
 					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
 				}
 
@@ -800,8 +801,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
-				if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists() && (FileExistsMode.APPEND.equals(fileExistsMode)
-						|| FileExistsMode.APPEND_NO_FLUSH.equals(fileExistsMode))) {
+				if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists() &&
+						(FileExistsMode.APPEND.equals(FileWritingMessageHandler.this.fileExistsMode)
+						|| FileExistsMode.APPEND_NO_FLUSH.equals(FileWritingMessageHandler.this.fileExistsMode))) {
 					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
 				}
 
