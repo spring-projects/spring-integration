@@ -7,12 +7,6 @@ This chapter includes:
 * <<code-conventions>>
 * <<guide-conventions>>
 
-This chapter includes:
-
-* <<system-requirements>>
-* <<code-conventions>>
-* <<guide-conventions>>
-
 [[system-requirements]]
 == Requirements
 
