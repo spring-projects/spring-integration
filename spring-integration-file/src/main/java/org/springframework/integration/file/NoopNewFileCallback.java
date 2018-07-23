@@ -13,4 +13,5 @@ public class NoopNewFileCallback implements NewFileCallback {
 	public void handle(final File file) {
 		// do nothing...
 	}
+
 }

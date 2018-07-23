@@ -8,5 +8,7 @@ import java.io.File;
  * @author Alen Turkovic
  */
 public interface NewFileCallback {
+
 	void handle(File file);
+
 }
