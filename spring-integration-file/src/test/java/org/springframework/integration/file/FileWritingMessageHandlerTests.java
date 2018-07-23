@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Tony Falabella
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Alen Turkovic
  */
 public class FileWritingMessageHandlerTests {
 
@@ -655,6 +656,34 @@ public class FileWritingMessageHandlerTests {
 		result = output.receive(0);
 		assertFileContentIs(result, "bar");
 		assertLastModifiedIs(result, 43_000_000);
+	}
+
+	@Test
+	public void newFileCallback() throws Exception {
+		long lastModified = 1234000L;
+		Message<?> message = MessageBuilder.withPayload("bar")
+				.setHeader(FileHeaders.SET_MODIFIED, lastModified)
+				.build();
+		QueueChannel output = new QueueChannel();
+		handler.setFileExistsMode(FileExistsMode.APPEND);
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setOutputChannel(output);
+		handler.setPreserveTimestamp(true);
+		handler.setNewFileCallback((file, msg) -> {
+			try {
+				FileCopyUtils.copy(("foo" + System.lineSeparator()).getBytes(DEFAULT_ENCODING),
+						new FileOutputStream(file, false));
+			}
+			catch (IOException e) {
+				fail("unexpected copy exception");
+			}
+		});
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, "foo" + System.lineSeparator() + "bar");
+		assertLastModifiedIs(result, lastModified);
+		handler.handleRequestMessage(message);
+		assertFileContentIs(result, "foo" + System.lineSeparator() + "barbar");
 	}
 
 	void assertFileContentIsMatching(Message<?> result) throws IOException {

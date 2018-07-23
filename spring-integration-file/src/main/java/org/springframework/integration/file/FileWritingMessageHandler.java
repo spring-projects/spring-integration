@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -105,6 +106,7 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Tony Falabella
+ * @author Alen Turkovic
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler
 		implements Lifecycle, MessageTriggerAction {
@@ -158,6 +160,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile boolean preserveTimestamp;
 
 	private Set<PosixFilePermission> permissions;
+
+	private BiConsumer<File, Message<?>> newFileCallback;
 
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
@@ -443,6 +447,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.permissions = permissions;
 	}
 
+	/**
+	 * Set the callback to use when creating new files. This callback will only be called
+	 * if {@link #fileExistsMode} is {@link FileExistsMode#APPEND} or {@link FileExistsMode#APPEND_NO_FLUSH}
+	 * and new file has to be created. The callback receives the new result file and the message that
+	 * triggered the handler.
+	 * @param newFileCallback callback
+	 * @since 5.1
+	 */
+	public void setNewFileCallback(final BiConsumer<File, Message<?>> newFileCallback) {
+		this.newFileCallback = newFileCallback;
+	}
+
 	@Override
 	protected void doInit() {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
@@ -555,20 +571,21 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 								.contains(File.separator)) {
 					resultFile.getParentFile().mkdirs(); //NOSONAR - will fail on the writing below
 				}
+
 				if (payload instanceof File) {
-					resultFile = handleFileMessage((File) payload, tempFile, resultFile);
+					resultFile = handleFileMessage((File) payload, tempFile, resultFile, requestMessage);
 				}
 				else if (payload instanceof InputStream) {
 					resultFile = handleInputStreamMessage((InputStream) payload, originalFileFromHeader, tempFile,
-							resultFile);
+							resultFile, requestMessage);
 				}
 				else if (payload instanceof byte[]) {
 					resultFile = this.handleByteArrayMessage(
-							(byte[]) payload, originalFileFromHeader, tempFile, resultFile);
+							(byte[]) payload, originalFileFromHeader, tempFile, resultFile, requestMessage);
 				}
 				else if (payload instanceof String) {
 					resultFile = this.handleStringMessage(
-							(String) payload, originalFileFromHeader, tempFile, resultFile);
+							(String) payload, originalFileFromHeader, tempFile, resultFile, requestMessage);
 				}
 				else {
 					throw new IllegalArgumentException(
@@ -621,19 +638,20 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return null;
 	}
 
-	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile) throws IOException {
+	private File handleFileMessage(final File sourceFile, File tempFile, final File resultFile, final Message<?> requestMessage)
+			throws IOException {
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
 			rename(sourceFile, resultFile);
 			return resultFile;
 		}
 		else {
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
-			return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile);
+			return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile, requestMessage);
 		}
 	}
 
 	private File handleInputStreamMessage(final InputStream sourceFileInputStream, File originalFile, File tempFile,
-			final File resultFile) throws IOException {
+			final File resultFile, final Message<?> requestMessage) throws IOException {
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode)
 				|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode);
 
@@ -645,6 +663,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 				@Override
 				protected void whileLocked() throws IOException {
+					if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists()) {
+						FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
+					}
+
 					FileState state = getFileState(fileToWriteTo, false);
 					BufferedOutputStream bos = null;
 					try {
@@ -719,8 +741,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 	}
 
-	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile)
-			throws IOException {
+	private File handleByteArrayMessage(final byte[] bytes, File originalFile, File tempFile, final File resultFile,
+			final Message<?> requestMessage) throws IOException {
 		final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
@@ -730,6 +752,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
+				if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists() &&
+						(FileExistsMode.APPEND.equals(FileWritingMessageHandler.this.fileExistsMode)
+								|| FileExistsMode.APPEND_NO_FLUSH.equals(FileWritingMessageHandler.this.fileExistsMode))) {
+					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
+				}
+
 				FileState state = getFileState(fileToWriteTo, false);
 				BufferedOutputStream bos = null;
 				try {
@@ -762,8 +790,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
-	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile)
-			throws IOException {
+	private File handleStringMessage(final String content, File originalFile, File tempFile, final File resultFile,
+			final Message<?> requestMessage) throws IOException {
 		final File fileToWriteTo = this.determineFileToWrite(resultFile, tempFile);
 
 		final boolean append = FileExistsMode.APPEND.equals(this.fileExistsMode);
@@ -773,6 +801,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
+				if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists() &&
+						(FileExistsMode.APPEND.equals(FileWritingMessageHandler.this.fileExistsMode)
+						|| FileExistsMode.APPEND_NO_FLUSH.equals(FileWritingMessageHandler.this.fileExistsMode))) {
+					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
+				}
+
 				FileState state = getFileState(fileToWriteTo, true);
 				BufferedWriter writer = null;
 				try {
