@@ -673,7 +673,8 @@ public class FileWritingMessageHandlerTests {
 			try {
 				FileCopyUtils.copy(("foo" + System.lineSeparator()).getBytes(DEFAULT_ENCODING),
 						new FileOutputStream(file, false));
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				fail("unexpected copy exception");
 			}
 		});
