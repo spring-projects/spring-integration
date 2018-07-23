@@ -106,7 +106,7 @@ See "`<<jdbc>>`" for more information.
 === FTP and SFTP Changes
 
 A `RotatingServerAdvice` is now available to poll multiple servers and directories with the inbound channel adapters.
-See "<<ftp-rotating-server-advice>>" and <<sftp-rotating-server-advice>> for more information.
+See <<ftp-rotating-server-advice>> and <<sftp-rotating-server-advice>> for more information.
 
 Also, inbound adapter `localFilenameExpression` instances can contain the `#remoteDirectory` variable, which contains the remote directory being polled.
 The generic type of the comparators, used to sort the fetched file list for the streaming adapters, has changed from `Comparator<AbstractFileInfo<F>>` to simply `Comparator<F>`.
@@ -116,5 +116,5 @@ In addition, the synchronizers for inbound channel adapters can now be provided 
 
 ==== Twitter Support
 
-Since Spring Social project Since Spring Social project moved to https://spring.io/blog/2018/07/03/spring-social-end-of-life-announcement[End of Life Status], Twitter support in Spring Integration has been moved to the Extensions project.
+Since Spring Social project has moved to https://spring.io/blog/2018/07/03/spring-social-end-of-life-announcement[End of Life Status], Twitter support in Spring Integration has been moved to the Extensions project.
 See https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter] for more information.
