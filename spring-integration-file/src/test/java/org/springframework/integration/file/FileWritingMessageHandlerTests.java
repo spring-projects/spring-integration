@@ -657,6 +657,33 @@ public class FileWritingMessageHandlerTests {
 		assertLastModifiedIs(result, 43_000_000);
 	}
 
+	@Test
+	public void newFileCallback() throws Exception {
+		long lastModified = 1234000L;
+		Message<?> message = MessageBuilder.withPayload("bar")
+				.setHeader(FileHeaders.SET_MODIFIED, lastModified)
+				.build();
+		QueueChannel output = new QueueChannel();
+		handler.setFileExistsMode(FileExistsMode.APPEND);
+		handler.setCharset(DEFAULT_ENCODING);
+		handler.setOutputChannel(output);
+		handler.setPreserveTimestamp(true);
+		handler.setNewFileCallback(file -> {
+			try {
+				FileCopyUtils.copy(("foo" + System.lineSeparator()).getBytes(DEFAULT_ENCODING),
+						new FileOutputStream(file, false));
+			} catch (IOException e) {
+				fail("unexpected copy exception");
+			}
+		});
+		handler.handleMessage(message);
+		Message<?> result = output.receive(0);
+		assertFileContentIs(result, "foo" + System.lineSeparator() + "bar");
+		assertLastModifiedIs(result, lastModified);
+		handler.handleRequestMessage(message);
+		assertFileContentIs(result, "foo" + System.lineSeparator() + "barbar");
+	}
+
 	void assertFileContentIsMatching(Message<?> result) throws IOException {
 		assertFileContentIs(result, SAMPLE_CONTENT);
 	}
