@@ -616,8 +616,9 @@ outbound gateway by using the XML namespace.
 
 Starting with version 4.3, you can specify the buffer size to use when writing files.
 
-Starting with version 5.1, you can provide a `newFileCallback` which will be triggered if you are using `FileExistsMode.APPEND` or `FileExistsMode.APPEND_NO_FLUSH` and a new file has to be created.
-This callback receives the newly created file and the message which triggered it. This callback could be used to write a CSV header defined in the message header for an example.
+Starting with version 5.1, you can provide a `BiConsumer<File, Message<?>>` `newFileCallback`  which will be triggered if you are using `FileExistsMode.APPEND` or `FileExistsMode.APPEND_NO_FLUSH` and a new file has to be created.
+This callback receives the newly created file and the message which triggered it.
+This callback could be used to write a CSV header defined in the message header, for an example.
 
 [[file-writing-file-names]]
 ==== Generating File Names
