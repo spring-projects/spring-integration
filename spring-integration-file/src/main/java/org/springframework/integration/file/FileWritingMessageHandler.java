@@ -41,8 +41,10 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.expression.Expression;
@@ -115,14 +117,23 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private static final long DEFAULT_FLUSH_INTERVAL = 30000L;
 
 	private final Map<String, FileState> fileStates = new HashMap<String, FileState>();
-	private final Log logger = LogFactory.getLog(this.getClass());
-	private final Expression destinationDirectoryExpression;
+
 	private volatile String temporaryFileSuffix = ".writing";
+
 	private volatile boolean temporaryFileSuffixSet = false;
+
 	private volatile FileExistsMode fileExistsMode = FileExistsMode.REPLACE;
+
+	private final Log logger = LogFactory.getLog(this.getClass());
+
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+
 	private volatile boolean fileNameGeneratorSet;
+
 	private volatile StandardEvaluationContext evaluationContext;
+
+	private final Expression destinationDirectoryExpression;
+
 	private volatile boolean autoCreateDirectory = true;
 
 	private volatile boolean deleteSourceFiles;
@@ -188,6 +199,20 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	/**
+	 * By default, every file that is in the process of being transferred will
+	 * appear in the file system with an additional suffix, which by default is
+	 * ".writing". This can be changed by setting this property.
+	 *
+	 * @param temporaryFileSuffix The temporary file suffix.
+	 */
+	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null"); // empty string is OK
+		this.temporaryFileSuffix = temporaryFileSuffix;
+		this.temporaryFileSuffixSet = true;
+	}
+
+
+	/**
 	 * Will set the {@link FileExistsMode} that specifies what will happen in
 	 * case the destination exists. For example {@link FileExistsMode#APPEND}
 	 * instructs this handler to append data to the existing file rather then
@@ -245,6 +270,10 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.appendNewLine = appendNewLine;
 	}
 
+	protected String getTemporaryFileSuffix() {
+		return this.temporaryFileSuffix;
+	}
+
 	/**
 	 * Provide the {@link FileNameGenerator} strategy to use when generating
 	 * the destination file's name.
@@ -284,7 +313,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	/**
 	 * Set the buffer size to use while writing to files; default 8192.
-	 *
 	 * @param bufferSize the buffer size.
 	 * @since 4.3
 	 */
@@ -297,7 +325,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * being used. The interval is approximate; the actual interval will be between
 	 * {@code flushInterval} and {@code flushInterval * 1.33} with an average of
 	 * {@code flushInterval * 1.167}.
-	 *
 	 * @param flushInterval the interval.
 	 * @see #setFlushWhenIdle(boolean)
 	 * @since 4.3
@@ -310,9 +337,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * Determine whether the {@link #setFlushInterval(long) flushInterval} applies only
 	 * to idle files (default) or whether to flush on that interval after the first
 	 * write to a previously flushed or new file.
-	 *
 	 * @param flushWhenIdle false to flush on the interval after the first write
-	 *                      to a closed file.
+	 * to a closed file.
 	 * @see #setFlushInterval(long)
 	 * @see #setBufferSize(int)
 	 * @since 4.3.7
@@ -330,7 +356,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * Set a {@link MessageFlushPredicate} to use when flushing files when
 	 * {@link FileExistsMode#APPEND_NO_FLUSH} is being used.
 	 * See {@link #trigger(Message)}.
-	 *
 	 * @param flushPredicate the predicate.
 	 * @since 4.3
 	 */
@@ -345,7 +370,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * transferred to the destination file. For other payloads, the
 	 * {@link FileHeaders#SET_MODIFIED} header {@value FileHeaders#SET_MODIFIED}
 	 * will be used if present and it's a {@link Number}.
-	 *
 	 * @param preserveTimestamp the preserveTimestamp to set.
 	 * @since 4.3
 	 */
@@ -355,7 +379,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	/**
 	 * String setter for Spring XML convenience.
-	 *
 	 * @param chmod permissions as an octal string e.g "600";
 	 * @see #setChmod(int)
 	 * @since 5.0
@@ -369,7 +392,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * Set the file permissions after uploading, e.g. 0600 for
 	 * owner read/write. Only applies to file systems that support posix
 	 * file permissions.
-	 *
 	 * @param chmod the permissions.
 	 * @throws IllegalArgumentException if the value is higher than 0777.
 	 * @since 5.0
@@ -388,7 +410,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		 * We use that stream with a switch to create the set of PosixFilePermissions
 		 * representing the bits that were set in the chmod value.
 		 */
-		BitSet bits = BitSet.valueOf(new byte[]{(byte) chmod, (byte) (chmod >> 8)});
+		BitSet bits = BitSet.valueOf(new byte[] { (byte) chmod, (byte) (chmod >> 8) });
 		final Set<PosixFilePermission> permissions = new HashSet<>();
 		bits.stream().forEach(b -> {
 			switch (b) {
@@ -434,6 +456,27 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	@Override
+	protected void doInit() {
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+
+		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
+			final File directory = new File(this.destinationDirectoryExpression.getValue(
+					this.evaluationContext, null, String.class));
+			validateDestinationDirectory(directory, this.autoCreateDirectory);
+		}
+
+		Assert.state(!(this.temporaryFileSuffixSet
+						&& (FileExistsMode.APPEND.equals(this.fileExistsMode)
+						|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode))),
+				"'temporaryFileSuffix' can not be set when appending to an existing file");
+
+		if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(getBeanFactory());
+		}
+
+	}
+
+	@Override
 	public void start() {
 		if (this.flushTask == null && FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode)) {
 			TaskScheduler taskScheduler = getTaskScheduler();
@@ -457,7 +500,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		while (n++ < 10 && this.fileStates.size() > 0) {
 			try {
 				Thread.sleep(1);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				// cancel the interrupt
 			}
 			flusher.run();
@@ -475,84 +519,17 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return this.flushTask != null;
 	}
 
-	/**
-	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}, you can send a message to this
-	 * method to flush any file(s) that needs it. By default, the payload must be a regular
-	 * expression ({@link String} or {@link Pattern}) that matches the absolutePath
-	 * of any in-process files. However, if a custom {@link MessageFlushPredicate} is provided,
-	 * the payload can be of any type supported by that implementation.
-	 *
-	 * @since 4.3
-	 */
-	@Override
-	public void trigger(Message<?> message) {
-		flushIfNeeded(this.flushPredicate, message);
-	}
-
-	/**
-	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
-	 * selectively flush and close open files. For each open file the supplied
-	 * {@link MessageFlushPredicate#shouldFlush(String, long, long, Message)}
-	 * method is invoked and if true is returned, the file is flushed.
-	 *
-	 * @param flushPredicate the {@link FlushPredicate}.
-	 * @since 4.3
-	 */
-	public void flushIfNeeded(FlushPredicate flushPredicate) {
-		flushIfNeeded((fileAbsolutePath, firstWrite, lastWrite, filterMessage) ->
-						flushPredicate.shouldFlush(fileAbsolutePath, firstWrite, lastWrite),
-				null);
-	}
-
-	/**
-	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
-	 * selectively flush and close open files. For each open file the supplied
-	 * {@link MessageFlushPredicate#shouldFlush(String, long, long, Message)}
-	 * method is invoked and if true is returned, the file is flushed.
-	 *
-	 * @param flushPredicate the {@link MessageFlushPredicate}.
-	 * @param filterMessage  an optional message passed into the predicate.
-	 * @since 4.3
-	 */
-	public void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
-		doFlush(findFilesToFlush(flushPredicate, filterMessage));
-	}
-
-	protected String getTemporaryFileSuffix() {
-		return this.temporaryFileSuffix;
-	}
-
-	/**
-	 * By default, every file that is in the process of being transferred will
-	 * appear in the file system with an additional suffix, which by default is
-	 * ".writing". This can be changed by setting this property.
-	 *
-	 * @param temporaryFileSuffix The temporary file suffix.
-	 */
-	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
-		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null"); // empty string is OK
-		this.temporaryFileSuffix = temporaryFileSuffix;
-		this.temporaryFileSuffixSet = true;
-	}
-
-	@Override
-	protected void doInit() {
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-
-		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
-			final File directory = new File(this.destinationDirectoryExpression.getValue(
-					this.evaluationContext, null, String.class));
-			validateDestinationDirectory(directory, this.autoCreateDirectory);
+	private void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
+		if (!destinationDirectory.exists() && autoCreateDirectory) {
+			Assert.isTrue(destinationDirectory.mkdirs(),
+					() -> "Destination directory [" + destinationDirectory + "] could not be created.");
 		}
-
-		Assert.state(!(this.temporaryFileSuffixSet
-						&& (FileExistsMode.APPEND.equals(this.fileExistsMode)
-						|| FileExistsMode.APPEND_NO_FLUSH.equals(this.fileExistsMode))),
-				"'temporaryFileSuffix' can not be set when appending to an existing file");
-
-		if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
-			((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(getBeanFactory());
-		}
+		Assert.isTrue(destinationDirectory.exists(),
+				() -> "Destination directory [" + destinationDirectory + "] does not exist.");
+		Assert.isTrue(destinationDirectory.isDirectory(),
+				() -> "Destination path [" + destinationDirectory + "] does not point to a directory.");
+		Assert.isTrue(Files.isWritable(destinationDirectory.toPath()),
+				() -> "Destination directory [" + destinationDirectory + "] is not writable.");
 	}
 
 	@Override
@@ -597,32 +574,39 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				}
 				if (payload instanceof File) {
 					resultFile = handleFileMessage((File) payload, tempFile, resultFile);
-				} else if (payload instanceof InputStream) {
+				}
+				else if (payload instanceof InputStream) {
 					resultFile = handleInputStreamMessage((InputStream) payload, originalFileFromHeader, tempFile,
 							resultFile);
-				} else if (payload instanceof byte[]) {
+				}
+				else if (payload instanceof byte[]) {
 					resultFile = this.handleByteArrayMessage(
 							(byte[]) payload, originalFileFromHeader, tempFile, resultFile);
-				} else if (payload instanceof String) {
+				}
+				else if (payload instanceof String) {
 					resultFile = this.handleStringMessage(
 							(String) payload, originalFileFromHeader, tempFile, resultFile);
-				} else {
+				}
+				else {
 					throw new IllegalArgumentException(
 							"unsupported Message payload type [" + payload.getClass().getName() + "]");
 				}
 				if (this.preserveTimestamp) {
 					if (timestamp instanceof Number) {
 						resultFile.setLastModified(((Number) timestamp).longValue());
-					} else {
+					}
+					else {
 						if (this.logger.isWarnEnabled()) {
 							this.logger.warn("Could not set lastModified, header " + FileHeaders.SET_MODIFIED
 									+ " must be a Number, not " + (timestamp == null ? "null" : timestamp.getClass()));
 						}
 					}
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new MessageHandlingException(requestMessage, "failed to write Message payload to file", e);
 			}
+
 		}
 
 		if (!this.expectReply) {
@@ -636,60 +620,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		return resultFile;
-	}
-
-	/**
-	 * Set permissions on newly written files.
-	 *
-	 * @param resultFile the file.
-	 * @throws IOException any exception.
-	 * @since 5.0
-	 */
-	protected void setPermissions(File resultFile) throws IOException {
-		if (this.permissions != null) {
-			Files.setPosixFilePermissions(resultFile.toPath(), this.permissions);
-		}
-	}
-
-	/**
-	 * Create a buffered writer for the file, for String payloads.
-	 *
-	 * @param fileToWriteTo the file.
-	 * @param append        true if we are appending.
-	 * @return the writer.
-	 * @throws FileNotFoundException if the file does not exist.
-	 * @since 4.3.8
-	 */
-	protected BufferedWriter createWriter(final File fileToWriteTo, final boolean append) throws FileNotFoundException {
-		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset),
-				this.bufferSize);
-	}
-
-	/**
-	 * Create a buffered output stream for the file.
-	 *
-	 * @param fileToWriteTo the file.
-	 * @param append        true if we are appending.
-	 * @return the stream.
-	 * @throws FileNotFoundException if not found.
-	 * @since 4.3.8
-	 */
-	protected BufferedOutputStream createOutputStream(File fileToWriteTo, final boolean append)
-			throws FileNotFoundException {
-		return new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append), this.bufferSize);
-	}
-
-	private void validateDestinationDirectory(File destinationDirectory, boolean autoCreateDirectory) {
-		if (!destinationDirectory.exists() && autoCreateDirectory) {
-			Assert.isTrue(destinationDirectory.mkdirs(),
-					() -> "Destination directory [" + destinationDirectory + "] could not be created.");
-		}
-		Assert.isTrue(destinationDirectory.exists(),
-				() -> "Destination directory [" + destinationDirectory + "] does not exist.");
-		Assert.isTrue(destinationDirectory.isDirectory(),
-				() -> "Destination path [" + destinationDirectory + "] does not point to a directory.");
-		Assert.isTrue(Files.isWritable(destinationDirectory.toPath()),
-				() -> "Destination directory [" + destinationDirectory + "] is not writable.");
 	}
 
 	/**
@@ -712,7 +642,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (!FileExistsMode.APPEND.equals(this.fileExistsMode) && this.deleteSourceFiles) {
 			rename(sourceFile, resultFile);
 			return resultFile;
-		} else {
+		}
+		else {
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
 			return handleInputStreamMessage(bis, sourceFile, tempFile, resultFile);
 		}
@@ -743,10 +674,12 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 						if (FileWritingMessageHandler.this.appendNewLine) {
 							bos.write(LINE_SEPARATOR.getBytes());
 						}
-					} finally {
+					}
+					finally {
 						try {
 							sourceFileInputStream.close();
-						} catch (IOException ex) {
+						}
+						catch (IOException ex) {
 						}
 						try {
 							if (state == null || FileWritingMessageHandler.this.flushTask == null) {
@@ -754,18 +687,22 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 									bos.close();
 								}
 								clearState(fileToWriteTo, state);
-							} else {
+							}
+							else {
 								state.lastWrite = System.currentTimeMillis();
 							}
-						} catch (IOException ex) {
+						}
+						catch (IOException ex) {
 						}
 					}
 				}
+
 			};
 			whileLockedProcessor.doWhileLocked();
 			cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
 			return resultFile;
-		} else {
+		}
+		else {
 
 			BufferedOutputStream bos = null;
 			try {
@@ -779,16 +716,19 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					bos.write(LINE_SEPARATOR.getBytes());
 				}
 				bos.flush();
-			} finally {
+			}
+			finally {
 				try {
 					sourceFileInputStream.close();
-				} catch (IOException ex) {
+				}
+				catch (IOException ex) {
 				}
 				try {
 					if (bos != null) {
 						bos.close();
 					}
-				} catch (IOException ex) {
+				}
+				catch (IOException ex) {
 				}
 			}
 			cleanUpAfterCopy(tempFile, resultFile, originalFile);
@@ -815,20 +755,24 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					if (FileWritingMessageHandler.this.appendNewLine) {
 						bos.write(LINE_SEPARATOR.getBytes());
 					}
-				} finally {
+				}
+				finally {
 					try {
 						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 							if (bos != null) {
 								bos.close();
 							}
 							clearState(fileToWriteTo, state);
-						} else {
+						}
+						else {
 							state.lastWrite = System.currentTimeMillis();
 						}
-					} catch (IOException ex) {
+					}
+					catch (IOException ex) {
 					}
 				}
 			}
+
 		};
 		whileLockedProcessor.doWhileLocked();
 		this.cleanUpAfterCopy(fileToWriteTo, resultFile, originalFile);
@@ -854,20 +798,25 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 					if (FileWritingMessageHandler.this.appendNewLine) {
 						writer.newLine();
 					}
-				} finally {
+				}
+				finally {
 					try {
 						if (state == null || FileWritingMessageHandler.this.flushTask == null) {
 							if (writer != null) {
 								writer.close();
 							}
 							clearState(fileToWriteTo, state);
-						} else {
+						}
+						else {
 							state.lastWrite = System.currentTimeMillis();
 						}
-					} catch (IOException ex) {
+					}
+					catch (IOException ex) {
 					}
 				}
+
 			}
+
 		};
 		whileLockedProcessor.doWhileLocked();
 
@@ -910,6 +859,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		setPermissions(resultFile);
 	}
 
+	/**
+	 * Set permissions on newly written files.
+	 * @param resultFile the file.
+	 * @throws IOException any exception.
+	 * @since 5.0
+	 */
+	protected void setPermissions(File resultFile) throws IOException {
+		if (this.permissions != null) {
+			Files.setPosixFilePermissions(resultFile.toPath(), this.permissions);
+		}
+	}
+
 	private void renameTo(File tempFile, File resultFile) throws IOException {
 		Assert.notNull(resultFile, "'resultFile' must not be null");
 		Assert.notNull(tempFile, "'tempFile' must not be null");
@@ -917,12 +878,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (resultFile.exists()) {
 			if (resultFile.setWritable(true, false) && resultFile.delete()) {
 				rename(tempFile, resultFile);
-			} else {
+			}
+			else {
 				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() +
 						"' to '" + resultFile.getAbsolutePath() +
 						"' since '" + resultFile.getName() + "' is not writable or can not be deleted");
 			}
-		} else {
+		}
+		else {
 			rename(tempFile, resultFile);
 		}
 	}
@@ -950,17 +913,85 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				if (isString) {
 					state = new FileState(createWriter(fileToWriteTo, true),
 							this.lockRegistry.obtain(fileToWriteTo.getAbsolutePath()));
-				} else {
+				}
+				else {
 					state = new FileState(createOutputStream(fileToWriteTo, true),
 							this.lockRegistry.obtain(fileToWriteTo.getAbsolutePath()));
 				}
 				this.fileStates.put(absolutePath, state);
 			}
 			state.lastWrite = Long.MAX_VALUE; // prevent flush while we write
-		} else {
+		}
+		else {
 			state = null;
 		}
 		return state;
+	}
+
+	/**
+	 * Create a buffered writer for the file, for String payloads.
+	 * @param fileToWriteTo the file.
+	 * @param append true if we are appending.
+	 * @return the writer.
+	 * @throws FileNotFoundException if the file does not exist.
+	 * @since 4.3.8
+	 */
+	protected BufferedWriter createWriter(final File fileToWriteTo, final boolean append) throws FileNotFoundException {
+		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileToWriteTo, append), this.charset),
+				this.bufferSize);
+	}
+
+	/**
+	 * Create a buffered output stream for the file.
+	 * @param fileToWriteTo the file.
+	 * @param append true if we are appending.
+	 * @return the stream.
+	 * @throws FileNotFoundException if not found.
+	 * @since 4.3.8
+	 */
+	protected BufferedOutputStream createOutputStream(File fileToWriteTo, final boolean append)
+			throws FileNotFoundException {
+		return new BufferedOutputStream(new FileOutputStream(fileToWriteTo, append), this.bufferSize);
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}, you can send a message to this
+	 * method to flush any file(s) that needs it. By default, the payload must be a regular
+	 * expression ({@link String} or {@link Pattern}) that matches the absolutePath
+	 * of any in-process files. However, if a custom {@link MessageFlushPredicate} is provided,
+	 * the payload can be of any type supported by that implementation.
+	 * @since 4.3
+	 */
+	@Override
+	public void trigger(Message<?> message) {
+		flushIfNeeded(this.flushPredicate, message);
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
+	 * selectively flush and close open files. For each open file the supplied
+	 * {@link MessageFlushPredicate#shouldFlush(String, long, long, Message)}
+	 * method is invoked and if true is returned, the file is flushed.
+	 * @param flushPredicate the {@link FlushPredicate}.
+	 * @since 4.3
+	 */
+	public void flushIfNeeded(FlushPredicate flushPredicate) {
+		flushIfNeeded((fileAbsolutePath, firstWrite, lastWrite, filterMessage) ->
+						flushPredicate.shouldFlush(fileAbsolutePath, firstWrite, lastWrite),
+				null);
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH} you can invoke this method to
+	 * selectively flush and close open files. For each open file the supplied
+	 * {@link MessageFlushPredicate#shouldFlush(String, long, long, Message)}
+	 * method is invoked and if true is returned, the file is flushed.
+	 * @param flushPredicate the {@link MessageFlushPredicate}.
+	 * @param filterMessage an optional message passed into the predicate.
+	 * @since 4.3
+	 */
+	public void flushIfNeeded(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
+		doFlush(findFilesToFlush(flushPredicate, filterMessage));
 	}
 
 	private Map<String, FileState> findFilesToFlush(MessageFlushPredicate flushPredicate, Message<?> filterMessage) {
@@ -993,7 +1024,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				if (FileWritingMessageHandler.this.logger.isDebugEnabled()) {
 					FileWritingMessageHandler.this.logger.debug("Flushed: " + entry.getKey());
 				}
-			} else { // interrupted (stop), re-add
+			}
+			else { // interrupted (stop), re-add
 				interrupted = true;
 				toRestore.put(entry.getKey(), entry.getValue());
 			}
@@ -1013,53 +1045,6 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private static void rename(File source, File target) throws IOException {
 		Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
-	}
-
-	/**
-	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}, an implementation of this
-	 * interface is called for each file that has pending data to flush and close when
-	 * {@link FileWritingMessageHandler#flushIfNeeded(FlushPredicate)} is invoked.
-	 *
-	 * @since 4.3
-	 */
-	@FunctionalInterface
-	public interface FlushPredicate {
-
-		/**
-		 * Return true to cause the file to be flushed and closed.
-		 *
-		 * @param fileAbsolutePath the path to the file.
-		 * @param firstWrite       the time of the first write to a new or previously closed
-		 *                         file.
-		 * @param lastWrite        the time of the last write -
-		 *                         {@link System#currentTimeMillis()}.
-		 * @return true if the file should be flushed and closed.
-		 */
-		boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite);
-	}
-
-	/**
-	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
-	 * an implementation of this interface is called for each file that has pending data
-	 * to flush when a trigger message is received.
-	 *
-	 * @see FileWritingMessageHandler#trigger(Message)
-	 * @since 4.3
-	 */
-	@FunctionalInterface
-	public interface MessageFlushPredicate {
-
-		/**
-		 * Return true to cause the file to be flushed and closed.
-		 *
-		 * @param fileAbsolutePath the path to the file.
-		 * @param firstWrite       the time of the first write to a new or previously closed
-		 *                         file.
-		 * @param lastWrite        the time of the last write - {@link System#currentTimeMillis()}.
-		 * @param filterMessage    an optional message to be used in the decision process.
-		 * @return true if the file should be flushed and closed.
-		 */
-		boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite, Message<?> filterMessage);
 	}
 
 	private static final class FileState {
@@ -1092,43 +1077,23 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 				try {
 					if (this.writer != null) {
 						this.writer.close();
-					} else {
+					}
+					else {
 						this.stream.close();
 					}
-				} catch (IOException e) {
+				}
+				catch (IOException e) {
 					// ignore
 				}
 				return true;
-			} catch (InterruptedException e1) {
+			}
+			catch (InterruptedException e1) {
 				Thread.currentThread().interrupt();
 				return false;
-			} finally {
+			}
+			finally {
 				this.lock.unlock();
 			}
-		}
-	}
-
-	/**
-	 * Flushes files where the path matches a pattern, regardless of last write time.
-	 */
-	private static final class DefaultFlushPredicate implements MessageFlushPredicate {
-
-		DefaultFlushPredicate() {
-			super();
-		}
-
-		@Override
-		public boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite,
-		                           Message<?> triggerMessage) {
-			Pattern pattern;
-			if (triggerMessage.getPayload() instanceof String) {
-				pattern = Pattern.compile((String) triggerMessage.getPayload());
-			} else if (triggerMessage.getPayload() instanceof Pattern) {
-				pattern = (Pattern) triggerMessage.getPayload();
-			} else {
-				throw new IllegalArgumentException("Invalid payload type, must be a String or Pattern");
-			}
-			return pattern.matcher(fileAbsolutePath).matches();
 		}
 	}
 
@@ -1158,5 +1123,81 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 			doFlush(toRemove);
 		}
+
 	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}, an implementation of this
+	 * interface is called for each file that has pending data to flush and close when
+	 * {@link FileWritingMessageHandler#flushIfNeeded(FlushPredicate)} is invoked.
+	 * @since 4.3
+	 *
+	 */
+	@FunctionalInterface
+	public interface FlushPredicate {
+
+		/**
+		 * Return true to cause the file to be flushed and closed.
+		 * @param fileAbsolutePath the path to the file.
+		 * @param firstWrite the time of the first write to a new or previously closed
+		 * file.
+		 * @param lastWrite the time of the last write -
+		 * {@link System#currentTimeMillis()}.
+		 * @return true if the file should be flushed and closed.
+		 */
+		boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite);
+
+	}
+
+	/**
+	 * When using {@link FileExistsMode#APPEND_NO_FLUSH}
+	 * an implementation of this interface is called for each file that has pending data
+	 * to flush when a trigger message is received.
+	 * @see FileWritingMessageHandler#trigger(Message)
+	 * @since 4.3
+	 *
+	 */
+	@FunctionalInterface
+	public interface MessageFlushPredicate {
+
+		/**
+		 * Return true to cause the file to be flushed and closed.
+		 * @param fileAbsolutePath the path to the file.
+		 * @param firstWrite the time of the first write to a new or previously closed
+		 * file.
+		 * @param lastWrite the time of the last write - {@link System#currentTimeMillis()}.
+		 * @param filterMessage an optional message to be used in the decision process.
+		 * @return true if the file should be flushed and closed.
+		 */
+		boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite, Message<?> filterMessage);
+
+	}
+
+	/**
+	 * Flushes files where the path matches a pattern, regardless of last write time.
+	 */
+	private static final class DefaultFlushPredicate implements MessageFlushPredicate {
+
+		DefaultFlushPredicate() {
+			super();
+		}
+
+		@Override
+		public boolean shouldFlush(String fileAbsolutePath, long firstWrite, long lastWrite,
+		                           Message<?> triggerMessage) {
+			Pattern pattern;
+			if (triggerMessage.getPayload() instanceof String) {
+				pattern = Pattern.compile((String) triggerMessage.getPayload());
+			}
+			else if (triggerMessage.getPayload() instanceof Pattern) {
+				pattern = (Pattern) triggerMessage.getPayload();
+			}
+			else {
+				throw new IllegalArgumentException("Invalid payload type, must be a String or Pattern");
+			}
+			return pattern.matcher(fileAbsolutePath).matches();
+		}
+
+	}
+
 }
