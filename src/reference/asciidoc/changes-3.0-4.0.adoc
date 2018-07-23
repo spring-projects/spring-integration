@@ -126,9 +126,9 @@ For more information, see "`<<annotations>>`".
 [[x4.0-twitter-sog]]
 ===== Twitter Search Outbound Gateway
 
-We added a new twitter endpoint: `<int-twitter-search-outbound-gateway/>`.
-Unlike the search inbound adapter, which polls by using the same search query each time, the outbound gateway allows on-demand customized queries.
-For more information, see "`<<twitter-sog>>`".
+A new twitter endpoint `<int-twitter-search-outbound-gateway/>` has been added.
+Unlike the search inbound adapter which polls using the same search query each time, the outbound gateway allows on-demand customized queries.
+For more information, see https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter].
 
 [[x4.0-gemfire-metadata]]
 ===== Gemfire Metadata Store
@@ -246,9 +246,8 @@ See "`<<ftp-session-factory>>`" for more information.
 [[x4.0-twitter-status-updating]]
 ===== Twitter: `StatusUpdatingMessageHandler`
 
-The `StatusUpdatingMessageHandler` (`<int-twitter:outbound-channel-adapter>`) now supports the `tweet-data-expression` attribute to build a `org.springframework.social.twitter.api.TweetData` object for updating the timeline status.
-This feature allows, for example, attaching an image.
-See "`<<outbound-twitter-update>>`" for more information.
+The `StatusUpdatingMessageHandler` (`<int-twitter:outbound-channel-adapter>`) now supports the `tweet-data-expression` attribute to build a `org.springframework.social.twitter.api.TweetData` object for updating the timeline status allowing, for example, attaching an image.
+See https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter] for more information.
 
 [[x4.0-jpa-id-expression]]
 ===== JPA Retrieving Gateway: `id-expression`

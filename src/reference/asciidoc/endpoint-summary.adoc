@@ -154,12 +154,6 @@ The following table summarizes the various endpoints with quick links to the app
 | <<tcp-gateways>>
 | <<tcp-gateways>>
 
-| *Twitter*
-| <<twitter-inbound>>
-| <<twitter-outbound>>
-| N
-| <<twitter-sog>>
-
 | *UDP*
 | <<udp-adapters>>
 | <<udp-adapters>>
