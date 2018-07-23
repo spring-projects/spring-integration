@@ -75,8 +75,7 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
-		Assert.isTrue(this.isClientSet(),
-				"the 'errorHandler' must be specified on the provided 'restTemplate'");
+		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided 'restTemplate'");
 		this.target.setErrorHandler(errorHandler);
 		return _this();
 	}
