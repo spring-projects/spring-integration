@@ -134,6 +134,6 @@ List<LineItem> extractItems(Order order) {
 ----
 ====
 
-See also "`<<advising-with-annotations>>`".
+See also <<advising-with-annotations>>.
 
-See also "`<<java-dsl-splitters>>`" in the Java DSL chapter.
+See also <<java-dsl-splitters>> in the Java DSL chapter.

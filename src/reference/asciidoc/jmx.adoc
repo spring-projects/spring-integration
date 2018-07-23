@@ -231,7 +231,7 @@ It registers message channels and message handlers but does not register itself.
 You can expose the exporter itself (and certain other components in Spring Integration) by using the standard `<context:mbean-export/>` tag.
 The exporter has some metrics attached to it -- for instance, a count of the number of active handlers and the number of queued messages.
 
-It also has a useful operation, as discussed in "`<<jmx-mbean-shutdown>>`".
+It also has a useful operation, as discussed in <<jmx-mbean-shutdown>>.
 =====
 
 Spring Integration 4.0 introduced the `@EnableIntegrationMBeanExport` annotation to allow for convenient configuration of a default `integrationMbeanExporter` bean of type `IntegrationMBeanExporter` with several useful options at the `@Configuration` class level.
@@ -345,7 +345,7 @@ Previously, `MessageSource`, `MessageChannel`, and `MessageHandler` metrics were
 The proxy was added when an integration MBean exporter was declared in the context.
 +
 Now, the statistics are captured by the beans themselves.
-See "`<<metrics-management>>`" for more information.
+See <<metrics-management>> for more information.
 +
 WARNING: This change means that you no longer automatically get an MBean or statistics for custom `MessageHandler` implementations, unless those custom handlers extend `AbstractMessageHandler`.
 The simplest way to resolve this is to extend `AbstractMessageHandler`.
@@ -372,7 +372,7 @@ You can now control whether the statistics are enabled on an individual componen
 Further, you can capture simple counts on `MessageChannel` instances and `MessageHandler` instances instead of capturing the complete time-based statistics.
 This can have significant performance implications, because you can selectively configure where you need detailed statistics and enable and disable collection at runtime.
 +
-See "`<<metrics-management>>`".
+See <<metrics-management>>.
 
 @IntegrationManagedResource::
 Similar to the `@ManagedResource` annotation, the `@IntegrationManagedResource` marks a class as being eligible to be exported as an MBean.
@@ -434,4 +434,4 @@ public void stopActiveComponents(long howLong)
 ----
 ====
 
-Its use and operation are described in "`<<jmx-shutdown>>`".
+Its use and operation are described in <<jmx-shutdown>>.

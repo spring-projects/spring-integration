@@ -21,7 +21,7 @@ See <<amqp-strict-ordering>>.
 [[x5.1-general]]
 === General Changes
 
-The following general changes have been made in version 5.1:
+The following changes have been made in version 5.1:
 
 * <<x5.1-java-dsl>>
 * <<x5.1-dispatcher-exceptions>>
@@ -62,7 +62,7 @@ Previously, when beans were created after the application context was refreshed,
 
 A new `ResultType.BYTES` mode is introduced for the `ObjectToJsonTransformer`.
 
-See "`<<json-transformers>>`" for more information.
+See <<json-transformers>> for more information.
 
 [[x5.1-integration-flows-generated-bean-names]]
 ==== Integration Flows: Generated Bean Names
@@ -90,10 +90,10 @@ See "`<<publisher-annotation>>`" for more information.
 === AMQP Changes
 
 We have made `ID` and `Timestamp` header mapping changes in the `DefaultAmqpHeaderMapper`.
-See the note near the bottom of "`<<amqp-message-headers>>`" for more information.
+See the note near the bottom of <<amqp-message-headers>> for more information.
 
 The `contentType` header is now correctly mapped as an entry in the general headers map.
-See "`<<amqp-content-type>>`" for more information.
+See <<amqp-content-type>> for more information.
 
 [[x5.1-jdbc]]
 === JDBC Changes
@@ -109,12 +109,13 @@ A `RotatingServerAdvice` is now available to poll multiple servers and directori
 See <<ftp-rotating-server-advice>> and <<sftp-rotating-server-advice>> for more information.
 
 Also, inbound adapter `localFilenameExpression` instances can contain the `#remoteDirectory` variable, which contains the remote directory being polled.
-The generic type of the comparators, used to sort the fetched file list for the streaming adapters, has changed from `Comparator<AbstractFileInfo<F>>` to simply `Comparator<F>`.
+The generic type of the comparators (used to sort the fetched file list for the streaming adapters) has changed from `Comparator<AbstractFileInfo<F>>` to `Comparator<F>`.
 See <<ftp-streaming>> and <<sftp-streaming>> for more information.
 
-In addition, the synchronizers for inbound channel adapters can now be provided with a `Comparator`; this is useful when using `maxFetchSize` to limit the files retrieved.
+In addition, the synchronizers for inbound channel adapters can now be provided with a `Comparator`.
+This is useful when using `maxFetchSize` to limit the files retrieved.
 
 ==== Twitter Support
 
-Since the Spring Social project has moved to https://spring.io/blog/2018/07/03/spring-social-end-of-life-announcement[End of Life Status], Twitter support in Spring Integration has been moved to the Extensions project.
+Since the Spring Social project has moved to https://spring.io/blog/2018/07/03/spring-social-end-of-life-announcement[end of life status], Twitter support in Spring Integration has been moved to the Extensions project.
 See https://github.com/spring-projects/spring-integration-extensions/tree/master/spring-integration-social-twitter[Spring Integration Social Twitter] for more information.

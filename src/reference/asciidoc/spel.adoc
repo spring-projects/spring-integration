@@ -159,7 +159,7 @@ Otherwise the `#jsonPath` SpEL function is not registered.
 For more information regarding JSON see 'JSON Transformers' in <<transformer>>.
 
 * `#xpath`: To evaluate an 'xpath' on some provided object.
-For more information regarding XML and XPath, see "`<<xml>>`".
+For more information regarding XML and XPath, see <<xml>>.
 
 [[spel-property-accessors]]
 === Property Accessors

@@ -138,7 +138,7 @@ Not used by the framework directly but can be set with a header enricher and use
 | `IntegrationMessageHeaderAccessor.DUPLICATE_MESSAGE`
 | `java.lang.Boolean`
 | True if a message was detected as a duplicate by an idempotent receiver interceptor.
-See "`<<idempotent-receiver>>`".
+See <<idempotent-receiver>>.
 
 | `IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`
 | `java.io.Closeable`
@@ -152,7 +152,7 @@ An example is the `Session` associated with a streamed file transfer using FTP, 
 | `IntegrationMessageHeaderAccessor.ACKNOWLEDGMENT_CALLBACK`
 | `o.s.i.support.AcknowledgmentCallback`
 | If a message source supports it, a call back to accept, reject, or requeue a message.
-See "`<<deferred-acks-message-source>>`".
+See <<deferred-acks-message-source>>.
 |===
 
 Convenient typed getters for some of these headers are provided on the `IntegrationMessageHeaderAccessor` class, as the following example shows:
@@ -182,7 +182,7 @@ The following table describes headers that also appear in the `IntegrationMessag
 
 | `IntegrationMessageHeaderAccessor.ROUTING_SLIP`
 | `java.util.Map<List<Object>, Integer>`
-| See "`<<routing-slip>>`".
+| See <<routing-slip>>.
 |===
 
 [[message-id-generation]]

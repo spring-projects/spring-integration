@@ -179,9 +179,9 @@ The following table summarizes the various endpoints with quick links to the app
 | N
 |===
 
-In addition, as discussed in "`<<spring-integration-core-messaging>>`", Spring Integration provides endpoints for interfacing with Plain Old Java Objects (POJOs).
-As discussed in "`<<channel-adapter>>`", the `<int:inbound-channel-adapter>` element lets you poll a Java method for data.
+In addition, as discussed in <<spring-integration-core-messaging>>, Spring Integration provides endpoints for interfacing with Plain Old Java Objects (POJOs).
+As discussed in <<channel-adapter>>, the `<int:inbound-channel-adapter>` element lets you poll a Java method for data.
 The `<int:outbound-channel-adapter>` element lets you send data to a `void` method.
-As discussed in "`<<gateway>>`", the `<int:gateway>` element lets any Java program invoke a messaging flow.
+As discussed in <<gateway>>, the `<int:gateway>` element lets any Java program invoke a messaging flow.
 Each of these works without requiring any source-level dependencies on Spring Integration.
 The equivalent of an outbound gateway in this context is using a service activator (see <<service-activator>>) to invoke a method that returns an `Object` of some kind.

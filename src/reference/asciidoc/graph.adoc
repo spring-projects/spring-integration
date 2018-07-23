@@ -119,7 +119,7 @@ Node elements contain various properties that are generally self-explanatory.
 For example, expression-based components include the `expression` property that contains the primary expression string for the component.
 To enable the metrics, add an `@EnableIntegrationManagement` to a `@Configuration` class or add an `<int:management/>` element to your XML configuration.
 You can control exactly which components in the framework collect statistics.
-See  "`<<metrics-management>>`" for complete information.
+See  <<metrics-management>> for complete information.
 See the `stats` attribute from the `o.s.i.errorLogger` component in the JSON example shown earlier.
 In this case, The `nullChannel` and `errorChannel` do not provide statistics information, because the configuration for this example was as follows:
 
@@ -158,7 +158,7 @@ Within the graph, Spring Integration components are represented by using the `In
 For example, you can use the `ErrorCapableDiscardingMessageHandlerNode` for the `AggregatingMessageHandler` (because it has a `discardChannel` option) and can produce errors when consuming from a `PollableChannel` by using a `PollingConsumer`.
 Another example is `CompositeMessageHandlerNode` -- for a `MessageHandlerChain` when subscribed to a `SubscribableChannel` by using an `EventDrivenConsumer`.
 
-NOTE: The `@MessagingGateway` (see "`<<gateway>>`") provides nodes for each of its method, where the `name` attribute is based on the gateway's bean name and the short method signature.
+NOTE: The `@MessagingGateway` (see <<gateway>>) provides nodes for each of its method, where the `name` attribute is based on the gateway's bean name and the short method signature.
 Consider the following example of a gateway:
 
 ====
@@ -211,11 +211,11 @@ The preceding gateway produces nodes similar to the following:
 ====
 
 You can use this  `IntegrationNode` hierarchy for parsing the graph model on the client side as well as to understand the general Spring Integration runtime behavior.
-See also "`<<programming-tips>>`" for more information.
+See also <<programming-tips>> for more information.
 
 === Integration Graph Controller
 
-If your application is web-based (or built on top of Spring Boot with an embedded web container) and the Spring Integration HTTP or WebFlux module (see "`<<http>>`" and "`<<webflux>>`", respectively) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.
+If your application is web-based (or built on top of Spring Boot with an embedded web container) and the Spring Integration HTTP or WebFlux module (see <<http>> and <<webflux>>, respectively) is present on the classpath, you can use a `IntegrationGraphController` to expose the `IntegrationGraphServer` functionality as a REST service.
 For this purpose, the `@EnableIntegrationGraphController` and `@Configuration` class annotations and the `<int-http:graph-controller/>` XML element are available in the HTTP module.
 Together with the `@EnableWebMvc` annotation (or `<mvc:annotation-driven/>` for XML definitions), this configuration registers an `IntegrationGraphController` `@RestController` where its `@RequestMapping.path` can be configured on the `@EnableIntegrationGraphController` annotation or `<int-http:graph-controller/>` element.
 The default path is `/integration`.

@@ -50,10 +50,10 @@ See the <<samples,"`Samples`">> Appendix for an example that uses the `gateway` 
 
 The defaults in the preceding configuration are applied to all methods on the gateway interface.
 If a reply timeout is not specified, the calling thread waits indefinitely for a reply.
-See "`<<gateway-no-response>>`".
+See <<gateway-no-response>>.
 
 The defaults can be overridden for individual methods.
-See "`<<gateway-configuration-annotations>>`".
+See <<gateway-configuration-annotations>>.
 
 [[gateway-default-reply-channel]]
 ==== Setting the Default Reply Channel
@@ -311,11 +311,11 @@ IMPORTANT: Similarly to the XML version, when Spring Integration discovers these
 To perform this scan and register the `BeanDefinition` in the application context, add the `@IntegrationComponentScan` annotation to a `@Configuration` class.
 The standard `@ComponentScan` infrastructure does not deal with interfaces.
 Consequently, we introduced the custom `@IntegrationComponentScan` logic  to fine the `@MessagingGateway` annotation on the interfaces and register `GatewayProxyFactoryBean` instances for them.
-See also "`<<annotations>>`".
+See also <<annotations>>.
 
 NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is required on at least one `@Configuration`
 class.
-See "`<<configuration-enable-integration>>`" for more information.
+See <<configuration-enable-integration>> for more information.
 
 [[gateway-calling-no-argument-methods]]
 ==== Invoking No-Argument Methods
@@ -463,7 +463,7 @@ To do so, you can either return an `Exception` (as the `reply` from some service
 Generally, even with an asynchronous flow, the framework takes care of propagating an exception thrown by the
 downstream flow back to the gateway.
 The https://github.com/spring-projects/spring-integration-samples/tree/master/intermediate/tcp-client-server-multiplex[TCP Client-Server Multiplex] sample demonstrates both techniques to return the exception to the caller.
-It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see "`<<agg-and-group-to>>`")
+It emulates a socket IO error to the waiting thread by using an `aggregator` with `group-timeout` (see <<agg-and-group-to>>)
 and a `MessagingTimeoutException` reply on the discard flow.
 
 [[gateway-timeouts]]
@@ -585,7 +585,7 @@ result.addCallback(new ListenableFutureCallback<String>() {
 By default, the `GatewayProxyFactoryBean` uses `org.springframework.core.task.SimpleAsyncTaskExecutor` when submitting internal `AsyncInvocationTask` instances for any gateway method whose return type is a `Future`.
 However, the `async-executor` attribute in the `<gateway/>` element's configuration lets you provide a reference to any implementation of `java.util.concurrent.Executor` available within the Spring application context.
 
-The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `ListenableFuture` return types, returning `FutureTask` or `ListenableFutureTask` respectively. See "`<<gw-completable-future>>`".
+The (default) `SimpleAsyncTaskExecutor` supports both `Future` and `ListenableFuture` return types, returning `FutureTask` or `ListenableFutureTask` respectively. See <<gw-completable-future>>.
 Even though there is a default executor, it is often useful to provide an external one so that you can identify its threads in logs (when using XML, the thread name is based on the executor's bean name), as the following example shows:
 
 ====
@@ -764,16 +764,17 @@ mono.subscribe(invoice -> handleInvoice(invoice));
 
 The calling thread continues, with `handleInvoice()` being called when the flow completes.
 
-===== Downstream Flows Returning an Async Type
+===== Downstream Flows Returning an Asynchronous Type
 
-As mentioned in the `ListenableFuture` section above; if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, etc), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
+As mentioned in the `ListenableFuture` section above, if you wish some downstream component to return a message with an async payload (`Future`, `Mono`, and others), you must explicitly set the async executor to `null` (or `""` when using XML configuration).
 The flow is then invoked on the caller thread and the result can be retrieved later.
 
 ===== `void` Return Type
 
-Unlike the return types above, when the method return type is `void`, the framework cannot implicitly determine that you wish the downstream flow to run asynchronously, with the caller thread returning immediately.
-In this case, it is necessary to annotate the interface method with `@Async`.
+Unlike the return types mentioned earlier, when the method return type is `void`, the framework cannot implicitly determine that you wish the downstream flow to run asynchronously, with the caller thread returning immediately.
+In this case, you must annotate the interface method with `@Async`, as the following example shows:
 
+====
 [source, java]
 ----
 @MessagingGateway
@@ -785,8 +786,9 @@ public interface MyGateway {
 
 }
 ----
+====
 
-Of course, unlike the `Future<?>` return types, there is no way to inform the caller if some exception is thrown by the flow, unless some custom `TaskExecutor` (e.g. an `ErrorHandlingTaskExecutor`) is associated with the `@Async` annotation.
+Unlike the `Future<?>` return types, there is no way to inform the caller if some exception is thrown by the flow, unless some custom `TaskExecutor` (such as an `ErrorHandlingTaskExecutor`) is associated with the `@Async` annotation.
 
 [[gateway-no-response]]
 ==== Gateway Behavior When No response Arrives
@@ -855,4 +857,4 @@ At that time, the calling thread starts waiting for the reply.
 If the flow was completely synchronous, the reply is immediately available.
 For asynchronous flows, the thread waits for up to this time.
 
-See "`<<java-dsl-gateway>>`" in the Java DSL chapter for options to define gateways through `IntegrationFlows`.
+See <<java-dsl-gateway>> in the Java DSL chapter for options to define gateways through `IntegrationFlows`.

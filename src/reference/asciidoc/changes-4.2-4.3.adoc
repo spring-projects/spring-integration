@@ -12,45 +12,45 @@ Version 4.3 added a number of new components.
 
 ==== AMQP Async Outbound Gateway
 
-See "`<<amqp-async-outbound-gateway>>`".
+See <<amqp-async-outbound-gateway>>.
 
 ==== `MessageGroupFactory`
 
 We introduced the `MessageGroupFactory` strategy to allow control over `MessageGroup` instances in `MessageGroupStore` logic.
 We added `SimpleMessageGroupFactory` implementation for the `SimpleMessageGroup`, with the `GroupType.HASH_SET` as the default
 factory for the standard `MessageGroupStore` implementations.
-See "`<<message-store>>`" for more information.
+See <<message-store>> for more information.
 
 ==== `PersistentMessageGroup`
 
 We added the `PersistentMessageGroup` (lazy-load proxy) implementation for persistent `MessageGroupStore` instances,
 which return this instance for the `getMessageGroup()` when their `lazyLoadMessageGroups` is `true` (the default).
-See "`<<message-store>>`" for more information.
+See <<message-store>> for more information.
 
 ==== FTP and SFTP Streaming Inbound Channel Adapters
 
 We added inbound channel adapters that return an `InputStream` for each file, letting you retrieve remote files without writing them to the local file system.
-See "`<<ftp-streaming>>`" and "`<<sftp-streaming>>`" for more information.
+See <<ftp-streaming>> and <<sftp-streaming>> for more information.
 
 ==== `StreamTransformer`
 
 We added `StreamTransformer` to transform an `InputStream` payload to either a `byte[]` or a `String`.
-See "`<<stream-transformer>>`" for more information.
+See <<stream-transformer>> for more information.
 
 ==== Integration Graph
 
 We added `IntegrationGraphServer`, together with the `IntegrationGraphController` REST service, to expose the runtime model of a Spring Integration application as a graph.
-See "`<<integration-graph>>`" for more information.
+See <<integration-graph>> for more information.
 
 ==== JDBC Lock Registry
 
 We added `JdbcLockRegistry` for distributed locks shared through a database table.
-See "`<<jdbc-lock-registry>>`" for more information.
+See <<jdbc-lock-registry>> for more information.
 
 ==== `LeaderInitiator` for `LockRegistry`
 
 We added `LeaderInitiator` implementation based on the `LockRegistry` strategy.
-See "`<<leadership-event-handling>>`" for more information.
+See <<leadership-event-handling>> for more information.
 
 [[x4.3-general]]
 === General Changes
@@ -72,14 +72,14 @@ If you have such a configuration, remove the `reply-channel`.
 ===== Asynchronous Service Activator
 
 We added an option to make the service activator be synchronous.
-See "`<<async-service-activator>>`" for more information.
+See <<async-service-activator>> for more information.
 
 ===== Messaging Annotation Support changes
 
 The messaging annotation support does not require a `@MessageEndpoint` (or any other `@Component`) annotation declaration on the class level.
 To restore the previous behavior, set the `spring.integration.messagingAnnotations.require.componentAnnotation` of
 `spring.integration.properties` to `true`.
-See "`<<global-properties>>`" and "`<<annotations>>`" for more information.
+See <<global-properties>> and <<annotations>> for more information.
 
 ==== Mail Changes
 
@@ -89,13 +89,13 @@ This section describes general changes to the Spring Integration Mail functional
 
 The customizable `userFlag` (added in 4.2.2 to provide customization of the flag used to denote that the mail has been
 seen) is now available in the XML namespace.
-See "`<<imap-seen>>`" for more information.
+See <<imap-seen>> for more information.
 
 ===== Mail Message Mapping
 
 You can now map inbound mail messages with the `MessageHeaders` containing the mail headers and the payload containing the email content.
 Previously, the payload was always the raw `MimeMessage`.
-See "`<<mail-mapping>>`" for more information.
+See <<mail-mapping>> for more information.
 
 ==== JMS Changes
 
@@ -104,18 +104,18 @@ This section describes general changes to the Spring Integration JMS functionali
 ===== Header Mapper
 
 The `DefaultJmsHeaderMapper` now maps the standard `correlationId` header as a message property by invoking its `toString()` method.
-See "`<<jms-header-mapping>>`" for more information.
+See <<jms-header-mapping>> for more information.
 
 ===== Asynchronous Gateway
 
 The JMS outbound gateway now has an `async` property.
-See "`<<jms-async-gateway>>`" for more information.
+See <<jms-async-gateway>> for more information.
 
 ==== Aggregator Changes
 
 There is a change in behavior when a POJO aggregator releases a collection of `Message<?>` objects.
 This is rare, but, if your application does that, you need to make a small change to your POJO.
-See this "`<<agg-message-collection>>`" note for more information.
+See this <<agg-message-collection>> note for more information.
 
 ==== TCP/UDP Changes
 
@@ -124,20 +124,20 @@ This section describes general changes to the Spring Integration TCP/UDP functio
 ===== Events
 
 A new `TcpConnectionServerListeningEvent` is emitted when a server connection factory is started.
-See "`<<tcp-events>>`" for more information.
+See <<tcp-events>> for more information.
 
 You can now use the `destination-expression` and `socket-expression` attributes on `<int-ip:udp-outbound-channel-adapter>`.
-See "`<<udp-adapters>>`" for more information.
+See <<udp-adapters>> for more information.
 
 ===== Stream Deserializers
 
 The various deserializers that cannot allocate the final buffer until the whole message has been assembled now support pooling the raw buffer into which the data is received rather than creating and discarding a buffer for each message.
-See "`<<tcp-connection-factories>>`" for more information.
+See <<tcp-connection-factories>> for more information.
 
 ===== TCP Message Mapper
 
 The message mapper now, optionally, sets a configured content type header.
-See "`<<ip-msg-headers>>`" for more information.
+See <<ip-msg-headers>> for more information.
 
 ==== File Changes
 
@@ -146,12 +146,12 @@ This section describes general changes to the Spring Integration File functional
 ===== Destination Directory Creation
 
 The generated file name for the `FileWritingMessageHandler` can represent a sub-path to save the desired directory structure for a file in the target directory.
-See "`<<file-writing-file-names>>`" for more information.
+See <<file-writing-file-names>> for more information.
 
 The `FileReadingMessageSource` now hides the `WatchService` directory scanning logic in the inner class.
 We added the `use-watch-service` and `watch-events` options to enable this behavior.
 We deprecated the top-level `WatchServiceDirectoryScanner` because of inconsistency around the API.
-See "`<<watch-service-directory-scanner>>`" for more information.
+See <<watch-service-directory-scanner>> for more information.
 
 ===== Buffer Size
 
@@ -160,24 +160,24 @@ When writing files, you can now specify the buffer size.
 ===== Appending and Flushing
 
 You can now avoid flushing files when appending and use a number of strategies to flush the data during idle periods.
-See "`<<file-flushing>>`" for more information.
+See <<file-flushing>> for more information.
 
 ===== Preserving Timestamps
 
 You can now configure the outbound channel adapter to set the destination file's `lastmodified` timestamp.
-See "`<<file-timestamps>>`" for more information.
+See <<file-timestamps>> for more information.
 
 ===== Splitter Changes
 
 The `FileSplitter` now automatically closes an FTP or SFTP session when the file is completely read.
 This applies when the outbound gateway returns an `InputStream` or when you use the new FTP or SFTP streaming channel adapters.
 We also introduced a new `markers-json` option to convert `FileSplitter.FileMarker` to JSON `String` for relaxed downstream network interaction.
-See "`<<file-splitter>>`" for more information.
+See <<file-splitter>> for more information.
 
 ===== File Filters
 
 We added `ChainFileListFilter` as an alternative to `CompositeFileListFilter`.
-See "`<<file-reading>>`" for more information.
+See <<file-reading>> for more information.
 
 ==== AMQP Changes
 
@@ -187,7 +187,7 @@ This section describes general changes to the Spring Integration AMQP functional
 
 The outbound endpoints now support a `RabbitTemplate` configured with a `ContentTypeDelegatingMessageConverter` such
 that you can choose the converter based on the message content type.
-See "`<<content-type-conversion-outbound>>`" for more information.
+See <<content-type-conversion-outbound>> for more information.
 
 ===== Headers for Delayed Message Handling
 
@@ -197,7 +197,7 @@ Header mapping now supports the headers (`amqp_delay` and `amqp_receivedDelay`) 
 ===== AMQP-Backed Channels
 
 AMQP-backed channels now support message mapping.
-See "`<<amqp-channels>>`" for more information.
+See <<amqp-channels>> for more information.
 
 ==== Redis Changes
 
@@ -208,22 +208,22 @@ This section describes general changes to the Spring Integration Redis functiona
 Previously, the queue channel adapters always used the Redis list in a fixed direction, pushing to the left end and reading from the right end.
 You can now configure the reading and writing direction with the `rightPop` and `leftPush` options for the
 `RedisQueueMessageDrivenEndpoint` and `RedisQueueOutboundChannelAdapter`, respectively.
-See "`<<redis-queue-inbound-channel-adapter>>`" and "`<<redis-queue-outbound-channel-adapter>>`" for more information.
+See <<redis-queue-inbound-channel-adapter>> and <<redis-queue-outbound-channel-adapter>> for more information.
 
 ===== Queue Inbound Gateway Default Serializer
 
 The default serializer in the inbound gateway has been changed to a `JdkSerializationRedisSerializer` for compatibility with the outbound gateway.
-See "`<<redis-queue-inbound-gateway>>`" for more information.
+See <<redis-queue-inbound-gateway>> for more information.
 
 ==== HTTP Changes
 
 Previously, with requests that had a body (such as `POST`) that had no `content-type` header, the body was ignored.
 With this release, the content type of such requests is considered to be `application/octet-stream` as recommended
 by RFC 2616.
-See "`<<http-inbound>>`" for more information.
+See <<http-inbound>> for more information.
 
 `uriVariablesExpression` now uses a `SimpleEvaluationContext` by default (since 4.3.15).
-See "`<<mapping-uri-variables>>`" for more information.
+See <<mapping-uri-variables>> for more information.
 
 ==== SFTP Changes
 
@@ -232,7 +232,7 @@ This section describes general changes to the Spring Integration SFTP functional
 ===== Factory Bean
 
 We added a new factory bean to simplify the configuration of Jsch proxies for SFTP.
-See "`<<sftp-proxy-factory-bean>>`" for more information.
+See <<sftp-proxy-factory-bean>> for more information.
 
 ===== `chmod` Changes
 
@@ -248,14 +248,14 @@ This section describes general changes to the Spring Integration FTP functionali
 The `FtpSession` now supports `null` for the `list()` and `listNames()` methods, since underlying FTP Client can use it.
 With that, you can now configure the `FtpOutboundGateway` without the `remoteDirectory` expression.
 You can also configure the `<int-ftp:inbound-channel-adapter>` without `remote-directory` or `remote-directory-expression`.
-See "`<<ftp>>`" for more information.
+See <<ftp>> for more information.
 
 ==== Router Changes
 
 The `ErrorMessageExceptionTypeRouter` now supports the `Exception` superclass mappings to avoid duplication for the same channel in case of multiple inheritors.
 For this purpose, the `ErrorMessageExceptionTypeRouter` loads mapping classes during initialization to fail-fast for a `ClassNotFoundException`.
 
-See "`<<router>>`" for more information.
+See <<router>> for more information.
 
 ==== Header Mapping
 
@@ -264,7 +264,7 @@ This section describes the changes to header mapping between version 4.2 and 4.3
 ===== General
 
 AMQP, WS, and XMPP header mappings (such as `request-header-mapping` and `reply-header-mapping`) now support negated patterns.
-See "`<<amqp-message-headers>>`", "`<<ws-message-headers>>`", and "`<<xmpp-message-headers>>`" for more information.
+See <<amqp-message-headers>>, <<ws-message-headers>>, and <<xmpp-message-headers>> for more information.
 
 ===== AMQP Header Mapping
 
@@ -272,36 +272,36 @@ Previously, only standard AMQP headers were mapped by default.
 You had to explicitly enable mapping of user-defined headers.
 With this release, all headers are mapped by default.
 In addition, the inbound `amqp_deliveryMode` header is no longer mapped by default.
-See "`<<amqp-message-headers>>`" for more information.
+See <<amqp-message-headers>> for more information.
 
 ==== Groovy Scripts
 
 You can now configure groovy scripts with the `compile-static` hint or any other `CompilerConfiguration` options.
-See "`<<groovy-config>>`" for more information.
+See <<groovy-config>> for more information.
 
 ==== `@InboundChannelAdapter` Changes
 
 The `@InboundChannelAdapter` now has an alias `channel` attribute for the regular `value`.
 In addition, the target `SourcePollingChannelAdapter` components can now resolve the target `outputChannel` bean from its provided name (`outputChannelName` options) in a late-binding manner.
-See "`<<annotations>>`" for more information.
+See <<annotations>> for more information.
 
 ==== XMPP Changes
 
 The XMPP channel adapters now support the XMPP Extensions (XEP).
-See "`<<xmpp-extensions>>`" for more information.
+See <<xmpp-extensions>> for more information.
 
 ==== WireTap Late Binding
 
 The `WireTap` `ChannelInterceptor` now can accept a `channelName` that is resolved to the target `MessageChannel`
 later, during the first active interceptor operation.
-See "`<<channel-wiretap>>`" for more information.
+See <<channel-wiretap>> for more information.
 
 ==== `ChannelMessageStoreQueryProvider` Changes
 
 The `ChannelMessageStoreQueryProvider` now supports H2 databases.
-See "`<<jdbc-message-store-channels>>`" for more information.
+See <<jdbc-message-store-channels>> for more information.
 
 ==== WebSocket Changes
 
 The `ServerWebSocketContainer` now exposes an `allowedOrigins` option, and `SockJsServiceOptions` exposes a `suppressCors` option.
-See "`<<web-sockets>>`" for more information.
+See <<web-sockets>> for more information.
