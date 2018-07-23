@@ -161,7 +161,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private Set<PosixFilePermission> permissions;
 
-	private volatile BiConsumer<File, Message<?>> newFileCallback;
+	private BiConsumer<File, Message<?>> newFileCallback;
 
 	/**
 	 * Constructor which sets the {@link #destinationDirectoryExpression} using
@@ -452,9 +452,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 * if {@link #fileExistsMode} is {@link FileExistsMode#APPEND} or {@link FileExistsMode#APPEND_NO_FLUSH}
 	 * and new file has to be created. The callback receives the new result file and the message that
 	 * triggered the handler.
-	 * @since 5.1
-	 *
 	 * @param newFileCallback callback
+	 * @since 5.1
 	 */
 	public void setNewFileCallback(final BiConsumer<File, Message<?>> newFileCallback) {
 		this.newFileCallback = newFileCallback;
@@ -664,8 +663,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 				@Override
 				protected void whileLocked() throws IOException {
-					if (newFileCallback != null && !fileToWriteTo.exists()) {
-						newFileCallback.accept(fileToWriteTo, requestMessage);
+					if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists()) {
+						FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
 					}
 
 					FileState state = getFileState(fileToWriteTo, false);
@@ -753,9 +752,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
-				if (newFileCallback != null && !fileToWriteTo.exists() && (FileExistsMode.APPEND.equals(fileExistsMode)
+				if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists() && (FileExistsMode.APPEND.equals(fileExistsMode)
 						|| FileExistsMode.APPEND_NO_FLUSH.equals(fileExistsMode))) {
-					newFileCallback.accept(fileToWriteTo, requestMessage);
+					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
 				}
 
 				FileState state = getFileState(fileToWriteTo, false);
@@ -801,9 +800,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 			@Override
 			protected void whileLocked() throws IOException {
-				if (newFileCallback != null && !fileToWriteTo.exists() && (FileExistsMode.APPEND.equals(fileExistsMode)
+				if (FileWritingMessageHandler.this.newFileCallback != null && !fileToWriteTo.exists() && (FileExistsMode.APPEND.equals(fileExistsMode)
 						|| FileExistsMode.APPEND_NO_FLUSH.equals(fileExistsMode))) {
-					newFileCallback.accept(fileToWriteTo, requestMessage);
+					FileWritingMessageHandler.this.newFileCallback.accept(fileToWriteTo, requestMessage);
 				}
 
 				FileState state = getFileState(fileToWriteTo, true);

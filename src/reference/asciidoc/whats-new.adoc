@@ -30,7 +30,6 @@ The following general changes have been made in version 5.1:
 * <<x5.1-integration-flows-generated-bean-names>>
 * <<x5.1-aggregator>>
 * <<x5.1-publisher>>
-* <<x5.1-file-writing-message-handler-new-file-callback>>
 
 [[x5.1-java-dsl]]
 ==== Java DSL
