@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -58,6 +59,8 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
+import org.springframework.web.socket.messaging.StompSubProtocolHandler;
+import org.springframework.web.socket.messaging.SubProtocolHandler;
 
 /**
  * @author Artem Bilan
@@ -219,8 +222,17 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	@Override
 	public void afterSessionStarted(WebSocketSession session) throws Exception {
 		if (isActive()) {
-			this.subProtocolHandlerRegistry.findProtocolHandler(session)
-					.afterSessionStarted(session, this.subProtocolHandlerChannel);
+			SubProtocolHandler protocolHandler = this.subProtocolHandlerRegistry.findProtocolHandler(session);
+			protocolHandler.afterSessionStarted(session, this.subProtocolHandlerChannel);
+			if (!this.server && protocolHandler instanceof StompSubProtocolHandler) {
+				StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
+				accessor.setSessionId(session.getId());
+				accessor.setLeaveMutable(true);
+				accessor.setAcceptVersion("1.1,1.2");
+
+				Message<?> connectMessage = MessageBuilder.createMessage(EMPTY_PAYLOAD, accessor.getMessageHeaders());
+				protocolHandler.handleMessageToClient(session, connectMessage);
+			}
 		}
 	}
 

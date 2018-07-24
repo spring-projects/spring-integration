@@ -157,6 +157,10 @@ public class StompIntegrationTests {
 
 	@Test
 	public void sendMessageToControllerAndReceiveReplyViaTopic() throws Exception {
+		Message<?> receive = this.webSocketEvents.receive(20000);
+		assertNotNull(receive);
+		Object event = receive.getPayload();
+		assertThat(event, instanceOf(SessionConnectedEvent.class));
 
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
 		headers.setSubscriptionId("subs1");
@@ -168,9 +172,9 @@ public class StompIntegrationTests {
 
 		this.webSocketOutputChannel.send(message);
 
-		Message<?> receive = this.webSocketEvents.receive(20000);
+		receive = this.webSocketEvents.receive(20000);
 		assertNotNull(receive);
-		Object event = receive.getPayload();
+		event = receive.getPayload();
 		assertThat(event, instanceOf(ReceiptEvent.class));
 		Message<?> receiptMessage = ((ReceiptEvent) event).getMessage();
 		headers = StompHeaderAccessor.wrap(receiptMessage);
