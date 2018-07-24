@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file.remote.session;
+package org.springframework.integration.file.remote.aop;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
+import org.springframework.integration.file.remote.session.DelegatingSessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
