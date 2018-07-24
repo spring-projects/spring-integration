@@ -129,11 +129,11 @@ The preceding examples that show the `namespace` manipulations can be simplified
 
 ====
 [source,xml]
- ----
- payload-expression="#extension.json"
- payload-expression="#extension.bodies[0]"
- ----
- ====
+----
+payload-expression="#extension.json"
+payload-expression="#extension.bodies[0]"
+----
+====
 
 [[xmpp-message-outbound-channel-adapter]]
 ==== Outbound Message Channel Adapter
