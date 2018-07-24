@@ -56,7 +56,6 @@ import java.util.regex.Matcher;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.logging.Log;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -117,15 +116,10 @@ public class FileWritingMessageHandlerTests {
 
 	private FileWritingMessageHandler handler;
 
-	@Before
-	public void setup() throws Exception {
-		//don't tamper with temp files here, Rule is applied later
-	}
-
 	@Test(expected = MessageHandlingException.class)
-	public void unsupportedType() throws Exception {
-		handler.handleMessage(new GenericMessage<Integer>(99));
-		assertThat(outputDirectory.listFiles()[0], nullValue());
+	public void unsupportedType() {
+		this.handler.handleMessage(new GenericMessage<>(99));
+		assertThat(this.outputDirectory.listFiles()[0], nullValue());
 	}
 
 	@Test
