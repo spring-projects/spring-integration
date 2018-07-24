@@ -1,6 +1,5 @@
 [[spring-integration-reference]]
 = Spring Integration Reference Manual
-Mark Fisher, Marius Bogoevici, Iwein Fuld, Jonas Partner, Oleg Zhurakousky, Gary Russell, Dave Syer, Josh Long, David Turanski, Gunnar Hillert, Artem Bilan, Amol Nayak, Jay Bryant
 :revnumber: {version}
 :revdate: {localdate}
 :linkcss:
@@ -22,7 +21,7 @@ include::./preface.adoc[]
 = What's New?
 
 [[spring-integration-intro-new]]
-For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 5.0.
+For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 5.1.
 If you are interested in the changes and features that were introduced in earlier versions, see the <<history>>.
 
 include::./whats-new.adoc[]
