@@ -34,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
  *
  * @author Artem Bilan
  * @author Shiliang Li
+ * @author Oleksii Komlyk
  *
  * @since 5.0
  *
@@ -63,8 +64,7 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec requestFactory(ClientHttpRequestFactory requestFactory) {
-		Assert.isNull(this.restTemplate,
-				"the 'requestFactory' must be specified on the provided 'restTemplate': " + this.restTemplate);
+		Assert.isTrue(!isClientSet(), "the 'requestFactory' must be specified on the provided 'restTemplate'");
 		this.target.setRequestFactory(requestFactory);
 		return this;
 	}
@@ -75,8 +75,7 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec errorHandler(ResponseErrorHandler errorHandler) {
-		Assert.isTrue(this.isClientSet(),
-				"the 'errorHandler' must be specified on the provided 'restTemplate'");
+		Assert.isTrue(!isClientSet(), "the 'errorHandler' must be specified on the provided 'restTemplate'");
 		this.target.setErrorHandler(errorHandler);
 		return _this();
 	}
@@ -88,7 +87,7 @@ public class HttpMessageHandlerSpec
 	 * @return the spec
 	 */
 	public HttpMessageHandlerSpec messageConverters(HttpMessageConverter<?>... messageConverters) {
-		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided restTemplate");
+		Assert.isTrue(!isClientSet(), "the 'messageConverters' must be specified on the provided 'restTemplate'");
 		this.target.setMessageConverters(Arrays.asList(messageConverters));
 		return _this();
 	}
