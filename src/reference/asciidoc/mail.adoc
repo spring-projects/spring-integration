@@ -70,8 +70,10 @@ The next section has examples of configuring both types of inbound channel adapt
 [IMPORTANT]
 ====
 Normally, when the `IMAPMessage.getContent()` method is called, certain headers as well as the body are rendered (for a simple text email), as the following example shows:
+====
 
 ====
+---
 [source]
 ----
 To: thing1@things.com
@@ -92,7 +94,6 @@ Starting with version 5.0, messages originating from an IMAP source render the c
 If you do not use a header mapper and you wish to revert to the previous behavior of rendering only the body, set the `simpleContent` boolean property on the mail receiver to `true`.
 This property now controls the rendering regardless of whether a header mapper is used.
 It now allows body-only rendering when a header mapper is provided.
-====
 
 [[mail-mapping]]
 === Inbound Mail Message Mapping

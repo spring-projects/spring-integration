@@ -1417,13 +1417,15 @@ In that case, it defaults to the default reply timeout (10 seconds).
 | Y
 | Y
 |
-| See `java.net.Socket.setSendBufferSize()`.
+| See `java.net.Socket.`
+`setSendBufferSize()`.
 
 | `so-receive-buffer-size`
 | Y
 | Y
 |
-| See `java.net.Socket.setReceiveBufferSize()`.
+| See `java.net.Socket.`
+`setReceiveBufferSize()`.
 
 | `so-keep-alive`
 | Y
@@ -1448,7 +1450,8 @@ See `java.net.Socket.setSoLinger()`.
 | Y
 | Y
 |
-| See `java.net.Socket.setTrafficClass()`.
+| See `java.net.Socket.`
+`setTrafficClass()`.
 
 | `local-address`
 | N
@@ -1610,7 +1613,7 @@ Default: `true`.
 The following table describes attributes that you can set to configure UDP outbound channel adapters:
 
 .UDP Outbound Channel Adapter Attributes
-[cols="1,^1,4", options="header"]
+[cols="2,^1,4", options="header"]
 |===
 | Attribute Name
 | Allowed Values
@@ -1701,7 +1704,7 @@ outgoing UDP packets.
 The following table describes attributes that you can set to configure TCP inbound channel adapters:
 
 .TCP Inbound Channel Adapter Attributes
-[cols="1,^1,4", options="header"]
+[cols="2,^1,4", options="header"]
 |===
 | Attribute Name
 | Allowed Values
@@ -1742,7 +1745,7 @@ See "`<<namespace-taskscheduler>>`".
 The following table describes attributes that you can set to configure TCP outbound channel adapters:
 
 .TCP Outbound Channel Adapter Attributes
-[cols="1,^1,4", options="header"]
+[cols="2,^1,4", options="header"]
 |===
 | Attribute Name
 | Allowed Values
@@ -1780,7 +1783,7 @@ See "`<<namespace-taskscheduler>>`".
 The following table describes attributes that you can set to configure TCP inbound gateways:
 
 .TCP Inbound Gateway Attributes
-[cols="1,^1,4", options="header"]
+[cols="2,^1,4", options="header"]
 |===
 | Attribute Name
 | Allowed Values
@@ -1832,7 +1835,7 @@ The following table describes attributes that you can set to configure TCP outbo
 
 [[tcp-ob-gateway-attributes]]
 .TCP Outbound Gateway Attributes
-[cols="1,^1,4", options="header"]
+[cols="2,^1,4", options="header"]
 |===
 | Attribute Name
 | Allowed Values
@@ -1879,7 +1882,7 @@ Only applies if the reply-channel might block (such as a bounded QueueChannel th
 
 This module uses the following `MessageHeader` instances:
 
-[cols="2,2,4", options="header"]
+[cols="3,3,4", options="header"]
 |===
 | Header Name
 | IpHeaders Constant
@@ -1928,7 +1931,8 @@ When sending to a server-side inbound channel adapter or replying to an inbound 
 When using a cached or failover client connection factory, it contains the actual underlying connection ID.
 
 | `contentType`
-| `MessageHeaders.CONTENT_TYPE`
+| `MessageHeaders.`
+`CONTENT_TYPE`
 | An optional content type for inbound messages
 Described after this table.
 Note that, unlike the other header constants, this constant is in the `MessageHeaders` class, not the `IpHeaders` class.

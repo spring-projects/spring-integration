@@ -167,7 +167,7 @@ Assume we have the following XML document (which represents an order of two book
     </orderItem>
 </order>
 ----
-===
+====
 
 This document does not declare a namespace.
 Therefore, applying the following XPath Expression works as expected:

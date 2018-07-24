@@ -953,7 +953,7 @@ The following listing shows the corresponding SQL:
 ----
 CREATE PROCEDURE FIND_ALL_COFFEE_BEVERAGES() \
 PARAMETER STYLE JAVA LANGUAGE JAVA MODIFIES SQL DATA DYNAMIC RESULT SETS 1 \
-EXTERNAL NAME 'org.springframework.integration.jdbc.storedproc.derby.DerbyStoredProcedures.findAllCoffeeBeverages';
+EXTERNAL NAME 'o.s.i.jdbc.storedproc.derby.DerbyStoredProcedures.findAllCoffeeBeverages';
 ----
 ====
 
@@ -1063,7 +1063,7 @@ This `MetadataStore` implementation can be used with adapters such as the follow
 * <<ftp-inbound,FTP inbound channel adapters>>
 * <<sftp-inbound,SFTP inbound channel adapters>>
 
-To configure these adapters to use the `JdbcMetadataStore`, declare a Spring bean by using a bean name of `metadataStore`. 
+To configure these adapters to use the `JdbcMetadataStore`, declare a Spring bean by using a bean name of `metadataStore`.
 The Feed inbound channel adapter and the feed inbound channel adapter both automatically pick up and use the declared `JdbcMetadataStore`, as the following example shows:
 
 ====

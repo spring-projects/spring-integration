@@ -708,6 +708,7 @@ When the entire handler is advised (such as when the handler does not produce re
 ----
 String componentName = ((NamedComponent) target).getComponentName();
 ----
+====
 
 When you implement `MethodInterceptor` directly, you could cast the target object as follows:
 
@@ -852,7 +853,6 @@ public IntegrationFlow flow() {
     ...
 }
 ----
-====
 
 NOTE: The `IdempotentReceiverInterceptor` is designed only for the `MessageHandler.handleMessage(Message<?>)` method.
 Starting with version 4.3.1, it implements `HandleMessageAdvice`, with the `AbstractHandleMessageAdvice` as a base class, for better dissociation.
