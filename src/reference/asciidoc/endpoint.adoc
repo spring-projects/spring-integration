@@ -371,6 +371,7 @@ The following example shows how to define an `advice-chain` for a `poller`:
 	</int:poller>
 </int:service-activator>
 ----
+====
 
 For more information on how to implement the `MethodInterceptor` interface, see the https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#aop-api[AOP sections of the Spring Framework Reference Guide].
 An advice chain can also be applied on a poller that does not have any transaction configuration, letting you enhance the behavior of the message flow initiated by the poller.

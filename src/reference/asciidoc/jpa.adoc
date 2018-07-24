@@ -589,6 +589,7 @@ The following example shows how to do so:
 public class Student {
 
 ...
+}
 ----
 ====
 
@@ -989,6 +990,7 @@ public class JpaJavaApplication {
 
 The following example shows all the attributes that you can set on a retrieving outbound gateway and describes the key attributes:
 
+====
 [source,xml]
 ----
 <int-jpa:retrieving-outbound-gateway request-channel=""
@@ -1154,7 +1156,7 @@ This section contains various examples of using the updating outbound gateway an
 
 In the following example, an updating outbound gateway is persisted by using the `org.springframework.integration.jpa.test.entity.Student` entity class as a JPA defining parameter:
 
-===
+====
 [source,xml]
 ----
 <int-jpa:updating-outbound-gateway request-channel="entityRequestChannel"  <1>

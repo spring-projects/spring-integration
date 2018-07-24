@@ -1108,7 +1108,7 @@ You can provide one of these filters by using the `filter` property on the gatew
 See also "`<<sftp-partial>>`".
 
 [[sftp-put-command]]
-====Using the `put` Command
+==== Using the `put` Command
 
 `put` sends a file to the remote server.
 The payload of the message can be a `java.io.File`, a `byte[]`, or a `String`.

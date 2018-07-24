@@ -693,7 +693,7 @@ MyCompletableFuture<Invoice> order(Order order);
 
 `CompletableFuture` instances can be used to perform additional manipulation on the reply, as the following example shows:
 
-===
+====
 [source, java]
 ----
 CompletableFuture<String> process(String data);

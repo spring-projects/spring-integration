@@ -390,12 +390,12 @@ Previously, beans of these types were exported as two distinct MBeans:
 +
 * The metrics MBean (with an object name such as `intDomain:type=MessageHandler,name=myRouter,bean=endpoint`).
 This MBean had metrics attributes and metrics/Lifecycle operations.
-* A second MBean (with an object name such as `ctxDomain:name=org.springframework.integration.config.RouterFactoryBean#0,type=MethodInvokingRouter`) was exported with the channel mappings attribute and operations.
+* A second MBean (with an object name such as `ctxDomain:name=org.springframework.integration.config.` `RouterFactoryBean#0`,type=MethodInvokingRouter`) was exported with the channel mappings attribute and operations.
 +
 Now the attributes and operations are consolidated into a single MBean.
 The object name depends on the exporter.
 If exported by the integration MBean exporter, the object name is, for example: `intDomain:type=MessageHandler,name=myRouter,bean=endpoint`.
-If exported by another exporter, the object name is, for example: `ctxDomain:name=org.springframework.integration.config.RouterFactoryBean#0,type=MethodInvokingRouter`.
+If exported by another exporter, the object name is, for example: `ctxDomain:name=org.springframework.integration.config.` `RouterFactoryBean#0,type=MethodInvokingRouter`.
 There is no difference between these MBeans (aside from the object name), except that the statistics are not enabled (the attributes are `0`) by exporters other than the integration exporter.
 You can enable statistics at runtime by using the JMX operations.
 When exported by the integration MBean exporter, the initial state can be managed as described earlier.
