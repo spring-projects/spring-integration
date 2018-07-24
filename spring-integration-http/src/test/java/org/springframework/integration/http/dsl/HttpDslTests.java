@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,11 +30,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -58,14 +60,15 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.client.MockMvcClientHttpRequestFactory;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
  * @author Artem Bilan
  * @author Shiliang Li
  * @author Gary Russell
+ * @author Oleksii Komlyk
  *
  * @since 5.0
  */
@@ -93,9 +96,8 @@ public class HttpDslTests {
 
 	@Test
 	public void testHttpProxyFlow() throws Exception {
-		RestTemplate mockMvcRestTemplate = new RestTemplate(new MockMvcClientHttpRequestFactory(this.mockMvc));
-		new DirectFieldAccessor(this.serviceInternalGatewayHandler)
-				.setPropertyValue("restTemplate", mockMvcRestTemplate);
+		ClientHttpRequestFactory mockRequestFactory = new MockMvcClientHttpRequestFactory(this.mockMvc);
+		this.serviceInternalGatewayHandler.setRequestFactory(mockRequestFactory);
 
 		this.mockMvc.perform(
 				get("/service")
@@ -111,7 +113,10 @@ public class HttpDslTests {
 						.param("name", "name"))
 				.andExpect(
 						status()
-								.isForbidden());
+								.isForbidden())
+				.andExpect(
+						content()
+								.string("Error"));
 	}
 
 	@Configuration
@@ -178,7 +183,8 @@ public class HttpDslTests {
 							.errorChannel("httpProxyErrorFlow.input"))
 					.handle(Http.outboundGateway("/service/internal?{params}")
 									.uriVariable("params", "payload")
-									.expectedResponseType(String.class),
+									.expectedResponseType(String.class)
+									.errorHandler(new HttpProxyResponseErrorHandler()),
 							e -> e.id("serviceInternalGateway"))
 					.get();
 		}
@@ -203,6 +209,17 @@ public class HttpDslTests {
 			channelSecurityInterceptor.setAuthenticationManager(authenticationManager());
 			channelSecurityInterceptor.setAccessDecisionManager(accessDecisionManager);
 			return channelSecurityInterceptor;
+		}
+
+	}
+
+	public static class HttpProxyResponseErrorHandler extends DefaultResponseErrorHandler {
+
+		@Override
+		protected byte[] getResponseBody(ClientHttpResponse response) {
+			Charset charset = getCharset(response);
+			String content = "Error";
+			return charset != null ? content.getBytes(charset) : content.getBytes();
 		}
 
 	}
