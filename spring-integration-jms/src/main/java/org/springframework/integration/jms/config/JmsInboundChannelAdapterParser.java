@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,10 +47,6 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsDestinationPollingSource.class);
-		String componentName =  this.resolveId(element, builder.getBeanDefinition(), parserContext);
-		if (StringUtils.hasText(componentName)) {
-			builder.addPropertyValue("componentName", componentName);
-		}
 		String jmsTemplate = element.getAttribute(JmsParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsParserUtils.DESTINATION_NAME_ATTRIBUTE);

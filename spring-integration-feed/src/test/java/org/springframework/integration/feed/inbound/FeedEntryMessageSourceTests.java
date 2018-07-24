@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class FeedEntryMessageSourceTests {
 	public void testReceiveFeedWithEntriesSorted() throws Exception {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/feed/sample.rss");
 		FeedEntryMessageSource source = new FeedEntryMessageSource(resource, "foo");
-		source.setComponentName("feedReader");
+		source.setBeanName("feedReader");
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.afterPropertiesSet();
 		Message<SyndEntry> message1 = source.receive();

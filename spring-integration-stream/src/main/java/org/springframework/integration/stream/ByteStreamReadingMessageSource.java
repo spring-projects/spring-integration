@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.MessageSource;
-import org.springframework.messaging.Message;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.GenericMessage;
 
 /**
  * A pollable source for receiving bytes from an {@link InputStream}.
@@ -32,11 +29,9 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Artem Bilan
  */
-public class ByteStreamReadingMessageSource extends IntegrationObjectSupport implements MessageSource<byte[]> {
+public class ByteStreamReadingMessageSource extends AbstractMessageSource<byte[]> {
 
-	private BufferedInputStream stream;
-
-	private Object streamMonitor;
+	private final BufferedInputStream stream;
 
 	private int bytesPerMessage = 1024;
 
@@ -48,7 +43,6 @@ public class ByteStreamReadingMessageSource extends IntegrationObjectSupport imp
 	}
 
 	public ByteStreamReadingMessageSource(InputStream stream, int bufferSize) {
-		this.streamMonitor = stream;
 		if (stream instanceof BufferedInputStream) {
 			this.stream = (BufferedInputStream) stream;
 		}
@@ -74,11 +68,12 @@ public class ByteStreamReadingMessageSource extends IntegrationObjectSupport imp
 		return "stream:stdin-channel-adapter(byte)";
 	}
 
-	public Message<byte[]> receive() {
+	@Override
+	protected byte[] doReceive() {
 		try {
 			byte[] bytes;
 			int bytesRead = 0;
-			synchronized (this.streamMonitor) {
+			synchronized (this.stream) {
 				if (this.stream.available() == 0) {
 					return null;
 				}
@@ -89,12 +84,12 @@ public class ByteStreamReadingMessageSource extends IntegrationObjectSupport imp
 				return null;
 			}
 			if (!this.shouldTruncate) {
-				return new GenericMessage<byte[]>(bytes);
+				return bytes;
 			}
 			else {
 				byte[] result = new byte[bytesRead];
 				System.arraycopy(bytes, 0, result, 0, result.length);
-				return new GenericMessage<byte[]>(result);
+				return result;
 			}
 		}
 		catch (IOException e) {

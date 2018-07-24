@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.springframework.integration.jpa.inbound;
 
-import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -44,11 +43,12 @@ import org.springframework.util.Assert;
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Artem Bilan
  *
  * @since 2.2
  *
  */
-public class JpaPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
+public class JpaPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	private final JpaExecutor jpaExecutor;
 
@@ -59,7 +59,6 @@ public class JpaPollingChannelAdapter extends IntegrationObjectSupport implement
 	 * @param jpaExecutor Must not be null.
 	 */
 	public JpaPollingChannelAdapter(JpaExecutor jpaExecutor) {
-		super();
 		Assert.notNull(jpaExecutor, "jpaExecutor must not be null.");
 		this.jpaExecutor = jpaExecutor;
 	}
@@ -68,26 +67,18 @@ public class JpaPollingChannelAdapter extends IntegrationObjectSupport implement
 	 * Check for mandatory attributes
 	 */
 	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-		this.jpaExecutor.setBeanFactory(this.getBeanFactory());
+	protected void onInit() {
+		this.jpaExecutor.setBeanFactory(getBeanFactory());
 	}
 
 	/**
-	 * Uses {@link JpaExecutor#poll()} to executes the JPA operation.
-	 *
+	 * Use {@link JpaExecutor#poll()} to executes the JPA operation.
 	 * If {@link JpaExecutor#poll()} returns null, this method will return
 	 * <code>null</code>. Otherwise, a new {@link Message} is constructed and returned.
 	 */
-	public Message<Object> receive() {
-
-		final Object payload = this.jpaExecutor.poll();
-
-		if (payload == null) {
-			return null;
-		}
-
-		return this.getMessageBuilderFactory().withPayload(payload).build();
+	@Override
+	protected Object doReceive() {
+		return this.jpaExecutor.poll();
 	}
 
 	@Override

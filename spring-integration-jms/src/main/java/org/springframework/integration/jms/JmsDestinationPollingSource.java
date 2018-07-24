@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import java.util.Map;
 
 import javax.jms.Destination;
 
-import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
@@ -37,8 +36,9 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
-public class JmsDestinationPollingSource extends IntegrationObjectSupport implements MessageSource<Object> {
+public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 
 
 	private final JmsTemplate jmsTemplate;
@@ -100,14 +100,28 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 	}
 
+	@Override
+	protected void onInit() {
+		if (this.sessionAcknowledgeMode != null) {
+			Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.sessionAcknowledgeMode);
+			if (acknowledgeMode != null) {
+				if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
+					this.jmsTemplate.setSessionTransacted(true);
+				}
+				else {
+					this.jmsTemplate.setSessionAcknowledgeMode(acknowledgeMode);
+				}
+			}
+		}
+	}
+
 	/**
 	 * Will receive a JMS {@link javax.jms.Message} converting and returning it as
 	 * a Spring Integration {@link Message}. This method will also use the current
 	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public Message<Object> receive() {
+	protected Object doReceive() {
 		javax.jms.Message jmsMessage = doReceiveJmsMessage();
 		if (jmsMessage == null) {
 			return null;
@@ -119,10 +133,11 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 			if (this.extractPayload) {
 				object = this.jmsTemplate.getMessageConverter().fromMessage(jmsMessage);
 			}
-			AbstractIntegrationMessageBuilder<Object> builder = (object instanceof Message) ?
-					getMessageBuilderFactory().fromMessage((Message<Object>) object) :
-					getMessageBuilderFactory().withPayload(object);
-			return builder.copyHeadersIfAbsent(mappedHeaders).build();
+			AbstractIntegrationMessageBuilder<?> builder =
+					(object instanceof Message)
+							? getMessageBuilderFactory().fromMessage((Message<?>) object)
+							: getMessageBuilderFactory().withPayload(object);
+			return builder.copyHeadersIfAbsent(mappedHeaders);
 		}
 		catch (Exception e) {
 			throw new MessagingException(e.getMessage(), e);
@@ -141,21 +156,6 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 			jmsMessage = this.jmsTemplate.receiveSelected(this.messageSelector);
 		}
 		return jmsMessage;
-	}
-
-	@Override
-	protected void onInit() {
-		if (this.sessionAcknowledgeMode != null) {
-			Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(this.sessionAcknowledgeMode);
-			if (acknowledgeMode != null) {
-				if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
-					this.jmsTemplate.setSessionTransacted(true);
-				}
-				else {
-					this.jmsTemplate.setSessionAcknowledgeMode(acknowledgeMode);
-				}
-			}
-		}
 	}
 
 }

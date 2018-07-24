@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -128,7 +127,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 	}
 
 	@Test
-	public void testMaxFetch() throws IOException {
+	public void testMaxFetch() throws Exception {
 		FtpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(new AcceptAllFileListFilter<>());
 		messageSource.afterPropertiesSet();
@@ -143,7 +142,7 @@ public class FtpStreamingMessageSourceTests extends FtpTestSupport {
 	}
 
 	@Test
-	public void testMaxFetchNoFilter() throws IOException {
+	public void testMaxFetchNoFilter() throws Exception {
 		FtpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(null);
 		messageSource.afterPropertiesSet();

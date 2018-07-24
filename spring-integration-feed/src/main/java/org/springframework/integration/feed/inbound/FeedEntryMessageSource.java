@@ -28,11 +28,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -55,7 +54,7 @@ import com.rometools.rome.io.XmlReader;
  *
  * @since 2.0
  */
-public class FeedEntryMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
+public class FeedEntryMessageSource extends AbstractMessageSource<SyndEntry> {
 
 	private final URL feedUrl;
 
@@ -145,18 +144,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	}
 
 	@Override
-	public Message<SyndEntry> receive() {
-		Assert.isTrue(this.initialized,
-				"'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
-		SyndEntry entry = doReceive();
-		if (entry == null) {
-			return null;
-		}
-		return this.getMessageBuilderFactory().withPayload(entry).build();
-	}
-
-	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		if (this.metadataStore == null) {
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
@@ -176,13 +164,16 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		this.initialized = true;
 	}
 
-	private SyndEntry doReceive() {
+	@Override
+	protected SyndEntry doReceive() {
+		Assert.isTrue(this.initialized,
+				"'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
 		SyndEntry nextEntry = null;
 		synchronized (this.monitor) {
 			nextEntry = getNextEntry();
 			if (nextEntry == null) {
 				// read feed and try again
-				this.populateEntryList();
+				populateEntryList();
 				nextEntry = getNextEntry();
 			}
 		}

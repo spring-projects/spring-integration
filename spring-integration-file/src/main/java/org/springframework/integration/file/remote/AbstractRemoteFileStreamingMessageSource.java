@@ -136,7 +136,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	@Override
-	public final void afterPropertiesSet() {
+	public final void onInit() {
 		Assert.state(this.remoteDirectoryExpression != null, "'remoteDirectoryExpression' must not be null");
 		doInit();
 	}

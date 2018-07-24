@@ -173,8 +173,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F>
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
-		super.afterPropertiesSet();
+	protected void onInit() {
 		Assert.notNull(this.localDirectory, "localDirectory must not be null");
 		try {
 			if (!this.localDirectory.exists()) {

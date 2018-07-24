@@ -88,11 +88,13 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public final void afterPropertiesSet() throws Exception {
 		getEvaluationContext();
 		if (this.beanFactory != null) {
 			this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 		}
+
+		onInit();
 	}
 
 	protected StandardEvaluationContext getEvaluationContext() {
@@ -167,6 +169,10 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware, I
 
 	protected <T> T evaluateExpression(Expression expression, Object input, Class<T> expectedType) {
 		return expression.getValue(this.getEvaluationContext(), input, expectedType);
+	}
+
+	protected void onInit() {
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,9 @@ import org.springframework.data.redis.support.collections.RedisCollectionFactory
 import org.springframework.data.redis.support.collections.RedisStore;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
-import org.springframework.messaging.Message;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
@@ -43,12 +41,13 @@ import org.springframework.util.Assert;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  */
-public class RedisStoreMessageSource extends IntegrationObjectSupport
-		implements MessageSource<RedisStore> {
+public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 
-	private final ThreadLocal<RedisStore> resourceHolder = new ThreadLocal<RedisStore>();
+	private final ThreadLocal<RedisStore> resourceHolder = new ThreadLocal<>();
 
 	private volatile StandardEvaluationContext evaluationContext;
 
@@ -63,13 +62,10 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	 * which should resolve to a 'key' name of the collection to be used.
 	 * It assumes that {@link RedisTemplate} is fully initialized and ready to be used.
 	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
-	 *
 	 * @param redisTemplate The Redis template.
 	 * @param keyExpression The key expression.
 	 */
-	public RedisStoreMessageSource(RedisTemplate<String, ?> redisTemplate,
-			Expression keyExpression) {
-
+	public RedisStoreMessageSource(RedisTemplate<String, ?> redisTemplate, Expression keyExpression) {
 		Assert.notNull(keyExpression, "'keyExpression' must not be null");
 		Assert.notNull(redisTemplate, "'redisTemplate' must not be null");
 
@@ -82,9 +78,7 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	 * which should resolve to a 'key' name of the collection to be used.
 	 * It will create and initialize an instance of {@link StringRedisTemplate} that uses
 	 * {@link StringRedisSerializer} for all serialization.
-	 *
 	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
-	 *
 	 * @param connectionFactory The connection factory.
 	 * @param keyExpression The key expression.
 	 */
@@ -106,13 +100,17 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		this.collectionType = collectionType;
 	}
 
+	@Override
+	protected void onInit() {
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+	}
+
 	/**
 	 * Returns a Message with the view into a {@link RedisStore} identified
 	 * by {@link #keyExpression}
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public Message<RedisStore> receive() {
+	protected RedisStore doReceive() {
 		String key = this.keyExpression.getValue(this.evaluationContext, String.class);
 		Assert.hasText(key, "Failed to determine the key for the collection");
 
@@ -124,11 +122,11 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 			((IntegrationResourceHolder) holder).addAttribute("store", store);
 		}
 
-		if (store instanceof Collection<?> && ((Collection<Object>) store).size() < 1) {
+		if (store instanceof Collection<?> && ((Collection<?>) store).size() < 1) {
 			return null;
 		}
 		else {
-			return this.getMessageBuilderFactory().withPayload(store).build();
+			return store;
 		}
 	}
 
@@ -146,12 +144,6 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 		return "redis:store-inbound-channel-adapter";
 	}
 
-	@Override
-	protected void onInit() throws Exception {
-		this.evaluationContext =
-				ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
-	}
-
 	public RedisStore getResource() {
 		return this.resourceHolder.get();
 	}
@@ -163,4 +155,5 @@ public class RedisStoreMessageSource extends IntegrationObjectSupport
 	public void afterRollback(Object object) {
 		this.resourceHolder.remove();
 	}
+
 }

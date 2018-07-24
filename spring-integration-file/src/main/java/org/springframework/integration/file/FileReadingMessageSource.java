@@ -46,15 +46,14 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -85,7 +84,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  */
-public class FileReadingMessageSource extends IntegrationObjectSupport implements MessageSource<File>, Lifecycle {
+public class FileReadingMessageSource extends AbstractMessageSource<File>
+		implements Lifecycle {
 
 	private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
 
@@ -350,21 +350,6 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	}
 
 	@Override
-	public Message<File> receive() throws MessagingException {
-		AbstractIntegrationMessageBuilder<File> messageBuilder = doReceive();
-
-		Message<File> message = null;
-
-		if (messageBuilder != null) {
-			message = messageBuilder.build();
-			if (logger.isInfoEnabled()) {
-				logger.info("Created message: [" + message + "]");
-			}
-		}
-
-		return message;
-	}
-
 	protected AbstractIntegrationMessageBuilder<File> doReceive() {
 		// rescan only if needed or explicitly configured
 		if (this.scanEachPoll || this.toBeReceived.isEmpty()) {

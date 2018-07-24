@@ -142,7 +142,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 	}
 
 	@Test
-	public void testSimplePollForListWithRowMapperAndOneUpdate() {
+	public void testSimplePollForListWithRowMapperAndOneUpdate() throws Exception {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
 				"select * from item where status=2");
 		adapter.setUpdateSql("update item set status = 10 where id in (:id)");
@@ -170,7 +170,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 	}
 
 	@Test
-	public void testSimplePollForListWithRowMapperAndUpdatePerRow() {
+	public void testSimplePollForListWithRowMapperAndUpdatePerRow() throws Exception {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
 				"select * from item where status=2");
 		adapter.setUpdateSql("update item set status = 10 where id = :id");
@@ -199,7 +199,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 	}
 
 	@Test
-	public void testSimplePollForListWithRowMapperAndInsertPerRowAndMaxRows() {
+	public void testSimplePollForListWithRowMapperAndInsertPerRowAndMaxRows() throws Exception {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
 				"select * from item where id not in (select id from copy)");
 		adapter.setUpdateSql("insert into copy values(:id,10)");
@@ -229,7 +229,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 	}
 
 	@Test
-	public void testSimplePollForListWithRowMapperAndUpdatePerRowWithMaxRows() {
+	public void testSimplePollForListWithRowMapperAndUpdatePerRowWithMaxRows() throws Exception {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(embeddedDatabase,
 				"select * from item where status=2");
 		adapter.setUpdateSql("update item set status = 10 where id = :id");

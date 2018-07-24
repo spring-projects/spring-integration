@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,11 @@ import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeLocator;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mongodb.support.MongoHeaders;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.messaging.Message;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -58,11 +59,11 @@ import com.mongodb.DBObject;
  * @author Amol Nayak
  * @author Oleg Zhurakousky
  * @author Yaron Yamin
+ * @author Artem Bilan
  *
  * @since 2.2
  */
-public class MongoDbMessageSource extends IntegrationObjectSupport
-		implements MessageSource<Object> {
+public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 
 	private final Expression queryExpression;
 
@@ -169,9 +170,9 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		this.evaluationContext =
-				ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+				ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		TypeLocator typeLocator = this.evaluationContext.getTypeLocator();
 		if (typeLocator instanceof StandardTypeLocator) {
 			//Register MongoDB query API package so FQCN can be avoided in query-expression.
@@ -192,9 +193,9 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 */
 	@Override
-	public Message<Object> receive() {
+	protected Object doReceive() {
 		Assert.isTrue(this.initialized, "This class is not yet initialized. Invoke its afterPropertiesSet() method");
-		Message<Object> message = null;
+		AbstractIntegrationMessageBuilder<Object> messageBuilder = null;
 		Object value = this.queryExpression.getValue(this.evaluationContext);
 		Assert.notNull(value, "'queryExpression' must not evaluate to null");
 		Query query;
@@ -226,9 +227,8 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 			}
 		}
 		if (result != null) {
-			message = this.getMessageBuilderFactory().withPayload(result)
-					.setHeader(MongoHeaders.COLLECTION_NAME, collectionName)
-					.build();
+			messageBuilder = this.getMessageBuilderFactory().withPayload(result)
+					.setHeader(MongoHeaders.COLLECTION_NAME, collectionName);
 		}
 
 		Object holder = TransactionSynchronizationManager.getResource(this);
@@ -237,7 +237,7 @@ public class MongoDbMessageSource extends IntegrationObjectSupport
 			((IntegrationResourceHolder) holder).addAttribute("mongoTemplate", this.mongoTemplate);
 		}
 
-		return message;
+		return messageBuilder;
 	}
 
 }

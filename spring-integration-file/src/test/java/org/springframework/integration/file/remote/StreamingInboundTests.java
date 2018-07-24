@@ -137,7 +137,7 @@ public class StreamingInboundTests {
 	}
 
 	@Test
-	public void testExceptionOnFetch() {
+	public void testExceptionOnFetch() throws Exception {
 		exception.expect(MessagingException.class);
 		StringSessionFactory sessionFactory = new StringSessionFactory();
 		Streamer streamer = new Streamer(new StringRemoteFileTemplate(sessionFactory), null);
