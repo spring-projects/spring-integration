@@ -120,7 +120,7 @@ subprojects { subproject ->
 		kryoShadedVersion = '3.0.3'
 		lettuceVersion = '5.0.3.RELEASE'
 		log4jVersion = '2.11.0'
-		micrometerVersion = '1.0.3'
+		micrometerVersion = '1.0.6'
 		mockitoVersion = '2.18.0'
 		mysqlVersion = '8.0.11'
 		pahoMqttClientVersion = '1.2.0'
