@@ -29,6 +29,7 @@ The following example configures a Zookeeper metadata store with XML:
 
 The following example shows how to configure a Zookeeper metadata store with Java:
 
+====
 [source, java]
 ----
 @Bean
@@ -36,6 +37,7 @@ public MetadataStore zkStore(CuratorFramework client) {
     return new ZookeeperMetadataStore(client);
 }
 ----
+====
 
 [[zk-lock-registry]]
 === Zookeeper Lock Registry
@@ -60,7 +62,7 @@ public interface KeyToPathStrategy {
 ====
 
 If the strategy returns `true` from `isBounded`, unused locks do not need to be harvested.
-For unbounded strategies (such as the default), you need to periodicallyinvoke `expireUnusedOlderThan(long age)` to remove old unused locks from memory.
+For unbounded strategies (such as the default), you need to periodically invoke `expireUnusedOlderThan(long age)` to remove old unused locks from memory.
 
 [[zk-leadership]]
 === Zookeeper Leadership Event Handling
