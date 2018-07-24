@@ -22,17 +22,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Simple {@link FileListFilter} implementation which runs recursively
+ * Simple {@link FileListFilter} implementation which runs through all files in a directory
  * and passes all found files to the delegate to filter.
  *
  * @author Alen Turkovic
  * @since 5.1
  */
-public class RecursiveFileListFilter implements FileListFilter<File> {
+public class DirectoryFileListFilter implements FileListFilter<File> {
 
 	private final FileListFilter<File> delegate;
 
-	public RecursiveFileListFilter(final FileListFilter<File> delegate) {
+	public DirectoryFileListFilter(final FileListFilter<File> delegate) {
 		this.delegate = delegate;
 	}
 
@@ -40,10 +40,10 @@ public class RecursiveFileListFilter implements FileListFilter<File> {
 	public List<File> filterFiles(final File[] files) {
 		return Stream.of(files)
 				.flatMap(file -> {
-					if (file.isDirectory()) {
-						return filterFiles(file.listFiles()).stream();
+					if (!file.isDirectory()) {
+						return Stream.of(file);
 					}
-					return this.delegate.filterFiles(new File[]{file}).stream();
+					return this.delegate.filterFiles(file.listFiles()).stream();
 				})
 				.collect(Collectors.toList());
 	}

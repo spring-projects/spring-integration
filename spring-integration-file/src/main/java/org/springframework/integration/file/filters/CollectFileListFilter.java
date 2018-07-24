@@ -16,35 +16,27 @@
 
 package org.springframework.integration.file.filters;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import org.springframework.util.Assert;
 
 /**
- * Simple {@link FileListFilter} implementation which runs recursively
- * and passes all found files to the delegate to filter.
+ * The {@link CompositeFileListFilter} extension which collects the result of all filters.
  *
+ * @param <F> The type that will be filtered.
  * @author Alen Turkovic
  * @since 5.1
  */
-public class RecursiveFileListFilter implements FileListFilter<File> {
-
-	private final FileListFilter<File> delegate;
-
-	public RecursiveFileListFilter(final FileListFilter<File> delegate) {
-		this.delegate = delegate;
-	}
+public class CollectFileListFilter<F> extends CompositeFileListFilter<F> {
 
 	@Override
-	public List<File> filterFiles(final File[] files) {
-		return Stream.of(files)
-				.flatMap(file -> {
-					if (file.isDirectory()) {
-						return filterFiles(file.listFiles()).stream();
-					}
-					return this.delegate.filterFiles(new File[]{file}).stream();
-				})
-				.collect(Collectors.toList());
+	public List<F> filterFiles(F[] files) {
+		Assert.notNull(files, "'files' should not be null");
+		List<F> results = new ArrayList<>();
+		for (FileListFilter<F> fileFilter : this.fileFilters) {
+			results.addAll(fileFilter.filterFiles(files));
+		}
+		return results;
 	}
 }
