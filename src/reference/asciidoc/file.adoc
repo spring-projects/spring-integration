@@ -150,6 +150,8 @@ The `CompositeFileListFilter` also implements a `DiscardAwareFileListFilter` and
 
 NOTE: Since `CompositeFileListFilter` matches the files against all delegates, the `discardCallback` may be called several times for the same file.
 
+Version 5.1 introduced the `RecursiveFileListFilter` which recursively runs through the directory and passes all found non-directory files to a delegate `FileListFilter`.
+
 ==== Message Headers
 
 Starting with version 5.0, the `FileReadingMessageSource` (in addition to the `payload` as a polled `File`) populates the following headers to the outbound `Message`:
