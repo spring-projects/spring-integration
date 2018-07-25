@@ -17,6 +17,7 @@
 package org.springframework.integration.store;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,7 +40,7 @@ public class MessageGroupMetadata implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private List<UUID> messageIds = new LinkedList<UUID>();
+	private List<UUID> messageIds = new LinkedList<>();
 
 	private long timestamp;
 
@@ -66,6 +67,10 @@ public class MessageGroupMetadata implements Serializable {
 
 	public void remove(UUID messageId) {
 		this.messageIds.remove(messageId);
+	}
+
+	public void removeAll(Collection<UUID> messageIds) {
+		this.messageIds.removeAll(messageIds);
 	}
 
 	boolean add(UUID messageId) {

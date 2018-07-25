@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,6 +94,11 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore {
 	protected Object doRemove(Object id) {
 		Assert.notNull(id, "'id' must not be null");
 		return this.messageStoreRegion.remove(id);
+	}
+
+	@Override
+	protected void doRemoveAll(Collection<Object> ids) {
+		this.messageStoreRegion.removeAll(ids);
 	}
 
 	@Override

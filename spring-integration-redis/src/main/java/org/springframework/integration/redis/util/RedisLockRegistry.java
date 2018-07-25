@@ -302,11 +302,10 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			}
 			try {
 				if (Thread.currentThread().isInterrupted()) {
-					RedisLockRegistry.this.executor.execute(() ->
-							RedisLockRegistry.this.redisTemplate.delete(this.lockKey));
+					RedisLockRegistry.this.executor.execute(this::removeLockKey);
 				}
 				else {
-					RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
+					removeLockKey();
 				}
 
 				if (logger.isDebugEnabled()) {
@@ -318,6 +317,15 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			}
 			finally {
 				this.localLock.unlock();
+			}
+		}
+
+		private void removeLockKey() {
+			if (RedisUtils.isUnlinkAvailable(RedisLockRegistry.this.redisTemplate)) {
+				RedisLockRegistry.this.redisTemplate.unlink(this.lockKey);
+			}
+			else {
+				RedisLockRegistry.this.redisTemplate.delete(this.lockKey);
 			}
 		}
 
