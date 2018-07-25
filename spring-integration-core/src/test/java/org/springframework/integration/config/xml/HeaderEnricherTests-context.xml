@@ -30,7 +30,7 @@
 	</channel>
 
 	<header-enricher input-channel="errorChannelInput" output-channel="failInput">
-		<poller max-messages-per-poll="1" fixed-delay="3000"/>
+		<poller max-messages-per-poll="1" fixed-delay="10"/>
 		<error-channel ref="testErrorChannel"/>
 	</header-enricher>
 
