@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,9 +158,8 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
-		super.afterPropertiesSet();
-		this.getEvaluationContext().setVariable("staticParameters", this.staticParameters);
+	protected void onInit() {
+		getEvaluationContext().setVariable("staticParameters", this.staticParameters);
 	}
 
 	private final class ExpressionEvaluatingSqlParameterSource extends AbstractSqlParameterSource {

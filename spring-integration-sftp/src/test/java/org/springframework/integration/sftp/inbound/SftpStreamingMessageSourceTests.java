@@ -23,7 +23,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -120,7 +119,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	}
 
 	@Test
-	public void testMaxFetch() throws IOException {
+	public void testMaxFetch() throws Exception {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(new AcceptAllFileListFilter<>());
 		messageSource.afterPropertiesSet();
@@ -133,7 +132,7 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	}
 
 	@Test
-	public void testMaxFetchNoFilter() throws IOException {
+	public void testMaxFetchNoFilter() throws Exception {
 		SftpStreamingMessageSource messageSource = buildSource();
 		messageSource.setFilter(null);
 		messageSource.afterPropertiesSet();
@@ -146,9 +145,9 @@ public class SftpStreamingMessageSourceTests extends SftpTestSupport {
 	}
 
 	@Test
-	public void testMaxFetchLambdaFilter() throws IOException {
+	public void testMaxFetchLambdaFilter() throws Exception {
 		SftpStreamingMessageSource messageSource = buildSource();
-		messageSource.setFilter(f -> Arrays.asList(f));
+		messageSource.setFilter(Arrays::asList);
 		messageSource.afterPropertiesSet();
 		Message<InputStream> received = messageSource.receive();
 		assertNotNull(received);

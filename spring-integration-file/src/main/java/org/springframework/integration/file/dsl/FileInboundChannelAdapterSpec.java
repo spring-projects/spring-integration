@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,23 +66,7 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	FileInboundChannelAdapterSpec(Comparator<File> receptionOrderComparator) {
-		this.target = new FileReadingMessageSource(receptionOrderComparator) {
-
-			@Override
-			protected void onInit() {
-				if (FileInboundChannelAdapterSpec.this.scanner == null ||
-						FileInboundChannelAdapterSpec.this.filtersSet) {
-					try {
-						setFilter(FileInboundChannelAdapterSpec.this.fileListFilterFactoryBean.getObject());
-					}
-					catch (Exception e) {
-						throw new BeanCreationException("The bean for the [" + this + "] can not be instantiated.", e);
-					}
-				}
-				super.onInit();
-			}
-
-		};
+		this.target = new FileReadingMessageSource(receptionOrderComparator);
 	}
 
 	/**
@@ -275,6 +259,15 @@ public class FileInboundChannelAdapterSpec
 
 	@Override
 	public Map<Object, String> getComponentsToRegister() {
+		if (this.scanner == null || this.filtersSet) {
+			try {
+				this.target.setFilter(this.fileListFilterFactoryBean.getObject());
+			}
+			catch (Exception e) {
+				throw new BeanCreationException("The bean for the [" + this + "] can not be instantiated.", e);
+			}
+		}
+
 		if (this.expressionFileListFilter != null) {
 			return Collections.singletonMap(this.expressionFileListFilter, null);
 		}

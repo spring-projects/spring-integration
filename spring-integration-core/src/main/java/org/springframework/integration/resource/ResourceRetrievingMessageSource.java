@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ import org.springframework.util.ObjectUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resource[]>
@@ -79,8 +81,7 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
-		super.afterPropertiesSet();
+	protected void onInit() {
 		if (this.patternResolver == null) {
 			this.patternResolver = this.applicationContext;
 		}
@@ -100,7 +101,7 @@ public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resou
 					resources = null;
 				}
 				else {
-					resources = filteredResources.toArray(new Resource[filteredResources.size()]);
+					resources = filteredResources.toArray(new Resource[0]);
 				}
 			}
 			return resources;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,8 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.MessageSource;
-import org.springframework.messaging.Message;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -36,13 +33,12 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
-public class CharacterStreamReadingMessageSource extends IntegrationObjectSupport implements MessageSource<String>,
-		ApplicationEventPublisherAware {
+public class CharacterStreamReadingMessageSource extends AbstractMessageSource<String>
+		implements ApplicationEventPublisherAware {
 
 	private final BufferedReader reader;
-
-	private final Object monitor;
 
 	private final boolean blockToDetectEOF;
 
@@ -91,7 +87,6 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 	 */
 	public CharacterStreamReadingMessageSource(Reader reader, int bufferSize, boolean blockToDetectEOF) {
 		Assert.notNull(reader, "reader must not be null");
-		this.monitor = reader;
 		if (reader instanceof BufferedReader) {
 			this.reader = (BufferedReader) reader;
 		}
@@ -115,9 +110,9 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 	}
 
 	@Override
-	public Message<String> receive() {
+	public String doReceive() {
 		try {
-			synchronized (this.monitor) {
+			synchronized (this.reader) {
 				if (!this.blockToDetectEOF && !this.reader.ready()) {
 					return null;
 				}
@@ -125,7 +120,7 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 				if (line == null && this.applicationEventPublisher != null) {
 					this.applicationEventPublisher.publishEvent(new StreamClosedEvent(this));
 				}
-				return (line != null) ? new GenericMessage<String>(line) : null;
+				return line;
 			}
 		}
 		catch (IOException e) {

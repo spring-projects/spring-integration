@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -46,22 +44,21 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  */
-public class MailReceivingMessageSource implements MessageSource<Object>,
-		BeanFactoryAware, BeanNameAware, NamedComponent {
+public class MailReceivingMessageSource extends AbstractMessageSource<Object> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final MailReceiver mailReceiver;
 
-	private final Queue<Object> mailQueue = new ConcurrentLinkedQueue<Object>();
+	private final Queue<Object> mailQueue = new ConcurrentLinkedQueue<>();
 
-	private volatile BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
-	private volatile MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
+	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
 
-	private volatile boolean messageBuilderFactorySet;
+	private boolean messageBuilderFactorySet;
 
-	private volatile String beanName;
+	private String beanName;
 
 
 	public MailReceivingMessageSource(MailReceiver mailReceiver) {
@@ -103,9 +100,8 @@ public class MailReceivingMessageSource implements MessageSource<Object>,
 		this.beanName = name;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public Message<Object> receive() {
+	protected Object doReceive() {
 		try {
 			Object mailMessage = this.mailQueue.poll();
 			if (mailMessage == null) {
@@ -120,10 +116,10 @@ public class MailReceivingMessageSource implements MessageSource<Object>,
 					this.logger.debug("received mail message [" + mailMessage + "]");
 				}
 				if (mailMessage instanceof Message) {
-					return (Message<Object>) mailMessage;
+					return getMessageBuilderFactory().fromMessage((Message<?>) mailMessage);
 				}
 				else {
-					return getMessageBuilderFactory().withPayload(mailMessage).build();
+					return getMessageBuilderFactory().withPayload(mailMessage);
 				}
 			}
 		}

@@ -22,8 +22,7 @@ import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
-import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,7 +32,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +45,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.0
  */
-public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
+public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
@@ -152,8 +150,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	}
 
 	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
+	protected void onInit() {
 		if (!this.sqlParameterSourceFactorySet && getBeanFactory() != null) {
 			((ExpressionEvaluatingSqlParameterSourceFactory) this.sqlParameterSourceFactory)
 					.setBeanFactory(getBeanFactory());
@@ -166,29 +163,12 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	}
 
 	/**
-	 * Execute the query. If a query result set contains one or more rows, the
-	 * Message payload will contain either a List of Maps for each row or, if a
-	 * RowMapper has been provided, the values mapped from those rows. If the
-	 * query returns no rows, this method will return <code>null</code>.
-	 * #return the {@link Message} or {@code null} as a result of query.
-	 */
-	@Override
-	public Message<Object> receive() {
-		Object payload = poll();
-		if (payload == null) {
-			return null;
-		}
-		return getMessageBuilderFactory()
-				.withPayload(payload)
-				.build();
-	}
-
-	/**
 	 * Execute the select query and the update query if provided. Returns the
 	 * rows returned by the select query. If a RowMapper has been provided, the
 	 * mapped results are returned.
 	 */
-	private Object poll() {
+	@Override
+	protected Object doReceive() {
 		List<?> payload = doPoll(this.sqlQueryParameterSource);
 		if (payload.size() < 1) {
 			payload = null;
