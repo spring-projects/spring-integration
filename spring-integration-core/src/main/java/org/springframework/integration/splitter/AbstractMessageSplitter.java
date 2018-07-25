@@ -16,7 +16,6 @@
 
 package org.springframework.integration.splitter;
 
-import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,6 +43,7 @@ import reactor.core.publisher.Flux;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Ruslan Stelmachenko
+ * @author Gary Russell
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
@@ -155,7 +155,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			return flux.map(messageBuilderFunction);
 		}
 		else {
-			return new FunctionIterator<>(iterator, messageBuilderFunction);
+			return new FunctionIterator<>(result instanceof AutoCloseable && !result.equals(iterator)
+					? (AutoCloseable) result : null, iterator, messageBuilderFunction);
 		}
 	}
 
@@ -235,9 +236,9 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 				}
 			}
 			finally {
-				if (iterator instanceof Closeable) {
+				if (iterator instanceof AutoCloseable) {
 					try {
-						((Closeable) iterator).close();
+						((AutoCloseable) iterator).close();
 					}
 					catch (Exception e) {
 						// ignored
