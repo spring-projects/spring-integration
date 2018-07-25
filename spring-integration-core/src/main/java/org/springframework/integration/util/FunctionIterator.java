@@ -16,7 +16,6 @@
 
 package org.springframework.integration.util;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Function;
 
@@ -33,7 +32,7 @@ import org.springframework.lang.Nullable;
  */
 public class FunctionIterator<T, V> implements CloseableIterator<V> {
 
-	private final Object root;
+	private final AutoCloseable closeable;
 
 	private final Iterator<T> iterator;
 
@@ -43,21 +42,20 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 	 * Construct an instance with the provided iterable and function.
 	 * @param iterable the iterable.
 	 * @param function the function.
-	 * @deprecated - use {@link #FunctionIterator(Object, Iterable, Function)}
 	 */
-	@Deprecated
 	public FunctionIterator(Iterable<T> iterable, Function<? super T, ? extends V> function) {
 		this(null, iterable.iterator(), function);
 	}
 
 	/**
 	 * Construct an instance with the provided root object, iterable and function.
-	 * @param root the root object.
+	 * @param closeable an {@link AutoCloseable} to close when iteration is complete.
 	 * @param iterable the iterable.
 	 * @param function the function.
 	 * @since 5.0.7
 	 */
-	public FunctionIterator(@Nullable Object root, Iterable<T> iterable, Function<? super T, ? extends V> function) {
+	public FunctionIterator(@Nullable AutoCloseable closeable, Iterable<T> iterable,
+			Function<? super T, ? extends V> function) {
 		this(null, iterable.iterator(), function);
 	}
 
@@ -65,22 +63,21 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 	 * Construct an instance with the provided iterator and function.
 	 * @param newIterator the iterator.
 	 * @param function the function.
-	 * @deprecated - use {@link #FunctionIterator(Object, Iterator, Function)}
 	 */
-	@Deprecated
 	public FunctionIterator(Iterator<T> newIterator, Function<? super T, ? extends V> function) {
 		this(null, newIterator, function);
 	}
 
 	/**
 	 * Construct an instance with the provided root object, iterator and function.
-	 * @param root the root object.
+	 * @param closeable an {@link AutoCloseable} to close when iteration is complete.
 	 * @param newIterator the iterator.
 	 * @param function the function.
 	 * @since 5.0.7
 	 */
-	public FunctionIterator(@Nullable Object root, Iterator<T> newIterator, Function<? super T, ? extends V> function) {
-		this.root = root;
+	public FunctionIterator(@Nullable AutoCloseable closeable, Iterator<T> newIterator,
+			Function<? super T, ? extends V> function) {
+		this.closeable = closeable;
 		this.iterator = newIterator;
 		this.function = function;
 	}
@@ -101,7 +98,7 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		if (this.iterator instanceof AutoCloseable) {
 			try {
 				((AutoCloseable) this.iterator).close();
@@ -110,14 +107,12 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 				// NOSONAR
 			}
 		}
-		if (!this.root.equals(this.iterator)) {
-			if (this.root instanceof AutoCloseable) {
-				try {
-					((AutoCloseable) this.root).close();
-				}
-				catch (Exception e) {
-					// NOSONAR
-				}
+		if (this.closeable != null) {
+			try {
+				this.closeable.close();
+			}
+			catch (Exception e) {
+				// NOSONAR
 			}
 		}
 	}

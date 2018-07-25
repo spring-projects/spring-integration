@@ -16,7 +16,6 @@
 
 package org.springframework.integration.util;
 
-import java.io.Closeable;
 import java.util.Iterator;
 
 /**
@@ -24,8 +23,13 @@ import java.util.Iterator;
  * This allows implementations to clean up any resources they need to keep open to iterate over elements.
  *
  * @author Ruslan Stelmachenko
+ * @author Gary Russell
  *
  * @since 4.3.15
  */
-public interface CloseableIterator<E> extends Iterator<E>, Closeable {
+public interface CloseableIterator<E> extends Iterator<E>, AutoCloseable {
+
+	@Override
+	void close(); // override throws Exception
+
 }
