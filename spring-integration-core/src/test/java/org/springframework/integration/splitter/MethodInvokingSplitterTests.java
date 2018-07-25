@@ -18,15 +18,20 @@ package org.springframework.integration.splitter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
+import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.Test;
 
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.QueueChannel;
@@ -343,6 +348,43 @@ public class MethodInvokingSplitterTests {
 		Message<?> reply2 = replies.get(1);
 		assertNotNull(reply2);
 		assertEquals("bar", reply2.getPayload());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void splitStreamPayload() throws Exception {
+		class StreamSplitter {
+
+			@SuppressWarnings("unused")
+			public Stream<String> split(Stream<String> stream) {
+				return stream;
+			}
+
+		}
+		Stream<String> stream = Arrays.asList("foo", "bar").stream();
+		ProxyFactory pf = new ProxyFactory(stream);
+		AtomicBoolean closed = new AtomicBoolean();
+		MethodInterceptor interceptor = i -> {
+			if (i.getMethod().getName().equals("close")) {
+				closed.set(true);
+			}
+			return i.proceed();
+		};
+		pf.addAdvice(interceptor);
+		stream = (Stream<String>) pf.getProxy();
+		GenericMessage<Stream<?>> message = new GenericMessage<Stream<?>>(stream);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new StreamSplitter(), "split");
+		QueueChannel replyChannel = new QueueChannel();
+		splitter.setOutputChannel(replyChannel);
+		splitter.handleMessage(message);
+		List<Message<?>> replies = replyChannel.clear();
+		Message<?> reply1 = replies.get(0);
+		assertNotNull(reply1);
+		assertEquals("foo", reply1.getPayload());
+		Message<?> reply2 = replies.get(1);
+		assertNotNull(reply2);
+		assertEquals("bar", reply2.getPayload());
+		assertTrue("Expected stream.close()", closed.get());
 	}
 
 	@Test

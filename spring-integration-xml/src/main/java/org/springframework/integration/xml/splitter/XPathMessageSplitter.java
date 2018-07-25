@@ -329,7 +329,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 		TransformFunctionIterator(Iterator<Node> delegate,
 				Function<? super Node, ? extends String> function) {
-			super(delegate, function);
+			super(null, delegate, function);
 			this.delegate = delegate;
 		}
 
