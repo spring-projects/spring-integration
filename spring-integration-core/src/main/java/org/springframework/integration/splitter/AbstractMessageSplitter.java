@@ -155,7 +155,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			return flux.map(messageBuilderFunction);
 		}
 		else {
-			return new FunctionIterator<>(iterator, messageBuilderFunction);
+			return new FunctionIterator<>(result, iterator, messageBuilderFunction);
 		}
 	}
 

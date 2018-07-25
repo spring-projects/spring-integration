@@ -21,25 +21,67 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Function;
 
+import org.springframework.lang.Nullable;
+
 /**
  * An {@link Iterator} implementation to convert each item from the target
  * {@link #iterator} to a new object applying the {@link #function} on {@link #next()}.
  *
  * @author Artem Bilan
  * @author Ruslan Stelmachenko
+ * @author Gary Russell
  * @since 4.1
  */
 public class FunctionIterator<T, V> implements CloseableIterator<V> {
+
+	private final Object root;
 
 	private final Iterator<T> iterator;
 
 	private final Function<? super T, ? extends V> function;
 
+	/**
+	 * Construct an instance with the provided iterable and function.
+	 * @param iterable the iterable.
+	 * @param function the function.
+	 * @deprecated - use {@link #FunctionIterator(Object, Iterable, Function)}
+	 */
+	@Deprecated
 	public FunctionIterator(Iterable<T> iterable, Function<? super T, ? extends V> function) {
-		this(iterable.iterator(), function);
+		this(null, iterable.iterator(), function);
 	}
 
+	/**
+	 * Construct an instance with the provided root object, iterable and function.
+	 * @param root the root object.
+	 * @param iterable the iterable.
+	 * @param function the function.
+	 * @since 5.0.7
+	 */
+	public FunctionIterator(@Nullable Object root, Iterable<T> iterable, Function<? super T, ? extends V> function) {
+		this(null, iterable.iterator(), function);
+	}
+
+	/**
+	 * Construct an instance with the provided iterator and function.
+	 * @param iterator the iterator.
+	 * @param function the function.
+	 * @deprecated - use {@link #FunctionIterator(Object, Iterator, Function)}
+	 */
+	@Deprecated
 	public FunctionIterator(Iterator<T> newIterator, Function<? super T, ? extends V> function) {
+		this(null, newIterator, function);
+	}
+
+	/**
+	 * Construct an instance with the provided root object, iterator and function.
+	 * @param root the root object.
+	 * @param iterator the iterator.
+	 * @param function the function.
+	 * @since 5.0.7
+	 */
+	public FunctionIterator(@Nullable Object root, Iterator<T> newIterator, Function<? super T, ? extends V> function) {
+		this.root = root;
 		this.iterator = newIterator;
 		this.function = function;
 	}
@@ -63,6 +105,27 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 	public void close() throws IOException {
 		if (this.iterator instanceof Closeable) {
 			((Closeable) this.iterator).close();
+		}
+		else if (this.iterator instanceof AutoCloseable) {
+			try {
+				((AutoCloseable) this.iterator).close();
+			}
+			catch (Exception e) {
+				// NOSONAR
+			}
+		}
+		if (!this.root.equals(this.iterator)) {
+			if (this.root instanceof Closeable) {
+				((Closeable) this.root).close();
+			}
+			else if (this.root instanceof AutoCloseable) {
+				try {
+					((AutoCloseable) this.root).close();
+				}
+				catch (Exception e) {
+					// NOSONAR
+				}
+			}
 		}
 	}
 
