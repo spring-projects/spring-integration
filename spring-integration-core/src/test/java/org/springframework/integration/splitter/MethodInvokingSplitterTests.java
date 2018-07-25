@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.Closeable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -350,6 +351,7 @@ public class MethodInvokingSplitterTests {
 		assertEquals("bar", reply2.getPayload());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void splitStreamPayload() throws Exception {
 		class StreamSplitter {
@@ -370,6 +372,7 @@ public class MethodInvokingSplitterTests {
 			return i.proceed();
 		};
 		pf.addAdvice(interceptor);
+		pf.addInterface(Closeable.class);
 		stream = (Stream<String>) pf.getProxy();
 		GenericMessage<Stream<?>> message = new GenericMessage<Stream<?>>(stream);
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new StreamSplitter(), "split");

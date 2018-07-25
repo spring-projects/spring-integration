@@ -106,25 +106,9 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 		if (this.iterator instanceof Closeable) {
 			((Closeable) this.iterator).close();
 		}
-		else if (this.iterator instanceof AutoCloseable) {
-			try {
-				((AutoCloseable) this.iterator).close();
-			}
-			catch (Exception e) {
-				// NOSONAR
-			}
-		}
 		if (!this.root.equals(this.iterator)) {
 			if (this.root instanceof Closeable) {
 				((Closeable) this.root).close();
-			}
-			else if (this.root instanceof AutoCloseable) {
-				try {
-					((AutoCloseable) this.root).close();
-				}
-				catch (Exception e) {
-					// NOSONAR
-				}
 			}
 		}
 	}
