@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
@@ -243,11 +245,21 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
-			for (Message<?> messageToRemove : messages) {
-				UUID messageId = messageToRemove.getHeaders().getId();
-				messageGroupMetadata.remove(messageId);
-				doRemove(this.messagePrefix + messageId);
-			}
+
+			List<UUID> ids =
+					messages.stream()
+							.map(messageToRemove -> messageToRemove.getHeaders().getId())
+							.collect(Collectors.toList());
+
+			messageGroupMetadata.removeAll(ids);
+
+			List<Object> messageIds =
+					ids.stream()
+							.map(id -> this.messagePrefix + id)
+							.collect(Collectors.toList());
+
+			doRemoveAll(messageIds);
+
 			messageGroupMetadata.setLastModified(System.currentTimeMillis());
 			doStore(this.groupPrefix + groupId, messageGroupMetadata);
 		}
@@ -275,10 +287,13 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 
-			Iterator<UUID> messageIds = messageGroupMetadata.messageIdIterator();
-			while (messageIds.hasNext()) {
-				removeMessage(messageIds.next());
-			}
+			List<Object> messageIds =
+					messageGroupMetadata.getMessageIds()
+							.stream()
+							.map(id -> this.messagePrefix + id)
+							.collect(Collectors.toList());
+
+			doRemoveAll(messageIds);
 		}
 	}
 
@@ -325,7 +340,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	@Override
 	public Collection<Message<?>> getMessagesForGroup(Object groupId) {
 		MessageGroupMetadata groupMetadata = getGroupMetadata(groupId);
-		ArrayList<Message<?>> messages = new ArrayList<Message<?>>();
+		ArrayList<Message<?>> messages = new ArrayList<>();
 		if (groupMetadata != null) {
 			Iterator<UUID> messageIds = groupMetadata.messageIdIterator();
 			while (messageIds.hasNext()) {
@@ -345,7 +360,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 
 	private Collection<String> normalizeKeys(Collection<String> keys) {
-		Set<String> normalizedKeys = new HashSet<String>();
+		Set<String> normalizedKeys = new HashSet<>();
 		for (Object key : keys) {
 			String strKey = (String) key;
 			if (strKey.startsWith(this.groupPrefix)) {
@@ -377,6 +392,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	protected abstract void doStoreIfAbsent(Object id, Object objectToStore);
 
 	protected abstract Object doRemove(Object id);
+
+	protected abstract void doRemoveAll(Collection<Object> ids);
 
 	protected abstract Collection<?> doListKeys(String keyPattern);
 

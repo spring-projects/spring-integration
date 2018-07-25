@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2017 the original author or authors.
+ * Copyright 2007-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.redis.util.RedisUtils;
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -66,7 +67,7 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 	 */
 	public RedisMessageStore(RedisConnectionFactory connectionFactory, String prefix) {
 		super(prefix);
-		this.redisTemplate = new RedisTemplate<Object, Object>();
+		this.redisTemplate = new RedisTemplate<>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
 		this.redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
@@ -130,9 +131,24 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore implements B
 		Assert.notNull(id, "'id' must not be null");
 		Object removedObject = this.doRetrieve(id);
 		if (removedObject != null) {
-			this.redisTemplate.delete(id);
+			if (RedisUtils.isUnlinkAvailable(this.redisTemplate)) {
+				this.redisTemplate.unlink(id);
+			}
+			else {
+				this.redisTemplate.delete(id);
+			}
 		}
 		return removedObject;
+	}
+
+	@Override
+	protected void doRemoveAll(Collection<Object> ids) {
+		if (RedisUtils.isUnlinkAvailable(this.redisTemplate)) {
+			this.redisTemplate.unlink(ids);
+		}
+		else {
+			this.redisTemplate.delete(ids);
+		}
 	}
 
 	@Override
