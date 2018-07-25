@@ -41,6 +41,7 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
+import org.springframework.integration.dsl.StandardIntegrationFlow;
 import org.springframework.integration.file.remote.aop.RotatingServerAdvice;
 import org.springframework.integration.file.remote.aop.RotatingServerAdvice.KeyDirectory;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -96,6 +97,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(StandardConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		ctx.getBean(StandardIntegrationFlow.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
 		File f1 = new File(tmpDir + File.separator + "standard" + File.separator + "f1");
@@ -113,6 +115,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(FairConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		ctx.getBean(StandardIntegrationFlow.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3);
 		File f1 = new File(tmpDir + File.separator + "fair" + File.separator + "f1");
@@ -130,6 +133,7 @@ public class RotatingServersTests extends FtpTestSupport {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(VariableLocalConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
+		ctx.getBean(StandardIntegrationFlow.class).stop();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
 		File f1 = new File(tmpDir + File.separator + "variable" + File.separator + "foo" + File.separator + "f1");
@@ -146,6 +150,7 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testStreaming() throws Exception {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(StreamingConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
+		ctx.getBean(StandardIntegrationFlow.class).stop();
 		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		// there's an extra getSession() with this adapter in listFiles
