@@ -16,7 +16,6 @@
 
 package org.springframework.integration.util;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Function;
@@ -64,7 +63,7 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 
 	/**
 	 * Construct an instance with the provided iterator and function.
-	 * @param iterator the iterator.
+	 * @param newIterator the iterator.
 	 * @param function the function.
 	 * @deprecated - use {@link #FunctionIterator(Object, Iterator, Function)}
 	 */
@@ -76,7 +75,7 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 	/**
 	 * Construct an instance with the provided root object, iterator and function.
 	 * @param root the root object.
-	 * @param iterator the iterator.
+	 * @param newIterator the iterator.
 	 * @param function the function.
 	 * @since 5.0.7
 	 */
@@ -103,12 +102,22 @@ public class FunctionIterator<T, V> implements CloseableIterator<V> {
 
 	@Override
 	public void close() throws IOException {
-		if (this.iterator instanceof Closeable) {
-			((Closeable) this.iterator).close();
+		if (this.iterator instanceof AutoCloseable) {
+			try {
+				((AutoCloseable) this.iterator).close();
+			}
+			catch (Exception e) {
+				// NOSONAR
+			}
 		}
 		if (!this.root.equals(this.iterator)) {
-			if (this.root instanceof Closeable) {
-				((Closeable) this.root).close();
+			if (this.root instanceof AutoCloseable) {
+				try {
+					((AutoCloseable) this.root).close();
+				}
+				catch (Exception e) {
+					// NOSONAR
+				}
 			}
 		}
 	}
