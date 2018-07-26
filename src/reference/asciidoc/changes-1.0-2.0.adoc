@@ -8,7 +8,7 @@ See the https://github.com/spring-projects/spring-integration/wiki/Spring-Integr
 
 Spring Integration 2.0 is built on top of Spring 3.0.5 and makes many of its features available to our users.
 
-[[spel-support]]
+[[2.0-spel-support]]
 ===== Support for the Spring Expression Language (SpEL)
 
 You can now use SpEL expressions within the transformer, router, filter, splitter, aggregator, service-activator, header-enricher, and many more elements of the Spring Integration core namespace as well as within various adapters.

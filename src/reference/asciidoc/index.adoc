@@ -1,27 +1,27 @@
 [[spring-integration-reference]]
-= Spring Integration Reference Manual
-:revnumber: {project-version}
-:revdate: {localdate}
-:linkcss:
-:doctype: book
-:docinfo: shared
+= Spring Integration
 :toc: left
 :toclevels: 4
-:source-highlighter: prettify
+:numbered:
 :icons: font
-:imagesdir: images
-ifdef::backend-epub3[:front-cover-image: image:epub-cover.png[Front Cover,1050,1600]]
+:hide-uri-scheme:
+Mark Fisher; Marius Bogoevici; Iwein Fuld; Jonas Partner; Oleg Zhurakousky; Gary Russell; Dave Syer; Josh Long; David Turanski; Gunnar Hillert; Artem Bilan; Amol Nayak; Jay Bryant
 
-(C) 2009-2018 Pivotal Software, Inc. All rights reserved.
+*{project-version}*
 
-NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
+(C) 2009 - 2019 Pivotal Software, Inc.
+All rights reserved.
+
+Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
 include::./preface.adoc[]
+
 [[whats-new-part]]
 = What's New?
 
 [[spring-integration-intro-new]]
 For those who are already familiar with Spring Integration, this chapter provides a brief overview of the new features of version 5.1.
+
 If you are interested in the changes and features that were introduced in earlier versions, see the <<history>>.
 
 include::./whats-new.adoc[]
@@ -33,6 +33,7 @@ include::./whats-new.adoc[]
 Spring Integration provides an extension of the Spring programming model to support the well known http://www.eaipatterns.com/[Enterprise Integration Patterns].
 It enables lightweight messaging within Spring-based applications and supports integration with external systems through declarative adapters.
 Those adapters provide a higher level of abstraction over Spring's support for remoting, messaging, and scheduling.
+
 Spring Integration's primary goal is to provide a simple model for building enterprise integration solutions while maintaining the separation of concerns that is essential for producing maintainable, testable code.
 
 include::./overview.adoc[]
@@ -44,7 +45,8 @@ include::./overview.adoc[]
 This section covers all aspects of the core messaging API in Spring Integration.
 It covers messages, message channels, and message endpoints.
 It also covers many of the enterprise integration patterns, such as filter, router, transformer, service activator , splitter, and aggregator.
-The section also contains material about system management, including the control bus and message history support.
+
+This section also contains material about system management, including the control bus and message history support.
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 include::./messaging-channels.adoc[]
@@ -66,6 +68,8 @@ include::./system-management.adoc[]
 
 [[spring-integration-adapters]]
 This section covers the various channel adapters and messaging gateways provided by Spring Integration to support message-based communication with external systems.
+
+Each system, from AMQP to Zookeeper, has its own integration requirements, and this section covers them.
 
 // BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
 include::./endpoint-summary.adoc[]
@@ -129,7 +133,9 @@ include::./zookeeper.adoc[]
 = Appendices
 
 [[spring-integration-adapters-advanced]]
-Advanced Topics and Additional Resources
+The appendices cover advanced topics and additional resources.
+
+The last appendix covers the history of Spring Integration.
 
 [appendix]
 include::./spel.adoc[]
