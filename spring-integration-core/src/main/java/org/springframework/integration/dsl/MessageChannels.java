@@ -16,12 +16,12 @@
 
 package org.springframework.integration.dsl;
 
-import java.util.Queue;
-import java.util.concurrent.Executor;
-
 import org.springframework.integration.store.ChannelMessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.messaging.Message;
+
+import java.util.Queue;
+import java.util.concurrent.Executor;
 
 /**
  * @author Artem Bilan
@@ -68,7 +68,7 @@ public final class MessageChannels {
 	}
 
 	public static QueueChannelSpec.MessageStoreSpec queue(String id, ChannelMessageStore messageGroupStore,
-			Object groupId) {
+														  Object groupId) {
 		return queue(messageGroupStore, groupId).id(id);
 	}
 
@@ -101,27 +101,24 @@ public final class MessageChannels {
 	}
 
 	public static PriorityChannelSpec priority(String id,
-			PriorityCapableChannelMessageStore messageGroupStore, Object groupId) {
+											   PriorityCapableChannelMessageStore messageGroupStore, Object groupId) {
 		return priority(messageGroupStore, groupId).id(id);
 	}
 
-	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe() {
+	public static PublishSubscribeChannelSpec<?> publishSubscribe() {
 		return new PublishSubscribeChannelSpec<>();
 	}
 
-	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe(
-			String id) {
-		return MessageChannels.<S>publishSubscribe().id(id);
+	public static PublishSubscribeChannelSpec<?> publishSubscribe(String id) {
+		return MessageChannels.publishSubscribe().id(id);
 	}
 
-	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe(
-			Executor executor) {
+	public static PublishSubscribeChannelSpec<?> publishSubscribe(Executor executor) {
 		return new PublishSubscribeChannelSpec<>(executor);
 	}
 
-	public static <S extends PublishSubscribeChannelSpec<S>> PublishSubscribeChannelSpec<S> publishSubscribe(String id,
-			Executor executor) {
-		return MessageChannels.<S>publishSubscribe(executor).id(id);
+	public static PublishSubscribeChannelSpec<?> publishSubscribe(String id, Executor executor) {
+		return MessageChannels.publishSubscribe(executor).id(id);
 	}
 
 	public static FluxMessageChannelSpec flux() {
