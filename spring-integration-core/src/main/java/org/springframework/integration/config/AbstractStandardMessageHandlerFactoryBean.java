@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Set;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -41,21 +42,23 @@ import org.springframework.util.StringUtils;
  * @author David Liu
  */
 public abstract class AbstractStandardMessageHandlerFactoryBean
-		extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
+		extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> implements DisposableBean {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser();
 
 	private static final Set<MessageHandler> referencedReplyProducers = new HashSet<>();
 
-	private volatile Boolean requiresReply;
+	private Boolean requiresReply;
 
-	private volatile Object targetObject;
+	private Object targetObject;
 
-	private volatile String targetMethodName;
+	private String targetMethodName;
 
-	private volatile Expression expression;
+	private Expression expression;
 
-	private volatile Long sendTimeout;
+	private Long sendTimeout;
+
+	private MessageHandler replyHandler;
 
 	/**
 	 * Set the target POJO for the message handler.
@@ -99,6 +102,13 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 
 	public Long getSendTimeout() {
 		return this.sendTimeout;
+	}
+
+	@Override
+	public void destroy() {
+		if (this.replyHandler != null) {
+			referencedReplyProducers.remove(this.replyHandler);
+		}
 	}
 
 	@Override
@@ -158,6 +168,7 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 				"An AbstractMessageProducingMessageHandler may only be referenced once (" +
 						replyHandler.getComponentName() + ") - use scope=\"prototype\"");
 		referencedReplyProducers.add(replyHandler);
+		this.replyHandler = replyHandler;
 	}
 
 	/**

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
 import org.springframework.integration.dsl.IntegrationComponentSpec;
+import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.util.Assert;
 
 /**
@@ -46,6 +47,9 @@ public class DslIntegrationConfigurationInitializer implements IntegrationConfig
 	private static final String INTEGRATION_FLOW_CONTEXT_BEAN_NAME =
 			Introspector.decapitalize(IntegrationFlowContext.class.getName());
 
+	private static final String INTEGRATION_FLOW_REPLY_PRODUCER_CLEANER_BEAN_NAME =
+			Introspector.decapitalize(IntegrationFlowDefinition.ReplyProducerCleaner.class.getName());
+
 	@Override
 	public void initialize(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
 		Assert.isInstanceOf(BeanDefinitionRegistry.class, configurableListableBeanFactory,
@@ -59,6 +63,8 @@ public class DslIntegrationConfigurationInitializer implements IntegrationConfig
 					new RootBeanDefinition(IntegrationFlowBeanPostProcessor.class));
 			registry.registerBeanDefinition(INTEGRATION_FLOW_CONTEXT_BEAN_NAME,
 					new RootBeanDefinition(StandardIntegrationFlowContext.class));
+			registry.registerBeanDefinition(INTEGRATION_FLOW_REPLY_PRODUCER_CLEANER_BEAN_NAME,
+					new RootBeanDefinition(IntegrationFlowDefinition.ReplyProducerCleaner.class));
 		}
 	}
 

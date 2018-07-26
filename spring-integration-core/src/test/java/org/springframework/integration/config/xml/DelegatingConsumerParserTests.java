@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.mock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +54,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
@@ -59,61 +63,80 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DelegatingConsumerParserTests {
 
-	@Autowired @Qualifier("directFilter.handler")
+	@Autowired
+	@Qualifier("directFilter.handler")
 	private MessageHandler directFilter;
 
-	@Autowired @Qualifier("refFilter.handler")
+	@Autowired
+	@Qualifier("refFilter.handler")
 	private MessageHandler refFilter;
 
-	@Autowired @Qualifier("filterWithMessageSelectorThatsAlsoAnARPMH.handler")
+	@Autowired
+	@Qualifier("filterWithMessageSelectorThatsAlsoAnARPMH.handler")
 	private MessageHandler filterWithMessageSelectorThatsAlsoAnARPMH;
 
-	@Autowired @Qualifier("directRouter.handler")
+	@Autowired
+	@Qualifier("directRouter.handler")
 	private MessageHandler directRouter;
 
-	@Autowired @Qualifier("refRouter.handler")
+	@Autowired
+	@Qualifier("refRouter.handler")
 	private MessageHandler refRouter;
 
-	@Autowired @Qualifier("directRouterMH.handler")
+	@Autowired
+	@Qualifier("directRouterMH.handler")
 	private MessageHandler directRouterMH;
 
-	@Autowired @Qualifier("refRouterMH.handler")
+	@Autowired
+	@Qualifier("refRouterMH.handler")
 	private MessageHandler refRouterMH;
 
-	@Autowired @Qualifier("directRouterARPMH.handler")
+	@Autowired
+	@Qualifier("directRouterARPMH.handler")
 	private MessageHandler directRouterARPMH;
 
-	@Autowired @Qualifier("refRouterARPMH.handler")
+	@Autowired
+	@Qualifier("refRouterARPMH.handler")
 	private MessageHandler refRouterARPMH;
 
-	@Autowired @Qualifier("directServiceARPMH.handler")
+	@Autowired
+	@Qualifier("directServiceARPMH.handler")
 	private MessageHandler directServiceARPMH;
 
-	@Autowired @Qualifier("refServiceARPMH.handler")
+	@Autowired
+	@Qualifier("refServiceARPMH.handler")
 	private MessageHandler refServiceARPMH;
 
-	@Autowired @Qualifier("directSplitter.handler")
+	@Autowired
+	@Qualifier("directSplitter.handler")
 	private MessageHandler directSplitter;
 
-	@Autowired @Qualifier("refSplitter.handler")
+	@Autowired
+	@Qualifier("refSplitter.handler")
 	private MessageHandler refSplitter;
 
-	@Autowired @Qualifier("splitterWithARPMH.handler")
+	@Autowired
+	@Qualifier("splitterWithARPMH.handler")
 	private MessageHandler splitterWithARPMH;
 
-	@Autowired @Qualifier("splitterWithARPMHWithAtts.handler")
+	@Autowired
+	@Qualifier("splitterWithARPMHWithAtts.handler")
 	private MessageHandler splitterWithARPMHWithAtts;
 
-	@Autowired @Qualifier("directTransformer.handler")
+	@Autowired
+	@Qualifier("directTransformer.handler")
 	private MessageHandler directTransformer;
 
-	@Autowired @Qualifier("refTransformer.handler")
+	@Autowired
+	@Qualifier("refTransformer.handler")
 	private MessageHandler refTransformer;
 
-	@Autowired @Qualifier("directTransformerARPMH.handler")
+	@Autowired
+	@Qualifier("directTransformerARPMH.handler")
 	private MessageHandler directTransformerARPMH;
 
-	@Autowired @Qualifier("refTransformerARPMH.handler")
+	@Autowired
+	@Qualifier("refTransformerARPMH.handler")
 	private MessageHandler refTransformerARPMH;
 
 	private static QueueChannel replyChannel = new QueueChannel();
@@ -153,7 +176,8 @@ public class DelegatingConsumerParserTests {
 		assertTrue(splitterWithARPMH instanceof MySplitterThatsAnARPMH);
 		testHandler(splitterWithARPMH);
 		assertTrue(splitterWithARPMHWithAtts instanceof MySplitterThatsAnARPMH);
-		assertEquals(Long.valueOf(123), TestUtils.getPropertyValue(splitterWithARPMHWithAtts, "messagingTemplate.sendTimeout", Long.class));
+		assertEquals(Long.valueOf(123),
+				TestUtils.getPropertyValue(splitterWithARPMHWithAtts, "messagingTemplate.sendTimeout", Long.class));
 		testHandler(splitterWithARPMHWithAtts);
 
 		assertTrue(directTransformer instanceof MessageTransformingHandler);
@@ -170,6 +194,7 @@ public class DelegatingConsumerParserTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testOneRefOnly() throws Exception {
 		ServiceActivatorFactoryBean fb = new ServiceActivatorFactoryBean();
 		fb.setBeanFactory(mock(BeanFactory.class));
@@ -177,17 +202,24 @@ public class DelegatingConsumerParserTests {
 		service.setBeanName("foo");
 		fb.setTargetObject(service);
 		fb.getObject();
-		fb = new ServiceActivatorFactoryBean();
-		fb.setBeanFactory(mock(BeanFactory.class));
-		fb.setTargetObject(service);
+
+		assertTrue(TestUtils.getPropertyValue(fb, "referencedReplyProducers", Set.class).contains(service));
+
+		ServiceActivatorFactoryBean fb2 = new ServiceActivatorFactoryBean();
+		fb2.setBeanFactory(mock(BeanFactory.class));
+		fb2.setTargetObject(service);
 		try {
-			fb.getObject();
+			fb2.getObject();
 			fail("expected exception");
 		}
 		catch (Exception e) {
 			assertEquals("An AbstractMessageProducingMessageHandler may only be referenced once (foo) - "
 					+ "use scope=\"prototype\"", e.getMessage());
 		}
+
+		fb.destroy();
+
+		assertFalse(TestUtils.getPropertyValue(fb, "referencedReplyProducers", Set.class).contains(service));
 	}
 
 	private void testHandler(MessageHandler handler) {
