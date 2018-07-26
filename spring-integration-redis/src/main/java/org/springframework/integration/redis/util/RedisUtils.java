@@ -16,6 +16,8 @@
 
 package org.springframework.integration.redis.util;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.data.redis.core.RedisCallback;
@@ -34,9 +36,15 @@ public final class RedisUtils {
 
 	private static final String VERSION_PROPERTY = "redis_version";
 
-	private static final int MAJOR_VERSION_TO_COMPARE = 4;
+	private static final Map<RedisOperations<?, ?>, Boolean> unlinkAvailable =
+			new LinkedHashMap<RedisOperations<?, ?>, Boolean>() {
 
-	private static Boolean unlinkAvailable;
+				@Override
+				protected boolean removeEldestEntry(Map.Entry eldest) {
+					return size() > 100;
+				}
+
+			};
 
 	/**
 	 * Perform an {@code INFO} command on the provided {@link RedisOperations} to check
@@ -46,18 +54,17 @@ public final class RedisUtils {
 	 * @throws IllegalStateException when {@code INFO} returns null from the Redis.
 	 */
 	public static boolean isUnlinkAvailable(RedisOperations<?, ?> redisOperations) {
-		if (unlinkAvailable == null) {
+		return unlinkAvailable.computeIfAbsent(redisOperations, key -> {
 			Properties info = redisOperations.execute(
 					(RedisCallback<Properties>) connection -> connection.serverCommands().info(SECTION));
 			if (info != null) {
 				int majorVersion = Integer.parseInt(info.getProperty(VERSION_PROPERTY).split("\\.")[0]);
-				unlinkAvailable = majorVersion >= MAJOR_VERSION_TO_COMPARE;
+				return majorVersion >= 4;
 			}
 			else {
 				throw new IllegalStateException("The INFO command cannot be used in pipeline/transaction.");
 			}
-		}
-		return unlinkAvailable;
+		});
 	}
 
 	private RedisUtils() {
