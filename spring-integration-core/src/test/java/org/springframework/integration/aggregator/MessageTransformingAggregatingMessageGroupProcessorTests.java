@@ -38,7 +38,7 @@ import org.springframework.messaging.Message;
  * @author Alen Turkovic
  * @since 5.1
  */
-public class MessageTransformingAggregatingMessageGroupProcessorTest {
+public class MessageTransformingAggregatingMessageGroupProcessorTests {
 
 	private final MessageTransformingAggregatingMessageGroupProcessor processor = new MessageTransformingAggregatingMessageGroupProcessor();
 
