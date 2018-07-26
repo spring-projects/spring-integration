@@ -29,7 +29,9 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
@@ -122,9 +124,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	protected final Map<Object, String> integrationComponents = new LinkedHashMap<>();
 
-	protected MessageChannel currentMessageChannel;
+	private MessageChannel currentMessageChannel;
 
-	protected Object currentComponent;
+	private Object currentComponent;
 
 	private StandardIntegrationFlow integrationFlow;
 
@@ -481,7 +483,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see ExpressionEvaluatingTransformer
 	 */
-	public B transform(String expression, Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+	public B transform(String expression,
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
 		Assert.hasText(expression, "'expression' must not be empty");
 		return transform(new ExpressionEvaluatingTransformer(PARSER.parseExpression(expression)),
 				endpointConfigurer);
@@ -2771,6 +2775,23 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 						+ replyHandler
 						+ ") - use @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) on @Bean definition.");
 		REFERENCED_REPLY_PRODUCERS.add(replyHandler);
+	}
+
+	public static final class ReplyProducerCleaner implements DestructionAwareBeanPostProcessor {
+
+		private ReplyProducerCleaner() {
+		}
+
+		@Override
+		public boolean requiresDestruction(Object bean) {
+			return IntegrationFlowDefinition.REFERENCED_REPLY_PRODUCERS.contains(bean);
+		}
+
+		@Override
+		public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+			IntegrationFlowDefinition.REFERENCED_REPLY_PRODUCERS.remove(bean);
+		}
+
 	}
 
 }

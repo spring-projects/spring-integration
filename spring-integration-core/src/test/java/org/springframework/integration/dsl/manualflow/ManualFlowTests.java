@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,6 +64,7 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlowAdapter;
+import org.springframework.integration.dsl.IntegrationFlowBuilder;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageProducerSpec;
@@ -72,8 +74,10 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.SmartLifecycleRoleController;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -110,6 +114,7 @@ public class ManualFlowTests {
 	private SmartLifecycleRoleController roleController;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testWithAnonymousMessageProducerStart() {
 		final AtomicBoolean started = new AtomicBoolean();
 		MessageProducerSupport producer = new MessageProducerSupport() {
@@ -122,13 +127,26 @@ public class ManualFlowTests {
 
 		};
 		QueueChannel channel = new QueueChannel();
-		IntegrationFlow flow = IntegrationFlows.from(producer)
-				.channel(channel)
-				.get();
+		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(producer);
+
+		BridgeHandler bridgeHandler = new BridgeHandler();
+
+		IntegrationFlow flow =
+				flowBuilder.handle(bridgeHandler)
+						.channel(channel)
+						.get();
 		IntegrationFlowRegistration flowRegistration = this.integrationFlowContext.registration(flow).register();
 		assertTrue(started.get());
 
+
+		Set<MessageProducer> replyProducers =
+				TestUtils.getPropertyValue(flowBuilder, "REFERENCED_REPLY_PRODUCERS", Set.class);
+
+		assertTrue(replyProducers.contains(bridgeHandler));
+
 		flowRegistration.destroy();
+
+		assertFalse(replyProducers.contains(bridgeHandler));
 	}
 
 	@Test
@@ -183,12 +201,13 @@ public class ManualFlowTests {
 						.addBean(additionalBean)
 						.register();
 
+		String flowRegistrationId = flowRegistration.getId();
 		BeanFactoryHandler bean =
-				this.beanFactory.getBean(flowRegistration.getId() + BeanFactoryHandler.class.getName() + "#0",
+				this.beanFactory.getBean(flowRegistrationId + BeanFactoryHandler.class.getName() + "#0",
 						BeanFactoryHandler.class);
 		assertSame(additionalBean, bean);
 		assertSame(this.beanFactory, bean.beanFactory);
-		bean = this.beanFactory.getBean(flowRegistration.getId() + "." + "anId.handler", BeanFactoryHandler.class);
+		bean = this.beanFactory.getBean(flowRegistrationId + "." + "anId.handler", BeanFactoryHandler.class);
 
 		MessagingTemplate messagingTemplate = flowRegistration.getMessagingTemplate();
 		messagingTemplate.setReceiveTimeout(10000);
@@ -210,9 +229,9 @@ public class ManualFlowTests {
 
 		flowRegistration.destroy();
 
-		assertFalse(this.beanFactory.containsBean(flowRegistration.getId()));
-		assertFalse(this.beanFactory.containsBean(flowRegistration.getId() + ".input"));
-		assertFalse(this.beanFactory.containsBean(flowRegistration.getId() + BeanFactoryHandler.class.getName() + "#0"));
+		assertFalse(this.beanFactory.containsBean(flowRegistrationId));
+		assertFalse(this.beanFactory.containsBean(flowRegistrationId + ".input"));
+		assertFalse(this.beanFactory.containsBean(flowRegistrationId + BeanFactoryHandler.class.getName() + "#0"));
 
 		ThreadPoolTaskScheduler taskScheduler = this.beanFactory.getBean(ThreadPoolTaskScheduler.class);
 		Thread.sleep(100);
