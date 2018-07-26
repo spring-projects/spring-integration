@@ -96,7 +96,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 			waitReapCompleteLatch.countDown();
 		});
 
-		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
+		final List<Message<?>> outputMessages = new ArrayList<>();
 		handler.setOutputChannel((message, timeout) -> {
 			/*
 			 * Executes when group 'bar' completes normally
@@ -137,7 +137,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 				.build();
 		handler.handleMessage(message);
 
-		assertTrue(waitReapCompleteLatch.await(10, TimeUnit.SECONDS));
+		assertTrue(waitReapCompleteLatch.await(20, TimeUnit.SECONDS));
 		// Before INT-2751 we got bar + bar + qux
 		assertEquals(2, outputMessages.size()); // bar + qux
 		// normal release
@@ -154,7 +154,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
 
-		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
+		final List<Message<?>> outputMessages = new ArrayList<>();
 		handler.setOutputChannel((message, timeout) -> {
 			/*
 			 * Executes when group 'bar' completes normally
@@ -181,7 +181,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
 
-		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
+		final List<Message<?>> outputMessages = new ArrayList<>();
 		handler.setOutputChannel((message, timeout) -> {
 			/*
 			 * Executes when group 'bar' completes normally
@@ -233,8 +233,8 @@ public class AbstractCorrelatingMessageHandlerTests {
 		Method forceComplete =
 				AbstractCorrelatingMessageHandler.class.getDeclaredMethod("forceComplete", MessageGroup.class);
 		forceComplete.setAccessible(true);
-		GenericMessage<String> secondMessage = new GenericMessage<String>("bar");
-		mgs.addMessagesToGroup("foo", new GenericMessage<String>("foo"), secondMessage);
+		GenericMessage<String> secondMessage = new GenericMessage<>("bar");
+		mgs.addMessagesToGroup("foo", new GenericMessage<>("foo"), secondMessage);
 		MessageGroup group = mgs.getMessageGroup("foo");
 		// remove a message
 		mgs.removeMessagesFromGroup("foo", secondMessage);
@@ -256,7 +256,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		mgs.addMessagesToGroup("foo", new GenericMessage<String>("foo"));
+		mgs.addMessagesToGroup("foo", new GenericMessage<>("foo"));
 		mgs.completeGroup("foo");
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);
@@ -282,7 +282,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		mgs.addMessagesToGroup("foo", new GenericMessage<String>("foo"));
+		mgs.addMessagesToGroup("foo", new GenericMessage<>("foo"));
 		MessageGroup group = new SimpleMessageGroup(mgs.getMessageGroup("foo"));
 		mgs.completeGroup("foo");
 		mgs = spy(mgs);
@@ -311,7 +311,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 		MessageGroupStore mgs = TestUtils.getPropertyValue(handler, "messageStore", MessageGroupStore.class);
-		mgs.addMessagesToGroup("foo", new GenericMessage<String>("foo"));
+		mgs.addMessagesToGroup("foo", new GenericMessage<>("foo"));
 		MessageGroup group = new SimpleMessageGroup(mgs.getMessageGroup("foo"));
 		mgs = spy(mgs);
 		new DirectFieldAccessor(handler).setPropertyValue("messageStore", mgs);
@@ -383,7 +383,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
 
-		final List<Message<?>> outputMessages = new ArrayList<Message<?>>();
+		final List<Message<?>> outputMessages = new ArrayList<>();
 		handler.setOutputChannel((message, timeout) -> {
 			/*
 			 * Executes when group 'bar' completes normally
@@ -422,7 +422,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	}
 
 	@Test
-	public void testDontReapMessageOfOtherHandler() throws Exception {
+	public void testDontReapMessageOfOtherHandler() {
 		MessageGroupStore groupStore = new SimpleMessageStore();
 
 		AggregatingMessageHandler handler1 = new AggregatingMessageHandler(group -> group, groupStore);
@@ -443,7 +443,8 @@ public class AbstractCorrelatingMessageHandlerTests {
 
 		groupStore.expireMessageGroups(0);
 
-		assertTrue(handler1DiscardChannel.getQueueSize() == 2);
-		assertTrue(handler2DiscardChannel.getQueueSize() == 1);
+		assertEquals(2, handler1DiscardChannel.getQueueSize());
+		assertEquals(1, handler2DiscardChannel.getQueueSize());
 	}
+
 }
