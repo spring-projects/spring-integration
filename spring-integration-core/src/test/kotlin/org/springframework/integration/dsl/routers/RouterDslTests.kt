@@ -27,6 +27,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.IntegrationFlow
+import org.springframework.integration.dsl.channel.MessageChannels
+import org.springframework.integration.support.MessageBuilder
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.PollableChannel
 import org.springframework.messaging.support.GenericMessage
@@ -83,6 +85,12 @@ class RouterDslTests {
                             .channel { c -> c.queue("routerTwoSubFlowsOutput") }
                 }
 
+
+        @Bean
+        fun publishSubscribe() =
+                MessageChannels.publishSubscribe()
+                        .ignoreFailures(true)
+                        .applySequence(false)
     }
 
 }

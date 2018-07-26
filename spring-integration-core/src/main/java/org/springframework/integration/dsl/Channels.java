@@ -104,20 +104,19 @@ public class Channels {
 		return MessageChannels.rendezvous(id);
 	}
 
-	public PublishSubscribeChannelSpec<? extends PublishSubscribeChannelSpec<?>>  publishSubscribe() {
+	public PublishSubscribeChannelSpec<?>  publishSubscribe() {
 		return MessageChannels.publishSubscribe();
 	}
 
-	public PublishSubscribeChannelSpec<? extends PublishSubscribeChannelSpec<?>> publishSubscribe(Executor executor) {
+	public PublishSubscribeChannelSpec<?> publishSubscribe(Executor executor) {
 		return MessageChannels.publishSubscribe(executor);
 	}
 
-	public PublishSubscribeChannelSpec<? extends PublishSubscribeChannelSpec<?>> publishSubscribe(String id,
-			Executor executor) {
+	public PublishSubscribeChannelSpec<?> publishSubscribe(String id, Executor executor) {
 		return MessageChannels.publishSubscribe(id, executor);
 	}
 
-	public PublishSubscribeChannelSpec<? extends PublishSubscribeChannelSpec<?>> publishSubscribe(String id) {
+	public PublishSubscribeChannelSpec<?> publishSubscribe(String id) {
 		return MessageChannels.publishSubscribe(id);
 	}
 
