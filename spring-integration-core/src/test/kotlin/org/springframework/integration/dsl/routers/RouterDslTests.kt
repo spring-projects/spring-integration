@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.integration.channel.QueueChannel
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.IntegrationFlow
+import org.springframework.integration.dsl.MessageChannels
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.PollableChannel
@@ -133,6 +134,12 @@ class RouterDslTests {
                 IntegrationFlow { flow ->
                     flow.handle<Any> { _, _ -> "even" }
                 }
+
+        @Bean
+        fun publishSubscribe() =
+                MessageChannels.publishSubscribe()
+                        .ignoreFailures(true)
+                        .applySequence(false)
     }
 
 }
