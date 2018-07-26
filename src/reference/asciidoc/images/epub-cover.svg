@@ -6,7 +6,11 @@
   <text x="250" y="192" fill="Black" font-size="72">Reference Guide</text>
   <text x="250" y="420" fill="Black" font-size="36">Mark Fisher, Marius Bogoevici,</text>
   <text x="250" y="466" fill="Black" font-size="36">Iwein Fuld, Jonas Partner,</text>
+<<<<<<< HEAD
   <text x="250" y="512" fill="Black" font-size="36">Oleg Zhurakousky, Gary Russell,</text>
+=======
+  <text x="250" y="512" fill="Black" font-size="36">Oleg Zhurakousky, Marius Bogoevici,</text>
+>>>>>>> Interim commit for document production
   <text x="250" y="558" fill="Black" font-size="36">Dave Syer, Josh Long,</text>
   <text x="250" y="604" fill="Black" font-size="36">David Turanski, Gunnar Hillert,</text>
   <text x="250" y="650" fill="Black" font-size="36">Artem Bilan, Amol Nayak,</text>

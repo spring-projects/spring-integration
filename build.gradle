@@ -4,8 +4,6 @@ buildscript {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
 	dependencies {
-		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
-		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.8'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 		classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
 	}
@@ -16,8 +14,6 @@ plugins {
 }
 
 description = 'Spring Integration'
-
-def docsDir = 'src/reference/asciidoc'
 
 ext {
 	linkHomepage = 'https://projects.spring.io/spring-integration'
@@ -764,42 +760,14 @@ project("spring-integration-bom") {
 	}
 }
 
-apply plugin: 'org.asciidoctor.convert'
-
-asciidoctor {
-	sourceDir = file("$docsDir")
-	sources {
-		include 'index.adoc'
-	}
-	backends = ['html5', 'docbook']
-	logDocuments = true
-	options = [
-		doctype: 'book',
-	]
-	attributes = [
-		docinfo: '',
-		toc2: '',
-		'compat-mode': '',
-		imagesdir: '',
-		stylesheet: "${rootProject.projectDir}/src/reference/asciidoc/stylesheets/golo.css",
-		'source-highlighter': 'highlightjs'
-	]
+task reference(type: GradleBuild) {
+  group = 'Documentation'
+	description = 'Generate the reference documentation'
+  buildFile = 'src/reference/build.gradle'
+	tasks = ['asciidoctor']
 }
 
-apply plugin: DocbookReferencePlugin
-
-reference {
-	sourceFileName = 'index.xml'
-	sourceDir = file("$buildDir/asciidoc/docbook")
-	pdfFilename = 'spring-integration-reference.pdf'
-	expandPlaceholders = ''
-}
-
-reference.dependsOn asciidoctor
-
-[asciidoctor, reference, referenceEpub, referenceHtmlMulti, referenceHtmlSingle, referencePdf].each {
-	it.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }
-}
+reference.onlyIf { "$System.env.NO_REFERENCE_TASK" != 'true' || project.hasProperty('ignoreEnvToStopReference') }
 
 sonarqube {
 	properties {
@@ -863,7 +831,7 @@ task schemaZip(type: Zip) {
 	}
 }
 
-task docsZip(type: Zip) {
+task docsZip(type: Zip, dependsOn: reference) {
 		group = 'Distribution'
 		classifier = 'docs'
 		description = "Builds -${classifier} archive containing api and reference " +
@@ -877,7 +845,7 @@ task docsZip(type: Zip) {
 			into 'api'
 		}
 
-		from (reference) {
+		from ('src/reference/build/docs') {
 			into 'reference'
 		}
 }
@@ -944,6 +912,8 @@ task depsZip(type: Zip, dependsOn: distZip) { zipTask ->
 		}
 	}
 }
+
+apply plugin: 'maven'
 
 artifacts {
 	archives distZip

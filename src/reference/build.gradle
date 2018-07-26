@@ -1,0 +1,72 @@
+buildscript {
+  dependencies {
+    classpath 'org.asciidoctor:asciidoctorj-epub3:1.5.0-alpha.6'
+    classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.15'
+  }
+}
+
+plugins {
+  id 'de.undercouch.download' version '3.4.3'
+  id 'org.asciidoctor.convert' version '1.5.3'
+}
+
+apply plugin: 'java'
+apply plugin: 'org.asciidoctor.convert'
+
+version = '1.0.0-SNAPSHOT'
+
+asciidoctorj {
+  version = '1.5.5'
+}
+
+task downloadResources(type: Download) {
+  src 'http://repo.spring.io/libs-snapshot-local/org/springframework/doc-resources/spring-doc-resources/0.1.1-SNAPSHOT/spring-doc-resources-0.1.1-SNAPSHOT.zip'
+  dest 'build/resources-zip/doc-resources.zip'
+}
+
+task unzip(type: Copy) {
+  dependsOn 'downloadResources'
+  from zipTree(file('build/resources-zip/doc-resources.zip'))
+  into file('build/resources')
+}
+
+task copyResources(type: Copy) {
+  dependsOn 'unzip'
+  from('build/resources') {
+    include 'stylesheets/**'
+  }
+  from('build/resources/javascript') {
+    include 'tocbot-3.0.2/**'
+  }
+  from('build/resources/html') {
+    include '*.html'
+  }
+  into 'build/working'
+}
+
+task copyAsciidoc(type: Copy) {
+  dependsOn 'copyResources'
+  from file('asciidoc')
+  include '*.adoc'
+  include 'images/**'
+  into file('build/working')
+}
+
+asciidoctor {
+  dependsOn 'copyAsciidoc'
+  sourceDir = file('build/working')
+  outputDir = file('build/docs')
+  sources {
+    include 'index.adoc'
+  }
+  backends = ['html5', 'pdf', 'epub3']
+  logDocuments = true
+  separateOutputDirs = false
+  resources {
+    from(sourceDir) {
+      include 'images/**'
+      include 'stylesheets/**'
+      include 'tocbot-3.0.2/**'
+    }
+  }
+}
