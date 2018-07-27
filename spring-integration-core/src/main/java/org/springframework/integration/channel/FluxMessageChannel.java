@@ -83,6 +83,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 				Flux.from(publisher)
 						.doOnComplete(() -> this.publishers.remove(publisher))
 						.doOnNext(this::send)
+						.hide() // TODO remove after upgrade to Reactor 3.1.9.RELEASE or later
 						.publish();
 
 		this.publishers.put(publisher, connectableFlux);
