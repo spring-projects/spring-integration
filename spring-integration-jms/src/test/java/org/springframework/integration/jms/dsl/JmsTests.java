@@ -417,6 +417,8 @@ public class JmsTests {
 							.destination("jmsMessageDrivenRedelivery")
 							.configureListenerContainer(c -> c
 									.transactionManager(mock(PlatformTransactionManager.class))
+									.subscriptionDurable(false)
+									.subscriptionShared(false)
 									.id("jmsMessageDrivenRedeliveryFlowContainer")))
 					.<String, String>transform(p -> {
 						throw new RuntimeException("intentional");
