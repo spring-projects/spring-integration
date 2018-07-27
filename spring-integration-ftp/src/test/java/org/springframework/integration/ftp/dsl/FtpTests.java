@@ -46,6 +46,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableIntegrationManagement;
+import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
@@ -84,6 +86,9 @@ public class FtpTests extends FtpTestSupport {
 
 	@Autowired
 	private ApplicationContext context;
+
+	@Autowired
+	private IntegrationManagementConfigurer integrationManagementConfigurer;
 
 	@Test
 	public void testFtpInboundFlow() throws IOException {
@@ -132,7 +137,12 @@ public class FtpTests extends FtpTestSupport {
 
 		MessageSource<?> source = context.getBean(FtpInboundFileSynchronizingMessageSource.class);
 		assertThat(TestUtils.getPropertyValue(source, "maxFetchSize"), equalTo(10));
+
+		assertNotNull(this.integrationManagementConfigurer.getSourceMetrics("ftpInboundAdapter.source"));
+
 		registration.destroy();
+
+		assertNull(this.integrationManagementConfigurer.getSourceMetrics("ftpInboundAdapter.source"));
 	}
 
 	@Test
@@ -221,6 +231,7 @@ public class FtpTests extends FtpTestSupport {
 
 	@Configuration
 	@EnableIntegration
+	@EnableIntegrationManagement
 	public static class ContextConfiguration {
 
 	}
