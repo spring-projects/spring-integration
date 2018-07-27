@@ -16,10 +16,7 @@
 
 package org.springframework.integration.support.management.graph;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
@@ -45,6 +42,9 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.dsl.context.IntegrationFlowRegistration;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -82,6 +82,9 @@ public class IntegrationGraphServerTests {
 	@Autowired
 	private MessageChannel toRouter;
 
+	@Autowired
+	private IntegrationFlowContext flowContext;
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void test() throws Exception {
@@ -94,13 +97,13 @@ public class IntegrationGraphServerTests {
 //		System . out . println(new String(baos.toByteArray()));
 
 		Map<?, ?> map = objectMapper.readValue(baos.toByteArray(), Map.class);
-		assertThat(map.size(), is(equalTo(3)));
+		assertThat(map.size()).isEqualTo(3);
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
-		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(32)));
+		assertThat(nodes).isNotNull();
+		assertThat(nodes.size()).isEqualTo(32);
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
-		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(33)));
+		assertThat(links).isNotNull();
+		assertThat(links.size()).isEqualTo(33);
 
 		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		toRouter.send(MessageBuilder.withPayload("foo").setHeader("foo", "baz").build());
@@ -116,13 +119,26 @@ public class IntegrationGraphServerTests {
 //		System . out . println(new String(baos.toByteArray()));
 
 		map = objectMapper.readValue(baos.toByteArray(), Map.class);
-		assertThat(map.size(), is(equalTo(3)));
+		assertThat(map.size()).isEqualTo(3);
 		nodes = (List<Map<?, ?>>) map.get("nodes");
-		assertThat(nodes, is(notNullValue()));
-		assertThat(nodes.size(), is(equalTo(32)));
+		assertThat(nodes).isNotNull();
+		assertThat(nodes.size()).isEqualTo(32);
 		links = (List<Map<?, ?>>) map.get("links");
-		assertThat(links, is(notNullValue()));
-		assertThat(links.size(), is(equalTo(35)));
+		assertThat(links).isNotNull();
+		assertThat(links.size()).isEqualTo(35);
+	}
+
+	@Test
+	public void testIncludesDynamic() {
+		Graph graph = this.server.getGraph();
+		assertThat(graph.getNodes().size()).isEqualTo(32);
+		IntegrationFlow flow = f -> f.handle(m -> { });
+		IntegrationFlowRegistration reg = this.flowContext.registration(flow).register();
+		graph = this.server.rebuild();
+		assertThat(graph.getNodes().size()).isEqualTo(34);
+		this.flowContext.remove(reg.getId());
+		graph = this.server.rebuild();
+		assertThat(graph.getNodes().size()).isEqualTo(32);
 	}
 
 	@Configuration
