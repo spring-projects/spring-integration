@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 
 package org.springframework.integration.jmx.config;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
@@ -40,28 +41,29 @@ import org.springframework.jmx.export.MBeanExporter;
  *
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.1
  *
  */
-class MBeanExporterHelper implements BeanPostProcessor, Ordered {
+class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered {
 
-	private final List<MBeanExporter> mBeanExportersForExcludes = new ArrayList<MBeanExporter>();
+	private final Queue<MBeanExporter> mBeanExportersForExcludes = new ConcurrentLinkedQueue<>();
 
-	private final Set<String> siBeanNames = new HashSet<String>();
+	private final Set<String> siBeanNames = ConcurrentHashMap.newKeySet();
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if ("$autoCreateChannelCandidates".equals(beanName)) {
 			@SuppressWarnings("unchecked")
-			Collection<String> autoCreateChannelCandidatesNames = (Collection<String>) new DirectFieldAccessor(bean)
-							.getPropertyValue("channelNames");
+			Collection<String> autoCreateChannelCandidatesNames =
+					(Collection<String>) new DirectFieldAccessor(bean).getPropertyValue("channelNames");
 			this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
 			if (!this.mBeanExportersForExcludes.isEmpty()) {
-				for (String autoCreateChannelCandidatesName : autoCreateChannelCandidatesNames) {
-					for (MBeanExporter mBeanExporter : this.mBeanExportersForExcludes) {
-						mBeanExporter.addExcludedBean(autoCreateChannelCandidatesName);
-					}
-				}
+				autoCreateChannelCandidatesNames
+						.stream().
+						<Consumer<? super MBeanExporter>>map(candidateName ->
+								mBeanExporter -> mBeanExporter.addExcludedBean(candidateName))
+						.forEach(this.mBeanExportersForExcludes::forEach);
 			}
 		}
 
@@ -72,23 +74,35 @@ class MBeanExporterHelper implements BeanPostProcessor, Ordered {
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (AnnotatedElementUtils.isAnnotated(AopUtils.getTargetClass(bean),
 				IntegrationManagedResource.class.getName())) {
+
 			this.siBeanNames.add(beanName);
-			if (!this.mBeanExportersForExcludes.isEmpty()) {
-				for (MBeanExporter mBeanExporter : this.mBeanExportersForExcludes) {
-					mBeanExporter.addExcludedBean(beanName);
-				}
-			}
+			this.mBeanExportersForExcludes.forEach(mBeanExporter -> mBeanExporter.addExcludedBean(beanName));
 		}
 
 		if (bean instanceof MBeanExporter && !(bean instanceof IntegrationMBeanExporter)) {
 			MBeanExporter mBeanExporter = (MBeanExporter) bean;
 			this.mBeanExportersForExcludes.add(mBeanExporter);
-			for (String siBeanName : this.siBeanNames) {
-				mBeanExporter.addExcludedBean(siBeanName);
-			}
+			this.siBeanNames.forEach(mBeanExporter::addExcludedBean);
 		}
 
 		return bean;
+	}
+
+	@Override
+	public boolean requiresDestruction(Object bean) {
+		return (bean instanceof MBeanExporter && !(bean instanceof IntegrationMBeanExporter)) ||
+				AnnotatedElementUtils.isAnnotated(AopUtils.getTargetClass(bean),
+						IntegrationManagedResource.class.getName());
+	}
+
+	@Override
+	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+		if (bean instanceof MBeanExporter) {
+			this.mBeanExportersForExcludes.remove(bean);
+		}
+		else {
+			this.siBeanNames.remove(beanName);
+		}
 	}
 
 	@Override
