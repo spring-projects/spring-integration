@@ -82,7 +82,7 @@ public class FluxMessageChannel extends AbstractMessageChannel
 		ConnectableFlux<?> connectableFlux =
 				Flux.from(publisher)
 						.handle((message, sink) -> sink.next(send(message)))
-						.onErrorContinue()
+						.errorStrategyContinue()
 						.doOnComplete(() -> this.publishers.remove(publisher))
 						.publish();
 
