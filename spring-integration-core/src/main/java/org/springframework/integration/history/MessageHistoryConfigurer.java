@@ -29,7 +29,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -50,7 +50,7 @@ import org.springframework.util.StringUtils;
  */
 @ManagedResource
 @IntegrationManagedResource
-public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAware, BeanPostProcessor {
+public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAware, DestructionAwareBeanPostProcessor {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -158,6 +158,16 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 				this.logger.info("Enabling MessageHistory tracking for component '" + componentName + "'");
 			}
 		}
+	}
+
+	@Override
+	public boolean requiresDestruction(Object bean) {
+		return bean instanceof TrackableComponent;
+	}
+
+	@Override
+	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+		this.currentlyTrackedComponents.remove(bean);
 	}
 
 	/*
