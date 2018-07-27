@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.ErrorHandler;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 5.0
  */
 public class JmsListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, C extends AbstractMessageListenerContainer>
@@ -90,6 +91,18 @@ public class JmsListenerContainerSpec<S extends JmsListenerContainerSpec<S, C>, 
 	 */
 	public S durableSubscriptionName(String durableSubscriptionName) {
 		this.target.setDurableSubscriptionName(durableSubscriptionName);
+		return _this();
+	}
+
+	/**
+	 * Set whether to make the subscription shared.
+	 * @param subscriptionShared make the subscription shared or not.
+	 * @return the spec.
+	 * @since 5.0.7
+	 * @see AbstractMessageListenerContainer#setSubscriptionShared(boolean)
+	 */
+	public S subscriptionShared(boolean subscriptionShared) {
+		this.target.setSubscriptionShared(subscriptionShared);
 		return _this();
 	}
 
