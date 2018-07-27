@@ -56,7 +56,7 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 
 	private final Set<TrackableComponent> currentlyTrackedComponents = ConcurrentHashMap.newKeySet();
 
-	private String[] componentNamePatterns = new String[] { "*" };
+	private String[] componentNamePatterns = new String[]{ "*" };
 
 	private boolean componentNamePatternsExplicitlySet;
 
@@ -98,7 +98,7 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	 */
 	@ManagedAttribute(description = "comma-delimited list of patterns; must invoke stop() before changing.")
 	public void setComponentNamePatternsString(String componentNamePatterns) {
-		this.setComponentNamePatterns(StringUtils.delimitedListToStringArray(componentNamePatterns, ",", " "));
+		setComponentNamePatterns(StringUtils.delimitedListToStringArray(componentNamePatterns, ",", " "));
 	}
 
 	@ManagedAttribute

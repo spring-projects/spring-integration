@@ -16,11 +16,12 @@
 
 package org.springframework.integration.jmx.config;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -46,23 +47,23 @@ import org.springframework.jmx.export.MBeanExporter;
  */
 class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered {
 
-	private final List<MBeanExporter> mBeanExportersForExcludes = new ArrayList<>();
+	private final Queue<MBeanExporter> mBeanExportersForExcludes = new ConcurrentLinkedQueue<>();
 
-	private final Set<String> siBeanNames = new HashSet<>();
+	private final Set<String> siBeanNames = ConcurrentHashMap.newKeySet();
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if ("$autoCreateChannelCandidates".equals(beanName)) {
 			@SuppressWarnings("unchecked")
-			Collection<String> autoCreateChannelCandidatesNames = (Collection<String>) new DirectFieldAccessor(bean)
-					.getPropertyValue("channelNames");
+			Collection<String> autoCreateChannelCandidatesNames =
+					(Collection<String>) new DirectFieldAccessor(bean).getPropertyValue("channelNames");
 			this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
 			if (!this.mBeanExportersForExcludes.isEmpty()) {
-				for (String autoCreateChannelCandidatesName : autoCreateChannelCandidatesNames) {
-					for (MBeanExporter mBeanExporter : this.mBeanExportersForExcludes) {
-						mBeanExporter.addExcludedBean(autoCreateChannelCandidatesName);
-					}
-				}
+				autoCreateChannelCandidatesNames
+						.stream().
+						<Consumer<? super MBeanExporter>>map(candidateName ->
+								mBeanExporter -> mBeanExporter.addExcludedBean(candidateName))
+						.forEach(this.mBeanExportersForExcludes::forEach);
 			}
 		}
 
@@ -73,20 +74,15 @@ class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (AnnotatedElementUtils.isAnnotated(AopUtils.getTargetClass(bean),
 				IntegrationManagedResource.class.getName())) {
+
 			this.siBeanNames.add(beanName);
-			if (!this.mBeanExportersForExcludes.isEmpty()) {
-				for (MBeanExporter mBeanExporter : this.mBeanExportersForExcludes) {
-					mBeanExporter.addExcludedBean(beanName);
-				}
-			}
+			this.mBeanExportersForExcludes.forEach(mBeanExporter -> mBeanExporter.addExcludedBean(beanName));
 		}
 
 		if (bean instanceof MBeanExporter && !(bean instanceof IntegrationMBeanExporter)) {
 			MBeanExporter mBeanExporter = (MBeanExporter) bean;
 			this.mBeanExportersForExcludes.add(mBeanExporter);
-			for (String siBeanName : this.siBeanNames) {
-				mBeanExporter.addExcludedBean(siBeanName);
-			}
+			this.siBeanNames.forEach(mBeanExporter::addExcludedBean);
 		}
 
 		return bean;
@@ -102,7 +98,7 @@ class MBeanExporterHelper implements DestructionAwareBeanPostProcessor, Ordered 
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
 		if (bean instanceof MBeanExporter) {
-			mBeanExportersForExcludes.remove(bean);
+			this.mBeanExportersForExcludes.remove(bean);
 		}
 		else {
 			this.siBeanNames.remove(beanName);
