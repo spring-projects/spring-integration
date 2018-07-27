@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +42,10 @@ import org.springframework.integration.channel.FluxMessageChannel;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -53,6 +59,7 @@ import reactor.core.publisher.Flux;
 
 /**
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 @RunWith(SpringRunner.class)
@@ -68,8 +75,11 @@ public class FluxMessageChannelTests {
 	@Autowired
 	private PollableChannel errorChannel;
 
+	@Autowired
+	private IntegrationFlowContext integrationFlowContext;
+
 	@Test
-	public void testFluxMessageChannel() throws InterruptedException {
+	public void testFluxMessageChannel() {
 		QueueChannel replyChannel = new QueueChannel();
 
 		for (int i = 0; i < 10; i++) {
@@ -104,6 +114,31 @@ public class FluxMessageChannelTests {
 
 		assertTrue(done.await(10, TimeUnit.SECONDS));
 		assertThat(results, contains("FOO", "BAR"));
+	}
+
+	@Test
+	public void testFluxMessageChannelCleanUp() throws InterruptedException {
+		FluxMessageChannel flux = MessageChannels.flux().get();
+
+		CountDownLatch finishLatch = new CountDownLatch(1);
+
+		IntegrationFlow testFlow = f -> f
+				.<String>split(__ -> Flux.fromStream(IntStream.range(0, 100).boxed()), null)
+				.channel(flux)
+				.aggregate(a -> a.releaseStrategy(m -> m.size() == 100))
+				.handle(__ -> finishLatch.countDown());
+
+		IntegrationFlowContext.IntegrationFlowRegistration flowRegistration =
+				this.integrationFlowContext.registration(testFlow)
+						.register();
+
+		flowRegistration.getInputChannel().send(new GenericMessage<>("foo"));
+
+		assertTrue(finishLatch.await(10, TimeUnit.SECONDS));
+
+		assertTrue(TestUtils.getPropertyValue(flux, "publishers", Map.class).isEmpty());
+
+		flowRegistration.destroy();
 	}
 
 	@Configuration
