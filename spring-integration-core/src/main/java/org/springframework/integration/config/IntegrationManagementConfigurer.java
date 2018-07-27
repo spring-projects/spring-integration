@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.core.MessageSource;
@@ -64,8 +64,9 @@ import org.springframework.util.StringUtils;
  * @since 4.2
  *
  */
-public class IntegrationManagementConfigurer implements SmartInitializingSingleton, ApplicationContextAware,
-		BeanNameAware, BeanPostProcessor {
+public class IntegrationManagementConfigurer
+		implements SmartInitializingSingleton, ApplicationContextAware, BeanNameAware,
+				DestructionAwareBeanPostProcessor {
 
 	private static final Log logger = LogFactory.getLog(IntegrationManagementConfigurer.class);
 
@@ -246,7 +247,8 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 			this.metricsFactory = new DefaultMetricsFactory();
 		}
 		this.sourceConfigurers.putAll(this.applicationContext.getBeansOfType(MessageSourceMetricsConfigurer.class));
-		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
+		Map<String, IntegrationManagement> managed = this.applicationContext
+				.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
 			if (!bean.getOverrides().loggingConfigured) {
@@ -259,7 +261,8 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 	}
 
 	private void injectCaptor() {
-		Map<String, IntegrationManagement> managed = this.applicationContext.getBeansOfType(IntegrationManagement.class);
+		Map<String, IntegrationManagement> managed = this.applicationContext
+				.getBeansOfType(IntegrationManagement.class);
 		for (Entry<String, IntegrationManagement> entry : managed.entrySet()) {
 			IntegrationManagement bean = entry.getValue();
 			if (!bean.getOverrides().loggingConfigured) {
@@ -278,6 +281,30 @@ public class IntegrationManagementConfigurer implements SmartInitializingSinglet
 			return doConfigureMetrics(bean, beanName);
 		}
 		return bean;
+	}
+
+	@Override
+	public boolean requiresDestruction(Object bean) {
+		return bean instanceof MessageChannelMetrics ||
+				bean instanceof MessageHandlerMetrics ||
+				bean instanceof MessageSourceMetrics;
+	}
+
+	@Override
+	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+		if (bean instanceof MessageChannelMetrics) {
+			this.channelsByName.remove(beanName);
+		}
+		else if (bean instanceof MessageHandlerMetrics) {
+			if (this.handlersByName.remove(beanName) == null) {
+				this.handlersByName.remove(beanName + ".handler");
+			}
+		}
+		else if (bean instanceof MessageSourceMetrics) {
+			if (this.sourcesByName.remove(beanName) == null) {
+				this.sourcesByName.remove(beanName + ".source");
+			}
+		}
 	}
 
 	private Object doConfigureMetrics(Object bean, String name) {
