@@ -59,7 +59,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.config.EnableIntegrationManagement;
 import org.springframework.integration.config.EnableMessageHistory;
+import org.springframework.integration.config.IntegrationManagementConfigurer;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -113,6 +115,9 @@ public class ManualFlowTests {
 	@Autowired
 	private SmartLifecycleRoleController roleController;
 
+	@Autowired
+	private IntegrationManagementConfigurer integrationManagementConfigurer;
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testWithAnonymousMessageProducerStart() {
@@ -127,9 +132,11 @@ public class ManualFlowTests {
 
 		};
 		QueueChannel channel = new QueueChannel();
+		channel.setBeanName("channel");
 		IntegrationFlowBuilder flowBuilder = IntegrationFlows.from(producer);
 
 		BridgeHandler bridgeHandler = new BridgeHandler();
+		bridgeHandler.setBeanName("bridge");
 
 		IntegrationFlow flow =
 				flowBuilder.handle(bridgeHandler)
@@ -144,9 +151,15 @@ public class ManualFlowTests {
 
 		assertTrue(replyProducers.contains(bridgeHandler));
 
+		assertNotNull(this.integrationManagementConfigurer.getChannelMetrics("channel"));
+		assertNotNull(this.integrationManagementConfigurer.getHandlerMetrics("bridge"));
+
 		flowRegistration.destroy();
 
 		assertFalse(replyProducers.contains(bridgeHandler));
+
+		assertNull(this.integrationManagementConfigurer.getChannelMetrics("channel"));
+		assertNull(this.integrationManagementConfigurer.getHandlerMetrics("bridge"));
 	}
 
 	@Test
@@ -525,6 +538,7 @@ public class ManualFlowTests {
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory
+	@EnableIntegrationManagement
 	public static class RootConfiguration {
 
 		@Bean
