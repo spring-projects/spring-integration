@@ -136,7 +136,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 	private Map<String, MessageChannelNode> channels(Collection<IntegrationNode> nodes) {
 		Map<String, MessageChannel> channels = this.applicationContext
-				.getBeansOfType(MessageChannel.class);
+				.getBeansOfType(MessageChannel.class, true, false);
 		Map<String, MessageChannelNode> channelNodes = new HashMap<>();
 		for (Entry<String, MessageChannel> entry : channels.entrySet()) {
 			MessageChannel channel = entry.getValue();
@@ -152,7 +152,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			Map<String, MessageChannelNode> channelNodes) {
 
 		Map<String, SourcePollingChannelAdapter> spcas = this.applicationContext
-				.getBeansOfType(SourcePollingChannelAdapter.class);
+				.getBeansOfType(SourcePollingChannelAdapter.class, true, false);
 		for (Entry<String, SourcePollingChannelAdapter> entry : spcas.entrySet()) {
 			SourcePollingChannelAdapter adapter = entry.getValue();
 			MessageSourceNode sourceNode = this.nodeFactory.sourceNode(entry.getKey(), adapter);
@@ -165,7 +165,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			Map<String, MessageChannelNode> channelNodes) {
 
 		Map<String, MessagingGatewaySupport> gateways = this.applicationContext
-				.getBeansOfType(MessagingGatewaySupport.class);
+				.getBeansOfType(MessagingGatewaySupport.class, true, false);
 		for (Entry<String, MessagingGatewaySupport> entry : gateways.entrySet()) {
 			MessagingGatewaySupport gateway = entry.getValue();
 			MessageGatewayNode gatewayNode = this.nodeFactory.gatewayNode(entry.getKey(), gateway);
@@ -173,7 +173,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			producerLink(links, channelNodes, gatewayNode);
 		}
 		Map<String, GatewayProxyFactoryBean> gpfbs = this.applicationContext
-				.getBeansOfType(GatewayProxyFactoryBean.class);
+				.getBeansOfType(GatewayProxyFactoryBean.class, true, false);
 		for (Entry<String, GatewayProxyFactoryBean> entry : gpfbs.entrySet()) {
 			Map<Method, MessagingGatewaySupport> methodMap = entry.getValue().getGateways();
 			for (Entry<Method, MessagingGatewaySupport> gwEntry : methodMap.entrySet()) {
@@ -199,7 +199,7 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 			Map<String, MessageChannelNode> channelNodes) {
 
 		Map<String, MessageProducerSupport> producers = this.applicationContext
-				.getBeansOfType(MessageProducerSupport.class);
+				.getBeansOfType(MessageProducerSupport.class, true, false);
 		for (Entry<String, MessageProducerSupport> entry : producers.entrySet()) {
 			MessageProducerSupport producer = entry.getValue();
 			MessageProducerNode producerNode = this.nodeFactory.producerNode(entry.getKey(), producer);
@@ -211,7 +211,8 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	private void consumers(Collection<IntegrationNode> nodes, Collection<LinkNode> links,
 			Map<String, MessageChannelNode> channelNodes) {
 
-		Map<String, IntegrationConsumer> consumers = this.applicationContext.getBeansOfType(IntegrationConsumer.class);
+		Map<String, IntegrationConsumer> consumers = this.applicationContext.getBeansOfType(IntegrationConsumer.class,
+				true, false);
 		for (Entry<String, IntegrationConsumer> entry : consumers.entrySet()) {
 			IntegrationConsumer consumer = entry.getValue();
 			MessageHandlerNode handlerNode = consumer instanceof PollingConsumer
