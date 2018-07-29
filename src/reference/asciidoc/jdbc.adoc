@@ -298,7 +298,6 @@ The reply message is then generated from the result, like the inbound adapter, a
     reply-channel="output"
     data-source="dataSource"/>
 ----
-====
 
 [IMPORTANT]
 ====
