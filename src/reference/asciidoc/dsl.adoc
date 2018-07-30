@@ -579,8 +579,8 @@ Only limitation is here, that this flow is started with named direct channel - `
 And Lambda flow can't start from `MessageSource` or `MessageProducer`.
 
 Starting with _version 5.0.6_, the generated bean names for the components in an `IntegrationFlow` include the flow bean followed by a dot as a prefix.
-For example the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::concat)` in the sample above, will end up with te bean name like `lambdaFlow.org.springframework.integration.config.ConsumerEndpointFactoryBean#0`.
-The `Transformer` implementation bean for that endpoint will have a bean name such as `lambdaFlow.org.springframework.integration.transformer.MethodInvokingTransformer#0`.
+For example the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::concat)` in the sample above, will end up with te bean name like `lambdaFlow.org.springframework.integration.config.` `ConsumerEndpointFactoryBean#0`.
+The `Transformer` implementation bean for that endpoint will have a bean name such as `lambdaFlow.org.springframework.integration.transformer.` `MethodInvokingTransformer#0`.
 These generated bean names are prepended with the flow id prefix for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
 See <<java-dsl-runtime-flows>> for more information.
 
