@@ -822,7 +822,7 @@ If the stored procedure or function does not return any data, the payload of the
 Required.
 <2> If this attribute is set to `true`, all results from a stored procedure call that do not have a corresponding `SqlOutParameter` declaration are bypassed.
 For example, stored procedures can return an update count value, even though your stored procedure declared only a single result parameter.
-The exact behavior depends on the used database.
+The exact behavior depends on the database implementation.
 The value is set on the underlying `JdbcTemplate`.
 The value defaults to `true`.
 Optional.
