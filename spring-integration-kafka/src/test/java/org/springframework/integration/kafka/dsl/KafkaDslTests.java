@@ -66,7 +66,7 @@ import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -102,8 +102,8 @@ public class KafkaDslTests {
 	private static final String TEST_TOPIC5 = "test-topic5";
 
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka =
-			new KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3, TEST_TOPIC4, TEST_TOPIC5);
+	public static EmbeddedKafkaRule embeddedKafka =
+			new EmbeddedKafkaRule(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3, TEST_TOPIC4, TEST_TOPIC5);
 
 	@Autowired
 	@Qualifier("sendToKafkaFlow.input")
@@ -231,7 +231,8 @@ public class KafkaDslTests {
 
 		@Bean
 		public ConsumerFactory<Integer, String> consumerFactory() {
-			Map<String, Object> props = KafkaTestUtils.consumerProps("test1", "false", embeddedKafka);
+			Map<String, Object> props = KafkaTestUtils
+					.consumerProps("test1", "false", embeddedKafka.getEmbeddedKafka());
 			props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 			return new DefaultKafkaConsumerFactory<>(props);
 		}
@@ -276,8 +277,9 @@ public class KafkaDslTests {
 		@Bean
 		public IntegrationFlow topic2ListenerFromKafkaFlow() {
 			return IntegrationFlows
-					.from(Kafka.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
-							KafkaMessageDrivenChannelAdapter.ListenerMode.record)
+					.from(Kafka
+							.messageDrivenChannelAdapter(kafkaListenerContainerFactory().createContainer(TEST_TOPIC2),
+									KafkaMessageDrivenChannelAdapter.ListenerMode.record)
 							.filterInRetry(true))
 					.filter(Message.class, m ->
 									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
@@ -289,7 +291,7 @@ public class KafkaDslTests {
 
 		@Bean
 		public ProducerFactory<Integer, String> producerFactory() {
-			return new DefaultKafkaProducerFactory<>(KafkaTestUtils.producerProps(embeddedKafka));
+			return new DefaultKafkaProducerFactory<>(KafkaTestUtils.producerProps(embeddedKafka.getEmbeddedKafka()));
 		}
 
 		@Bean

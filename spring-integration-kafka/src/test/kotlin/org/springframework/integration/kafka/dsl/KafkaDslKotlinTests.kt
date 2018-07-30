@@ -17,13 +17,7 @@
 package org.springframework.integration.kafka.dsl
 
 import assertk.assert
-import assertk.assertions.contains
-import assertk.assertions.isEqualTo
-import assertk.assertions.isInstanceOf
-import assertk.assertions.isNotNull
-import assertk.assertions.isNull
-import assertk.assertions.isSameAs
-import assertk.assertions.isTrue
+import assertk.assertions.*
 import assertk.catch
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
@@ -50,11 +44,7 @@ import org.springframework.integration.kafka.support.RawRecordHeaderErrorMessage
 import org.springframework.integration.support.MessageBuilder
 import org.springframework.integration.test.util.TestUtils
 import org.springframework.kafka.annotation.EnableKafka
-import org.springframework.kafka.core.ConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaProducerFactory
-import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.core.ProducerFactory
+import org.springframework.kafka.core.*
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.GenericMessageListenerContainer
 import org.springframework.kafka.listener.KafkaMessageListenerContainer
@@ -63,7 +53,7 @@ import org.springframework.kafka.requestreply.ReplyingKafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.kafka.support.DefaultKafkaHeaderMapper
 import org.springframework.kafka.support.KafkaHeaders
-import org.springframework.kafka.test.rule.KafkaEmbedded
+import org.springframework.kafka.test.rule.EmbeddedKafkaRule
 import org.springframework.kafka.test.utils.KafkaTestUtils
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
@@ -103,7 +93,7 @@ class KafkaDslKotlinTests {
 
         @ClassRule
         @JvmField
-        var embeddedKafka = KafkaEmbedded(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3, TEST_TOPIC4, TEST_TOPIC5)
+        var embeddedKafka = EmbeddedKafkaRule(1, true, TEST_TOPIC1, TEST_TOPIC2, TEST_TOPIC3, TEST_TOPIC4, TEST_TOPIC5)
     }
 
 
@@ -242,7 +232,7 @@ class KafkaDslKotlinTests {
 
         @Bean
         fun consumerFactory(): ConsumerFactory<Int, String> {
-            val props = KafkaTestUtils.consumerProps("test1", "false", embeddedKafka)
+            val props = KafkaTestUtils.consumerProps("test1", "false", embeddedKafka.embeddedKafka)
             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
             return DefaultKafkaConsumerFactory(props)
         }
@@ -286,7 +276,7 @@ class KafkaDslKotlinTests {
                         .get()
 
         @Bean
-        fun producerFactory() = DefaultKafkaProducerFactory<Int, String>(KafkaTestUtils.producerProps(embeddedKafka))
+        fun producerFactory() = DefaultKafkaProducerFactory<Int, String>(KafkaTestUtils.producerProps(embeddedKafka.embeddedKafka))
 
         @Bean
         fun sendToKafkaFlow() =

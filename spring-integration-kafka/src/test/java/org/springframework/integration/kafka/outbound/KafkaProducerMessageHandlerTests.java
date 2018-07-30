@@ -68,7 +68,8 @@ import org.springframework.kafka.support.DefaultKafkaHeaderMapper;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.KafkaNull;
 import org.springframework.kafka.support.SendResult;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
@@ -82,6 +83,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
 /**
  * @author Gary Russell
  * @author Biju Kunjummen
+ * @author Artem Bilan
  *
  * @since 2.0
  */
@@ -100,8 +102,10 @@ public class KafkaProducerMessageHandlerTests {
 	private static String topic6 = "testTopic6in";
 
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, topic1, topic2, topic3, topic4, topic5,
-			topic6);
+	public static EmbeddedKafkaRule embeddedKafkaRule =
+			new EmbeddedKafkaRule(1, true, topic1, topic2, topic3, topic4, topic5, topic6);
+
+	private static EmbeddedKafkaBroker embeddedKafka = embeddedKafkaRule.getEmbeddedKafka();
 
 	private static Consumer<Integer, String> consumer;
 

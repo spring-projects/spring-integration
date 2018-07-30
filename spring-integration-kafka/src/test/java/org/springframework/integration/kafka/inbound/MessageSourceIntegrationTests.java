@@ -32,12 +32,15 @@ import org.junit.Test;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.test.rule.KafkaEmbedded;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 3.0.1
  *
  */
@@ -46,7 +49,9 @@ public class MessageSourceIntegrationTests {
 	public static final String TOPIC1 = "MessageSourceIntegrationTests1";
 
 	@ClassRule
-	public static KafkaEmbedded embeddedKafka = new KafkaEmbedded(1, true, 1, TOPIC1);
+	public static EmbeddedKafkaRule embeddedKafkaRule = new EmbeddedKafkaRule(1, true, 1, TOPIC1);
+
+	private static EmbeddedKafkaBroker embeddedKafka = embeddedKafkaRule.getEmbeddedKafka();
 
 	@Test
 	public void testSource() throws Exception {
