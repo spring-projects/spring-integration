@@ -3,4 +3,5 @@
  *
  * Provides fundamental classes.
  */
+@org.springframework.lang.NonNullApi
 package org.springframework.integration;

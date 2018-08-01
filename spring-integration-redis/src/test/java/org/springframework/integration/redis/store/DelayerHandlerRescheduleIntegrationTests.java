@@ -118,7 +118,7 @@ public class DelayerHandlerRescheduleIntegrationTests extends RedisAvailableTest
 
 		assertEquals(1, messageStore.getMessageGroupCount());
 		int n = 0;
-		while (n++ < 200 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
+		while (n++ < 300 && messageStore.messageGroupSize(delayerMessageGroupId) > 0) {
 			Thread.sleep(100);
 		}
 		assertEquals(0, messageStore.messageGroupSize(delayerMessageGroupId));

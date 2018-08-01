@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.ContentTypeDelegatingMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
@@ -94,7 +95,7 @@ public final class MappingUtils {
 	 * @param defaultDeliveryMode the default delivery mode.
 	 */
 	public static void checkDeliveryMode(Message<?> requestMessage, MessageProperties messageProperties,
-			MessageDeliveryMode defaultDeliveryMode) {
+			@Nullable MessageDeliveryMode defaultDeliveryMode) {
 		if (defaultDeliveryMode != null &&
 				requestMessage.getHeaders().get(AmqpHeaders.DELIVERY_MODE) == null) {
 			messageProperties.setDeliveryMode(defaultDeliveryMode);

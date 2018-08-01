@@ -59,6 +59,7 @@ import com.mongodb.client.MongoCollection;
 
 /**
  * @author Xavier Padró
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -314,7 +315,7 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		@Bean
 		public IntegrationFlow gatewayCollectionCallbackFlow() {
 			return f -> f
-					.handle(collectionCallbackOutboundGateway(MongoCollection::count))
+					.handle(collectionCallbackOutboundGateway(MongoCollection::countDocuments))
 					.channel(getResultChannel());
 		}
 

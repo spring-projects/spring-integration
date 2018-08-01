@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.springframework.integration.support.management.PollableChannelManagement;
 import org.springframework.integration.support.management.metrics.CounterFacade;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -71,6 +72,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 * receiving thread is interrupted.
 	 */
 	@Override
+	@Nullable
 	public Message<?> receive() {
 		return receive(-1);
 	}
@@ -89,6 +91,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 * interrupted.
 	 */
 	@Override
+	@Nullable
 	public Message<?> receive(long timeout) {
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;

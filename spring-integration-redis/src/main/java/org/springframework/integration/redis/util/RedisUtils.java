@@ -18,6 +18,7 @@ package org.springframework.integration.redis.util;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.springframework.data.redis.core.RedisCallback;
@@ -27,6 +28,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * A set of utility methods for common Redis functions.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.1
  */
@@ -36,11 +38,12 @@ public final class RedisUtils {
 
 	private static final String VERSION_PROPERTY = "redis_version";
 
+	@SuppressWarnings("serial")
 	private static final Map<RedisOperations<?, ?>, Boolean> unlinkAvailable =
 			new LinkedHashMap<RedisOperations<?, ?>, Boolean>() {
 
 				@Override
-				protected boolean removeEldestEntry(Map.Entry eldest) {
+				protected boolean removeEldestEntry(Entry<RedisOperations<?, ?>, Boolean> eldest) {
 					return size() > 100;
 				}
 
