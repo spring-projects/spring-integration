@@ -50,7 +50,7 @@ public final class AckUtils {
 	 * and is not already ack'd.
 	 * @param ackCallback the callback.
 	 */
-	public static void autoAck(AcknowledgmentCallback ackCallback) {
+	public static void autoAck(@Nullable AcknowledgmentCallback ackCallback) {
 		if (ackCallback != null && ackCallback.isAutoAck() && !ackCallback.isAcknowledged()) {
 			ackCallback.acknowledge(Status.ACCEPT);
 		}
@@ -61,7 +61,7 @@ public final class AckUtils {
 	 * and is not already ack'd.
 	 * @param ackCallback the callback.
 	 */
-	public static void autoNack(AcknowledgmentCallback ackCallback) {
+	public static void autoNack(@Nullable AcknowledgmentCallback ackCallback) {
 		if (ackCallback != null && ackCallback.isAutoAck() && !ackCallback.isAcknowledged()) {
 			ackCallback.acknowledge(Status.REJECT);
 		}

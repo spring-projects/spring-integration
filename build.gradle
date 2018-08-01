@@ -5,7 +5,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'io.spring.gradle:docbook-reference-plugin:0.3.1'
-		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.8'
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
 		classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
 	}
@@ -97,6 +97,7 @@ subprojects { subproject ->
 		derbyVersion = '10.13.1.1'
 		eclipseLinkVersion = '2.7.1'
 		ftpServerVersion = '1.1.1'
+		googleJsr305Version = '3.0.2'
 		groovyVersion = '2.4.15'
 		guavaVersion = '20.0'
 		hamcrestVersion = '1.3'
@@ -161,7 +162,8 @@ subprojects { subproject ->
 		}
 
 		// JSR-305 only used for non-required meta-annotations
-		compileOnly("com.google.code.findbugs:jsr305:3.0.2")
+		compileOnly("com.google.code.findbugs:jsr305:$googleJsr305Version")
+		testCompile("com.google.code.findbugs:jsr305:$googleJsr305Version")
 
 		testCompile "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
 		testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
@@ -760,16 +762,16 @@ asciidoctor {
 	logDocuments = true
 	options = [
 		doctype: 'book',
-		attributes: [
-			docinfo: '',
-			toc2: '',
-			'compat-mode': '',
-			imagesdir: '',
-			stylesdir: "stylesheets/",
-			stylesheet: 'golo.css',
-			'spring-integration-version': "$version",
-			'source-highlighter': 'highlightjs'
-		]
+	]
+	attributes = [
+		docinfo: '',
+		toc2: '',
+		'compat-mode': '',
+		imagesdir: '',
+		stylesdir: "stylesheets/",
+		stylesheet: 'golo.css',
+		'spring-integration-version': "$version",
+		'source-highlighter': 'highlightjs'
 	]
 }
 

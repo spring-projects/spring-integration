@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.support;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 
@@ -35,7 +36,7 @@ public class NackedAmqpMessageException extends MessagingException {
 
 	private final String nackReason;
 
-	public NackedAmqpMessageException(Message<?> message, Object correlationData, String nackReason) {
+	public NackedAmqpMessageException(Message<?> message, @Nullable Object correlationData, String nackReason) {
 		super(message);
 		this.correlationData = correlationData;
 		this.nackReason = nackReason;

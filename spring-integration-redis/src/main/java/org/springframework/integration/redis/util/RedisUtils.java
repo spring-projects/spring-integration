@@ -27,6 +27,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * A set of utility methods for common Redis functions.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.1
  */
@@ -36,9 +37,11 @@ public final class RedisUtils {
 
 	private static final String VERSION_PROPERTY = "redis_version";
 
+	@SuppressWarnings("serial")
 	private static final Map<RedisOperations<?, ?>, Boolean> unlinkAvailable =
 			new LinkedHashMap<RedisOperations<?, ?>, Boolean>() {
 
+				@SuppressWarnings("rawtypes")
 				@Override
 				protected boolean removeEldestEntry(Map.Entry eldest) {
 					return size() > 100;
