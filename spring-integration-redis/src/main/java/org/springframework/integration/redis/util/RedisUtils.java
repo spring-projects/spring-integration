@@ -18,6 +18,7 @@ package org.springframework.integration.redis.util;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.springframework.data.redis.core.RedisCallback;
@@ -41,9 +42,8 @@ public final class RedisUtils {
 	private static final Map<RedisOperations<?, ?>, Boolean> unlinkAvailable =
 			new LinkedHashMap<RedisOperations<?, ?>, Boolean>() {
 
-				@SuppressWarnings("rawtypes")
 				@Override
-				protected boolean removeEldestEntry(Map.Entry eldest) {
+				protected boolean removeEldestEntry(Entry<RedisOperations<?, ?>, Boolean> eldest) {
 					return size() > 100;
 				}
 
