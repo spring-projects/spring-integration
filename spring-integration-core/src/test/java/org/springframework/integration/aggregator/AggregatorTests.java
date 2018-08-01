@@ -83,6 +83,7 @@ public class AggregatorTests {
 	}
 
 	@Test
+	@Ignore
 	public void testAggPerf() throws InterruptedException, ExecutionException, TimeoutException {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
 		handler.setCorrelationStrategy(message -> "foo");
