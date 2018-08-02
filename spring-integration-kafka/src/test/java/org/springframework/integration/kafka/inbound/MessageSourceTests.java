@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
@@ -31,6 +30,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -38,7 +38,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
@@ -105,7 +104,7 @@ public class MessageSourceTests {
 		ConsumerRecords cr3 = new ConsumerRecords(records3);
 		ConsumerRecords cr4 = new ConsumerRecords(records4);
 		ConsumerRecords cr5 = new ConsumerRecords(Collections.emptyMap());
-		given(consumer.poll(anyLong())).willReturn(cr1, cr2, cr3, cr4, cr5);
+		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2, cr3, cr4, cr5);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
@@ -135,16 +134,16 @@ public class MessageSourceTests {
 		source.destroy();
 		InOrder inOrder = inOrder(consumer);
 		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(4L)));
-		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
+		inOrder.verify(consumer).poll(any(Duration.class));
+		inOrder.verify(consumer).close();
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -189,7 +188,7 @@ public class MessageSourceTests {
 		ConsumerRecords cr5 = new ConsumerRecords(records5);
 		ConsumerRecords cr6 = new ConsumerRecords(records6);
 		ConsumerRecords cr7 = new ConsumerRecords(Collections.emptyMap());
-		given(consumer.poll(anyLong())).willReturn(cr1, cr2, cr3, cr4, cr5, cr6, cr7);
+		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2, cr3, cr4, cr5, cr6, cr7);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
@@ -223,18 +222,18 @@ public class MessageSourceTests {
 		source.destroy();
 		InOrder inOrder = inOrder(consumer);
 		inOrder.verify(consumer).subscribe(anyCollection(), any(ConsumerRebalanceListener.class));
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).paused();
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(3L)));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(6L)));
-		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
+		inOrder.verify(consumer).poll(any(Duration.class));
+		inOrder.verify(consumer).close();
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -263,7 +262,7 @@ public class MessageSourceTests {
 				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
 		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap());
-		given(consumer.poll(anyLong())).willReturn(cr1, cr1, cr2, cr2, cr3);
+		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr1, cr2, cr2, cr3);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
@@ -290,16 +289,16 @@ public class MessageSourceTests {
 		source.destroy();
 		assertThat(received).isNull();
 		InOrder inOrder = inOrder(consumer);
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).seek(topicPartition, 0L); // rollback
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).seek(topicPartition, 1L); // rollback
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
-		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
+		inOrder.verify(consumer).poll(any(Duration.class));
+		inOrder.verify(consumer).close();
 		inOrder.verifyNoMoreInteractions();
 	}
 
@@ -328,7 +327,7 @@ public class MessageSourceTests {
 				new ConsumerRecord("foo", 0, 1L, 0L, TimestampType.NO_TIMESTAMP_TYPE, 0, 0, 0, null, "bar")));
 		ConsumerRecords cr2 = new ConsumerRecords(records2);
 		ConsumerRecords cr3 = new ConsumerRecords(Collections.emptyMap());
-		given(consumer.poll(anyLong())).willReturn(cr1, cr2, cr1, cr2, cr3);
+		given(consumer.poll(any(Duration.class))).willReturn(cr1, cr2, cr1, cr2, cr3);
 		ConsumerFactory consumerFactory = mock(ConsumerFactory.class);
 		willReturn(Collections.singletonMap(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1)).given(consumerFactory)
 				.getConfigurationProperties();
@@ -364,9 +363,9 @@ public class MessageSourceTests {
 		source.destroy();
 		assertThat(received1).isNull();
 		InOrder inOrder = inOrder(consumer, log1, log2);
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).paused();
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).seek(topicPartition, 0L); // rollback
 		inOrder.verify(log1).isWarnEnabled();
 		ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
@@ -380,12 +379,12 @@ public class MessageSourceTests {
 		assertThat(captor.getValue())
 				.contains("Cannot commit offset for ConsumerRecord")
 				.contains("; an earlier offset was rolled back");
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(1L)));
-		inOrder.verify(consumer).poll(anyLong());
+		inOrder.verify(consumer).poll(any(Duration.class));
 		inOrder.verify(consumer).commitSync(Collections.singletonMap(topicPartition, new OffsetAndMetadata(2L)));
-		inOrder.verify(consumer).poll(anyLong());
-		inOrder.verify(consumer).close(30, TimeUnit.SECONDS);
+		inOrder.verify(consumer).poll(any(Duration.class));
+		inOrder.verify(consumer).close();
 		inOrder.verifyNoMoreInteractions();
 	}
 
