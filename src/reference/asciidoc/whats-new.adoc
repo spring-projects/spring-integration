@@ -109,6 +109,8 @@ See <<amqp-content-type>> for more information.
 
 A confusing `max-rows-per-poll` property on the JDBC Inbound Channel Adapter and JDBC Outbound Gateway has been deprecated in favor of the newly introduced `max-rows` property.
 
+The `JdbcMessageHandler` supports now a `batchUpdate` functionality when the payload of the request message is an instance of an `Iterable` type.
+
 See <<jdbc>> for more information.
 
 [[x5.1-ftp-sftp]]

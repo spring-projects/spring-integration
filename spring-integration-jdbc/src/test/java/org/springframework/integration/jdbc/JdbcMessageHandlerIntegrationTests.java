@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.jdbc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -89,6 +91,24 @@ public class JdbcMessageHandlerIntegrationTests {
 	}
 
 	@Test
+	public void testInsertBatch() {
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
+				"insert into foos (id, status, name) values (:payload, 0, :payload)");
+		handler.afterPropertiesSet();
+
+		Message<List<String>> message = new GenericMessage<>(Arrays.asList("foo1", "foo2", "foo3"));
+		handler.handleMessage(message);
+
+		List<Map<String, Object>> foos = jdbcTemplate.queryForList("SELECT * FROM FOOS ORDER BY id");
+
+		assertEquals(3, foos.size());
+
+		assertEquals("foo1", foos.get(0).get("NAME"));
+		assertEquals("foo2", foos.get(1).get("NAME"));
+		assertEquals("foo3", foos.get(2).get("NAME"));
+	}
+
+	@Test
 	public void testInsertWithMessagePreparedStatementSetter() {
 		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate,
 				"insert into foos (id, status, name) values (1, 0, ?)");
@@ -103,6 +123,28 @@ public class JdbcMessageHandlerIntegrationTests {
 		Map<String, Object> map = jdbcTemplate.queryForMap("SELECT * FROM FOOS WHERE ID=?", 1);
 		assertEquals("Wrong name", "foo", map.get("NAME"));
 		assertTrue(setterInvoked.get());
+	}
+
+	@Test
+	public void testInsertBatchWithMessagePreparedStatementSetter() {
+		JdbcMessageHandler handler =
+				new JdbcMessageHandler(jdbcTemplate, "insert into foos (id, status, name) values (?, 0, ?)");
+		handler.setPreparedStatementSetter((ps, requestMessage) -> {
+			ps.setObject(1, requestMessage.getPayload());
+			ps.setObject(2, requestMessage.getPayload());
+		});
+		handler.afterPropertiesSet();
+
+		Message<List<String>> message = new GenericMessage<>(Arrays.asList("foo1", "foo2", "foo3"));
+		handler.handleMessage(message);
+
+		List<Map<String, Object>> foos = jdbcTemplate.queryForList("SELECT * FROM FOOS ORDER BY id");
+
+		assertEquals(3, foos.size());
+
+		assertEquals("foo1", foos.get(0).get("NAME"));
+		assertEquals("foo2", foos.get(1).get("NAME"));
+		assertEquals("foo3", foos.get(2).get("NAME"));
 	}
 
 	@Test
