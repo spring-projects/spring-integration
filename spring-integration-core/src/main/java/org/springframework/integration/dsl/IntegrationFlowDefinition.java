@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -92,6 +93,7 @@ import org.springframework.integration.util.ClassUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -2740,7 +2742,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 								.stream()
 								.reduce((first, second) -> second);
 				if (lastComponent.get() instanceof WireTapSpec) {
-					channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+					enrichHeaders(
+							Collections.singletonMap(
+									MessageHeaders.REPLY_CHANNEL, IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME));
 				}
 			}
 
