@@ -32,7 +32,6 @@ import java.util.stream.StreamSupport;
 import javax.sql.DataSource;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.support.MutableMessage;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -46,6 +45,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 
@@ -59,10 +59,10 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  * </pre>
  *
  * <p>
- * When message payload is an instance of {@link Iterable}, a
+ * When a message payload is an instance of {@link Iterable}, a
  * {@link NamedParameterJdbcOperations#batchUpdate(String, SqlParameterSource[])} is performed, where each
- * {@link SqlParameterSource} instance is based on each item wrapped into the {@link MutableMessage} and headers
- * copied from the request message.
+ * {@link SqlParameterSource} instance is based on items wrapped into an internal {@link Message} implementation with
+ * headers from the request message.
  * <p>
  * When a {@link #preparedStatementSetter} is configured, it is applied for each item in the appropriate
  * {@link JdbcOperations#batchUpdate(String, BatchPreparedStatementSetter)} function.
@@ -206,9 +206,21 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		}
 		else {
 			if (message.getPayload() instanceof Iterable) {
-				Stream<? extends MutableMessage<?>> messageStream =
+				Stream<? extends Message<?>> messageStream =
 						StreamSupport.stream(((Iterable<?>) message.getPayload()).spliterator(), false)
-								.map(payload -> new MutableMessage<>(payload, message.getHeaders()));
+								.map(payload -> new Message<Object>() {
+
+									@Override
+									public Object getPayload() {
+										return payload;
+									}
+
+									@Override
+									public MessageHeaders getHeaders() {
+										return message.getHeaders();
+									}
+
+								});
 
 				int[] updates;
 
