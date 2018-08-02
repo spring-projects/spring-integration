@@ -55,7 +55,7 @@ public class MessageSourceIntegrationTests {
 
 	@Test
 	public void testSource() throws Exception {
-		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("foo", "false", embeddedKafka);
+		Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testSource", "false", embeddedKafka);
 		consumerProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 2);
 		consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);

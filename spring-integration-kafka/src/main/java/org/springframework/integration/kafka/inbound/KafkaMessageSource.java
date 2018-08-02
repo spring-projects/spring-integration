@@ -17,6 +17,7 @@
 package org.springframework.integration.kafka.inbound;
 
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -83,6 +84,11 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private static final long DEFAULT_POLL_TIMEOUT = 50L;
 
+	private static final long MIN_ASSIGN_TIMEOUT = 2000L;
+
+	private final Supplier<Duration> minTimeoutProvider =
+			() -> Duration.ofMillis(Math.max(this.pollTimeout.toMillis() * 20, MIN_ASSIGN_TIMEOUT));
+
 	private final Log logger = LogFactory.getLog(getClass());
 
 	private final ConsumerFactory<K, V> consumerFactory;
@@ -99,7 +105,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private String clientId = "message.source";
 
-	private long pollTimeout = DEFAULT_POLL_TIMEOUT;
+	private Duration pollTimeout = Duration.ofMillis(DEFAULT_POLL_TIMEOUT);
 
 	private RecordMessageConverter messageConverter = new MessagingMessageConverter();
 
@@ -112,6 +118,10 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	private volatile Consumer<K, V> consumer;
 
 	private boolean running;
+
+	private boolean assigned;
+
+	private Duration assignTimeout = this.minTimeoutProvider.get();
 
 	public KafkaMessageSource(ConsumerFactory<K, V> consumerFactory, String... topics) {
 		this(consumerFactory, new KafkaAckCallbackFactory<>(), topics);
@@ -152,7 +162,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	}
 
 	protected long getPollTimeout() {
-		return this.pollTimeout;
+		return this.pollTimeout.toMillis();
 	}
 
 	/**
@@ -160,7 +170,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	 * @param pollTimeout the poll timeout.
 	 */
 	public void setPollTimeout(long pollTimeout) {
-		this.pollTimeout = pollTimeout;
+		this.pollTimeout = Duration.ofMillis(pollTimeout);
+		this.assignTimeout = this.minTimeoutProvider.get();
 	}
 
 	protected RecordMessageConverter getMessageConverter() {
@@ -275,7 +286,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		ConsumerRecord<K, V> record;
 		TopicPartition topicPartition;
 		synchronized (this.consumerMonitor) {
-			ConsumerRecords<K, V> records = this.consumer.poll(this.pollTimeout);
+			ConsumerRecords<K, V> records = this.consumer.poll(this.assigned ? this.pollTimeout : this.assignTimeout);
 			if (records == null || records.count() == 0) {
 				return null;
 			}
@@ -323,6 +334,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 				@Override
 				public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+					KafkaMessageSource.this.assigned = true;
 					if (KafkaMessageSource.this.logger.isInfoEnabled()) {
 						KafkaMessageSource.this.logger.info("Partitions assigned: " + partitions);
 					}
@@ -343,8 +355,9 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 	private void stopConsumer() {
 		synchronized (this.consumerMonitor) {
 			if (this.consumer != null) {
-				this.consumer.close(30, TimeUnit.SECONDS);
+				this.consumer.close();
 				this.consumer = null;
+				this.assigned = false;
 			}
 		}
 	}
