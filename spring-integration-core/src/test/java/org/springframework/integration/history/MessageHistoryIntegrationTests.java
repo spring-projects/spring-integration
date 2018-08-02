@@ -73,75 +73,77 @@ public class MessageHistoryIntegrationTests {
 				MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(message -> {
-			Iterator<Properties> historyIterator =
-					message.getHeaders()
-							.get(MessageHistory.HEADER_NAME, MessageHistory.class)
-							.iterator();
+		MessageHandler handler = Mockito.spy(new MessageHandler() { // Not a lambda: Mockito can't mock final classes
 
-			Properties event = historyIterator.next();
-			assertEquals("sampleGateway", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("gateway", event.getProperty(MessageHistory.TYPE_PROPERTY));
+			@Override
+			public void handleMessage(Message<?> message) {
+				Iterator<Properties> historyIterator = message.getHeaders()
+						.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 
-			event = historyIterator.next();
-			assertEquals("bridgeInChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				Properties event = historyIterator.next();
+				assertEquals("sampleGateway", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("gateway", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("testBridge", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("bridge", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("bridgeInChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("headerEnricherChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testBridge", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("bridge", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("testHeaderEnricher", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("header-enricher", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("headerEnricherChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("chainChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testHeaderEnricher", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("header-enricher", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("sampleChain", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("chain", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("chainChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("sampleChain$child.service-activator-within-chain", event
-					.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("service-activator", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("sampleChain", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("chain", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("filterChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("sampleChain$child.service-activator-within-chain", event
+						.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("service-activator", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("testFilter", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("filter", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("filterChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("splitterChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testFilter", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("filter", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("testSplitter", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("splitter", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("splitterChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("aggregatorChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testSplitter", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("splitter", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("testAggregator", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("aggregator", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("aggregatorChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			event = historyIterator.next();
-			assertEquals("endOfThePipeChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
-			assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				event = historyIterator.next();
+				assertEquals("testAggregator", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("aggregator", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
-			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-			replyChannel.send(message);
+				event = historyIterator.next();
+				assertEquals("endOfThePipeChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+
+				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+				replyChannel.send(message);
+			}
 		});
 		endOfThePipeChannel.subscribe(handler);
 		Message<?> result = gateway.echo("hello");
@@ -157,10 +159,14 @@ public class MessageHistoryIntegrationTests {
 				MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(message -> {
-			assertNull(message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class));
-			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-			replyChannel.send(message);
+		MessageHandler handler = Mockito.spy(new MessageHandler() { // Not a lambda: Mockito can't mock final classes
+
+			@Override
+			public void handleMessage(Message<?> message) {
+				assertNull(message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class));
+				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+				replyChannel.send(message);
+			}
 		});
 		endOfThePipeChannel.subscribe(handler);
 		gateway.echo("hello");
@@ -174,12 +180,16 @@ public class MessageHistoryIntegrationTests {
 				"messageHistoryWithHistoryWriterNamespace.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(message -> {
-			Iterator<Properties> historyIterator = message.getHeaders()
-					.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
-			assertTrue(historyIterator.hasNext());
-			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-			replyChannel.send(message);
+		MessageHandler handler = Mockito.spy(new MessageHandler() { // Not a lambda: Mockito can't mock final classes
+
+			@Override
+			public void handleMessage(Message<?> message) {
+				Iterator<Properties> historyIterator = message.getHeaders()
+						.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
+				assertTrue(historyIterator.hasNext());
+				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+				replyChannel.send(message);
+			}
 		});
 		endOfThePipeChannel.subscribe(handler);
 		gateway.echo("hello");
@@ -193,18 +203,22 @@ public class MessageHistoryIntegrationTests {
 				"messageHistoryWithHistoryWriterNamespaceAndPatterns.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(message -> {
-			Iterator<Properties> historyIterator = message.getHeaders()
-					.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
-			assertTrue(historyIterator.hasNext());
-			Properties gatewayHistory = historyIterator.next();
-			assertEquals("sampleGateway", gatewayHistory.get("name"));
-			assertTrue(historyIterator.hasNext());
-			Properties chainHistory = historyIterator.next();
-			assertEquals("sampleChain", chainHistory.get("name"));
-			assertFalse(historyIterator.hasNext());
-			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-			replyChannel.send(message);
+		MessageHandler handler = Mockito.spy(new MessageHandler() { // Not a lambda: Mockito can't mock final classes
+
+			@Override
+			public void handleMessage(Message<?> message) {
+				Iterator<Properties> historyIterator = message.getHeaders()
+						.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
+				assertTrue(historyIterator.hasNext());
+				Properties gatewayHistory = historyIterator.next();
+				assertEquals("sampleGateway", gatewayHistory.get("name"));
+				assertTrue(historyIterator.hasNext());
+				Properties chainHistory = historyIterator.next();
+				assertEquals("sampleChain", chainHistory.get("name"));
+				assertFalse(historyIterator.hasNext());
+				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+				replyChannel.send(message);
+			}
 		});
 		endOfThePipeChannel.subscribe(handler);
 		gateway.echo("hello");
