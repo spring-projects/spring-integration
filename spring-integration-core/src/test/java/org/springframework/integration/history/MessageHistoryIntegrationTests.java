@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,8 @@ public class MessageHistoryIntegrationTests {
 		for (ConsumerEndpointFactoryBean cefBean : cefBeans.values()) {
 			DirectFieldAccessor bridgeAccessor = new DirectFieldAccessor(cefBean);
 			String handlerClassName = bridgeAccessor.getPropertyValue("handler").getClass().getName();
-			assertFalse("org.springframework.integration.config.MessageHistoryWritingMessageHandler".equals(handlerClassName));
+			assertFalse("org.springframework.integration.config.MessageHistoryWritingMessageHandler"
+					.equals(handlerClassName));
 		}
 		ac.close();
 	}
@@ -72,10 +73,12 @@ public class MessageHistoryIntegrationTests {
 				MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(new MessageHandler() {
+		MessageHandler handler = Mockito.spy(new MessageHandler() { // Not a lambda: Mockito can't mock final classes
+
 			@Override
 			public void handleMessage(Message<?> message) {
-				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
+				Iterator<Properties> historyIterator = message.getHeaders()
+						.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 
 				Properties event = historyIterator.next();
 				assertEquals("sampleGateway", event.getProperty(MessageHistory.NAME_PROPERTY));
@@ -95,7 +98,7 @@ public class MessageHistoryIntegrationTests {
 
 				event = historyIterator.next();
 				assertEquals("testHeaderEnricher", event.getProperty(MessageHistory.NAME_PROPERTY));
-				assertEquals("transformer", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				assertEquals("header-enricher", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
 				event = historyIterator.next();
 				assertEquals("chainChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
@@ -106,7 +109,8 @@ public class MessageHistoryIntegrationTests {
 				assertEquals("chain", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
 				event = historyIterator.next();
-				assertEquals("sampleChain$child.service-activator-within-chain", event.getProperty(MessageHistory.NAME_PROPERTY));
+				assertEquals("sampleChain$child.service-activator-within-chain", event
+						.getProperty(MessageHistory.NAME_PROPERTY));
 				assertEquals("service-activator", event.getProperty(MessageHistory.TYPE_PROPERTY));
 
 				event = historyIterator.next();
@@ -155,7 +159,8 @@ public class MessageHistoryIntegrationTests {
 				MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(new MessageHandler() {
+		MessageHandler handler = Mockito.spy(new MessageHandler() { // Not a lambda: Mockito can't mock final classes
+
 			@Override
 			public void handleMessage(Message<?> message) {
 				assertNull(message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class));
@@ -175,7 +180,8 @@ public class MessageHistoryIntegrationTests {
 				"messageHistoryWithHistoryWriterNamespace.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(new MessageHandler() {
+		MessageHandler handler = Mockito.spy(new MessageHandler() { // Not a lambda: Mockito can't mock final classes
+
 			@Override
 			public void handleMessage(Message<?> message) {
 				Iterator<Properties> historyIterator = message.getHeaders()
@@ -197,10 +203,12 @@ public class MessageHistoryIntegrationTests {
 				"messageHistoryWithHistoryWriterNamespaceAndPatterns.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(new MessageHandler() {
+		MessageHandler handler = Mockito.spy(new MessageHandler() { // Not a lambda: Mockito can't mock final classes
+
 			@Override
 			public void handleMessage(Message<?> message) {
-				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
+				Iterator<Properties> historyIterator = message.getHeaders()
+						.get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 				assertTrue(historyIterator.hasNext());
 				Properties gatewayHistory = historyIterator.next();
 				assertEquals("sampleGateway", gatewayHistory.get("name"));
@@ -224,7 +232,8 @@ public class MessageHistoryIntegrationTests {
 				MessageHistoryIntegrationTests.class).close();
 	}
 
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void testMessageHistoryWithHistoryPerformance() {
 		ConfigurableApplicationContext acWithHistory = new ClassPathXmlApplicationContext("perfWithMessageHistory.xml",
 				MessageHistoryIntegrationTests.class);
@@ -264,7 +273,9 @@ public class MessageHistoryIntegrationTests {
 	}
 
 	public interface SampleGateway {
+
 		Message<?> echo(String value);
+
 	}
 
 }
