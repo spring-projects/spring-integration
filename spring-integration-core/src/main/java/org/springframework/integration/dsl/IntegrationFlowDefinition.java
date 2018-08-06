@@ -3013,7 +3013,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			if (this.currentMessageChannel instanceof FixedSubscriberChannelPrototype) {
 				throw new BeanCreationException("The 'currentMessageChannel' (" + this.currentMessageChannel
 						+ ") is a prototype for 'FixedSubscriberChannel' which can't be created without 'MessageHandler' "
-						+ "constructor argument. That means that '.fixedSubscriberChannel()' can't be as the last "
+						+ "constructor argument. That means that '.fixedSubscriberChannel()' can't be the last "
 						+ "EIP-method in the 'IntegrationFlow' definition.");
 			}
 
