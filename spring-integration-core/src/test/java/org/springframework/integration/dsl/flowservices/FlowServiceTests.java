@@ -133,7 +133,7 @@ public class FlowServiceTests {
 		@Bean
 		public IntegrationFlow testGateway() {
 			return f -> f.gateway("processChannel", g -> g.replyChannel("replyChannel"))
-					.log();
+					.logAndReply();
 		}
 
 		@Bean

@@ -550,6 +550,10 @@ The following example shows how to use `LoggingHandler`:
 
 In the preceding example, an `id` header is logged at the `ERROR` level onto `test.category` only for messages that passed the filter and before routing.
 
+When this operator is used in the end of flow, it is considered as a one-way handler and and treated as the end of flow.
+To make it as a reply-producing flow, you need to use a simple `bridge()` after or just use introduced in version 5.1 a `logAndReply()` operator.
+This one can be used only in the end of flow.
+
 [[java-dsl-wiretap]]
 === `MessageChannelSpec.wireTap()`
 
