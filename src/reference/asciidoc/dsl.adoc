@@ -650,8 +650,9 @@ Starting with version 5.1, this kind of `IntegrationFlow` is wrapped to the prox
 
 Starting with version 5.0.6, the generated bean names for the components in an `IntegrationFlow` include the flow bean followed by a dot (`.`) as a prefix.
 For example, the `ConsumerEndpointFactoryBean` for the `.transform("Hello "::concat)` in the preceding sample results in a bean name of `lambdaFlow.o.s.i.config.ConsumerEndpointFactoryBean#0`.
-The `Transformer` implementation bean for that endpoint  has a bean name of `lambdaFlow.o.s.i.transformer.MethodInvokingTransformer#0`.
-(In both cases, `o.s.i` is `org.springframework.integration`, shortened here to fit on the page.)
+(The `o.s.i` is a shortened from `org.springframework.integration` to fit on the page.)
+The `Transformer` implementation bean for that endpoint  has a bean name of `lambdaFlow.transformer#0` (starting with version 5.1), where instead of a fully qualified name of the `MethodInvokingTransformer` class, its component type is used.
+The same pattern is applied for all the `NamedComponent` s when the bean name has to be generated within the flow.
 These generated bean names are prepended with the flow ID for purposes such as parsing logs or grouping components together in some analysis tool, as well as to avoid a race condition when we concurrently register integration flows at runtime.
 See <<java-dsl-runtime-flows>> for more information.
 
@@ -662,12 +663,14 @@ We introduced the `FunctionExpression` class (an implementation of SpEL's `Expre
 The `Function<T, R>` option is provided for the DSL components, along with an `expression` option, when there is the implicit `Strategy` variant from Core Spring Integration.
 The following example shows how to use a function expression:
 
+====
 [source,java]
 ----
 .enrich(e -> e.requestChannel("enrichChannel")
             .requestPayload(Message::getPayload)
             .propertyFunction("date", m -> new Date()))
 ----
+====
 
 The `FunctionExpression` also supports runtime type conversion, as is done in `SpelExpression`.
 
@@ -677,6 +680,7 @@ The `FunctionExpression` also supports runtime type conversion, as is done in `S
 Some of `if...else` and `publish-subscribe` components provide the ability to specify their logic or mapping by using sub-flows.
 The simplest sample is `.publishSubscribeChannel()`, as the following example shows:
 
+====
 [source,java]
 ----
 @Bean
@@ -693,8 +697,10 @@ public IntegrationFlow subscribersFlow() {
             .channel(c -> c.queue("subscriber3Results"));
 }
 ----
+====
 
-You can achieve the same result with separate `IntegrationFlow` `@Bean` definitions, but we hope you find the sub-flow style of logic composition useful. We find that it results in shorter (and so more readable) code.
+You can achieve the same result with separate `IntegrationFlow` `@Bean` definitions, but we hope you find the sub-flow style of logic composition useful.
+We find that it results in shorter (and so more readable) code.
 
 A similar `publish-subscribe` sub-flow composition provides the `.routeToRecipients()` method.
 
