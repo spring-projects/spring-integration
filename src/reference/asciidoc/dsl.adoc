@@ -511,8 +511,25 @@ public IntegrationFlow integerFlow() {
 ----
 ====
 
-We also register a `BytesToIntegerConverter` within `ConversionService` to get rid of that additional `.transform()`.
-// TODO We don't show how to register a `BytesToIntegerConverter` within `ConversionService` to get rid of that additional `.transform()`.
+We also can register some `BytesToIntegerConverter` within `ConversionService` to get rid of that additional `.transform()`:
+
+====
+[source,java]
+----
+@Bean
+@IntegrationConverter
+public BytesToIntegerConverter bytesToIntegerConverter() {
+   return new BytesToIntegerConverter();
+}
+
+@Bean
+public IntegrationFlow integerFlow() {
+    return IntegrationFlows.from("input")
+             .handle(Integer.class, (p, h) -> p * 2)
+            .get();
+}
+----
+====
 
 [[java-dsl-log]]
 === Operator log()
@@ -532,6 +549,10 @@ The following example shows how to use `LoggingHandler`:
 ====
 
 In the preceding example, an `id` header is logged at the `ERROR` level onto `test.category` only for messages that passed the filter and before routing.
+
+When this operator is used in the end of flow, it is considered as a one-way handler and and treated as the end of flow.
+To make it as a reply-producing flow, you need to use a simple `bridge()` after or just use introduced in version 5.1 a `logAndReply()` operator.
+This one can be used only in the end of flow.
 
 [[java-dsl-wiretap]]
 === `MessageChannelSpec.wireTap()`
@@ -589,26 +610,6 @@ The following example does not have any channel declaration:
 
 In the preceding example (and any time no channel has been declared), an implicit `DirectChannel` is injected in the current position of the `IntegrationFlow` and used as an output channel for the currently configured `ServiceActivatingHandler` (from the `.handle()`, <<java-dsl-handle,described earlier>>).
 
-[IMPORTANT]
-====
-If `log()` or `wireTap()` are used in the end of the flow, they are considered to be one-way `MessageHandler` instances.
-If you expect the integration flow to return a reply, you should add a `bridge()` should to the end, after `log()` or `wireTap()`, as the following example shows:
-
-[source,java]
-----
-@Bean
-public IntegrationFlow sseFlow() {
-    return IntegrationFlows
-        .from(WebFlux.inboundGateway("/sse")
-            .requestMapping(m ->
-                m.produces(MediaType.TEXT_EVENT_STREAM_VALUE)))
-        .handle((p, h) -> Flux.just("foo", "bar", "baz"))
-        .log(LoggingHandler.Level.WARN)
-        .bridge()
-        .get();
-}
-----
-====
 
 [[java-dsl-flows]]
 === Working With Message Flows

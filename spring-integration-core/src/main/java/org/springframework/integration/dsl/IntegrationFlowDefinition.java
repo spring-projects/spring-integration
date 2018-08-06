@@ -2194,6 +2194,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * logging level and {@code org.springframework.integration.handler.LoggingHandler}
 	 * as a default logging category.
 	 * <p> The full request {@link Message} will be logged.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see #wireTap(WireTapSpec)
 	 */
@@ -2207,6 +2210,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * logging level and {@code org.springframework.integration.handler.LoggingHandler}
 	 * as a default logging category.
 	 * <p> The full request {@link Message} will be logged.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see #wireTap(WireTapSpec)
@@ -2220,6 +2226,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * with the {@link LoggingHandler} subscriber for the provided logging category
 	 * and {@code INFO} logging level.
 	 * <p> The full request {@link Message} will be logged.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param category the logging category to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see #wireTap(WireTapSpec)
@@ -2233,6 +2242,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * with the {@link LoggingHandler} subscriber for the provided
 	 * {@link LoggingHandler.Level} logging level and logging category.
 	 * <p> The full request {@link Message} will be logged.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @param category the logging category to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
@@ -2247,6 +2259,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * with the {@link LoggingHandler} subscriber for the provided
 	 * {@link LoggingHandler.Level} logging level, logging category
 	 * and SpEL expression for the log message.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @param category the logging category.
 	 * @param logExpression the SpEL expression to evaluate logger message at runtime
@@ -2264,6 +2279,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * with the {@link LoggingHandler} subscriber for the {@code INFO} logging level,
 	 * the {@code org.springframework.integration.handler.LoggingHandler}
 	 * as a default logging category and {@link Function} for the log message.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param function the function to evaluate logger message at runtime
 	 * @param <P> the expected payload type.
 	 * against the request {@link Message}.
@@ -2281,6 +2299,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * the {@code org.springframework.integration.handler.LoggingHandler}
 	 * as a default logging category and SpEL expression to evaluate
 	 * logger message at runtime against the request {@link Message}.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
 	 * against the request {@link Message}.
 	 * @return the current {@link IntegrationFlowDefinition}.
@@ -2297,6 +2318,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * the {@code org.springframework.integration.handler.LoggingHandler}
 	 * as a default logging category and SpEL expression to evaluate
 	 * logger message at runtime against the request {@link Message}.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
 	 * against the request {@link Message}.
@@ -2307,13 +2331,15 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return log(level, null, logExpression);
 	}
 
-
 	/**
 	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
 	 * with the {@link LoggingHandler} subscriber for the {@code INFO}
 	 * {@link LoggingHandler.Level} logging level,
 	 * the provided logging category and SpEL expression to evaluate
 	 * logger message at runtime against the request {@link Message}.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param category the logging category.
 	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
 	 * against the request {@link Message}.
@@ -2330,6 +2356,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * {@link LoggingHandler.Level} logging level,
 	 * the {@code org.springframework.integration.handler.LoggingHandler}
 	 * as a default logging category and {@link Function} for the log message.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @param function the function to evaluate logger message at runtime
 	 * @param <P> the expected payload type.
@@ -2346,6 +2375,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * with the {@link LoggingHandler} subscriber for the provided
 	 * {@link LoggingHandler.Level} logging level,
 	 * the provided logging category and {@link Function} for the log message.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param category the logging category.
 	 * @param function the function to evaluate logger message at runtime
 	 * @param <P> the expected payload type.
@@ -2362,6 +2394,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * with the {@link LoggingHandler} subscriber for the provided
 	 * {@link LoggingHandler.Level} logging level, logging category
 	 * and {@link Function} for the log message.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @param category the logging category.
 	 * @param function the function to evaluate logger message at runtime
@@ -2375,12 +2410,14 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return log(level, category, new FunctionExpression<>(function));
 	}
 
-
 	/**
 	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
 	 * with the {@link LoggingHandler} subscriber for the provided
 	 * {@link LoggingHandler.Level} logging level, logging category
 	 * and SpEL expression for the log message.
+	 * <p> When this operator is used in the end of flow, it is treated
+	 * as one-way handler without any replies to continue.
+	 * The {@link #logAndReply()} should be used for request-reply configuration.
 	 * @param level the {@link LoggingHandler.Level}.
 	 * @param category the logging category.
 	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
@@ -2404,6 +2441,264 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		addComponent(loggingHandler);
 		MessageChannel loggerChannel = new FixedSubscriberChannel(loggingHandler);
 		return wireTap(loggerChannel);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the {@code INFO}
+	 * logging level and {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category.
+	 * <p> The full request {@link Message} will be logged.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply() {
+		return logAndReply(LoggingHandler.Level.INFO);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for provided {@link LoggingHandler.Level}
+	 * logging level and {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category.
+	 * <p> The full request {@link Message} will be logged.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply(LoggingHandler.Level level) {
+		return logAndReply(level, (String) null);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided logging category
+	 * and {@code INFO} logging level.
+	 * <p> The full request {@link Message} will be logged.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param category the logging category to use.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply(String category) {
+		return logAndReply(LoggingHandler.Level.INFO, category);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level and logging category.
+	 * <p> The full request {@link Message} will be logged.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param category the logging category to use.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category) {
+		return logAndReply(level, category, (Expression) null);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level, logging category
+	 * and SpEL expression for the log message.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param category the logging category.
+	 * @param logExpression the SpEL expression to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category, String logExpression) {
+		Assert.hasText(logExpression, "'logExpression' must not be empty");
+		return logAndReply(level, category, PARSER.parseExpression(logExpression));
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the {@code INFO} logging level,
+	 * the {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category and {@link Function} for the log message.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param function the function to evaluate logger message at runtime
+	 * @param <P> the expected payload type.
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public <P> IntegrationFlow logAndReply(Function<Message<P>, Object> function) {
+		Assert.notNull(function, "'function' must not be null");
+		return logAndReply(new FunctionExpression<>(function));
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the {@code INFO} logging level,
+	 * the {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category and SpEL expression to evaluate
+	 * logger message at runtime against the request {@link Message}.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply(Expression logExpression) {
+		return logAndReply(LoggingHandler.Level.INFO, logExpression);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level,
+	 * the {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category and SpEL expression to evaluate
+	 * logger message at runtime against the request {@link Message}.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply(LoggingHandler.Level level, Expression logExpression) {
+		return logAndReply(level, null, logExpression);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the {@code INFO}
+	 * {@link LoggingHandler.Level} logging level,
+	 * the provided logging category and SpEL expression to evaluate
+	 * logger message at runtime against the request {@link Message}.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param category the logging category.
+	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply(String category, Expression logExpression) {
+		return logAndReply(LoggingHandler.Level.INFO, category, logExpression);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level,
+	 * the {@code org.springframework.integration.handler.LoggingHandler}
+	 * as a default logging category and {@link Function} for the log message.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param function the function to evaluate logger message at runtime
+	 * @param <P> the expected payload type.
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public <P> IntegrationFlow logAndReply(LoggingHandler.Level level, Function<Message<P>, Object> function) {
+		return logAndReply(level, null, function);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level,
+	 * the provided logging category and {@link Function} for the log message.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param category the logging category.
+	 * @param function the function to evaluate logger message at runtime
+	 * @param <P> the expected payload type.
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public <P> IntegrationFlow logAndReply(String category, Function<Message<P>, Object> function) {
+		return logAndReply(LoggingHandler.Level.INFO, category, function);
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level, logging category
+	 * and {@link Function} for the log message.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param category the logging category.
+	 * @param function the function to evaluate logger message at runtime
+	 * @param <P> the expected payload type.
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public <P> IntegrationFlow logAndReply(LoggingHandler.Level level, String category,
+			Function<Message<P>, Object> function) {
+
+		Assert.notNull(function, "'function' must not be null");
+		return logAndReply(level, category, new FunctionExpression<>(function));
+	}
+
+	/**
+	 * Populate a {@link WireTap} for the {@link #currentMessageChannel}
+	 * with the {@link LoggingHandler} subscriber for the provided
+	 * {@link LoggingHandler.Level} logging level, logging category
+	 * and SpEL expression for the log message.
+	 * <p> A {@link #bridge()} is added after this operator to make the flow reply-producing
+	 * if the {@code replyChannel} header is present.
+	 * <p> This operator can be used only in the end of flow.
+	 * @param level the {@link LoggingHandler.Level}.
+	 * @param category the logging category.
+	 * @param logExpression the {@link Expression} to evaluate logger message at runtime
+	 * against the request {@link Message}.
+	 * @return an {@link IntegrationFlow} instance based on this builder.
+	 * @see #log()
+	 * @see #bridge()
+	 */
+	public IntegrationFlow logAndReply(LoggingHandler.Level level, String category, Expression logExpression) {
+		return log(level, category, logExpression)
+				.bridge()
+				.get();
 	}
 
 	/**
@@ -2603,6 +2898,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	@SuppressWarnings("unchecked")
 	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,
 			Consumer<S> endpointConfigurer) {
+
 		if (endpointConfigurer != null) {
 			endpointConfigurer.accept(endpointSpec);
 		}

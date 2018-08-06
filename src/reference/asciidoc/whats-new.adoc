@@ -36,6 +36,8 @@ The following changes have been made in version 5.1:
 
 The `IntegrationFlowContext` is now an interface and `IntegrationFlowRegistration` is an inner interface of `IntegrationFlowContext`.
 
+A new `logAndReply()` operator has been introduced for convenience in the end of flow for request-reply configurations to avoid confusion with the `log()` which is treated as one-way end flow component.
+
 [[x5.1-dispatcher-exceptions]]
 ==== Dispatcher Exceptions
 

@@ -266,7 +266,7 @@ public class TransformerTests {
 							.propertyFunction("date", m -> new Date())
 							.headerExpression("foo", "payload['name']")
 					)
-					.get();
+					.logAndReply();
 		}
 
 		@Bean
