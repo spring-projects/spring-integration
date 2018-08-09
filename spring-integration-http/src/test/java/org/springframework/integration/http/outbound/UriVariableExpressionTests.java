@@ -22,7 +22,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,21 +57,23 @@ import org.springframework.messaging.support.GenericMessage;
 public class UriVariableExpressionTests {
 
 	@Test
-	public void testFromMessageWithExpressions() throws Exception {
-		final AtomicReference<URI> uriHolder = new AtomicReference<URI>();
+	public void testFromMessageWithExpressions() {
+		final AtomicReference<URI> uriHolder = new AtomicReference<>();
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
 		SpelExpressionParser parser = new SpelExpressionParser();
 		handler.setUriVariableExpressions(Collections.singletonMap("foo", parser.parseExpression("payload")));
 		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
+
 			@Override
-			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
 				uriHolder.set(uri);
 				throw new RuntimeException("intentional");
 			}
+
 		});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Message<?> message = new GenericMessage<Object>("bar");
+		Message<?> message = new GenericMessage<>("bar");
 		try {
 			handler.handleMessage(message);
 			fail("Exception expected.");
@@ -83,22 +84,26 @@ public class UriVariableExpressionTests {
 		assertEquals("http://test/bar", uriHolder.get().toString());
 	}
 
-	/** Test for INT-3054: Do not break if there are extra uri variables defined in the http outbound gateway. */
+	/**
+	 * Test for INT-3054: Do not break if there are extra uri variables defined in the http outbound gateway.
+	 */
 	@Test
-	public void testFromMessageWithSuperfluousExpressionsInt3054() throws Exception {
-		final AtomicReference<URI> uriHolder = new AtomicReference<URI>();
+	public void testFromMessageWithSuperfluousExpressionsInt3054() {
+		final AtomicReference<URI> uriHolder = new AtomicReference<>();
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Map<String, Expression> multipleExpressions = new HashMap<String, Expression>();
+		Map<String, Expression> multipleExpressions = new HashMap<>();
 		multipleExpressions.put("foo", parser.parseExpression("payload"));
 		multipleExpressions.put("extra-to-be-ignored", parser.parseExpression("headers.extra"));
 		handler.setUriVariableExpressions(multipleExpressions);
 		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
+
 			@Override
-			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
 				uriHolder.set(uri);
 				throw new RuntimeException("intentional");
 			}
+
 		});
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
@@ -113,28 +118,29 @@ public class UriVariableExpressionTests {
 	}
 
 	@Test
-	public void testInt3055UriVariablesExpression() throws Exception {
-		final AtomicReference<URI> uriHolder = new AtomicReference<URI>();
+	public void testInt3055UriVariablesExpression() {
+		final AtomicReference<URI> uriHolder = new AtomicReference<>();
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
 
 		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
+
 			@Override
-			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
 				uriHolder.set(uri);
 				throw new RuntimeException("intentional");
 			}
+
 		});
 
 		AbstractApplicationContext context = TestUtils.createTestApplicationContext();
 		IntegrationRegistrar registrar = new IntegrationRegistrar();
-		registrar.setBeanClassLoader(context.getClassLoader());
 		registrar.registerBeanDefinitions(null, (BeanDefinitionRegistry) context.getBeanFactory());
 		context.refresh();
 		handler.setBeanFactory(context);
 		handler.setUriVariablesExpression(new SpelExpressionParser().parseExpression("headers.uriVariables"));
 		handler.afterPropertiesSet();
 
-		Map<String, Object> expressions = new HashMap<String, Object>();
+		Map<String, Object> expressions = new HashMap<>();
 		expressions.put("foo", "bar");
 
 		Map<String, ?> expressionsMap = ExpressionEvalMap.from(expressions).usingSimpleCallback().build();

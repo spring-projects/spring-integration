@@ -82,6 +82,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.MessageTransformingHandler;
+import org.springframework.integration.util.NoBeansOverrideAnnotationConfigContextLoader;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -102,7 +103,8 @@ import reactor.core.publisher.Flux;
  *
  * @since 5.0
  */
-@ContextConfiguration(classes = ManualFlowTests.RootConfiguration.class)
+@ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class,
+		classes = ManualFlowTests.RootConfiguration.class)
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class ManualFlowTests {
