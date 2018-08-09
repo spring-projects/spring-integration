@@ -289,6 +289,9 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testLambdas() {
+		assertTrue(this.beanFactory.containsBean("lambdasFlow.filter#0"));
+		assertTrue(this.beanFactory.containsBean("lambdasFlow.transformer#0"));
+
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("World")
 				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)

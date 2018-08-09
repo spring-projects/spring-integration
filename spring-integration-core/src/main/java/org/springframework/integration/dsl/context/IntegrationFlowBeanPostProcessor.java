@@ -429,7 +429,14 @@ public class IntegrationFlowBeanPostProcessor
 					: fallbackId;
 		}
 
-		String generatedBeanName = prefix + instance.getClass().getName();
+		String generatedBeanName = prefix;
+		if (instance instanceof NamedComponent) {
+			generatedBeanName += ((NamedComponent) instance).getComponentType();
+		}
+		else {
+			generatedBeanName += instance.getClass().getName();
+		}
+
 		String id = generatedBeanName;
 		int counter = -1;
 		while (counter == -1 || this.beanFactory.containsBean(id)) {
