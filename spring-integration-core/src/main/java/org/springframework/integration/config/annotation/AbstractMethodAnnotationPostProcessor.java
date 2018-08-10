@@ -98,7 +98,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final List<String> messageHandlerAttributes = new ArrayList<String>();
+	protected final List<String> messageHandlerAttributes = new ArrayList<>();
 
 	protected final ConfigurableListableBeanFactory beanFactory;
 
@@ -129,22 +129,20 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
 		if (this.beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			try {
-				resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			}
-			catch (NoSuchBeanDefinitionException e) {
-				if (this.logger.isDebugEnabled()) {
-					this.logger.debug("Skipping endpoint creation; "
-							+ e.getMessage()
-							+ "; perhaps due to some '@Conditional' annotation.");
-				}
+			if (!this.beanFactory.containsBeanDefinition(resolveTargetBeanName(method))) {
+				this.logger.debug("Skipping endpoint creation; perhaps due to some '@Conditional' annotation.");
 				return null;
 			}
 		}
 
-		List<Advice> adviceChain = extractAdviceChain(beanName, annotations);
+		boolean handlerExists = false;
+		if (beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+			handlerExists = MessageHandler.class.isAssignableFrom(method.getReturnType());
+		}
 
 		MessageHandler handler = createHandler(bean, method, annotations);
+
+		List<Advice> adviceChain = extractAdviceChain(beanName, annotations);
 
 		if (!CollectionUtils.isEmpty(adviceChain) && handler instanceof AbstractReplyProducingMessageHandler) {
 			((AbstractReplyProducingMessageHandler) handler).setAdviceChain(adviceChain);
@@ -167,12 +165,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					((AbstractMessageRouter) handler).setSendTimeout(value);
 				}
 			}
-		}
-
-		boolean handlerExists = false;
-		if (this.beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			Object handlerBean = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			handlerExists = handlerBean != null && handler == handlerBean;
 		}
 
 		if (!handlerExists) {
@@ -228,7 +220,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (endpoint != null) {
 			return endpoint;
 		}
-		return handler;
+		else {
+			return handler;
+		}
 	}
 
 	@Override
@@ -450,13 +444,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	protected String resolveTargetBeanName(Method method) {
-		String id = null;
+		String id = method.getName();
 		String[] names = AnnotationUtils.getAnnotation(method, Bean.class).name();
 		if (!ObjectUtils.isEmpty(names)) {
 			id = names[0];
-		}
-		if (!StringUtils.hasText(id)) {
-			id = method.getName();
 		}
 		return id;
 	}
