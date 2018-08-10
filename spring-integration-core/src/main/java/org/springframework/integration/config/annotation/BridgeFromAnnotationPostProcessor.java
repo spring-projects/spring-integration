@@ -73,9 +73,8 @@ public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationP
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		BridgeHandler handler = new BridgeHandler();
-		Object outputChannel = resolveTargetBeanFromMethodWithBeanAnnotation(method);
-		Assert.isInstanceOf(MessageChannel.class, outputChannel);
-		handler.setOutputChannel((MessageChannel) outputChannel);
+		String outputChannelName = resolveTargetBeanName(method);
+		handler.setOutputChannelName(outputChannelName);
 		return handler;
 	}
 
