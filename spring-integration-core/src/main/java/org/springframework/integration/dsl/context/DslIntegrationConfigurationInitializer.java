@@ -35,7 +35,6 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
- *
  * @since 5.0
  *
  * @see org.springframework.integration.config.IntegrationConfigurationBeanFactoryPostProcessor
@@ -59,15 +58,11 @@ public class DslIntegrationConfigurationInitializer implements IntegrationConfig
 		);
 
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) configurableListableBeanFactory;
-
 		if (!registry.containsBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME)) {
 			registry.registerBeanDefinition(INTEGRATION_FLOW_BPP_BEAN_NAME,
 					new RootBeanDefinition(IntegrationFlowBeanPostProcessor.class));
 			registry.registerBeanDefinition(INTEGRATION_FLOW_CONTEXT_BEAN_NAME,
 					new RootBeanDefinition(StandardIntegrationFlowContext.class));
-		}
-
-		if (!configurableListableBeanFactory.containsBean(INTEGRATION_FLOW_REPLY_PRODUCER_CLEANER_BEAN_NAME)) {
 			registry.registerBeanDefinition(INTEGRATION_FLOW_REPLY_PRODUCER_CLEANER_BEAN_NAME,
 					new RootBeanDefinition(IntegrationFlowDefinition.ReplyProducerCleaner.class));
 		}
