@@ -151,7 +151,7 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 	/**
 	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
 	 */
-	private int phase;
+	private int phase = Integer.MAX_VALUE - 1000;
 
 	/**
 	 * Flag that indicates whether the leadership election for this {@link #candidate} is

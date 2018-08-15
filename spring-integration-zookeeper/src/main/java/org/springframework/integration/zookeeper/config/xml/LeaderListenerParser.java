@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.zookeeper.config.xml;
 
-import java.util.UUID;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -25,12 +23,12 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.leader.DefaultCandidate;
-import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
-import org.springframework.integration.zookeeper.leader.LeaderInitiator;
+import org.springframework.integration.zookeeper.config.LeaderInitiatorFactoryBean;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
@@ -38,20 +36,14 @@ public class LeaderListenerParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder candidateBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultCandidate.class);
-		candidateBuilder.addConstructorArgValue(UUID.randomUUID().toString());
-		candidateBuilder.addConstructorArgValue(element.getAttribute("role"));
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(LeaderInitiatorFactoryBean.class)
+						.addPropertyReference("client", element.getAttribute("client"))
+						.addPropertyValue("role", element.getAttribute(IntegrationNamespaceUtils.ROLE))
+						.addPropertyValue("path", element.getAttribute("path"));
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(LeaderInitiator.class);
-		builder.addConstructorArgReference(element.getAttribute("client"));
-		builder.addConstructorArgValue(candidateBuilder.getBeanDefinition());
-		builder.addConstructorArgValue(element.getAttribute("path"));
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
-
-		BeanDefinitionBuilder publisherBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(DefaultLeaderEventPublisher.class);
-		builder.addPropertyValue("leaderEventPublisher", publisherBuilder.getBeanDefinition());
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.AUTO_STARTUP);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, IntegrationNamespaceUtils.PHASE);
 
 		return builder.getBeanDefinition();
 	}

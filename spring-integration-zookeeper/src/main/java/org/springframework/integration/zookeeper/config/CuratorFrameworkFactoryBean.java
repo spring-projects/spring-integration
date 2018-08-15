@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,11 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 
 /**
- * A spring-friendly way to build a {@link CuratorFramework} and implementing {@link SmartLifecycle}.
+ * A Spring-friendly way to build a {@link CuratorFramework} and implementing {@link SmartLifecycle}.
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework>, SmartLifecycle {
@@ -42,17 +43,17 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 	/**
 	 * @see SmartLifecycle
 	 */
-	private volatile boolean autoStartup = true;
+	private boolean autoStartup = true;
+
+	/**
+	 * @see SmartLifecycle
+	 */
+	private int phase = Integer.MIN_VALUE + 1000;
 
 	/**
 	 * @see SmartLifecycle
 	 */
 	private volatile boolean running;
-
-	/**
-	 * @see SmartLifecycle
-	 */
-	private volatile int phase;
 
 
 	/**
@@ -135,7 +136,7 @@ public class CuratorFrameworkFactoryBean implements FactoryBean<CuratorFramework
 	}
 
 	@Override
-	public CuratorFramework getObject() throws Exception {
+	public CuratorFramework getObject() {
 		return this.client;
 	}
 
