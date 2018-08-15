@@ -63,6 +63,8 @@ If you prefer to have the raw JMS message as the Spring Integration message's pa
 ----
 ====
 
+Starting with version 5.1, a default value of the `receive-timeout` is `-1` (no wait) for the `org.springframework.jms.connection.CachingConnectionFactory` and `cacheConsumers`, otherwise it is 1 second.
+
 [[jms-ib-transactions]]
 ==== Transactions
 
@@ -513,7 +515,7 @@ The default is a `SimpleMessageConverter`.
 Overridden by the message priority header, if present.
 Its range is `0` to `9`.
 This setting takes effect only if `explicit-qos-enabled` is `true`.
-<11> The time (in millseconds) to wait for a reply.
+<11> The time (in milliseconds) to wait for a reply.
 The default is `5000` (five seconds).
 <12> The channel to which the reply message is sent.
 <13> A reference to a `Destination`, which is set as the `JMSReplyTo` header.

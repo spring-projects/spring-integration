@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package org.springframework.integration.jms;
 
+import javax.jms.ConnectionFactory;
+
+import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.destination.JmsDestinationAccessor;
 import org.springframework.util.Assert;
 
 /**
@@ -26,6 +30,28 @@ import org.springframework.util.Assert;
  * @since 2.0.2
  */
 public class DynamicJmsTemplate extends JmsTemplate {
+
+	private boolean receiveTimeoutExplicitlySet;
+
+	@Override
+	public void setReceiveTimeout(long receiveTimeout) {
+		super.setReceiveTimeout(receiveTimeout);
+		this.receiveTimeoutExplicitlySet = true;
+	}
+
+	@Override
+	public void setConnectionFactory(ConnectionFactory connectionFactory) {
+		super.setConnectionFactory(connectionFactory);
+		if (!this.receiveTimeoutExplicitlySet) {
+			if (connectionFactory instanceof CachingConnectionFactory &&
+					((CachingConnectionFactory) connectionFactory).isCacheConsumers()) {
+				super.setReceiveTimeout(JmsDestinationAccessor.RECEIVE_TIMEOUT_NO_WAIT);
+			}
+			else {
+				super.setReceiveTimeout(1000);
+			}
+		}
+	}
 
 	@Override
 	public int getPriority() {

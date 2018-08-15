@@ -60,6 +60,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
+import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -107,6 +108,9 @@ public class JmsTests {
 	@Autowired
 	@Qualifier("jmsOutboundInboundReplyChannel")
 	private PollableChannel jmsOutboundInboundReplyChannel;
+
+	@Autowired
+	private JmsDestinationPollingSource jmsDestinationPollingSource;
 
 	@Autowired
 	@Qualifier("jmsOutboundGatewayFlow.input")
@@ -161,6 +165,11 @@ public class JmsTests {
 
 	@Test
 	public void testJmsOutboundInboundFlow() {
+		JmsTemplate jmsTemplate =
+				TestUtils.getPropertyValue(this.jmsDestinationPollingSource, "jmsTemplate", JmsTemplate.class);
+
+		assertEquals(JmsTemplate.RECEIVE_TIMEOUT_NO_WAIT, jmsTemplate.getReceiveTimeout());
+
 		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("hello THROUGH the JMS")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsInbound")
 				.build());
