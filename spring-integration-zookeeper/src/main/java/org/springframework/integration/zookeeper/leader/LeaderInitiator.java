@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public class LeaderInitiator implements SmartLifecycle {
 	/**
 	 * @see SmartLifecycle which is an extension of org.springframework.context.Phased
 	 */
-	private volatile int phase;
+	private volatile int phase = Integer.MAX_VALUE - 1000;
 
 	/**
 	 * Flag that indicates whether the leadership election for

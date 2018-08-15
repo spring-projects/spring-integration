@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.zookeeper.leader.LeaderInitiator;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.2
  */
 public class LeaderInitiatorFactoryBean
@@ -51,7 +52,7 @@ public class LeaderInitiatorFactoryBean
 
 	private boolean autoStartup = true;
 
-	private int phase;
+	private int phase = Integer.MAX_VALUE - 1000;
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -136,11 +137,11 @@ public class LeaderInitiatorFactoryBean
 		if (this.leaderInitiator != null) {
 			return this.leaderInitiator.getPhase();
 		}
-		return 0;
+		return this.phase;
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if (this.leaderInitiator == null) {
 			this.leaderInitiator = new LeaderInitiator(this.client, this.candidate, this.path);
 			this.leaderInitiator.setPhase(this.phase);
@@ -156,7 +157,7 @@ public class LeaderInitiatorFactoryBean
 	}
 
 	@Override
-	public synchronized LeaderInitiator getObject() throws Exception {
+	public synchronized LeaderInitiator getObject() {
 		return this.leaderInitiator;
 	}
 
