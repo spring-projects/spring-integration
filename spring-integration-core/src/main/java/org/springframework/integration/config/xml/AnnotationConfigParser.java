@@ -41,7 +41,6 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 	@Override
 	public BeanDefinition parse(final Element element, ParserContext parserContext) {
 		IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
-		integrationRegistrar.setBeanClassLoader(parserContext.getReaderContext().getBeanClassLoader());
 
 		StandardAnnotationMetadata importingClassMetadata =
 				new StandardAnnotationMetadata(Object.class) {

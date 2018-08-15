@@ -75,6 +75,7 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.transformer.PayloadSerializingTransformer;
+import org.springframework.integration.util.NoBeansOverrideAnnotationConfigContextLoader;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -91,6 +92,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -101,6 +103,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  *
  * @since 5.0
  */
+@ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class)
 @RunWith(SpringRunner.class)
 @DirtiesContext
 public class IntegrationFlowTests {
@@ -482,11 +485,13 @@ public class IntegrationFlowTests {
 	public interface ControlBusGateway {
 
 		void send(String command);
+
 	}
 
 	@Configuration
 	@EnableIntegration
 	public static class SupplierContextConfiguration1 {
+
 		@Bean
 		public IntegrationFlow supplierFlow() {
 			return IntegrationFlows.from(() -> "foo")
@@ -512,15 +517,17 @@ public class IntegrationFlowTests {
 		public MessageChannel suppliedChannel() {
 			return MessageChannels.queue(10).get();
 		}
+
 	}
 
 	@Configuration
 	@EnableIntegration
 	public static class SupplierContextConfiguration2 {
+
 		@Bean
 		public IntegrationFlow supplierFlow2() {
 			return IntegrationFlows.from(() -> "foo", c -> c.poller(Pollers.fixedDelay(100).maxMessagesPerPoll(1)))
-					.<String, String>transform(p -> p.toUpperCase())
+					.<String, String>transform(String::toUpperCase)
 					.channel("suppliedChannel2")
 					.get();
 		}
@@ -529,6 +536,7 @@ public class IntegrationFlowTests {
 		public MessageChannel suppliedChannel2() {
 			return MessageChannels.queue(10).get();
 		}
+
 	}
 
 	@Configuration
@@ -540,18 +548,6 @@ public class IntegrationFlowTests {
 			return IntegrationFlows.from(ControlBusGateway.class)
 					.controlBus()
 					.get();
-		}
-
-		@Bean(name = PollerMetadata.DEFAULT_POLLER)
-		public PollerMetadata poller() {
-			return Pollers.fixedRate(500).get();
-		}
-
-		@Bean(name = IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)
-		public TaskScheduler taskScheduler() {
-			ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-			threadPoolTaskScheduler.setPoolSize(100);
-			return threadPoolTaskScheduler;
 		}
 
 		@Bean
@@ -690,6 +686,7 @@ public class IntegrationFlowTests {
 		public void handle(Object payload) {
 			assertEquals(100, payload);
 		}
+
 	}
 
 	@Configuration
@@ -856,6 +853,7 @@ public class IntegrationFlowTests {
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			return "Hello " + this.worldService.world() + " and " + requestMessage.getPayload();
 		}
+
 	}
 
 	@Service
@@ -864,6 +862,7 @@ public class IntegrationFlowTests {
 		public String world() {
 			return "World";
 		}
+
 	}
 
 

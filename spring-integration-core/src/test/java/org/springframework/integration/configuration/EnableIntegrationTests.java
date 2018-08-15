@@ -118,6 +118,7 @@ import org.springframework.integration.support.MutableMessageBuilder;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.util.NoBeansOverrideAnnotationConfigContextLoader;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -136,7 +137,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 
@@ -148,7 +148,7 @@ import reactor.core.publisher.Mono;
  * @author Gary Russell
  * @since 4.0
  */
-@ContextConfiguration(loader = AnnotationConfigContextLoader.class,
+@ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class,
 		classes = { EnableIntegrationTests.ContextConfiguration.class,
 				EnableIntegrationTests.ContextConfiguration2.class })
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -961,6 +961,7 @@ public class EnableIntegrationTests {
 		public Integer getInvoked() {
 			return invoked.get();
 		}
+
 	}
 
 	@Configuration
@@ -1443,6 +1444,7 @@ public class EnableIntegrationTests {
 		String phase() default "";
 
 		Poller[] poller() default { };
+
 	}
 
 	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
@@ -1461,6 +1463,7 @@ public class EnableIntegrationTests {
 		String phase() default "";
 
 		Poller[] poller() default { };
+
 	}
 
 	@Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
@@ -1566,6 +1569,7 @@ public class EnableIntegrationTests {
 		String phase() default "";
 
 		Poller[] poller() default { };
+
 	}
 
 	@Target(ElementType.METHOD)
@@ -1614,6 +1618,7 @@ public class EnableIntegrationTests {
 	public @interface MyBridgeFrom {
 
 		String value() default "";
+
 	}
 
 	@Target(ElementType.METHOD)

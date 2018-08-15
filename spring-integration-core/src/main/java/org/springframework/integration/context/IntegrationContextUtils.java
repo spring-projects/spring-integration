@@ -41,6 +41,8 @@ public abstract class IntegrationContextUtils {
 
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 
+	public static final String ERROR_LOGGER_BEAN_NAME = "_org.springframework.integration.errorLogger";
+
 	public static final String NULL_CHANNEL_BEAN_NAME = "nullChannel";
 
 	public static final String METADATA_STORE_BEAN_NAME = "metadataStore";

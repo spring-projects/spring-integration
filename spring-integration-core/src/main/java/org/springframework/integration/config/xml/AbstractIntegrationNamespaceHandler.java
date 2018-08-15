@@ -57,7 +57,6 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		if (!this.initialized.getAndSet(true)) {
 			verifySchemaVersion(element, parserContext);
 			IntegrationRegistrar integrationRegistrar = new IntegrationRegistrar();
-			integrationRegistrar.setBeanClassLoader(parserContext.getReaderContext().getBeanClassLoader());
 			integrationRegistrar.registerBeanDefinitions(null, parserContext.getRegistry());
 		}
 		return this.delegate.parse(element, parserContext);
