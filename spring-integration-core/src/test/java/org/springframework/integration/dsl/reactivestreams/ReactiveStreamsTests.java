@@ -33,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -101,7 +102,7 @@ public class ReactiveStreamsTests {
 		this.messageSource.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		String[] strings = results.toArray(new String[results.size()]);
-		assertArrayEquals(new String[] {"A", "B", "C", "D", "E", "F"}, strings);
+		assertArrayEquals(new String[] { "A", "B", "C", "D", "E", "F" }, strings);
 		this.messageSource.stop();
 	}
 
@@ -170,6 +171,40 @@ public class ReactiveStreamsTests {
 			assertNotNull(receive);
 			assertEquals((i + 1) * 2, receive.getPayload());
 		}
+	}
+
+	@Test
+	public void testFluxTransform() {
+		QueueChannel resultChannel = new QueueChannel();
+
+		IntegrationFlow integrationFlow = f -> f
+				.split()
+				.<String, String>fluxTransform(flux -> flux
+						.map(Message::getPayload)
+						.map(String::toUpperCase))
+				.aggregate(a -> a
+						.outputProcessor(group -> group
+								.getMessages()
+								.stream()
+								.map(Message::getPayload)
+								.map(String.class::cast)
+								.collect(Collectors.joining(","))))
+				.channel(resultChannel);
+
+		IntegrationFlowContext.IntegrationFlowRegistration integrationFlowRegistration =
+				this.integrationFlowContext
+						.registration(integrationFlow)
+						.register();
+
+		MessageChannel inputChannel = integrationFlowRegistration.getInputChannel();
+		inputChannel.send(new GenericMessage<>("a,b,c,d,e"));
+
+		Message<?> receive = resultChannel.receive(10_000);
+
+		assertNotNull(receive);
+		assertEquals("A,B,C,D,E", receive.getPayload());
+
+		integrationFlowRegistration.destroy();
 	}
 
 	@Configuration

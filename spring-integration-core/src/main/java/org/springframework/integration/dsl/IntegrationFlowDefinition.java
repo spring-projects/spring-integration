@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -79,6 +80,7 @@ import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MapBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.ClaimCheckInTransformer;
 import org.springframework.integration.transformer.ClaimCheckOutTransformer;
 import org.springframework.integration.transformer.ContentEnricher;
@@ -96,6 +98,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 /**
@@ -544,7 +548,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see LambdaMessageProcessor
 	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer) {
-		return this.transform(null, genericTransformer);
+		return transform(null, genericTransformer);
 	}
 
 	/**
@@ -2866,6 +2870,48 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return handle(new ServiceActivatingHandler(triggerAction, "trigger"), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link FluxMessageChannel} to start a reactive processing for upstream data,
+	 * wrap it to a {@link Flux}, apply provided {@link Function} via {@link Flux#transform(Function)}
+	 * and emit the result to one more {@link FluxMessageChannel}, subscribed in the downstream flow.
+	 * @param fluxFunction the {@link Function} to process data reactive manner.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	@SuppressWarnings("unchecked")
+	public <I, O> B fluxTransform(Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
+		if (!(this.currentMessageChannel instanceof FluxMessageChannel)) {
+			channel(new FluxMessageChannel());
+		}
+
+		Publisher<Message<I>> upstream = (Publisher<Message<I>>) this.currentMessageChannel;
+
+		Flux<Message<?>> result =
+				Flux.from(upstream)
+						.flatMap(message ->
+								Mono.subscriberContext()
+										.map(ctx -> {
+											ctx.get(RequestMessageHolder.class).set(message);
+											return message;
+										}))
+						.transform(fluxFunction)
+						.flatMap(data ->
+								data instanceof Message<?>
+										? Mono.just((Message<?>) data)
+										: Mono.subscriberContext()
+												.map(ctx -> ctx.get(RequestMessageHolder.class).get())
+												.map(requestMessage ->
+														MessageBuilder.withPayload(data)
+																.copyHeaders(requestMessage.getHeaders())
+																.build()))
+						.subscriberContext(ctx -> ctx.put(RequestMessageHolder.class, new RequestMessageHolder()));
+
+		FluxMessageChannel downstream = new FluxMessageChannel();
+		downstream.subscribeTo(result);
+
+		this.currentMessageChannel = downstream;
+
+		return addComponent(this.currentMessageChannel);
+	}
 
 	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
@@ -3085,6 +3131,10 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
 			IntegrationFlowDefinition.REFERENCED_REPLY_PRODUCERS.remove(bean);
 		}
+
+	}
+
+	private static class RequestMessageHolder extends AtomicReference<Message<?>> {
 
 	}
 
