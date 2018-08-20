@@ -20,15 +20,8 @@ import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.support.DefaultMessageBuilderFactory;
-import org.springframework.integration.support.MessageBuilderFactory;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -46,19 +39,9 @@ import org.springframework.util.Assert;
  */
 public class MailReceivingMessageSource extends AbstractMessageSource<Object> {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	private final MailReceiver mailReceiver;
 
 	private final Queue<Object> mailQueue = new ConcurrentLinkedQueue<>();
-
-	private BeanFactory beanFactory;
-
-	private MessageBuilderFactory messageBuilderFactory = new DefaultMessageBuilderFactory();
-
-	private boolean messageBuilderFactorySet;
-
-	private String beanName;
 
 
 	public MailReceivingMessageSource(MailReceiver mailReceiver) {
@@ -67,37 +50,8 @@ public class MailReceivingMessageSource extends AbstractMessageSource<Object> {
 	}
 
 	@Override
-	public final void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
-
-	protected BeanFactory getBeanFactory() {
-		return this.beanFactory;
-	}
-
-	protected MessageBuilderFactory getMessageBuilderFactory() {
-		if (!this.messageBuilderFactorySet) {
-			if (this.beanFactory != null) {
-				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-			}
-			this.messageBuilderFactorySet = true;
-		}
-		return this.messageBuilderFactory;
-	}
-
-	@Override
-	public String getComponentName() {
-		return this.beanName;
-	}
-
-	@Override
 	public String getComponentType() {
 		return "mail:inbound-channel-adapter";
-	}
-
-	@Override
-	public void setBeanName(String name) {
-		this.beanName = name;
 	}
 
 	@Override
