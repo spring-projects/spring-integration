@@ -294,6 +294,8 @@ public abstract class Transformers {
 				.subscriberContext(ctx -> ctx.put(RequestMessageHolder.class, new RequestMessageHolder()));
 	}
 
+
+	@SuppressWarnings("serial")
 	private static class RequestMessageHolder extends AtomicReference<Message<?>> {
 
 	}

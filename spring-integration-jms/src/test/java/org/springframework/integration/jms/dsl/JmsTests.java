@@ -176,7 +176,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		JmsTemplate jmsTemplate =
 				TestUtils.getPropertyValue(this.jmsDestinationPollingSource, "jmsTemplate", JmsTemplate.class);
 
-		assertEquals(JmsTemplate.RECEIVE_TIMEOUT_NO_WAIT, jmsTemplate.getReceiveTimeout());
+		assertEquals(1000, jmsTemplate.getReceiveTimeout());
 
 		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("hello THROUGH the JMS")
 				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "jmsInbound")
@@ -307,7 +307,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 			return f -> f
 					.fixedSubscriberChannel("integerChannel")
 					.transform("payload.toString()")
-					.channel(Jms.pollableChannel("flow1QueueChannel", cachingConnectionFactory())
+					.channel(Jms.pollableChannel("flow1QueueChannel", jmsConnectionFactory())
 							.destination("flow1QueueChannel"));
 		}
 
@@ -327,7 +327,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		public IntegrationFlow jmsInboundFlow() {
 			return IntegrationFlows
-					.from(Jms.inboundAdapter(cachingConnectionFactory()).destination("jmsInbound"))
+					.from(Jms.inboundAdapter(jmsConnectionFactory()).destination("jmsInbound"))
 					.<String, String>transform(String::toUpperCase)
 					.channel(this.jmsOutboundInboundReplyChannel())
 					.get();
@@ -336,7 +336,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		public IntegrationFlow pubSubFlow() {
 			return IntegrationFlows
-					.from(Jms.publishSubscribeChannel(cachingConnectionFactory())
+					.from(Jms.publishSubscribeChannel(jmsConnectionFactory())
 							.destination("pubsub"))
 					.channel(c -> c.queue("jmsPubSubBridgeChannel"))
 					.get();
@@ -430,7 +430,7 @@ public class JmsTests extends ActiveMQMultiContextTests {
 		@Bean
 		public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
 			return IntegrationFlows
-					.from(Jms.messageDrivenChannelAdapter(cachingConnectionFactory())
+					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory())
 							.errorChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)
 							.destination("jmsMessageDrivenRedelivery")
 							.configureListenerContainer(c -> c
