@@ -257,11 +257,6 @@ public class JmsTests {
 	public static class ContextConfiguration {
 
 		@Bean
-		public ConnectionFactory cachingConnectionFactory() {
-			return new CachingConnectionFactory(jmsConnectionFactory());
-		}
-
-		@Bean
 		public ActiveMQConnectionFactory jmsConnectionFactory() {
 			ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(
 					"vm://localhost?broker.persistent=false");
@@ -270,8 +265,13 @@ public class JmsTests {
 		}
 
 		@Bean
+		public ConnectionFactory cachingConnectionFactory() {
+			return new CachingConnectionFactory(jmsConnectionFactory());
+		}
+
+		@Bean
 		public JmsTemplate jmsTemplate() {
-			return new JmsTemplate(jmsConnectionFactory());
+			return new JmsTemplate(cachingConnectionFactory());
 		}
 
 		@Bean(name = PollerMetadata.DEFAULT_POLLER)
@@ -305,7 +305,7 @@ public class JmsTests {
 		@Bean
 		public IntegrationFlow jmsOutboundFlow() {
 			return f -> f
-					.handle(Jms.outboundAdapter(jmsConnectionFactory())
+					.handle(Jms.outboundAdapter(cachingConnectionFactory())
 							.destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
 							.configureJmsTemplate(t -> t.id("jmsOutboundFlowTemplate")));
 		}
@@ -327,7 +327,7 @@ public class JmsTests {
 		@Bean
 		public IntegrationFlow pubSubFlow() {
 			return IntegrationFlows
-					.from(Jms.publishSubscribeChannel(jmsConnectionFactory())
+					.from(Jms.publishSubscribeChannel(cachingConnectionFactory())
 							.destination("pubsub"))
 					.channel(c -> c.queue("jmsPubSubBridgeChannel"))
 					.get();
@@ -380,7 +380,7 @@ public class JmsTests {
 
 		@Bean
 		public IntegrationFlow jmsOutboundGatewayFlow() {
-			return f -> f.handle(Jms.outboundGateway(jmsConnectionFactory())
+			return f -> f.handle(Jms.outboundGateway(cachingConnectionFactory())
 							.replyContainer(c -> c.idleReplyContainerTimeout(10))
 							.requestDestination("jmsPipelineTest"),
 					e -> e.id("jmsOutboundGateway"));
@@ -421,7 +421,7 @@ public class JmsTests {
 		@Bean
 		public IntegrationFlow jmsMessageDrivenRedeliveryFlow() {
 			return IntegrationFlows
-					.from(Jms.messageDrivenChannelAdapter(jmsConnectionFactory())
+					.from(Jms.messageDrivenChannelAdapter(cachingConnectionFactory())
 							.errorChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)
 							.destination("jmsMessageDrivenRedelivery")
 							.configureListenerContainer(c -> c
