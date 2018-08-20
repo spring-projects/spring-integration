@@ -31,6 +31,8 @@ import org.springframework.util.Assert;
  */
 public class DynamicJmsTemplate extends JmsTemplate {
 
+	private static final long NO_CACHING_RECEIVE_TIMEOUT = 1000L;
+
 	private boolean receiveTimeoutExplicitlySet;
 
 	@Override
@@ -48,7 +50,7 @@ public class DynamicJmsTemplate extends JmsTemplate {
 				super.setReceiveTimeout(JmsDestinationAccessor.RECEIVE_TIMEOUT_NO_WAIT);
 			}
 			else {
-				super.setReceiveTimeout(1000);
+				super.setReceiveTimeout(NO_CACHING_RECEIVE_TIMEOUT);
 			}
 		}
 	}

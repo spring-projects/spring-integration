@@ -63,7 +63,7 @@ If you prefer to have the raw JMS message as the Spring Integration message's pa
 ----
 ====
 
-Starting with version 5.1, a default value of the `receive-timeout` is `-1` (no wait) for the `org.springframework.jms.connection.CachingConnectionFactory` and `cacheConsumers`, otherwise it is 1 second.
+Starting with version 5.0.8, a default value of the `receive-timeout` is `-1` (no wait) for the `org.springframework.jms.connection.CachingConnectionFactory` and `cacheConsumers`, otherwise it is 1 second.
 
 [[jms-ib-transactions]]
 ==== Transactions
