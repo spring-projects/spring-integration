@@ -96,6 +96,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import reactor.core.publisher.Flux;
 import reactor.util.function.Tuple2;
 
 /**
@@ -544,7 +545,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see LambdaMessageProcessor
 	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer) {
-		return this.transform(null, genericTransformer);
+		return transform(null, genericTransformer);
 	}
 
 	/**
@@ -2866,6 +2867,30 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return handle(new ServiceActivatingHandler(triggerAction, "trigger"), endpointConfigurer);
 	}
 
+	/**
+	 * Populate a {@link FluxMessageChannel} to start a reactive processing for upstream data,
+	 * wrap it to a {@link Flux}, apply provided {@link Function} via {@link Flux#transform(Function)}
+	 * and emit the result to one more {@link FluxMessageChannel}, subscribed in the downstream flow.
+	 * @param fluxFunction the {@link Function} to process data reactive manner.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 */
+	@SuppressWarnings("unchecked")
+	public <I, O> B fluxTransform(Function<? super Flux<Message<I>>, ? extends Publisher<O>> fluxFunction) {
+		if (!(this.currentMessageChannel instanceof FluxMessageChannel)) {
+			channel(new FluxMessageChannel());
+		}
+
+		Publisher<Message<I>> upstream = (Publisher<Message<I>>) this.currentMessageChannel;
+
+		Flux<Message<O>> result = Transformers.transformWithFunction(upstream, fluxFunction);
+
+		FluxMessageChannel downstream = new FluxMessageChannel();
+		downstream.subscribeTo((Flux<Message<?>>) (Flux<?>) result);
+
+		this.currentMessageChannel = downstream;
+
+		return addComponent(this.currentMessageChannel);
+	}
 
 	/**
 	 * Represent an Integration Flow as a Reactive Streams {@link Publisher} bean.
