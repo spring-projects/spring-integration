@@ -54,7 +54,6 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		String jmsTemplate = element.getAttribute(JmsParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsParserUtils.DESTINATION_NAME_ATTRIBUTE);
-		String headerMapper = element.getAttribute(JmsParserUtils.HEADER_MAPPER_ATTRIBUTE);
 		boolean hasJmsTemplate = StringUtils.hasText(jmsTemplate);
 		boolean hasDestinationRef = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
@@ -84,9 +83,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 					+ JmsParserUtils.DESTINATION_NAME_ATTRIBUTE +
 					"' attributes must be provided for a polling JMS adapter", parserContext.extractSource(element));
 		}
-		if (StringUtils.hasText(headerMapper)) {
-			builder.addPropertyReference(JmsParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
-		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, JmsParserUtils.HEADER_MAPPER_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		return builder.getBeanDefinition();

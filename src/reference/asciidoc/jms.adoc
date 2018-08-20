@@ -55,6 +55,8 @@ If instead you prefer to have the raw JMS Message as the Spring Integration Mess
 </int-jms:inbound-channel-adapter>
 ----
 
+Starting with version 5.0.8, a default value of the `receive-timeout` is `-1` (no wait) for the `org.springframework.jms.connection.CachingConnectionFactory` and `cacheConsumers`, otherwise it is 1 second.
+
 [[jms-ib-transactions]]
 ==== Transactions
 
