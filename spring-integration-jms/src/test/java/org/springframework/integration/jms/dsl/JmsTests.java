@@ -32,7 +32,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.jms.ConnectionFactory;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.logging.log4j.Level;
 import org.hamcrest.Matchers;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -60,9 +62,11 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
+import org.springframework.integration.jms.ActiveMQMultiContextTests;
 import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
@@ -89,7 +93,7 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 @RunWith(SpringRunner.class)
 @DirtiesContext
-public class JmsTests {
+public class JmsTests extends ActiveMQMultiContextTests {
 
 	@Autowired
 	private ListableBeanFactory beanFactory;
@@ -120,7 +124,7 @@ public class JmsTests {
 	private TestChannelInterceptor testChannelInterceptor;
 
 	@Autowired
-	private ConnectionFactory jmsConnectionFactory;
+	private ConnectionFactory cachingConnectionFactory;
 
 	@Autowired
 	private PollableChannel jmsPubSubBridgeChannel;
@@ -145,6 +149,10 @@ public class JmsTests {
 
 	@Autowired
 	private CountDownLatch redeliveryLatch;
+
+	@Rule
+	public final Log4j2LevelAdjuster adjuster = Log4j2LevelAdjuster.forLevel(Level.DEBUG)
+			.categories("org.springframework", "org.springframework.integration", "org.apache");
 
 	@Test
 	public void testPollingFlow() {
@@ -223,7 +231,7 @@ public class JmsTests {
 
 	@Test
 	public void testPubSubFlow() {
-		JmsTemplate template = new JmsTemplate(this.jmsConnectionFactory);
+		JmsTemplate template = new JmsTemplate(this.cachingConnectionFactory);
 		template.setPubSubDomain(true);
 		template.setDefaultDestinationName("pubsub");
 		template.convertAndSend("foo");
@@ -241,6 +249,7 @@ public class JmsTests {
 		assertTrue(this.redeliveryLatch.await(10, TimeUnit.SECONDS));
 
 		assertNotNull(this.jmsMessageDrivenRedeliveryFlowContainer);
+		this.jmsMessageDrivenRedeliveryFlowContainer.stop();
 	}
 
 	@MessagingGateway(defaultRequestChannel = "controlBus.input")
