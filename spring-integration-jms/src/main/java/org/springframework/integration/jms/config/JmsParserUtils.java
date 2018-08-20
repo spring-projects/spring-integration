@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.DynamicJmsTemplate;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.StringUtils;
 
 /**
@@ -31,6 +30,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 abstract class JmsParserUtils {
 
@@ -63,7 +63,7 @@ abstract class JmsParserUtils {
 	static final String HEADER_MAPPER_PROPERTY = "headerMapper";
 
 	private static final String[] JMS_TEMPLATE_ATTRIBUTES = {
-		"connection-factory", "message-converter", "destination-resolver", "pub-sub-domain",
+			CONNECTION_FACTORY_ATTRIBUTE, "message-converter", "destination-resolver", PUB_SUB_DOMAIN_ATTRIBUTE,
 		"time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled", "acknowledge",
 		"receive-timeout", "session-transacted"
 	};
@@ -86,18 +86,12 @@ abstract class JmsParserUtils {
 				determineConnectionFactoryBeanName(element, parserContext));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pub-sub-domain");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, PUB_SUB_DOMAIN_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-persistent");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
-		String receiveTimeout = element.getAttribute("receive-timeout");
-		if (StringUtils.hasText(receiveTimeout)) {
-			builder.addPropertyValue("receiveTimeout", receiveTimeout);
-		}
-		else {
-			builder.addPropertyValue("receiveTimeout", JmsTemplate.RECEIVE_TIMEOUT_NO_WAIT);
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "session-transacted");
 		return builder.getBeanDefinition();
 	}
