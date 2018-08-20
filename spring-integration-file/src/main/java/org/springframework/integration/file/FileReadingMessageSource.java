@@ -41,9 +41,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.core.MessageSource;
@@ -88,8 +85,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 		implements Lifecycle {
 
 	private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
-
-	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
