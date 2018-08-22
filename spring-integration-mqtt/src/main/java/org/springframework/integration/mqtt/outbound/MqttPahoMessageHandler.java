@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,17 +45,17 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 		implements MqttCallback, ApplicationEventPublisherAware {
 
-	private static final int DEFAULT_COMPLETION_TIMEOUT = 30000;
+	public static final long DEFAULT_COMPLETION_TIMEOUT = 30000L;
 
-	private volatile int completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile IMqttAsyncClient client;
+	private IMqttAsyncClient client;
 
-	private volatile boolean async;
+	private boolean async;
 
-	private volatile boolean asyncEvents;
+	private boolean asyncEvents;
 
 	private volatile ApplicationEventPublisher applicationEventPublisher;
 
@@ -118,11 +118,11 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	/**
 	 * Set the completion timeout for async operations. Not settable using the namespace.
-	 * Default 30000 milliseconds.
+	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
 	 * @param completionTimeout The timeout.
 	 * @since 4.1
 	 */
-	public void setCompletionTimeout(int completionTimeout) {
+	public void setCompletionTimeout(long completionTimeout) {
 		this.completionTimeout = completionTimeout;
 	}
 

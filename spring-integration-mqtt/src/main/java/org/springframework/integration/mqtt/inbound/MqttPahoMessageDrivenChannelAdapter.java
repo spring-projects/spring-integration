@@ -51,21 +51,21 @@ import org.springframework.util.Assert;
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
 		implements MqttCallback, ApplicationEventPublisherAware {
 
-	private static final int DEFAULT_COMPLETION_TIMEOUT = 30000;
+	public static final long DEFAULT_COMPLETION_TIMEOUT = 30000L;
 
 	private static final int DEFAULT_RECOVERY_INTERVAL = 10000;
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile IMqttClient client;
+	private IMqttClient client;
+
+	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+
+	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private volatile ScheduledFuture<?> reconnectFuture;
 
 	private volatile boolean connected;
-
-	private volatile int completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
-
-	private volatile int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private volatile boolean cleanSession;
 
@@ -114,11 +114,11 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	/**
 	 * Set the completion timeout for operations. Not settable using the namespace.
-	 * Default 30000 milliseconds.
+	 * Default {@value #DEFAULT_COMPLETION_TIMEOUT} milliseconds.
 	 * @param completionTimeout The timeout.
 	 * @since 4.1
 	 */
-	public void setCompletionTimeout(int completionTimeout) {
+	public void setCompletionTimeout(long completionTimeout) {
 		this.completionTimeout = completionTimeout;
 	}
 
