@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -86,6 +87,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Meherzad Lahewala
  *
  * @since 2.2
  */
@@ -1054,6 +1056,79 @@ public class AdvisedMessageHandlerTests {
 		assertThat(payload.getCause().getMessage(), equalTo("baz"));
 		assertThat(payload.getFailedMessage().getPayload(), equalTo("bar"));
 		assertThat(((ErrorMessage) error).getOriginalMessage().getPayload(), equalTo("foo"));
+	}
+
+	@Test
+	public void testRateLimiter() {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return "bar";
+			}
+		};
+		handler.setBeanName("baz");
+		handler.setOutputChannel(new QueueChannel());
+		RequestHandlerRateLimiterAdvice advice = new RequestHandlerRateLimiterAdvice(120, 2, TimeUnit.SECONDS);
+
+		List<Advice> adviceChain = new ArrayList<Advice>();
+		adviceChain.add(advice);
+		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		Message<String> message = new GenericMessage<String>("Hello, world!");
+		try {
+			long start = System.currentTimeMillis();
+			for (int i = 0; i < 121; i++) {
+				handler.handleMessage(message);
+			}
+			long end = System.currentTimeMillis();
+			assertTrue(end - start >= TimeUnit.SECONDS.toMillis(1));
+		}
+		catch (Exception e) {
+			fail("Exception not expected");
+		}
+	}
+
+	@Test
+	public void testRateLimiterMaxTimeLimit() {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return "bar";
+			}
+		};
+		handler.setBeanName("baz");
+		handler.setOutputChannel(new QueueChannel());
+		RequestHandlerRateLimiterAdvice advice = new RequestHandlerRateLimiterAdvice(2, 1, TimeUnit.SECONDS);
+
+		List<Advice> adviceChain = new ArrayList<Advice>();
+		adviceChain.add(advice);
+		handler.setAdviceChain(adviceChain);
+		handler.setBeanFactory(mock(BeanFactory.class));
+		handler.afterPropertiesSet();
+		Message<String> message = new GenericMessage<String>("Hello, world!");
+		ExecutorService exec = Executors.newCachedThreadPool();
+		AtomicBoolean exceptionFlag = new AtomicBoolean();
+		try {
+			for (int i = 0; i < 5; i++) {
+				exec.execute(() -> {
+					try {
+						handler.handleMessage(message);
+					}
+					catch (Exception exception) {
+						if (exception.getMessage().contains("Rate limiter maxDelay exceeded")) {
+							exceptionFlag.set(true);
+						}
+					}
+				});
+			}
+			exec.shutdown();
+			exec.awaitTermination(2, TimeUnit.SECONDS);
+			assertTrue(exceptionFlag.get());
+		}
+		catch (Exception exception) {
+			assertThat(exception.getMessage(), containsString("Rate limiter maxDelay exceeded"));
+		}
 	}
 
 	private interface Bar {

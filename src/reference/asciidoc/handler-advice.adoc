@@ -49,11 +49,12 @@ For chains that produce a reply, every child element can be advised.
 [[advice-classes]]
 ==== Provided Advice Classes
 
-In addition to providing the general mechanism to apply AOP advice classes, Spring Integration provides three standard advice classes:
+In addition to providing the general mechanism to apply AOP advice classes, Spring Integration provides four standard advice classes:
 
 * `RequestHandlerRetryAdvice` (described in <<retry-advice>>)
 * `RequestHandlerCircuitBreakerAdvice` (described in <<circuit-breaker-advice>>)
 * `ExpressionEvaluatingRequestHandlerAdvice` (described in <<expression-advice>>)
+* `RequestHandlerRateLimiterAdvice` (described in <<rateLimiter-advice>>)
 
 [[retry-advice]]
 ===== Retry Advice
@@ -389,8 +390,7 @@ The sixth attempt fails immediately because the breaker immediately went to open
 [[expression-advice]]
 ===== Expression Evaluating Advice
 
-The final supplied advice class is the `o.s.i.handler.advice.ExpressionEvaluatingRequestHandlerAdvice`.
-This advice is more general than the other two advices.
+The `o.s.i.handler.advice.ExpressionEvaluatingRequestHandlerAdvice` supplied advice class is more general than the other two advices.
 It provides a mechanism to evaluate an expression on the original inbound message sent to the endpoint.
 Separate expressions are available to be evaluated, after either success or failure.
 Optionally, a message containing the evaluation result, together with the input message, can be sent to a message channel.
@@ -458,6 +458,45 @@ public class EerhaApplication {
 }
 ----
 ====
+
+[[rateLimiter-advice]]
+===== Rate Limiter Advice
+
+The Rate Limiter advice allows you to ensure that an endpoints does not get overloaded with requests.
+When the RateLimit is breached the request will go in a blocked state.
+
+A typical use case for this advice might be an external service provider not allowing more than n number of request per minute.
+
+The `RequestHandlerRateLimiterAdvice` advice supports following properties: `rate`, `maxDelay` and `timeUnit`.
+The `rate` property represents the maximum number of requests per period to throttle.
+This option must be provided as a positive number.
+The `maxDelay` property represents the maximum time the thread will wait.
+If the thread wait time exceeds the `maxDelay` time, `RateLimiterMaxDelayException` exception will be thrown.
+Default value for `maxDelay` is -1 which means no max delay.
+The `timeUnit` property represents the unit of time `java.util.concurrent.TimeUnit`.
+This option must be non null.
+
+The following example configures a RateLimiter advice.
+
+====
+[source,xml]
+----
+<int:service-activator input-channel="input" ref="failer" method="service">
+    <int:request-handler-advice-chain>
+        <bean class="o.s.i.handler.advice.RequestHandlerRateLimiterAdvice">
+            <property name="rate" value="60" />
+            <property name="maxDelay" value="3" />
+            <property name="timeUnit" value="MINUTES" />
+        </bean>
+    </int:request-handler-advice-chain>
+</int:service-activator>
+----
+====
+
+In the preceding example, the `rate` is set to `60`, `maxDelay` is set to `3` and `timeUnit` is set to `MINUTES`.
+With this configurations 60 requests will be allowed per minute with max delay of 3 minutes.
+
+===
 
 [[custom-advice]]
 ==== Custom Advice Classes
