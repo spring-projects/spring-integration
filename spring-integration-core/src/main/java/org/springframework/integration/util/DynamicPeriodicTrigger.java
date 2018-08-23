@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.util;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -29,18 +30,20 @@ import org.springframework.util.Assert;
  * This is a dynamically changeable {@link Trigger}. It is based on the
  * {@link PeriodicTrigger} implementations. However, the fields of this dynamic
  * trigger are not final and the properties can be inspected and set via
- * explicit getters and setters.
+ * explicit getters and setters. Changes to the trigger take effect after the
+ * next execution.
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 4.2
  */
 public class DynamicPeriodicTrigger implements Trigger {
 
-	private volatile long period;
+	private volatile Duration initialDuration = Duration.ofMillis(0);
 
-	private volatile TimeUnit timeUnit;
+	private volatile Duration duration;
 
-	private volatile long initialDelay = 0;
+	private volatile TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
 	private volatile boolean fixedRate = false;
 
@@ -50,7 +53,7 @@ public class DynamicPeriodicTrigger implements Trigger {
 	 * @param period Must not be negative
 	 */
 	public DynamicPeriodicTrigger(long period) {
-		this(period, TimeUnit.MILLISECONDS);
+		this(Duration.ofMillis(period));
 	}
 
 	/**
@@ -59,13 +62,26 @@ public class DynamicPeriodicTrigger implements Trigger {
 	 * configured on this Trigger later via {@link #setInitialDelay(long)}.
 	 * @param period Must not be negative
 	 * @param timeUnit Must not be null
+	 * @deprecated in favor of {@link #DynamicPeriodicTrigger(Duration)}.
 	 */
+	@Deprecated
 	public DynamicPeriodicTrigger(long period, TimeUnit timeUnit) {
 		Assert.isTrue(period >= 0, "period must not be negative");
 		Assert.notNull(timeUnit, "timeUnit must not be null");
 
 		this.timeUnit = timeUnit;
-		this.period = this.timeUnit.toMillis(period);
+		this.duration = Duration.ofMillis(this.timeUnit.toMillis(period));
+	}
+
+	/**
+	 * Create a trigger with the provided duration.
+	 * @param duration the duration.
+	 * @since 5.1
+	 */
+	public DynamicPeriodicTrigger(Duration duration) {
+		Assert.notNull(duration, "duration must not be null");
+		Assert.isTrue(!duration.isNegative(), "duration must not be negative");
+		this.duration = duration;
 	}
 
 	/**
@@ -73,10 +89,52 @@ public class DynamicPeriodicTrigger implements Trigger {
 	 * terms of this trigger's {@link TimeUnit}. If no time unit was explicitly
 	 * provided upon instantiation, the default is milliseconds.
 	 * @param initialDelay the initial delay in milliseconds.
+	 * @deprecated in favor of {@link #setInitialDuration(Duration)}.
 	 */
+	@Deprecated
 	public void setInitialDelay(long initialDelay) {
 		Assert.isTrue(initialDelay >= 0, "initialDelay must not be negative");
-		this.initialDelay = this.timeUnit.toMillis(initialDelay);
+		this.initialDuration = Duration.ofMillis(this.timeUnit.toMillis(initialDelay));
+	}
+
+	/**
+	 * Specify the delay for the initial execution. It will be evaluated in
+	 * terms of this trigger's {@link TimeUnit}. If no time unit was explicitly
+	 * provided upon instantiation, the default is milliseconds.
+	 * @param initialDuration the initial delay in milliseconds.
+	 * @since 5.1
+	 */
+	public void setInitialDuration(Duration initialDuration) {
+		Assert.notNull(initialDuration, "initialDuration must not be null");
+		Assert.isTrue(!initialDuration.isNegative(), "initialDuration must not be negative");
+		this.initialDuration = initialDuration;
+	}
+
+	/**
+	 * Return the duration.
+	 * @return the duration.
+	 * @since 5.1
+	 */
+	public Duration getDuration() {
+		return this.duration;
+	}
+
+	/**
+	 * Set the duration.
+	 * @param duration the duration.
+	 * @since 5.1
+	 */
+	public void setDuration(Duration duration) {
+		this.duration = duration;
+	}
+
+	/**
+	 * Get the initial duration.
+	 * @return the initial duration.
+	 * @since 5.1
+	 */
+	public Duration getInitialDuration() {
+		return this.initialDuration;
 	}
 
 	/**
@@ -90,23 +148,13 @@ public class DynamicPeriodicTrigger implements Trigger {
 	}
 
 	/**
-	 * Return the time after which a task should run again.
-	 * @param triggerContext the trigger context to determine the previous state of schedule.
-	 * @return the the next schedule date.
+	 * Return the period in milliseconds.
+	 * @return the period.
+	 * @deprecated in favor of {@link #getDuration()}.
 	 */
-	@Override
-	public Date nextExecutionTime(TriggerContext triggerContext) {
-		if (triggerContext.lastScheduledExecutionTime() == null) {
-			return new Date(System.currentTimeMillis() + this.initialDelay);
-		}
-		else if (this.fixedRate) {
-			return new Date(triggerContext.lastScheduledExecutionTime().getTime() + this.period);
-		}
-		return new Date(triggerContext.lastCompletionTime().getTime() + this.period);
-	}
-
+	@Deprecated
 	public long getPeriod() {
-		return this.period;
+		return this.duration.toMillis();
 	}
 
 	/**
@@ -114,27 +162,77 @@ public class DynamicPeriodicTrigger implements Trigger {
 	 * terms of this trigger's {@link TimeUnit}. If no time unit was explicitly
 	 * provided upon instantiation, the default is milliseconds.
 	 * @param period Must not be negative
+	 * @deprecated in favor of {@link #setDuration(Duration)}.
 	 */
+	@Deprecated
 	public void setPeriod(long period) {
 		Assert.isTrue(period >= 0, "period must not be negative");
-		this.period = this.timeUnit.toMillis(period);
+		this.duration = Duration.ofMillis(this.timeUnit.toMillis(period));
 	}
 
+	/**
+	 * Get the time unit.
+	 * @return the time unit.
+	 * @deprecated - use {@link Duration} instead.
+	 */
+	@Deprecated
 	public TimeUnit getTimeUnit() {
 		return this.timeUnit;
 	}
 
+	/**
+	 * Set the time unit.
+	 * @param timeUnit the time unit.
+	 * @deprecated - use {@link Duration} instead.
+	 */
+	@Deprecated
 	public void setTimeUnit(TimeUnit timeUnit) {
 		Assert.notNull(timeUnit, "timeUnit must not be null");
 		this.timeUnit = timeUnit;
 	}
 
+	/**
+	 * Get the initial delay in milliseconds.
+	 * @return the initial delay.
+	 * @deprecated in favor of {@link #getInitialDuration()}.
+	 */
+	@Deprecated
 	public long getInitialDelay() {
-		return this.initialDelay;
+		return this.initialDuration.toMillis();
 	}
 
+	/**
+	 * Return whether this trigger is fixed rate.
+	 * @return the fixed rate.
+	 */
 	public boolean isFixedRate() {
 		return this.fixedRate;
+	}
+
+	/**
+	 * Return the time after which a task should run again.
+	 * @param triggerContext the trigger context to determine the previous state of schedule.
+	 * @return the the next schedule date.
+	 */
+	@Override
+	public Date nextExecutionTime(TriggerContext triggerContext) {
+		if (triggerContext.lastScheduledExecutionTime() == null) {
+			return new Date(System.currentTimeMillis() + this.initialDuration.toMillis());
+		}
+		else if (this.fixedRate) {
+			return new Date(triggerContext.lastScheduledExecutionTime().getTime() + this.duration.toMillis());
+		}
+		return new Date(triggerContext.lastCompletionTime().getTime() + this.duration.toMillis());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((this.duration == null) ? 0 : this.duration.hashCode());
+		result = prime * result + (this.fixedRate ? 1231 : 1237);
+		result = prime * result + ((this.initialDuration == null) ? 0 : this.initialDuration.hashCode());
+		return result;
 	}
 
 	@Override
@@ -142,20 +240,34 @@ public class DynamicPeriodicTrigger implements Trigger {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof DynamicPeriodicTrigger)) {
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
 		}
 		DynamicPeriodicTrigger other = (DynamicPeriodicTrigger) obj;
-		return this.fixedRate == other.fixedRate
-				&& this.initialDelay == other.initialDelay
-				&& this.period == other.period;
+		if (this.duration == null) {
+			if (other.duration != null) {
+				return false;
+			}
+		}
+		else if (!this.duration.equals(other.duration)) {
+			return false;
+		}
+		if (this.fixedRate != other.fixedRate) {
+			return false;
+		}
+		if (this.initialDuration == null) {
+			if (other.initialDuration != null) {
+				return false;
+			}
+		}
+		else if (!this.initialDuration.equals(other.initialDuration)) {
+			return false;
+		}
+		return true;
 	}
 
-	@Override
-	public int hashCode() {
-		return (this.fixedRate ? 14 : 41) +
-				(int) (38 * this.period) +
-				(int) (43 * this.initialDelay);
-	}
 
 }
