@@ -134,6 +134,8 @@ TIP: `ThreadPoolTaskScheduler` has a property `errorHandler`, which can be injec
 This handler allows processing an `Exception` from the thread of the scheduled task sending the delayed message.
 By default, it uses an `org.springframework.scheduling.support.TaskUtils$LoggingErrorHandler`, and you can see a stack trace in the logs.
 You might want to consider using an `org.springframework.integration.channel.MessagePublishingErrorHandler`, which sends an `ErrorMessage` into an `error-channel`, either from the failed message's header or into the default `error-channel`.
+This error handling is performed after a transaction rolls back (if present).
+See <<delayer-release-failures>>.
 
 [[delayer-message-store]]
 ==== Delayer and a Message Store
@@ -187,3 +189,20 @@ Message<String> delayerReschedulingMessage =
 ====
 
 NOTE: For more information regarding the message store, JMX, and the control bus, see <<system-management-chapter>>.
+
+[[delayer-release-failures]]
+==== Release Failures
+
+Starting with version 5.0.8, there are two new properties on the delayer:
+
+- `maxAttempts` (default 5)
+- `retryDelay` (default 1 second)
+
+When a message is released, if the downstream flow fails, the release will be attempted after the `retryDelay`.
+If the `maxAttempts` is reached, the message is discarded (unless the release is transactional, in which case the message will remain in the store, but will no longer be scheduled for release, until the application is restarted).
+
+In addition, you can configure a `delayedMessageErrorChannel`; when a release fails, an `ErrorMessage` is sent to that channel with the exception as the payload and has the `originalMessage` property.
+The `ErrorMessage` contains a header `IntegrationMessageHeaderAccessor.DELIIVERY_ATTEMPT` containing the current count.
+
+If the error flow consumes the error message and exits normally, no further action is taken; if the release is transactional, the transaction will commit and the message deleted from the store.
+If the error flow throws an exception, the release will be retried up to `maxAttempts` as discussed above.

@@ -27,7 +27,14 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
 /**
@@ -95,6 +102,110 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 	public DelayerEndpointSpec delayExpression(String delayExpression) {
 		this.handler.setDelayExpression(PARSER.parseExpression(delayExpression));
 		return this;
+	}
+
+	/**
+	 * Set a message channel to which an {@link ErrorMessage} will be sent if sending the
+	 * released message fails. If the error flow returns normally, the release is complete.
+	 * If the error flow throws an exception, the release will be re-attempted.
+	 * If there is a transaction advice on the release task, the error flow is called
+	 * within the transaction.
+	 * @param channel the channel.
+	 * @return the endpoint spec.
+	 * @see #maxAttempts(int)
+	 * @see #retryDelay(long)
+	 * @since 5.0.8
+	 */
+	public DelayerEndpointSpec delayedMessageErrorChannel(MessageChannel channel) {
+		this.handler.setDelayedMessageErrorChannel(channel);
+		return this;
+	}
+
+	/**
+	 * Set a message channel name to which an {@link ErrorMessage} will be sent if sending
+	 * the released message fails. If the error flow returns normally, the release is
+	 * complete. If the error flow throws an exception, the release will be re-attempted.
+	 * If there is a transaction advice on the release task, the error flow is called
+	 * within the transaction.
+	 * @param channel the channel name.
+	 * @return the endpoint spec.
+	 * @see #maxAttempts(int)
+	 * @see #retryDelay(long)
+	 * @since 5.0.8
+	 */
+	public DelayerEndpointSpec delayedMessageErrorChannel(String channel) {
+		this.handler.setDelayedMessageErrorChannelName(channel);
+		return this;
+	}
+
+	/**
+	 * Set the maximum number of release attempts for when message release fails.
+	 * Default {@value DelayHandler#DEFAULT_MAX_ATTEMPTS}.
+	 * @param maxAttempts the max attempts.
+	 * @return the endpoint spec.
+	 * @see #retryDelay(long)
+	 * @since 5.0.8
+	 */
+	public DelayerEndpointSpec maxAttempts(int maxAttempts) {
+		this.handler.setMaxAttempts(maxAttempts);
+		return this;
+	}
+
+	/**
+	 * Set an additional delay to apply when retrying after a release failure.
+	 * Default {@value DelayHandler#DEFAULT_RETRY_DELAY}.
+	 * @param retryDelay the retry delay.
+	 * @return the endpoint spec.
+	 * @see #maxAttempts(int)
+	 * @since 5.0.8
+	 */
+	public DelayerEndpointSpec retryDelay(long retryDelay) {
+		this.handler.setRetryDelay(retryDelay);
+		return this;
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
+	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
+	 * {@link MessageHandler}.
+	 * @return the spec.
+	 * @since 5.0.8
+	 */
+	public DelayerEndpointSpec transactionalRelease() {
+		TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder().build();
+		this.componentsToRegister.put(transactionInterceptor, null);
+		return delayedAdvice(transactionInterceptor);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@link MessageHandler}.
+	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
+	 * @return the spec.
+	 * @see TransactionInterceptorBuilder
+	 * @since 5.0.8
+	 */
+	public DelayerEndpointSpec transactionalRelease(TransactionInterceptor transactionInterceptor) {
+		return delayedAdvice(transactionInterceptor);
+	}
+
+	/**
+	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
+	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * for the {@link MessageHandler}.
+	 * @param transactionManager the {@link PlatformTransactionManager} to use.
+	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
+	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
+	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}
+	 * extension.
+	 * @return the spec.
+	 * @since 5.0.8
+	 */
+	public DelayerEndpointSpec transactionalRelease(PlatformTransactionManager transactionManager,
+			boolean handleMessageAdvice) {
+
+		return delayedAdvice(new TransactionInterceptorBuilder(handleMessageAdvice)
+				.transactionManager(transactionManager)
+				.build());
 	}
 
 	/**

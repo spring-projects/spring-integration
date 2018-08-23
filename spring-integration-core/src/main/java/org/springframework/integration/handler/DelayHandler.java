@@ -18,10 +18,14 @@ package org.springframework.integration.handler;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
 
@@ -31,6 +35,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
@@ -40,9 +45,11 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
@@ -84,23 +91,37 @@ import org.springframework.util.CollectionUtils;
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement,
 		ApplicationListener<ContextRefreshedEvent> {
 
+	public static final int DEFAULT_MAX_ATTEMPTS = 5;
+
+	public static final long DEFAULT_RETRY_DELAY = 1_000;
+
 	private final String messageGroupId;
 
-	private volatile long defaultDelay;
+	private final ConcurrentMap<Message<?>, AtomicInteger> deliveries = new ConcurrentHashMap<>();
+
+	private long defaultDelay;
 
 	private Expression delayExpression;
 
-	private volatile boolean ignoreExpressionFailures = true;
+	private boolean ignoreExpressionFailures = true;
 
-	private volatile MessageGroupStore messageStore;
+	private MessageGroupStore messageStore;
 
-	private volatile List<Advice> delayedAdviceChain;
+	private List<Advice> delayedAdviceChain;
 
 	private final AtomicBoolean initialized = new AtomicBoolean();
 
-	private volatile MessageHandler releaseHandler = new ReleaseMessageHandler();
+	private MessageHandler releaseHandler = new ReleaseMessageHandler();
 
 	private EvaluationContext evaluationContext;
+
+	private MessageChannel delayedMessageErrorChannel;
+
+	private String delayedMessageErrorChannelName;
+
+	private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
+
+	private long retryDelay = DEFAULT_RETRY_DELAY;
 
 	/**
 	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for {@link MessageGroup}
@@ -203,6 +224,71 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	public void setDelayedAdviceChain(List<Advice> delayedAdviceChain) {
 		Assert.notNull(delayedAdviceChain, "delayedAdviceChain must not be null");
 		this.delayedAdviceChain = delayedAdviceChain;
+	}
+
+	/**
+	 * Set a message channel to which an {@link ErrorMessage} will be sent if sending the
+	 * released message fails. If the error flow returns normally, the release is
+	 * complete. If the error flow throws an exception, the release will be re-attempted.
+	 * If there is a transaction advice on the release task, the error flow is called
+	 * within the transaction.
+	 * @param delayedMessageErrorChannel the channel.
+	 * @see #setMaxAttempts(int)
+	 * @see #setRetryDelay(long)
+	 * @since 5.0.8
+	 */
+	public void setDelayedMessageErrorChannel(MessageChannel delayedMessageErrorChannel) {
+		this.delayedMessageErrorChannel = delayedMessageErrorChannel;
+	}
+
+	/**
+	 * Set a message channel name to which an {@link ErrorMessage} will be sent if sending
+	 * the released message fails. If the error flow returns normally, the release is
+	 * complete. If the error flow throws an exception, the release will be re-attempted.
+	 * If there is a transaction advice on the release task, the error flow is called
+	 * within the transaction.
+	 * @param delayedMessageErrorChannelName the channel name.
+	 * @see #setMaxAttempts(int)
+	 * @see #setRetryDelay(long)
+	 * @since 5.0.8
+	 */
+	public void setDelayedMessageErrorChannelName(String delayedMessageErrorChannelName) {
+		this.delayedMessageErrorChannelName = delayedMessageErrorChannelName;
+	}
+
+	/**
+	 * Set the maximum number of release attempts for when message release fails.
+	 * Default {@value #DEFAULT_MAX_ATTEMPTS}.
+	 * @param maxAttempts the max attempts.
+	 * @see #setRetryDelay(long)
+	 * @since 5.0.8
+	 */
+	public void setMaxAttempts(int maxAttempts) {
+		this.maxAttempts = maxAttempts;
+	}
+
+	/**
+	 * Set an additional delay to apply when retrying after a release failure.
+	 * Default {@value #DEFAULT_RETRY_DELAY}.
+	 * @param retryDelay the retry delay.
+	 * @see #setMaxAttempts(int)
+	 * @since 5.0.8
+	 */
+	public void setRetryDelay(long retryDelay) {
+		this.retryDelay = retryDelay;
+	}
+
+	private MessageChannel getErrorChannel() {
+		if (this.delayedMessageErrorChannel != null) {
+			return this.delayedMessageErrorChannel;
+		}
+		if (this.delayedMessageErrorChannelName != null) {
+			if (getChannelResolver() != null) {
+				this.delayedMessageErrorChannel = getChannelResolver()
+						.resolveDestination(this.delayedMessageErrorChannelName);
+			}
+		}
+		return this.delayedMessageErrorChannel;
 	}
 
 	@Override
@@ -370,11 +456,62 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessage(Message<?> message) {
-		this.releaseHandler.handleMessage(message);
+		this.deliveries.putIfAbsent(message, new AtomicInteger());
+		try {
+			this.releaseHandler.handleMessage(message);
+			this.deliveries.remove(message);
+		}
+		catch (Exception e) {
+			if (getErrorChannel() != null) {
+				ErrorMessage errorMessage = new ErrorMessage(e,
+						Collections.singletonMap(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT,
+								new AtomicInteger(this.deliveries.get(message).get() + 1)),
+						message);
+				try {
+					if (!(getErrorChannel().send(errorMessage))) {
+						this.logger.error("Failed to send error message: " + errorMessage);
+					}
+					rescheduleForRetry(message);
+				}
+				catch (Exception e1) {
+					rescheduleForRetry(message);
+				}
+			}
+			else {
+				if (!rescheduleForRetry(message)) {
+					throw e; // there might be an error handler on the scheduler
+				}
+			}
+		}
+	}
+
+	private boolean rescheduleForRetry(Message<?> message) {
+		if (this.deliveries.get(message).incrementAndGet() >= this.maxAttempts) {
+			this.logger.error("Discarding; maximum release attempts reached for: " + message);
+			this.deliveries.remove(message);
+			return false;
+		}
+		if (this.retryDelay <= 0) {
+			rescheduleNow(message);
+		}
+		else {
+			rescheduleAt(message, new Date(System.currentTimeMillis() + this.retryDelay));
+		}
+		return true;
+	}
+
+	private void rescheduleNow(final Message<?> message) {
+		rescheduleAt(message, new Date());
+	}
+
+	protected void rescheduleAt(final Message<?> message, Date startTime) {
+		getTaskScheduler().schedule((Runnable) () -> {
+			releaseMessage(message);
+		}, startTime);
 	}
 
 	private void doReleaseMessage(Message<?> message) {
-		if (removeDelayedMessageFromMessageStore(message)) {
+		if (removeDelayedMessageFromMessageStore(message) || this.deliveries.get(message).get() > 0) {
 			if (!(this.messageStore instanceof SimpleMessageStore)) {
 				this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
 			}
