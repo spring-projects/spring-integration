@@ -258,7 +258,7 @@ public class PollerAdviceTests {
 		final DynamicPeriodicTrigger trigger = new DynamicPeriodicTrigger(10);
 		adapter.setSource(() -> {
 			synchronized (triggerPeriods) {
-				triggerPeriods.add(trigger.getPeriod());
+				triggerPeriods.add(trigger.getDuration().toMillis());
 			}
 			Message<Object> m = null;
 			if (latch.getCount() % 2 == 0) {
