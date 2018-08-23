@@ -117,6 +117,8 @@ TIP: Also keep in mind `ThreadPoolTaskScheduler` has a property `errorHandler` w
 This handler allows to process an `Exception` from the thread of the scheduled task sending the delayed message.
 By default it uses an `org.springframework.scheduling.support.TaskUtils$LoggingErrorHandler` and you will see a stack trace in the logs.
 You might want to consider using an `org.springframework.integration.channel.MessagePublishingErrorHandler`, which sends an `ErrorMessage` into an `error-channel`, either from the failed Message's header or into the default `error-channel`.
+This error handling is performed after a transaction rolls back (if present).
+See <<delayer-release-failures>>.
 
 [[delayer-message-store]]
 ==== Delayer and a Message Store
@@ -151,13 +153,33 @@ A sample configuration of the `<delayer>` may look like this:
 </int:delayer>
 ----
 
-The `DelayHandler` can be exported as a JMX `MBean` with managed operations `getDelayedMessageCount` and `reschedulePersistedMessages`, which allows the rescheduling of delayed persisted Messages at runtime, for example, if the `TaskScheduler` has previously been stopped.
-These operations can be invoked via a `Control Bus` command:
+The `DelayHandler` can be exported as a JMX `MBean` with managed operations (`getDelayedMessageCount` and `reschedulePersistedMessages`), which allows the rescheduling of delayed persisted messages at runtime -- for example, if the `TaskScheduler` has previously been stopped.
+These operations can be invoked through a `Control Bus` command, as the following example shows:
+
+====
 [source,java]
 ----
 Message<String> delayerReschedulingMessage =
     MessageBuilder.withPayload("@'delayer.handler'.reschedulePersistedMessages()").build();
     controlBusChannel.send(delayerReschedulingMessage);
 ----
+====
 
-NOTE: For more information regarding the Message Store, JMX and the Control Bus, please read <<system-management-chapter>>.
+NOTE: For more information regarding the message store, JMX, and the control bus, see <<system-management-chapter>>.
+
+[[delayer-release-failures]]
+==== Release Failures
+
+Starting with version 5.0.8, there are two new properties on the delayer:
+
+- `maxAttempts` (default 5)
+- `retryDelay` (default 1 second)
+
+When a message is released, if the downstream flow fails, the release will be attempted after the `retryDelay`.
+If the `maxAttempts` is reached, the message is discarded (unless the release is transactional, in which case the message will remain in the store, but will no longer be scheduled for release, until the application is restarted, or the `reschedulePersistedMessages()` method is invoked, as discussed above).
+
+In addition, you can configure a `delayedMessageErrorChannel`; when a release fails, an `ErrorMessage` is sent to that channel with the exception as the payload and has the `originalMessage` property.
+The `ErrorMessage` contains a header `IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT` containing the current count.
+
+If the error flow consumes the error message and exits normally, no further action is taken; if the release is transactional, the transaction will commit and the message deleted from the store.
+If the error flow throws an exception, the release will be retried up to `maxAttempts` as discussed above.
