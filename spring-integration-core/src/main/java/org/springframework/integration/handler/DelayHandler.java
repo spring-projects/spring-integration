@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,14 @@ package org.springframework.integration.handler;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
 
@@ -31,6 +35,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
@@ -40,37 +45,38 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
- * A {@link MessageHandler} that is capable of delaying the continuation of a
- * Message flow based on the result of evaluation {@code delayExpression} on an inbound {@link Message}
- * or a default delay value configured on this handler. Note that the
- * continuation of the flow is delegated to a {@link TaskScheduler}, and
- * therefore, the calling thread does not block. The advantage of this approach
- * is that many delays can be managed concurrently, even very long delays,
- * without producing a buildup of blocked Threads.
+ * A {@link MessageHandler} that is capable of delaying the continuation of a Message flow
+ * based on the result of evaluation {@code delayExpression} on an inbound {@link Message}
+ * or a default delay value configured on this handler. Note that the continuation of the
+ * flow is delegated to a {@link TaskScheduler}, and therefore, the calling thread does
+ * not block. The advantage of this approach is that many delays can be managed
+ * concurrently, even very long delays, without producing a buildup of blocked Threads.
  * <p>
- * One thing to keep in mind, however, is that any active transactional context
- * will not propagate from the original sender to the eventual recipient. This
- * is a side-effect of passing the Message to the output channel after the
- * delay with a different Thread in control.
+ * One thing to keep in mind, however, is that any active transactional context will not
+ * propagate from the original sender to the eventual recipient. This is a side-effect of
+ * passing the Message to the output channel after the delay with a different Thread in
+ * control.
  * <p>
- * When this handler's {@code delayExpression} property is configured, that evaluation result value
- * will take precedence over the handler's {@code defaultDelay} value.
- * The actual evaluation result value may be a long, a String that can be parsed
- * as a long, or a Date. If it is a long, it will be interpreted as the length
- * of time to delay in milliseconds counting from the current time (e.g. a
- * value of 5000 indicates that the Message can be released as soon as five
- * seconds from the current time). If the value is a Date, it will be
- * delayed at least until that Date occurs (i.e. the delay in that case is
- * equivalent to {@code headerDate.getTime() - new Date().getTime()}).
+ * When this handler's {@code delayExpression} property is configured, that evaluation
+ * result value will take precedence over the handler's {@code defaultDelay} value. The
+ * actual evaluation result value may be a long, a String that can be parsed as a long, or
+ * a Date. If it is a long, it will be interpreted as the length of time to delay in
+ * milliseconds counting from the current time (e.g. a value of 5000 indicates that the
+ * Message can be released as soon as five seconds from the current time). If the value is
+ * a Date, it will be delayed at least until that Date occurs (i.e. the delay in that case
+ * is equivalent to {@code headerDate.getTime() - new Date().getTime()}).
  *
  * @author Mark Fisher
  * @author Artem Bilan
@@ -84,31 +90,44 @@ import org.springframework.util.CollectionUtils;
 public class DelayHandler extends AbstractReplyProducingMessageHandler implements DelayHandlerManagement,
 		ApplicationListener<ContextRefreshedEvent> {
 
+	public static final int DEFAULT_MAX_ATTEMPTS = 5;
+
+	public static final long DEFAULT_RETRY_DELAY = 1_000;
+
 	private final String messageGroupId;
 
-	private volatile long defaultDelay;
+	private final ConcurrentMap<String, AtomicInteger> deliveries = new ConcurrentHashMap<>();
+
+	private long defaultDelay;
 
 	private Expression delayExpression;
 
-	private volatile boolean ignoreExpressionFailures = true;
+	private boolean ignoreExpressionFailures = true;
 
-	private volatile MessageGroupStore messageStore;
+	private MessageGroupStore messageStore;
 
-	private volatile List<Advice> delayedAdviceChain;
+	private List<Advice> delayedAdviceChain;
 
 	private final AtomicBoolean initialized = new AtomicBoolean();
 
-	private volatile MessageHandler releaseHandler = new ReleaseMessageHandler();
+	private MessageHandler releaseHandler = new ReleaseMessageHandler();
 
 	private EvaluationContext evaluationContext;
 
+	private MessageChannel delayedMessageErrorChannel;
+
+	private String delayedMessageErrorChannelName;
+
+	private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
+
+	private long retryDelay = DEFAULT_RETRY_DELAY;
+
 	/**
-	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for {@link MessageGroup}
-	 * to store delayed Messages in the {@link MessageGroupStore}. The sending of Messages after
-	 * the delay will be handled by registered in the ApplicationContext default {@link ThreadPoolTaskScheduler}.
-	 *
+	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for
+	 * {@link MessageGroup} to store delayed Messages in the {@link MessageGroupStore}.
+	 * The sending of Messages after the delay will be handled by registered in the
+	 * ApplicationContext default {@link ThreadPoolTaskScheduler}.
 	 * @param messageGroupId The message group identifier.
-	 *
 	 * @see IntegrationObjectSupport#getTaskScheduler()
 	 */
 	public DelayHandler(String messageGroupId) {
@@ -117,9 +136,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Create a DelayHandler with the given default delay. The sending of Messages
-	 * after the delay will be handled by the provided {@link TaskScheduler}.
-	 *
+	 * Create a DelayHandler with the given default delay. The sending of Messages after
+	 * the delay will be handled by the provided {@link TaskScheduler}.
 	 * @param messageGroupId The message group identifier.
 	 * @param taskScheduler A task scheduler.
 	 */
@@ -129,11 +147,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Set the default delay in milliseconds. If no {@code delayExpression} property
-	 * has been provided, the default delay will be applied to all Messages. If
-	 * a delay should <em>only</em> be applied to Messages with evaluation result from
+	 * Set the default delay in milliseconds. If no {@code delayExpression} property has
+	 * been provided, the default delay will be applied to all Messages. If a delay should
+	 * <em>only</em> be applied to Messages with evaluation result from
 	 * {@code delayExpression}, then set this value to 0.
-	 *
 	 * @param defaultDelay The default delay in milliseconds.
 	 */
 	public void setDefaultDelay(long defaultDelay) {
@@ -145,7 +162,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * milliseconds) or a Date to delay until. If this property is set, the result of the
 	 * expression evaluation (if not null) will take precedence over this handler's
 	 * default delay.
-	 *
 	 * @param delayExpression The delay expression.
 	 */
 	public void setDelayExpression(Expression delayExpression) {
@@ -157,7 +173,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * milliseconds) or a Date to delay until. If this property is set, the result of the
 	 * expression evaluation (if not null) will take precedence over this handler's
 	 * default delay.
-	 *
 	 * @param delayExpression The delay expression.
 	 * @since 5.0
 	 */
@@ -166,15 +181,14 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Specify whether {@code Exceptions} thrown by {@link #delayExpression} evaluation should be
-	 * ignored (only logged). In this case case the delayer will fall back to the
-	 * to the {@link #defaultDelay}.
-	 * If this property is specified as {@code false}, any {@link #delayExpression} evaluation
-	 * {@code Exception} will be thrown to the caller without falling back to the to the {@link #defaultDelay}.
-	 * Default is {@code true}.
-	 *
-	 * @param ignoreExpressionFailures true if expression evaluation failures should be ignored.
-	 *
+	 * Specify whether {@code Exceptions} thrown by {@link #delayExpression} evaluation
+	 * should be ignored (only logged). In this case case the delayer will fall back to
+	 * the to the {@link #defaultDelay}. If this property is specified as {@code false},
+	 * any {@link #delayExpression} evaluation {@code Exception} will be thrown to the
+	 * caller without falling back to the to the {@link #defaultDelay}. Default is
+	 * {@code true}.
+	 * @param ignoreExpressionFailures true if expression evaluation failures should be
+	 * ignored.
 	 * @see #determineDelayForMessage
 	 */
 	public void setIgnoreExpressionFailures(boolean ignoreExpressionFailures) {
@@ -182,9 +196,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Specify the {@link MessageGroupStore} that should be used to store Messages
-	 * while awaiting the delay.
-	 *
+	 * Specify the {@link MessageGroupStore} that should be used to store Messages while
+	 * awaiting the delay.
 	 * @param messageStore The message store.
 	 */
 	public void setMessageStore(MessageGroupStore messageStore) {
@@ -193,16 +206,80 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Specify the {@code List<Advice>} to advise {@link DelayHandler.ReleaseMessageHandler} proxy.
-	 * Usually used to add transactions to delayed messages retrieved from a transactional message store.
-	 *
+	 * Specify the {@code List<Advice>} to advise
+	 * {@link DelayHandler.ReleaseMessageHandler} proxy. Usually used to add transactions
+	 * to delayed messages retrieved from a transactional message store.
 	 * @param delayedAdviceChain The advice chain.
-	 *
 	 * @see #createReleaseMessageTask
 	 */
 	public void setDelayedAdviceChain(List<Advice> delayedAdviceChain) {
 		Assert.notNull(delayedAdviceChain, "delayedAdviceChain must not be null");
 		this.delayedAdviceChain = delayedAdviceChain;
+	}
+
+	/**
+	 * Set a message channel to which an {@link ErrorMessage} will be sent if sending the
+	 * released message fails. If the error flow returns normally, the release is
+	 * complete. If the error flow throws an exception, the release will be re-attempted.
+	 * If there is a transaction advice on the release task, the error flow is called
+	 * within the transaction.
+	 * @param delayedMessageErrorChannel the channel.
+	 * @see #setMaxAttempts(int)
+	 * @see #setRetryDelay(long)
+	 * @since 5.0.8
+	 */
+	public void setDelayedMessageErrorChannel(MessageChannel delayedMessageErrorChannel) {
+		this.delayedMessageErrorChannel = delayedMessageErrorChannel;
+	}
+
+	/**
+	 * Set a message channel name to which an {@link ErrorMessage} will be sent if sending
+	 * the released message fails. If the error flow returns normally, the release is
+	 * complete. If the error flow throws an exception, the release will be re-attempted.
+	 * If there is a transaction advice on the release task, the error flow is called
+	 * within the transaction.
+	 * @param delayedMessageErrorChannelName the channel name.
+	 * @see #setMaxAttempts(int)
+	 * @see #setRetryDelay(long)
+	 * @since 5.0.8
+	 */
+	public void setDelayedMessageErrorChannelName(String delayedMessageErrorChannelName) {
+		this.delayedMessageErrorChannelName = delayedMessageErrorChannelName;
+	}
+
+	/**
+	 * Set the maximum number of release attempts for when message release fails. Default
+	 * {@value #DEFAULT_MAX_ATTEMPTS}.
+	 * @param maxAttempts the max attempts.
+	 * @see #setRetryDelay(long)
+	 * @since 5.0.8
+	 */
+	public void setMaxAttempts(int maxAttempts) {
+		this.maxAttempts = maxAttempts;
+	}
+
+	/**
+	 * Set an additional delay to apply when retrying after a release failure. Default
+	 * {@value #DEFAULT_RETRY_DELAY}.
+	 * @param retryDelay the retry delay.
+	 * @see #setMaxAttempts(int)
+	 * @since 5.0.8
+	 */
+	public void setRetryDelay(long retryDelay) {
+		this.retryDelay = retryDelay;
+	}
+
+	private MessageChannel getErrorChannel() {
+		if (this.delayedMessageErrorChannel != null) {
+			return this.delayedMessageErrorChannel;
+		}
+		if (this.delayedMessageErrorChannelName != null) {
+			if (getChannelResolver() != null) {
+				this.delayedMessageErrorChannel = getChannelResolver()
+						.resolveDestination(this.delayedMessageErrorChannelName);
+			}
+		}
+		return this.delayedMessageErrorChannel;
 	}
 
 	@Override
@@ -241,14 +318,13 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Checks if 'requestMessage' wasn't delayed before
-	 * ({@link #releaseMessageAfterDelay} and {@link DelayHandler.DelayedMessageWrapper}).
-	 * Than determine 'delay' for 'requestMessage' ({@link #determineDelayForMessage})
-	 * and if {@code delay > 0} schedules 'releaseMessage' task after 'delay'.
-	 *
+	 * Checks if 'requestMessage' wasn't delayed before ({@link #releaseMessageAfterDelay}
+	 * and {@link DelayHandler.DelayedMessageWrapper}). Than determine 'delay' for
+	 * 'requestMessage' ({@link #determineDelayForMessage}) and if {@code delay > 0}
+	 * schedules 'releaseMessage' task after 'delay'.
 	 * @param requestMessage - the Message which may be delayed.
-	 * @return - {@code null} if 'requestMessage' is delayed,
-	 *         otherwise - 'payload' from 'requestMessage'.
+	 * @return - {@code null} if 'requestMessage' is delayed, otherwise - 'payload' from
+	 * 'requestMessage'.
 	 * @see #releaseMessage
 	 */
 	@Override
@@ -256,9 +332,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		boolean delayed = requestMessage.getPayload() instanceof DelayedMessageWrapper;
 
 		if (!delayed) {
-			long delay = this.determineDelayForMessage(requestMessage);
+			long delay = determineDelayForMessage(requestMessage);
 			if (delay > 0) {
-				this.releaseMessageAfterDelay(requestMessage, delay);
+				releaseMessageAfterDelay(requestMessage, delay);
 				return null;
 			}
 		}
@@ -310,7 +386,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 					throw new MessageHandlingException(message, "Error occurred during 'delay' value determination",
 							delayValueException);
 				}
-
 			}
 		}
 		return delay;
@@ -331,7 +406,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 					.build();
 			this.messageStore.addMessageToGroup(this.messageGroupId, delayedMessage);
 		}
-
 
 		Runnable releaseTask;
 
@@ -370,15 +444,78 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private void releaseMessage(Message<?> message) {
-		this.releaseHandler.handleMessage(message);
+		String identity = ObjectUtils.getIdentityHexString(message);
+		this.deliveries.putIfAbsent(identity, new AtomicInteger());
+		try {
+			this.releaseHandler.handleMessage(message);
+			this.deliveries.remove(identity);
+		}
+		catch (Exception e) {
+			if (getErrorChannel() != null) {
+				ErrorMessage errorMessage = new ErrorMessage(e,
+						Collections.singletonMap(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT,
+								new AtomicInteger(this.deliveries.get(identity).get() + 1)),
+						message);
+				try {
+					if (!(getErrorChannel().send(errorMessage))) {
+						if (this.logger.isDebugEnabled()) {
+							this.logger.debug("Failed to send error message: " + errorMessage);
+						}
+						rescheduleForRetry(message, identity);
+					}
+					else {
+						this.deliveries.remove(identity);
+					}
+				}
+				catch (Exception e1) {
+					if (this.logger.isDebugEnabled()) {
+						logger.debug("Error flow threw an exception for message: " + message, e1);
+					}
+					rescheduleForRetry(message, identity);
+				}
+			}
+			else {
+				if (this.logger.isDebugEnabled()) {
+					logger.debug("Release flow threw an exception for message: " + message, e);
+				}
+				if (!rescheduleForRetry(message, identity)) {
+					throw e; // there might be an error handler on the scheduler
+				}
+			}
+		}
+	}
+
+	private boolean rescheduleForRetry(Message<?> message, String identity) {
+		if (this.deliveries.get(identity).incrementAndGet() >= this.maxAttempts) {
+			this.logger.error("Discarding; maximum release attempts reached for: " + message);
+			this.deliveries.remove(identity);
+			return false;
+		}
+		if (this.retryDelay <= 0) {
+			rescheduleNow(message);
+		}
+		else {
+			rescheduleAt(message, new Date(System.currentTimeMillis() + this.retryDelay));
+		}
+		return true;
+	}
+
+	private void rescheduleNow(final Message<?> message) {
+		rescheduleAt(message, new Date());
+	}
+
+	protected void rescheduleAt(final Message<?> message, Date startTime) {
+		getTaskScheduler()
+				.schedule(() -> releaseMessage(message), startTime);
 	}
 
 	private void doReleaseMessage(Message<?> message) {
-		if (removeDelayedMessageFromMessageStore(message)) {
+		if (removeDelayedMessageFromMessageStore(message)
+				|| this.deliveries.get(ObjectUtils.getIdentityHexString(message)).get() > 0) {
 			if (!(this.messageStore instanceof SimpleMessageStore)) {
 				this.messageStore.removeMessagesFromGroup(this.messageGroupId, message);
 			}
-			this.handleMessageInternal(message);
+			handleMessageInternal(message);
 		}
 		else {
 			if (logger.isDebugEnabled()) {
@@ -412,56 +549,54 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	/**
-	 * Used for reading persisted Messages in the 'messageStore'
-	 * to reschedule them e.g. upon application restart.
-	 * The logic is based on iteration over {@code messageGroup.getMessages()}
-	 * and schedules task for 'delay' logic.
-	 * This behavior is dictated by the avoidance of invocation thread overload.
+	 * Used for reading persisted Messages in the 'messageStore' to reschedule them e.g.
+	 * upon application restart. The logic is based on iteration over
+	 * {@code messageGroup.getMessages()} and schedules task for 'delay' logic. This
+	 * behavior is dictated by the avoidance of invocation thread overload.
 	 */
 	@Override
 	public synchronized void reschedulePersistedMessages() {
 		MessageGroup messageGroup = this.messageStore.getMessageGroup(this.messageGroupId);
 		for (final Message<?> message : messageGroup.getMessages()) {
-			getTaskScheduler().schedule((Runnable) () -> {
-				// This is fine to keep the reference to the message,
-				// because the scheduled task is performed immediately.
-				long delay = determineDelayForMessage(message);
-				if (delay > 0) {
-					releaseMessageAfterDelay(message, delay);
-				}
-				else {
-					releaseMessage(message);
-				}
-			}, new Date());
+			getTaskScheduler()
+					.schedule(() -> {
+						// This is fine to keep the reference to the message,
+						// because the scheduled task is performed immediately.
+						long delay = determineDelayForMessage(message);
+						if (delay > 0) {
+							releaseMessageAfterDelay(message, delay);
+						}
+						else {
+							releaseMessage(message);
+						}
+					}, new Date());
 		}
 	}
 
 	/**
-	 * Handles {@link ContextRefreshedEvent} to invoke {@link #reschedulePersistedMessages}
-	 * as late as possible after application context startup.
-	 * Also it checks {@link #initialized} to ignore
-	 * other {@link ContextRefreshedEvent}s which may be published
-	 * in the 'parent-child' contexts, e.g. in the Spring-MVC applications.
-	 *
-	 * @param event - {@link ContextRefreshedEvent} which occurs
-	 *              after Application context is completely initialized.
-	 *
+	 * Handles {@link ContextRefreshedEvent} to invoke
+	 * {@link #reschedulePersistedMessages} as late as possible after application context
+	 * startup. Also it checks {@link #initialized} to ignore other
+	 * {@link ContextRefreshedEvent}s which may be published in the 'parent-child'
+	 * contexts, e.g. in the Spring-MVC applications.
+	 * @param event - {@link ContextRefreshedEvent} which occurs after Application context
+	 * is completely initialized.
 	 * @see #reschedulePersistedMessages
 	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (!this.initialized.getAndSet(true)) {
-			this.reschedulePersistedMessages();
+		if (event.getApplicationContext().equals(getApplicationContext())
+				&& !this.initialized.getAndSet(true)) {
+			reschedulePersistedMessages();
 		}
 	}
 
-
 	/**
-	 * Delegate {@link MessageHandler} implementation for 'release Message task'.
-	 * Used as 'pointcut' to wrap 'release Message task' with <code>adviceChain</code>.
+	 * Delegate {@link MessageHandler} implementation for 'release Message task'. Used as
+	 * 'pointcut' to wrap 'release Message task' with <code>adviceChain</code>.
 	 *
-	 * @see @createReleaseMessageTask
-	 * @see @releaseMessage
+	 * @see #createReleaseMessageTask
+	 * @see #releaseMessage
 	 */
 	private class ReleaseMessageHandler implements MessageHandler {
 
@@ -475,7 +610,6 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 		}
 
 	}
-
 
 	public static final class DelayedMessageWrapper implements Serializable {
 

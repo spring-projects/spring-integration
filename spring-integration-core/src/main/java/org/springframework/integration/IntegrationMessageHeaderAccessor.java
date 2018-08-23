@@ -67,7 +67,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	public static final String ACKNOWLEDGMENT_CALLBACK = "acknowledgmentCallback";
 
-	private Set<String> readOnlyHeaders = new HashSet<String>();
+	private Set<String> readOnlyHeaders = new HashSet<>();
 
 	public IntegrationMessageHeaderAccessor(Message<?> message) {
 		super(message);
@@ -84,33 +84,33 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	public void setReadOnlyHeaders(String... readOnlyHeaders) {
 		Assert.noNullElements(readOnlyHeaders, "'readOnlyHeaders' must not be contain null items.");
 		if (!ObjectUtils.isEmpty(readOnlyHeaders)) {
-			this.readOnlyHeaders = new HashSet<String>(Arrays.asList(readOnlyHeaders));
+			this.readOnlyHeaders = new HashSet<>(Arrays.asList(readOnlyHeaders));
 		}
 	}
 
 	@Nullable
 	public Long getExpirationDate() {
-		return this.getHeader(EXPIRATION_DATE, Long.class);
+		return getHeader(EXPIRATION_DATE, Long.class);
 	}
 
 	@Nullable
 	public Object getCorrelationId() {
-		return this.getHeader(CORRELATION_ID);
+		return getHeader(CORRELATION_ID);
 	}
 
 	public int getSequenceNumber() {
-		Number sequenceNumber = this.getHeader(SEQUENCE_NUMBER, Number.class);
+		Number sequenceNumber = getHeader(SEQUENCE_NUMBER, Number.class);
 		return (sequenceNumber != null ? sequenceNumber.intValue() : 0);
 	}
 
 	public int getSequenceSize() {
-		Number sequenceSize = this.getHeader(SEQUENCE_SIZE, Number.class);
+		Number sequenceSize = getHeader(SEQUENCE_SIZE, Number.class);
 		return (sequenceSize != null ? sequenceSize.intValue() : 0);
 	}
 
 	@Nullable
 	public Integer getPriority() {
-		Number priority = this.getHeader(PRIORITY, Number.class);
+		Number priority = getHeader(PRIORITY, Number.class);
 		return (priority != null ? priority.intValue() : null);
 	}
 
@@ -133,19 +133,20 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	 * @return the callback.
 	 * @since 5.0.1
 	 */
+	@Nullable
 	public AcknowledgmentCallback getAcknowledgmentCallback() {
 		return getHeader(ACKNOWLEDGMENT_CALLBACK, AcknowledgmentCallback.class);
 	}
 
 	/**
-	 * When a message-driven enpoint supports retry implicitly, this
+	 * When a message-driven endpoint supports retry implicitly, this
 	 * header is incremented for each delivery attempt.
 	 * @return the delivery attempt.
 	 * @since 5.0.1
 	 */
 	@Nullable
 	public AtomicInteger getDeliveryAttempt() {
-		return this.getHeader(DELIVERY_ATTEMPT, AtomicInteger.class);
+		return getHeader(DELIVERY_ATTEMPT, AtomicInteger.class);
 	}
 
 	@SuppressWarnings("unchecked")
