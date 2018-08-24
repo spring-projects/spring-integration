@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aop;
 
+import java.time.Duration;
+
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.util.DynamicPeriodicTrigger;
 import org.springframework.messaging.Message;
@@ -32,15 +34,15 @@ public class SimpleActiveIdleMessageSourceAdvice extends AbstractMessageSourceAd
 
 	private final DynamicPeriodicTrigger trigger;
 
-	private volatile long idlePollPeriod;
+	private volatile Duration idlePollPeriod;
 
-	private volatile long activePollPeriod;
+	private volatile Duration activePollPeriod;
 
 
 	public SimpleActiveIdleMessageSourceAdvice(DynamicPeriodicTrigger trigger) {
 		this.trigger = trigger;
-		this.idlePollPeriod = trigger.getPeriod();
-		this.activePollPeriod = trigger.getPeriod();
+		this.idlePollPeriod = trigger.getDuration();
+		this.activePollPeriod = trigger.getDuration();
 	}
 
 	/**
@@ -49,7 +51,7 @@ public class SimpleActiveIdleMessageSourceAdvice extends AbstractMessageSourceAd
 	 * @param idlePollPeriod the period in milliseconds.
 	 */
 	public void setIdlePollPeriod(long idlePollPeriod) {
-		this.idlePollPeriod = idlePollPeriod;
+		this.idlePollPeriod = Duration.ofMillis(idlePollPeriod);
 	}
 
 	/**
@@ -58,16 +60,16 @@ public class SimpleActiveIdleMessageSourceAdvice extends AbstractMessageSourceAd
 	 * @param activePollPeriod the period in milliseconds.
 	 */
 	public void setActivePollPeriod(long activePollPeriod) {
-		this.activePollPeriod = activePollPeriod;
+		this.activePollPeriod = Duration.ofMillis(activePollPeriod);
 	}
 
 	@Override
 	public Message<?> afterReceive(Message<?> result, MessageSource<?> source) {
 		if (result == null) {
-			this.trigger.setPeriod(this.idlePollPeriod);
+			this.trigger.setDuration(this.idlePollPeriod);
 		}
 		else {
-			this.trigger.setPeriod(this.activePollPeriod);
+			this.trigger.setDuration(this.activePollPeriod);
 		}
 		return result;
 	}

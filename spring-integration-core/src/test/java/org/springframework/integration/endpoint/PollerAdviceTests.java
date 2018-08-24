@@ -257,7 +257,7 @@ public class PollerAdviceTests {
 		final LinkedList<Long> triggerPeriods = new LinkedList<>();
 		final DynamicPeriodicTrigger trigger = new DynamicPeriodicTrigger(10);
 		adapter.setSource(() -> {
-			triggerPeriods.add(trigger.getPeriod());
+			triggerPeriods.add(trigger.getDuration().toMillis());
 			Message<Object> m = null;
 			if (latch.getCount() % 2 == 0) {
 				m = new GenericMessage<>("foo");
