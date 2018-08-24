@@ -208,7 +208,6 @@ public class ChannelInterceptorTests {
 
 	@Test
 	public void testPostReceiveInterceptor() {
-		final AtomicInteger invokedCount = new AtomicInteger();
 		final AtomicInteger messageCount = new AtomicInteger();
 		channel.addInterceptor(new ChannelInterceptor() {
 
@@ -216,21 +215,16 @@ public class ChannelInterceptorTests {
 			public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 				assertNotNull(channel);
 				assertSame(ChannelInterceptorTests.this.channel, channel);
-				if (message != null) {
-					messageCount.incrementAndGet();
-				}
-				invokedCount.incrementAndGet();
+				messageCount.incrementAndGet();
 				return message;
 			}
 
 		});
 		channel.receive(0);
-		assertEquals(1, invokedCount.get());
 		assertEquals(0, messageCount.get());
 		channel.send(new GenericMessage<String>("test"));
 		Message<?> result = channel.receive(0);
 		assertNotNull(result);
-		assertEquals(2, invokedCount.get());
 		assertEquals(1, messageCount.get());
 	}
 

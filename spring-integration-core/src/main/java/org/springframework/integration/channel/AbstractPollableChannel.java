@@ -108,7 +108,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 					return null;
 				}
 			}
-			Message<?> message = this.doReceive(timeout);
+			Message<?> message = doReceive(timeout);
 			if (countsEnabled && message != null) {
 				if (getMetricsCaptor() != null) {
 					incrementReceiveCounter();
@@ -123,7 +123,9 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 				logger.trace("postReceive on channel '" + this + "', message is null");
 			}
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
-				message = interceptorList.postReceive(message, this);
+				if (message != null) {
+					message = interceptorList.postReceive(message, this);
+				}
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
 			return message;

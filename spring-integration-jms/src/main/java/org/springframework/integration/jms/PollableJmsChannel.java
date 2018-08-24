@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,13 @@ import org.springframework.messaging.support.ExecutorChannelInterceptor;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class PollableJmsChannel extends AbstractJmsChannel
 		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
 
-	private volatile String messageSelector;
+	private String messageSelector;
 
 	private volatile int executorInterceptorsSize;
 
@@ -95,28 +96,33 @@ public class PollableJmsChannel extends AbstractJmsChannel
 				object = getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
 			}
 
+			Message<?> message = null;
 			if (object == null) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
 				}
-				return null;
-			}
-			if (countsEnabled) {
-				getMetrics().afterReceive();
-				counted = true;
-			}
-			Message<?> message = null;
-			if (object instanceof Message<?>) {
-				message = (Message<?>) object;
 			}
 			else {
-				message = getMessageBuilderFactory().withPayload(object).build();
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("postReceive on channel '" + this + "', message: " + message);
+				if (countsEnabled) {
+					getMetrics().afterReceive();
+					counted = true;
+				}
+				if (object instanceof Message<?>) {
+					message = (Message<?>) object;
+				}
+				else {
+					message = getMessageBuilderFactory()
+							.withPayload(object)
+							.build();
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug("postReceive on channel '" + this + "', message: " + message);
+				}
 			}
 			if (interceptorStack != null) {
-				message = interceptorList.postReceive(message, this);
+				if (message != null) {
+					message = interceptorList.postReceive(message, this);
+				}
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
 			return message;
@@ -136,7 +142,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 	public Message<?> receive(long timeout) {
 		try {
 			DynamicJmsTemplateProperties.setReceiveTimeout(timeout);
-			return this.receive();
+			return receive();
 		}
 		finally {
 			DynamicJmsTemplateProperties.clearReceiveTimeout();

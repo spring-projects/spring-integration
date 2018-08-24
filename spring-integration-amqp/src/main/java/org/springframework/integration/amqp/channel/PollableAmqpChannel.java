@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 
 	private final String channelName;
 
-	private volatile Queue queue;
+	private Queue queue;
 
 	private volatile int executorInterceptorsSize;
 
@@ -188,30 +188,33 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				}
 			}
 			Object object = performReceive(timeout);
+			Message<?> message = null;
 			if (object == null) {
 				if (isLoggingEnabled() && logger.isTraceEnabled()) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
 				}
-				return null;
-			}
-			if (countsEnabled) {
-				getMetrics().afterReceive();
-				counted = true;
-			}
-			Message<?> message;
-			if (object instanceof Message<?>) {
-				message = (Message<?>) object;
 			}
 			else {
-				message = getMessageBuilderFactory()
-						.withPayload(object)
-						.build();
-			}
-			if (isLoggingEnabled() && logger.isDebugEnabled()) {
-				logger.debug("postReceive on channel '" + this + "', message: " + message);
+				if (countsEnabled) {
+					getMetrics().afterReceive();
+					counted = true;
+				}
+				if (object instanceof Message<?>) {
+					message = (Message<?>) object;
+				}
+				else {
+					message = getMessageBuilderFactory()
+							.withPayload(object)
+							.build();
+				}
+				if (isLoggingEnabled() && logger.isDebugEnabled()) {
+					logger.debug("postReceive on channel '" + this + "', message: " + message);
+				}
 			}
 			if (interceptorStack != null) {
-				message = interceptorList.postReceive(message, this);
+				if (message != null) {
+					message = interceptorList.postReceive(message, this);
+				}
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
 			return message;

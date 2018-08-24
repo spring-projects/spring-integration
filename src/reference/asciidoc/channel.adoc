@@ -273,7 +273,7 @@ Also, the `preReceive` method can return `false` to prevent the receive operatio
 
 NOTE: Keep in mind that `receive()` calls are only relevant for `PollableChannels`.
 In fact, the `SubscribableChannel` interface does not even define a `receive()` method.
-The reason for this is that when a `Message` is sent to a `SubscribableChannel`, it is sent directly to one or more subscribers, depending on the type of channel (for example,
+The reason for this is that when a `Message` is sent to a `SubscribableChannel`, it is sent directly to zero or more subscribers, depending on the type of channel (for example,
 a `PublishSubscribeChannel` sends to all of its subscribers).
 Therefore, the `preReceive(...)`, `postReceive(...)`, and `afterReceiveCompletion(...)` interceptor methods are invoked only when the interceptor is applied to a `PollableChannel`.
 
@@ -282,25 +282,7 @@ It is a simple interceptor that sends the `Message` to another channel without o
 It can be very useful for debugging and monitoring.
 An example is shown in <<channel-wiretap>>.
 
-Because it is rarely necessary to implement all of the interceptor methods, a `ChannelInterceptorAdapter` class is also available for sub-classing.
-It provides no-op methods (the `void` method is empty, the `Message`-returning methods return the `Message` as-is, and the `boolean` method returns `true`).
-Therefore, it is often easiest to extend that class and just implement the methods that you need, as the following example shows:
-
-====
-[source,java]
-----
-public class CountingChannelInterceptor extends ChannelInterceptorAdapter {
-
-    private final AtomicInteger sendCount = new AtomicInteger();
-
-    @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        sendCount.incrementAndGet();
-        return message;
-    }
-}
-----
-====
+Because it is rarely necessary to implement all of the interceptor methods, the interface provides no-op methods (methods returning `void` method have no code, the `Message`-returning methods return the `Message` as-is, and the `boolean` method returns `true`).
 
 TIP: The order of invocation for the interceptor methods depends on the type of channel.
 As described earlier, the queue-based channels are the only ones where the receive method is intercepted in the first place.
@@ -317,6 +299,11 @@ Note that the channel invokes these methods on the `ChannelInterceptor` list in 
 
 Starting with version 5.1, global channel interceptors now apply to dynamically registered channels - such as through beans that are initialized by using `beanFactory.initializeBean()` or `IntegrationFlowContext` when using the Java DSL.
 Previously, interceptors were not applied when beans were created after the application context was refreshed.
+
+Also, starting with version 5.1, `ChannelInterceptor.postReceive()` is no longer called when no message is received; it is no longer necessary to check for a `null` `Message<?>`.
+Previously, the method was called.
+If you have an interceptor that relies on the previous behavior, implement `afterReceiveCompleted()` instead, since that method is invoked, regardless of whether a message is received or not.
+
 
 [[channel-template]]
 ==== `MessagingTemplate`
