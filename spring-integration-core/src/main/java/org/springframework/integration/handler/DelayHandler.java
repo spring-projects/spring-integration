@@ -587,7 +587,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (!this.initialized.getAndSet(true)) {
+		if (event.getApplicationContext().equals(getApplicationContext())
+				&& !this.initialized.getAndSet(true)) {
 			this.reschedulePersistedMessages();
 		}
 	}

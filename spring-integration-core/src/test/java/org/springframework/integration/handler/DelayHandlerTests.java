@@ -51,6 +51,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -107,7 +108,9 @@ public class DelayHandlerTests {
 
 	private void startDelayerHandler() {
 		delayHandler.afterPropertiesSet();
-		delayHandler.onApplicationEvent(new ContextRefreshedEvent(TestUtils.createTestApplicationContext()));
+		TestApplicationContext ac = TestUtils.createTestApplicationContext();
+		delayHandler.setApplicationContext(ac);
+		delayHandler.onApplicationEvent(new ContextRefreshedEvent(ac));
 	}
 
 	@Test
@@ -430,7 +433,9 @@ public class DelayHandlerTests {
 		this.delayHandler = Mockito.spy(this.delayHandler);
 		Mockito.doAnswer(invocation -> null).when(this.delayHandler).reschedulePersistedMessages();
 
-		ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(TestUtils.createTestApplicationContext());
+		TestApplicationContext ac = TestUtils.createTestApplicationContext();
+		this.delayHandler.setApplicationContext(ac);
+		ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(ac);
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		Mockito.verify(this.delayHandler, Mockito.times(1)).reschedulePersistedMessages();
