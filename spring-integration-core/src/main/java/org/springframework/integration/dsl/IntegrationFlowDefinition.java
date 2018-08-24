@@ -2872,6 +2872,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * wrap it to a {@link Flux}, apply provided {@link Function} via {@link Flux#transform(Function)}
 	 * and emit the result to one more {@link FluxMessageChannel}, subscribed in the downstream flow.
 	 * @param fluxFunction the {@link Function} to process data reactive manner.
+	 * @param <I> the input payload type.
+	 * @param <O> the output type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	@SuppressWarnings("unchecked")
