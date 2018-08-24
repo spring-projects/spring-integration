@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.mqtt.support;
 
 /**
  * Spring Integration headers.
+ *
  * @author Gary Russell
  *
  * @since 4.0
@@ -25,23 +26,24 @@ package org.springframework.integration.mqtt.support;
  */
 public final class MqttHeaders {
 
-	private static final String prefix = "mqtt_";
+	public static final String PREFIX = "mqtt_";
 
-	public static final String QOS = prefix + "qos";
+	public static final String QOS = PREFIX + "qos";
 
-	public static final String RECEIVED_QOS = prefix + "receivedQos";
+	public static final String RECEIVED_QOS = PREFIX + "receivedQos";
 
-	public static final String DUPLICATE = prefix + "duplicate";
+	public static final String DUPLICATE = PREFIX + "duplicate";
 
-	public static final String RETAINED = prefix + "retained";
+	public static final String RETAINED = PREFIX + "retained";
 
-	public static final String RECEIVED_RETAINED = prefix + "receivedRetained";
+	public static final String RECEIVED_RETAINED = PREFIX + "receivedRetained";
 
-	public static final String TOPIC = prefix + "topic";
+	public static final String TOPIC = PREFIX + "topic";
 
-	public static final String RECEIVED_TOPIC = prefix + "receivedTopic";
+	public static final String RECEIVED_TOPIC = PREFIX + "receivedTopic";
 
 	private MqttHeaders() {
 		throw new AssertionError();
 	}
+
 }
