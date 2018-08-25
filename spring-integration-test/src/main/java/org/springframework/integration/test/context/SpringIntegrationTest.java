@@ -44,7 +44,7 @@ import java.lang.annotation.Target;
  * &#064;SpringIntegrationTest
  * public class MyIntegrationTests {
  *
- *    &#064;@Autowired
+ *    &#064;Autowired
  *    private MockIntegrationContext mockIntegrationContext;
  *
  * }
