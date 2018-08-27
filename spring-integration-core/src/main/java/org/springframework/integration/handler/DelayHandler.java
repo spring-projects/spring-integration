@@ -470,8 +470,8 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 				try {
 					if (!(getErrorChannel().send(errorMessage))) {
 						this.logger.error("Failed to send error message: " + errorMessage);
+						rescheduleForRetry(message);
 					}
-					rescheduleForRetry(message);
 				}
 				catch (Exception e1) {
 					rescheduleForRetry(message);

@@ -16,11 +16,13 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -29,6 +31,7 @@ import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
@@ -140,17 +143,28 @@ public class DelayHandlerTests {
 		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicInteger count = new AtomicInteger();
 		delayHandler.setDelayedMessageErrorChannel((m, t) -> {
-			if (StaticMessageHeaderAccessor.getDeliveryAttempt(m).get() < 4) {
+			count.incrementAndGet();
+			int deliveries = StaticMessageHeaderAccessor.getDeliveryAttempt(m).get();
+			if (deliveries < 3) {
 				throw new RuntimeException("fail");
 			}
-			latch.countDown();
-			return true;
+			else if (deliveries == 3) {
+				return false;
+			}
+			else {
+				latch.countDown();
+				return true;
+			}
 		});
 		delayHandler.setOutputChannel((m, t) -> {
 			throw new RuntimeException("fail");
 		});
 		input.send(message);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		Thread.sleep(50);
+		assertThat(count.get(), equalTo(4));
 	}
 
 	@Test
