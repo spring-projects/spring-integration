@@ -68,6 +68,7 @@ Previously, when beans were created after the application context was refreshed,
 `ChannelInterceptor.postReceive()` is no longer called when no message is received; it is no longer necessary to check for a `null` `Message<?>`.
 Previously, the method was called.
 If you have an interceptor that relies on the previous behavior, implement `afterReceiveCompleted()` instead, since that method is invoked, regardless of whether a message is received or not.
+Furthermore, the `PolledAmqpChannel` and `PolledJmsChannel` previously did not invoke `afterReceiveCompleted()` with `null`; they now do.
 
 [[x5.1-object-to-json-transformer]]
 ==== `ObjectToJsonTransformer`

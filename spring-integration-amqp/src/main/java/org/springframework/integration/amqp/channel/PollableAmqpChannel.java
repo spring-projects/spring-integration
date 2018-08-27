@@ -188,30 +188,33 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				}
 			}
 			Object object = performReceive(timeout);
+			Message<?> message = null;
 			if (object == null) {
 				if (isLoggingEnabled() && logger.isTraceEnabled()) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
 				}
-				return null;
-			}
-			if (countsEnabled) {
-				getMetrics().afterReceive();
-				counted = true;
-			}
-			Message<?> message;
-			if (object instanceof Message<?>) {
-				message = (Message<?>) object;
 			}
 			else {
-				message = getMessageBuilderFactory()
-						.withPayload(object)
-						.build();
-			}
-			if (isLoggingEnabled() && logger.isDebugEnabled()) {
-				logger.debug("postReceive on channel '" + this + "', message: " + message);
+				if (countsEnabled) {
+					getMetrics().afterReceive();
+					counted = true;
+				}
+				if (object instanceof Message<?>) {
+					message = (Message<?>) object;
+				}
+				else {
+					message = getMessageBuilderFactory()
+							.withPayload(object)
+							.build();
+				}
+				if (isLoggingEnabled() && logger.isDebugEnabled()) {
+					logger.debug("postReceive on channel '" + this + "', message: " + message);
+				}
 			}
 			if (interceptorStack != null) {
-				message = interceptorList.postReceive(message, this);
+				if (message != null) {
+					message = interceptorList.postReceive(message, this);
+				}
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
 			return message;
