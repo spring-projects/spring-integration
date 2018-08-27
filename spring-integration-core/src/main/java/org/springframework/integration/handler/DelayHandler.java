@@ -471,7 +471,9 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 						message);
 				try {
 					if (!(getErrorChannel().send(errorMessage))) {
-						this.logger.error("Failed to send error message: " + errorMessage);
+						if (this.logger.isDebugEnabled()) {
+							this.logger.debug("Failed to send error message: " + errorMessage);
+						}
 						rescheduleForRetry(message, identity);
 					}
 					else {
@@ -479,10 +481,16 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 					}
 				}
 				catch (Exception e1) {
+					if (this.logger.isDebugEnabled()) {
+						logger.debug("Error flow threw an exception for message: " + message, e1);
+					}
 					rescheduleForRetry(message, identity);
 				}
 			}
 			else {
+				if (this.logger.isDebugEnabled()) {
+					logger.debug("Release flow threw an exception for message: " + message, e);
+				}
 				if (!rescheduleForRetry(message, identity)) {
 					throw e; // there might be an error handler on the scheduler
 				}
