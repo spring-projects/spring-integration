@@ -19,10 +19,12 @@ package org.springframework.integration.aggregator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -70,7 +72,7 @@ public class AggregatorTests {
 
 	private final SimpleMessageStore store = new SimpleMessageStore(50);
 
-	private final List<MessageGroupExpiredEvent> expiryEvents = new ArrayList<MessageGroupExpiredEvent>();
+	private final List<MessageGroupExpiredEvent> expiryEvents = new ArrayList<>();
 
 	@Before
 	public void configureAggregator() {
@@ -132,6 +134,7 @@ public class AggregatorTests {
 	}
 
 	@Test
+	@Ignore("Time sensitive")
 	public void testAggPerfDefaultPartial() throws InterruptedException, ExecutionException, TimeoutException {
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor());
 		handler.setCorrelationStrategy(message -> "foo");
@@ -250,7 +253,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	public void testCompleteGroupWithinTimeout() throws InterruptedException {
+	public void testCompleteGroupWithinTimeout() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
@@ -266,7 +269,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	public void testShouldNotSendPartialResultOnTimeoutByDefault() throws InterruptedException {
+	public void testShouldNotSendPartialResultOnTimeoutByDefault() {
 		QueueChannel discardChannel = new QueueChannel();
 		this.aggregator.setDiscardChannel(discardChannel);
 		QueueChannel replyChannel = new QueueChannel();
@@ -282,11 +285,11 @@ public class AggregatorTests {
 		assertSame(this.aggregator, expiryEvents.get(0).getSource());
 		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
 		assertEquals(1, this.expiryEvents.get(0).getMessageCount());
-		assertEquals(true, this.expiryEvents.get(0).isDiscarded());
+		assertTrue(this.expiryEvents.get(0).isDiscarded());
 	}
 
 	@Test
-	public void testShouldSendPartialResultOnTimeoutTrue() throws InterruptedException {
+	public void testShouldSendPartialResultOnTimeoutTrue() {
 		this.aggregator.setSendPartialResultOnExpiry(true);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
@@ -301,14 +304,14 @@ public class AggregatorTests {
 		assertSame(this.aggregator, expiryEvents.get(0).getSource());
 		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
 		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
-		assertEquals(false, this.expiryEvents.get(0).isDiscarded());
+		assertFalse(this.expiryEvents.get(0).isDiscarded());
 		Message<?> message3 = createMessage(5, "ABC", 3, 3, replyChannel, null);
 		this.aggregator.handleMessage(message3);
 		assertEquals(1, this.store.getMessageGroup("ABC").size());
 	}
 
 	@Test
-	public void testGroupRemainsAfterTimeout() throws InterruptedException {
+	public void testGroupRemainsAfterTimeout() {
 		this.aggregator.setSendPartialResultOnExpiry(true);
 		this.aggregator.setExpireGroupsUponTimeout(false);
 		QueueChannel replyChannel = new QueueChannel();
@@ -326,7 +329,7 @@ public class AggregatorTests {
 		assertSame(this.aggregator, expiryEvents.get(0).getSource());
 		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
 		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
-		assertEquals(false, this.expiryEvents.get(0).isDiscarded());
+		assertFalse(this.expiryEvents.get(0).isDiscarded());
 		assertEquals(0, this.store.getMessageGroup("ABC").size());
 		Message<?> message3 = createMessage(5, "ABC", 3, 3, replyChannel, null);
 		this.aggregator.handleMessage(message3);
@@ -337,7 +340,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	public void testMultipleGroupsSimultaneously() throws InterruptedException {
+	public void testMultipleGroupsSimultaneously() {
 		QueueChannel replyChannel1 = new QueueChannel();
 		QueueChannel replyChannel2 = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel1, null);
@@ -409,7 +412,7 @@ public class AggregatorTests {
 	}
 
 	@Test
-	public void testAdditionalMessageAfterCompletion() throws InterruptedException {
+	public void testAdditionalMessageAfterCompletion() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
@@ -423,11 +426,11 @@ public class AggregatorTests {
 
 		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull("A message should be aggregated", reply);
-		assertThat(((Integer) reply.getPayload()), is(105));
+		assertThat((reply.getPayload()), is(105));
 	}
 
 	@Test
-	public void shouldRejectDuplicatedSequenceNumbers() throws InterruptedException {
+	public void shouldRejectDuplicatedSequenceNumbers() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
@@ -443,7 +446,7 @@ public class AggregatorTests {
 
 		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull("A message should be aggregated", reply);
-		assertThat(((Integer) reply.getPayload()), is(105));
+		assertThat((reply.getPayload()), is(105));
 	}
 
 
@@ -472,7 +475,7 @@ public class AggregatorTests {
 			}
 			return product;
 		}
-	}
 
+	}
 
 }
