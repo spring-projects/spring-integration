@@ -123,7 +123,9 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 				logger.trace("postReceive on channel '" + this + "', message is null");
 			}
 			if (!CollectionUtils.isEmpty(interceptorStack)) {
-				message = interceptorList.postReceive(message, this);
+				if (message != null) {
+					message = interceptorList.postReceive(message, this);
+				}
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
 			}
 			return message;
