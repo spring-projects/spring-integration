@@ -28,6 +28,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +60,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -141,12 +143,16 @@ public class DelayHandlerTests {
 		delayHandler.setDefaultDelay(10);
 		delayHandler.setRetryDelay(15);
 		startDelayerHandler();
-		Message<?> message = MessageBuilder.withPayload("test").build();
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setHeader("foo", new AtomicInteger())
+				.build();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger count = new AtomicInteger();
 		delayHandler.setDelayedMessageErrorChannel((m, t) -> {
 			count.incrementAndGet();
 			int deliveries = StaticMessageHeaderAccessor.getDeliveryAttempt(m).get();
+			((MessagingException) m.getPayload()).getFailedMessage().getHeaders().get("foo", AtomicInteger.class)
+					.incrementAndGet();
 			if (deliveries < 3) {
 				throw new RuntimeException("fail");
 			}
@@ -159,12 +165,13 @@ public class DelayHandlerTests {
 			}
 		});
 		delayHandler.setOutputChannel((m, t) -> {
-			throw new RuntimeException("fail");
+			throw new MessagingException(m);
 		});
 		input.send(message);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		Thread.sleep(50);
 		assertThat(count.get(), equalTo(4));
+		assertThat(TestUtils.getPropertyValue(this.delayHandler, "deliveries", Map.class).size(), equalTo(0));
 	}
 
 	@Test
