@@ -279,7 +279,9 @@ public class PollerAdviceTests {
 		final LinkedList<Long> triggerPeriods = new LinkedList<Long>();
 		final DynamicPeriodicTrigger trigger = new DynamicPeriodicTrigger(10);
 		adapter.setSource(() -> {
-			triggerPeriods.add(trigger.getPeriod());
+			synchronized (triggerPeriods) {
+				triggerPeriods.add(trigger.getPeriod());
+			}
 			Message<Object> m = null;
 			if (latch.getCount() % 2 == 0) {
 				m = new GenericMessage<>("foo");
@@ -297,10 +299,9 @@ public class PollerAdviceTests {
 		adapter.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		adapter.stop();
-		while (triggerPeriods.size() > 5) {
-			triggerPeriods.removeLast();
+		synchronized (triggerPeriods) {
+			assertThat(triggerPeriods.subList(0, 5), contains(10L, 12L, 11L, 12L, 11L));
 		}
-		assertThat(triggerPeriods, contains(10L, 12L, 11L, 12L, 11L));
 	}
 
 	@Test
@@ -330,11 +331,8 @@ public class PollerAdviceTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		adapter.stop();
 		synchronized (overridePresent) {
-			while (overridePresent.size() > 5) {
-				overridePresent.removeLast();
-			}
+			assertThat(overridePresent.subList(0, 5), contains(null, override, null, override, null));
 		}
-		assertThat(overridePresent, contains(null, override, null, override, null));
 		verify(override, atLeast(2)).nextExecutionTime(any(TriggerContext.class));
 	}
 
