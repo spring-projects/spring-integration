@@ -193,17 +193,12 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
 	 * for the {@link MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
-	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
-	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
-	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}
-	 * extension.
 	 * @return the spec.
 	 * @since 5.0.8
 	 */
-	public DelayerEndpointSpec transactionalRelease(PlatformTransactionManager transactionManager,
-			boolean handleMessageAdvice) {
+	public DelayerEndpointSpec transactionalRelease(PlatformTransactionManager transactionManager) {
 
-		return delayedAdvice(new TransactionInterceptorBuilder(handleMessageAdvice)
+		return delayedAdvice(new TransactionInterceptorBuilder()
 				.transactionManager(transactionManager)
 				.build());
 	}

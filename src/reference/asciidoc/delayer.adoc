@@ -199,7 +199,7 @@ Starting with version 5.0.8, there are two new properties on the delayer:
 - `retryDelay` (default 1 second)
 
 When a message is released, if the downstream flow fails, the release will be attempted after the `retryDelay`.
-If the `maxAttempts` is reached, the message is discarded (unless the release is transactional, in which case the message will remain in the store, but will no longer be scheduled for release, until the application is restarted).
+If the `maxAttempts` is reached, the message is discarded (unless the release is transactional, in which case the message will remain in the store, but will no longer be scheduled for release, until the application is restarted, or the `reschedulePersistedMessages()` method is invoked, as discussed above).
 
 In addition, you can configure a `delayedMessageErrorChannel`; when a release fails, an `ErrorMessage` is sent to that channel with the exception as the payload and has the `originalMessage` property.
 The `ErrorMessage` contains a header `IntegrationMessageHeaderAccessor.DELIIVERY_ATTEMPT` containing the current count.
