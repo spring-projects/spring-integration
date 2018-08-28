@@ -16,19 +16,23 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +45,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.QueueChannel;
@@ -50,10 +55,12 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -106,12 +113,14 @@ public class DelayHandlerTests {
 
 	private void startDelayerHandler() {
 		delayHandler.afterPropertiesSet();
-		delayHandler.onApplicationEvent(new ContextRefreshedEvent(TestUtils.createTestApplicationContext()));
+		TestApplicationContext ac = TestUtils.createTestApplicationContext();
+		delayHandler.setApplicationContext(ac);
+		delayHandler.onApplicationEvent(new ContextRefreshedEvent(ac));
 	}
 
 	@Test
 	public void noDelayHeaderAndDefaultDelayIsZero() throws Exception {
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
 		assertSame(message.getPayload(), resultHandler.lastMessage.getPayload());
@@ -121,7 +130,7 @@ public class DelayHandlerTests {
 	@Test
 	public void noDelayHeaderAndDefaultDelayIsPositive() throws Exception {
 		delayHandler.setDefaultDelay(10);
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		input.send(message);
 		waitForLatch(10000);
@@ -130,10 +139,46 @@ public class DelayHandlerTests {
 	}
 
 	@Test
+	public void errorFlowAndRetries() throws Exception {
+		delayHandler.setDefaultDelay(10);
+		delayHandler.setRetryDelay(15);
+		startDelayerHandler();
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setHeader("foo", new AtomicInteger())
+				.build();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicInteger count = new AtomicInteger();
+		delayHandler.setDelayedMessageErrorChannel((m, t) -> {
+			count.incrementAndGet();
+			int deliveries = StaticMessageHeaderAccessor.getDeliveryAttempt(m).get();
+			((MessagingException) m.getPayload()).getFailedMessage().getHeaders().get("foo", AtomicInteger.class)
+					.incrementAndGet();
+			if (deliveries < 3) {
+				throw new RuntimeException("fail");
+			}
+			else if (deliveries == 3) {
+				return false;
+			}
+			else {
+				latch.countDown();
+				return true;
+			}
+		});
+		delayHandler.setOutputChannel((m, t) -> {
+			throw new MessagingException(m);
+		});
+		input.send(message);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		Thread.sleep(50);
+		assertThat(count.get(), equalTo(4));
+		assertThat(TestUtils.getPropertyValue(this.delayHandler, "deliveries", Map.class).size(), equalTo(0));
+	}
+
+	@Test
 	public void delayHeaderAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", 100).build();
 		input.send(message);
@@ -146,7 +191,7 @@ public class DelayHandlerTests {
 	public void delayHeaderIsNegativeAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", -7000).build();
 		input.send(message);
@@ -159,7 +204,7 @@ public class DelayHandlerTests {
 	public void delayHeaderIsInvalidFallsBackToDefaultDelay() throws Exception {
 		delayHandler.setDefaultDelay(5);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", "not a number").build();
 		input.send(message);
@@ -172,7 +217,7 @@ public class DelayHandlerTests {
 	public void delayHeaderIsDateInTheFutureAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", new Date(new Date().getTime() + 150)).build();
 		input.send(message);
@@ -185,7 +230,7 @@ public class DelayHandlerTests {
 	public void delayHeaderIsDateInThePastAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
 		input.send(message);
@@ -197,7 +242,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsNullDateAndDefaultDelayIsZero() throws Exception {
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Date nullDate = null;
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", nullDate).build();
@@ -210,7 +255,7 @@ public class DelayHandlerTests {
 	@Test(expected = TestTimedOutException.class)
 	public void delayHeaderIsFutureDateAndTimesOut() throws Exception {
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Date future = new Date(new Date().getTime() + 60 * 1000);
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", future).build();
@@ -222,7 +267,7 @@ public class DelayHandlerTests {
 	public void delayHeaderIsValidStringAndDefaultDelayWouldTimeout() throws Exception {
 		delayHandler.setDefaultDelay(5000);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setHeader("delay", "20").build();
 		input.send(message);
@@ -234,7 +279,7 @@ public class DelayHandlerTests {
 	@Test
 	public void verifyShutdownWithoutWaitingByDefault() throws Exception {
 		delayHandler.setDefaultDelay(5000);
-		this.startDelayerHandler();
+		startDelayerHandler();
 		delayHandler.handleMessage(new GenericMessage<String>("foo"));
 		taskScheduler.destroy();
 
@@ -266,7 +311,7 @@ public class DelayHandlerTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void handlerThrowsExceptionWithNoDelay() throws Exception {
-		this.startDelayerHandler();
+		startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		output.subscribe(message -> {
 			throw new UnsupportedOperationException("intentional test failure");
@@ -277,12 +322,13 @@ public class DelayHandlerTests {
 
 	@Test
 	public void errorChannelHeaderAndHandlerThrowsExceptionWithDelay() throws Exception {
+		this.delayHandler.setRetryDelay(1);
 		DirectChannel errorChannel = new DirectChannel();
 		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler();
 		errorHandler.setDefaultErrorChannel(errorChannel);
 		taskScheduler.setErrorHandler(errorHandler);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		errorChannel.subscribe(resultHandler);
 		output.subscribe(message -> {
@@ -303,6 +349,7 @@ public class DelayHandlerTests {
 
 	@Test
 	public void errorChannelNameHeaderAndHandlerThrowsExceptionWithDelay() throws Exception {
+		this.delayHandler.setRetryDelay(1);
 		String errorChannelName = "customErrorChannel";
 		StaticApplicationContext context = new StaticApplicationContext();
 		context.registerSingleton(errorChannelName, DirectChannel.class);
@@ -313,7 +360,7 @@ public class DelayHandlerTests {
 		errorHandler.setBeanFactory(context);
 		taskScheduler.setErrorHandler(errorHandler);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		customErrorChannel.subscribe(resultHandler);
 		output.subscribe(message -> {
@@ -334,6 +381,7 @@ public class DelayHandlerTests {
 
 	@Test
 	public void defaultErrorChannelAndHandlerThrowsExceptionWithDelay() throws Exception {
+		this.delayHandler.setRetryDelay(1);
 		StaticApplicationContext context = new StaticApplicationContext();
 		context.registerSingleton(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, DirectChannel.class);
 		context.refresh();
@@ -342,7 +390,7 @@ public class DelayHandlerTests {
 		errorHandler.setBeanFactory(context);
 		taskScheduler.setErrorHandler(errorHandler);
 		this.setDelayExpression();
-		this.startDelayerHandler();
+		startDelayerHandler();
 		output.unsubscribe(resultHandler);
 		defaultErrorChannel.subscribe(resultHandler);
 		output.subscribe(message -> {
@@ -365,7 +413,7 @@ public class DelayHandlerTests {
 		MessageGroupStore messageGroupStore = new SimpleMessageStore();
 		this.delayHandler.setDefaultDelay(2000);
 		this.delayHandler.setMessageStore(messageGroupStore);
-		this.startDelayerHandler();
+		startDelayerHandler();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.input.send(message);
 
@@ -390,7 +438,7 @@ public class DelayHandlerTests {
 		this.delayHandler.setDefaultDelay(200);
 		this.delayHandler.setMessageStore(messageGroupStore);
 		this.delayHandler.setBeanFactory(mock(BeanFactory.class));
-		this.startDelayerHandler();
+		startDelayerHandler();
 
 		waitForLatch(10000);
 
@@ -406,7 +454,9 @@ public class DelayHandlerTests {
 		this.delayHandler = Mockito.spy(this.delayHandler);
 		Mockito.doAnswer(invocation -> null).when(this.delayHandler).reschedulePersistedMessages();
 
-		ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(TestUtils.createTestApplicationContext());
+		TestApplicationContext ac = TestUtils.createTestApplicationContext();
+		this.delayHandler.setApplicationContext(ac);
+		ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(ac);
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		this.delayHandler.onApplicationEvent(contextRefreshedEvent);
 		Mockito.verify(this.delayHandler, Mockito.times(1)).reschedulePersistedMessages();
@@ -416,7 +466,7 @@ public class DelayHandlerTests {
 	public void testInt2243IgnoreExpressionFailuresAsFalse() throws Exception {
 		this.setDelayExpression();
 		this.delayHandler.setIgnoreExpressionFailures(false);
-		this.startDelayerHandler();
+		startDelayerHandler();
 		this.delayHandler.handleMessage(new GenericMessage<String>("test"));
 	}
 
