@@ -42,16 +42,18 @@ import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Gary Russell
+ *
  * @since 3.0
  *
  */
-public class RouterConcurrencyTest {
+public class RouterConcurrencyTests {
 
 	@Test
 	public void test() throws Exception {
 		final AtomicInteger count = new AtomicInteger();
 		final Semaphore semaphore = new Semaphore(1);
 		final AbstractMessageRouter router = new AbstractMessageRouter() {
+
 			@Override
 			protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 				return null;
@@ -85,8 +87,7 @@ public class RouterConcurrencyTest {
 		router.setBeanFactory(beanFactory);
 
 		ExecutorService exec = Executors.newFixedThreadPool(2);
-		final List<ConversionService> returns = Collections.synchronizedList(
-				new ArrayList<ConversionService>());
+		final List<ConversionService> returns = Collections.synchronizedList(new ArrayList<>());
 		Runnable runnable = () -> {
 			ConversionService requiredConversionService = router.getRequiredConversionService();
 			returns.add(requiredConversionService);
