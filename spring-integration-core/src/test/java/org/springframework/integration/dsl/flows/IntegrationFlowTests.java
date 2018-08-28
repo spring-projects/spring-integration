@@ -183,12 +183,12 @@ public class IntegrationFlowTests {
 
 	@Test
 	public void testWithSupplierMessageSourceImpliedPoller() {
-		assertEquals("FOO", this.suppliedChannel.receive(1000).getPayload());
+		assertEquals("FOO", this.suppliedChannel.receive(10000).getPayload());
 	}
 
 	@Test
 	public void testWithSupplierMessageSourceProvidedPoller() {
-		assertEquals("FOO", this.suppliedChannel2.receive(2000).getPayload());
+		assertEquals("FOO", this.suppliedChannel2.receive(10000).getPayload());
 	}
 
 	@Test
@@ -215,18 +215,18 @@ public class IntegrationFlowTests {
 		this.foo.subscribe(m -> used.set(true));
 
 		this.inputChannel.send(message);
-		Message<?> reply = replyChannel.receive(5000);
+		Message<?> reply = replyChannel.receive(10000);
 		assertNotNull(reply);
 		assertEquals(200, reply.getPayload());
 
-		Message<?> successMessage = this.successChannel.receive(5000);
+		Message<?> successMessage = this.successChannel.receive(10000);
 		assertNotNull(successMessage);
 		assertEquals(100, successMessage.getPayload());
 
 		assertTrue(used.get());
 
 		this.inputChannel.send(new GenericMessage<Object>(1000));
-		Message<?> discarded = this.discardChannel.receive(5000);
+		Message<?> discarded = this.discardChannel.receive(10000);
 		assertNotNull(discarded);
 		assertEquals("Discarded: 1000", discarded.getPayload());
 	}
@@ -235,7 +235,7 @@ public class IntegrationFlowTests {
 	public void testBridge() {
 		GenericMessage<String> message = new GenericMessage<>("test");
 		this.bridgeFlowInput.send(message);
-		Message<?> reply = this.bridgeFlowOutput.receive(5000);
+		Message<?> reply = this.bridgeFlowOutput.receive(10000);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
 
@@ -253,7 +253,7 @@ public class IntegrationFlowTests {
 		}
 		this.controlBus.send("@bridge.start()");
 		this.bridgeFlow2Input.send(message);
-		reply = this.bridgeFlow2Output.receive(5000);
+		reply = this.bridgeFlow2Output.receive(10000);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
 		assertTrue(this.delayedAdvice.getInvoked());
@@ -285,7 +285,7 @@ public class IntegrationFlowTests {
 				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 				.build();
 		this.methodInvokingInput.send(message);
-		Message<?> receive = replyChannel.receive(5000);
+		Message<?> receive = replyChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("Hello World and world", receive.getPayload());
 	}
@@ -300,7 +300,7 @@ public class IntegrationFlowTests {
 				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 				.build();
 		this.lambdasInput.send(message);
-		Message<?> receive = replyChannel.receive(5000);
+		Message<?> receive = replyChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("Hello World", receive.getPayload());
 
@@ -321,7 +321,7 @@ public class IntegrationFlowTests {
 
 		this.claimCheckInput.send(message);
 
-		Message<?> receive = replyChannel.receive(2000);
+		Message<?> receive = replyChannel.receive(10000);
 		assertNotNull(receive);
 		assertSame(message, receive);
 
@@ -336,7 +336,7 @@ public class IntegrationFlowTests {
 
 		this.gatewayInput.send(message);
 
-		Message<?> receive = replyChannel.receive(2000);
+		Message<?> receive = replyChannel.receive(10000);
 		assertNotNull(receive);
 		assertEquals("From Gateway SubFlow: FOO", receive.getPayload());
 		assertNull(this.gatewayError.receive(1));
@@ -348,7 +348,7 @@ public class IntegrationFlowTests {
 		receive = replyChannel.receive(1);
 		assertNull(receive);
 
-		receive = this.gatewayError.receive(2000);
+		receive = this.gatewayError.receive(10000);
 		assertNotNull(receive);
 		assertThat(receive, instanceOf(ErrorMessage.class));
 		assertThat(receive.getPayload(), instanceOf(MessageRejectedException.class));
@@ -438,14 +438,14 @@ public class IntegrationFlowTests {
 	public void testSubscribersSubFlows() {
 		this.subscribersFlowInput.send(new GenericMessage<>(2));
 
-		Message<?> receive1 = this.subscriber1Results.receive(5000);
+		Message<?> receive1 = this.subscriber1Results.receive(10000);
 		assertNotNull(receive1);
 		assertEquals(1, receive1.getPayload());
 
-		Message<?> receive2 = this.subscriber2Results.receive(5000);
+		Message<?> receive2 = this.subscriber2Results.receive(10000);
 		assertNotNull(receive2);
 		assertEquals(4, receive2.getPayload());
-		Message<?> receive3 = this.subscriber3Results.receive(5000);
+		Message<?> receive3 = this.subscriber3Results.receive(10000);
 		assertNotNull(receive3);
 		assertEquals(6, receive3.getPayload());
 	}
