@@ -314,6 +314,14 @@ See <<micrometer-integration>> for more information.
 IMPORTANT: Changes were made to the Micrometer `Meters` in _version 5.0.3_ to make them more suitable for use in dimensional systems.
 Further changes were made in 5.0.4; if using Micrometer, a minimum of version 5.0.4 is recommended.
 
+[[x51.-tcp]]
+=== TCP Support
+
+When using SSL, host verification is now enabled, by default, to prevent man-in-the-middle attacks with a trusted certificate.
+See <<tcp-ssl-host-verification>> for more information.
+
+In addition the key and trust store types can now be configured on the `DefaultTcpSSLContextSupport`.
+
 
 ==== @EndpointId Annotations
 
@@ -325,4 +333,3 @@ See <<endpoint-bean-names>> for more information.
 Starting with _version 5.0.5_, generated bean names for the components in an `IntegrationFlow` include the flow bean name, followed by a dot, as a prefix.
 
 See <<java-dsl-flows>> for more information.
-
