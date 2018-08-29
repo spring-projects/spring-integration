@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.security.GeneralSecurityException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.Assert;
@@ -37,9 +38,25 @@ import org.springframework.util.Assert;
  */
 public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupport implements TcpNioConnectionSupport {
 
-	private volatile SSLContext sslContext;
+	private final SSLContext sslContext;
 
+	private final boolean sslVerifyHost;
+
+	/**
+	 * Create an instance with host verification enabled.
+	 * @param sslContextSupport the ssl context support.
+	 * @since 5.0.8
+	 */
 	public DefaultTcpNioSSLConnectionSupport(TcpSSLContextSupport sslContextSupport) {
+		this(sslContextSupport, true);
+	}
+
+	/**
+	 * Create an instance.
+	 * @param sslContextSupport the ssl context support.
+	 * @param sslVerifyHost true to verify the host during handshake.
+	 */
+	public DefaultTcpNioSSLConnectionSupport(TcpSSLContextSupport sslContextSupport, boolean sslVerifyHost) {
 		Assert.notNull(sslContextSupport, "TcpSSLContextSupport must not be null");
 		try {
 			this.sslContext = sslContextSupport.getSSLContext();
@@ -48,6 +65,7 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 			throw new IllegalArgumentException("Invalid TcpSSLContextSupport - it failed to provide an SSLContext", e);
 		}
 		Assert.notNull(this.sslContext, "SSLContext retrieved from context support must not be null");
+		this.sslVerifyHost = sslVerifyHost;
 	}
 
 	/**
@@ -58,6 +76,16 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName) throws Exception {
 		SSLEngine sslEngine = this.sslContext.createSSLEngine();
 		postProcessSSLEngine(sslEngine);
+		if (this.sslVerifyHost) {
+			SSLParameters sslParameters = sslEngine.getSSLParameters();
+			if (sslParameters == null) {
+				sslParameters = new SSLParameters();
+			}
+			// HTTPS works for any TCP connection.
+			// It checks SAN (Subject Alternative Name) as well as CN.
+			sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+			sslEngine.setSSLParameters(sslParameters);
+		}
 		TcpNioSSLConnection tcpNioSSLConnection;
 		if (isPushbackCapable()) {
 			tcpNioSSLConnection = new PushBackTcpNioSSLConnection(socketChannel, server, lookupHost,

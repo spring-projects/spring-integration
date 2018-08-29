@@ -299,6 +299,7 @@ Certificate fingerprints:
 
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
 		client.setTcpSocketFactorySupport(tcpSocketFactorySupport);
+		client.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
 		client.start();
 
 		TcpConnection connection = client.getConnection();
@@ -338,7 +339,7 @@ Certificate fingerprints:
 			latch.countDown();
 			return false;
 		});
-		server.setTcpSocketSupport(new DefaultTcpSocketSupport() {
+		server.setTcpSocketSupport(new DefaultTcpSocketSupport(false) {
 
 			@Override
 			public void postProcessServerSocket(ServerSocket serverSocket) {
@@ -356,6 +357,7 @@ Certificate fingerprints:
 		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
 		client.setTcpSocketFactorySupport(clientTcpSocketFactorySupport);
+		client.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
 
 		try {
 			client.start();
@@ -379,7 +381,7 @@ Certificate fingerprints:
 				"test.truststore.ks", "secret", "secret");
 		sslContextSupport.setProtocol("SSL");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(sslContextSupport);
+				new DefaultTcpNioSSLConnectionSupport(sslContextSupport, false);
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -445,7 +447,7 @@ Certificate fingerprints:
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport) {
+				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport, false) {
 
 					@Override
 					protected void postProcessSSLEngine(SSLEngine sslEngine) {
@@ -469,7 +471,7 @@ Certificate fingerprints:
 				badClient ? "server.ks" : "client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
+				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport, false);
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 
 		try {
@@ -492,7 +494,7 @@ Certificate fingerprints:
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport);
+				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport, false);
 		server.setTcpNioConnectionSupport(serverTcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(2);
@@ -525,7 +527,7 @@ Certificate fingerprints:
 		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
+				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport, false);
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 		client.registerListener(message -> {
 			messages.add(message);

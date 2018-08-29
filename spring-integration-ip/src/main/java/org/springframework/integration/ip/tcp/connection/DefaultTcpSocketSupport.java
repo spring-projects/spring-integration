@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocket;
+
 /**
  * Default implementation of {@link TcpSocketSupport}; makes no
  * changes to sockets.
@@ -28,16 +31,47 @@ import java.net.Socket;
  */
 public class DefaultTcpSocketSupport implements TcpSocketSupport {
 
+	private final boolean sslVerifyHost;
+
 	/**
-	 * No-Op.
+	 * Construct an instance with host verification enabled.
 	 */
-	public void postProcessServerSocket(ServerSocket serverSocket) {
+	public DefaultTcpSocketSupport() {
+		this(true);
+	}
+
+	/**
+	 * Construct an instance with the provided sslVerifyHost.
+	 * @param sslVerifyHost true to verify host during SSL handshake.
+	 * @since 5.0.8.
+	 */
+	public DefaultTcpSocketSupport(boolean sslVerifyHost) {
+		this.sslVerifyHost = sslVerifyHost;
 	}
 
 	/**
 	 * No-Op.
 	 */
+	@Override
+	public void postProcessServerSocket(ServerSocket serverSocket) {
+	}
+
+	/**
+	 * Enables host verification for SSL, if so configured.
+	 */
+	@Override
 	public void postProcessSocket(Socket socket) {
+		if (this.sslVerifyHost && socket instanceof SSLSocket) {
+			SSLSocket sslSocket = (SSLSocket) socket;
+			SSLParameters sslParameters = sslSocket.getSSLParameters();
+			if (sslParameters == null) {
+				sslParameters = new SSLParameters();
+			}
+			// HTTPS works for any TCP connection.
+			// It checks SAN (Subject Alternative Name) as well as CN.
+			sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+			sslSocket.setSSLParameters(sslParameters);
+		}
 	}
 
 }
