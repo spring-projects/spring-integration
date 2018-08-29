@@ -45,11 +45,11 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 	private final boolean sslVerifyHost;
 
 	/**
-	 * Create an instance with host verification enabled.
+	 * Create an instance with host verification disabled.
 	 * @param sslContextSupport the ssl context support.
 	 */
 	public DefaultTcpNioSSLConnectionSupport(TcpSSLContextSupport sslContextSupport) {
-		this(sslContextSupport, true);
+		this(sslContextSupport, false);
 	}
 
 	/**

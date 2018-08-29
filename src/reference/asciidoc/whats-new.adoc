@@ -317,7 +317,7 @@ Further changes were made in 5.0.4; if using Micrometer, a minimum of version 5.
 [[x51.-tcp]]
 === TCP Support
 
-When using SSL, host verification is now enabled, by default, to prevent man-in-the-middle attacks with a trusted certificate.
+When using SSL, host verification can be configured, to prevent man-in-the-middle attacks with a trusted certificate.
 See <<tcp-ssl-host-verification>> for more information.
 
 In addition the key and trust store types can now be configured on the `DefaultTcpSSLContextSupport`.

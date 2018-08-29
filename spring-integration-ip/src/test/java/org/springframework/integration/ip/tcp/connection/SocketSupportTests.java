@@ -393,7 +393,7 @@ public class SocketSupportTests {
 			latch.countDown();
 			return false;
 		});
-		server.setTcpSocketSupport(new DefaultTcpSocketSupport(false) {
+		server.setTcpSocketSupport(new DefaultTcpSocketSupport() {
 
 			@Override
 			public void postProcessServerSocket(ServerSocket serverSocket) {
@@ -411,7 +411,6 @@ public class SocketSupportTests {
 		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
 		client.setTcpSocketFactorySupport(clientTcpSocketFactorySupport);
-		client.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
 
 		try {
 			client.start();
@@ -435,7 +434,7 @@ public class SocketSupportTests {
 				"test.truststore.ks", "secret", "secret");
 		sslContextSupport.setProtocol("SSL");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(sslContextSupport, false);
+				new DefaultTcpNioSSLConnectionSupport(sslContextSupport);
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -502,7 +501,7 @@ public class SocketSupportTests {
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport, false) {
+				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport) {
 
 					@Override
 					protected void postProcessSSLEngine(SSLEngine sslEngine) {
@@ -526,7 +525,7 @@ public class SocketSupportTests {
 				badClient ? "server.ks" : "client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport, false);
+				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 
 		try {
@@ -549,7 +548,7 @@ public class SocketSupportTests {
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport, false);
+				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport);
 		server.setTcpNioConnectionSupport(serverTcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(2);
@@ -582,7 +581,7 @@ public class SocketSupportTests {
 		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport, false);
+				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 		client.registerListener(message -> {
 			messages.add(message);

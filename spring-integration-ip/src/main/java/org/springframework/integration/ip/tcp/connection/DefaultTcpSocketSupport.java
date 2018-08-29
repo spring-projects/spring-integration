@@ -36,10 +36,10 @@ public class DefaultTcpSocketSupport implements TcpSocketSupport {
 	private final boolean sslVerifyHost;
 
 	/**
-	 * Construct an instance with host verification enabled.
+	 * Construct an instance with host verification disabled.
 	 */
 	public DefaultTcpSocketSupport() {
-		this(true);
+		this(false);
 	}
 
 	/**
