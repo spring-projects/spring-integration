@@ -655,7 +655,7 @@ For both inbound and outbound, if the adapter is started, you may force the adap
 The inbound TCP gateway `TcpInboundGateway` and outbound TCP gateway `TcpOutboundGateway` use a server and client connection factory respectively.
 Each connection can process a single request/response at a time.
 
-The inbound gateway, after constructing a message with the incoming payload and sending it to the requestChannel, waits for a response and sends the payload from the response message by writing it to the connection.
+The inbound gateway, after constructing a message with the incoming payload and sending it to the `requestChannel`, waits for a response and sends the payload from the response message by writing it to the connection.
 
 NOTE: For the inbound gateway, care must be taken to retain, or populate, the _ip_connectionId_ header because it is used to correlate the message to a connection.
 Messages that originate at the gateway will automatically have the header set.
@@ -1013,6 +1013,45 @@ The keystore file names (first two constructor arguments) use the Spring `Resour
 
 Starting with _version 4.3.6_, when using NIO, you can specify an `ssl-handshake-timeout` (seconds) on the connection factory.
 This timeout (default 30) is used during SSL handshake when waiting for data; if the timeout is exceeded, the process is aborted and the socket closed.
+
+[[tcp-ssl-host-verification]]
+==== Host Verification
+
+Starting with version 5.0.8, you can configure whether or not to enable host verification.
+Starting with version 5.1, it will be enabled by default; before that version, the mechanism to enable it depends on whether or not you are using NIO.
+
+Host verification is used to ensure the server you are connected to matches information in the certificate, even if the certificate is trusted.
+
+When using NIO, configure the `DefaultTcpNioSSLConnectionSupport`, for example.
+
+====
+[source, java]
+----
+@Bean
+public DefaultTcpNioSSLConnectionSupport connectionSupport() {
+    DefaultTcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
+            "test.truststore.ks", "secret", "secret");
+    sslContextSupport.setProtocol("SSL");
+    DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
+            new DefaultTcpNioSSLConnectionSupport(sslContextSupport, true);
+    return tcpNioConnectionSupport;
+}
+----
+====
+
+The second constructor argument enables host verification.
+The `connectionSupport` bean is then injected into the NIO connection factory.
+
+When not using NIO, the configuration is in the `TcpSocketSupport`:
+
+====
+[source, java]
+----
+connectionFactory.setTcpSocketSupport(new DefaultTcpSocketSupport(true));
+----
+====
+
+Again, the constructor argument enables host verification.
 
 [[tcp-advanced-techniques]]
 === Advanced Techniques
