@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,10 @@ import org.springframework.util.Assert;
  */
 public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 
+	private static final String DEFAULT_KEY_STORE_TYPE = "JKS";
+
+	private static final String DEFAULT_TRUST_STORE_TYPE = "JKS";
+
 	private final Resource keyStore;
 
 	private final Resource trustStore;
@@ -46,7 +50,11 @@ public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 
 	private final char[] trustStorePassword;
 
-	private volatile String protocol = "TLS";
+	private String protocol = "TLS";
+
+	private String keyStoreType = DEFAULT_KEY_STORE_TYPE;
+
+	private String trustStoreType = DEFAULT_TRUST_STORE_TYPE;
 
 	/**
 	 * Prepares for the creation of an SSLContext using the supplied
@@ -69,9 +77,28 @@ public class DefaultTcpSSLContextSupport implements TcpSSLContextSupport {
 		this.trustStorePassword = trustStorePassword.toCharArray();
 	}
 
+	/**
+	 * Set the key store type. Default JKS.
+	 * @param keyStoreType the type.
+	 * @since 5.0.8
+	 */
+	public void setKeyStoreType(String keyStoreType) {
+		this.keyStoreType = keyStoreType;
+	}
+
+	/**
+	 * Set the trust store type. Default JKS.
+	 * @param trustStoreType the type.
+	 * @since 5.0.8
+	 */
+	public void setTrustStoreType(String trustStoreType) {
+		this.trustStoreType = trustStoreType;
+	}
+
+	@Override
 	public SSLContext getSSLContext() throws GeneralSecurityException, IOException  {
-		KeyStore ks = KeyStore.getInstance("JKS");
-		KeyStore ts = KeyStore.getInstance("JKS");
+		KeyStore ks = KeyStore.getInstance(this.keyStoreType);
+		KeyStore ts = KeyStore.getInstance(this.trustStoreType);
 
 		ks.load(this.keyStore.getInputStream(), this.keyStorePassword);
 		ts.load(this.trustStore.getInputStream(), this.trustStorePassword);
