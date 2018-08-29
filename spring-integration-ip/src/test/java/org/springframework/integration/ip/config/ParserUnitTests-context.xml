@@ -81,7 +81,9 @@
 	</bean>
 
 	<bean id="nioConnectionSupport"
-		class="org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport" />
+		class="org.springframework.integration.ip.tcp.connection.DefaultTcpNioSSLConnectionSupport">
+		<constructor-arg ref="sslContextSupport" />
+	</bean>
 
 	<ip:tcp-connection-factory id="secureServer"
 		type="server"

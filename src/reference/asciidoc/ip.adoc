@@ -1113,6 +1113,45 @@ Starting with version 4.3.6, when you use NIO, you can specify an `ssl-handshake
 This timeout (the default is 30 seconds) is used during SSL handshake when waiting for data.
 If the timeout is exceeded, the process is aborted and the socket is closed.
 
+[[tcp-ssl-host-verification]]
+==== Host Verification
+
+Starting with version 5.0.8, you can configure whether or not to enable host verification.
+Starting with version 5.1, it is enabled by default; the mechanism to disable it depends on whether or not you are using NIO.
+
+Host verification is used to ensure the server you are connected to matches information in the certificate, even if the certificate is trusted.
+
+When using NIO, configure the `DefaultTcpNioSSLConnectionSupport`, for example.
+
+====
+[source, java]
+----
+@Bean
+public DefaultTcpNioSSLConnectionSupport connectionSupport() {
+    DefaultTcpSSLContextSupport sslContextSupport = new DefaultTcpSSLContextSupport("test.ks",
+            "test.truststore.ks", "secret", "secret");
+    sslContextSupport.setProtocol("SSL");
+    DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
+            new DefaultTcpNioSSLConnectionSupport(sslContextSupport, false);
+    return tcpNioConnectionSupport;
+}
+----
+====
+
+The second constructor argument disables host verification.
+The `connectionSupport` bean is then injected into the NIO conncetion factory.
+
+When not using NIO, the configuration is in the `TcpSocketSupport`:
+
+====
+[source, java]
+----
+connectionFactory.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
+----
+====
+
+Again, the constructor argument disables host verification.
+
 [[tcp-advanced-techniques]]
 === Advanced Techniques
 

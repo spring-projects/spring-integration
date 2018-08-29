@@ -182,26 +182,26 @@ public class SocketSupportTests {
 		serverConnectionFactory.stop();
 	}
 
-	/*
-$ keytool -genkeypair -alias sitestcertkey -keyalg RSA -validity 36500 -keystore src/test/resources/test.ks
-Enter keystore password: secret
-Re-enter new password: secret
+/*
+$ keytool -genkeypair -alias sitestcertkey -keyalg RSA -validity 36500 -keystore src/test/resources/test.ks -ext san=dns:localhost
+Enter keystore password:
+Re-enter new password:
 What is your first and last name?
   [Unknown]:  Spring Integration
 What is the name of your organizational unit?
-  [Unknown]:  SpringSource
+  [Unknown]:  Spring
 What is the name of your organization?
-  [Unknown]:  VMware
+  [Unknown]:  Pivotal Software Inc.
 What is the name of your City or Locality?
-  [Unknown]:  Palo Alto
+  [Unknown]:  San Francisco
 What is the name of your State or Province?
   [Unknown]:  CA
 What is the two-letter country code for this unit?
   [Unknown]:  US
-Is CN=Spring Integration, OU=SpringSource, O=VMware, L=Palo Alto, ST=CA, C=US correct?
+Is CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US correct?
   [no]:  yes
 
-Enter key password for <certificatekey>
+Enter key password for <sitestcertkey>
 	(RETURN if same as keystore password):
 
 $ keytool -list -v -keystore src/test/resources/test.ks
@@ -213,23 +213,42 @@ Keystore provider: SUN
 Your keystore contains 1 entry
 
 Alias name: sitestcertkey
-Creation date: Feb 25, 2012
+Creation date: Aug 29, 2018
 Entry type: PrivateKeyEntry
 Certificate chain length: 1
 Certificate[1]:
-Owner: CN=Spring Integration, OU=SpringSource, O=VMware, L=Palo Alto, ST=CA, C=US
-Issuer: CN=Spring Integration, OU=SpringSource, O=VMware, L=Palo Alto, ST=CA, C=US
-Serial number: 4f491902
-Valid from: Sat Feb 25 12:23:14 EST 2012 until: Mon Feb 01 12:23:14 EST 2112
+Owner: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+Issuer: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+Serial number: 3f2ab6ef
+Valid from: Wed Aug 29 14:58:27 EDT 2018 until: Fri Aug 05 14:58:27 EDT 2118
 Certificate fingerprints:
-	 MD5:  4F:A9:76:0E:A9:C0:A8:B7:26:E7:7E:C7:E8:22:1F:8B
-	 SHA1: 88:AC:9E:4D:29:0D:3A:59:3B:73:95:4A:E1:BB:D0:22:89:37:64:4C
-	 Signature algorithm name: SHA1withRSA
-	 Version: 3
+	 MD5:  74:14:93:3C:6E:7B:14:59:30:A3:90:C4:A2:AD:52:5E
+	 SHA1: 12:BE:77:93:ED:C3:20:23:75:D7:D5:D9:FE:D9:5E:D1:D3:3E:E2:DC
+	 SHA256: 6B:90:65:8D:AA:F6:F3:89:38:AE:92:8E:F0:83:26:17:DD:8A:2C:F6:7E:C5:39:F0:7E:DC:60:A3:6D:73:E1:7A
+Signature algorithm name: SHA256withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.17 Criticality=false
+SubjectAlternativeName [
+  DNSName: localhost
+]
+
+#2: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 78 2D FA 48 D8 21 73 86   68 CE 77 B9 98 5A BA 0F  x-.H.!s.h.w..Z..
+0010: E2 FE CD 8C                                        ....
+]
+]
+
 
 
 *******************************************
 *******************************************
+
 
 $ keytool -export -alias sitestcertkey -keystore src/test/resources/test.ks -rfc -file src/test/resources/test.cer
 Enter keystore password:
@@ -238,15 +257,33 @@ Certificate stored in file <src/test/resources/test.cer>
 $ keytool -import -alias sitestcertkey -file src/test/resources/test.cer -keystore src/test/resources/test.truststore.ks
 Enter keystore password: secret
 Re-enter new password: secret
-Owner: CN=Spring Integration, OU=SpringSource, O=VMware, L=Palo Alto, ST=CA, C=US
-Issuer: CN=Spring Integration, OU=SpringSource, O=VMware, L=Palo Alto, ST=CA, C=US
-Serial number: 4f491902
-Valid from: Sat Feb 25 12:23:14 EST 2012 until: Mon Feb 01 12:23:14 EST 2112
+Owner: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+Issuer: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+Serial number: 3f2ab6ef
+Valid from: Wed Aug 29 14:58:27 EDT 2018 until: Fri Aug 05 14:58:27 EDT 2118
 Certificate fingerprints:
-	 MD5:  4F:A9:76:0E:A9:C0:A8:B7:26:E7:7E:C7:E8:22:1F:8B
-	 SHA1: 88:AC:9E:4D:29:0D:3A:59:3B:73:95:4A:E1:BB:D0:22:89:37:64:4C
-	 Signature algorithm name: SHA1withRSA
-	 Version: 3
+	 MD5:  74:14:93:3C:6E:7B:14:59:30:A3:90:C4:A2:AD:52:5E
+	 SHA1: 12:BE:77:93:ED:C3:20:23:75:D7:D5:D9:FE:D9:5E:D1:D3:3E:E2:DC
+	 SHA256: 6B:90:65:8D:AA:F6:F3:89:38:AE:92:8E:F0:83:26:17:DD:8A:2C:F6:7E:C5:39:F0:7E:DC:60:A3:6D:73:E1:7A
+Signature algorithm name: SHA256withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.17 Criticality=false
+SubjectAlternativeName [
+  DNSName: localhost
+]
+
+#2: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 78 2D FA 48 D8 21 73 86   68 CE 77 B9 98 5A BA 0F  x-.H.!s.h.w..Z..
+0010: E2 FE CD 8C                                        ....
+]
+]
+
 Trust this certificate? [no]:  yes
 Certificate was added to keystore
 
@@ -259,24 +296,41 @@ Keystore provider: SUN
 Your keystore contains 1 entry
 
 Alias name: sitestcertkey
-Creation date: Feb 25, 2012
+Creation date: Aug 29, 2018
 Entry type: trustedCertEntry
 
-Owner: CN=Spring Integration, OU=SpringSource, O=VMware, L=Palo Alto, ST=CA, C=US
-Issuer: CN=Spring Integration, OU=SpringSource, O=VMware, L=Palo Alto, ST=CA, C=US
-Serial number: 4f491902
-Valid from: Sat Feb 25 12:23:14 EST 2012 until: Mon Feb 01 12:23:14 EST 2112
+Owner: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+Issuer: CN=Spring Integration, OU=Spring, O=Pivotal Software Inc., L=San Francisco, ST=CA, C=US
+Serial number: 3f2ab6ef
+Valid from: Wed Aug 29 14:58:27 EDT 2018 until: Fri Aug 05 14:58:27 EDT 2118
 Certificate fingerprints:
-	 MD5:  4F:A9:76:0E:A9:C0:A8:B7:26:E7:7E:C7:E8:22:1F:8B
-	 SHA1: 88:AC:9E:4D:29:0D:3A:59:3B:73:95:4A:E1:BB:D0:22:89:37:64:4C
-	 Signature algorithm name: SHA1withRSA
-	 Version: 3
+	 MD5:  74:14:93:3C:6E:7B:14:59:30:A3:90:C4:A2:AD:52:5E
+	 SHA1: 12:BE:77:93:ED:C3:20:23:75:D7:D5:D9:FE:D9:5E:D1:D3:3E:E2:DC
+	 SHA256: 6B:90:65:8D:AA:F6:F3:89:38:AE:92:8E:F0:83:26:17:DD:8A:2C:F6:7E:C5:39:F0:7E:DC:60:A3:6D:73:E1:7A
+Signature algorithm name: SHA256withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.17 Criticality=false
+SubjectAlternativeName [
+  DNSName: localhost
+]
+
+#2: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 78 2D FA 48 D8 21 73 86   68 CE 77 B9 98 5A BA 0F  x-.H.!s.h.w..Z..
+0010: E2 FE CD 8C                                        ....
+]
+]
+
 
 
 *******************************************
 *******************************************
-
-	 */
+*/
 	@Test
 	public void testNetClientAndServerSSL() throws Exception {
 		System.setProperty("javax.net.debug", "all"); // SSL activity in the console
@@ -299,6 +353,7 @@ Certificate fingerprints:
 
 		TcpNetClientConnectionFactory client = new TcpNetClientConnectionFactory("localhost", server.getPort());
 		client.setTcpSocketFactorySupport(tcpSocketFactorySupport);
+		client.setTcpSocketSupport(new DefaultTcpSocketSupport(true));
 		client.start();
 
 		TcpConnection connection = client.getConnection();
@@ -338,7 +393,7 @@ Certificate fingerprints:
 			latch.countDown();
 			return false;
 		});
-		server.setTcpSocketSupport(new DefaultTcpSocketSupport() {
+		server.setTcpSocketSupport(new DefaultTcpSocketSupport(false) {
 
 			@Override
 			public void postProcessServerSocket(ServerSocket serverSocket) {
@@ -356,6 +411,7 @@ Certificate fingerprints:
 		DefaultTcpNetSSLSocketFactorySupport clientTcpSocketFactorySupport =
 				new DefaultTcpNetSSLSocketFactorySupport(clientSslContextSupport);
 		client.setTcpSocketFactorySupport(clientTcpSocketFactorySupport);
+		client.setTcpSocketSupport(new DefaultTcpSocketSupport(false));
 
 		try {
 			client.start();
@@ -379,7 +435,7 @@ Certificate fingerprints:
 				"test.truststore.ks", "secret", "secret");
 		sslContextSupport.setProtocol("SSL");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(sslContextSupport);
+				new DefaultTcpNioSSLConnectionSupport(sslContextSupport, false);
 		server.setTcpNioConnectionSupport(tcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -445,7 +501,7 @@ Certificate fingerprints:
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport tcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport) {
+				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport, false) {
 
 					@Override
 					protected void postProcessSSLEngine(SSLEngine sslEngine) {
@@ -469,7 +525,7 @@ Certificate fingerprints:
 				badClient ? "server.ks" : "client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
+				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport, false);
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 
 		try {
@@ -492,7 +548,7 @@ Certificate fingerprints:
 		TcpSSLContextSupport serverSslContextSupport = new DefaultTcpSSLContextSupport("server.ks",
 				"server.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport serverTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport);
+				new DefaultTcpNioSSLConnectionSupport(serverSslContextSupport, false);
 		server.setTcpNioConnectionSupport(serverTcpNioConnectionSupport);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final CountDownLatch latch = new CountDownLatch(2);
@@ -525,7 +581,7 @@ Certificate fingerprints:
 		TcpSSLContextSupport clientSslContextSupport = new DefaultTcpSSLContextSupport("client.ks",
 				"client.truststore.ks", "secret", "secret");
 		DefaultTcpNioSSLConnectionSupport clientTcpNioConnectionSupport =
-				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport);
+				new DefaultTcpNioSSLConnectionSupport(clientSslContextSupport, false);
 		client.setTcpNioConnectionSupport(clientTcpNioConnectionSupport);
 		client.registerListener(message -> {
 			messages.add(message);
