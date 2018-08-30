@@ -85,7 +85,6 @@ public class FluxMessageChannel extends AbstractMessageChannel
 						.onErrorContinue((throwable, o) -> logger.warn("Error during processing event: " + o, throwable)
 						)
 						.doOnComplete(() -> this.publishers.remove(publisher))
-						.hide() // TODO remove after upgrade to Reactor 3.1.9.RELEASE or later
 						.publish();
 
 		this.publishers.put(publisher, connectableFlux);
