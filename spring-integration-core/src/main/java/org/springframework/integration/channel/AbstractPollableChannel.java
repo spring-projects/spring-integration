@@ -27,7 +27,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ExecutorChannelInterceptor;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Base class for all pollable channels.
@@ -98,7 +97,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		boolean counted = false;
 		boolean countsEnabled = isCountsEnabled();
 		try {
-			if (logger.isTraceEnabled()) {
+			if (isLoggingEnabled() && logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getSize() > 0) {
@@ -109,20 +108,27 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 				}
 			}
 			Message<?> message = doReceive(timeout);
-			if (countsEnabled && message != null) {
-				if (getMetricsCaptor() != null) {
-					incrementReceiveCounter();
+			if (message == null) {
+				if (isLoggingEnabled() && logger.isTraceEnabled()) {
+					logger.trace("postReceive on channel '" + this + "', message is null");
 				}
-				getMetrics().afterReceive();
-				counted = true;
 			}
-			if (message != null && logger.isDebugEnabled()) {
-				logger.debug("postReceive on channel '" + this + "', message: " + message);
+			else {
+				if (countsEnabled) {
+					if (getMetricsCaptor() != null) {
+						incrementReceiveCounter();
+					}
+					getMetrics().afterReceive();
+					counted = true;
+				}
+
+				if (isLoggingEnabled() && logger.isDebugEnabled()) {
+						logger.debug("postReceive on channel '" + this + "', message: " + message);
+				}
+
 			}
-			else if (logger.isTraceEnabled()) {
-				logger.trace("postReceive on channel '" + this + "', message is null");
-			}
-			if (!CollectionUtils.isEmpty(interceptorStack)) {
+
+			if (interceptorStack != null) {
 				if (message != null) {
 					message = interceptorList.postReceive(message, this);
 				}
@@ -144,7 +150,7 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 				}
 				getMetrics().afterError();
 			}
-			if (!CollectionUtils.isEmpty(interceptorStack)) {
+			if (interceptorStack != null) {
 				interceptorList.afterReceiveCompletion(null, this, e, interceptorStack);
 			}
 			throw e;
@@ -219,10 +225,10 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 * return immediately with or without success). A negative timeout value
 	 * indicates that the method should block until either a message is
 	 * available or the blocking thread is interrupted.
-	 *
 	 * @param timeout The timeout.
 	 * @return The message, or null.
 	 */
+	@Nullable
 	protected abstract Message<?> doReceive(long timeout);
 
 }
