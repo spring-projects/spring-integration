@@ -29,7 +29,9 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
+import org.springframework.integration.support.management.CounterFacade;
 import org.springframework.integration.support.management.PollableChannelManagement;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -53,6 +55,8 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	private final String channelName;
 
 	private volatile Queue queue;
+
+	private CounterFacade receiveCounter;
 
 	private volatile int executorInterceptorsSize;
 
@@ -161,11 +165,13 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Override
+	@Nullable
 	public Message<?> receive() {
 		return doReceive(null);
 	}
 
 	@Override
+	@Nullable
 	public Message<?> receive(long timeout) {
 		return doReceive(timeout);
 	}
@@ -194,11 +200,14 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 				}
 				return null;
 			}
+			Message<?> message;
 			if (countsEnabled) {
+				if (getMetricsCaptor() != null) {
+					incrementReceiveCounter();
+				}
 				getMetrics().afterReceive();
 				counted = true;
 			}
-			Message<?> message;
 			if (object instanceof Message<?>) {
 				message = (Message<?>) object;
 			}
@@ -210,6 +219,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 			if (isLoggingEnabled() && logger.isDebugEnabled()) {
 				logger.debug("postReceive on channel '" + this + "', message: " + message);
 			}
+
 			if (interceptorStack != null) {
 				message = interceptorList.postReceive(message, this);
 				interceptorList.afterReceiveCompletion(message, this, null, interceptorStack);
@@ -218,6 +228,16 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		}
 		catch (RuntimeException e) {
 			if (countsEnabled && !counted) {
+				if (getMetricsCaptor() != null) {
+					getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
+							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+							.tag("type", "channel")
+							.tag("result", "failure")
+							.tag("exception", e.getClass().getSimpleName())
+							.description("Messages received")
+							.build()
+							.increment();
+				}
 				getMetrics().afterError();
 			}
 			if (interceptorStack != null) {
@@ -265,6 +285,20 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 			}
 		}
 	}
+
+	private void incrementReceiveCounter() {
+		if (this.receiveCounter == null) {
+			this.receiveCounter = getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
+					.tag("name", getComponentName())
+					.tag("type", "channel")
+					.tag("result", "success")
+					.tag("exception", "none")
+					.description("Messages received")
+					.build();
+		}
+		this.receiveCounter.increment();
+	}
+
 
 	@Override
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
