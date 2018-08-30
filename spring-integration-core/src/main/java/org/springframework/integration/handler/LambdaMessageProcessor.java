@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -48,11 +46,11 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 
 	private final Method method;
 
-	private final TypeDescriptor payloadType;
+	private final Class<?> payloadType;
 
 	private final Class<?>[] parameterTypes;
 
-	private ConversionService conversionService;
+	private MessageConverter messageConverter;
 
 	public LambdaMessageProcessor(Object target, Class<?> payloadType) {
 		Assert.notNull(target, "'target' must not be null");
@@ -79,16 +77,14 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 		this.method = methodValue.get();
 		this.method.setAccessible(true);
 		this.parameterTypes = this.method.getParameterTypes();
-		this.payloadType = payloadType != null ? TypeDescriptor.valueOf(payloadType) : null;
+		this.payloadType = payloadType;
 	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		ConversionService conversionService = IntegrationUtils.getConversionService(beanFactory);
-		if (conversionService == null) {
-			conversionService = DefaultConversionService.getSharedInstance();
-		}
-		this.conversionService = conversionService;
+		this.messageConverter =
+				beanFactory.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+						MessageConverter.class);
 	}
 
 	@Override
@@ -109,14 +105,12 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			}
 			else {
 				if (this.payloadType != null) {
-					if (Message.class.isAssignableFrom(this.payloadType.getType())) {
+					if (Message.class.isAssignableFrom(this.payloadType)) {
 						args[i] = message;
 					}
 					else {
-						args[i] = this.conversionService.convert(message.getPayload(),
-								TypeDescriptor.forObject(message.getPayload()), this.payloadType);
+						args[i] = this.messageConverter.fromMessage(message, this.payloadType);
 					}
-
 				}
 				else {
 					args[i] = message.getPayload();
