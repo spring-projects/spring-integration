@@ -22,7 +22,9 @@ import java.util.List;
 
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
 import org.springframework.integration.support.management.PollableChannelManagement;
+import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -40,6 +42,8 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		implements PollableChannel, PollableChannelManagement, ExecutorChannelInterceptorAware {
 
 	private String messageSelector;
+
+	private CounterFacade receiveCounter;
 
 	private volatile int executorInterceptorsSize;
 
@@ -72,17 +76,30 @@ public class PollableJmsChannel extends AbstractJmsChannel
 	}
 
 	@Override
+	@Nullable
+	public Message<?> receive(long timeout) {
+		try {
+			DynamicJmsTemplateProperties.setReceiveTimeout(timeout);
+			return receive();
+		}
+		finally {
+			DynamicJmsTemplateProperties.clearReceiveTimeout();
+		}
+	}
+
+	@Override
+	@Nullable
 	public Message<?> receive() {
 		ChannelInterceptorList interceptorList = getInterceptors();
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean counted = false;
 		boolean countsEnabled = isCountsEnabled();
 		try {
-			if (logger.isTraceEnabled()) {
+			if (isLoggingEnabled() && logger.isTraceEnabled()) {
 				logger.trace("preReceive on channel '" + this + "'");
 			}
 			if (interceptorList.getInterceptors().size() > 0) {
-				interceptorStack = new ArrayDeque<ChannelInterceptor>();
+				interceptorStack = new ArrayDeque<>();
 
 				if (!interceptorList.preReceive(this, interceptorStack)) {
 					return null;
@@ -98,12 +115,15 @@ public class PollableJmsChannel extends AbstractJmsChannel
 
 			Message<?> message = null;
 			if (object == null) {
-				if (logger.isTraceEnabled()) {
+				if (isLoggingEnabled() && logger.isTraceEnabled()) {
 					logger.trace("postReceive on channel '" + this + "', message is null");
 				}
 			}
 			else {
 				if (countsEnabled) {
+					if (getMetricsCaptor() != null) {
+						incrementReceiveCounter();
+					}
 					getMetrics().afterReceive();
 					counted = true;
 				}
@@ -115,7 +135,7 @@ public class PollableJmsChannel extends AbstractJmsChannel
 							.withPayload(object)
 							.build();
 				}
-				if (logger.isDebugEnabled()) {
+				if (isLoggingEnabled() && logger.isDebugEnabled()) {
 					logger.debug("postReceive on channel '" + this + "', message: " + message);
 				}
 			}
@@ -129,6 +149,16 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		}
 		catch (RuntimeException e) {
 			if (countsEnabled && !counted) {
+				if (getMetricsCaptor() != null) {
+					getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
+							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+							.tag("type", "channel")
+							.tag("result", "failure")
+							.tag("exception", e.getClass().getSimpleName())
+							.description("Messages received")
+							.build()
+							.increment();
+				}
 				getMetrics().afterError();
 			}
 			if (interceptorStack != null) {
@@ -138,15 +168,17 @@ public class PollableJmsChannel extends AbstractJmsChannel
 		}
 	}
 
-	@Override
-	public Message<?> receive(long timeout) {
-		try {
-			DynamicJmsTemplateProperties.setReceiveTimeout(timeout);
-			return receive();
+	private void incrementReceiveCounter() {
+		if (this.receiveCounter == null) {
+			this.receiveCounter = getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
+					.tag("name", getComponentName())
+					.tag("type", "channel")
+					.tag("result", "success")
+					.tag("exception", "none")
+					.description("Messages received")
+					.build();
 		}
-		finally {
-			DynamicJmsTemplateProperties.clearReceiveTimeout();
-		}
+		this.receiveCounter.increment();
 	}
 
 	@Override
