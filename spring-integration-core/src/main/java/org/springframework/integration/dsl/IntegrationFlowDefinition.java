@@ -2961,6 +2961,17 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		return new PublisherIntegrationFlow<>(this.integrationComponents, publisher);
 	}
 
+	/**
+	 * Add a {@value IntegrationContextUtils#NULL_CHANNEL_BEAN_NAME} bean into this flow
+	 * definition as a terminal operator.
+	 * @return The {@link IntegrationFlow} instance based on this definition.
+	 * @since 5.1
+	 */
+	public IntegrationFlow nullChannel() {
+		return channel(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)
+				.get();
+	}
+
 	@SuppressWarnings("unchecked")
 	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,
 			Consumer<S> endpointConfigurer) {
