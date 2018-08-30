@@ -2907,7 +2907,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			publisher = (Publisher<Message<T>>) channelForPublisher;
 		}
 		else {
-			if (channelForPublisher != null) {
+			if (channelForPublisher != null && this.integrationComponents.size() > 1
+					&& !(channelForPublisher instanceof MessageChannelReference) &&
+					!(channelForPublisher instanceof FixedSubscriberChannelPrototype)) {
 				publisher = MessageChannelReactiveUtils.toPublisher(channelForPublisher);
 			}
 			else {
