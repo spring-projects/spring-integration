@@ -25,6 +25,7 @@ import org.reactivestreams.Subscriber;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.router.MessageRouter;
@@ -62,6 +63,10 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	public PollingConsumer(PollableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
 		Assert.notNull(handler, "handler must not be null");
+		if (inputChannel instanceof NullChannel && logger.isWarnEnabled()) {
+			logger.warn("The polling from the NullChannel does not have any effects: " +
+					"it doesn't forward messages sent to it. A NullChannel is the end of the flow.");
+		}
 		this.inputChannel = inputChannel;
 		this.handler = handler;
 		if (this.inputChannel instanceof ExecutorChannelInterceptorAware) {
