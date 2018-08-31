@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,25 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.handler.GenericHandler;
 import org.springframework.integration.handler.LambdaMessageProcessor;
+import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.GenericMessage;
 
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0
  */
@@ -69,12 +74,22 @@ public class LambdaMessageProcessorTests {
 
 	private void handle(GenericHandler<?> h) {
 		LambdaMessageProcessor lmp = new LambdaMessageProcessor(h, String.class);
-		lmp.setBeanFactory(mock(BeanFactory.class));
+		lmp.setBeanFactory(getBeanFactory());
+
 		lmp.processMessage(new GenericMessage<>("foo"));
 	}
 
 	private Message<?> messageTransformer(Message<?> message) {
 		return message;
+	}
+
+
+	private BeanFactory getBeanFactory() {
+		BeanFactory mockBeanFactory = mock(BeanFactory.class);
+		given(mockBeanFactory.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+				MessageConverter.class))
+				.willReturn(new ConfigurableCompositeMessageConverter());
+		return mockBeanFactory;
 	}
 
 }
