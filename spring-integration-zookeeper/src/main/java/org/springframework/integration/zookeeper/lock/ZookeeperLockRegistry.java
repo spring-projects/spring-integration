@@ -275,28 +275,24 @@ public class ZookeeperLockRegistry implements ExpirableLockRegistry, DisposableB
 
 		@Override
 		public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-			Future<String> future = null;
+			Future<Boolean> future = null;
 			try {
 				long startTime = System.currentTimeMillis();
 
-				future = this.mutexTaskExecutor.submit(new Callable<String>() {
+				future = this.mutexTaskExecutor.submit(new Callable<Boolean>() {
 
 					@Override
-					public String call() throws Exception {
-						return ZkLock.this.client.create()
-								.creatingParentContainersIfNeeded()
-								.withProtection()
-								.withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-								.forPath(ZkLock.this.path);
+					public Boolean call() throws Exception {
+						return ZkLock.this.client.checkExists().forPath("/") != null;
 					}
 
 				});
 
 				long waitTime = unit.toMillis(time);
 
-				String ourPath = future.get(waitTime, TimeUnit.MILLISECONDS);
+				boolean connected = future.get(waitTime, TimeUnit.MILLISECONDS);
 
-				if (ourPath == null) {
+				if (!connected) {
 					future.cancel(true);
 					return false;
 				}
