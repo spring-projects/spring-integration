@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -67,6 +68,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.FailoverClientConnectionFactory;
@@ -79,6 +81,7 @@ import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
@@ -848,6 +851,62 @@ public class TcpOutboundGatewayTests {
 		ccf.getConnection();
 		gateway.stop();
 		ccf.stop();
+	}
+
+	@Test
+	public void testNioSecondChance() throws Exception {
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(0);
+		final int port = server.getLocalPort();
+		TcpOutboundGateway gateway = new TcpOutboundGateway();
+		TcpNioClientConnectionFactory cf = new TcpNioClientConnectionFactory("localhost", port);
+		cf.setApplicationEventPublisher(e -> { });
+		gateway.setConnectionFactory(cf);
+		final AtomicBoolean done = new AtomicBoolean();
+
+		this.executor.execute(() -> {
+			List<Socket> sockets = new ArrayList<>();
+			try {
+				while (!done.get()) {
+					sockets.add(server.accept());
+				}
+			}
+			catch (Exception e1) {
+				if (!done.get()) {
+					e1.printStackTrace();
+				}
+			}
+			for (Socket socket : sockets) {
+				try {
+					socket.close();
+				}
+				catch (IOException e2) {
+				}
+			}
+		});
+		QueueChannel replies = new QueueChannel();
+		gateway.setReplyChannel(replies);
+		gateway.setBeanFactory(mock(BeanFactory.class));
+		gateway.setRemoteTimeout(60_000);
+		gateway.afterPropertiesSet();
+		gateway.start();
+		this.executor.execute(() -> gateway.handleMessage(new GenericMessage<>("foo")));
+		int n = 0;
+		@SuppressWarnings("unchecked")
+		Map<String, ?> pending = TestUtils.getPropertyValue(gateway, "pendingReplies", Map.class);
+		while (n++ < 100 && pending.size() == 0) {
+			Thread.sleep(100);
+		}
+		assertTrue(pending.size() > 0);
+		String connectionId = pending.keySet().iterator().next();
+		this.executor.execute(() -> gateway.onMessage(new ErrorMessage(new RuntimeException(),
+				Collections.singletonMap(IpHeaders.CONNECTION_ID, connectionId))));
+		GenericMessage<String> message = new GenericMessage<>("FOO",
+				Collections.singletonMap(IpHeaders.CONNECTION_ID, connectionId));
+		gateway.onMessage(message);
+		assertThat(replies.receive(10000), equalTo(message));
+		gateway.stop();
+		done.set(true);
+		server.close();
 	}
 
 }
