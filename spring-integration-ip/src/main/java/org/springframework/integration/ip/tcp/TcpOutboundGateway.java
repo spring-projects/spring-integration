@@ -61,19 +61,25 @@ import org.springframework.util.Assert;
 public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		implements TcpSender, TcpListener, Lifecycle {
 
-	private volatile AbstractClientConnectionFactory connectionFactory;
+	private static final int DEFAULT_SECOND_CHANCE_DELAY = 2;
 
-	private volatile boolean isSingleUse;
+	private AbstractClientConnectionFactory connectionFactory;
+
+	private boolean isSingleUse;
 
 	private final Map<String, AsyncReply> pendingReplies = new ConcurrentHashMap<String, AsyncReply>();
 
 	private final Semaphore semaphore = new Semaphore(1, true);
 
-	private volatile Expression remoteTimeoutExpression = new LiteralExpression("10000");
+	private Expression remoteTimeoutExpression = new LiteralExpression("10000");
 
-	private volatile long requestTimeout = 10000;
+	private long requestTimeout = 10000;
 
-	private volatile EvaluationContext evaluationContext = new StandardEvaluationContext();
+	private EvaluationContext evaluationContext = new StandardEvaluationContext();
+
+	private boolean evaluationContextSet;
+
+	private int secondChanceDelay;
 
 	/**
 	 * @param requestTimeout the requestTimeout to set
@@ -97,16 +103,29 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		Assert.notNull(evaluationContext, "'evaluationContext' cannot be null");
 		this.evaluationContext = evaluationContext;
+		this.evaluationContextSet = true;
 	}
 
 	@Override
 	protected void doInit() {
 		super.doInit();
-
-		if (this.evaluationContext == null) {
+		if (!this.evaluationContextSet) {
 			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		}
+	}
+
+	/**
+	 * When using NIO and the server closes the socket after sending the reply,
+	 * an error message representing the close may appear before the reply.
+	 * Set the delay, in seconds, to wait for an actual reply after an {@link ErrorMessage} is
+	 * received. Default 2 seconds.
+	 * @param secondChanceDelay the delay.
+	 * @since 5.0.8
+	 */
+	public void setSecondChanceDelay(int secondChanceDelay) {
+		this.secondChanceDelay = secondChanceDelay;
 	}
 
 	@Override
@@ -178,7 +197,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	@Override
 	public boolean onMessage(Message<?> message) {
-		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
+		String connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID, String.class);
 		if (connectionId == null) {
 			logger.error("Cannot correlate response - no connection id");
 			publishNoConnectionEvent(message, null, "Cannot correlate response - no connection id");
@@ -322,7 +341,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					 * before the reply, on a different thread.
 					 */
 					logger.debug("second chance");
-					this.secondChanceLatch.await(2, TimeUnit.SECONDS); // NOSONAR don't care about result
+					this.secondChanceLatch.await(TcpOutboundGateway.this.secondChanceDelay, TimeUnit.SECONDS);// NOSONAR
 					waitForMessageAfterError = false;
 				}
 				else if (this.reply.getPayload() instanceof MessagingException) {
