@@ -68,9 +68,10 @@ public @interface InboundChannelAdapter {
 	@AliasFor("value")
 	String channel() default "";
 
-	/*
-	 {@code SmartLifecycle} options.
-	 Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.
+	/**
+	 * {@code SmartLifecycle} options.
+	 * Can be specified as 'property placeholder', e.g. {@code ${foo.autoStartup}}.
+	 * @return if the channel adapter is started automatically or not.
 	 */
 	String autoStartup() default "true";
 
