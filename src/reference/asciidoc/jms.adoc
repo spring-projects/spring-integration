@@ -171,6 +171,17 @@ If, on the other hand, you want to send the actual Spring Integration message to
 NOTE: Regardless of the boolean value for payload extraction, the Spring Integration `MessageHeaders` map to JMS properties, as long as you rely on the default converter or provide a reference to another instance of `HeaderMappingMessageConverter`.
 (The same holds true for 'inbound' adapters, except that, in those cases, the JMS properties map to Spring Integration `MessageHeaders`).
 
+Starting with version 5.1, the `<int-jms:outbound-channel-adapter>` (`JmsSendingMessageHandler`) can be configured with the `deliveryModeExpression` and `timeToLiveExpression` properties to evaluate an appropriate QoS values for JMS message to send at runtime against request Spring `Message`.
+The new `setMapInboundDeliveryMode(true)` and `setMapInboundExpiration(true)` options of the `DefaultJmsHeaderMapper` may facilitate as a source of the information for the dynamic `deliveryMode` and `timeToLive` from message headers:
+
+====
+[source,xml]
+----
+<int-jms:outbound-channel-adapter delivery-mode-expression="headers.jms_deliveryMode"
+                        time-to-live-expression="headers.jms_expiration - T(System).currentTimeMillis()"/>
+----
+====
+
 [[jms-ob-transactions]]
 ==== Transactions
 
@@ -585,6 +596,22 @@ On the inbound side, it is mapped as a `String`.
 This is independent of the `jms_correlationId` header, which is mapped to and from the `JMSCorrelationID` header.
 The `JMSCorrelationID` is generally used to correlate requests and replies, whereas the `correlationId` is often used to combine related messages into a group (such as with an aggregator or a resequencer).
 
+Starting with version 5.1, the `DefaultJmsHeaderMapper` can be configured for mapping inbound `JMSDeliveryMode` and `JMSExpiration` properties:
+ ====
+ [source,java]
+ ----
+ @Bean
+ public DefaultJmsHeaderMapper jmsHeaderMapper() {
+     DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+     mapper.setMapInboundDeliveryMode(true)
+     mapper.setMapInboundExpiration(true)
+     return mapper;
+ }
+ ----
+ ====
+
+These JMS properties are mapped to the `JmsHeaders.DELIVERY_MODE` and `JmsHeaders.EXPIRATION` Spring Message headers respectively.
+
 [[jms-conversion-and-marshalling]]
 === Message Conversion, Marshalling, and Unmarshalling
 
@@ -593,6 +620,7 @@ To do so, provide the bean name of an instance of `MessageConverter` that is ava
 Also, to provide some consistency with marshaller and unmarshaller interfaces, Spring provides `MarshallingMessageConverter`, which you can configure with your own custom marshallers and unmarshallers.
 The following example shows how to do so
 
+====
 [source,xml]
 ----
 <int-jms:inbound-gateway request-destination="requestQueue"
@@ -609,6 +637,7 @@ The following example shows how to do so
     </constructor-arg>
 </bean>
 ----
+====
 
 NOTE: When you provide your own `MessageConverter` instance, it is still wrapped within the `HeaderMappingMessageConverter`.
 This means that the 'extract-request-payload' and 'extract-reply-payload' properties can affect the actual objects passed to your converter.

@@ -123,7 +123,53 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	 * @see FunctionExpression
 	 */
 	public <P> S destination(Function<Message<P>, ?> destinationFunction) {
-		this.target.setDestinationExpression(new FunctionExpression<Message<P>>(destinationFunction));
+		this.target.setDestinationExpression(new FunctionExpression<>(destinationFunction));
+		return _this();
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate a {@code deliveryMode} for JMS message to send.
+	 * @param deliveryModeExpression to use
+	 * @return the spec
+	 * @since 5.1
+	 */
+	public S deliveryModeExpression(String deliveryModeExpression) {
+		this.target.setDeliveryModeExpressionString(deliveryModeExpression);
+		return _this();
+	}
+
+	/**
+	 * Specify a {@link Function} to resolve a {@code deliveryMode} for JMS message to send.
+	 * @param deliveryModeFunction to use
+	 * @return the spec
+	 * @since 5.1
+	 * @see FunctionExpression
+	 */
+	public <P> S deliveryModeFunction(Function<Message<P>, ?> deliveryModeFunction) {
+		this.target.setDeliveryModeExpression(new FunctionExpression<>(deliveryModeFunction));
+		return _this();
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate a {@code timeToLive} for JMS message to send.
+	 * @param timeToLiveExpression to use
+	 * @return the spec
+	 * @since 5.1
+	 */
+	public S timeToLiveExpression(String timeToLiveExpression) {
+		this.target.setTimeToLiveExpressionString(timeToLiveExpression);
+		return _this();
+	}
+
+	/**
+	 * Specify a {@link Function} to resolve a {@code timeToLive} for JMS message to send.
+	 * @param timeToLiveFunction to use
+	 * @return the spec
+	 * @see FunctionExpression
+	 * @since 5.1
+	 */
+	public <P> S timeToLiveFunction(Function<Message<P>, ?> timeToLiveFunction) {
+		this.target.setTimeToLiveExpression(new FunctionExpression<>(timeToLiveFunction));
 		return _this();
 	}
 

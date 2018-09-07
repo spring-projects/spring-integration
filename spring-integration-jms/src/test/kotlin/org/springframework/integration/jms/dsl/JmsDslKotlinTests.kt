@@ -16,7 +16,10 @@
 
 package org.springframework.integration.jms.dsl
 
+import assertk.assert
+import assertk.assertions.contains
 import assertk.assertions.isEqualTo
+import assertk.assertions.isGreaterThan
 import assertk.assertions.isNotNull
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.junit.jupiter.api.Test
@@ -24,17 +27,21 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.integration.IntegrationMessageHeaderAccessor
 import org.springframework.integration.config.EnableIntegration
 import org.springframework.integration.dsl.IntegrationFlow
 import org.springframework.integration.dsl.IntegrationFlows
 import org.springframework.integration.dsl.MessageChannels
+import org.springframework.integration.jms.DefaultJmsHeaderMapper
 import org.springframework.integration.support.MessageBuilder
+import org.springframework.jms.support.JmsHeaders
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.PollableChannel
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import java.util.concurrent.Executors
+import javax.jms.DeliveryMode
 
 /**
  * @author Artem Bilan
@@ -57,15 +64,24 @@ class JmsDslKotlinTests {
 
         this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
                 .setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
+                .setPriority(9)
                 .build())
 
         val receive = this.jmsOutboundInboundReplyChannel.receive(10000)
 
         val payload = receive?.payload
 
-        assertk.assert(payload).isNotNull {
+        assert(payload).isNotNull {
             it.isEqualTo("foo")
         }
+
+        assert(receive?.headers).isNotNull {
+            it.contains(IntegrationMessageHeaderAccessor.PRIORITY, 9)
+            it.contains(JmsHeaders.DELIVERY_MODE, 1)
+        }
+
+        val expiration = receive!!.headers[JmsHeaders.EXPIRATION] as Long
+        assert(expiration).isGreaterThan(System.currentTimeMillis())
     }
 
     @Configuration
@@ -83,8 +99,22 @@ class JmsDslKotlinTests {
         fun jmsOutboundFlow() =
                 IntegrationFlow { f ->
                     f.handle(Jms.outboundAdapter(jmsConnectionFactory())
-                            .destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER))
+                            .destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
+                            .deliveryModeFunction<Any> { _ -> DeliveryMode.NON_PERSISTENT }
+                            .timeToLiveExpression("10000")
+                            .configureJmsTemplate { t -> t.explicitQosEnabled(true) })
                 }
+
+        @Bean
+        fun jmsHeaderMapper(): DefaultJmsHeaderMapper {
+            val jmsHeaderMapper = DefaultJmsHeaderMapper()
+            jmsHeaderMapper.setMapInboundDeliveryMode(true)
+            jmsHeaderMapper.setMapInboundExpiration(true)
+            return jmsHeaderMapper
+        }
+
+        @Bean
+        fun jmsOutboundInboundReplyChannel() = MessageChannels.queue().get()
 
         @Bean
         fun jmsMessageDrivenFlowWithContainer() =
@@ -92,14 +122,11 @@ class JmsDslKotlinTests {
                         Jms.messageDrivenChannelAdapter(
                                 Jms.container(jmsConnectionFactory(), "containerSpecDestination")
                                         .pubSubDomain(false)
-                                        .taskExecutor(Executors.newCachedThreadPool())
-                                        .get()))
+                                        .taskExecutor(Executors.newCachedThreadPool()))
+                                .headerMapper(jmsHeaderMapper()))
                         .transform({ it: String -> it.trim({ it <= ' ' }) })
                         .channel(jmsOutboundInboundReplyChannel())
                         .get()
-
-        @Bean
-        fun jmsOutboundInboundReplyChannel() = MessageChannels.queue().get()
 
     }
 

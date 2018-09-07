@@ -71,4 +71,16 @@ public class DynamicJmsTemplate extends JmsTemplate {
 		return (receiveTimeout != null) ? receiveTimeout : super.getReceiveTimeout();
 	}
 
+	@Override
+	public int getDeliveryMode() {
+		Integer deliveryMode = DynamicJmsTemplateProperties.getDeliveryMode();
+		return (deliveryMode != null) ? deliveryMode : super.getDeliveryMode();
+	}
+
+	@Override
+	public long getTimeToLive() {
+		Long timeToLive = DynamicJmsTemplateProperties.getTimeToLive();
+		return (timeToLive != null) ? timeToLive : super.getTimeToLive();
+	}
+
 }

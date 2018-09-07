@@ -57,8 +57,10 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 
 		if (hasDestinationRef || hasDestinationName || hasDestinationExpression) {
 			if (!(hasDestinationRef ^ hasDestinationName ^ hasDestinationExpression)) {
-				parserContext.getReaderContext().error("The 'destination', 'destination-name', and " +
-						"'destination-expression' attributes are mutually exclusive.", parserContext.extractSource(element));
+				parserContext.getReaderContext()
+						.error("The 'destination', 'destination-name', and 'destination-expression' " +
+										"attributes are mutually exclusive.",
+								parserContext.extractSource(element));
 			}
 			if (hasDestinationRef) {
 				builder.addPropertyReference(JmsParserUtils.DESTINATION_PROPERTY, destination);
@@ -66,22 +68,30 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 			else if (hasDestinationName) {
 				builder.addPropertyValue(JmsParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
 			}
-			else if (hasDestinationExpression) {
-				BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
-				expressionBuilder.addConstructorArgValue(destinationExpression);
-				builder.addPropertyValue(JmsParserUtils.DESTINATION_EXPRESSION_PROPERTY, expressionBuilder.getBeanDefinition());
+			else {
+				BeanDefinitionBuilder expressionBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class)
+								.addConstructorArgValue(destinationExpression);
+				builder.addPropertyValue(JmsParserUtils.DESTINATION_EXPRESSION_PROPERTY,
+						expressionBuilder.getBeanDefinition());
 			}
 		}
 		else if (!hasJmsTemplate) {
-			parserContext.getReaderContext().error("either a '" + JmsParserUtils.JMS_TEMPLATE_ATTRIBUTE +
-					"' or one of '" + JmsParserUtils.DESTINATION_ATTRIBUTE + "', '"
-					+ JmsParserUtils.DESTINATION_NAME_ATTRIBUTE + "', or '" +
-					JmsParserUtils.DESTINATION_EXPRESSION_ATTRIBUTE +
-					"' attributes must be provided", parserContext.extractSource(element));
+			parserContext.getReaderContext()
+					.error("either a '" + JmsParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+							"' or one of '" + JmsParserUtils.DESTINATION_ATTRIBUTE + "', '"
+							+ JmsParserUtils.DESTINATION_NAME_ATTRIBUTE + "', or '" +
+							JmsParserUtils.DESTINATION_EXPRESSION_ATTRIBUTE +
+							"' attributes must be provided", parserContext.extractSource(element));
 		}
 
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, JmsParserUtils.HEADER_MAPPER_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				JmsParserUtils.HEADER_MAPPER_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-mode-expression",
+				"deliveryModeExpressionString");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live-expression",
+				"timeToLiveExpressionString");
 		return builder.getBeanDefinition();
 	}
 

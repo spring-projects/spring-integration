@@ -1,5 +1,5 @@
 buildscript {
-	ext.kotlinVersion = '1.2.51'
+	ext.kotlinVersion = '1.2.60'
 	repositories {
 		maven { url 'https://repo.spring.io/plugins-release' }
 	}
@@ -88,7 +88,7 @@ subprojects { subproject ->
 		apacheSshdVersion = '1.7.0'
 		aspectjVersion = '1.9.0'
 		assertjVersion = '3.9.1'
-		assertkVersion = '0.10'
+		assertkVersion = '0.12'
 		boonVersion = '0.34'
 		commonsDbcp2Version = '2.2.0'
 		commonsIoVersion = '2.6'
@@ -178,9 +178,7 @@ subprojects { subproject ->
 		testRuntime "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
 		testRuntime "org.apache.logging.log4j:log4j-jcl:$log4jVersion"
 
-		testCompile("com.willowtreeapps.assertk:assertk:$assertkVersion") {
-				exclude group: 'org.jetbrains.kotlin', module: 'kotlin-reflect'
-		}
+		testCompile("com.willowtreeapps.assertk:assertk-jvm:$assertkVersion")
 
 		testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 		testRuntime "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
