@@ -16,10 +16,13 @@
 
 package org.springframework.integration.kafka.inbound;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
 
 import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -32,6 +35,7 @@ import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
+import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter;
 import org.springframework.kafka.listener.adapter.RetryingMessageListenerAdapter;
@@ -58,6 +62,7 @@ import org.springframework.util.Assert;
  * @param <R> the reply value type.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 3.0.2
  *
@@ -75,6 +80,8 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	private RetryTemplate retryTemplate;
 
 	private RecoveryCallback<? extends Object> recoveryCallback;
+
+	private BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedSeekCallback;
 
 	/**
 	 * Construct an instance with the provided container.
@@ -131,6 +138,21 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 	 */
 	public void setRecoveryCallback(RecoveryCallback<? extends Object> recoveryCallback) {
 		this.recoveryCallback = recoveryCallback;
+	}
+
+	/**
+	 * Specify a {@link BiConsumer} for seeks management during
+	 * {@link ConsumerSeekAware.ConsumerSeekCallback#onPartitionsAssigned(Map, ConsumerSeekAware.ConsumerSeekCallback)}
+	 * call from the {@link org.springframework.kafka.listener.KafkaMessageListenerContainer}.
+	 * This is called from the internal
+	 * {@link org.springframework.kafka.listener.adapter.MessagingMessageListenerAdapter} implementation.
+	 * @param onPartitionsAssignedCallback the {@link BiConsumer} to use
+	 * @since 3.0.4
+	 * @see ConsumerSeekAware#onPartitionsAssigned
+	 */
+	public void setOnPartitionsAssignedSeekCallback(
+			BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedCallback) {
+		this.onPartitionsAssignedSeekCallback = onPartitionsAssignedCallback;
 	}
 
 	@Override
@@ -213,6 +235,13 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 		}
 
 		@Override
+		public void onPartitionsAssigned(Map<TopicPartition, Long> assignments, ConsumerSeekCallback callback) {
+			if (KafkaInboundGateway.this.onPartitionsAssignedSeekCallback != null) {
+				KafkaInboundGateway.this.onPartitionsAssignedSeekCallback.accept(assignments, callback);
+			}
+		}
+
+		@Override
 		public void onMessage(ConsumerRecord<K, V> record, Acknowledgment acknowledgment, Consumer<?, ?> consumer) {
 			Message<?> message = null;
 			try {
@@ -254,7 +283,7 @@ public class KafkaInboundGateway<K, V, R> extends MessagingGatewaySupport implem
 					new AtomicInteger(((RetryContext) attributesHolder.get()).getRetryCount() + 1);
 			if (message.getHeaders() instanceof KafkaMessageHeaders) {
 				((KafkaMessageHeaders) message.getHeaders()).getRawHeaders()
-					.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
+						.put(IntegrationMessageHeaderAccessor.DELIVERY_ATTEMPT, deliveryAttempt);
 			}
 			else {
 				messageToReturn = MessageBuilder.fromMessage(message)
