@@ -123,8 +123,8 @@ public class KafkaProducerMessageHandlerTests {
 	}
 
 	@Test
-	public void testOutbound() {
-		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+	public void testOutbound() throws Exception {
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
@@ -174,11 +174,13 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(record).has(key(2));
 		assertThat(record).has(partition(1));
 		assertThat(record.value()).isNull();
+
+		producerFactory.destroy();
 	}
 
 	@Test
-	public void testOutboundWithTimestamp() {
-		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+	public void testOutboundWithTimestamp() throws Exception {
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
@@ -203,11 +205,13 @@ public class KafkaProducerMessageHandlerTests {
 		new DefaultKafkaHeaderMapper().toHeaders(record.headers(), headers);
 		assertThat(headers.size()).isEqualTo(1);
 		assertThat(headers.get("baz")).isEqualTo("qux");
+
+		producerFactory.destroy();
 	}
 
 	@Test
-	public void testOutboundWithTimestampExpression() {
-		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+	public void testOutboundWithTimestampExpression() throws Exception {
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
@@ -240,11 +244,13 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(record2).has(partition(1));
 		assertThat(record2).has(value("foo"));
 		assertThat(record2.timestamp()).isGreaterThanOrEqualTo(currentTimeMarker);
+
+		producerFactory.destroy();
 	}
 
 	@Test
-	public void testOutboundWithAsyncResults() {
-		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+	public void testOutboundWithAsyncResults() throws Exception {
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		KafkaTemplate<Integer, String> template = new KafkaTemplate<>(producerFactory);
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
@@ -298,6 +304,8 @@ public class KafkaProducerMessageHandlerTests {
 		assertThat(((MessagingException) received.getPayload()).getFailedMessage()).isSameAs(message);
 		assertThat(((MessagingException) received.getPayload()).getCause()).isSameAs(fooException);
 		assertThat(((KafkaSendFailureException) received.getPayload()).getRecord()).isNotNull();
+
+		producerFactory.destroy();
 	}
 
 	@Test
@@ -322,7 +330,7 @@ public class KafkaProducerMessageHandlerTests {
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
 
-		ProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
+		DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(
 				KafkaTestUtils.producerProps(embeddedKafka));
 		ReplyingKafkaTemplate<Integer, String, String> template = new ReplyingKafkaTemplate<>(producerFactory, container);
 		template.start();
@@ -390,6 +398,8 @@ public class KafkaProducerMessageHandlerTests {
 		template.stop();
 		// discard from the test consumer
 		KafkaTestUtils.getSingleRecord(consumer, topic6);
+
+		producerFactory.destroy();
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

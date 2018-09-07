@@ -18,13 +18,17 @@ package org.springframework.integration.kafka.dsl;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import org.apache.kafka.common.TopicPartition;
 
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageProducerSpec;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ConsumerSeekAware;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.converter.BatchMessageConverter;
 import org.springframework.kafka.support.converter.MessageConverter;
@@ -153,6 +157,20 @@ public class KafkaMessageDrivenChannelAdapterSpec<K, V, S extends KafkaMessageDr
 	 */
 	public S filterInRetry(boolean filterInRetry) {
 		this.target.setFilterInRetry(filterInRetry);
+		return _this();
+	}
+
+	/**
+	 * Specify a {@link BiConsumer} for seeks management during
+	 * {@link ConsumerSeekAware.ConsumerSeekCallback#onPartitionsAssigned(Map, ConsumerSeekAware.ConsumerSeekCallback)}
+	 * call from the {@link org.springframework.kafka.listener.KafkaMessageListenerContainer}.
+	 * @param onPartitionsAssignedCallback the {@link BiConsumer} to use
+	 * @return the spec
+	 * @since 3.0.4
+	 */
+	public S onPartitionsAssignedSeekCallback(
+			BiConsumer<Map<TopicPartition, Long>, ConsumerSeekAware.ConsumerSeekCallback> onPartitionsAssignedCallback) {
+		this.target.setOnPartitionsAssignedSeekCallback(onPartitionsAssignedCallback);
 		return _this();
 	}
 

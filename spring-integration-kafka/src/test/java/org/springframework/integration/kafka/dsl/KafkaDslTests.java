@@ -210,6 +210,8 @@ public class KafkaDslTests {
 		this.kafkaTemplateTopic1.send(TEST_TOPIC3, "foo");
 		assertThat(this.config.sourceFlowLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(this.config.fromSource).isEqualTo("foo");
+
+		assertThat(this.config.onPartitionsAssignedCalledLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -226,6 +228,8 @@ public class KafkaDslTests {
 		private final CountDownLatch sourceFlowLatch = new CountDownLatch(1);
 
 		private final CountDownLatch replyContainerLatch = new CountDownLatch(1);
+
+		private final CountDownLatch onPartitionsAssignedCalledLatch = new CountDownLatch(1);
 
 		private Object fromSource;
 
@@ -249,11 +253,14 @@ public class KafkaDslTests {
 							KafkaMessageDrivenChannelAdapter.ListenerMode.record, TEST_TOPIC1)
 							.configureListenerContainer(c ->
 									c.ackMode(ContainerProperties.AckMode.MANUAL)
+											.idleEventInterval(100L)
 											.id("topic1ListenerContainer"))
 							.recoveryCallback(new ErrorMessageSendingRecoverer(errorChannel(),
 									new RawRecordHeaderErrorMessageStrategy()))
 							.retryTemplate(new RetryTemplate())
-							.filterInRetry(true))
+							.filterInRetry(true)
+							.onPartitionsAssignedSeekCallback((map, callback) ->
+									ContextConfiguration.this.onPartitionsAssignedCalledLatch.countDown()))
 					.filter(Message.class, m ->
 									m.getHeaders().get(KafkaHeaders.RECEIVED_MESSAGE_KEY, Integer.class) < 101,
 							f -> f.throwExceptionOnRejection(true))

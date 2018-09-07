@@ -23,6 +23,8 @@ import static org.springframework.kafka.test.assertj.KafkaConditions.value;
 
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -105,6 +107,7 @@ public class InboundGatewayTests {
 		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(props);
 		ContainerProperties containerProps = new ContainerProperties(topic1);
+		containerProps.setIdleEventInterval(100L);
 		KafkaMessageListenerContainer<Integer, String> container =
 				new KafkaMessageListenerContainer<>(cf, containerProps);
 		Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka);
@@ -133,6 +136,11 @@ public class InboundGatewayTests {
 			}
 
 		});
+
+		CountDownLatch onPartitionsAssignedCalledLatch = new CountDownLatch(1);
+
+		gateway.setOnPartitionsAssignedSeekCallback((map, seekConsumer) -> onPartitionsAssignedCalledLatch.countDown());
+
 		gateway.start();
 		ContainerTestUtils.waitForAssignment(container, 2);
 
@@ -149,11 +157,13 @@ public class InboundGatewayTests {
 		assertThat(headers.get(KafkaHeaders.TIMESTAMP_TYPE)).isEqualTo("CREATE_TIME");
 		assertThat(headers.get(KafkaHeaders.REPLY_TOPIC)).isEqualTo(topic2);
 		assertThat(headers.get("testHeader")).isEqualTo("testValue");
+
 		reply.send(MessageBuilder.withPayload("FOO").copyHeaders(headers).build());
 
 		ConsumerRecord<Integer, String> record = KafkaTestUtils.getSingleRecord(consumer, topic2);
 		assertThat(record).has(partition(1));
 		assertThat(record).has(value("FOO"));
+		assertThat(onPartitionsAssignedCalledLatch.await(10, TimeUnit.SECONDS)).isTrue();
 
 		gateway.stop();
 	}
