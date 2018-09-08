@@ -97,8 +97,8 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testStandard() throws Exception {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(StandardConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
-		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		ctx.getBean(StandardIntegrationFlow.class).stop();
+		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1);
 		File f1 = new File(tmpDir + File.separator + "standard" + File.separator + "f1");
@@ -115,8 +115,8 @@ public class RotatingServersTests extends FtpTestSupport {
 	public void testFair() throws Exception {
 		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(FairConfig.class);
 		StandardConfig config = ctx.getBean(StandardConfig.class);
-		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		ctx.getBean(StandardIntegrationFlow.class).stop();
+		assertThat(config.latch.await(10, TimeUnit.SECONDS)).isTrue();
 		List<Integer> sfCalls = config.sessionSources.stream().limit(17).collect(Collectors.toList());
 		assertThat(sfCalls).containsExactly(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3);
 		File f1 = new File(tmpDir + File.separator + "fair" + File.separator + "f1");
