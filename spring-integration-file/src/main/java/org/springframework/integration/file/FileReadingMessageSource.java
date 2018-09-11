@@ -295,8 +295,19 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 
 	@Override
 	public void start() {
-		if (!this.running.getAndSet(true) && this.scanner instanceof Lifecycle) {
-			((Lifecycle) this.scanner).start();
+		if (!this.running.getAndSet(true)) {
+			if (!this.directory.exists() && this.autoCreateDirectory) {
+				this.directory.mkdirs();
+			}
+			Assert.isTrue(this.directory.exists(),
+					"Source directory [" + this.directory + "] does not exist.");
+			Assert.isTrue(this.directory.isDirectory(),
+					"Source path [" + this.directory + "] does not point to a directory.");
+			Assert.isTrue(this.directory.canRead(),
+					"Source directory [" + this.directory + "] is not readable.");
+			if (this.scanner instanceof Lifecycle) {
+				((Lifecycle) this.scanner).start();
+			}
 		}
 	}
 
@@ -315,15 +326,6 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 	@Override
 	protected void onInit() {
 		Assert.notNull(this.directory, "'directory' must not be null");
-		if (!this.directory.exists() && this.autoCreateDirectory) {
-			this.directory.mkdirs();
-		}
-		Assert.isTrue(this.directory.exists(),
-				"Source directory [" + this.directory + "] does not exist.");
-		Assert.isTrue(this.directory.isDirectory(),
-				"Source path [" + this.directory + "] does not point to a directory.");
-		Assert.isTrue(this.directory.canRead(),
-				"Source directory [" + this.directory + "] is not readable.");
 
 		Assert.state(!(this.scannerExplicitlySet && this.useWatchService),
 				"The 'scanner' and 'useWatchService' options are mutually exclusive: " + this.scanner);
