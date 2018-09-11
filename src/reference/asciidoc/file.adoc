@@ -37,7 +37,8 @@ Microsoft Windows, on the other hand, has a dedicated file attribute to indicate
 
 [IMPORTANT]
 ====
-Version 4.2 introduced the `IgnoreHiddenFileListFilter`. In prior versions, hidden files were included.
+Version 4.2 introduced the `IgnoreHiddenFileListFilter`.
+In prior versions, hidden files were included.
 With the default configuration, the `IgnoreHiddenFileListFilter` is triggered first, followed by the `AcceptOnceFileListFilter`.
 ====
 
@@ -53,8 +54,7 @@ This filter matches on the filename and modified time.
 Since version 4.0, this filter requires a `ConcurrentMetadataStore`.
 When used with a shared data store (such as `Redis` with the `RedisMetadataStore`), it lets filter keys be shared across multiple application instances or across a network file share being used by multiple servers.
 
-Since version 4.1.5, this filter has a new property (`flushOnUpdate`), which causes it to flush the
-metadata store on every update (if the store implements `Flushable`).
+Since version 4.1.5, this filter has a new property (`flushOnUpdate`), which causes it to flush the metadata store on every update (if the store implements `Flushable`).
 ====
 
 The following example configures a `FileReadingMessageSource` with a filter:
@@ -97,7 +97,7 @@ The `CompositeFileListFilter` enables the composition, as the following example 
 ----
 ====
 
-If it is not possible to create the file with a temporary name and rename to the final name, Spring Integratio provides another alternative.
+If it is not possible to create the file with a temporary name and rename to the final name, Spring Integration provides another alternative.
 Version 4.2 added the `LastModifiedFileListFilter`.
 This filter can be configured with an `age` property so that only files older than this value are passed by the filter.
 The age defaults to 60 seconds, but you should choose an age that is large enough to avoid picking up a file early (due to, say, network glitches).
@@ -150,6 +150,9 @@ The `CompositeFileListFilter` also implements a `DiscardAwareFileListFilter` and
 
 NOTE: Since `CompositeFileListFilter` matches the files against all delegates, the `discardCallback` may be called several times for the same file.
 
+Starting with version 5.1, the `FileReadingMessageSource` doesn't check a directory for existence and doesn't create it until its `start()` is called (typically via wrapping `SourcePollingChannelAdapter`).
+Previously, there was no simple way to prevent an operation system permissions error when referencing the directory, for example from tests, or when permissions are applied later.
+
 ==== Message Headers
 
 Starting with version 5.0, the `FileReadingMessageSource` (in addition to the `payload` as a polled `File`) populates the following headers to the outbound `Message`:
@@ -157,7 +160,7 @@ Starting with version 5.0, the `FileReadingMessageSource` (in addition to the `p
 * `FileHeaders.FILENAME`: The `File.getName()` of the file to send.
 Can be used for subsequent rename or copy logic.
 * `FileHeaders.ORIGINAL_FILE`: The `File` object itself.
-Typically, this header is populated automatically by framework components (such as <<file-splitter,splitters>> or`<<file-transforming,transformers>>) when we lose the original `File` object.
+Typically, this header is populated automatically by framework components (such as <<file-splitter,splitters>> or <<file-transforming,transformers>>) when we lose the original `File` object.
 However, for consistency and convenience with any other custom use cases, this header can be useful to get access to the original file.
 * `FileHeaders.RELATIVE_PATH`: A new header introduced to represent the part of file path relative to the root directory for the scan.
 This header can be useful when the requirement is to restore a source directory hierarchy in the other places.
@@ -167,21 +170,16 @@ For this purpose, the `DefaultFileNameGenerator` (see "`<<file-writing-file-name
 
 The `FileReadingMessageSource` does not produce messages for files from the directory immediately.
 It uses an internal queue for 'eligible files' returned by the `scanner`.
-The `scanEachPoll` option is used to ensure that the internal queue is refreshed with the latest input directory
-content on each poll.
-By default (`scanEachPoll = false`), the `FileReadingMessageSource` empties its queue before scanning the directory
-again.
+The `scanEachPoll` option is used to ensure that the internal queue is refreshed with the latest input directory content on each poll.
+By default (`scanEachPoll = false`), the `FileReadingMessageSource` empties its queue before scanning the directory again.
 This default behavior is particularly useful to reduce scans of large numbers of files in a directory.
-However, in cases where custom ordering is required, it is important to consider the effects of setting this flag to
-`true`.
+However, in cases where custom ordering is required, it is important to consider the effects of setting this flag to `true`.
 The order in which files are processed may not be as expected.
 By default, files in the queue are processed in their natural (`path`) order.
-New files added by a scan, even when the queue already has files, are inserted in the appropriate position to maintain
-that natural order.
+New files added by a scan, even when the queue already has files, are inserted in the appropriate position to maintain that natural order.
 To customize the order, the `FileReadingMessageSource` can accept a `Comparator<File>` as a constructor argument.
 It is used by the internal (`PriorityBlockingQueue`) to reorder its content according to the business requirements.
-Therefore, to process files in a specific order, you should provide a comparator to the `FileReadingMessageSource`
-rather than ordering the list produced by a custom `DirectoryScanner`.
+Therefore, to process files in a specific order, you should provide a comparator to the `FileReadingMessageSource` rather than ordering the list produced by a custom `DirectoryScanner`.
 
 Version 5.0 introduced `RecursiveDirectoryScanner` to perform file tree visiting.
 The implementation is based on the `Files.walk(Path start, int maxDepth, FileVisitOption... options)` functionality.
@@ -248,8 +246,7 @@ Therefore, you can also leave off the `prevent-duplicates` and `ignore-hidden` a
 Spring Integration 4.2 introduced the `ignore-hidden` attribute. In prior versions, hidden files were included.
 =====
 
-The second channel adapter example uses a custom filter, the third uses the `filename-pattern` attribute to
-add an `AntPathMatcher` based filter, and the fourth uses the `filename-regex` attribute to add a regular expression pattern-based filter to the `FileReadingMessageSource`.
+The second channel adapter example uses a custom filter, the third uses the `filename-pattern` attribute to add an `AntPathMatcher` based filter, and the fourth uses the `filename-regex` attribute to add a regular expression pattern-based filter to the `FileReadingMessageSource`.
 The `filename-pattern` and `filename-regex` attributes are each mutually exclusive with the regular `filter` reference attribute.
 However, you can use the `filter` attribute to reference an instance of `CompositeFileListFilter` that combines any number of filters, including one or more pattern-based filters to fit your particular needs.
 
@@ -301,7 +298,7 @@ You can inject a custom `DirectoryScanner` into the `<int-file:inbound-channel-a
 
 Doing so gives you full freedom to choose the ordering, listing, and locking strategies.
 
-It is also important to understand that filters (including `patterns`, `regex`, `prevent-duplicates`, and otehrs) and `locker` instances are actually used by the `scanner`.
+It is also important to understand that filters (including `patterns`, `regex`, `prevent-duplicates`, and others) and `locker` instances are actually used by the `scanner`.
 Any of these attributes set on the adapter are subsequently injected into the internal `scanner`.
 For the case of an external `scanner`, all filter and locker attributes are prohibited on the `FileReadingMessageSource`.
 They must be specified (if required) on that custom `DirectoryScanner`.
@@ -324,14 +321,12 @@ If a new subdirectory is added, its creation event is used to walk the new subtr
 NOTE: There is an issue with `WatchKey` when its internal events `queue` is not drained by the program as quickly as the directory modification events occur.
 If the queue size is exceeded, a `StandardWatchEventKinds.OVERFLOW` is emitted to indicate that some file system events may be lost.
 In this case, the root directory is re-scanned completely.
-To avoid duplicates, consider using an appropriate `FileListFilter` (such as the `AcceptOnceFileListFilter`) or
-removing files when processing is complete.
+To avoid duplicates, consider using an appropriate `FileListFilter` (such as the `AcceptOnceFileListFilter`) or removing files when processing is complete.
 
 The `WatchServiceDirectoryScanner` can be enabled through the `FileReadingMessageSource.use-watch-service` option, which is mutually exclusive with the `scanner` option.
 An internal `FileReadingMessageSource.WatchServiceDirectoryScanner` instance is populated for the provided `directory`.
 
-In addition, now the `WatchService` polling logic can track the `StandardWatchEventKinds.ENTRY_MODIFY` and
-`StandardWatchEventKinds.ENTRY_DELETE`.
+In addition, now the `WatchService` polling logic can track the `StandardWatchEventKinds.ENTRY_MODIFY` and `StandardWatchEventKinds.ENTRY_DELETE`.
 
 If you need to track the modification of existing files as well as new files, you should implement the `ENTRY_MODIFY` events logic in the `FileListFilter`.
 Otherwise, the files from those events are treated the same way.
@@ -345,6 +340,7 @@ For this purpose, the `watch-events` property (`FileReadingMessageSource.setWatc
 (`WatchEventType` is a public inner enumeration in `FileReadingMessageSource`.)
 With such an option, we can use one downstream flow logic for new files and use some other logic for modified files.
 The following example shows how to configure different logic for create and modify events in the same directory:
+
 ====
 [source,xml]
 ----
@@ -372,13 +368,10 @@ Any other filters (including `prevent-duplicates="true"`) overwrote the filter u
 [NOTE]
 =====
 The use of a `HeadDirectoryScanner` is incompatible with an `AcceptOnceFileListFilter`.
-Since all filters are consulted during the poll decision, the `AcceptOnceFileListFilter` does not know
-that other filters might be temporarily filtering files.
-Even if files that were previously filtered by the `HeadDirectoryScanner.HeadFilter` are now available, the
-`AcceptOnceFileListFilter` filters them.
+Since all filters are consulted during the poll decision, the `AcceptOnceFileListFilter` does not know that other filters might be temporarily filtering files.
+Even if files that were previously filtered by the `HeadDirectoryScanner.HeadFilter` are now available, the `AcceptOnceFileListFilter` filters them.
 
-Generally, instead of using an `AcceptOnceFileListFilter` in this case, you should remove the processed
-files so that the previously filtered files are available on a future poll.
+Generally, instead of using an `AcceptOnceFileListFilter` in this case, you should remove the processed files so that the previously filtered files are available on a future poll.
 =====
 
 ==== Configuring with Java Configuration
@@ -611,8 +604,7 @@ This class can deal with the following payload types:
 
 For a String payload, you can configure the encoding and the charset.
 
-To make things easier, you can configure the `FileWritingMessageHandler` as part of an outbound channel adapter or
-outbound gateway by using the XML namespace.
+To make things easier, you can configure the `FileWritingMessageHandler` as part of an outbound channel adapter or outbound gateway by using the XML namespace.
 
 Starting with version 4.3, you can specify the buffer size to use when writing files.
 
@@ -720,8 +712,7 @@ For other payloads, the `FileHeaders.SET_MODIFIED` (`file_setModified`) header i
 If the header is missing or has a value that is not a `Number`, the file is always replaced.
 `APPEND`::
 This mode lets you append message content to the existing file instead of creating a new file each time.
-Note that this attribute is mutually exclusive with the `temporary-file-suffix` attribute because, when it appends content to
-the existing file, the adapter no longer uses a temporary file.
+Note that this attribute is mutually exclusive with the `temporary-file-suffix` attribute because, when it appends content to the existing file, the adapter no longer uses a temporary file.
 The file is closed after each message.
 `APPEND_NO_FLUSH`::
 This option has the same semantics as `APPEND`, but the data is not flushed and the file is not closed after each message.
@@ -747,10 +738,8 @@ Spring Integration provides several flushing strategies to mitigate this data lo
 This is approximate and may be up to `1.33x` this time (with an average of `1.167x`).
 * Send a message containing a regular expression to the message handler's `trigger` method.
 Files with absolute path names matching the pattern are flushed.
-* Provide the handler with a custom `MessageFlushPredicate` implementation to modify the action taken when a message
-is sent to the `trigger` method.
-* Invoke one of the handler's `flushIfNeeded` methods by passing in a custom `FileWritingMessageHandler.FlushPredicate`
-or `FileWritingMessageHandler.MessageFlushPredicate` implementation.
+* Provide the handler with a custom `MessageFlushPredicate` implementation to modify the action taken when a message is sent to the `trigger` method.
+* Invoke one of the handler's `flushIfNeeded` methods by passing in a custom `FileWritingMessageHandler.FlushPredicate` or `FileWritingMessageHandler.MessageFlushPredicate` implementation.
 
 The predicates are called for each open file.
 See the https://docs.spring.io/spring-integration/api/index.html[Javadoc] for these interfaces for more information.
@@ -1027,8 +1016,7 @@ The default is `true`.
 
 The `FileSplitter` also splits any text-based `InputStream` into lines.
 Starting with version 4.3, when used in conjunction with an FTP or SFTP streaming inbound channel adapter or an FTP or SFTP outbound gateway that uses the `stream` option to retrieve a file, the splitter automatically closes the session that supports the stream when the file is completely consumed
-See <<ftp-streaming>> and <<sftp-streaming>> as well as <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more
-information about these facilities.
+See <<ftp-streaming>> and <<sftp-streaming>> as well as <<ftp-outbound-gateway>> and <<sftp-outbound-gateway>> for more information about these facilities.
 
 When using Java configuration, an additional constructor is available, as the following example shows:
 

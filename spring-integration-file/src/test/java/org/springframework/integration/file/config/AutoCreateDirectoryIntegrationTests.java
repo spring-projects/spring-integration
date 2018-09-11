@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class AutoCreateDirectoryIntegrationTests {
 
 	private static final String BASE_PATH =
-			System.getProperty("java.io.tmpdir") + File.separator + AutoCreateDirectoryIntegrationTests.class.getSimpleName();
+			System.getProperty("java.io.tmpdir") + File.separator +
+					AutoCreateDirectoryIntegrationTests.class.getSimpleName();
 
 
 	@Autowired
@@ -64,18 +66,19 @@ public class AutoCreateDirectoryIntegrationTests {
 
 
 	@Test
-	public void defaultInbound() throws Exception {
+	public void defaultInbound() {
 		Object adapter = context.getBean("defaultInbound");
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		FileReadingMessageSource source = (FileReadingMessageSource)
 				adapterAccessor.getPropertyValue("source");
 		assertEquals(Boolean.TRUE,
 				new DirectFieldAccessor(source).getPropertyValue("autoCreateDirectory"));
+		source.start();
 		assertTrue(new File(BASE_PATH + File.separator + "defaultInbound").exists());
 	}
 
 	@Test
-	public void customInbound() throws Exception {
+	public void customInbound() {
 		Object adapter = context.getBean("customInbound");
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		FileReadingMessageSource source = (FileReadingMessageSource)
@@ -86,7 +89,7 @@ public class AutoCreateDirectoryIntegrationTests {
 	}
 
 	@Test
-	public void defaultOutbound() throws Exception {
+	public void defaultOutbound() {
 		Object adapter = context.getBean("defaultOutbound");
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
@@ -97,7 +100,7 @@ public class AutoCreateDirectoryIntegrationTests {
 	}
 
 	@Test
-	public void customOutbound() throws Exception {
+	public void customOutbound() {
 		Object adapter = context.getBean("customOutbound");
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
@@ -108,7 +111,7 @@ public class AutoCreateDirectoryIntegrationTests {
 	}
 
 	@Test
-	public void defaultOutboundGateway() throws Exception {
+	public void defaultOutboundGateway() {
 		Object gateway = context.getBean("defaultOutboundGateway");
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
@@ -119,7 +122,7 @@ public class AutoCreateDirectoryIntegrationTests {
 	}
 
 	@Test
-	public void customOutboundGateway() throws Exception {
+	public void customOutboundGateway() {
 		Object gateway = context.getBean("customOutboundGateway");
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
