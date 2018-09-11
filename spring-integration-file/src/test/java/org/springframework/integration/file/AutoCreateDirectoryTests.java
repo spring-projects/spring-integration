@@ -30,6 +30,8 @@ import org.springframework.beans.factory.BeanFactory;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
 public class AutoCreateDirectoryTests {
@@ -64,6 +66,7 @@ public class AutoCreateDirectoryTests {
 		source.setDirectory(new File(INBOUND_PATH));
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.afterPropertiesSet();
+		source.start();
 		assertTrue(new File(INBOUND_PATH).exists());
 	}
 
@@ -74,6 +77,7 @@ public class AutoCreateDirectoryTests {
 		source.setAutoCreateDirectory(false);
 		source.setBeanFactory(mock(BeanFactory.class));
 		source.afterPropertiesSet();
+		source.start();
 	}
 
 	@Test
