@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,13 +68,33 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 
 	private volatile boolean mapInboundPriority = true;
 
+	private volatile boolean mapInboundDeliveryMode = false;
+
+	private volatile boolean mapInboundExpiration = false;
+
 	/**
 	 * Suppress the mapping of inbound priority by using this setter with 'false'.
-	 *
 	 * @param mapInboundPriority 'false' to suppress mapping the inbound priority.
 	 */
 	public void setMapInboundPriority(boolean mapInboundPriority) {
 		this.mapInboundPriority = mapInboundPriority;
+	}
+
+	/**
+	 * Map the inbound {@code deliveryMode} by using this setter with 'true'.
+	 * @param mapInboundDeliveryMode 'true' to map the inbound delivery mode.
+	 * @since 5.1
+	 */
+	public void setMapInboundDeliveryMode(boolean mapInboundDeliveryMode) {
+		this.mapInboundDeliveryMode = mapInboundDeliveryMode;
+	}
+	/**
+	 * Map the inbound {@code expiration} by using this setter with 'true'.
+	 * @param mapInboundExpiration 'true' to map the inbound expiration.
+	 * @since 5.1
+	 */
+	public void setMapInboundExpiration(boolean mapInboundExpiration) {
+		this.mapInboundExpiration = mapInboundExpiration;
 	}
 
 	/**
@@ -246,6 +266,22 @@ public class DefaultJmsHeaderMapper extends JmsHeaderMapper {
 				}
 				catch (Exception e) {
 					this.logger.info("failed to read JMSPriority property, skipping", e);
+				}
+			}
+			if (this.mapInboundDeliveryMode) {
+				try {
+					headers.put(JmsHeaders.DELIVERY_MODE, jmsMessage.getJMSDeliveryMode());
+				}
+				catch (Exception e) {
+					this.logger.info("failed to read JMSDeliveryMode property, skipping", e);
+				}
+			}
+			if (this.mapInboundExpiration) {
+				try {
+					headers.put(JmsHeaders.EXPIRATION, jmsMessage.getJMSExpiration());
+				}
+				catch (Exception e) {
+					this.logger.info("failed to read JMSExpiration property, skipping", e);
 				}
 			}
 			Enumeration<?> jmsPropertyNames = jmsMessage.getPropertyNames();

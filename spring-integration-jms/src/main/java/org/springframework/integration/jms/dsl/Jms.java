@@ -195,6 +195,17 @@ public final class Jms {
 
 	/**
 	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}.
+	 * @param jmsListenerContainerSpec the {@link JmsListenerContainerSpec} to build on
+	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
+	 */
+	public static JmsMessageDrivenChannelAdapterSpec<?> messageDrivenChannelAdapter(
+			JmsListenerContainerSpec<?, ? extends AbstractMessageListenerContainer> jmsListenerContainerSpec) {
+
+		return new JmsMessageDrivenChannelAdapterSpec<>(jmsListenerContainerSpec.get());
+	}
+
+	/**
+	 * The factory to produce a {@link JmsMessageDrivenChannelAdapterSpec}.
 	 * @param listenerContainer the {@link AbstractMessageListenerContainer} to build on
 	 * @return the {@link JmsMessageDrivenChannelAdapterSpec} instance
 	 */

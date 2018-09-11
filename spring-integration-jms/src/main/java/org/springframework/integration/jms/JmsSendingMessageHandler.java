@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 package org.springframework.integration.jms;
 
 import javax.jms.Destination;
-import javax.jms.JMSException;
 
 import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
+import org.springframework.integration.StaticMessageHeaderAccessor;
+import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.jms.core.JmsTemplate;
@@ -35,20 +36,27 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class JmsSendingMessageHandler extends AbstractMessageHandler {
 
 	private final JmsTemplate jmsTemplate;
 
-	private volatile Destination destination;
+	private Destination destination;
 
-	private volatile String destinationName;
+	private String destinationName;
 
-	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
+	private JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
-	private volatile boolean extractPayload = true;
+	private boolean extractPayload = true;
 
-	private volatile ExpressionEvaluatingMessageProcessor<?> destinationExpressionProcessor;
+	private ExpressionEvaluatingMessageProcessor<?> destinationExpressionProcessor;
+
+	private Expression deliveryModeExpression;
+
+	private Expression timeToLiveExpression;
+
+	private EvaluationContext evaluationContext;
 
 
 	public JmsSendingMessageHandler(JmsTemplate jmsTemplate) {
@@ -75,20 +83,59 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
+		Assert.notNull(headerMapper, "'headerMapper' cannot be null");
 		this.headerMapper = headerMapper;
 	}
 
 	/**
 	 * Specify whether the payload should be extracted from each integration
 	 * Message to be used as the JMS Message body.
-	 *
 	 * <p>The default value is <code>true</code>. To force passing of the full
 	 * Spring Integration Message instead, set this to <code>false</code>.
-	 *
 	 * @param extractPayload true to extract the payload.
 	 */
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate a {@code deliveryMode} for the JMS message to send.
+	 * This option is applied only of QoS is enabled on the {@link JmsTemplate}.
+	 * @param deliveryModeExpression to use
+	 * @since 5.1
+	 * @see #setDeliveryModeExpression(Expression)
+	 */
+	public void setDeliveryModeExpressionString(String deliveryModeExpression) {
+		setDeliveryModeExpression(EXPRESSION_PARSER.parseExpression(deliveryModeExpression));
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate a {@code deliveryMode} for the JMS message to send.
+	 * This option is applied only of QoS is enabled on the {@link JmsTemplate}.
+	 * @param deliveryModeExpression to use
+	 * @since 5.1
+	 */
+	public void setDeliveryModeExpression(Expression deliveryModeExpression) {
+		this.deliveryModeExpression = deliveryModeExpression;
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate a {@code timeToLive} for the JMS message to send.
+	 * @param timeToLiveExpression to use
+	 * @since 5.1
+	 * @see #setTimeToLiveExpression(Expression)
+	 */
+	public void setTimeToLiveExpressionString(String timeToLiveExpression) {
+		setTimeToLiveExpression(EXPRESSION_PARSER.parseExpression(timeToLiveExpression));
+	}
+
+	/**
+	 * Specify a SpEL expression to evaluate a {@code timeToLive} for the JMS message to send.
+	 * @param timeToLiveExpression to use
+	 * @since 5.1
+	 */
+	public void setTimeToLiveExpression(Expression timeToLiveExpression) {
+		this.timeToLiveExpression = timeToLiveExpression;
 	}
 
 	@Override
@@ -105,22 +152,42 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 				this.destinationExpressionProcessor.setConversionService(conversionService);
 			}
 		}
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 	}
 
 	@Override
-	protected void handleMessageInternal(final Message<?> message) throws Exception {
-		if (message == null) {
-			throw new IllegalArgumentException("message must not be null");
-		}
+	protected void handleMessageInternal(final Message<?> message) {
 		Object destination = this.determineDestination(message);
 		Object objectToSend = (this.extractPayload) ? message.getPayload() : message;
 		MessagePostProcessor messagePostProcessor = new HeaderMappingMessagePostProcessor(message, this.headerMapper);
+
+		if (this.jmsTemplate instanceof DynamicJmsTemplate && this.jmsTemplate.isExplicitQosEnabled()) {
+			Integer priority = StaticMessageHeaderAccessor.getPriority(message);
+			if (priority != null) {
+				DynamicJmsTemplateProperties.setPriority(priority);
+			}
+			if (this.deliveryModeExpression != null) {
+				Integer deliveryMode =
+						this.deliveryModeExpression.getValue(this.evaluationContext, message, Integer.class);
+
+				if (deliveryMode != null) {
+					DynamicJmsTemplateProperties.setDeliveryMode(deliveryMode);
+				}
+			}
+			if (this.timeToLiveExpression != null) {
+				Long timeToLive = this.timeToLiveExpression.getValue(this.evaluationContext, message, Long.class);
+				if (timeToLive != null) {
+					DynamicJmsTemplateProperties.setTimeToLive(timeToLive);
+				}
+			}
+		}
 		try {
-			DynamicJmsTemplateProperties.setPriority(new IntegrationMessageHeaderAccessor(message).getPriority());
-			this.send(destination, objectToSend, messagePostProcessor);
+			send(destination, objectToSend, messagePostProcessor);
 		}
 		finally {
 			DynamicJmsTemplateProperties.clearPriority();
+			DynamicJmsTemplateProperties.clearDeliveryMode();
+			DynamicJmsTemplateProperties.clearTimeToLive();
 		}
 	}
 
@@ -167,10 +234,11 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 		}
 
 		@Override
-		public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage) throws JMSException {
+		public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage) {
 			this.headerMapper.fromHeaders(this.integrationMessage.getHeaders(), jmsMessage);
 			return jmsMessage;
 		}
+
 	}
 
 }

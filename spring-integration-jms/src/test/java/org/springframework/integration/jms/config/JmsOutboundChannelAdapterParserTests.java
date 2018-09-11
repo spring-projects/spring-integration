@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.messaging.support.GenericMessage;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class JmsOutboundChannelAdapterParserTests {
 
@@ -134,13 +135,16 @@ public class JmsOutboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithJmsTemplateQos.xml", this.getClass());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		JmsTemplate jmsTemplate = (JmsTemplate) handlerAccessor.getPropertyValue("jmsTemplate");
 		assertNotNull(jmsTemplate);
 		assertEquals(context.getBean("template"), jmsTemplate);
 		assertTrue(jmsTemplate.isExplicitQosEnabled());
 		assertEquals(7, jmsTemplate.getPriority());
 		assertEquals(12345, jmsTemplate.getTimeToLive());
+		assertEquals("1", TestUtils.getPropertyValue(handler, "deliveryModeExpression.expression", String.class));
+		assertEquals("100", TestUtils.getPropertyValue(handler, "timeToLiveExpression.expression", String.class));
 		context.close();
 	}
 

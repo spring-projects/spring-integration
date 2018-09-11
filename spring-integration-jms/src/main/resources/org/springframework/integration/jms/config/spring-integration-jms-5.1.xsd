@@ -1259,6 +1259,28 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="delivery-mode-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to be evaluated at runtime against each Spring Integration Message as
+								the root object. The result should be an integer representing the delivery mode.
+								If returns null, falls back to the 'delivery-persistent' or default.
+								The explicit-qos-enabled has to be enabled.
+								Note: the static delivery mode value can be specified on the JmsTemplate.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="time-to-live-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to be evaluated at runtime against each Spring Integration Message as
+								the root object. The result should be a long representing the time-to-live for the message.
+								If returns null, falls back to the 'time-to-live' or default.
+								The 'explicit-qos-enabled' has to be enabled.
+								Note: the static time-to-live value can be specified on the JmsTemplate.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
