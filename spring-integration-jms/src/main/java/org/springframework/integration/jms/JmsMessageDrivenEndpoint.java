@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,11 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 
 	private final ChannelPublishingJmsMessageListener listener;
 
-	private volatile String sessionAcknowledgeMode;
+	private String sessionAcknowledgeMode;
+
+	private boolean shutdownContainerOnStop = true;
+
+	private volatile boolean hasStopped;
 
 	/**
 	 * Construct an instance with an externally configured container.
@@ -128,6 +132,18 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 		this.listener.setShouldTrack(shouldTrack);
 	}
 
+	/**
+	 * Set to false to prevent listener container shutdown when the endpoint is stopped.
+	 * Then, if so configured, any cached consumer(s) in the container will remain.
+	 * Otherwise the shared connection and will be closed and the listener invokers shut
+	 * down; this behavior is new starting with version 5.1. Default: true.
+	 * @param shutdownContainerOnStop false to not shutdown.
+	 * @since 5.1
+	 */
+	public void setShutdownContainerOnStop(boolean shutdownContainerOnStop) {
+		this.shutdownContainerOnStop = shutdownContainerOnStop;
+	}
+
 	public ChannelPublishingJmsMessageListener getListener() {
 		return this.listener;
 	}
@@ -177,6 +193,10 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	protected void doStart() {
 		this.listener.start();
 		if (!this.listenerContainer.isRunning()) {
+			if (this.hasStopped) {
+				this.listenerContainer.initialize();
+				this.hasStopped = false;
+			}
 			this.listenerContainer.start();
 		}
 	}
@@ -184,6 +204,10 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 	@Override
 	protected void doStop() {
 		this.listenerContainer.stop();
+		if (this.shutdownContainerOnStop) {
+			this.hasStopped = true;
+			this.listenerContainer.shutdown();
+		}
 		this.listener.stop();
 	}
 

@@ -133,6 +133,10 @@ When consuming from topics, set the `pub-sub-domain` attribute to true.
 Set `subscription-durable` to `true` for a durable subscription or `subscription-shared` for a shared subscription (which requires a JMS 2.0 broker and has been available since version 4.2).
 Use `subscription-name` to name the subscription.
 
+Starting with version 5.1, when the endpoint is stopped while the application remains running, the underlying listener container is shut down, closing its shared connection and consumers.
+Previously, the connection and consumers remained open.
+To revert to the previous behavior, set the `shutdownContainerOnStop` on the `JmsMessageDrivenEndpoint` to `false`.
+
 [[jms-md-conversion-errors]]
 ==== Inbound Conversion Errors
 
@@ -248,6 +252,10 @@ Use `subscription-name` to name the subscription.
 IMPORTANT: Starting with version 4.2, the default `acknowledge` mode is `transacted`, unless an external container is provided.
 In that case, you should configure the container as needed.
 We recommend that you use `transacted` with the `DefaultMessageListenerContainer` to avoid message loss.
+
+Starting with version 5.1, when the endpoint is stopped while the application remains running, the underlying listener container is shut down, closing its shared connection and consumers.
+Previously, the connection and consumers remained open.
+To revert to the previous behavior, set the `shutdownContainerOnStop` on the `JmsInboundGateway` to `false`.
 
 [[jms-outbound-gateway]]
 === Outbound Gateway

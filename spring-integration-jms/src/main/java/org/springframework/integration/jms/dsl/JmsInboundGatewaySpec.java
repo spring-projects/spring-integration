@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * @param <S> the target {@link JmsInboundGatewaySpec} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -173,6 +174,20 @@ public class JmsInboundGatewaySpec<S extends JmsInboundGatewaySpec<S>>
 	 */
 	public S extractReplyPayload(boolean extractReplyPayload) {
 		this.target.getListener().setExtractReplyPayload(extractReplyPayload);
+		return _this();
+	}
+
+	/**
+	 * Set to false to prevent listener container shutdown when the endpoint is stopped.
+	 * Then, if so configured, any cached consumer(s) in the container will remain.
+	 * Otherwise the shared connection and will be closed and the listener invokers shut
+	 * down; this behavior is new starting with version 5.1. Default: true.
+	 * @param shutdown false to not shutdown.
+	 * @return the spec.
+	 * @since 5.1
+	 */
+	public S shutdownContainerOnStop(boolean shutdown) {
+		this.target.setShutdownContainerOnStop(shutdown);
 		return _this();
 	}
 
