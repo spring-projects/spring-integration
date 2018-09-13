@@ -257,6 +257,7 @@ public class ReactiveStreamsTests {
 									.autoStartup(false)
 									.id("reactiveStreamsMessageSource"))
 					.split(String.class, p -> p.split(","))
+					.log()
 					.toReactivePublisher();
 		}
 
@@ -267,6 +268,7 @@ public class ReactiveStreamsTests {
 					.split(s -> s.delimiters(","))
 					.<String, Integer>transform(Integer::parseInt)
 					.channel(MessageChannels.queue())
+					.log()
 					.toReactivePublisher();
 		}
 
@@ -274,6 +276,7 @@ public class ReactiveStreamsTests {
 		public Publisher<Message<String>> singleChannelFlow() {
 			return IntegrationFlows
 					.from(MessageChannels.direct("singleChannel"))
+					.log()
 					.toReactivePublisher();
 		}
 
@@ -281,6 +284,7 @@ public class ReactiveStreamsTests {
 		public Publisher<Message<String>> fixedSubscriberChannelFlow() {
 			return IntegrationFlows
 					.from("fixedSubscriberChannel", true)
+					.log()
 					.toReactivePublisher();
 		}
 

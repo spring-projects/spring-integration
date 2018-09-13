@@ -210,6 +210,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B channel(MessageChannel messageChannel) {
 		Assert.notNull(messageChannel, "'messageChannel' must not be null");
+		this.implicitChannel = false;
 		if (this.currentMessageChannel != null) {
 			bridge();
 		}
@@ -431,9 +432,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B wireTap(WireTapSpec wireTapSpec) {
 		WireTap interceptor = wireTapSpec.get();
-		if (this.currentMessageChannel == null || !(this.currentMessageChannel instanceof ChannelInterceptorAware)) {
-			this.implicitChannel = true;
+		if (!(this.currentMessageChannel instanceof ChannelInterceptorAware)) {
 			channel(new DirectChannel());
+			this.implicitChannel = true;
 		}
 		addComponent(wireTapSpec);
 		((ChannelInterceptorAware) this.currentMessageChannel).addInterceptor(interceptor);
@@ -2918,6 +2919,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 				channel(reactiveChannel);
 			}
 		}
+
+		this.implicitChannel = false;
 
 		get();
 
