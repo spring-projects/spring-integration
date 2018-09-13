@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -413,6 +414,7 @@ public class DelayHandlerTests {
 	}
 
 	@Test //INT-1132
+	@Ignore("Time-sensitive: no guarantee that message won't be released in between 'sleep' and 'destroy'")
 	public void testReschedulePersistedMessagesOnStartup() throws Exception {
 		MessageGroupStore messageGroupStore = new SimpleMessageStore();
 		this.delayHandler.setDefaultDelay(2000);
