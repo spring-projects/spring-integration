@@ -161,5 +161,7 @@ See https://github.com/spring-projects/spring-integration-extensions/tree/master
 
 The `JmsSendingMessageHandler` now provides `deliveryModeExpression` and `timeToLiveExpression` options to determine respective QoS options for JMS message to send at runtime.
 The `DefaultJmsHeaderMapper` now allows to map inbound `JMSDeliveryMode` and `JMSExpiration` properties via setting to `true` respective `setMapInboundDeliveryMode()` and `setMapInboundExpiration()` options.
+When a `JmsMessageDrivenEndpoint` or `JmsInboundGateway` is stopped, the associated listener container is now shut down; this closes its shared connection and any consumers.
+You can configure the endpoints to revert to the previous behavior.
 
 See <<jms>> for more information.

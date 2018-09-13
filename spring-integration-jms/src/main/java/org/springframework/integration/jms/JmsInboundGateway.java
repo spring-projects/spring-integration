@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,18 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Dispos
 	public void setRequestChannel(MessageChannel requestChannel) {
 		super.setRequestChannel(requestChannel);
 		this.endpoint.getListener().setRequestChannel(requestChannel);
+	}
+
+	/**
+	 * Set to false to prevent listener container shutdown when the endpoint is stopped.
+	 * Then, if so configured, any cached consumer(s) in the container will remain.
+	 * Otherwise the shared connection and will be closed and the listener invokers shut
+	 * down; this behavior is new starting with version 5.1. Default: true.
+	 * @param shutdownContainerOnStop false to not shutdown.
+	 * @since 5.1
+	 */
+	public void setShutdownContainerOnStop(boolean shutdownContainerOnStop) {
+		this.endpoint.setShutdownContainerOnStop(shutdownContainerOnStop);
 	}
 
 	@Override
