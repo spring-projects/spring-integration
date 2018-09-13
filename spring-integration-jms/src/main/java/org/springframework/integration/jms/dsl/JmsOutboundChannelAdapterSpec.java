@@ -141,6 +141,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	/**
 	 * Specify a {@link Function} to resolve a {@code deliveryMode} for JMS message to send.
 	 * @param deliveryModeFunction to use
+	 * @param <P> the expected payload type.
 	 * @return the spec
 	 * @since 5.1
 	 * @see FunctionExpression
@@ -164,6 +165,7 @@ public class JmsOutboundChannelAdapterSpec<S extends JmsOutboundChannelAdapterSp
 	/**
 	 * Specify a {@link Function} to resolve a {@code timeToLive} for JMS message to send.
 	 * @param timeToLiveFunction to use
+	 * @param <P> the expected payload type.
 	 * @return the spec
 	 * @see FunctionExpression
 	 * @since 5.1
