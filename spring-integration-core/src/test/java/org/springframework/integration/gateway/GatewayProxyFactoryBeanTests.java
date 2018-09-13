@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -46,7 +47,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.GatewayHeader;
@@ -68,6 +68,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class GatewayProxyFactoryBeanTests {
 
@@ -91,13 +92,16 @@ public class GatewayProxyFactoryBeanTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GenericConversionService cs = new DefaultConversionService();
-		Converter<String, byte[]> stringToByteConverter = new Converter<String, byte[]>() {
+		Converter<String, byte[]> stringToByteConverter =
+				// Has to an interface (not lambda) to honor Mockito
+				new Converter<String, byte[]>() {
 
-			@Override
-			public byte[] convert(String source) {
-				return source.getBytes();
-			}
-		};
+					@Override
+					public byte[] convert(String source) {
+						return source.getBytes();
+					}
+
+				};
 		stringToByteConverter = spy(stringToByteConverter);
 		cs.addConverter(stringToByteConverter);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -134,7 +138,7 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testSolicitResponse() throws Exception {
 		QueueChannel replyChannel = new QueueChannel();
-		replyChannel.send(new GenericMessage<String>("foo"));
+		replyChannel.send(new GenericMessage<>("foo"));
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
@@ -169,7 +173,7 @@ public class GatewayProxyFactoryBeanTests {
 		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(() -> {
 			Message<?> input = requestChannel.receive();
-			GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "456");
+			GenericMessage<String> reply = new GenericMessage<>(input.getPayload() + "456");
 			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -229,7 +233,7 @@ public class GatewayProxyFactoryBeanTests {
 				latch.countDown();
 			});
 		}
-		latch.await(30, TimeUnit.SECONDS);
+		assertTrue(latch.await(30, TimeUnit.SECONDS));
 		for (int i = 0; i < numRequests; i++) {
 			assertEquals("test-" + i + "!!!", results[i]);
 		}
@@ -251,7 +255,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setBeanFactory(mock(BeanFactory.class));
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
-		String result = service.requestReplyWithMessageParameter(new GenericMessage<String>("foo"));
+		String result = service.requestReplyWithMessageParameter(new GenericMessage<>("foo"));
 		assertEquals("foobar", result);
 	}
 
@@ -275,7 +279,7 @@ public class GatewayProxyFactoryBeanTests {
 		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(() -> {
 			Message<?> input = requestChannel.receive();
-			GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
+			GenericMessage<String> reply = new GenericMessage<>(input.getPayload() + "bar");
 			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -345,7 +349,7 @@ public class GatewayProxyFactoryBeanTests {
 	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(() -> {
 			Message<?> input = requestChannel.receive();
-			GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
+			GenericMessage<String> reply = new GenericMessage<>(input.getPayload() + "bar");
 			((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 		}).start();
 	}
@@ -359,7 +363,7 @@ public class GatewayProxyFactoryBeanTests {
 		gpfb.setDefaultRequestChannel(drc);
 		gpfb.setDefaultReplyTimeout(0L);
 		GatewayMethodMetadata meta = new GatewayMethodMetadata();
-		meta.setHeaderExpressions(Collections.<String, Expression>singletonMap("foo", new LiteralExpression("bar")));
+		meta.setHeaderExpressions(Collections.singletonMap("foo", new LiteralExpression("bar")));
 		gpfb.setGlobalMethodMetadata(meta);
 		gpfb.afterPropertiesSet();
 		((TestEchoService) gpfb.getObject()).echo("foo");
@@ -385,7 +389,8 @@ public class GatewayProxyFactoryBeanTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+			assertThat(e
+					.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
 		}
 	}
 
@@ -401,7 +406,8 @@ public class GatewayProxyFactoryBeanTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+			assertThat(e
+					.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
 		}
 	}
 
@@ -417,7 +423,8 @@ public class GatewayProxyFactoryBeanTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(BeanInitializationException.class));
-			assertThat(e.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
+			assertThat(e
+					.getMessage(), containsString("Messaging Gateway cannot override 'id' and 'timestamp' read-only headers"));
 		}
 	}
 
@@ -480,6 +487,7 @@ public class GatewayProxyFactoryBeanTests {
 	interface TestEchoService {
 
 		Message<?> echo(String s);
+
 	}
 
 
@@ -487,17 +495,20 @@ public class GatewayProxyFactoryBeanTests {
 
 		@Gateway(headers = @GatewayHeader(name = MessageHeaders.ID, value = "id"))
 		Message<?> echo(String s);
+
 	}
 
 	interface HeadersParamService {
 
 		Message<?> echo(String s, @Header(MessageHeaders.TIMESTAMP) String foo);
+
 	}
 
 
 	interface TestExceptionThrowingInterface {
 
 		String throwCheckedException(String s) throws TestException;
+
 	}
 
 	interface InheritSuper {
@@ -530,6 +541,7 @@ public class GatewayProxyFactoryBeanTests {
 		public TestClient(TestService service) {
 			this.service = service;
 		}
+
 	}
 
 }
