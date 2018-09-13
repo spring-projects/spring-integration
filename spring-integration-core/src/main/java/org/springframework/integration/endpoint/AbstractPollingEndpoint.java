@@ -72,6 +72,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private Executor taskExecutor = new SyncTaskExecutor();
 
+	private boolean syncExecutor = true;
+
 	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
 	private Trigger trigger = new PeriodicTrigger(10);

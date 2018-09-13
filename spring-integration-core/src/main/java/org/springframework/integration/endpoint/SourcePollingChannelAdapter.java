@@ -30,7 +30,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.StaticMessageHeaderAccessor;
 import org.springframework.integration.acks.AckUtils;
 import org.springframework.integration.acks.AcknowledgmentCallback;
-import org.springframework.integration.aop.AbstractMessageSourceAdvice;
 import org.springframework.integration.aop.MessageSourceMutator;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.context.ExpressionCapable;
