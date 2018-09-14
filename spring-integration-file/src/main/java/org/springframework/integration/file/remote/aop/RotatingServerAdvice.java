@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * A smart poller advice that rotates across multiple remote servers/directories.
  *
  * @author Gary Russell
+ * @author Michael Forstner
  *
  * @since 5.0.7
  *
@@ -196,9 +197,9 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 
 		protected void configureSource(MessageSource<?> source) {
 			Assert.isTrue(source instanceof AbstractInboundFileSynchronizingMessageSource
-					|| source instanceof AbstractRemoteFileStreamingMessageSource,
-				"source must be an AbstractInboundFileSynchronizingMessageSource or a "
-				+ "AbstractRemoteFileStreamingMessageSource");
+							|| source instanceof AbstractRemoteFileStreamingMessageSource,
+					"source must be an AbstractInboundFileSynchronizingMessageSource or a "
+							+ "AbstractRemoteFileStreamingMessageSource");
 			if (!this.iterator.hasNext()) {
 				this.iterator = this.keyDirectories.iterator();
 			}
@@ -208,7 +209,7 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 			}
 			else {
 				((AbstractInboundFileSynchronizingMessageSource<?>) source).getSynchronizer()
-					.setRemoteDirectory(this.current.getDirectory());
+						.setRemoteDirectory(this.current.getDirectory());
 			}
 		}
 
@@ -219,18 +220,18 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 	 */
 	public static class KeyDirectory {
 
-		private final String key;
+		private final Object key;
 
 		private final String directory;
 
-		public KeyDirectory(String key, String directory) {
+		public KeyDirectory(Object key, String directory) {
 			Assert.notNull(key, "key cannot be null");
 			Assert.notNull(directory, "directory cannot be null");
 			this.key = key;
 			this.directory = directory;
 		}
 
-		public String getKey() {
+		public Object getKey() {
 			return this.key;
 		}
 
@@ -240,7 +241,7 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 
 		@Override
 		public String toString() {
-			return "KeyDirectory [key=" + this.key + ", directory=" + this.directory + "]";
+			return "KeyDirectory [key=" + this.key.toString() + ", directory=" + this.directory + "]";
 		}
 
 	}
