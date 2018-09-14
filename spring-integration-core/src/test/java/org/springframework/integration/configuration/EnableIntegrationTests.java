@@ -523,7 +523,7 @@ public class EnableIntegrationTests {
 		assertTrue(TestUtils.getPropertyValue(consumer, "autoStartup", Boolean.class));
 		assertEquals(23, TestUtils.getPropertyValue(consumer, "phase"));
 		assertSame(context.getBean("annInput1"), TestUtils.getPropertyValue(consumer, "inputChannel"));
-		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannelName"));
+		assertEquals("annOutput", TestUtils.getPropertyValue(consumer, "handler.outputChannel.beanName"));
 		assertSame(context.getBean("annAdvice1"), TestUtils.getPropertyValue(consumer,
 				"handler.adviceChain", List.class).get(0));
 		assertEquals(2000L, TestUtils.getPropertyValue(consumer, "trigger.period"));

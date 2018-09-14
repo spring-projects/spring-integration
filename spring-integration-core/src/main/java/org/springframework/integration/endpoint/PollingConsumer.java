@@ -21,8 +21,11 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
+import org.reactivestreams.Subscriber;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ExecutorChannelInterceptorAware;
+import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.router.MessageRouter;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -95,6 +98,12 @@ public class PollingConsumer extends AbstractPollingEndpoint implements Integrat
 	@Override
 	public MessageHandler getHandler() {
 		return this.handler;
+	}
+
+	@Override
+	protected boolean isReactive() {
+		return getOutputChannel() instanceof ReactiveStreamsSubscribableChannel &&
+				this.handler instanceof Subscriber;
 	}
 
 	@Override
