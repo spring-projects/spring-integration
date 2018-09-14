@@ -247,7 +247,7 @@ The following example shows how to declare a delegating session factory:
 IMPORTANT: When you use session caching (see <<ftp-session-caching>>), each of the delegates should be cached.
 You cannot cache the `DelegatingSessionFactory` itself.
 
-Starting with _version 5.0.7_, the `DelegatingSessionFactory` can be used in conjuction with a `RotatingServerAdvice` to poll multiple servers; see <<ftp-rotating-server-advice>>.
+Starting with _version 5.0.7_, the `DelegatingSessionFactory` can be used in conjunction with a `RotatingServerAdvice` to poll multiple servers; see <<ftp-rotating-server-advice>>.
 
 [[ftp-inbound]]
 === FTP Inbound Channel Adapter
