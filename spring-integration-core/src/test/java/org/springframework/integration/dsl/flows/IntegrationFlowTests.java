@@ -56,6 +56,7 @@ import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -481,6 +482,23 @@ public class IntegrationFlowTests {
 		assertEquals("dedicatedTaskScheduler-1", threadNameReference.get());
 	}
 
+	@Autowired
+	private MessageChannel flowWithNullChannelInput;
+
+	@Autowired
+	private NullChannel nullChannel;
+
+	@Test
+	public void testNullChannelInTheEndOfFlow() {
+		this.nullChannel.setCountsEnabled(true);
+
+		this.flowWithNullChannelInput.send(new GenericMessage<>("foo"));
+
+		assertEquals(1, this.nullChannel.getSendCount());
+
+		this.nullChannel.setCountsEnabled(false);
+	}
+
 	@MessagingGateway
 	public interface ControlBusGateway {
 
@@ -495,7 +513,7 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow supplierFlow() {
 			return IntegrationFlows.from(() -> "foo")
-					.<String, String>transform(p -> p.toUpperCase())
+					.<String, String>transform(String::toUpperCase)
 					.channel("suppliedChannel")
 					.get();
 		}
@@ -594,7 +612,7 @@ public class IntegrationFlowTests {
 					.channel("foo")
 					.fixedSubscriberChannel()
 					.<String, Integer>transform(Integer::parseInt)
-					.<Integer, Foo>transform(i -> new Foo(i))
+					.transform(Foo::new)
 					.transform(new PayloadSerializingTransformer(),
 							c -> c.autoStartup(false).id("payloadSerializingTransformer"))
 					.channel(MessageChannels.queue(new SimpleMessageStore(), "fooQueue"))
@@ -839,6 +857,12 @@ public class IntegrationFlowTests {
 		@Bean
 		public TaskScheduler dedicatedTaskScheduler() {
 			return new ThreadPoolTaskScheduler();
+		}
+
+		@Bean
+		public IntegrationFlow flowWithNullChannel() {
+			return IntegrationFlows.from("flowWithNullChannelInput")
+					.nullChannel();
 		}
 
 	}

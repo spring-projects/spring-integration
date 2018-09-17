@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.reactivestreams.Subscription;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannelReactiveUtils;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.router.MessageRouter;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
@@ -41,6 +42,7 @@ import reactor.core.publisher.BaseSubscriber;
 
 /**
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class ReactiveStreamsConsumer extends AbstractEndpoint implements IntegrationConsumer {
@@ -71,6 +73,11 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		this.inputChannel = inputChannel;
 		Assert.notNull(inputChannel, "'inputChannel' must not be null");
 		Assert.notNull(subscriber, "'subscriber' must not be null");
+
+		if (inputChannel instanceof NullChannel && logger.isWarnEnabled()) {
+			logger.warn("The consuming from the NullChannel does not have any effects: " +
+					"it doesn't forward messages sent to it. A NullChannel is the end of the flow.");
+		}
 
 		this.publisher = MessageChannelReactiveUtils.toPublisher(inputChannel);
 		this.subscriber = subscriber;
