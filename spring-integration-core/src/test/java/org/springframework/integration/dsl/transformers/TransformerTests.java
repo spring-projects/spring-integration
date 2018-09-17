@@ -196,7 +196,7 @@ public class TransformerTests {
 	private PollableChannel codecReplyChannel;
 
 	@Test
-	public void testCodec() throws Exception {
+	public void testCodec() {
 		this.encodingFlowInput.send(new GenericMessage<>("bar"));
 		Message<?> receive = this.codecReplyChannel.receive(10000);
 		assertNotNull(receive);
@@ -244,6 +244,34 @@ public class TransformerTests {
 
 		assertNotNull(this.idempotentDiscardChannel.receive(10000));
 		assertNotNull(this.adviceChannel.receive(10000));
+	}
+
+	@Autowired
+	@Qualifier("convertFlow.input")
+	private MessageChannel convertFlowInput;
+
+	@Test
+	public void testConvertOperator() {
+		QueueChannel replyChannel = new QueueChannel();
+		Date date = new Date();
+		this.convertFlowInput.send(
+				MessageBuilder.withPayload("{\"name\": \"Baz\",\"date\": " + date.getTime() + "}")
+						.setHeader(MessageHeaders.CONTENT_TYPE, "application/json")
+						.setReplyChannel(replyChannel)
+						.build());
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertNotNull(receive);
+
+		Object payload = receive.getPayload();
+
+		assertThat(payload, instanceOf(TestPojo.class));
+
+		TestPojo testPojo = (TestPojo) payload;
+
+		assertEquals("Baz", testPojo.getName());
+		assertEquals(date, testPojo.getDate());
 	}
 
 	@Configuration
@@ -413,6 +441,12 @@ public class TransformerTests {
 			return new SomeService();
 		}
 
+		@Bean
+		public IntegrationFlow convertFlow() {
+			return f -> f
+					.convert(TestPojo.class);
+		}
+
 	}
 
 	private static final class TestPojo {
@@ -420,6 +454,9 @@ public class TransformerTests {
 		private String name;
 
 		private Date date;
+
+		private TestPojo() {
+		}
 
 		private TestPojo(String name) {
 			this.name = name;
@@ -448,7 +485,7 @@ public class TransformerTests {
 	public static class MyCodec implements Codec {
 
 		@Override
-		public void encode(Object object, OutputStream outputStream) throws IOException {
+		public void encode(Object object, OutputStream outputStream) {
 		}
 
 		@Override
@@ -457,13 +494,13 @@ public class TransformerTests {
 		}
 
 		@Override
-		public <T> T decode(InputStream inputStream, Class<T> type) throws IOException {
+		public <T> T decode(InputStream inputStream, Class<T> type) {
 			return null;
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T decode(byte[] bytes, Class<T> type) throws IOException {
+		public <T> T decode(byte[] bytes, Class<T> type) {
 			return (T) (type.equals(String.class) ? new String(bytes) :
 					type.equals(Integer.class) ? Integer.valueOf(42) : Integer.valueOf(43));
 		}

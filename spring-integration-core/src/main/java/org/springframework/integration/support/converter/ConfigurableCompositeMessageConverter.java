@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
@@ -78,7 +79,10 @@ public class ConfigurableCompositeMessageConverter extends CompositeMessageConve
 		List<MessageConverter> converters = new LinkedList<>();
 
 		if (JacksonPresent.isJackson2Present()) {
-			converters.add(new MappingJackson2MessageConverter());
+			MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
+			mappingJackson2MessageConverter.setStrictContentTypeMatch(true);
+			mappingJackson2MessageConverter.setObjectMapper(new Jackson2JsonObjectMapper().getObjectMapper());
+			converters.add(mappingJackson2MessageConverter);
 		}
 		converters.add(new ByteArrayMessageConverter());
 		converters.add(new ObjectStringMessageConverter());

@@ -588,6 +588,21 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
+	 * Populate the {@link MessageTransformingHandler} instance
+	 * for the provided {@code payloadType} to convert at runtime.
+	 * @param payloadType the {@link Class} for expected payload type.
+	 * @param <P> the payload type - 'convert to'.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 5.1
+	 * @see MethodInvokingTransformer
+	 * @see LambdaMessageProcessor
+	 */
+	public <P> B convert(Class<P> payloadType) {
+		return transform(payloadType, p -> p);
+	}
+
+
+	/**
 	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
 	 * for the specific {@code payloadType} to convert at runtime.
 	 * @param payloadType the {@link Class} for expected payload type.
@@ -599,7 +614,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see LambdaMessageProcessor
 	 */
 	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer) {
-		return this.transform(payloadType, genericTransformer, null);
+		return transform(payloadType, genericTransformer, null);
 	}
 
 	/**
@@ -617,6 +632,25 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		return this.transform(null, genericTransformer, endpointConfigurer);
+	}
+
+	/**
+	 * Populate the {@link MessageTransformingHandler} instance
+	 * for the provided {@code payloadType} to convert at runtime.
+	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * @param payloadType the {@link Class} for expected payload type.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param <P> the payload type - 'transform to'.
+	 * @return the current {@link IntegrationFlowDefinition}.
+	 * @since 5.1
+	 * @see MethodInvokingTransformer
+	 * @see LambdaMessageProcessor
+	 * @see GenericEndpointSpec
+	 */
+	public <P> B convert(Class<P> payloadType,
+			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
+
+		return transform(payloadType, p -> p, endpointConfigurer);
 	}
 
 	/**
