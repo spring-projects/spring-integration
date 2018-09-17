@@ -89,6 +89,18 @@ public class ReactiveStreamsTests {
 	@Autowired
 	private IntegrationFlowContext integrationFlowContext;
 
+	@Autowired
+	private MessageChannel singleChannel;
+
+	@Autowired
+	private Publisher<Message<String>> singleChannelFlow;
+
+	@Autowired
+	private MessageChannel fixedSubscriberChannel;
+
+	@Autowired
+	private Publisher<Message<String>> fixedSubscriberChannelFlow;
+
 	@Test
 	public void testReactiveFlow() throws Exception {
 		List<String> results = new ArrayList<>();
@@ -207,6 +219,30 @@ public class ReactiveStreamsTests {
 		integrationFlowRegistration.destroy();
 	}
 
+	@Test
+	public void singleChannelFlowTest() throws InterruptedException {
+		CountDownLatch latch = new CountDownLatch(1);
+		Flux.from(this.singleChannelFlow)
+				.map(m -> m.getPayload().toUpperCase())
+				.subscribe(p -> {
+					latch.countDown();
+				});
+		this.singleChannel.send(new GenericMessage<>("foo"));
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+	}
+
+	@Test
+	public void fixedSubscriberChannelFlowTest() throws InterruptedException {
+		CountDownLatch latch = new CountDownLatch(1);
+		Flux.from(this.fixedSubscriberChannelFlow)
+				.map(m -> m.getPayload().toUpperCase())
+				.subscribe(p -> {
+					latch.countDown();
+				});
+		this.fixedSubscriberChannel.send(new GenericMessage<>("bar"));
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+	}
+
 	@Configuration
 	@EnableIntegration
 	public static class ContextConfiguration {
@@ -221,6 +257,7 @@ public class ReactiveStreamsTests {
 									.autoStartup(false)
 									.id("reactiveStreamsMessageSource"))
 					.split(String.class, p -> p.split(","))
+					.log()
 					.toReactivePublisher();
 		}
 
@@ -231,6 +268,23 @@ public class ReactiveStreamsTests {
 					.split(s -> s.delimiters(","))
 					.<String, Integer>transform(Integer::parseInt)
 					.channel(MessageChannels.queue())
+					.log()
+					.toReactivePublisher();
+		}
+
+		@Bean
+		public Publisher<Message<String>> singleChannelFlow() {
+			return IntegrationFlows
+					.from(MessageChannels.direct("singleChannel"))
+					.log()
+					.toReactivePublisher();
+		}
+
+		@Bean
+		public Publisher<Message<String>> fixedSubscriberChannelFlow() {
+			return IntegrationFlows
+					.from("fixedSubscriberChannel", true)
+					.log()
 					.toReactivePublisher();
 		}
 
