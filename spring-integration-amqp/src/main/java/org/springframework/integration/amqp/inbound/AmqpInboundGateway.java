@@ -296,6 +296,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			}
 			catch (RuntimeException e) {
 				if (getErrorChannel() != null) {
+					setAttributesIfNecessary(message, null);
 					AmqpInboundGateway.this.messagingTemplate.send(getErrorChannel(), buildErrorMessage(null,
 							new ListenerExecutionFailedException("Message conversion failed", e, message)));
 				}

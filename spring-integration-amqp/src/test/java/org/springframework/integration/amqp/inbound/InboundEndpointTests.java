@@ -248,9 +248,12 @@ public class InboundEndpointTests {
 
 		});
 		adapter.afterPropertiesSet();
-		((ChannelAwareMessageListener) container.getMessageListener()).onMessage(null, null);
+		((ChannelAwareMessageListener) container.getMessageListener())
+				.onMessage(mock(org.springframework.amqp.core.Message.class), null);
 		assertNull(outputChannel.receive(0));
-		assertNotNull(errorChannel.receive(0));
+		Message<?> received = errorChannel.receive(0);
+		assertNotNull(received);
+		assertNotNull(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
 	}
 
 	@Test
@@ -276,14 +279,17 @@ public class InboundEndpointTests {
 
 			@Override
 			public Object fromMessage(org.springframework.amqp.core.Message message) throws MessageConversionException {
-				return null;
+				throw new MessageConversionException("intended");
 			}
 
 		});
 		adapter.afterPropertiesSet();
-		((ChannelAwareMessageListener) container.getMessageListener()).onMessage(null, null);
+		((ChannelAwareMessageListener) container.getMessageListener())
+				.onMessage(mock(org.springframework.amqp.core.Message.class), null);
 		assertNull(outputChannel.receive(0));
-		assertNotNull(errorChannel.receive(0));
+		Message<?> received = errorChannel.receive(0);
+		assertNotNull(received);
+		assertNotNull(received.getHeaders().get(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE));
 	}
 
 	@Test
