@@ -42,9 +42,7 @@ import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.retry.RecoveryCallback;
-import org.springframework.retry.RetryCallback;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryListener;
+import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -190,9 +188,6 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					+ "send an error message when retries are exhausted");
 		}
 		Listener messageListener = new Listener();
-		if (this.retryTemplate != null) {
-			this.retryTemplate.registerListener(messageListener);
-		}
 		this.messageListenerContainer.setMessageListener(messageListener);
 		this.messageListenerContainer.afterPropertiesSet();
 		if (!this.amqpTemplateExplicitlySet) {
@@ -232,7 +227,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 			attributesHolder.set(ErrorMessageUtils.getAttributeAccessor(null, null));
 		}
 		if (needAttributes) {
-			AttributeAccessor attributes = attributesHolder.get();
+			AttributeAccessor attributes = this.retryTemplate != null
+					? RetrySynchronizationManager.getContext()
+					: attributesHolder.get();
 			if (attributes != null) {
 				attributes.setAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY, message);
 				attributes.setAttribute(AmqpMessageHeaderErrorMessageStrategy.AMQP_RAW_MESSAGE, amqpMessage);
@@ -251,7 +248,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		}
 	}
 
-	protected class Listener implements ChannelAwareMessageListener, RetryListener {
+	protected class Listener implements ChannelAwareMessageListener {
 
 		@SuppressWarnings("unchecked")
 		@Override
@@ -360,26 +357,6 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					}
 				}
 			}
-		}
-
-		@Override
-		public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-			if (AmqpInboundGateway.this.recoveryCallback != null) {
-				attributesHolder.set(context);
-			}
-			return true;
-		}
-
-		@Override
-		public <T, E extends Throwable> void close(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-			attributesHolder.remove();
-		}
-
-		@Override
-		public <T, E extends Throwable> void onError(RetryContext context, RetryCallback<T, E> callback,
-				Throwable throwable) {
-			// Empty
 		}
 
 	}
