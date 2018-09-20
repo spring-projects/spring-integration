@@ -36,6 +36,19 @@ import org.springframework.util.Assert;
  *
  */
 public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
+	/**
+	* @inheritDoc
+	*/
+	public ChainFileListFilter() {
+    	super();
+    }
+
+	/**
+	* @inheritDoc
+	*/
+    public ChainFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
+        super(fileFilters);
+    }
 
 	@Override
 	public List<F> filterFiles(F[] files) {
