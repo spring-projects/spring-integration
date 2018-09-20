@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.SocketFactory;
 
+import org.apache.log4j.Level;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -44,6 +45,7 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSe
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.ip.util.TestingUtilities;
+import org.springframework.integration.test.rule.Log4jLevelAdjuster;
 import org.springframework.integration.test.support.LongRunningIntegrationTest;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
@@ -55,6 +57,10 @@ import org.springframework.messaging.support.ErrorMessage;
  * @since 2.0
  */
 public class TcpNioConnectionReadTests {
+
+	@Rule
+	public final Log4jLevelAdjuster adjuster = new Log4jLevelAdjuster(Level.TRACE,
+			"org.springframework.integration.ip.tcp");
 
 	@Rule
 	public LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
