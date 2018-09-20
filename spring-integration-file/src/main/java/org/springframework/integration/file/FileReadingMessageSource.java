@@ -334,8 +334,10 @@ public class FileReadingMessageSource extends AbstractMessageSource<File>
 			this.scanner = new WatchServiceDirectoryScanner();
 		}
 
+		// Check that the local filter and locker options are _NOT_ set if an external scanner has been set.
+		// The external scanner is responsible for the filter and locker options in that case.
 		Assert.state(!(this.scannerExplicitlySet && (this.filter != null || this.locker != null)),
-				"The 'filter' and 'locker' options must be present on the provided external 'scanner': "
+				"When using an external scanner the local 'filter' and 'locker' options should not be used. Instead, set these options on the external DirectoryScanner: "
 						+ this.scanner);
 		if (this.filter != null) {
 			this.scanner.setFilter(this.filter);
