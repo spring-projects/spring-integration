@@ -19,6 +19,7 @@ package org.springframework.integration.file.filters;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collection;
 
 import org.springframework.util.Assert;
 
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
- *
+ * @author Cengis KOCAURLU
  * @since 4.3.7
  *
  */
@@ -40,15 +41,15 @@ public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 	* @inheritDoc
 	*/
 	public ChainFileListFilter() {
-    	super();
-    }
+  	super();
+  }
 
 	/**
 	* @inheritDoc
 	*/
-    public ChainFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
-        super(fileFilters);
-    }
+  public ChainFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
+    super(fileFilters);
+  }
 
 	@Override
 	public List<F> filterFiles(F[] files) {
