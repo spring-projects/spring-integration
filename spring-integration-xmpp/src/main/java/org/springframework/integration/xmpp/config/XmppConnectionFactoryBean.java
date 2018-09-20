@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 							.setPort(this.port);
 
 			if (StringUtils.hasText(this.resource)) {
-							builder.setResource(this.resource);
+				builder.setResource(this.resource);
 			}
 
 			if (StringUtils.hasText(this.serviceName)) {
@@ -192,7 +192,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 			}
 			catch (Exception e) {
 				throw new BeanInitializationException("failed to connect to XMPP service for "
-						+ connection.getServiceName(), e);
+						+ connection.getXMPPServiceDomain(), e);
 			}
 		}
 	}
@@ -229,26 +229,10 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	}
 
 
-	@SuppressWarnings("deprecation")
 	private class LoggingConnectionListener implements ConnectionListener {
 
 		LoggingConnectionListener() {
 			super();
-		}
-
-		@Override
-		public void reconnectionSuccessful() {
-			logger.debug("Reconnection successful");
-		}
-
-		@Override
-		public void reconnectionFailed(Exception e) {
-			logger.debug("Reconnection failed", e);
-		}
-
-		@Override
-		public void reconnectingIn(int seconds) {
-			logger.debug("Reconnecting in " + seconds + " seconds");
 		}
 
 		@Override

@@ -109,7 +109,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  */
 @ContextConfiguration(classes = StompIntegrationTests.ClientConfig.class)
 @RunWith(SpringRunner.class)
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class StompIntegrationTests {
 
 	@Value("#{server.serverContext}")
@@ -197,7 +197,6 @@ public class StompIntegrationTests {
 
 	@Test
 	public void sendMessageToBrokerAndReceiveReplyViaTopic() throws Exception {
-
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
 		headers.setSubscriptionId("subs1");
 		headers.setDestination("/topic/foo");
@@ -222,8 +221,7 @@ public class StompIntegrationTests {
 	}
 
 	@Test
-	public void sendSubscribeToControllerAndReceiveReply() throws Exception {
-
+	public void sendSubscribeToControllerAndReceiveReply() {
 		String destHeader = "/app/number";
 
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
@@ -284,7 +282,6 @@ public class StompIntegrationTests {
 
 	@Test
 	public void sendMessageToGateway() throws Exception {
-
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
 		headers.setSubscriptionId("subs1");
 		headers.setDestination("/user/queue/answer");
@@ -395,11 +392,12 @@ public class StompIntegrationTests {
 			producer.setOutputChannel(webSocketEvents());
 			return producer;
 		}
+
 	}
 
 	// WebSocket Server part
 
-	@Target({ ElementType.TYPE })
+	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
 	@Controller
 	private @interface IntegrationTestController {
@@ -429,6 +427,7 @@ public class StompIntegrationTests {
 		public String handleException(IllegalArgumentException ex) {
 			return "Got error: " + ex.getMessage();
 		}
+
 	}
 
 	@IntegrationTestController
@@ -444,6 +443,7 @@ public class StompIntegrationTests {
 		public int number() {
 			return 42;
 		}
+
 	}
 
 
