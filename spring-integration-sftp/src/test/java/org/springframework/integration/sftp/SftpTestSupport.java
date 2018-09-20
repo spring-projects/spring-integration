@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ package org.springframework.integration.sftp;
 import java.io.File;
 import java.util.Collections;
 
-import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
-import org.apache.sshd.server.Command;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
@@ -62,7 +60,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		server.setPasswordAuthenticator((username, password, session) -> true);
 		server.setPort(0);
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
-		server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystemFactory()));
+		server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
 		server.setFileSystemFactory(new VirtualFileSystemFactory(remoteTemporaryFolder.getRoot().toPath()));
 		server.start();
 		port = server.getPort();

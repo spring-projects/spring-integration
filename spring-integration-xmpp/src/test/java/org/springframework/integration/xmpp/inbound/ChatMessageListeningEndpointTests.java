@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,12 @@ import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.PacketParserUtils;
 import org.jivesoftware.smackx.gcm.packet.GcmPacketExtension;
 import org.junit.Test;
 import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.xmlpull.v1.XmlPullParser;
@@ -170,7 +172,8 @@ public class ChatMessageListeningEndpointTests {
 		Message smackMessage = new Message();
 		smackMessage.setBody("foo");
 
-		XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML().toString()));
+		XmlPullParser xmlPullParser =
+				PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML(null).toString()));
 		xmlPullParser.next();
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
@@ -196,7 +199,7 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.setPayloadExpression(null);
 
 		smackMessage = new Message();
-		xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML().toString()));
+		xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML(null).toString()));
 		xmlPullParser.next();
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
@@ -239,7 +242,8 @@ public class ChatMessageListeningEndpointTests {
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 
-		XmlPullParser xmlPullParser = PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML().toString()));
+		XmlPullParser xmlPullParser =
+				PacketParserUtils.newXmppParser(new StringReader(smackMessage.toXML(null).toString()));
 		xmlPullParser.next();
 		testXMPPConnection.parseAndProcessStanza(xmlPullParser);
 
@@ -253,8 +257,8 @@ public class ChatMessageListeningEndpointTests {
 
 	private static class TestXMPPConnection extends XMPPTCPConnection {
 
-		TestXMPPConnection() {
-			super(null);
+		TestXMPPConnection() throws XmppStringprepException {
+			super(XMPPTCPConnectionConfiguration.builder().setXmppDomain("/foo").build());
 		}
 
 		@Override

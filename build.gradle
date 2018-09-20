@@ -85,9 +85,9 @@ subprojects { subproject ->
 
 	ext {
 		activeMqVersion = '5.15.3'
-		apacheSshdVersion = '1.7.0'
-		aspectjVersion = '1.9.0'
-		assertjVersion = '3.9.1'
+		apacheSshdVersion = '2.0.0'
+		aspectjVersion = '1.9.1'
+		assertjVersion = '3.11.1'
 		assertkVersion = '0.12'
 		boonVersion = '0.34'
 		commonsDbcp2Version = '2.2.0'
@@ -98,49 +98,49 @@ subprojects { subproject ->
 		eclipseLinkVersion = '2.7.1'
 		ftpServerVersion = '1.1.1'
 		googleJsr305Version = '3.0.2'
-		groovyVersion = '2.4.15'
-		guavaVersion = '20.0'
+		groovyVersion = '2.5.2'
+		guavaVersion = '26.0-jre'
 		hamcrestVersion = '1.3'
-		hazelcastVersion = '3.8'
-		hibernateVersion = '5.2.16.Final'
+		hazelcastVersion = '3.10.5'
+		hibernateVersion = '5.3.6.Final'
 		hsqldbVersion = '2.4.0'
 		h2Version = '1.4.197'
-		jackson2Version = '2.9.5'
+		jackson2Version = '2.9.6'
 		javaxActivationVersion = '1.1.1'
-		javaxMailVersion = '1.6.1'
+		javaxMailVersion = '1.6.2'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
-		jpaApiVersion = '2.1.1'
+		jpaApiVersion = '2.2.1'
 		jrubyVersion = '9.1.16.0'
 		jschVersion = '0.1.54'
 		jsonpathVersion = '2.4.0'
 		junit4Version = '4.12'
-		junitJupiterVersion = '5.1.1'
-		junitPlatformVersion = '1.1.1'
+		junitJupiterVersion = '5.3.1'
+		junitPlatformVersion = '1.3.1'
 		jythonVersion = '2.5.3'
 		kryoShadedVersion = '3.0.3'
-		lettuceVersion = '5.0.3.RELEASE'
-		log4jVersion = '2.11.0'
+		lettuceVersion = '5.1.0.RELEASE'
+		log4jVersion = '2.11.1'
 		micrometerVersion = '1.0.6'
-		mockitoVersion = '2.18.0'
+		mockitoVersion = '2.22.0'
 		mysqlVersion = '8.0.11'
 		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.0.0'
-		reactorNettyVersion = '0.8.0.M2'
-		reactorVersion = '3.2.0.M4'
+		reactorNettyVersion = '0.8.0.RELEASE'
+		reactorVersion = '3.2.0.RELEASE'
 		romeToolsVersion = '1.9.0'
 		servletApiVersion = '4.0.0'
-		smackVersion = '4.2.3'
-		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.0.M2'
-		springDataJpaVersion = '2.1.0.RC2'
-		springDataMongoVersion = '2.1.0.RC2'
-		springDataRedisVersion = '2.1.0.RC2'
-		springGemfireVersion = '2.1.0.RC2'
-		springSecurityVersion = '5.1.0.RC1'
+		smackVersion = '4.3.0'
+		springAmqpVersion = project.hasProperty('springAmqpVersion') ? project.springAmqpVersion : '2.1.0.BUILD-SNAPSHOT'
+		springDataJpaVersion = '2.1.0.BUILD-SNAPSHOT'
+		springDataMongoVersion = '2.1.0.BUILD-SNAPSHOT'
+		springDataRedisVersion = '2.1.0.BUILD-SNAPSHOT'
+		springGemfireVersion = '2.1.0.BUILD-SNAPSHOT'
+		springSecurityVersion = '5.1.0.BUILD-SNAPSHOT'
 		springRetryVersion = '1.2.2.RELEASE'
-		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.0.RC2'
-		springWsVersion = '3.0.2.RELEASE'
-		tomcatVersion = "9.0.7"
+		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.0.BUILD-SNAPSHOT'
+		springWsVersion = '3.0.3.RELEASE'
+		tomcatVersion = "9.0.12"
 		xmlUnitVersion = '1.6'
 		xstreamVersion = '1.4.10'
 	}
@@ -152,7 +152,7 @@ subprojects { subproject ->
 	}
 
 	jacoco {
-		toolVersion = "0.7.9"
+		toolVersion = "0.8.2"
 	}
 
 	// dependencies that are common across all java projects
@@ -411,6 +411,8 @@ project('spring-integration-groovy') {
 		compile "org.springframework:spring-context-support:$springVersion"
 
 		testCompile "org.springframework:spring-web:$springVersion"
+
+		testRuntime "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
 	}
 }
 
@@ -423,8 +425,12 @@ project('spring-integration-http') {
 		compile ("com.rometools:rome:$romeToolsVersion", optional)
 
 		testCompile project(":spring-integration-security")
-		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion")
-		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion")
+		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
+		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
 	}
 }
 
@@ -569,9 +575,13 @@ project('spring-integration-security') {
 	description = 'Spring Integration Security Support'
 	dependencies {
 		compile project(":spring-integration-core")
-		compile("org.springframework.security:spring-security-core:$springSecurityVersion")
+		compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
 
-		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion")
+		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
 	}
 }
 
@@ -585,6 +595,7 @@ project('spring-integration-sftp') {
 		compile("javax.activation:activation:$javaxActivationVersion", optional)
 
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
+		testCompile "org.apache.sshd:sshd-sftp:$apacheSshdVersion"
 		testCompile project(":spring-integration-file").sourceSets.test.output
 	}
 }
@@ -637,8 +648,12 @@ project('spring-integration-webflux') {
 		compile ("io.projectreactor.netty:reactor-netty:$reactorNettyVersion" , optional)
 
 		testCompile "org.springframework:spring-webmvc:$springVersion"
-		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion")
-		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion")
+		testCompile ("org.springframework.security:spring-security-config:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
+		testCompile ("org.springframework.security:spring-security-test:$springSecurityVersion") {
+			exclude group: 'org.springframework'
+		}
 		testCompile "io.projectreactor:reactor-test:$reactorVersion"
 	}
 }

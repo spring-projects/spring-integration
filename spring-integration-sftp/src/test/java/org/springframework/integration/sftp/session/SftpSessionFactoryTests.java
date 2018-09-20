@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Collections;
 
-import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.server.Command;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
@@ -135,7 +133,8 @@ public class SftpSessionFactoryTests {
 			fail("expected Exception");
 		}
 		catch (IllegalStateException e) {
-			assertThat(e.getMessage(), startsWith("When a 'UserInfo' is provided, 'privateKeyPassphrase' is not allowed"));
+			assertThat(e
+					.getMessage(), startsWith("When a 'UserInfo' is provided, 'privateKeyPassphrase' is not allowed"));
 		}
 		f.setUserInfo(null);
 		assertEquals("foo", userInfo.getPassword());
@@ -213,7 +212,7 @@ public class SftpSessionFactoryTests {
 	private DefaultSftpSessionFactory createServerAndClient(SshServer server) throws IOException {
 		server.setPublickeyAuthenticator((username, key, session) -> true);
 		server.setPort(0);
-		server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystemFactory()));
+		server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
 		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
 		server.start();
 
