@@ -38,14 +38,14 @@ import org.springframework.util.Assert;
  */
 public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 	/**
-	* @inheritDoc
+	* {@inheritDoc}
 	*/
 	public ChainFileListFilter() {
 		super();
 	}
 
 	/**
-	* @inheritDoc
+	* {@inheritDoc}
 	*/
 	public ChainFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
 		super(fileFilters);
