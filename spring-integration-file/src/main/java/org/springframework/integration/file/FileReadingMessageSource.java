@@ -67,6 +67,11 @@ import org.springframework.util.Assert;
  * a known suffix), composed with the default {@link AcceptOnceFileListFilter}
  * would allow for this.
  * <p>
+ * If a external {@link DirectoryScanner} is used, then the {@link FileLocker}
+ * and {@link FileListFilter} objects should be set on the external
+ * {@link DirectoryScanner}, not the instance of FileReadingMessageSource. An
+ * {@link IllegalStateException} will result otherwise.
+ * <p>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in
  * a {@link PriorityBlockingQueue}. This does not provide the same guarantees as
  * a {@link ResequencingMessageGroupProcessor}, but in cases where writing files
