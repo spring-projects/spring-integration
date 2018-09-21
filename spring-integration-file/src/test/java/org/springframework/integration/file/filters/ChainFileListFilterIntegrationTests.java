@@ -26,12 +26,13 @@ import org.junit.Test;
 
 /**
  * @author Aaron Grant
+ * @author Cengis Kocaurlu
  *
  * @since 4.3.8
  */
 public class ChainFileListFilterIntegrationTests {
 
-	public static final String PATTERN_ANY_TEXT_FILES = "*.txt";
+	private static final String PATTERN_ANY_TEXT_FILES = "*.txt";
 
 	private File[] noFiles = new File[0];
 
