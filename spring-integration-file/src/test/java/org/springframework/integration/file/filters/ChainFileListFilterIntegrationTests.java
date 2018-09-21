@@ -20,20 +20,24 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
 
 /**
  * @author Aaron Grant
+ * @author Cengis Kocaurlu
  *
  * @since 4.3.8
  */
 public class ChainFileListFilterIntegrationTests {
 
+	private static final String PATTERN_ANY_TEXT_FILES = "*.txt";
+
 	private File[] noFiles = new File[0];
 
-	private File[] oneFile = new File[] { new MockOldFile("file.txt") };
+	private File[] oneFile = new File[]{new MockOldFile("file.txt")};
 
 	@Test
 	public void singleModifiedFilterNoFiles() throws IOException {
@@ -47,7 +51,7 @@ public class ChainFileListFilterIntegrationTests {
 	@Test
 	public void singlePatternFilter() throws IOException {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
-			chain.addFilter(new SimplePatternFileListFilter("*.txt"));
+			chain.addFilter(new SimplePatternFileListFilter(PATTERN_ANY_TEXT_FILES));
 			List<File> result = chain.filterFiles(oneFile);
 			assertEquals(1, result.size());
 		}
@@ -65,7 +69,7 @@ public class ChainFileListFilterIntegrationTests {
 	@Test
 	public void patternThenModifiedFilters() throws IOException {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
-			chain.addFilter(new SimplePatternFileListFilter("*.txt"));
+			chain.addFilter(new SimplePatternFileListFilter(PATTERN_ANY_TEXT_FILES));
 			chain.addFilter(new LastModifiedFileListFilter());
 			List<File> result = chain.filterFiles(oneFile);
 			assertEquals(1, result.size());
@@ -76,7 +80,16 @@ public class ChainFileListFilterIntegrationTests {
 	public void modifiedThenPatternFilters() throws IOException {
 		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>()) {
 			chain.addFilter(new LastModifiedFileListFilter());
-			chain.addFilter(new SimplePatternFileListFilter("*.txt"));
+			chain.addFilter(new SimplePatternFileListFilter(PATTERN_ANY_TEXT_FILES));
+			List<File> result = chain.filterFiles(oneFile);
+			assertEquals(1, result.size());
+		}
+	}
+
+	//https://github.com/spring-projects/spring-integration/issues/2569
+	@Test
+	public void initializeFilterByConstructor() throws IOException {
+		try (ChainFileListFilter<File> chain = new ChainFileListFilter<>(Arrays.asList(new SimplePatternFileListFilter(PATTERN_ANY_TEXT_FILES)))) {
 			List<File> result = chain.filterFiles(oneFile);
 			assertEquals(1, result.size());
 		}

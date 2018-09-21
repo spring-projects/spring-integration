@@ -18,6 +18,7 @@ package org.springframework.integration.file.filters;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.util.Assert;
@@ -31,18 +32,27 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Cengis Kocaurlu
  *
  * @since 4.3.7
  *
  */
 public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 
+	public ChainFileListFilter() {
+		super();
+	}
+
+	public ChainFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
+		super(fileFilters);
+	}
+
 	@Override
 	public List<F> filterFiles(F[] files) {
 		Assert.notNull(files, "'files' should not be null");
 		List<F> leftOver = Arrays.asList(files);
 		for (FileListFilter<F> fileFilter : this.fileFilters) {
-			if (leftOver.size() == 0) {
+			if (leftOver.isEmpty()) {
 				break;
 			}
 			@SuppressWarnings("unchecked")
