@@ -52,7 +52,7 @@ public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
 		Assert.notNull(files, "'files' should not be null");
 		List<F> leftOver = Arrays.asList(files);
 		for (FileListFilter<F> fileFilter : this.fileFilters) {
-			if (leftOver.size() == 0) {
+			if (leftOver.isEmpty()) {
 				break;
 			}
 			@SuppressWarnings("unchecked")
