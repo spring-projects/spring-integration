@@ -32,22 +32,17 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Gary Russell
- * @author Cengis KOCAURLU
+ * @author Cengis Kocaurlu
  *
  * @since 4.3.7
  *
  */
 public class ChainFileListFilter<F> extends CompositeFileListFilter<F> {
-	/**
-	* {@inheritDoc}
-	*/
+
 	public ChainFileListFilter() {
 		super();
 	}
 
-	/**
-	* {@inheritDoc}
-	*/
 	public ChainFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
 		super(fileFilters);
 	}
