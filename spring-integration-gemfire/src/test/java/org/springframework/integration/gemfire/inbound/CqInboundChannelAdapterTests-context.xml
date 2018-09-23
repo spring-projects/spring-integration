@@ -7,7 +7,7 @@
 	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
-		http://www.springframework.org/schema/geode http://www.springframework.org/schema/gemfire/spring-geode.xsd
+		http://www.springframework.org/schema/geode http://www.springframework.org/schema/geode/spring-geode.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
