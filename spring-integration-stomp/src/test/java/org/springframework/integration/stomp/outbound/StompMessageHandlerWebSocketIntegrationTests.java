@@ -32,10 +32,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -56,8 +53,7 @@ import org.springframework.integration.stomp.event.StompExceptionEvent;
 import org.springframework.integration.stomp.event.StompIntegrationEvent;
 import org.springframework.integration.stomp.event.StompReceiptEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
-import org.springframework.integration.test.rule.Log4j2LevelAdjuster;
-import org.springframework.integration.test.support.LongRunningIntegrationTest;
+import org.springframework.integration.test.condition.LongRunningTest;
 import org.springframework.integration.websocket.TomcatWebSocketTestServer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -75,8 +71,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -95,18 +90,10 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
  *
  * @since 4.2
  */
-@ContextConfiguration(classes = StompMessageHandlerWebSocketIntegrationTests.ContextConfiguration.class)
-@RunWith(SpringJUnit4ClassRunner.class)
+@SpringJUnitConfig(StompMessageHandlerWebSocketIntegrationTests.ContextConfiguration.class)
+@LongRunningTest
 @DirtiesContext
 public class StompMessageHandlerWebSocketIntegrationTests {
-
-	@ClassRule
-	public static LongRunningIntegrationTest longTests = new LongRunningIntegrationTest();
-
-	@Rule
-	public Log4j2LevelAdjuster adjuster =
-			Log4j2LevelAdjuster.trace()
-					.categories("org.springframework", "org.springframework.integration.stomp");
 
 	@Value("#{server.serverContext}")
 	private ApplicationContext serverContext;
