@@ -168,11 +168,17 @@ The `org.springframework.integration.test.support` package contains various abst
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/AbstractRequestResponseScenarioTests.html[`AbstractRequestResponseScenarioTests`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/AbstractResponseValidator.html[`AbstractResponseValidator`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/LogAdjustingTestSupport.html[`LogAdjustingTestSupport`] (Deprecated)
-* https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/LongRunningIntegrationTest.html[`LongRunningIntegrationTest`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/MessageValidator.html[`MessageValidator`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/PayloadValidator.html[`PayloadValidator`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/RequestResponseScenario.html[`RequestResponseScenario`]
 * https://docs.spring.io/spring-integration/api/org/springframework/integration/test/support/SingleRequestResponseScenarioTests.html[`SingleRequestResponseScenarioTests`]
+
+[[test-junit-rules]]
+==== JUnit Rules and Conditions
+
+The `LongRunningIntegrationTest` JUnit 4 test rule is present to indicate if test should be run if `RUN_LONG_INTEGRATION_TESTS` environment or system property is set to `true`.
+Otherwise it is skipped.
+For the same reason since version 5.1, a `@LongRunningTest` conditional annotation is provided for JUnit 5 tests.
 
 ==== Hamcrest and Mockito Matchers
 
@@ -219,6 +225,8 @@ when(channel.send(messageWithHeaderEntry(SOME_HEADER_KEY, is(instanceOf(Short.cl
 assertThat(channel.send(message), is(false));
 ----
 ====
+
+
 
 [[test-context]]
 === Spring Integration and the Test Context

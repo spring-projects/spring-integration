@@ -33,7 +33,7 @@ import org.junit.jupiter.api.condition.EnabledIf;
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@EnabledIf(value = LongRunningTest.LONG_RUNNING_SCRIPT)
+@EnabledIf(LongRunningTest.LONG_RUNNING_SCRIPT)
 public @interface LongRunningTest {
 
 	String LONG_RUNNING_SCRIPT =
