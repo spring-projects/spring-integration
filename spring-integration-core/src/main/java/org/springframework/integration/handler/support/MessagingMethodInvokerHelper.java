@@ -678,7 +678,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private Map<String, Map<Class<?>, HandlerMethod>> findHandlerMethodsForTarget(final Object targetObject,
-			final Class<? extends Annotation> annotationType, String methodNameToUse, final boolean requiresReply) {
+			final Class<? extends Annotation> annotationType, final String methodNameToUse,
+			final boolean requiresReply) {
 
 		Map<String, Map<Class<?>, HandlerMethod>> handlerMethods = new HashMap<>();
 
@@ -694,14 +695,19 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		if (methodNameToUse == null) {
 			if (Function.class.isAssignableFrom(targetClass)) {
-				methodNameToUse = "apply";
+				methodName = "apply";
 			}
 			else if (Consumer.class.isAssignableFrom(targetClass)) {
-				methodNameToUse = "accept";
+				methodName = "accept";
+			}
+			else {
+				methodName = null;
 			}
 		}
+		else {
+			methodName = methodNameToUse;
+		}
 
-		methodName = methodNameToUse;
 
 		MethodFilter methodFilter = new UniqueMethodFilter(targetClass);
 		ReflectionUtils.doWithMethods(targetClass, method1 -> {
