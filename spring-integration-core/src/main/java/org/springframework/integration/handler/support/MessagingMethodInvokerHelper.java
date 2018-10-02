@@ -35,6 +35,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -676,7 +678,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private Map<String, Map<Class<?>, HandlerMethod>> findHandlerMethodsForTarget(final Object targetObject,
-			final Class<? extends Annotation> annotationType, final String methodName, final boolean requiresReply) {
+			final Class<? extends Annotation> annotationType, final String methodNameToUse,
+			final boolean requiresReply) {
 
 		Map<String, Map<Class<?>, HandlerMethod>> handlerMethods = new HashMap<>();
 
@@ -687,6 +690,25 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		final AtomicReference<Class<?>> ambiguousFallbackType = new AtomicReference<>();
 		final AtomicReference<Class<?>> ambiguousFallbackMessageGenericType = new AtomicReference<>();
 		final Class<?> targetClass = getTargetClass(targetObject);
+
+		final String methodName;
+
+		if (methodNameToUse == null) {
+			if (Function.class.isAssignableFrom(targetClass)) {
+				methodName = "apply";
+			}
+			else if (Consumer.class.isAssignableFrom(targetClass)) {
+				methodName = "accept";
+			}
+			else {
+				methodName = null;
+			}
+		}
+		else {
+			methodName = methodNameToUse;
+		}
+
+
 		MethodFilter methodFilter = new UniqueMethodFilter(targetClass);
 		ReflectionUtils.doWithMethods(targetClass, method1 -> {
 			boolean matchesAnnotation = false;
@@ -874,7 +896,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 			Method theMethod = targetMethod.get();
 			if (theMethod != null) {
-				theMethod = org.springframework.util.ClassUtils.getMostSpecificMethod(theMethod, targetObject.getClass());
+				theMethod = org.springframework.util.ClassUtils
+						.getMostSpecificMethod(theMethod, targetObject.getClass());
 				InvocableHandlerMethod invocableHandlerMethod =
 						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, theMethod);
 				HandlerMethod handlerMethod = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
@@ -1250,6 +1273,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 			this.exclusiveMethodParameter = methodParameter;
 		}
+
 	}
 
 	public static class ParametersWrapper {
