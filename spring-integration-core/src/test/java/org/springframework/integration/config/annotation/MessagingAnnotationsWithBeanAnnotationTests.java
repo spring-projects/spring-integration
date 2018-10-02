@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,19 @@ package org.springframework.integration.config.annotation;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -36,6 +39,7 @@ import javax.annotation.Resource;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,6 +70,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableMessageHistory;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
@@ -78,6 +83,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -86,6 +92,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ *
  * @since 4.0
  */
 @ContextConfiguration(classes = MessagingAnnotationsWithBeanAnnotationTests.ContextConfiguration.class)
@@ -125,14 +132,29 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 	@Autowired
 	private PollableChannel counterErrorChannel;
 
+	@Autowired
+	private MessageChannel functionServiceChannel;
+
+	@Autowired
+	private MessageChannel functionMessageServiceChannel;
+
+	@Autowired
+	private MessageChannel consumerServiceChannel;
+
+	@Autowired
+	private List<String> stringCollector;
+
+	@Autowired
+	private MessageChannel messageConsumerServiceChannel;
+
 	@Test
 	public void testMessagingAnnotationsFlow() {
-		Stream.of(this.sourcePollingChannelAdapters).forEach(a -> a.start());
+		Stream.of(this.sourcePollingChannelAdapters).forEach(AbstractEndpoint::start);
 		//this.sourcePollingChannelAdapter.start();
 		for (int i = 0; i < 10; i++) {
 			Message<?> receive = this.discardChannel.receive(10000);
 			assertNotNull(receive);
-			assertTrue(((Integer) receive.getPayload()) % 2 == 0);
+			assertEquals(0, ((Integer) receive.getPayload()) % 2);
 
 			receive = this.counterErrorChannel.receive(10000);
 			assertNotNull(receive);
@@ -145,8 +167,8 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 							" rejected Message"));
 
 		}
-		for (Message<?> message : collector) {
-			assertFalse(((Integer) message.getPayload()) % 2 == 0);
+		for (Message<?> message : this.collector) {
+			assertNotEquals(0, ((Integer) message.getPayload()) % 2);
 			MessageHistory messageHistory = MessageHistory.read(message);
 			assertNotNull(messageHistory);
 			String messageHistoryString = messageHistory.toString();
@@ -163,6 +185,43 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		assertNull(this.skippedChannel);
 		assertNull(this.skippedChannel2);
 		assertNull(this.skippedMessageSource);
+
+		QueueChannel replyChannel = new QueueChannel();
+
+		Message<String> message = MessageBuilder.withPayload("foo")
+				.setReplyChannel(replyChannel)
+				.build();
+
+		this.functionServiceChannel.send(message);
+
+		Message<?> receive = replyChannel.receive(10_000);
+
+		assertNotNull(receive);
+		assertEquals("FOO", receive.getPayload());
+
+		message = MessageBuilder.withPayload("BAR")
+				.setReplyChannel(replyChannel)
+				.build();
+
+		this.functionMessageServiceChannel.send(message);
+
+		receive = replyChannel.receive(10_000);
+
+		assertNotNull(receive);
+		assertEquals("bar", receive.getPayload());
+
+		this.consumerServiceChannel.send(new GenericMessage<>("baz"));
+
+		assertFalse(this.stringCollector.isEmpty());
+		assertEquals("baz", this.stringCollector.iterator().next());
+
+		this.collector.clear();
+
+		this.messageConsumerServiceChannel.send(new GenericMessage<>("123"));
+
+		assertFalse(this.collector.isEmpty());
+		Message<?> next = this.collector.iterator().next();
+		assertEquals("123", next.getPayload());
 	}
 
 	@Test
@@ -201,7 +260,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@InboundChannelAdapter(value = "routerChannel", autoStartup = "false",
 				poller = @Poller(fixedRate = "10", maxMessagesPerPoll = "1", errorChannel = "counterErrorChannel"))
 		public Supplier<Integer> counterMessageSupplier(final AtomicInteger counter) {
-			return () -> counter.incrementAndGet();
+			return counter::incrementAndGet;
 		}
 
 		@Bean
@@ -275,7 +334,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 
 		@Bean
 		public List<Message<?>> collector() {
-			return new ArrayList<Message<?>>();
+			return new ArrayList<>();
 		}
 
 		@Bean
@@ -286,8 +345,7 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		@Bean
 		@ServiceActivator(inputChannel = "serviceChannel")
 		public MessageHandler service() {
-			final List<Message<?>> collector = this.collector();
-			return message -> collector.add(message);
+			return collector()::add;
 		}
 
 		@Bean
@@ -323,6 +381,50 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 			return () -> new GenericMessage<>("foo");
 		}
 
+
+		@Bean
+		@Transformer(inputChannel = "functionServiceChannel")
+		public Function<String, String> functionAsService() {
+			return String::toUpperCase;
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "functionMessageServiceChannel")
+		public Function<Message<String>, String> messageFunctionAsService() {
+			return new Function<Message<String>, String>() { // Has to be interface for proper type inferring
+
+				@Override
+				public String apply(Message<String> m) {
+					return m.getPayload().toLowerCase();
+				}
+
+			};
+		}
+
+		@Bean
+		public List<String> stringCollector() {
+			return new ArrayList<>();
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "consumerServiceChannel")
+		public Consumer<String> consumerAsService() {
+			return stringCollector()::add;
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "messageConsumerServiceChannel")
+		public Consumer<Message<?>> messageConsumerAsService() {
+			return new Consumer<Message<?>>() { // Has to be interface for proper type inferring
+
+				@Override
+				public void accept(Message<?> e) {
+					collector().add(e);
+				}
+
+			};
+		}
+
 	}
 
 	@Configuration
@@ -336,6 +438,5 @@ public class MessagingAnnotationsWithBeanAnnotationTests {
 		}
 
 	}
-
 
 }
