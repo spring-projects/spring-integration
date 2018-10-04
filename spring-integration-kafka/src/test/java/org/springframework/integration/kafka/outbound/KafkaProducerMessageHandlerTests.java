@@ -256,7 +256,7 @@ public class KafkaProducerMessageHandlerTests {
 		KafkaProducerMessageHandler<Integer, String> handler = new KafkaProducerMessageHandler<>(template);
 		handler.setBeanFactory(mock(BeanFactory.class));
 		PollableChannel successes = new QueueChannel();
-		handler.setOutputChannel(successes);
+		handler.setSendSuccessChannel(successes);
 		handler.afterPropertiesSet();
 
 		Message<?> message = MessageBuilder.withPayload("foo")
