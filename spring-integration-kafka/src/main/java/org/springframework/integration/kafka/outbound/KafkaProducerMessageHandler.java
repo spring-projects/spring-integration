@@ -367,9 +367,7 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 				(K) messageKey, payload, headers);
 		ListenableFuture<SendResult<K, V>> sendFuture;
 		RequestReplyFuture<K, V, Object> gatewayFuture = null;
-		MessageChannel metadataChannel = null;
 		if (this.isGateway) {
-			metadataChannel = getSendSuccessChannel();
 			producerRecord.headers().add(new RecordHeader(KafkaHeaders.REPLY_TOPIC, getReplyTopic(message)));
 			gatewayFuture = ((ReplyingKafkaTemplate<K, V, Object>) this.kafkaTemplate).sendAndReceive(producerRecord);
 			sendFuture = gatewayFuture.getSendFuture();
@@ -383,27 +381,16 @@ public class KafkaProducerMessageHandler<K, V> extends AbstractReplyProducingMes
 			else {
 				sendFuture = this.kafkaTemplate.send(producerRecord);
 			}
-			// TODO: In 3.1, always use the success channel.
-			if (!this.noOutputChannel) {
-				metadataChannel = getOutputChannel();
-				if (metadataChannel == null) {
-					this.noOutputChannel = true;
-				}
-			}
-			if (metadataChannel == null) {
-				metadataChannel = getSendSuccessChannel();
-			}
 		}
 		try {
-			processSendResult(message, producerRecord, sendFuture, metadataChannel);
+			processSendResult(message, producerRecord, sendFuture, getSendSuccessChannel());
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new MessageHandlingException(message, e);
 		}
 		catch (ExecutionException e) {
-			// TODO: in 3.1 change this to e.getCause()
-			throw new MessageHandlingException(message, e);
+			throw new MessageHandlingException(message, e.getCause());
 		}
 		return processReplyFuture(gatewayFuture);
 	}
