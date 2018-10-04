@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -527,9 +528,19 @@ public class IntegrationFlowTests {
 	public static class SupplierContextConfiguration1 {
 
 		@Bean
+		public Function<String, String> toUpperCaseFunction() {
+			return String::toUpperCase;
+		}
+
+		@Bean
+		public Supplier<String> stringSupplier() {
+			return () -> "foo";
+		}
+
+		@Bean
 		public IntegrationFlow supplierFlow() {
-			return IntegrationFlows.from(() -> "foo")
-					.<String, String>transform(String::toUpperCase)
+			return IntegrationFlows.from(stringSupplier())
+					.transform(toUpperCaseFunction())
 					.channel("suppliedChannel")
 					.get();
 		}

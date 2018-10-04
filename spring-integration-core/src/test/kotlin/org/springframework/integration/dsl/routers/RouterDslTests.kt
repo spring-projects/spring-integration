@@ -46,100 +46,100 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 @DirtiesContext
 class RouterDslTests {
 
-    @Autowired
-    @Qualifier("routerTwoSubFlows.input")
-    private lateinit var routerTwoSubFlowsInput: MessageChannel
+	@Autowired
+	@Qualifier("routerTwoSubFlows.input")
+	private lateinit var routerTwoSubFlowsInput: MessageChannel
 
-    @Autowired
-    @Qualifier("routerTwoSubFlowsOutput")
-    private lateinit var routerTwoSubFlowsOutput: PollableChannel
+	@Autowired
+	@Qualifier("routerTwoSubFlowsOutput")
+	private lateinit var routerTwoSubFlowsOutput: PollableChannel
 
-    @Test
-    fun `route to two subflows using lambda`() {
+	@Test
+	fun `route to two subflows using lambda`() {
 
-        this.routerTwoSubFlowsInput.send(GenericMessage<Any>(listOf(1, 2, 3, 4, 5, 6)))
-        val receive = this.routerTwoSubFlowsOutput.receive(10000)
+		this.routerTwoSubFlowsInput.send(GenericMessage<Any>(listOf(1, 2, 3, 4, 5, 6)))
+		val receive = this.routerTwoSubFlowsOutput.receive(10000)
 
-        val payload = receive?.payload
+		val payload = receive?.payload
 
-        assert(payload).isNotNull {
-            it.isInstanceOf(List::class.java)
-        }
+		assert(payload).isNotNull {
+			it.isInstanceOf(List::class.java)
+		}
 
-        assert(payload).isEqualTo(listOf(3, 4, 9, 8, 15, 12))
-    }
+		assert(payload).isEqualTo(listOf(3, 4, 9, 8, 15, 12))
+	}
 
 
-    @Autowired
-    @Qualifier("splitRouteAggregate.input")
-    private lateinit var splitRouteAggregateInput: MessageChannel
+	@Autowired
+	@Qualifier("splitRouteAggregate.input")
+	private lateinit var splitRouteAggregateInput: MessageChannel
 
-    @Test
-    fun `route to two subflows using them as bean references`() {
+	@Test
+	fun `route to two subflows using them as bean references`() {
 
-        val replyChannel = QueueChannel()
-        val message = MessageBuilder.withPayload(arrayOf(1, 2, 3))
-                .setReplyChannel(replyChannel)
-                .build()
+		val replyChannel = QueueChannel()
+		val message = MessageBuilder.withPayload(arrayOf(1, 2, 3))
+				.setReplyChannel(replyChannel)
+				.build()
 
-        this.splitRouteAggregateInput.send(message)
+		this.splitRouteAggregateInput.send(message)
 
-        val receive = replyChannel.receive(10000)
+		val receive = replyChannel.receive(10000)
 
-        val payload = receive?.payload
+		val payload = receive?.payload
 
-        assert(payload).isNotNull {
-            it.isInstanceOf(List::class.java)
-            it.isEqualTo(listOf("even", "odd", "even"))
-        }
-    }
+		assert(payload).isNotNull {
+			it.isInstanceOf(List::class.java)
+			it.isEqualTo(listOf("even", "odd", "even"))
+		}
+	}
 
-    @Configuration
-    @EnableIntegration
-    class Config {
+	@Configuration
+	@EnableIntegration
+	class Config {
 
-        @Bean
-        fun routerTwoSubFlows() =
-                IntegrationFlow { f ->
-                    f.split()
-                            .route<Int, Boolean>({ p -> p % 2 == 0 },
-                                    { m ->
-                                        m.subFlowMapping(true, { sf -> sf.handle<Int> { p, _ -> p * 2 } })
-                                                .subFlowMapping(false, { sf -> sf.handle<Int> { p, _ -> p * 3 } })
-                                    })
-                            .aggregate()
-                            .channel { c -> c.queue("routerTwoSubFlowsOutput") }
-                }
+		@Bean
+		fun routerTwoSubFlows() =
+				IntegrationFlow { f ->
+					f.split()
+							.route<Int, Boolean>({ p -> p % 2 == 0 },
+									{ m ->
+										m.subFlowMapping(true, { sf -> sf.handle<Int> { p, _ -> p * 2 } })
+												.subFlowMapping(false, { sf -> sf.handle<Int> { p, _ -> p * 3 } })
+									})
+							.aggregate()
+							.channel { c -> c.queue("routerTwoSubFlowsOutput") }
+				}
 
-        @Bean
-        fun splitRouteAggregate() =
-                IntegrationFlow { f ->
-                    f.split()
-                            .route<Int, Boolean>({ o -> o % 2 == 0 },
-                                    { m ->
-                                        m.subFlowMapping(true) { sf -> sf.gateway(oddFlow()) }
-                                                .subFlowMapping(false) { sf -> sf.gateway(evenFlow()) }
-                                    })
-                            .aggregate()
-                }
+		@Bean
+		fun splitRouteAggregate() =
+				IntegrationFlow { f ->
+					f.split()
+							.route<Int, Boolean>({ o -> o % 2 == 0 },
+									{ m ->
+										m.subFlowMapping(true) { sf -> sf.gateway(oddFlow()) }
+												.subFlowMapping(false) { sf -> sf.gateway(evenFlow()) }
+									})
+							.aggregate()
+				}
 
-        @Bean
-        fun oddFlow() =
-                IntegrationFlow { flow ->
-                    flow.handle<Any> { _, _ -> "odd" }
-                }
+		@Bean
+		fun oddFlow() =
+				IntegrationFlow { flow ->
+					flow.handle<Any> { _, _ -> "odd" }
+				}
 
-        @Bean
-        fun evenFlow() =
-                IntegrationFlow { flow ->
-                    flow.handle<Any> { _, _ -> "even" }
-                }
+		@Bean
+		fun evenFlow() =
+				IntegrationFlow { flow ->
+					flow.handle<Any> { _, _ -> "even" }
+				}
 
-        @Bean
-        fun publishSubscribe() =
-                MessageChannels.publishSubscribe()
-                        .ignoreFailures(true)
-                        .applySequence(false)
-    }
+		@Bean
+		fun publishSubscribe() =
+				MessageChannels.publishSubscribe()
+						.ignoreFailures(true)
+						.applySequence(false)
+	}
 
 }
