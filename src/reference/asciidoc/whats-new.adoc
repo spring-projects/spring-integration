@@ -18,6 +18,14 @@ The following components are new in 5.1:
 
 See <<amqp-strict-ordering>>.
 
+[[x5.1-Functions]]
+==== Improved Functions Support
+
+The `java.util.function` interfaces now have a better integration support in the Framework components.
+Also Kotlin lambdas now can be used for handler and source methods.
+
+See <<functions-support>>.
+
 [[x5.1-general]]
 === General Changes
 
