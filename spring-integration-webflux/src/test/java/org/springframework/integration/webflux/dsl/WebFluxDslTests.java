@@ -355,7 +355,10 @@ public class WebFluxDslTests {
 					.from(WebFlux.inboundChannelAdapter("/reactivePost")
 							.requestMapping(m -> m.methods(HttpMethod.POST))
 							.requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
-							.statusCodeFunction(m -> HttpStatus.ACCEPTED))
+							.statusCodeFunction(e ->
+									HttpMethod.POST.equals(e.getMethod())
+											? HttpStatus.ACCEPTED
+											: HttpStatus.BAD_REQUEST))
 					.channel(c -> c.queue("storeChannel"))
 					.get();
 		}

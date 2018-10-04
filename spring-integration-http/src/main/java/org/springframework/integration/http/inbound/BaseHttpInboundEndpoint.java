@@ -25,6 +25,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
@@ -276,8 +277,8 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 		}
 	}
 
-	protected HttpStatus evaluateHttpStatus() {
-		Object value = this.statusCodeExpression.getValue(this.evaluationContext);
+	protected HttpStatus evaluateHttpStatus(HttpEntity<?> httpEntity) {
+		Object value = this.statusCodeExpression.getValue(this.evaluationContext, httpEntity);
 		return buildHttpStatus(value);
 	}
 

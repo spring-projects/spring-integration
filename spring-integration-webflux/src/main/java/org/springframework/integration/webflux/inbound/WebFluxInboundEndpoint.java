@@ -35,11 +35,11 @@ import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.HttpMessageWriter;
@@ -63,6 +63,7 @@ import org.springframework.web.server.WebHandler;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 /**
  * A {@link MessagingGatewaySupport} implementation for Spring WebFlux
@@ -151,16 +152,18 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		return extractRequestBody(exchange)
 				.doOnSubscribe(s -> this.activeCount.incrementAndGet())
 				.switchIfEmpty(Mono.just(exchange.getRequest().getQueryParams()))
-				.map(body -> new HttpEntity<>(body, exchange.getRequest().getHeaders()))
+				.map(body ->
+						new RequestEntity<>(body, exchange.getRequest().getHeaders(),
+								exchange.getRequest().getMethod(), exchange.getRequest().getURI()))
 				.flatMap(entity -> buildMessage(entity, exchange))
-				.flatMap(requestMessage -> {
+				.flatMap(requestTuple -> {
 					if (this.expectReply) {
-						return sendAndReceiveMessageReactive(requestMessage)
+						return sendAndReceiveMessageReactive(requestTuple.getT1())
 								.flatMap(replyMessage -> populateResponse(exchange, replyMessage));
 					}
 					else {
-						send(requestMessage);
-						return setStatusCode(exchange);
+						send(requestTuple.getT1());
+						return setStatusCode(exchange, requestTuple.getT2());
 					}
 				})
 				.doOnTerminate(this.activeCount::decrementAndGet);
@@ -235,7 +238,9 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	@SuppressWarnings("unchecked")
-	private Mono<Message<?>> buildMessage(HttpEntity<?> httpEntity, ServerWebExchange exchange) {
+	private Mono<Tuple2<Message<Object>, RequestEntity<?>>> buildMessage(RequestEntity<?> httpEntity,
+			ServerWebExchange exchange) {
+
 		ServerHttpRequest request = exchange.getRequest();
 		HttpHeaders requestHeaders = request.getHeaders();
 		Map<String, Object> exchangeAttributes = exchange.getAttributes();
@@ -258,7 +263,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		}
 
 		Map<String, MultiValueMap<String, String>> matrixVariables =
-				(Map<String, MultiValueMap<String, String>>) exchangeAttributes.get(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
+				(Map<String, MultiValueMap<String, String>>) exchangeAttributes
+						.get(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
 
 		if (!CollectionUtils.isEmpty(matrixVariables)) {
 			evaluationContext.setVariable("matrixVariables", matrixVariables);
@@ -314,7 +320,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 						messageBuilder
 								.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, principal))
 				.defaultIfEmpty(messageBuilder)
-				.map(AbstractIntegrationMessageBuilder::build);
+				.map(AbstractIntegrationMessageBuilder::build)
+				.zipWith(Mono.just(httpEntity));
 	}
 
 	private Mono<Void> populateResponse(ServerWebExchange exchange, Message<?> replyMessage) {
@@ -481,10 +488,10 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 
-	private Mono<Void> setStatusCode(ServerWebExchange exchange) {
+	private Mono<Void> setStatusCode(ServerWebExchange exchange, RequestEntity<?> requestEntity) {
 		ServerHttpResponse response = exchange.getResponse();
 		if (getStatusCodeExpression() != null) {
-			HttpStatus httpStatus = evaluateHttpStatus();
+			HttpStatus httpStatus = evaluateHttpStatus(requestEntity);
 			if (httpStatus != null) {
 				response.setStatusCode(httpStatus);
 			}
