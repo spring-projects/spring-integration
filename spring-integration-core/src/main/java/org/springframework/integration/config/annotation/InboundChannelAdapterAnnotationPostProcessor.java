@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -42,10 +43,26 @@ import org.springframework.util.ReflectionUtils;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Oleg Zhurakousky
+ *
  * @since 4.0
  */
 public class InboundChannelAdapterAnnotationPostProcessor extends
 		AbstractMethodAnnotationPostProcessor<InboundChannelAdapter> {
+
+	private static final Class<?> kotlinFunction0Class;
+
+	static {
+		Class<?> kotlinClass = null;
+		try {
+			kotlinClass = ClassUtils.forName("kotlin.jvm.functions.Function0", ClassUtils.getDefaultClassLoader());
+		}
+		catch (ClassNotFoundException e) {
+			//Ignore: assume no Kotlin in classpath
+		}
+		finally {
+			kotlinFunction0Class = kotlinClass;
+		}
+	}
 
 	public InboundChannelAdapterAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		super(beanFactory);
@@ -58,7 +75,8 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
-		String channelName = MessagingAnnotationUtils.resolveAttribute(annotations, AnnotationUtils.VALUE, String.class);
+		String channelName = MessagingAnnotationUtils
+				.resolveAttribute(annotations, AnnotationUtils.VALUE, String.class);
 		Assert.hasText(channelName, "The channel ('value' attribute of @InboundChannelAdapter) can't be empty.");
 
 		MessageSource<?> messageSource = null;
@@ -86,13 +104,22 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 		MessageSource<?> messageSource = null;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
 			Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			Assert.isTrue(target instanceof MessageSource || target instanceof Supplier, "The '" + this.annotationType + "' on @Bean method " +
-					"level is allowed only for: " + MessageSource.class.getName() + " or " + Supplier.class.getName() + " beans");
+			Class<?> targetClass = target.getClass();
+			Assert.isTrue(MessageSource.class.isAssignableFrom(targetClass) ||
+							Supplier.class.isAssignableFrom(targetClass) ||
+							(kotlinFunction0Class == null || kotlinFunction0Class.isAssignableFrom(targetClass)),
+					"The '" + this.annotationType + "' on @Bean method " + "level is allowed only for: "
+							+ MessageSource.class.getName() + " or " + Supplier.class.getName()
+							+ (kotlinFunction0Class != null ? " or " + kotlinFunction0Class.getName() : "") + " beans");
 			if (target instanceof MessageSource<?>) {
 				messageSource = (MessageSource<?>) target;
 			}
-			else {
+			else if (target instanceof Supplier<?>) {
 				method = ReflectionUtils.findMethod(Supplier.class, "get");
+				bean = target;
+			}
+			else if (kotlinFunction0Class != null) {
+				method = ReflectionUtils.findMethod(kotlinFunction0Class, "invoke");
 				bean = target;
 			}
 		}
@@ -102,7 +129,8 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 			methodInvokingMessageSource.setMethod(method);
 			String messageSourceBeanName = this.generateHandlerBeanName(beanName, method);
 			this.beanFactory.registerSingleton(messageSourceBeanName, methodInvokingMessageSource);
-			messageSource =  (MessageSource<?>) this.beanFactory.initializeBean(methodInvokingMessageSource, messageSourceBeanName);
+			messageSource = (MessageSource<?>) this.beanFactory
+					.initializeBean(methodInvokingMessageSource, messageSourceBeanName);
 		}
 		return messageSource;
 	}

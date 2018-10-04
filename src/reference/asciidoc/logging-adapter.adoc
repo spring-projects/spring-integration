@@ -11,7 +11,7 @@ With a `NullChannel`, you would see only the discarded message when logging at t
 The following listing shows all the possible attributes for the `logging-channel-adapter` element:
 
 ====
-[source]
+[source, xml]
 ----
 
 <int:logging-channel-adapter

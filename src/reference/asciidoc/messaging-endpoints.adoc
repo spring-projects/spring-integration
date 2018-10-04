@@ -1,7 +1,7 @@
 [[messaging-endpoints-chapter]]
 == Messaging Endpoints
 
-// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://asciidoctor.org/docs/user-manual/#include-partitioning
 include::./endpoint.adoc[]
 
 include::./gateway.adoc[]
@@ -17,4 +17,6 @@ include::./groovy.adoc[]
 include::./handler-advice.adoc[]
 
 include::./logging-adapter.adoc[]
-// BE SURE TO PRECEDE ALL include:: with a blank line - see https://github.com/asciidoctor/asciidoctor/issues/1297
+
+include::./functions-support.adoc[]
+// BE SURE TO PRECEDE ALL include:: with a blank line - see https://asciidoctor.org/docs/user-manual/#include-partitioning

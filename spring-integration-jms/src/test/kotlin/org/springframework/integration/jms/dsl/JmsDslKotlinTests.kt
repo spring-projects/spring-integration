@@ -52,83 +52,83 @@ import javax.jms.DeliveryMode
 @DirtiesContext
 class JmsDslKotlinTests {
 
-    @Autowired
-    @Qualifier("jmsOutboundFlow.input")
-    private lateinit var jmsOutboundInboundChannel: MessageChannel
+	@Autowired
+	@Qualifier("jmsOutboundFlow.input")
+	private lateinit var jmsOutboundInboundChannel: MessageChannel
 
-    @Autowired
-    private lateinit var jmsOutboundInboundReplyChannel: PollableChannel
+	@Autowired
+	private lateinit var jmsOutboundInboundReplyChannel: PollableChannel
 
-    @Test
-    fun `test JMS Channel Adapters DSL`() {
+	@Test
+	fun `test JMS Channel Adapters DSL`() {
 
-        this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
-                .setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
-                .setPriority(9)
-                .build())
+		this.jmsOutboundInboundChannel.send(MessageBuilder.withPayload("    foo    ")
+				.setHeader(SimpMessageHeaderAccessor.DESTINATION_HEADER, "containerSpecDestination")
+				.setPriority(9)
+				.build())
 
-        val receive = this.jmsOutboundInboundReplyChannel.receive(10000)
+		val receive = this.jmsOutboundInboundReplyChannel.receive(10000)
 
-        val payload = receive?.payload
+		val payload = receive?.payload
 
-        assert(payload).isNotNull {
-            it.isEqualTo("foo")
-        }
+		assert(payload).isNotNull {
+			it.isEqualTo("foo")
+		}
 
-        assert(receive?.headers).isNotNull {
-            it.contains(IntegrationMessageHeaderAccessor.PRIORITY, 9)
-            it.contains(JmsHeaders.DELIVERY_MODE, 1)
-        }
+		assert(receive?.headers).isNotNull {
+			it.contains(IntegrationMessageHeaderAccessor.PRIORITY, 9)
+			it.contains(JmsHeaders.DELIVERY_MODE, 1)
+		}
 
-        val expiration = receive!!.headers[JmsHeaders.EXPIRATION] as Long
-        assert(expiration).isGreaterThan(System.currentTimeMillis())
-    }
+		val expiration = receive!!.headers[JmsHeaders.EXPIRATION] as Long
+		assert(expiration).isGreaterThan(System.currentTimeMillis())
+	}
 
-    @Configuration
-    @EnableIntegration
-    class Config {
+	@Configuration
+	@EnableIntegration
+	class Config {
 
-        @Bean
-        fun jmsConnectionFactory(): ActiveMQConnectionFactory {
-            val activeMQConnectionFactory = ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
-            activeMQConnectionFactory.isTrustAllPackages = true
-            return activeMQConnectionFactory
-        }
+		@Bean
+		fun jmsConnectionFactory(): ActiveMQConnectionFactory {
+			val activeMQConnectionFactory = ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
+			activeMQConnectionFactory.isTrustAllPackages = true
+			return activeMQConnectionFactory
+		}
 
-        @Bean
-        fun jmsOutboundFlow() =
-                IntegrationFlow { f ->
-                    f.handle(Jms.outboundAdapter(jmsConnectionFactory())
-                            .destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
-                            .deliveryModeFunction<Any> { _ -> DeliveryMode.NON_PERSISTENT }
-                            .timeToLiveExpression("10000")
-                            .configureJmsTemplate { t -> t.explicitQosEnabled(true) })
-                }
+		@Bean
+		fun jmsOutboundFlow() =
+				IntegrationFlow { f ->
+					f.handle(Jms.outboundAdapter(jmsConnectionFactory())
+							.destinationExpression("headers." + SimpMessageHeaderAccessor.DESTINATION_HEADER)
+							.deliveryModeFunction<Any> { _ -> DeliveryMode.NON_PERSISTENT }
+							.timeToLiveExpression("10000")
+							.configureJmsTemplate { t -> t.explicitQosEnabled(true) })
+				}
 
-        @Bean
-        fun jmsHeaderMapper(): DefaultJmsHeaderMapper {
-            val jmsHeaderMapper = DefaultJmsHeaderMapper()
-            jmsHeaderMapper.setMapInboundDeliveryMode(true)
-            jmsHeaderMapper.setMapInboundExpiration(true)
-            return jmsHeaderMapper
-        }
+		@Bean
+		fun jmsHeaderMapper(): DefaultJmsHeaderMapper {
+			val jmsHeaderMapper = DefaultJmsHeaderMapper()
+			jmsHeaderMapper.setMapInboundDeliveryMode(true)
+			jmsHeaderMapper.setMapInboundExpiration(true)
+			return jmsHeaderMapper
+		}
 
-        @Bean
-        fun jmsOutboundInboundReplyChannel() = MessageChannels.queue().get()
+		@Bean
+		fun jmsOutboundInboundReplyChannel() = MessageChannels.queue().get()
 
-        @Bean
-        fun jmsMessageDrivenFlowWithContainer() =
-                IntegrationFlows.from(
-                        Jms.messageDrivenChannelAdapter(
-                                Jms.container(jmsConnectionFactory(), "containerSpecDestination")
-                                        .pubSubDomain(false)
-                                        .taskExecutor(Executors.newCachedThreadPool()))
-                                .headerMapper(jmsHeaderMapper()))
-                        .transform({ it: String -> it.trim({ it <= ' ' }) })
-                        .channel(jmsOutboundInboundReplyChannel())
-                        .get()
+		@Bean
+		fun jmsMessageDrivenFlowWithContainer() =
+				IntegrationFlows.from(
+						Jms.messageDrivenChannelAdapter(
+								Jms.container(jmsConnectionFactory(), "containerSpecDestination")
+										.pubSubDomain(false)
+										.taskExecutor(Executors.newCachedThreadPool()))
+								.headerMapper(jmsHeaderMapper()))
+						.transform({ it: String -> it.trim({ it <= ' ' }) })
+						.channel(jmsOutboundInboundReplyChannel())
+						.get()
 
-    }
+	}
 
 
 }

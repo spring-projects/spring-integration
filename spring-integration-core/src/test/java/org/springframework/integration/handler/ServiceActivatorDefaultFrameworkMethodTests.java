@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import static org.junit.Assert.fail;
 import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -38,6 +39,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -106,6 +108,9 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 
 	@Autowired
 	private PollableChannel errorChannel;
+
+	@Autowired
+	private MessageChannel processorViaFunctionChannel;
 
 	@Test
 	public void testGateway() {
@@ -280,6 +285,16 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		assertEquals("test", ((MessagingException) error.getPayload()).getFailedMessage().getPayload());
 	}
 
+	@Test
+	public void testFunctionFromXml() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
+		this.processorViaFunctionChannel.send(message);
+		Message<?> reply = replyChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals("TEST", reply.getPayload());
+	}
+
 	public static void throwIllegalStateException(String message) {
 		throw new IllegalStateException(message);
 	}
@@ -316,6 +331,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 			assertTrue(StackTraceUtils.isFrameContainingXBeforeFrameContainingY("AbstractSubscribableChannel",
 					"MethodInvokerHelper", st)); // close to the metal
 		}
+
 	}
 
 	private static class TestMessageProcessor implements MessageProcessor<String> {
@@ -331,6 +347,7 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 		public String processMessage(Message<?> message) {
 			return prefix + ":" + message.getPayload();
 		}
+
 	}
 
 	private static class AsyncService {
@@ -341,11 +358,21 @@ public class ServiceActivatorDefaultFrameworkMethodTests {
 
 		@SuppressWarnings("unused")
 		public ListenableFuture<String> process(String payload) {
-			this.future = new SettableListenableFuture<String>();
+			this.future = new SettableListenableFuture<>();
 			this.payload = payload;
 			return this.future;
 		}
 
 	}
+
+	public static class FunctionConfiguration {
+
+		@Bean
+		public Function<String, String> functionAsService() {
+			return String::toUpperCase;
+		}
+
+	}
+
 
 }

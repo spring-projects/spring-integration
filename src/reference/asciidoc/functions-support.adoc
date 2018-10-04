@@ -1,0 +1,140 @@
+[[functions-support]]
+=== `java.util.function` Support
+
+Starting with version 5.1, Spring Integration provides a smooth support for `java.util.function` interfaces.
+All the messaging endpoints, e.g. Service Activator, Transformer, Filter, etc. can now refer to the `Function` (or `Consumer`) beans.
+The <<annotations,Messaging Annotations>> can be applied directly on these beans like for the regular `MessageHandler` definitions.
+For example if you have this `Function` bean definition:
+
+
+====
+[source, java]
+----
+@Configuration
+public class FunctionConfiguration {
+
+    @Bean
+    public Function<String, String> functionAsService() {
+        return String::toUpperCase;
+    }
+
+}
+----
+====
+
+You can use it as a simple reference in the XML configuration:
+
+====
+[source, xml]
+----
+<service-activator input-channel="processorViaFunctionChannel" ref="functionAsService"/>
+----
+====
+
+When we configure our flow with the Messaging Annotations, the code becomes much straightforward:
+
+====
+[source, java]
+----
+@Bean
+@Transformer(inputChannel = "functionServiceChannel")
+public Function<String, String> functionAsService() {
+    return String::toUpperCase;
+}
+----
+====
+
+When the function returns an array, `Collection` (essentially, any `Iterable`), `Stream` or Reactor `Flux`, the `@Splitter` can be used on such a bean to perform iteration over result content.
+
+The `java.util.function.Consumer` can be used for the `<int:outbound-channel-adapter>` or together with the `@ServiceActivator` to perform the last step in the flow:
+
+====
+[source, java]
+----
+@Bean
+@ServiceActivator(inputChannel = "messageConsumerServiceChannel")
+public Consumer<Message<?>> messageConsumerAsService() {
+    return new Consumer<Message<?>>() { // Has to be interface for proper type inferring
+
+        @Override
+        public void accept(Message<?> e) {
+            collector().add(e);
+        }
+
+    };
+}
+----
+====
+
+Also pay attention to the comment in the code snippet above: if you would like to deal with the whole message in your `Function`/`Consumer` you shouldn't use a lambda definition.
+Because of Java type erasure we don't know the target type for the `apply()/accept()` method call.
+
+The `java.util.function.Supplier` can simply be used together with the `@InboundChannelAdapter` or as a `ref` in the `<int:inbound-channel-adapter>`:
+
+====
+[source, java]
+----
+@Bean
+@InboundChannelAdapter(value = "inputChannel", poller = @Poller(fixedDelay = "1000"))
+public Supplier<String> pojoSupplier() {
+    return () -> "foo";
+}
+----
+====
+
+With Java DSL we just need to use a reference to function bean in the endpoint definitions.
+Meanwhile the `Supplier` can be used as regular `MessageSource` definition:
+
+====
+[source, java]
+----
+@Bean
+public Function<String, String> toUpperCaseFunction() {
+    return String::toUpperCase;
+}
+
+@Bean
+public Supplier<String> stringSupplier() {
+    return () -> "foo";
+}
+
+@Bean
+public IntegrationFlow supplierFlow() {
+    return IntegrationFlows.from(stringSupplier())
+                .transform(toUpperCaseFunction())
+                .channel("suppliedChannel")
+                .get();
+}
+----
+====
+
+This functions support becomes pretty handy together with the https://cloud.spring.io/spring-cloud-function/[Spring Cloud Function] framework, where we have a function catalog and can refer to them from our integration flow definition.
+
+[[kotlin-functions-support]]
+==== Kotlin Lambdas
+
+The Framework also has been improved to support Kotlin lambdas for functions, so now you can get a gain from combination of Kotlin language and Spring Integration flow definitions:
+
+====
+[source, java]
+----
+@Bean
+@Transformer(inputChannel = "functionServiceChannel")
+fun kotlinFunction(): (String) -> String {
+    return { it.toUpperCase() }
+}
+
+@Bean
+@ServiceActivator(inputChannel = "messageConsumerServiceChannel")
+fun kotlinConsumer(): (Message<Any>) -> Unit {
+    return { print(it) }
+}
+
+@Bean
+@InboundChannelAdapter(value = "counterChannel",
+        poller = [Poller(fixedRate = "10", maxMessagesPerPoll = "1")])
+fun kotlinSupplier(): () -> String {
+    return { "baz" }
+}
+----
+====
