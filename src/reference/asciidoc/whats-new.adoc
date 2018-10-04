@@ -165,3 +165,10 @@ When a `JmsMessageDrivenEndpoint` or `JmsInboundGateway` is stopped, the associa
 You can configure the endpoints to revert to the previous behavior.
 
 See <<jms>> for more information.
+
+[[x51.-http]]
+=== HTTP/WebFlux Support
+
+The `statusCodeExpression` (and `Function`) is now supplied with the `RequestEntity<?>` as a root object for evaluation context, so request headers, method, URI and body are available for target status code calculation.
+
+See <<http>> and <<webflux>> for more information.

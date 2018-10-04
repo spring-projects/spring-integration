@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -60,6 +60,7 @@ import org.springframework.web.HttpRequestHandler;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport
@@ -81,7 +82,6 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	 * Flag to determine if conversion and writing out of message handling exceptions should be attempted (default
 	 * false, in which case they will simply be re-thrown). If the flag is true and no message converter can convert the
 	 * exception a new exception will be thrown.
-	 *
 	 * @param convertExceptions the flag to set
 	 */
 	public void setConvertExceptions(boolean convertExceptions) {
@@ -94,15 +94,18 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	 * response will be written by the {@link HttpMessageConverter}s.
 	 */
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
-			throws ServletException, IOException {
+			throws IOException {
+
 		Object responseContent = null;
 		Message<?> responseMessage;
 
-		final ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
-		final ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+		ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+
+		RequestEntity<Object> httpEntity = prepareRequestEntity(request);
 
 		try {
-			responseMessage = super.doHandleRequest(servletRequest, servletResponse);
+			responseMessage = doHandleRequest(servletRequest, httpEntity, servletResponse);
 			if (responseMessage != null) {
 				responseContent = setupResponseAndConvertReply(response, responseMessage);
 			}
@@ -140,7 +143,7 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 			}
 		}
 		else {
-			setStatusCodeIfNeeded(response);
+			setStatusCodeIfNeeded(response, httpEntity);
 		}
 	}
 
@@ -164,10 +167,11 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes)
 			throws IOException {
+
 		if (CollectionUtils.isEmpty(acceptTypes)) {
 			acceptTypes = Collections.singletonList(MediaType.ALL);
 		}
-		for (HttpMessageConverter converter : this.getMessageConverters()) {
+		for (HttpMessageConverter converter : getMessageConverters()) {
 			for (MediaType acceptType : acceptTypes) {
 				if (converter.canWrite(content.getClass(), acceptType)) {
 					converter.write(content, acceptType, response);

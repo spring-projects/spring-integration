@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.expression.Expression;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessagingGatewaySpec;
@@ -277,7 +278,7 @@ public abstract class HttpInboundEndpointSupportSpec<S extends HttpInboundEndpoi
 	 * @return the current Spec.
 	 * @see HttpRequestHandlingEndpointSupport#setStatusCodeExpression(Expression)
 	 */
-	public S statusCodeFunction(Function<Void, ?> statusCodeFunction) {
+	public S statusCodeFunction(Function<RequestEntity<?>, ?> statusCodeFunction) {
 		return statusCodeExpression(new FunctionExpression<>(statusCodeFunction));
 	}
 

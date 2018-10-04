@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.junit.Test;
@@ -28,6 +29,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.http.AbstractHttpInboundTests;
 import org.springframework.messaging.Message;
@@ -47,11 +50,11 @@ import org.springframework.web.servlet.HandlerMapping;
  */
 public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends AbstractHttpInboundTests {
 
-	private static ExpressionParser PARSER = new SpelExpressionParser();
+	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
 
 	@Test
-	public void withoutExpression() throws Exception {
+	public void withoutExpression() throws IOException {
 		DirectChannel echoChannel = new DirectChannel();
 		echoChannel.subscribe(message -> {
 			MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
@@ -62,7 +65,8 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setContentType("text/plain");
 
 		request.setParameter("foo", "bar");
-		request.setContent("hello".getBytes());
+		String body = "hello";
+		request.setContent(body.getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
 
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
@@ -78,7 +82,9 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		Object result = gateway.doHandleRequest(request, response);
+		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
+
+		Object result = gateway.doHandleRequest(request, httpEntity, response);
 		assertThat(result, instanceOf(Message.class));
 		assertEquals("hello", ((Message<?>) result).getPayload());
 
@@ -97,7 +103,8 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setMethod("POST");
 		request.setContentType("text/plain");
 		request.setParameter("foo", "bar");
-		request.setContent("hello".getBytes());
+		String body = "hello";
+		request.setContent(body.getBytes());
 
 		String requestURI = "/fname/bill/lname/clinton";
 
@@ -120,7 +127,9 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		gateway.afterPropertiesSet();
 		gateway.start();
 
-		Object result = gateway.doHandleRequest(request, response);
+		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
+
+		Object result = gateway.doHandleRequest(request, httpEntity, response);
 		assertThat(result, instanceOf(Message.class));
 		assertEquals("bill", ((Message<?>) result).getPayload());
 	}
@@ -140,7 +149,8 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		request.setMethod("POST");
 		request.setContentType("text/plain");
 		request.setParameter("foo", "bar");
-		request.setContent("hello".getBytes());
+		String body = "hello";
+		request.setContent(body.getBytes());
 
 		String requestURI = "/fname/bill/lname/clinton";
 
@@ -163,9 +173,15 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests extends Abs
 		gateway.afterPropertiesSet();
 		gateway.start();
 
-		Object result = gateway.doHandleRequest(request, response);
+		RequestEntity<Object> httpEntity = prepareRequestEntity(body, new ServletServerHttpRequest(request));
+
+		Object result = gateway.doHandleRequest(request, httpEntity, response);
 		assertThat(result, instanceOf(Message.class));
 		assertEquals("bill", ((Map<String, Object>) ((Message<?>) result).getPayload()).get("f"));
+	}
+
+	private static RequestEntity<Object> prepareRequestEntity(Object body, ServletServerHttpRequest request) throws IOException {
+		return new RequestEntity<>(body, request.getHeaders(), request.getMethod(), request.getURI());
 	}
 
 }

@@ -360,10 +360,11 @@ instances of which can be injected into the `HttpRequestHandlingEndpointSupport`
 
 Starting with version 4.1, you can configure the `<http:inbound-channel-adapter>` with a `status-code-expression` to override the default `200 OK` status.
 The expression must return an object that can be converted to an `org.springframework.http.HttpStatus` enum value.
-The `evaluationContext` has a `BeanResolver` but no variables, so the usage of this attribute is somewhat limited.
+The `evaluationContext` has a `BeanResolver` and, starting with version 5.1, is supplied with the `RequestEntity<?>` as root object.
 An example might be to resolve, at runtime, some scoped bean that returns a status code value.
 However, most likely, it is set to a fixed value such as `status-code=expression="204"` (No Content), or `status-code-expression="T(org.springframework.http.HttpStatus).NO_CONTENT"`.
 By default, `status-code-expression` is null, meaning that the normal '200 OK' response status is returned.
+Using the `RequestEntity<?>` as root object, the status code can be conditional e.g. on the request method, some header, URI content or even request body.
 The following example shows how to set the status code to `ACCEPTED`:
 
 ====

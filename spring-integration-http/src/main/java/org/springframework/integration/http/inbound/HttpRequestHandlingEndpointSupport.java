@@ -36,6 +36,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
@@ -245,33 +246,26 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 * @param servletRequest The servlet request.
+	 * @param httpEntity the request entity to use.
 	 * @param servletResponse The servlet response.
 	 * @return The response Message.
-	 * @throws IOException Any IOException.
 	 */
-	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
-			throws IOException {
+	protected final Message<?> doHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity,
+			HttpServletResponse servletResponse) {
 		if (isRunning()) {
-			return actualDoHandleRequest(servletRequest, servletResponse);
+			return actualDoHandleRequest(servletRequest, httpEntity, servletResponse);
 		}
 		else {
 			return createServiceUnavailableResponse();
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
-			throws IOException {
+	@SuppressWarnings("unchecked")
+	private Message<?> actualDoHandleRequest(HttpServletRequest servletRequest, RequestEntity<?> httpEntity,
+			HttpServletResponse servletResponse) {
+
 		this.activeCount.incrementAndGet();
 		try {
-			ServletServerHttpRequest request = this.prepareRequest(servletRequest);
-
-			Object requestBody = null;
-			if (isReadable(request)) {
-				requestBody = extractRequestBody(request);
-			}
-			HttpEntity httpEntity = new HttpEntity(requestBody, request.getHeaders());
-
 			StandardEvaluationContext evaluationContext = this.createEvaluationContext();
 			evaluationContext.setRootObject(httpEntity);
 
@@ -284,7 +278,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 			Cookie[] requestCookies = servletRequest.getCookies();
 			if (!ObjectUtils.isEmpty(requestCookies)) {
-				Map<String, Cookie> cookies = new HashMap<String, Cookie>(requestCookies.length);
+				Map<String, Cookie> cookies = new HashMap<>(requestCookies.length);
 				for (Cookie requestCookie : requestCookies) {
 					cookies.put(requestCookie.getName(), requestCookie);
 				}
@@ -312,7 +306,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 				evaluationContext.setVariable("matrixVariables", matrixVariables);
 			}
 
-			Map<String, Object> headers = getHeaderMapper().toHeaders(request.getHeaders());
+			Map<String, Object> headers = getHeaderMapper().toHeaders(httpEntity.getHeaders());
 			Object payload = null;
 			if (getPayloadExpression() != null) {
 				// create payload based on SpEL
@@ -330,8 +324,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			}
 
 			if (payload == null) {
-				if (requestBody != null) {
-					payload = requestBody;
+				if (httpEntity.getBody() != null) {
+					payload = httpEntity.getBody();
 				}
 				else {
 					payload = requestParams;
@@ -350,9 +344,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 			Message<?> message = messageBuilder
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL,
-							request.getURI().toString())
+							httpEntity.getUrl().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
-							request.getMethod().toString())
+							httpEntity.getMethod().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL,
 							servletRequest.getUserPrincipal())
 					.build();
@@ -366,7 +360,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 					if (getStatusCodeExpression() != null) {
 						reply = getMessageBuilderFactory().withPayload(e.getMessage())
 								.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE,
-										evaluateHttpStatus())
+										evaluateHttpStatus(httpEntity))
 								.build();
 					}
 					else {
@@ -419,9 +413,9 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 
 	}
 
-	protected void setStatusCodeIfNeeded(ServerHttpResponse response) {
+	protected void setStatusCodeIfNeeded(ServerHttpResponse response, HttpEntity<?> httpEntity) {
 		if (getStatusCodeExpression() != null) {
-			HttpStatus httpStatus = evaluateHttpStatus();
+			HttpStatus httpStatus = evaluateHttpStatus(httpEntity);
 			if (httpStatus != null) {
 				response.setStatusCode(httpStatus);
 			}
@@ -437,7 +431,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * @return the processed request (multipart wrapper if necessary)
 	 * @see MultipartResolver#resolveMultipart
 	 */
-	private ServletServerHttpRequest prepareRequest(HttpServletRequest servletRequest) {
+	protected ServletServerHttpRequest prepareRequest(HttpServletRequest servletRequest) {
 		if (servletRequest instanceof MultipartHttpServletRequest) {
 			return new MultipartHttpInputMessage((MultipartHttpServletRequest) servletRequest);
 		}
@@ -472,8 +466,17 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		return convertedMap;
 	}
 
+	protected RequestEntity<Object> prepareRequestEntity(ServletServerHttpRequest request) throws IOException {
+		Object requestBody = null;
+		if (isReadable(request)) {
+			requestBody = extractRequestBody(request);
+		}
+
+		return new RequestEntity<>(requestBody, request.getHeaders(), request.getMethod(), request.getURI());
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Object extractRequestBody(ServletServerHttpRequest request) throws IOException {
+	protected Object extractRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		if (contentType == null) {
 			contentType = MediaType.APPLICATION_OCTET_STREAM;
