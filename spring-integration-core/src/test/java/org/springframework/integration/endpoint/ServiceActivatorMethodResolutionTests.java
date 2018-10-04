@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,12 @@ import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ServiceActivatorMethodResolutionTests {
 
@@ -231,6 +233,17 @@ public class ServiceActivatorMethodResolutionTests {
 		assertNotEquals("FOO", outputChannel.receive(10).getPayload());
 	}
 
+	@Test
+	public void nullOk() {
+		NullOkTestBean testBean = new NullOkTestBean();
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
+		QueueChannel outputChannel = new QueueChannel();
+		serviceActivator.setOutputChannel(outputChannel);
+		serviceActivator.handleMessage(new GenericMessage<>(new KafkaNull()));
+		Message<?> result = outputChannel.receive(0);
+		assertEquals("gotNull", result.getPayload());
+	}
+
 
 	@SuppressWarnings("unused")
 	private static class SingleAnnotationTestBean {
@@ -301,6 +314,34 @@ public class ServiceActivatorMethodResolutionTests {
 
 		public String lowerCase(String s) {
 			return s.toLowerCase();
+		}
+
+	}
+
+
+	@SuppressWarnings("unused")
+	private static class NullOkTestBean {
+
+		NullOkTestBean() {
+			super();
+		}
+
+		@ServiceActivator
+		public String nullOK(@Payload(required = false) String s) {
+			if (s == null) {
+				return "gotNull";
+			}
+			else {
+				return s;
+			}
+		}
+
+	}
+
+	private static class KafkaNull {
+
+		KafkaNull() {
+			super();
 		}
 
 	}

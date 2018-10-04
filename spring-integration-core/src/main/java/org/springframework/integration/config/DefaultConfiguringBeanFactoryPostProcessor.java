@@ -58,6 +58,7 @@ import org.springframework.integration.handler.support.MapArgumentResolver;
 import org.springframework.integration.handler.support.PayloadExpressionArgumentResolver;
 import org.springframework.integration.handler.support.PayloadsArgumentResolver;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
@@ -99,6 +100,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		this.classLoader = classLoader;
 	}
 
+	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			this.beanFactory = beanFactory;
@@ -477,9 +479,13 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		}
 	}
 
-	private static BeanDefinition internalArgumentResolversBuilder(boolean listCapable) {
+	private BeanDefinition internalArgumentResolversBuilder(boolean listCapable) {
 		ManagedList<BeanDefinition> resolvers = new ManagedList<>();
 		resolvers.add(new RootBeanDefinition(PayloadExpressionArgumentResolver.class));
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(NullAwarePayloadArgumentResolver.class);
+		builder.addConstructorArgReference(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
+		// TODO Validator ?
+		resolvers.add(builder.getBeanDefinition());
 		resolvers.add(new RootBeanDefinition(PayloadsArgumentResolver.class));
 		resolvers.add(new RootBeanDefinition(MapArgumentResolver.class));
 
