@@ -74,6 +74,8 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.MutableMessage;
+import org.springframework.integration.support.NullAwarePayloadArgumentResolver;
+import org.springframework.integration.support.converter.ConfigurableCompositeMessageConverter;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperProvider;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -538,6 +540,19 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	 * that don't run in an application context.
 	 */
 	private void configureLocalMessageHandlerFactory() {
+		MessageConverter messageConverter = null;
+		if (getBeanFactory() != null &&
+				getBeanFactory()
+						.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
+			messageConverter = getBeanFactory()
+									.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
+											MessageConverter.class);
+			this.messageHandlerMethodFactory.setMessageConverter(messageConverter);
+		}
+		else {
+			messageConverter = new ConfigurableCompositeMessageConverter();
+		}
+		NullAwarePayloadArgumentResolver nullResolver = new NullAwarePayloadArgumentResolver(messageConverter);
 		PayloadExpressionArgumentResolver payloadExpressionArgumentResolver = new PayloadExpressionArgumentResolver();
 		payloadExpressionArgumentResolver.setBeanFactory(getBeanFactory());
 
@@ -549,6 +564,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		List<HandlerMethodArgumentResolver> customArgumentResolvers = new LinkedList<>();
 		customArgumentResolvers.add(payloadExpressionArgumentResolver);
+		customArgumentResolvers.add(nullResolver);
 		customArgumentResolvers.add(payloadsArgumentResolver);
 
 		if (this.canProcessMessageList) {
@@ -560,15 +576,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		customArgumentResolvers.add(mapArgumentResolver);
 
 		this.messageHandlerMethodFactory.setCustomArgumentResolvers(customArgumentResolvers);
-
-		if (getBeanFactory() != null &&
-				getBeanFactory()
-						.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {
-			this.messageHandlerMethodFactory
-					.setMessageConverter(getBeanFactory()
-							.getBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME,
-									MessageConverter.class));
-		}
 	}
 
 	@SuppressWarnings("unchecked")
