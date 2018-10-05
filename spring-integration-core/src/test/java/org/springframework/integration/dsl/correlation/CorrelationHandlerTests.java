@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.aggregator.HeaderAttributeCorrelationStrategy;
 import org.springframework.integration.channel.QueueChannel;
@@ -45,7 +44,9 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannelSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
+import org.springframework.integration.dsl.Transformers;
 import org.springframework.integration.handler.MessageTriggerAction;
+import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -54,6 +55,8 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * @author Artem Bilan
@@ -73,7 +76,6 @@ public class CorrelationHandlerTests {
 
 
 	@Autowired
-	@Qualifier("splitAggregateInput")
 	private MessageChannel splitAggregateInput;
 
 	@Autowired
@@ -114,7 +116,7 @@ public class CorrelationHandlerTests {
 
 	@Test
 	public void testSplitterAggregator() {
-		List<Character> payload = Arrays.asList('a', 'b', 'c', 'd', 'e');
+		List<String> payload = Arrays.asList("a", "b", "c", "d", "e");
 
 		QueueChannel replyChannel = new QueueChannel();
 		this.splitAggregateInput.send(MessageBuilder.withPayload(payload)
@@ -127,7 +129,8 @@ public class CorrelationHandlerTests {
 		@SuppressWarnings("unchecked")
 		List<Object> result = (List<Object>) receive.getPayload();
 		for (int i = 0; i < payload.size(); i++) {
-			assertEquals(payload.get(i), result.get(i));
+			assertThat(result.get(i), instanceOf(TextNode.class));
+			assertEquals(TextNode.valueOf(payload.get(i)), result.get(i));
 		}
 	}
 
@@ -203,6 +206,7 @@ public class CorrelationHandlerTests {
 		@Bean
 		public IntegrationFlow splitAggregateFlow() {
 			return IntegrationFlows.from("splitAggregateInput", true)
+					.transform(Transformers.toJson(ObjectToJsonTransformer.ResultType.NODE))
 					.split()
 					.channel(MessageChannels.executor(taskExecutor()))
 					.resequence()
@@ -259,7 +263,6 @@ public class CorrelationHandlerTests {
 		}
 
 		@Bean
-		@DependsOn("barrierFlow")
 		public IntegrationFlow releaseBarrierFlow(MessageTriggerAction barrierTriggerAction) {
 			return IntegrationFlows.from(releaseChannel())
 					.trigger(barrierTriggerAction,

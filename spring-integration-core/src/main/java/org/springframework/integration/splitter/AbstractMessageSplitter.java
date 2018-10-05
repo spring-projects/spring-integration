@@ -31,9 +31,11 @@ import org.reactivestreams.Publisher;
 import org.springframework.integration.channel.ReactiveStreamsSubscribableChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.util.FunctionIterator;
 import org.springframework.messaging.Message;
 
+import com.fasterxml.jackson.core.TreeNode;
 import reactor.core.publisher.Flux;
 
 /**
@@ -163,12 +165,21 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	/**
 	 * Obtain a size of the provided {@link Iterable}. Default implementation returns
 	 * {@link Collection#size()} if the iterable is a collection, or {@code 0} otherwise.
+	 * If iterable is a Jackson {@code TreeNode}, then its size is used.
 	 * @param iterable the {@link Iterable} to obtain the size
 	 * @return the size of the {@link Iterable}
 	 * @since 5.0
 	 */
 	protected int obtainSizeIfPossible(Iterable<?> iterable) {
-		return iterable instanceof Collection ? ((Collection<?>) iterable).size() : 0;
+		if (iterable instanceof Collection) {
+			return ((Collection<?>) iterable).size();
+		}
+		else if (JacksonPresent.isJackson2Present() && JacksonNodeHelper.isNode(iterable)) {
+			return JacksonNodeHelper.nodeSize(iterable);
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -265,5 +276,19 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 * @return The result of splitting the message.
 	 */
 	protected abstract Object splitMessage(Message<?> message);
+
+
+	private static class JacksonNodeHelper {
+
+		private static boolean isNode(Object object) {
+			return object instanceof TreeNode;
+		}
+
+		@SuppressWarnings("unchecked")
+		private static int nodeSize(Object node) {
+			return ((TreeNode) node).size();
+		}
+
+	}
 
 }
