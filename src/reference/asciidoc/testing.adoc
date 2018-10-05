@@ -245,7 +245,7 @@ public class MyIntegrationTests {
 The `@SpringIntegrationTest` annotation populates a `MockIntegrationContext` bean, which you can autowire to the test class to access its methods.
 With the `noAutoStartup` option, the Spring Integration Test Framework prevents endpoints that are normally `autoStartup=true` from starting. The endpoints are matched to the provided patterns, which support the following simple pattern styles: `xxx*`, `*xxx`, `*xxx*`, and `xxx*yyy`.
 
-This is useful when we would like to not have real connections to the target systems from inbound channel adapters (for example an AMQP Inbound Gateway, JDBC Polling Channel Adapter, WebSocket Message Producer in client mode, and so on).
+This is useful when we would like do not have real connections to the target systems from inbound channel adapters (for example an AMQP Inbound Gateway, JDBC Polling Channel Adapter, WebSocket Message Producer in client mode, and so on).
 
 The `MockIntegrationContext` is meant to be used in the target test cases for modifications to beans in the real application context.
 For example, endpoints that have `autoStartup` overridden to `false` can be replaced with mocks, as the following example shows:
@@ -265,6 +265,21 @@ public void testMockMessageSource() {
 ----
 ====
 
+NOTE: The `mySourceEndpoint` refers here to the bean name of the `SourcePollingChannelAdapter` for which we replace the real `MessageSource` with our mock.
+Similarly the `MockIntegrationContext.substituteMessageHandlerFor()` expect a bean name for the `IntegrationConsumer`, which wraps a `MessageHandler` as an endpoint.
+
+After test is performed you can restore the state of endpoint beans to the real configuration using `MockIntegrationContext.resetBeans()`:
+
+====
+[source,java]
+----
+@After
+public void tearDown() {
+    this.mockIntegrationContext.resetBeans();
+}
+----
+====
+
 See the https://docs.spring.io/spring-integration/api/org/springframework/integration/test/context/MockIntegrationContext.html[Javadoc] for more information.
 
 [[testing-mocks]]
@@ -272,7 +287,7 @@ See the https://docs.spring.io/spring-integration/api/org/springframework/integr
 
 The `org.springframework.integration.test.mock` package offers tools and utilities for mocking, stubbing, and verification of activity on Spring Integration components.
 The mocking functionality is fully based on and compatible with the well known Mockito Framework.
-(The current Mockito transitive dependency is on version 2.5.x.)
+(The current Mockito transitive dependency is on version 2.5.x or higher.)
 
 ==== MockIntegration
 
