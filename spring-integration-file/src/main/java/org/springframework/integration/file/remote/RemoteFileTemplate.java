@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,11 +391,18 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	@Override
 	public boolean get(final String remotePath, final InputStreamCallback callback) {
 		Assert.notNull(remotePath, "'remotePath' cannot be null");
-		return this.execute(session -> {
-			InputStream inputStream = session.readRaw(remotePath);
-			callback.doWithInputStream(inputStream);
-			inputStream.close();
-			return session.finalizeRaw();
+		return execute(session -> {
+			InputStream inputStream = null;
+			try {
+				inputStream = session.readRaw(remotePath);
+				callback.doWithInputStream(inputStream);
+				return session.finalizeRaw();
+			}
+			finally {
+				if (inputStream != null) {
+					inputStream.close();
+				}
+			}
 		});
 	}
 
