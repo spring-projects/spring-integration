@@ -45,17 +45,17 @@ We recommend this approach, because it decouples the code from the Spring Integr
 
 ===== Iterators
 
-Starting with _version 4.1_, the `AbstractMessageSplitter` supports the `Iterator` type for the `value` to split.
+Starting with version 4.1, the `AbstractMessageSplitter` supports the `Iterator` type for the `value` to split.
 Note, in the case of an `Iterator` (or `Iterable`), we don't have access to the number of underlying items and the `SEQUENCE_SIZE` header is set to `0`.
 This means that the default `SequenceSizeReleaseStrategy` of an `<aggregator>` won't work and the group for the `CORRELATION_ID` from the `splitter` won't be released; it will remain as `incomplete`.
 In this case you should use an appropriate custom `ReleaseStrategy` or rely on `send-partial-result-on-expiry` together with `group-timeout` or a `MessageGroupStoreReaper`.
 
-Starting with _version 5.0_, the `AbstractMessageSplitter` provides `protected obtainSizeIfPossible()` methods to allow the determination of the size of the `Iterable` and `Iterator` objects if that is possible.
+Starting with version 5.0, the `AbstractMessageSplitter` provides `protected obtainSizeIfPossible()` methods to allow the determination of the size of the `Iterable` and `Iterator` objects if that is possible.
 For example `XPathMessageSplitter` can determine the size of the underlying `NodeList` object.
+And starting with version 5.0.9, this method also properly returns a size of the `com.fasterxml.jackson.core.TreeNode`.
 
 An `Iterator` object is useful to avoid the need for building an entire collection in the memory before splitting.
-For example, when underlying items are populated from some external system (e.g.
-DataBase or FTP `MGET`) using iterations or streams.
+For example, when underlying items are populated from some external system (e.g. DataBase or FTP `MGET`) using iterations or streams.
 
 ===== Stream and Flux
 

@@ -117,6 +117,17 @@ public abstract class Transformers {
 		return toJson(jsonObjectMapper, null, contentType);
 	}
 
+	/**
+	 * Factory for the {@link ObjectToJsonTransformer} based on the provided {@link ObjectToJsonTransformer.ResultType}.
+	 * @param resultType the {@link ObjectToJsonTransformer.ResultType} to use.
+	 * Defaults to {@link ObjectToJsonTransformer.ResultType#STRING}.
+	 * @return the ObjectToJsonTransformer
+	 * @since 5.0.9
+	 */
+	public static ObjectToJsonTransformer toJson(ObjectToJsonTransformer.ResultType resultType) {
+		return toJson(null, resultType, null);
+	}
+
 	public static ObjectToJsonTransformer toJson(ObjectToJsonTransformer.ResultType resultType, String contentType) {
 		return toJson(null, resultType, contentType);
 	}
