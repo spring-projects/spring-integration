@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -399,11 +399,19 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 			@Override
 			public Boolean doInSession(Session<F> session) throws IOException {
-				InputStream inputStream = session.readRaw(remotePath);
-				callback.doWithInputStream(inputStream);
-				inputStream.close();
-				return session.finalizeRaw();
+				InputStream inputStream = null;
+				try {
+					inputStream = session.readRaw(remotePath);
+					callback.doWithInputStream(inputStream);
+					return session.finalizeRaw();
+				}
+				finally {
+					if (inputStream != null) {
+						inputStream.close();
+					}
+				}
 			}
+
 		});
 	}
 
