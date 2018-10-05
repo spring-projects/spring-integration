@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -36,6 +37,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.reactivestreams.Subscriber;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -46,7 +48,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
@@ -183,7 +185,8 @@ public class MockMessageHandlerTests {
 		ArgumentCaptor<Message<?>> messageArgumentCaptor = MockIntegration.messageArgumentCaptor();
 		MessageHandler mockMessageHandler =
 				spy(mockMessageHandler(messageArgumentCaptor))
-						.handleNext(m -> { });
+						.handleNext(m -> {
+						});
 
 		String endpointId = "rawHandlerConsumer";
 		this.mockIntegrationContext.substituteMessageHandlerFor(endpointId, mockMessageHandler);
@@ -214,6 +217,11 @@ public class MockMessageHandlerTests {
 			assertThat(e, instanceOf(IllegalStateException.class));
 			assertThat(e.getMessage(), containsString("with replies can't replace simple MessageHandler"));
 		}
+
+		this.mockIntegrationContext.resetBeans();
+
+		assertNotSame(mockMessageHandler, TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class));
+		assertNotSame(mockMessageHandler, TestUtils.getPropertyValue(endpoint, "subscriber", Subscriber.class));
 	}
 
 	/**
@@ -272,9 +280,9 @@ public class MockMessageHandlerTests {
 		}
 
 		@Bean
-		public EventDrivenConsumer rawHandlerConsumer() {
-			return new EventDrivenConsumer(rawChannel(),
-					new ExpressionEvaluatingMessageHandler(new ValueExpression<>("test")));
+		public ReactiveStreamsConsumer rawHandlerConsumer() {
+			return new ReactiveStreamsConsumer(rawChannel(),
+					(MessageHandler) new ExpressionEvaluatingMessageHandler(new ValueExpression<>("test")));
 		}
 
 		@ServiceActivator(inputChannel = "startChannel", outputChannel = "nextChannel")
@@ -291,7 +299,8 @@ public class MockMessageHandlerTests {
 		@ServiceActivator(inputChannel = "nextChannel")
 		public MessageHandler handleNextInput() {
 			return mockMessageHandler(argumentCaptorForOutputTest())
-					.handleNext(m -> { });
+					.handleNext(m -> {
+					});
 		}
 
 	}

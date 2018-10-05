@@ -30,6 +30,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.IntegrationConsumer;
+import org.springframework.integration.endpoint.ReactiveStreamsConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.test.mock.MockMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -37,6 +38,9 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 /**
  * A {@link BeanFactoryAware} component with an API to customize real beans
@@ -91,10 +95,17 @@ public class MockIntegrationContext implements BeanFactoryAware {
 					if (endpoint instanceof SourcePollingChannelAdapter) {
 						directFieldAccessor.setPropertyValue("source", e.getValue());
 					}
+					else if (endpoint instanceof ReactiveStreamsConsumer) {
+						Tuple2<?, ?> value = (Tuple2<?, ?>) e.getValue();
+						directFieldAccessor.setPropertyValue("handler", value.getT1());
+						directFieldAccessor.setPropertyValue("subscriber", value.getT2());
+					}
 					else if (endpoint instanceof IntegrationConsumer) {
 						directFieldAccessor.setPropertyValue("handler", e.getValue());
 					}
 				});
+
+		this.beans.clear();
 	}
 
 	/**
@@ -137,7 +148,13 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		}
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
 		Object targetMessageHandler = directFieldAccessor.getPropertyValue("handler");
-		this.beans.put(consumerEndpointId, targetMessageHandler);
+		if (endpoint instanceof ReactiveStreamsConsumer) {
+			Object targetSubscriber = directFieldAccessor.getPropertyValue("subscriber");
+			this.beans.put(consumerEndpointId, Tuples.of(targetMessageHandler, targetSubscriber));
+		}
+		else {
+			this.beans.put(consumerEndpointId, targetMessageHandler);
+		}
 
 		if (mockMessageHandler instanceof MessageProducer) {
 			if (targetMessageHandler instanceof MessageProducer) {
@@ -159,6 +176,10 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		}
 
 		directFieldAccessor.setPropertyValue("handler", mockMessageHandler);
+
+		if (endpoint instanceof ReactiveStreamsConsumer) {
+			directFieldAccessor.setPropertyValue("subscriber", mockMessageHandler);
+		}
 
 		if (autoStartup && endpoint instanceof Lifecycle) {
 			((Lifecycle) endpoint).start();

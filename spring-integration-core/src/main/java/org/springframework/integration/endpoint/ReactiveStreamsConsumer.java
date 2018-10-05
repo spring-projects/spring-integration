@@ -49,7 +49,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 	private final MessageChannel inputChannel;
 
-	private final MessageHandler messageHandler;
+	private final MessageHandler handler;
 
 	private final Publisher<Message<Object>> publisher;
 
@@ -83,10 +83,13 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 		this.subscriber = subscriber;
 		this.lifecycleDelegate = subscriber instanceof Lifecycle ? (Lifecycle) subscriber : null;
 		if (subscriber instanceof MessageHandlerSubscriber) {
-			this.messageHandler = ((MessageHandlerSubscriber) subscriber).messageHandler;
+			this.handler = ((MessageHandlerSubscriber) subscriber).messageHandler;
+		}
+		else if (subscriber instanceof MessageHandler) {
+			this.handler = (MessageHandler) subscriber;
 		}
 		else {
-			this.messageHandler = this.subscriber::onNext;
+			this.handler = this.subscriber::onNext;
 		}
 	}
 
@@ -101,11 +104,11 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 	@Override
 	public MessageChannel getOutputChannel() {
-		if (this.messageHandler instanceof MessageProducer) {
-			return ((MessageProducer) this.messageHandler).getOutputChannel();
+		if (this.handler instanceof MessageProducer) {
+			return ((MessageProducer) this.handler).getOutputChannel();
 		}
-		else if (this.messageHandler instanceof MessageRouter) {
-			return ((MessageRouter) this.messageHandler).getDefaultOutputChannel();
+		else if (this.handler instanceof MessageRouter) {
+			return ((MessageRouter) this.handler).getDefaultOutputChannel();
 		}
 		else {
 			return null;
@@ -114,7 +117,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 	@Override
 	public MessageHandler getHandler() {
-		return this.messageHandler;
+		return this.handler;
 	}
 
 	@Override
