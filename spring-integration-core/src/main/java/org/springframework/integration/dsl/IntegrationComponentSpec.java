@@ -63,7 +63,7 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	/**
 	 * @return the configured component.
 	 */
-	public final T get() {
+	public T get() {
 		if (this.target == null) {
 			this.target = doGet();
 		}
@@ -71,18 +71,13 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 	}
 
 	@Override
-	public T getObject() throws Exception {
+	public T getObject() {
 		return get();
 	}
 
 	@Override
 	public Class<?> getObjectType() {
 		return get().getClass();
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
 	}
 
 	@Override
