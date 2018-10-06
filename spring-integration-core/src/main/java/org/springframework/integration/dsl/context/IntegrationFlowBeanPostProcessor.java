@@ -163,11 +163,7 @@ public class IntegrationFlowBeanPostProcessor
 					id = flowNamePrefix + id;
 				}
 
-				Collection<?> messageHandlers =
-						this.beanFactory.getBeansOfType(messageHandler.getClass(), false, false)
-								.values();
-
-				if (!messageHandlers.contains(messageHandler)) {
+				if (noBeanPresentForComponent(messageHandler)) {
 					String handlerBeanName = generateBeanName(messageHandler, flowNamePrefix);
 
 					registerComponent(messageHandler, handlerBeanName, flowBeanName);
@@ -178,8 +174,7 @@ public class IntegrationFlowBeanPostProcessor
 				targetIntegrationComponents.put(endpoint, id);
 			}
 			else {
-				Collection<?> values = this.beanFactory.getBeansOfType(component.getClass(), false, false).values();
-				if (!values.contains(component)) {
+				if (noBeanPresentForComponent(component)) {
 					if (component instanceof AbstractMessageChannel) {
 						String channelBeanName = ((AbstractMessageChannel) component).getComponentName();
 						if (channelBeanName == null) {
@@ -216,10 +211,7 @@ public class IntegrationFlowBeanPostProcessor
 						if (!CollectionUtils.isEmpty(componentsToRegister)) {
 							componentsToRegister.entrySet()
 									.stream()
-									.filter(o ->
-											!this.beanFactory.getBeansOfType(o.getKey().getClass(), false, false)
-													.values()
-													.contains(o.getKey()))
+									.filter(o -> noBeanPresentForComponent(o.getKey()))
 									.forEach(o ->
 											registerComponent(o.getKey(),
 													generateBeanName(o.getKey(), flowNamePrefix, o.getValue(),
@@ -239,9 +231,7 @@ public class IntegrationFlowBeanPostProcessor
 						targetIntegrationComponents.put(pollingChannelAdapterFactoryBean, id);
 
 						MessageSource<?> messageSource = spec.get().getT2();
-						if (!this.beanFactory.getBeansOfType(messageSource.getClass(), false, false)
-								.values()
-								.contains(messageSource)) {
+						if (noBeanPresentForComponent(messageSource)) {
 							String messageSourceId = id + ".source";
 							if (messageSource instanceof NamedComponent
 									&& ((NamedComponent) messageSource).getComponentName() != null) {
@@ -347,10 +337,7 @@ public class IntegrationFlowBeanPostProcessor
 
 				componentsToRegister.entrySet()
 						.stream()
-						.filter(component ->
-								!this.beanFactory.getBeansOfType(component.getKey().getClass(), false, false)
-										.values()
-										.contains(component.getKey()))
+						.filter(component -> noBeanPresentForComponent(component.getKey()))
 						.forEach(component ->
 								registerComponent(component.getKey(),
 										generateBeanName(component.getKey(), component.getValue())));
@@ -389,6 +376,19 @@ public class IntegrationFlowBeanPostProcessor
 				((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
 			}
 		}
+	}
+
+	private boolean noBeanPresentForComponent(Object instance) {
+		if (instance instanceof NamedComponent) {
+			String beanName = ((NamedComponent) instance).getComponentName();
+			if (beanName != null) {
+				return !this.beanFactory.containsBean(beanName);
+			}
+		}
+
+		Collection<?> beans = this.beanFactory.getBeansOfType(instance.getClass(), false, false).values();
+
+		return !beans.contains(instance);
 	}
 
 	private void registerComponent(Object component, String beanName) {
