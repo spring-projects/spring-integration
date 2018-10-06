@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -44,11 +45,13 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.MessageEndpoint;
@@ -65,6 +68,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.Pollers;
 import org.springframework.integration.dsl.Transformers;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.GenericHandler;
 import org.springframework.integration.handler.advice.ErrorMessageSendingRecoverer;
@@ -499,6 +503,18 @@ public class IntegrationFlowTests {
 		this.nullChannel.setCountsEnabled(false);
 	}
 
+	@Autowired
+	private EventDrivenConsumer flow1WithPrototypeHandlerConsumer;
+
+	@Autowired
+	private EventDrivenConsumer flow2WithPrototypeHandlerConsumer;
+
+	@Test
+	public void testPrototypeIsNotOverridden() {
+		assertNotSame(this.flow1WithPrototypeHandlerConsumer.getHandler(),
+				this.flow2WithPrototypeHandlerConsumer.getHandler());
+	}
+
 	@MessagingGateway
 	public interface ControlBusGateway {
 
@@ -863,6 +879,31 @@ public class IntegrationFlowTests {
 		public IntegrationFlow flowWithNullChannel() {
 			return IntegrationFlows.from("flowWithNullChannelInput")
 					.nullChannel();
+		}
+
+		@Bean
+		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+		public AbstractReplyProducingMessageHandler myHandler() {
+			return new AbstractReplyProducingMessageHandler() {
+
+				@Override
+				protected Object handleRequestMessage(Message<?> requestMessage) {
+					return requestMessage;
+				}
+
+			};
+		}
+
+		@Bean
+		public IntegrationFlow flow1WithPrototypeHandler(
+				@Qualifier("myHandler") AbstractReplyProducingMessageHandler handler) {
+			return f -> f.handle(handler, e -> e.id("flow1WithPrototypeHandlerConsumer"));
+		}
+
+		@Bean
+		public IntegrationFlow flow2WithPrototypeHandler(
+				@Qualifier("myHandler") AbstractReplyProducingMessageHandler handler) {
+			return f -> f.handle(handler, e -> e.id("flow2WithPrototypeHandlerConsumer"));
 		}
 
 	}
