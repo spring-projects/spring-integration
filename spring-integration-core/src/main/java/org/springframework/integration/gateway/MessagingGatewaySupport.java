@@ -623,12 +623,23 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 							this.messageCount.incrementAndGet();
 						}
 					})
-					.<Message<?>>map(replyMessage ->
-							MessageBuilder.fromMessage(replyMessage)
-									.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
-									.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
-									.build())
-
+					.<Message<?>>map(replyMessage -> {
+							if (!error && replyMessage instanceof ErrorMessage) {
+								ErrorMessage em = (ErrorMessage) replyMessage;
+								if (em.getPayload() instanceof MessagingException) {
+									throw (MessagingException) em.getPayload();
+								}
+								else {
+									throw new MessagingException(requestMessage, em.getPayload());
+								}
+							}
+							else {
+								return MessageBuilder.fromMessage(replyMessage)
+										.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
+										.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
+										.build();
+							}
+					})
 					.onErrorResume(t -> error ? Mono.error(t) : handleSendError(requestMessage, t));
 		});
 	}
