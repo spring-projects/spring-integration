@@ -51,6 +51,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
@@ -653,7 +654,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						 * groups. A longer timeout for empty groups can be enabled by
 						 * setting minimumTimeoutForEmptyGroups.
 						 */
-						removeGroup = lastModifiedNow <= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+						removeGroup = lastModifiedNow <= (System
+								.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
 						if (removeGroup && this.logger.isDebugEnabled()) {
 							this.logger.debug("Removing empty group: " + correlationKey);
 						}
@@ -753,10 +755,24 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Object result = this.outputProcessor.processMessageGroup(group);
 		Collection<Message<?>> partialSequence = null;
 		if (result instanceof Collection<?>) {
-			this.verifyResultCollectionConsistsOfMessages((Collection<?>) result);
+			verifyResultCollectionConsistsOfMessages((Collection<?>) result);
 			partialSequence = (Collection<Message<?>>) result;
 		}
-		this.sendOutputs(result, message);
+
+		if (partialSequence == null && !(result instanceof Message<?>)) {
+			AbstractIntegrationMessageBuilder<?> messageBuilder;
+			if (result instanceof AbstractIntegrationMessageBuilder<?>) {
+				messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
+			}
+			else {
+				messageBuilder = getMessageBuilderFactory()
+						.withPayload(result)
+						.copyHeaders(message.getHeaders());
+			}
+			result = messageBuilder.popSequenceDetails();
+		}
+
+		sendOutputs(result, message);
 		return partialSequence;
 	}
 
@@ -772,10 +788,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	@Override
-	public void destroy() throws Exception {
-		for (ScheduledFuture<?> future : this.expireGroupScheduledFutures.values()) {
-			future.cancel(true);
-		}
+	public void destroy() {
+		this.expireGroupScheduledFutures.values().forEach(future -> future.cancel(true));
 	}
 
 	@Override

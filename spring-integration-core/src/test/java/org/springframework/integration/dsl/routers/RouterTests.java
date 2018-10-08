@@ -29,6 +29,7 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -531,6 +532,25 @@ public class RouterTests {
 		assertNull(this.messageHandlingExceptionChannel.receive(0));
 	}
 
+	@Autowired
+	@Qualifier("nestedScatterGatherFlow.input")
+	private MessageChannel nestedScatterGatherFlowInput;
+
+	@Test
+	public void testNestedScatterGather() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<String> request = MessageBuilder.withPayload("this is a test")
+				.setReplyChannel(replyChannel)
+				.build();
+		this.nestedScatterGatherFlowInput.send(request);
+		Message<?> bestQuoteMessage = replyChannel.receive(10000);
+		assertNotNull(bestQuoteMessage);
+		Object payload = bestQuoteMessage.getPayload();
+		assertThat(payload, instanceOf(String.class));
+//		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+	}
+
+
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
@@ -771,6 +791,29 @@ public class RouterTests {
 															.anyMatch(m -> (Double) m.getPayload() > 5)),
 							scatterGather -> scatterGather
 									.gatherTimeout(10_000));
+		}
+
+		@Bean
+		public IntegrationFlow nestedScatterGatherFlow() {
+			return f -> f
+					.split(s -> s.delimiters(" "))
+					.scatterGather(
+							scatterer -> scatterer
+									.recipientFlow(f1 -> f1.handle((p, h) -> p + " - flow 1"))
+									.recipientFlow(f2 -> f2.handle((p, h) -> p + " - flow 2"))
+									.applySequence(true),
+							gatherer -> gatherer
+									.outputProcessor(mg -> mg
+											.getMessages()
+											.stream()
+											.map(m -> m.getPayload().toString())
+											.collect(Collectors.joining(", "))),
+							scatterGather -> scatterGather.gatherTimeout(10_000))
+					.aggregate()
+					.<List<String>, String>transform(source ->
+							source.stream()
+									.map(s -> "- " + s)
+									.collect(Collectors.joining("\n")));
 		}
 
 	}
