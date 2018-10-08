@@ -370,7 +370,7 @@ public class WebFluxDslTests {
 							.requestMapping(m -> m.produces(MediaType.TEXT_EVENT_STREAM_VALUE))
 							.mappedResponseHeaders("*"))
 					.enrichHeaders(Collections.singletonMap("aHeader", new String[] { "foo", "bar", "baz" }))
-					.handle((p, h) -> Flux.fromArray((String[]) h.get("aHeader")))
+					.handle((p, h) -> Flux.fromArray(h.get("aHeader", String[].class)))
 					.get();
 		}
 

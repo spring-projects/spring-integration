@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import java.util.Map;
+import org.springframework.messaging.MessageHeaders;
 
 /**
  * A functional interface to specify {@link org.springframework.messaging.MessageHandler}
@@ -36,6 +36,6 @@ import java.util.Map;
 @FunctionalInterface
 public interface GenericHandler<P> {
 
-	Object handle(P payload, Map<String, Object> headers);
+	Object handle(P payload, MessageHeaders headers);
 
 }

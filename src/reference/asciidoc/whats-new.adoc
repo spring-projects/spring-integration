@@ -41,6 +41,8 @@ This avoid confusion with `log()` which is treated as a one-way end flow compone
 
 A generated bean name for any `NamedComponent` within an integration flow is now based on the component type for better readability from visual tools, logs analyzers and metrics collectors.
 
+The `GenericHandler.handle()` now excepts a `MessageHeaders` type for the second argument.
+
 [[x5.1-dispatcher-exceptions]]
 ==== Dispatcher Exceptions
 
