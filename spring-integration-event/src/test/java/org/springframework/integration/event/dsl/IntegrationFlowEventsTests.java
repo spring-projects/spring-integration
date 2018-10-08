@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.BeforeClass;
@@ -49,6 +48,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
@@ -148,7 +148,7 @@ public class IntegrationFlowEventsTests {
 						}
 
 						@Override
-						public Object handle(Integer p, Map<String, Object> h) {
+						public Object handle(Integer p, MessageHeaders h) {
 							return p * 2;
 						}
 

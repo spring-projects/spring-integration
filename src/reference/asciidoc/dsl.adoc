@@ -476,7 +476,7 @@ Similar lambda configurations are provided for the `resequence()` EIP method.
 The `.handle()` EIP method's goal is to invoke any `MessageHandler` implementation or any method on some POJO.
 Another option is to define an "`activity`" by using lambda expressions.
 Consequently, we introduced a generic `GenericHandler<P>` functional interface.
-Its `handle` method requires two arguments: `P payload` and `Map<String, Object> headers`.
+Its `handle` method requires two arguments: `P payload` and `MessageHeaders headers` (starting with version 5.1).
 Having that, we can define a flow as follows:
 
 ====
