@@ -49,6 +49,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.MessageChannels;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.http.HttpHeaders;
 import org.springframework.integration.http.dsl.Http;
@@ -137,6 +138,7 @@ public class WebFluxDslTests {
 				WebTestClient.bindToApplicationContext(this.wac)
 						.apply(SecurityMockServerConfigurers.springSecurity())
 						.configureClient()
+//						.responseTimeout(Duration.ofSeconds(600))
 						.build();
 	}
 
@@ -230,6 +232,15 @@ public class WebFluxDslTests {
 				.expectNext("foo", "bar", "baz")
 				.verifyComplete();
 
+	}
+
+	@Test
+	public void testHttpReactivePostWithError() {
+		this.webTestClient.post().uri("/reactivePostErrors")
+				.headers(headers -> headers.setBasicAuth("guest", "guest"))
+				.body(Mono.just("foo\nbar\nbaz"), String.class)
+				.exchange()
+				.expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY);
 	}
 
 	@Test
@@ -361,6 +372,30 @@ public class WebFluxDslTests {
 											: HttpStatus.BAD_REQUEST))
 					.channel(c -> c.queue("storeChannel"))
 					.get();
+		}
+
+		@Bean
+		public IntegrationFlow httpReactiveInboundGatewayFlowWithErrors() {
+			return IntegrationFlows
+					.from(WebFlux.inboundGateway("/reactivePostErrors")
+							.requestMapping(m -> m.methods(HttpMethod.POST))
+							.requestPayloadType(ResolvableType.forClassWithGenerics(Flux.class, String.class))
+							.statusCodeFunction(e ->
+									HttpMethod.POST.equals(e.getMethod())
+											? HttpStatus.ACCEPTED
+											: HttpStatus.BAD_REQUEST)
+							.errorChannel(errorFlow().getInputChannel()))
+					.channel(MessageChannels.flux())
+					.handle((p, h) -> {
+						throw new RuntimeException("errorTest");
+					})
+					.get();
+		}
+
+		@Bean
+		public IntegrationFlow errorFlow() {
+			return f -> f
+					.enrichHeaders(h -> h.header(HttpHeaders.STATUS_CODE, HttpStatus.BAD_GATEWAY));
 		}
 
 		@Bean
