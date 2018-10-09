@@ -301,6 +301,10 @@ NOTE: The default naming strategy is a http://docs.spring.io/spring/docs/current
 The exporter propagates the `default-domain` to that object to allow it to generate a fallback object name if parsing of the bean key fails.
 If your custom naming strategy is a `MetadataNamingStrategy` (or subclass), the exporter will *not* propagate the `default-domain`; you will need to configure it on your strategy bean.
 
+Starting with version 5.0.9; any bean names (represented by the `name` key in the object name) can be quoted if they contain any characters that are not allowed in a Java identifier (or period `.`).
+This requires setting `spring.integration.jmx.quote.names=true` in a `META-INF/spring.integration.properties` file on the class path.
+In 5.1 it will not be configurable.
+
 [[jmx-42-improvements]]
 ===== JMX Improvements
 

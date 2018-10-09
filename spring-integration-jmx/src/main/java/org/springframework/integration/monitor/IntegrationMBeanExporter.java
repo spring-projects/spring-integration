@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.lang.model.SourceVersion;
 import javax.management.DynamicMBean;
 import javax.management.JMException;
 import javax.management.ObjectName;
@@ -157,6 +158,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	private final AtomicBoolean shuttingDown = new AtomicBoolean();
 
+	private boolean quoteNames;
+
 
 	public IntegrationMBeanExporter() {
 		super();
@@ -216,6 +219,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	@Override
 	public void afterSingletonsInstantiated() {
+		if (this.applicationContext.containsBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME)) {
+			Properties props = this.applicationContext
+					.getBean(IntegrationContextUtils.INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
+			String prop = props.getProperty("spring.integration.jmx.quote.names");
+			if (prop != null) {
+				this.quoteNames = Boolean.parseBoolean(prop);
+			}
+		}
 		Map<String, MessageHandlerMetrics> messageHandlers =
 				this.applicationContext.getBeansOfType(MessageHandlerMetrics.class);
 		for (Entry<String, MessageHandlerMetrics> entry : messageHandlers.entrySet()) {
@@ -744,28 +755,43 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	}
 
 	private String getChannelBeanKey(String channel) {
-		String name = "" + channel;
-		if (name.startsWith("org.springframework.integration")) {
-			name = name + ",source=anonymous";
+		String extra = "";
+		if (channel.startsWith("org.springframework.integration")) {
+			extra = ",source=anonymous";
 		}
-		return String.format(this.domain + ":type=MessageChannel,name=%s" + getStaticNames(), name);
+		return String.format(this.domain + ":type=MessageChannel,name=%s%s" + getStaticNames(),
+				quoteIfNecessary(channel), extra);
 	}
 
 	private String getHandlerBeanKey(MessageHandlerMetrics handler) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(this.domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(),
-				handler.getManagedName(), handler.getManagedType());
+				quoteIfNecessary(handler.getManagedName()), quoteIfNecessary(handler.getManagedType()));
 	}
 
 	private String getSourceBeanKey(MessageSourceMetrics source) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(this.domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(),
-				source.getManagedName(), source.getManagedType());
+				quoteIfNecessary(source.getManagedName()), quoteIfNecessary(source.getManagedType()));
 	}
 
 	private String getEndpointBeanKey(AbstractEndpoint endpoint, String name, String source) {
 		// This ordering of keys seems to work with default settings of JConsole
-		return String.format(this.domain + ":type=ManagedEndpoint,name=%s,bean=%s" + getStaticNames(), name, source);
+		return String.format(this.domain + ":type=ManagedEndpoint,name=%s,bean=%s" + getStaticNames(),
+				quoteIfNecessary(name), source);
+	}
+
+	/*
+	 * https://www.oracle.com/technetwork/java/javase/tech/best-practices-jsp-136021.html
+	 *
+	 * The set of characters in a value is also limited. If special characters may
+	 * occur, it is recommended that the value be quoted, using ObjectName.quote. If
+	 * the value for a given key is sometimes quoted, then it should always be quoted.
+	 * By default, if a value is a string (rather than a number, say), then it should
+	 * be quoted unless you are sure that it will never contain special characters.
+	 */
+	private String quoteIfNecessary(String name) {
+		return SourceVersion.isName(name) ? name : this.quoteNames ? ObjectName.quote(name) : name;
 	}
 
 	private String getStaticNames() {
