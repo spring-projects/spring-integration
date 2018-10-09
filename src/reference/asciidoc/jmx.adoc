@@ -332,6 +332,8 @@ The exporter propagates the `default-domain` to that object to let it generate a
 If your custom naming strategy is a `MetadataNamingStrategy` (or a subclass of it), the exporter does not propagate the `default-domain`.
 You must configure it on your strategy bean.
 
+Starting with version 5.1; any bean names (represented by the `name` key in the object name) will be quoted if they contain any characters that are not allowed in a Java identifier (or period `.`).
+
 [[jmx-42-improvements]]
 ===== JMX Improvements
 
