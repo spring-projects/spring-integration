@@ -46,6 +46,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Mark Fisher
@@ -58,38 +59,42 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ObjectToJsonTransformerTests {
 
 	@Test
-	public void simpleStringPayload() throws Exception {
+	public void simpleStringPayload() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
-		String result = (String) transformer.transform(new GenericMessage<String>("foo")).getPayload();
+		String result = (String) transformer.transform(new GenericMessage<>("foo")).getPayload();
 		assertEquals("\"foo\"", result);
 	}
 
 	@Test
-	public void withDefaultContentType() throws Exception {
+	public void withDefaultContentType() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
-		Message<?> result = transformer.transform(new GenericMessage<String>("foo"));
+		Message<?> result = transformer.transform(new GenericMessage<>("foo"));
 		assertEquals(ObjectToJsonTransformer.JSON_CONTENT_TYPE, result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
-	public void withProvidedContentType() throws Exception {
+	public void withProvidedContentType() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(MessageHeaders.CONTENT_TYPE, "text/xml")
+				.build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
-	public void withProvidedContentTypeWithOverride() throws Exception {
+	public void withProvidedContentTypeWithOverride() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		transformer.setContentType(ObjectToJsonTransformer.JSON_CONTENT_TYPE);
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(MessageHeaders.CONTENT_TYPE, "text/xml")
+				.build();
 		Message<?> result = transformer.transform(message);
 		assertEquals(ObjectToJsonTransformer.JSON_CONTENT_TYPE, result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
-	public void withProvidedContentTypeAsEmptyString() throws Exception {
+	public void withProvidedContentTypeAsEmptyString() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		transformer.setContentType("");
 		Message<?> message = MessageBuilder.withPayload("foo").build();
@@ -98,24 +103,26 @@ public class ObjectToJsonTransformerTests {
 	}
 
 	@Test
-	public void withProvidedContentTypeAsEmptyStringDoesNotOverride() throws Exception {
+	public void withProvidedContentTypeAsEmptyStringDoesNotOverride() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		transformer.setContentType("");
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "text/xml").build();
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(MessageHeaders.CONTENT_TYPE, "text/xml")
+				.build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("text/xml", result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void withProvidedContentTypeAsNull() throws Exception {
+	public void withProvidedContentTypeAsNull() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		transformer.setContentType(null);
 	}
 
 	@Test
-	public void simpleIntegerPayload() throws Exception {
+	public void simpleIntegerPayload() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
-		String result = (String) transformer.transform(new GenericMessage<Integer>(123)).getPayload();
+		String result = (String) transformer.transform(new GenericMessage<>(123)).getPayload();
 		assertEquals("123", result);
 	}
 
@@ -128,12 +135,12 @@ public class ObjectToJsonTransformerTests {
 	}
 
 	@Test
-	public void objectPayload() throws Exception {
+	public void objectPayload() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer();
 		TestAddress address = new TestAddress(123, "Main Street");
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(address);
-		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
+		String result = (String) transformer.transform(new GenericMessage<>(person)).getPayload();
 		assertTrue(result.contains("\"firstName\":\"John\""));
 		assertTrue(result.contains("\"lastName\":\"Doe\""));
 		assertTrue(result.contains("\"age\":42"));
@@ -146,13 +153,13 @@ public class ObjectToJsonTransformerTests {
 	}
 
 	@Test
-	public void objectPayloadWithCustomObjectMapper() throws Exception {
+	public void objectPayloadWithCustomObjectMapper() {
 		ObjectMapper customMapper = new ObjectMapper();
 		customMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, Boolean.FALSE);
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new Jackson2JsonObjectMapper(customMapper));
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
-		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
+		String result = (String) transformer.transform(new GenericMessage<>(person)).getPayload();
 		assertTrue(result.contains("firstName:\"John\""));
 		assertTrue(result.contains("lastName:\"Doe\""));
 		assertTrue(result.contains("age:42"));
@@ -193,11 +200,11 @@ public class ObjectToJsonTransformerTests {
 	}
 
 	@Test
-	public void testBoonJsonObjectMapper() throws Exception {
+	public void testBoonJsonObjectMapper() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper());
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
-		String result = (String) transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
+		String result = (String) transformer.transform(new GenericMessage<>(person)).getPayload();
 		assertTrue(result.contains("\"firstName\":\"John\""));
 		assertTrue(result.contains("\"lastName\":\"Doe\""));
 		assertTrue(result.contains("\"age\":42"));
@@ -210,12 +217,12 @@ public class ObjectToJsonTransformerTests {
 	}
 
 	@Test
-	public void testBoonJsonObjectMapper_toNode() throws Exception {
+	public void testBoonJsonObjectMapper_toNode() {
 		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(new BoonJsonObjectMapper(),
 				ObjectToJsonTransformer.ResultType.NODE);
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
-		Object payload = transformer.transform(new GenericMessage<TestPerson>(person)).getPayload();
+		Object payload = transformer.transform(new GenericMessage<>(person)).getPayload();
 		assertThat(payload, instanceOf(Map.class));
 
 		SpelExpressionParser parser = new SpelExpressionParser();
@@ -225,6 +232,17 @@ public class ObjectToJsonTransformerTests {
 		String value = expression.getValue(evaluationContext, payload, String.class);
 
 		assertEquals("John: Main Street", value);
+	}
+
+	@Test
+	public void testJsonStringAndJsonNode() {
+		ObjectToJsonTransformer transformer = new ObjectToJsonTransformer(ObjectToJsonTransformer.ResultType.NODE);
+		Object result = transformer.transform(new GenericMessage<>("{\"foo\": \"FOO\", \"bar\": 1}")).getPayload();
+		assertThat(result, instanceOf(ObjectNode.class));
+		ObjectNode objectNode = (ObjectNode) result;
+		assertEquals(2, objectNode.size());
+		assertEquals("FOO", objectNode.path("foo").textValue());
+		assertEquals(1, objectNode.path("bar").intValue());
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,8 +91,28 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 	}
 
 	@Override
-	public JsonNode toJsonNode(Object value) throws Exception {
-		return this.objectMapper.valueToTree(value);
+	public JsonNode toJsonNode(Object json) throws Exception {
+		if (json instanceof String) {
+			return this.objectMapper.readTree((String) json);
+		}
+		else if (json instanceof byte[]) {
+			return this.objectMapper.readTree((byte[]) json);
+		}
+		else if (json instanceof File) {
+			return this.objectMapper.readTree((File) json);
+		}
+		else if (json instanceof URL) {
+			return this.objectMapper.readTree((URL) json);
+		}
+		else if (json instanceof InputStream) {
+			return this.objectMapper.readTree((InputStream) json);
+		}
+		else if (json instanceof Reader) {
+			return this.objectMapper.readTree((Reader) json);
+		}
+		else {
+			return this.objectMapper.valueToTree(json);
+		}
 	}
 
 	@Override
@@ -137,7 +157,8 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 		JavaType contentClassType = this.createJavaType(javaTypes, JsonHeaders.CONTENT_TYPE_ID);
 		if (classType.getKeyType() == null) {
 			return this.objectMapper.getTypeFactory()
-					.constructCollectionType((Class<? extends Collection<?>>) classType.getRawClass(), contentClassType);
+					.constructCollectionType((Class<? extends Collection<?>>) classType
+							.getRawClass(), contentClassType);
 		}
 
 		JavaType keyClassType = this.createJavaType(javaTypes, JsonHeaders.KEY_TYPE_ID);
