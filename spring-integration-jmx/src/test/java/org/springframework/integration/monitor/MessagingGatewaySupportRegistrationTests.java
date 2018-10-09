@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class MessagingGatewaySupportRegistrationTests {
 		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,type=MessageSource,name=foo"),
 				null);
 		assertEquals(1, names.size());
-		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,name=foo#2"), null);
+		names = this.server.queryNames(new ObjectName("org.springframework.integration:*,name=\"foo#2\""), null);
 		assertEquals(1, names.size());
 	}
 

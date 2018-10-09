@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,8 +139,12 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertEquals("test.type", notification.getType());
 		assertNull(notification.getUserData());
 		Set<ObjectName> names = server
-				.queryNames(new ObjectName("*:type=MessageHandler," + "name=chainWithJmxNotificationPublishing$child."
-						+ "jmx-notification-publishing-channel-adapter-within-chain,*"), null);
+				.queryNames(new ObjectName("*:type=MessageHandler," + "name=\"chainWithJmxNotificationPublishing$child."
+						+ "jmx-notification-publishing-channel-adapter-within-chain\",*"), null);
+		assertEquals(1, names.size());
+		names = server
+				.queryNames(new ObjectName("*:type=MessageChannel,"
+						+ "name=org.springframework.integration.test.anon,source=anonymous,*"), null);
 		assertEquals(1, names.size());
 	}
 
