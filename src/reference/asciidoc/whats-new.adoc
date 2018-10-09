@@ -182,3 +182,11 @@ See <<jms>> for more information.
 The `statusCodeExpression` (and `Function`) is now supplied with the `RequestEntity<?>` as a root object for evaluation context, so request headers, method, URI and body are available for target status code calculation.
 
 See <<http>> and <<webflux>> for more information.
+
+[[x51.-jmx]]
+=== JMX Changes
+
+Object name key values are now quoted if they contain any characters other than those allowed in a Java identifier (or period `.`).
+e.g. `org.springframework.integration:type=MessageChannel,name="input:foo.myGroup.errors"`.
+This has the side effect that previously "allowed" names, with such characters, will now be quoted.
+e.g. `org.springframework.integration:type=MessageChannel,name="input#foo.myGroup.errors"`.

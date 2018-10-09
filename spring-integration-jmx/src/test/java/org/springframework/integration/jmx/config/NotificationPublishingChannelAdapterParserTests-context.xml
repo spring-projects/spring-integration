@@ -23,6 +23,8 @@
 
 	<si:channel id="channel"/>
 
+	<si:channel id="org.springframework.integration.test.anon"/>
+
 	<jmx:notification-publishing-channel-adapter
 			id="adapter" channel="channel"
 			object-name="test.publisher:name=publisher"
