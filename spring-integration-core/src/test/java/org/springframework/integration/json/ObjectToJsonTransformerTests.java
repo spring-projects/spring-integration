@@ -47,6 +47,7 @@ import org.springframework.messaging.support.GenericMessage;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * @author Mark Fisher
@@ -243,6 +244,10 @@ public class ObjectToJsonTransformerTests {
 		assertEquals(2, objectNode.size());
 		assertEquals("FOO", objectNode.path("foo").textValue());
 		assertEquals(1, objectNode.path("bar").intValue());
+
+		result = transformer.transform(new GenericMessage<>("foo")).getPayload();
+		assertThat(result, instanceOf(TextNode.class));
+		assertEquals("foo", ((TextNode) result).textValue());
 	}
 
 }
