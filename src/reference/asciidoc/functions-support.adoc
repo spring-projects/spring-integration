@@ -114,7 +114,7 @@ This function support is useful when used together with the https://cloud.spring
 [[kotlin-functions-support]]
 ==== Kotlin Lambdas
 
-The Framework also has been improved to support Kotlin lambdas for functions, so now you can get a gain from combination of Kotlin language and Spring Integration flow definitions:
+The Framework also has been improved to support Kotlin lambdas for functions so now you can use a combination of the Kotlin language and Spring Integration flow definitions:
 
 ====
 [source, java]
