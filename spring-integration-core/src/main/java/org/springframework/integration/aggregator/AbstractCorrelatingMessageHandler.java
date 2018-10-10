@@ -275,8 +275,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	/**
 	 * Perform a {@link MessageBuilder#popSequenceDetails()} for output message or not.
 	 * Default to true.
-	 * This option plays an opposite role to the
-	 * {@link org.springframework.integration.splitter.AbstractMessageSplitter#setApplySequence(boolean)}.
+	 * This option removes the sequence information added by the nearest upstream component with
+	 * {@code applySequence=true} (for example splitter).
 	 * @param popSequence the boolean flag to use.
 	 * @since 5.1
 	 */
@@ -429,7 +429,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
-		Assert.state(correlationKey != null, "Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
+		Assert.state(correlationKey != null,
+				"Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
 
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Handling message with correlationKey [" + correlationKey + "]: " + message);
@@ -669,8 +670,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						 * groups. A longer timeout for empty groups can be enabled by
 						 * setting minimumTimeoutForEmptyGroups.
 						 */
-						removeGroup = lastModifiedNow <= (System
-								.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+						removeGroup =
+								lastModifiedNow <= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
 						if (removeGroup && this.logger.isDebugEnabled()) {
 							this.logger.debug("Removing empty group: " + correlationKey);
 						}

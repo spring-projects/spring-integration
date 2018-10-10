@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -537,6 +538,7 @@ public class RouterTests {
 	private MessageChannel nestedScatterGatherFlowInput;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testNestedScatterGather() {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> request = MessageBuilder.withPayload("this is a test")
@@ -547,7 +549,21 @@ public class RouterTests {
 		assertNotNull(bestQuoteMessage);
 		Object payload = bestQuoteMessage.getPayload();
 		assertThat(payload, instanceOf(String.class));
-//		assertThat(((List<?>) payload).size(), greaterThanOrEqualTo(1));
+		List<?> topSequenceDetails =
+				(List<?>) bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, List.class)
+				.get(0);
+
+		assertEquals(request.getHeaders().getId(),
+				bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID));
+
+		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID),
+				topSequenceDetails.get(0));
+
+		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER),
+				topSequenceDetails.get(1));
+
+		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE),
+				topSequenceDetails.get(2));
 	}
 
 
