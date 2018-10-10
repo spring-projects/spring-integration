@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -51,13 +52,13 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private IMqttAsyncClient client;
-
 	private boolean async;
 
 	private boolean asyncEvents;
 
-	private volatile ApplicationEventPublisher applicationEventPublisher;
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	private volatile IMqttAsyncClient client;
 
 	/**
 	 * Use this constructor for a single url (although it may be overridden
@@ -181,7 +182,6 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			catch (MqttException e) {
 				if (client != null) {
 					client.close();
-					client = null;
 				}
 				throw new MessagingException("Failed to connect", e);
 			}
@@ -215,18 +215,20 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	public synchronized void connectionLost(Throwable cause) {
 		logger.error("Lost connection; will attempt reconnect on next request");
-		try {
-			this.client.setCallback(null);
-			this.client.close();
+		if (this.client != null) {
+			try {
+				this.client.setCallback(null);
+				this.client.close();
+			}
+			catch (MqttException e) {
+				// NOSONAR
+			}
+			this.client = null;
 		}
-		catch (MqttException e) {
-			// NOSONAR
-		}
-		this.client = null;
 	}
 
 	@Override
-	public void messageArrived(String topic, MqttMessage message) throws Exception {
+	public void messageArrived(String topic, MqttMessage message) {
 
 	}
 
