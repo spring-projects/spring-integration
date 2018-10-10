@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -150,7 +151,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	}
 
 	@Test // INT-2833
-	public void testReaperReapsAnEmptyGroup() throws Exception {
+	public void testReaperReapsAnEmptyGroup() {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
 
@@ -445,6 +446,34 @@ public class AbstractCorrelatingMessageHandlerTests {
 
 		assertEquals(2, handler1DiscardChannel.getQueueSize());
 		assertEquals(1, handler2DiscardChannel.getQueueSize());
+	}
+
+	@Test
+	public void testNoPopSequenceDetails() {
+		MessageGroupProcessor mgp = new DefaultAggregatingMessageGroupProcessor();
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(mgp);
+		handler.setReleaseStrategy(group -> true);
+		handler.setPopSequence(false);
+		QueueChannel outputChannel = new QueueChannel();
+		handler.setOutputChannel(outputChannel);
+
+		Message<?> testMessage = MessageBuilder.withPayload("foo")
+				.setCorrelationId(1)
+				.setSequenceNumber(1)
+				.setSequenceSize(1)
+				.pushSequenceDetails(2, 2, 2)
+				.build();
+
+		handler.handleMessage(testMessage);
+
+		Message<?> receive = outputChannel.receive(10_000);
+
+		assertNotNull(receive);
+
+		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID));
+		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER));
+		assertEquals(2, receive.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE));
+		assertTrue(receive.getHeaders().containsKey(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS));
 	}
 
 }

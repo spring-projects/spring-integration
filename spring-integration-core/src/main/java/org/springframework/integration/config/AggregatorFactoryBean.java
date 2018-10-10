@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import org.springframework.util.StringUtils;
  * {@link FactoryBean} to create an {@link AggregatingMessageHandler}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
@@ -84,6 +86,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 	private Long minimumTimeoutForEmptyGroups;
 
 	private Boolean expireGroupsUponTimeout;
+
+	private Boolean popSequence;
 
 	public void setProcessorBean(Object processorBean) {
 		this.processorBean = processorBean;
@@ -163,6 +167,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	public void setExpireGroupsUponTimeout(Boolean expireGroupsUponTimeout) {
 		this.expireGroupsUponTimeout = expireGroupsUponTimeout;
+	}
+
+	public void setPopSequence(Boolean popSequence) {
+		this.popSequence = popSequence;
 	}
 
 	@Override
@@ -251,6 +259,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 		if (this.expireGroupsUponTimeout != null) {
 			aggregator.setExpireGroupsUponTimeout(this.expireGroupsUponTimeout);
+		}
+
+		if (this.popSequence != null) {
+			aggregator.setPopSequence(this.popSequence);
 		}
 
 		return aggregator;

@@ -47,6 +47,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
@@ -80,7 +81,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 
 	@Test
-	public void shouldFindAnnotatedAggregatorMethod() throws Exception {
+	public void shouldFindAnnotatedAggregatorMethod() {
 
 		@SuppressWarnings("unused")
 		class AnnotatedAggregatorMethod {
@@ -102,7 +103,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new AnnotatedAggregatorMethod());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
 	}
 
 	@Test
@@ -123,7 +124,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
 	}
 
 	@Test
@@ -144,7 +145,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
 	}
 
 	@Test
@@ -169,7 +170,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is("[1, 2, 4, 3, 101, 102]"));
 	}
 
 	@Test
@@ -196,7 +197,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is("[1, 2, 4, 3, 101, 102]"));
 	}
 
 	@Test
@@ -222,7 +223,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is("[1, 2, 4]"));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is("[1, 2, 4]"));
 	}
 
 	@Test
@@ -243,7 +244,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
 	}
 
 	@Test
@@ -264,7 +265,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
 	}
 
 
@@ -296,7 +297,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		processor.setConversionService(conversionService);
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
 	}
 
 	@Test
@@ -326,7 +327,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertThat(((Message<?>) result).getPayload(), is(7));
+		assertThat(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload(), is(7));
 	}
 
 	@Test
@@ -353,7 +354,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		assertTrue(((Message<?>) result).getPayload() instanceof Iterator<?>);
+		assertTrue(((AbstractIntegrationMessageBuilder<?>) result).build().getPayload() instanceof Iterator<?>);
 	}
 
 	@Test
@@ -380,7 +381,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new AnnotatedParametersAggregator());
 		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
-		Object payload = ((Message<?>) result).getPayload();
+		Object payload = ((AbstractIntegrationMessageBuilder<?>) result).build().getPayload();
 		assertTrue(payload instanceof Integer);
 		assertEquals(7, payload);
 

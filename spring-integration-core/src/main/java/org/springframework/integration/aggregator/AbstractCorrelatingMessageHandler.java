@@ -51,6 +51,8 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
@@ -140,6 +142,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private boolean expireGroupsUponTimeout = true;
 
+	private boolean popSequence = true;
+
 	private volatile boolean running;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
@@ -217,6 +221,69 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		this.outputProcessor = outputProcessor;
 	}
 
+	public void setDiscardChannel(MessageChannel discardChannel) {
+		Assert.notNull(discardChannel, "'discardChannel' cannot be null");
+		this.discardChannel = discardChannel;
+	}
+
+	public void setDiscardChannelName(String discardChannelName) {
+		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty");
+		this.discardChannelName = discardChannelName;
+	}
+
+
+	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
+		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
+	}
+
+	/**
+	 * By default, when a MessageGroupStoreReaper is configured to expire partial
+	 * groups, empty groups are also removed. Empty groups exist after a group
+	 * is released normally. This is to enable the detection and discarding of
+	 * late-arriving messages. If you wish to expire empty groups on a longer
+	 * schedule than expiring partial groups, set this property. Empty groups will
+	 * then not be removed from the MessageStore until they have not been modified
+	 * for at least this number of milliseconds.
+	 * @param minimumTimeoutForEmptyGroups The minimum timeout.
+	 */
+	public void setMinimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
+		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
+	}
+
+	/**
+	 * Set {@code releasePartialSequences} on an underlying default
+	 * {@link SequenceSizeReleaseStrategy}. Ignored for other release strategies.
+	 * @param releasePartialSequences true to allow release.
+	 */
+	public void setReleasePartialSequences(boolean releasePartialSequences) {
+		if (!this.releaseStrategySet && releasePartialSequences) {
+			setReleaseStrategy(new SequenceSizeReleaseStrategy());
+		}
+		this.releasePartialSequences = releasePartialSequences;
+	}
+
+	/**
+	 * Expire (completely remove) a group if it is completed due to timeout.
+	 * Default true
+	 * @param expireGroupsUponTimeout the expireGroupsUponTimeout to set
+	 * @since 4.1
+	 */
+	public void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
+		this.expireGroupsUponTimeout = expireGroupsUponTimeout;
+	}
+
+	/**
+	 * Perform a {@link MessageBuilder#popSequenceDetails()} for output message or not.
+	 * Default to true.
+	 * This option removes the sequence information added by the nearest upstream component with
+	 * {@code applySequence=true} (for example splitter).
+	 * @param popSequence the boolean flag to use.
+	 * @since 5.1
+	 */
+	public void setPopSequence(boolean popSequence) {
+		this.popSequence = popSequence;
+	}
+
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
@@ -283,57 +350,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			return (MessageGroupProcessor) proxyFactory.getProxy(getApplicationContext().getClassLoader());
 		}
 		return processor;
-	}
-
-	public void setDiscardChannel(MessageChannel discardChannel) {
-		Assert.notNull(discardChannel, "'discardChannel' cannot be null");
-		this.discardChannel = discardChannel;
-	}
-
-	public void setDiscardChannelName(String discardChannelName) {
-		Assert.hasText(discardChannelName, "'discardChannelName' must not be empty");
-		this.discardChannelName = discardChannelName;
-	}
-
-
-	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
-		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
-	}
-
-	/**
-	 * By default, when a MessageGroupStoreReaper is configured to expire partial
-	 * groups, empty groups are also removed. Empty groups exist after a group
-	 * is released normally. This is to enable the detection and discarding of
-	 * late-arriving messages. If you wish to expire empty groups on a longer
-	 * schedule than expiring partial groups, set this property. Empty groups will
-	 * then not be removed from the MessageStore until they have not been modified
-	 * for at least this number of milliseconds.
-	 * @param minimumTimeoutForEmptyGroups The minimum timeout.
-	 */
-	public void setMinimumTimeoutForEmptyGroups(long minimumTimeoutForEmptyGroups) {
-		this.minimumTimeoutForEmptyGroups = minimumTimeoutForEmptyGroups;
-	}
-
-	/**
-	 * Set {@code releasePartialSequences} on an underlying default
-	 * {@link SequenceSizeReleaseStrategy}. Ignored for other release strategies.
-	 * @param releasePartialSequences true to allow release.
-	 */
-	public void setReleasePartialSequences(boolean releasePartialSequences) {
-		if (!this.releaseStrategySet && releasePartialSequences) {
-			setReleaseStrategy(new SequenceSizeReleaseStrategy());
-		}
-		this.releasePartialSequences = releasePartialSequences;
-	}
-
-	/**
-	 * Expire (completely remove) a group if it is completed due to timeout.
-	 * Default true
-	 * @param expireGroupsUponTimeout the expireGroupsUponTimeout to set
-	 * @since 4.1
-	 */
-	public void setExpireGroupsUponTimeout(boolean expireGroupsUponTimeout) {
-		this.expireGroupsUponTimeout = expireGroupsUponTimeout;
 	}
 
 	@Override
@@ -413,7 +429,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
-		Assert.state(correlationKey != null, "Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
+		Assert.state(correlationKey != null,
+				"Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
 
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Handling message with correlationKey [" + correlationKey + "]: " + message);
@@ -653,7 +670,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						 * groups. A longer timeout for empty groups can be enabled by
 						 * setting minimumTimeoutForEmptyGroups.
 						 */
-						removeGroup = lastModifiedNow <= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
+						removeGroup =
+								lastModifiedNow <= (System.currentTimeMillis() - this.minimumTimeoutForEmptyGroups);
 						if (removeGroup && this.logger.isDebugEnabled()) {
 							this.logger.debug("Removing empty group: " + correlationKey);
 						}
@@ -753,10 +771,24 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		Object result = this.outputProcessor.processMessageGroup(group);
 		Collection<Message<?>> partialSequence = null;
 		if (result instanceof Collection<?>) {
-			this.verifyResultCollectionConsistsOfMessages((Collection<?>) result);
+			verifyResultCollectionConsistsOfMessages((Collection<?>) result);
 			partialSequence = (Collection<Message<?>>) result;
 		}
-		this.sendOutputs(result, message);
+
+		if (this.popSequence && partialSequence == null && !(result instanceof Message<?>)) {
+			AbstractIntegrationMessageBuilder<?> messageBuilder;
+			if (result instanceof AbstractIntegrationMessageBuilder<?>) {
+				messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
+			}
+			else {
+				messageBuilder = getMessageBuilderFactory()
+						.withPayload(result)
+						.copyHeaders(message.getHeaders());
+			}
+			result = messageBuilder.popSequenceDetails();
+		}
+
+		sendOutputs(result, message);
 		return partialSequence;
 	}
 
@@ -772,10 +804,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	@Override
-	public void destroy() throws Exception {
-		for (ScheduledFuture<?> future : this.expireGroupScheduledFutures.values()) {
-			future.cancel(true);
-		}
+	public void destroy() {
+		this.expireGroupScheduledFutures.values().forEach(future -> future.cancel(true));
 	}
 
 	@Override

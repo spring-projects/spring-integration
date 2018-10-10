@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ public class AggregatorParserTests {
 	public void testAggregation() {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithReferenceInput");
 		TestAggregatorBean aggregatorBean = (TestAggregatorBean) context.getBean("aggregatorBean");
-		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		List<Message<?>> outboundMessages = new ArrayList<>();
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
@@ -106,7 +106,7 @@ public class AggregatorParserTests {
 		QueueChannel output = this.context.getBean("outputChannel", QueueChannel.class);
 		output.purge(null);
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithMGPReferenceInput");
-		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		List<Message<?>> outboundMessages = new ArrayList<>();
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
@@ -122,7 +122,7 @@ public class AggregatorParserTests {
 		QueueChannel output = this.context.getBean("outputChannel", QueueChannel.class);
 		output.purge(null);
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithCustomMGPReferenceInput");
-		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		List<Message<?>> outboundMessages = new ArrayList<>();
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
@@ -137,9 +137,9 @@ public class AggregatorParserTests {
 	public void testAggregationByExpression() {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithExpressionsInput");
 		SubscribableChannel outputChannel = (SubscribableChannel) context.getBean("aggregatorWithExpressionsOutput");
-		final AtomicReference<Message<?>> aggregatedMessage = new AtomicReference<Message<?>>();
+		final AtomicReference<Message<?>> aggregatedMessage = new AtomicReference<>();
 		outputChannel.subscribe(aggregatedMessage::set);
-		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		List<Message<?>> outboundMessages = new ArrayList<>();
 		outboundMessages.add(MessageBuilder.withPayload("123").setHeader("foo", "1").build());
 		outboundMessages.add(MessageBuilder.withPayload("456").setHeader("foo", "1").build());
 		outboundMessages.add(MessageBuilder.withPayload("789").setHeader("foo", "1").build());
@@ -155,7 +155,7 @@ public class AggregatorParserTests {
 	}
 
 	@Test
-	public void testPropertyAssignment() throws Exception {
+	public void testPropertyAssignment() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedAggregator");
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) context.getBean("releaseStrategy");
 		CorrelationStrategy correlationStrategy = (CorrelationStrategy) context.getBean("correlationStrategy");
@@ -195,12 +195,12 @@ public class AggregatorParserTests {
 		assertSame(this.context.getBean("store"), TestUtils.getPropertyValue(consumer, "messageStore"));
 		assertEquals(5, TestUtils.getPropertyValue(consumer, "order"));
 		assertNotNull(TestUtils.getPropertyValue(consumer, "forceReleaseAdviceChain"));
-
+		assertFalse(TestUtils.getPropertyValue(consumer, "popSequence", Boolean.class));
 	}
 
 	@Test
 	public void testSimpleJavaBeanAggregator() {
-		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		List<Message<?>> outboundMessages = new ArrayList<>();
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithReferenceAndMethodInput");
 		outboundMessages.add(createMessage(1L, "id1", 3, 1, null));
 		outboundMessages.add(createMessage(2L, "id1", 3, 3, null));

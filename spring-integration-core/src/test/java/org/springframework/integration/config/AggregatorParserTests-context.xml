@@ -46,6 +46,7 @@
 		lock-registry="lockRegistry"
 		scheduler="scheduler"
 		message-store="store"
+		pop-sequence="false"
 		order="5">
 			<expire-transactional/>
 	</aggregator>

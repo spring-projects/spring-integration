@@ -29,6 +29,7 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -531,6 +533,40 @@ public class RouterTests {
 		assertNull(this.messageHandlingExceptionChannel.receive(0));
 	}
 
+	@Autowired
+	@Qualifier("nestedScatterGatherFlow.input")
+	private MessageChannel nestedScatterGatherFlowInput;
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testNestedScatterGather() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<String> request = MessageBuilder.withPayload("this is a test")
+				.setReplyChannel(replyChannel)
+				.build();
+		this.nestedScatterGatherFlowInput.send(request);
+		Message<?> bestQuoteMessage = replyChannel.receive(10000);
+		assertNotNull(bestQuoteMessage);
+		Object payload = bestQuoteMessage.getPayload();
+		assertThat(payload, instanceOf(String.class));
+		List<?> topSequenceDetails =
+				(List<?>) bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_DETAILS, List.class)
+				.get(0);
+
+		assertEquals(request.getHeaders().getId(),
+				bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID));
+
+		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.CORRELATION_ID),
+				topSequenceDetails.get(0));
+
+		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER),
+				topSequenceDetails.get(1));
+
+		assertEquals(bestQuoteMessage.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE),
+				topSequenceDetails.get(2));
+	}
+
+
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory({ "recipientListOrder*", "recipient1*", "recipient2*" })
@@ -771,6 +807,29 @@ public class RouterTests {
 															.anyMatch(m -> (Double) m.getPayload() > 5)),
 							scatterGather -> scatterGather
 									.gatherTimeout(10_000));
+		}
+
+		@Bean
+		public IntegrationFlow nestedScatterGatherFlow() {
+			return f -> f
+					.split(s -> s.delimiters(" "))
+					.scatterGather(
+							scatterer -> scatterer
+									.recipientFlow(f1 -> f1.handle((p, h) -> p + " - flow 1"))
+									.recipientFlow(f2 -> f2.handle((p, h) -> p + " - flow 2"))
+									.applySequence(true),
+							gatherer -> gatherer
+									.outputProcessor(mg -> mg
+											.getMessages()
+											.stream()
+											.map(m -> m.getPayload().toString())
+											.collect(Collectors.joining(", "))),
+							scatterGather -> scatterGather.gatherTimeout(10_000))
+					.aggregate()
+					.<List<String>, String>transform(source ->
+							source.stream()
+									.map(s -> "- " + s)
+									.collect(Collectors.joining("\n")));
 		}
 
 	}
