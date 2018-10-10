@@ -162,6 +162,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				if (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_ALWAYS)
 						|| (this.consumerStopAction.equals(ConsumerStopAction.UNSUBSCRIBE_CLEAN)
 								&& this.cleanSession)) {
+
 					this.client.unsubscribe(getTopic());
 				}
 			}
@@ -249,8 +250,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 				if (grantedQos[i] != requestedQos[i]) {
 					if (logger.isWarnEnabled()) {
 						logger.warn("Granted QOS different to Requested QOS; topics: " + Arrays.toString(topics)
-							+ " requested: " + Arrays.toString(requestedQos)
-							+ " granted: " + Arrays.toString(grantedQos));
+								+ " requested: " + Arrays.toString(requestedQos)
+								+ " granted: " + Arrays.toString(grantedQos));
 					}
 					break;
 				}
@@ -294,7 +295,8 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		}
 	}
 
-	private void scheduleReconnect() {
+	private synchronized void scheduleReconnect() {
+		cancelReconnect();
 		try {
 			this.reconnectFuture = getTaskScheduler().schedule(() -> {
 				try {
@@ -324,12 +326,14 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 		if (isRunning()) {
 			this.logger.error("Lost connection: " + cause.getMessage() + "; retrying...");
 			this.connected = false;
-			try {
-				this.client.setCallback(null);
-				this.client.close();
-			}
-			catch (MqttException e) {
-				// NOSONAR
+			if (this.client != null) {
+				try {
+					this.client.setCallback(null);
+					this.client.close();
+				}
+				catch (MqttException e) {
+					// NOSONAR
+				}
 			}
 			this.client = null;
 			scheduleReconnect();
@@ -340,7 +344,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	}
 
 	@Override
-	public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+	public void messageArrived(String topic, MqttMessage mqttMessage) {
 		Message<?> message = this.getConverter().toMessage(topic, mqttMessage);
 		try {
 			sendMessage(message);

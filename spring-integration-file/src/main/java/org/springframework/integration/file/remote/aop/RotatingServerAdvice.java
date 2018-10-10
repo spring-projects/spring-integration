@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Michael Forstner
+ * @author Artem Bilan
  *
  * @since 5.0.7
  *
@@ -118,7 +119,7 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 
 		protected final Log logger = LogFactory.getLog(getClass());
 
-		private final DelegatingSessionFactory<?> factory;
+		protected final DelegatingSessionFactory<?> factory;
 
 		private final List<KeyDirectory> keyDirectories = new ArrayList<>();
 
@@ -168,6 +169,10 @@ public class RotatingServerAdvice extends AbstractMessageSourceAdvice {
 
 		protected boolean isFair() {
 			return this.fair;
+		}
+
+		protected KeyDirectory getCurrent() {
+			return this.current;
 		}
 
 		@Override
