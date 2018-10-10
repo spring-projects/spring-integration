@@ -159,15 +159,17 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 
 	private synchronized IMqttAsyncClient checkConnection() throws MqttException {
 		if (this.client != null && !this.client.isConnected()) {
+			this.client.setCallback(null);
 			this.client.close();
 			this.client = null;
 		}
 		if (this.client == null) {
+			IMqttAsyncClient client = null;
 			try {
 				MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 				Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 						"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-				IMqttAsyncClient client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+				client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
 				incrementClientInstance();
 				client.setCallback(this);
 				client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
@@ -177,6 +179,10 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 				}
 			}
 			catch (MqttException e) {
+				if (client != null) {
+					client.close();
+					client = null;
+				}
 				throw new MessagingException("Failed to connect", e);
 			}
 		}
@@ -209,6 +215,13 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	public synchronized void connectionLost(Throwable cause) {
 		logger.error("Lost connection; will attempt reconnect on next request");
+		try {
+			this.client.setCallback(null);
+			this.client.close();
+		}
+		catch (MqttException e) {
+			// NOSONAR
+		}
 		this.client = null;
 	}
 
