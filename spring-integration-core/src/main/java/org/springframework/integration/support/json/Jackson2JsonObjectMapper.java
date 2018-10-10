@@ -114,7 +114,10 @@ public class Jackson2JsonObjectMapper extends AbstractJacksonJsonObjectMapper<Js
 			}
 		}
 		catch (JsonParseException e) {
-			// The input might not be valid JSON, fallback to TextNode with ObjectMapper.valueToTree()
+			if (!(json instanceof String) && !(json instanceof byte[])) {
+				throw e;
+			}
+			// Otherwise the input might not be valid JSON, fallback to TextNode with ObjectMapper.valueToTree()
 		}
 
 		return this.objectMapper.valueToTree(json);
