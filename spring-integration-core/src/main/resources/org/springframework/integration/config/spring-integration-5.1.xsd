@@ -3829,6 +3829,19 @@
 						<xsd:union memberTypes="xsd:boolean xsd:string" />
 					</xsd:simpleType>
 				</xsd:attribute>
+				<xsd:attribute name="pop-sequence-details" default="true">
+					<xsd:annotation>
+						<xsd:documentation>
+							Boolean flag specifying, if the 'MessageBuilder.popSequenceDetails()' should be called
+							for the output message. Plays the opposite role to the
+							'AbstractMessageSplitter.setApplySequence()'.
+							Defaults to 'true'.
+						</xsd:documentation>
+					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:union memberTypes="xsd:boolean xsd:string" />
+					</xsd:simpleType>
+				</xsd:attribute>
 				<xsd:attribute name="lock-registry" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
@@ -53,7 +54,7 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 		H extends AbstractCorrelatingMessageHandler>
 		extends ConsumerEndpointSpec<S, H> {
 
-	private final List<Advice> forceReleaseAdviceChain = new LinkedList<Advice>();
+	private final List<Advice> forceReleaseAdviceChain = new LinkedList<>();
 
 	protected CorrelationHandlerSpec(H messageHandler) {
 		super(messageHandler);
@@ -311,6 +312,18 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	public S lockRegistry(LockRegistry lockRegistry) {
 		Assert.notNull(lockRegistry, "'lockRegistry' must not be null.");
 		this.handler.setLockRegistry(lockRegistry);
+		return _this();
+	}
+
+	/**
+	 * Perform a {@link MessageBuilder#popSequenceDetails()} for output message or not.
+	 * @param popSequenceDetails the boolean flag to use.
+	 * @return the endpoint spec.
+	 * @since 5.1
+	 * @see AbstractCorrelatingMessageHandler#setPopSequenceDetails(boolean)
+	 */
+	public S popSequenceDetails(boolean popSequenceDetails) {
+		this.handler.setPopSequenceDetails(popSequenceDetails);
 		return _this();
 	}
 

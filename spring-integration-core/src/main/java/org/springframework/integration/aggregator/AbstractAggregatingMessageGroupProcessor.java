@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,22 +93,19 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 			builder = getMessageBuilderFactory().withPayload(payload);
 		}
 
-		return builder.copyHeadersIfAbsent(headers)
-				.popSequenceDetails()
-				.build();
+		return builder.copyHeadersIfAbsent(headers);
 	}
 
 	/**
 	 * This default implementation simply returns all headers that have no conflicts among the group. An absent header
 	 * on one or more Messages within the group is not considered a conflict. Subclasses may override this method with
 	 * more advanced conflict-resolution strategies if necessary.
-	 *
 	 * @param group The message group.
 	 * @return The aggregated headers.
 	 */
 	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
-		Map<String, Object> aggregatedHeaders = new HashMap<String, Object>();
-		Set<String> conflictKeys = new HashSet<String>();
+		Map<String, Object> aggregatedHeaders = new HashMap<>();
+		Set<String> conflictKeys = new HashSet<>();
 		for (Message<?> message : group.getMessages()) {
 			for (Entry<String, Object> entry : message.getHeaders().entrySet()) {
 				String key = entry.getKey();
