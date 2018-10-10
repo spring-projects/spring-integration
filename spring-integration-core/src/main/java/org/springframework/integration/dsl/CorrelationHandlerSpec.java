@@ -317,13 +317,13 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 
 	/**
 	 * Perform a {@link MessageBuilder#popSequenceDetails()} for output message or not.
-	 * @param popSequenceDetails the boolean flag to use.
+	 * @param popSequence the boolean flag to use.
 	 * @return the endpoint spec.
 	 * @since 5.1
-	 * @see AbstractCorrelatingMessageHandler#setPopSequenceDetails(boolean)
+	 * @see AbstractCorrelatingMessageHandler#setPopSequence(boolean)
 	 */
-	public S popSequenceDetails(boolean popSequenceDetails) {
-		this.handler.setPopSequenceDetails(popSequenceDetails);
+	public S popSequence(boolean popSequence) {
+		this.handler.setPopSequence(popSequence);
 		return _this();
 	}
 

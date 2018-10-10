@@ -453,7 +453,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 		MessageGroupProcessor mgp = new DefaultAggregatingMessageGroupProcessor();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(mgp);
 		handler.setReleaseStrategy(group -> true);
-		handler.setPopSequenceDetails(false);
+		handler.setPopSequence(false);
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
 

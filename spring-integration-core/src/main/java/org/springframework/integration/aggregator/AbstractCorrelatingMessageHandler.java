@@ -142,7 +142,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private boolean expireGroupsUponTimeout = true;
 
-	private boolean popSequenceDetails = true;
+	private boolean popSequence = true;
 
 	private volatile boolean running;
 
@@ -275,13 +275,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	/**
 	 * Perform a {@link MessageBuilder#popSequenceDetails()} for output message or not.
 	 * Default to true.
-	 * This option play an opposite role to the
+	 * This option plays an opposite role to the
 	 * {@link org.springframework.integration.splitter.AbstractMessageSplitter#setApplySequence(boolean)}.
-	 * @param popSequenceDetails the boolean flag to use.
+	 * @param popSequence the boolean flag to use.
 	 * @since 5.1
 	 */
-	public void setPopSequenceDetails(boolean popSequenceDetails) {
-		this.popSequenceDetails = popSequenceDetails;
+	public void setPopSequence(boolean popSequence) {
+		this.popSequence = popSequence;
 	}
 
 	@Override
@@ -774,7 +774,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			partialSequence = (Collection<Message<?>>) result;
 		}
 
-		if (this.popSequenceDetails && partialSequence == null && !(result instanceof Message<?>)) {
+		if (this.popSequence && partialSequence == null && !(result instanceof Message<?>)) {
 			AbstractIntegrationMessageBuilder<?> messageBuilder;
 			if (result instanceof AbstractIntegrationMessageBuilder<?>) {
 				messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;

@@ -87,7 +87,7 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	private Boolean expireGroupsUponTimeout;
 
-	private Boolean popSequenceDetails;
+	private Boolean popSequence;
 
 	public void setProcessorBean(Object processorBean) {
 		this.processorBean = processorBean;
@@ -169,8 +169,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 		this.expireGroupsUponTimeout = expireGroupsUponTimeout;
 	}
 
-	public void setPopSequenceDetails(Boolean popSequenceDetails) {
-		this.popSequenceDetails = popSequenceDetails;
+	public void setPopSequence(Boolean popSequence) {
+		this.popSequence = popSequence;
 	}
 
 	@Override
@@ -261,8 +261,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 			aggregator.setExpireGroupsUponTimeout(this.expireGroupsUponTimeout);
 		}
 
-		if (this.popSequenceDetails != null) {
-			aggregator.setPopSequenceDetails(this.popSequenceDetails);
+		if (this.popSequence != null) {
+			aggregator.setPopSequence(this.popSequence);
 		}
 
 		return aggregator;

@@ -83,7 +83,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "empty-group-min-timeout",
 				"minimumTimeoutForEmptyGroups");
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pop-sequence-details");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pop-sequence");
 
 		BeanDefinition expressionDef =
 				IntegrationNamespaceUtils.createExpressionDefinitionFromValueOrExpression("group-timeout",

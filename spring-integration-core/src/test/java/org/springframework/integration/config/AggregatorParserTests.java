@@ -195,7 +195,7 @@ public class AggregatorParserTests {
 		assertSame(this.context.getBean("store"), TestUtils.getPropertyValue(consumer, "messageStore"));
 		assertEquals(5, TestUtils.getPropertyValue(consumer, "order"));
 		assertNotNull(TestUtils.getPropertyValue(consumer, "forceReleaseAdviceChain"));
-		assertFalse(TestUtils.getPropertyValue(consumer, "popSequenceDetails", Boolean.class));
+		assertFalse(TestUtils.getPropertyValue(consumer, "popSequence", Boolean.class));
 	}
 
 	@Test

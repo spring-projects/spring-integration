@@ -100,7 +100,7 @@ See <<java-dsl-flows>> for more information.
 If the `groupTimeout` is evaluated to a negative value, an aggregator now expires the group immediately.
 Only `null` is considered as a signal to do nothing for the current message.
 
-A new `popSequenceDetails` property has been introduced to allow (by default) to call a `MessageBuilder.popSequenceDetails()` for the output message.
+A new `popSequence` property has been introduced to allow (by default) to call a `MessageBuilder.popSequenceDetails()` for the output message.
 Also an `AbstractAggregatingMessageGroupProcessor` returns now an `AbstractIntegrationMessageBuilder` instead of the whole `Message` for optimization.
 
 See <<aggregator>> for more information.
