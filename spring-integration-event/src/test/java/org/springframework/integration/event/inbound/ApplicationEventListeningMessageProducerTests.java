@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.event.inbound;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -254,9 +256,9 @@ public class ApplicationEventListeningMessageProducerTests {
 			Class<? extends ApplicationEvent> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved",
 					Class.class);
 			assertThat(event, Matchers.is(Matchers.isOneOf(ContextRefreshedEvent.class, TestApplicationEvent1.class)));
-			Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListenerBeans", Set.class);
+			Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListeners", Set.class);
 			assertEquals(1, listeners.size());
-			assertEquals("testListener", listeners.iterator().next());
+			assertSame(ctx.getBean("testListener"), listeners.iterator().next());
 		}
 
 		TestApplicationEvent2 event2 = new TestApplicationEvent2();
@@ -265,11 +267,11 @@ public class ApplicationEventListeningMessageProducerTests {
 		for (Map.Entry<?, ?> entry : retrieverCache.entrySet()) {
 			Class<?> event = TestUtils.getPropertyValue(entry.getKey(), "eventType.resolved", Class.class);
 			if (TestApplicationEvent2.class.isAssignableFrom(event)) {
-				Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListenerBeans", Set.class);
+				Set<?> listeners = TestUtils.getPropertyValue(entry.getValue(), "applicationListeners", Set.class);
 				assertEquals(2, listeners.size());
 				for (Object listener : listeners) {
-					assertThat((String) listener,
-							Matchers.is(Matchers.isOneOf("testListenerMessageProducer", "testListener")));
+					assertThat(listener,
+							is(isOneOf(ctx.getBean("testListenerMessageProducer"), ctx.getBean("testListener"))));
 				}
 				break;
 			}
