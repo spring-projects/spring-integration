@@ -343,11 +343,12 @@ public abstract class AbstractInboundFileSynchronizer<F>
 				}
 			});
 			if (this.logger.isDebugEnabled()) {
-				this.logger.debug(transferred + " files transferred");
+				this.logger.debug(transferred + " files transferred from '" + this.evaluatedRemoteDirectory + "'");
 			}
 		}
 		catch (Exception e) {
-			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
+			throw new MessagingException("Problem occurred while synchronizing '"
+					+ this.evaluatedRemoteDirectory + "' to local directory", e);
 		}
 	}
 
