@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,18 +32,26 @@ import org.springframework.jmx.support.MBeanServerFactoryBean;
 
 /**
  * @author Stuart Williams
+ * @author Artem Bilan
  *
  */
 public class MBeanTreePollingMessageSourceTests {
+
+	private MBeanServerFactoryBean factoryBean;
 
 	private MBeanServer server;
 
 	@Before
 	public void setup() {
-		MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
-		factoryBean.setLocateExistingServerIfPossible(true);
-		factoryBean.afterPropertiesSet();
+		this.factoryBean = new MBeanServerFactoryBean();
+		this.factoryBean.setLocateExistingServerIfPossible(true);
+		this.factoryBean.afterPropertiesSet();
 		this.server = factoryBean.getObject();
+	}
+
+	@Before
+	public void tearDown() {
+		this.factoryBean.destroy();
 	}
 
 	@Test

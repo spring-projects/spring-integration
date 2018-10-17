@@ -1,16 +1,16 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<context:mbean-server/>
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+		<property name="locateExistingServerIfPossible" value="true" />
+	</bean>
 
 	<int-jmx:mbean-export
 		default-domain="test.domain"

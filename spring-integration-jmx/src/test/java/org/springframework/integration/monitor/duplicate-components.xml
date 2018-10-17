@@ -10,7 +10,7 @@
 	</bean>
 
 	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="false" />
+		<property name="locateExistingServerIfPossible" value="true" />
 	</bean>
 
 	<bean id="parent" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$BogusEndpoint" />

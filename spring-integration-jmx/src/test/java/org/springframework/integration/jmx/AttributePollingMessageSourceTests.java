@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,52 +23,48 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class AttributePollingMessageSourceTests {
 
-	private final TestCounter counter = new TestCounter();
-
-	private volatile MBeanServer server;
-
-
-	@Before
-	public void setup() throws Exception {
+	@Test
+	public void basicPolling() throws Exception {
 		MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
 		factoryBean.setLocateExistingServerIfPossible(true);
 		factoryBean.afterPropertiesSet();
-		this.server = factoryBean.getObject();
-		this.server.registerMBean(this.counter, ObjectNameManager.getInstance("test:name=counter"));
-	}
-
-
-	@Test
-	public void basicPolling() {
+		MBeanServer server = factoryBean.getObject();
+		TestCounter counter = new TestCounter();
+		server.registerMBean(counter, ObjectNameManager.getInstance("test:name=counter"));
 		AttributePollingMessageSource source = new AttributePollingMessageSource();
 		source.setAttributeName("Count");
 		source.setObjectName("test:name=counter");
-		source.setServer(this.server);
+		source.setServer(server);
 		Message<?> message1 = source.receive();
 		assertNotNull(message1);
 		assertEquals(0, message1.getPayload());
-		this.counter.increment();
+		counter.increment();
 		Message<?> message2 = source.receive();
 		assertNotNull(message2);
 		assertEquals(1, message2.getPayload());
+
+		factoryBean.destroy();
 	}
 
 
 	public interface TestCounterMBean {
+
 		int getCount();
+
 	}
 
 
@@ -83,6 +79,7 @@ public class AttributePollingMessageSourceTests {
 		public void increment() {
 			this.counter.incrementAndGet();
 		}
+
 	}
 
 }

@@ -10,7 +10,9 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:mbean-server />
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+		<property name="locateExistingServerIfPossible" value="true" />
+	</bean>
 
 	<int-jmx:mbean-export
 		default-domain="test.domain"

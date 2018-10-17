@@ -303,14 +303,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			unregisterBeans();
 			throw e;
 		}
-
-	}
-
-	private void registerProducer(MessageProducer messageProducer) {
-		Lifecycle target = (Lifecycle) extractTarget(messageProducer);
-		if (!(target instanceof AbstractMessageProducingHandler)) {
-			this.inboundLifecycleMessageProducers.add(target);
-		}
 	}
 
 	@Override
@@ -350,6 +342,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			}
 		}
 		return bean;
+	}
+
+	private void registerProducer(MessageProducer messageProducer) {
+		Lifecycle target = (Lifecycle) extractTarget(messageProducer);
+		if (!(target instanceof AbstractMessageProducingHandler)) {
+			this.inboundLifecycleMessageProducers.add(target);
+		}
 	}
 
 	@Override
