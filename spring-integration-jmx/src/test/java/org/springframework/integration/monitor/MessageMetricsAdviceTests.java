@@ -18,7 +18,6 @@ package org.springframework.integration.monitor;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
@@ -53,14 +52,14 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @DirtiesContext
 public class MessageMetricsAdviceTests {
 
-	@Autowired
 	private BeanFactory beanFactory;
 
 	private BeanDefinitionRegistry beanDefinitionRegistry;
 
-	@BeforeEach
-	public void setup() {
-		this.beanDefinitionRegistry = (BeanDefinitionRegistry) this.beanFactory;
+	@Autowired
+	MessageMetricsAdviceTests(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		this.beanDefinitionRegistry = (BeanDefinitionRegistry) beanFactory;
 	}
 
 	@Test

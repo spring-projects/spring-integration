@@ -53,13 +53,13 @@ public class DslMBeanTests {
 
 	@Test
 	void testRuntimeBeanRegistration(@Autowired IntegrationFlowContext context) throws Exception {
-		Set<ObjectName> query = this.server.queryNames(new ObjectName("foo:type=MessageChannel,*"), null);
+		Set<ObjectName> query = this.server.queryNames(new ObjectName("dsl:type=MessageChannel,*"), null);
 		assertThat(query).hasSize(3);
 
-		query = this.server.queryNames(new ObjectName("foo:type=MessageHandler,*"), null);
+		query = this.server.queryNames(new ObjectName("dsl:type=MessageHandler,*"), null);
 		assertThat(query).hasSize(2);
 
-		query = this.server.queryNames(new ObjectName("foo:type=MessageSource,*"), null);
+		query = this.server.queryNames(new ObjectName("dsl:type=MessageSource,*"), null);
 		assertThat(query).hasSize(0);
 
 		IntegrationFlow dynamicFlow =
@@ -72,29 +72,29 @@ public class DslMBeanTests {
 						.id("dynamic")
 						.register();
 
-		query = this.server.queryNames(new ObjectName("foo:type=MessageChannel,*"), null);
+		query = this.server.queryNames(new ObjectName("dsl:type=MessageChannel,*"), null);
 		assertThat(query).hasSize(4);
 
-		query = this.server.queryNames(new ObjectName("foo:type=MessageHandler,*"), null);
+		query = this.server.queryNames(new ObjectName("dsl:type=MessageHandler,*"), null);
 		assertThat(query).hasSize(3);
 
-		query = this.server.queryNames(new ObjectName("foo:type=MessageSource,*"), null);
+		query = this.server.queryNames(new ObjectName("dsl:type=MessageSource,*"), null);
 		assertThat(query).hasSize(1);
 
 		registration.destroy();
 
-		query = this.server.queryNames(new ObjectName("foo:type=MessageChannel,*"), null);
+		query = this.server.queryNames(new ObjectName("dsl:type=MessageChannel,*"), null);
 		assertThat(query).hasSize(3);
 
-		query = this.server.queryNames(new ObjectName("foo:type=MessageHandler,*"), null);
+		query = this.server.queryNames(new ObjectName("dsl:type=MessageHandler,*"), null);
 		assertThat(query).hasSize(2);
 
-		query = this.server.queryNames(new ObjectName("foo:type=MessageSource,*"), null);
+		query = this.server.queryNames(new ObjectName("dsl:type=MessageSource,*"), null);
 		assertThat(query).hasSize(0);
 	}
 
 	@Configuration
-	@EnableIntegrationMBeanExport(defaultDomain = "foo")
+	@EnableIntegrationMBeanExport(defaultDomain = "dsl")
 	@EnableIntegration
 	public static class Config {
 
