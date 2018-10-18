@@ -40,6 +40,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -47,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.logging.Log;
 import org.hamcrest.BaseMatcher;
@@ -109,6 +111,7 @@ import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
 import org.springframework.integration.json.JsonPropertyAccessor;
@@ -718,6 +721,24 @@ public class EnableIntegrationTests {
 		assertEquals(ClassUtils.getStaticMethod(TestSpelFunction.class, "bar", Object.class), testSpelFunction);
 	}
 
+	@Autowired
+	private MessageChannel myHandlerChannel;
+
+	@Autowired
+	private PollableChannel myHandlerSuccessChannel;
+
+	@Test
+	public void testAdvicedServiceActivator() {
+		Date testDate = new Date();
+
+		this.myHandlerChannel.send(new GenericMessage<>(testDate));
+
+		Message<?> receive = this.myHandlerSuccessChannel.receive(10_000);
+
+		assertNotNull(receive);
+		assertEquals(testDate, receive.getPayload());
+	}
+
 	@Configuration
 	@ComponentScan
 	@IntegrationComponentScan
@@ -1121,6 +1142,25 @@ public class EnableIntegrationTests {
 		@Bean
 		public SpelPropertyAccessorRegistrar spelPropertyAccessorRegistrar() {
 			return new SpelPropertyAccessorRegistrar(new JsonPropertyAccessor(), new EnvironmentAccessor());
+		}
+
+		@Bean
+		@ServiceActivator(inputChannel = "myHandlerChannel", adviceChain = "myHandlerAdvice")
+		public MessageHandler myHandler() {
+			return message -> { };
+		}
+
+		@Bean
+		public Advice myHandlerAdvice() {
+			ExpressionEvaluatingRequestHandlerAdvice advice = new ExpressionEvaluatingRequestHandlerAdvice();
+			advice.setOnSuccessExpressionString("payload");
+			advice.setSuccessChannel(myHandlerSuccessChannel());
+			return advice;
+		}
+
+		@Bean
+		public QueueChannel myHandlerSuccessChannel() {
+			return new QueueChannel();
 		}
 
 	}
