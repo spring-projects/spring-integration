@@ -8,9 +8,7 @@
 		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<int-jmx:mbean-export />
 

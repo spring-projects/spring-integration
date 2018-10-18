@@ -13,9 +13,7 @@
 			http://www.springframework.org/schema/integration/jmx
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
-	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<context:mbean-export default-domain="#{T(java.util.UUID).randomUUID().toString()}"/>
 

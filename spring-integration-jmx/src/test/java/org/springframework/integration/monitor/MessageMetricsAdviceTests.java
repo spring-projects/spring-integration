@@ -150,9 +150,7 @@ public class MessageMetricsAdviceTests {
 
 		@Bean
 		public MBeanServerFactoryBean fb() {
-			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
-			fb.setLocateExistingServerIfPossible(true);
-			return fb;
+			return new MBeanServerFactoryBean();
 		}
 
 	}

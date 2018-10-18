@@ -3,13 +3,11 @@
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns:beans="http://www.springframework.org/schema/beans"
 			 xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
-			 xmlns:p="http://www.springframework.org/schema/p"
 			 xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<beans:bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"
-		  p:locateExistingServerIfPossible="true" />
+	<beans:bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<int-jmx:mbean-export/>
 

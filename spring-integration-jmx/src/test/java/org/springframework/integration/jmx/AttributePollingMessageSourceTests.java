@@ -40,7 +40,6 @@ public class AttributePollingMessageSourceTests {
 	@Test
 	public void basicPolling() throws Exception {
 		MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
-		factoryBean.setLocateExistingServerIfPossible(true);
 		factoryBean.afterPropertiesSet();
 		MBeanServer server = factoryBean.getObject();
 		TestCounter counter = new TestCounter();

@@ -57,12 +57,7 @@ public class NotificationPublishingMessageHandlerTests {
 	@Before
 	public void setup() throws Exception {
 		this.publisherObjectName = ObjectNameManager.getInstance("test:type=publisher");
-		this.context.registerBean("mbeanServer", MBeanServerFactoryBean.class,
-				() -> {
-					MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
-					factoryBean.setLocateExistingServerIfPossible(true);
-					return factoryBean;
-				});
+		this.context.registerBean("mbeanServer", MBeanServerFactoryBean.class, MBeanServerFactoryBean::new);
 		this.context.registerSingleton("exporter", IntegrationMBeanExporter.class,
 				new MutablePropertyValues()
 		.add("server", new RuntimeBeanReference("mbeanServer")));

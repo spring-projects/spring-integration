@@ -19,9 +19,7 @@
 	<int-jmx:mbean-export id="integrationMbeanExporter"
 		default-domain="self-destruct" />
 
-	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<int:poller default="true" fixed-delay="100" />
 

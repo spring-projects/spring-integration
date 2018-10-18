@@ -18,8 +18,6 @@
 	<!-- Same as RouterMBeanTests-context.xml but switched order of MBeanExporters -->
 	<jmx:mbean-export server="mbs" default-domain="test.RouterMBean" />
 
-	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 </beans>

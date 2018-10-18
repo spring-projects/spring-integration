@@ -9,9 +9,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<si:channel id="testChannel"/>
 

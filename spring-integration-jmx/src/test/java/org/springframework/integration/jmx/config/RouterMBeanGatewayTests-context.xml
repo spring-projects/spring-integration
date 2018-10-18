@@ -20,9 +20,7 @@
 
 	<int:router id="ptRouter" input-channel="testChannel" expression="payload instanceof String ? 'stringChannel' : 'intChannel'" />
 
-	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<context:mbean-export server="mbs" default-domain="test.RouterMBean" />
 

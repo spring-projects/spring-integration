@@ -7,9 +7,7 @@
 		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<beans:bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<beans:property name="locateExistingServerIfPossible" value="true" />
-	</beans:bean>
+	<beans:bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<int-jmx:mbean-export default-domain="transformers" />
 

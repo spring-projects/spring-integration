@@ -13,11 +13,9 @@
 			http://www.springframework.org/schema/integration/jmx
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
-	<context:mbean-export/>
+	<context:mbean-export server="mbeanServer"/>
 
-	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<si:channel id="withReplyChannel">
 		<si:queue/>

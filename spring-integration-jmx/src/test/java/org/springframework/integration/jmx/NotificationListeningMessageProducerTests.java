@@ -66,7 +66,6 @@ public class NotificationListeningMessageProducerTests {
 	@BeforeClass
 	public static void setupClass() {
 		serverFactoryBean = new MBeanServerFactoryBean();
-		serverFactoryBean.setLocateExistingServerIfPossible(true);
 		serverFactoryBean.afterPropertiesSet();
 	}
 

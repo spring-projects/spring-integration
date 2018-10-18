@@ -9,8 +9,9 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:mbean-server />
-	<context:mbean-export default-domain="org.springframework.integration.jdbc.test" />
+	<context:mbean-server id="mbeanServer"/>
+
+	<context:mbean-export server="mbeanServer" default-domain="org.springframework.integration.jdbc.test" />
 
 	<import resource="classpath:derby-stored-procedures-setup-context.xml"/>
 

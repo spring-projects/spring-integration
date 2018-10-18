@@ -18,9 +18,7 @@
 		<property name="defaultDomain" value="test.ChannelIntegrationTests"/>
 	</bean>
 
-	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<int:inbound-channel-adapter id="source" channel="sourceChannel" expression="''">
 		<int:poller fixed-delay="10" />

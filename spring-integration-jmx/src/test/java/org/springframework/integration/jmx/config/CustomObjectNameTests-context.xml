@@ -11,9 +11,7 @@
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<context:mbean-export server="mbs" default-domain="test.custom"/>
 

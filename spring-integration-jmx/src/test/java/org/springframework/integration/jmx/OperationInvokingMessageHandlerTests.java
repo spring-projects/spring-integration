@@ -65,7 +65,6 @@ public class OperationInvokingMessageHandlerTests {
 	@BeforeClass
 	public static void setupClass() {
 		factoryBean = new MBeanServerFactoryBean();
-		factoryBean.setLocateExistingServerIfPossible(true);
 		factoryBean.afterPropertiesSet();
 		server = factoryBean.getObject();
 	}

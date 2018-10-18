@@ -94,15 +94,13 @@ public class DslMBeanTests {
 	}
 
 	@Configuration
-	@EnableIntegrationMBeanExport(defaultDomain = "dsl")
+	@EnableIntegrationMBeanExport(defaultDomain = "dsl", server = "mbeanServer")
 	@EnableIntegration
 	public static class Config {
 
 		@Bean
-		public MBeanServerFactoryBean fb() {
-			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
-			fb.setLocateExistingServerIfPossible(true);
-			return fb;
+		public static MBeanServerFactoryBean mbeanServer() {
+			return new MBeanServerFactoryBean();
 		}
 
 		@Bean

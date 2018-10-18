@@ -15,9 +15,7 @@
 
 	<bean id="namer" class="org.springframework.integration.jmx.config.MBeanRegistrationCustomNamingTests$Namer" />
 
-	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-		<property name="locateExistingServerIfPossible" value="true" />
-	</bean>
+	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<int:channel id="testChannel" />
 
