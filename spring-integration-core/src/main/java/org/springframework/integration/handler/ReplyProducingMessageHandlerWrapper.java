@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,13 @@ package org.springframework.integration.handler;
 import org.springframework.context.Lifecycle;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.util.Assert;
 
 /**
  * The {@link AbstractReplyProducingMessageHandler} wrapper around raw {@link MessageHandler}
  * for request-reply scenarios, e.g. {@code @ServiceActivator} annotation configuration.
  * <p>
- * This class is used internally by Framework in cased when request-reply is important
+ * This class is used internally by Framework in cases when request-reply is important
  * and there is no other way to apply advice chain.
  * <p>
  * The lifecycle control is delegated to the {@code target} {@link MessageHandler}.
@@ -39,6 +40,7 @@ public class ReplyProducingMessageHandlerWrapper extends AbstractReplyProducingM
 	private final MessageHandler target;
 
 	public ReplyProducingMessageHandlerWrapper(MessageHandler target) {
+		Assert.notNull(target, "'target' must not be null");
 		this.target = target;
 	}
 
