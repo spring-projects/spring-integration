@@ -31,6 +31,8 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Test;
 
@@ -65,6 +67,8 @@ import org.springframework.util.Assert;
  *
  */
 public class MBeanExporterIntegrationTests {
+
+	private static final Log logger = LogFactory.getLog(MBeanExporterIntegrationTests.class);
 
 	private IntegrationMBeanExporter messageChannelsMonitor;
 
@@ -234,6 +238,7 @@ public class MBeanExporterIntegrationTests {
 		Set<ObjectName> names =
 				server.queryNames(
 						ObjectName.getInstance("org.springframework.integration:type=MessageChannel,*"), null);
+		logger.error("TEST_COMPONENT_NAMES: " + names);
 		// Only one registered (out of >2 available)
 		assertEquals(1, names.size());
 		names = server.queryNames(
