@@ -135,9 +135,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 
-		boolean handlerExists = false;
+		Object sourceHandler = null;
 		if (beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			handlerExists = MessageHandler.class.isAssignableFrom(method.getReturnType());
+			if (MessageHandler.class.isAssignableFrom(method.getReturnType())) {
+				sourceHandler = resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			}
 		}
 
 		MessageHandler handler = createHandler(bean, method, annotations);
@@ -167,7 +169,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 		}
 
-		if (!handlerExists) {
+		if (handler != sourceHandler) {
 			String handlerBeanName = generateHandlerBeanName(beanName, method);
 			if (handler instanceof ReplyProducingMessageHandlerWrapper
 					&& StringUtils.hasText(MessagingAnnotationUtils.endpointIdValue(method))) {
