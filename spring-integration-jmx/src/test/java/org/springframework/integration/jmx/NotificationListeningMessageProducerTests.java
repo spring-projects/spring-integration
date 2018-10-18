@@ -74,7 +74,7 @@ public class NotificationListeningMessageProducerTests {
 	public void setup() throws Exception {
 		this.server = serverFactoryBean.getObject();
 		MBeanExporter exporter = new MBeanExporter();
-		exporter.setAutodetect(false);
+		exporter.setServer(this.server);
 		exporter.afterPropertiesSet();
 		this.objectName = ObjectNameManager.getInstance("si:name=numberHolder");
 		exporter.registerManagedResource(this.numberHolder, this.objectName);
