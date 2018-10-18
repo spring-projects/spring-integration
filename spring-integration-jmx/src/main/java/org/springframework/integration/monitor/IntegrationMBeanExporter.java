@@ -154,6 +154,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	private final Properties objectNameStaticProperties = new Properties();
 
+	private final Set<Object> runtimeBeans = new HashSet<>();
+
 	private final MetadataNamingStrategy defaultNamingStrategy =
 			new IntegrationMetadataNamingStrategy(this.attributeSource);
 
@@ -308,37 +310,47 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (this.singletonsInstantiated) {
-			if (bean instanceof MessageChannelMetrics) {
-				MessageChannelMetrics monitor = (MessageChannelMetrics) bean;
-				this.channels.add(monitor);
-				registerChannel(monitor);
-			}
-			else if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
-				registerProducer((MessageProducer) bean);
-			}
-			else if (bean instanceof AbstractEndpoint) {
-				if (bean instanceof IntegrationConsumer) {
-					IntegrationConsumer integrationConsumer = (IntegrationConsumer) bean;
-					MessageHandler handler = integrationConsumer.getHandler();
-					if (handler instanceof MessageHandlerMetrics) {
-						MessageHandlerMetrics messageHandlerMetrics = (MessageHandlerMetrics) handler;
-						registerHandler(messageHandlerMetrics);
-						this.handlers.add(messageHandlerMetrics);
-						return bean;
-					}
+			try {
+				if (bean instanceof MessageChannelMetrics) {
+					MessageChannelMetrics monitor = (MessageChannelMetrics) bean;
+					this.channels.add(monitor);
+					registerChannel(monitor);
+					this.runtimeBeans.add(bean);
 				}
-				else if (bean instanceof SourcePollingChannelAdapter) {
-					SourcePollingChannelAdapter pollingChannelAdapter = (SourcePollingChannelAdapter) bean;
-					MessageSource<?> messageSource = pollingChannelAdapter.getMessageSource();
-					if (messageSource instanceof MessageSourceMetrics) {
-						MessageSourceMetrics messageSourceMetrics = (MessageSourceMetrics) messageSource;
-						registerSource(messageSourceMetrics);
-						this.sources.add(messageSourceMetrics);
-						return bean;
-					}
+				else if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
+					registerProducer((MessageProducer) bean);
+					this.runtimeBeans.add(bean);
 				}
+				else if (bean instanceof AbstractEndpoint) {
+					if (bean instanceof IntegrationConsumer) {
+						IntegrationConsumer integrationConsumer = (IntegrationConsumer) bean;
+						MessageHandler handler = integrationConsumer.getHandler();
+						if (handler instanceof MessageHandlerMetrics) {
+							MessageHandlerMetrics messageHandlerMetrics = (MessageHandlerMetrics) handler;
+							registerHandler(messageHandlerMetrics);
+							this.handlers.add(messageHandlerMetrics);
+							this.runtimeBeans.add(messageHandlerMetrics);
+							return bean;
+						}
+					}
+					else if (bean instanceof SourcePollingChannelAdapter) {
+						SourcePollingChannelAdapter pollingChannelAdapter = (SourcePollingChannelAdapter) bean;
+						MessageSource<?> messageSource = pollingChannelAdapter.getMessageSource();
+						if (messageSource instanceof MessageSourceMetrics) {
+							MessageSourceMetrics messageSourceMetrics = (MessageSourceMetrics) messageSource;
+							registerSource(messageSourceMetrics);
+							this.sources.add(messageSourceMetrics);
+							this.runtimeBeans.add(messageSourceMetrics);
+							return bean;
+						}
+					}
 
-				registerEndpoint((AbstractEndpoint) bean);
+					registerEndpoint((AbstractEndpoint) bean);
+					this.runtimeBeans.add(bean);
+				}
+			}
+			catch (Exception e) {
+				logger.error("Could not register an MBean for: " + beanName, e);
 			}
 		}
 		return bean;
@@ -362,33 +374,35 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
-		ObjectName objectName = this.objectNames.remove(bean);
-		if (objectName != null) {
-			doUnregister(objectName);
-			if (bean instanceof AbstractEndpoint) {
-				this.endpointNames.remove(((AbstractEndpoint) bean).getComponentName());
-			}
-			else {
+		if (this.runtimeBeans.remove(bean)) {
+			ObjectName objectName = this.objectNames.remove(bean);
+			if (objectName != null) {
+				doUnregister(objectName);
+				if (bean instanceof AbstractEndpoint) {
+					this.endpointNames.remove(((AbstractEndpoint) bean).getComponentName());
+				}
+				else {
 
-				this.endpointsByMonitor.remove(bean);
-				if (bean instanceof MessageChannelMetrics) {
-					this.channels.remove(bean);
-					this.allChannelsByName.remove(((NamedComponent) bean).getComponentName());
-				}
-				else if (bean instanceof MessageHandlerMetrics) {
-					this.handlers.remove(bean);
-					this.endpointNames.remove(((NamedComponent) bean).getComponentName());
-				}
-				else if (bean instanceof MessageSourceMetrics) {
-					this.sources.remove(bean);
-					this.endpointNames.remove(((NamedComponent) bean).getComponentName());
-					String managedName = ((MessageSourceMetrics) bean).getManagedName();
-					this.allSourcesByName.remove(managedName);
+					this.endpointsByMonitor.remove(bean);
+					if (bean instanceof MessageChannelMetrics) {
+						this.channels.remove(bean);
+						this.allChannelsByName.remove(((NamedComponent) bean).getComponentName());
+					}
+					else if (bean instanceof MessageHandlerMetrics) {
+						this.handlers.remove(bean);
+						this.endpointNames.remove(((NamedComponent) bean).getComponentName());
+					}
+					else if (bean instanceof MessageSourceMetrics) {
+						this.sources.remove(bean);
+						this.endpointNames.remove(((NamedComponent) bean).getComponentName());
+						String managedName = ((MessageSourceMetrics) bean).getManagedName();
+						this.allSourcesByName.remove(managedName);
+					}
 				}
 			}
-		}
-		else if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
-			this.inboundLifecycleMessageProducers.remove(bean);
+			else if (bean instanceof MessageProducer && bean instanceof Lifecycle) {
+				this.inboundLifecycleMessageProducers.remove(bean);
+			}
 		}
 	}
 
