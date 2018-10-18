@@ -39,6 +39,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -51,6 +52,7 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -265,11 +267,25 @@ public class MBeanExporterIntegrationTests {
 	@EnableIntegrationMBeanExport(defaultDomain = "config1")
 	public static class Config1 {
 
+		@Bean
+		public MBeanServerFactoryBean fb() {
+			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
+			fb.setLocateExistingServerIfPossible(true);
+			return fb;
+		}
+
 	}
 
 	@EnableIntegration
 	@EnableIntegrationMBeanExport(defaultDomain = "config2")
 	public static class Config2 {
+
+		@Bean
+		public MBeanServerFactoryBean fb() {
+			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
+			fb.setLocateExistingServerIfPossible(true);
+			return fb;
+		}
 
 	}
 

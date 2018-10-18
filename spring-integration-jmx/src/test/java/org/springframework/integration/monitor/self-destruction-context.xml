@@ -10,7 +10,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int:inbound-channel-adapter channel="toControlBus" auto-startup="false"
-		expression="@integrationMbeanExporter.stopActiveComponents(1000)" />
+		expression="@integrationMbeanExporter.stopActiveComponents(100)" />
 
 	<int:channel id="toControlBus" />
 
@@ -23,7 +23,7 @@
 		<property name="locateExistingServerIfPossible" value="true" />
 	</bean>
 
-	<int:poller default="true" fixed-delay="500" />
+	<int:poller default="true" fixed-delay="100" />
 
 	<bean id="activeChannel" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$ActiveChannelImpl" />
 
