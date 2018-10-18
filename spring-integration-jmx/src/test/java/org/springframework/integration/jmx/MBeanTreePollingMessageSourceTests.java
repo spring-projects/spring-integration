@@ -25,7 +25,8 @@ import java.util.Map;
 
 import javax.management.MBeanServer;
 
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.jmx.support.MBeanServerFactoryBean;
@@ -37,26 +38,25 @@ import org.springframework.jmx.support.MBeanServerFactoryBean;
  */
 public class MBeanTreePollingMessageSourceTests {
 
-	private MBeanServerFactoryBean factoryBean;
+	private static MBeanServerFactoryBean factoryBean;
 
-	private MBeanServer server;
+	private static MBeanServer server;
 
-	@Before
-	public void setup() {
-		this.factoryBean = new MBeanServerFactoryBean();
-		this.factoryBean.setLocateExistingServerIfPossible(true);
-		this.factoryBean.afterPropertiesSet();
-		this.server = factoryBean.getObject();
+	@BeforeClass
+	public static void setup() {
+		factoryBean = new MBeanServerFactoryBean();
+		factoryBean.setLocateExistingServerIfPossible(true);
+		factoryBean.afterPropertiesSet();
+		server = factoryBean.getObject();
 	}
 
-	@Before
-	public void tearDown() {
-		this.factoryBean.destroy();
+	@AfterClass
+	public static void tearDown() {
+		factoryBean.destroy();
 	}
 
 	@Test
 	public void testDefaultPoll() {
-
 		MBeanObjectConverter converter = new DefaultMBeanObjectConverter();
 		MBeanTreePollingMessageSource source = new MBeanTreePollingMessageSource(converter);
 		source.setServer(server);

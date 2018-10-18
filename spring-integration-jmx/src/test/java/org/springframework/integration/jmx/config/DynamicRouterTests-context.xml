@@ -11,14 +11,17 @@
 
 
 	<context:mbean-export />
-	<context:mbean-server />
+
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+		<property name="locateExistingServerIfPossible" value="true" />
+	</bean>
 
 	<int-jmx:operation-invoking-channel-adapter
 		id="controlChannel"
 		object-name="org.springframework.integration.jmx.config:type=SimpleDynamicRouter,name=dynamicRouter"
 		operation-name="addChannelMapping" />
 
-	<int:router input-channel="routingChannel" ref="dynamicRouter" method="route" 
+	<int:router input-channel="routingChannel" ref="dynamicRouter" method="route"
 				default-output-channel="errorChannel"/>
 
 	<bean id="dynamicRouter"

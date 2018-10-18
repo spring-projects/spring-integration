@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,16 +29,21 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.export.MBeanExporter;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class NotificationPublishingMessageHandlerTests {
@@ -49,14 +54,19 @@ public class NotificationPublishingMessageHandlerTests {
 
 	private volatile ObjectName publisherObjectName;
 
-
 	@Before
 	public void setup() throws Exception {
 		this.publisherObjectName = ObjectNameManager.getInstance("test:type=publisher");
-		// deliberately registering two exporters (one SI specific and one generic)
-		// should not fail INT-1816
-		context.registerSingleton("exporter", IntegrationMBeanExporter.class);
-		context.registerSingleton("anotherExporter", MBeanExporter.class);
+		this.context.registerBean("mbeanServer", MBeanServerFactoryBean.class,
+				() -> {
+					MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
+					factoryBean.setLocateExistingServerIfPossible(true);
+					return factoryBean;
+				});
+		this.context.registerSingleton("exporter", IntegrationMBeanExporter.class,
+				new MutablePropertyValues()
+		.add("server", new RuntimeBeanReference("mbeanServer")));
+		this.context.registerSingleton("anotherExporter", MBeanExporter.class);
 
 		RootBeanDefinition publisherDefinition = new RootBeanDefinition(NotificationPublishingMessageHandler.class);
 		publisherDefinition.getConstructorArgumentValues().addGenericArgumentValue(this.publisherObjectName);
@@ -88,7 +98,7 @@ public class NotificationPublishingMessageHandlerTests {
 
 	public static class TestNotificationListener implements NotificationListener {
 
-		private final List<Notification> notifications = new ArrayList<Notification>();
+		private final List<Notification> notifications = new ArrayList<>();
 
 		public void handleNotification(Notification notification, Object handback) {
 			this.notifications.add(notification);
@@ -97,6 +107,7 @@ public class NotificationPublishingMessageHandlerTests {
 		void clearNotifications() {
 			this.notifications.clear();
 		}
+
 	}
 
 }

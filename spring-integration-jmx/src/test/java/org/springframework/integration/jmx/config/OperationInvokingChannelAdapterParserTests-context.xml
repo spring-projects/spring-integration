@@ -14,7 +14,10 @@
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
 	<context:mbean-export/>
-	<context:mbean-server/>
+
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+		<property name="locateExistingServerIfPossible" value="true" />
+	</bean>
 
 	<jmx:operation-invoking-channel-adapter id="input"
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"

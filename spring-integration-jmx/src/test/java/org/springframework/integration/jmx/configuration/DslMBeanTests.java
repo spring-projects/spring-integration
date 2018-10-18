@@ -33,7 +33,6 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -51,9 +50,6 @@ public class DslMBeanTests {
 
 	@Autowired
 	private MBeanServer server;
-
-	@Autowired
-	private IntegrationMBeanExporter integrationMBeanExporter;
 
 	@Test
 	void testRuntimeBeanRegistration(@Autowired IntegrationFlowContext context) throws Exception {

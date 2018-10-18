@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:si="http://www.springframework.org/schema/integration"
-	xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<context:mbean-server id="mbs"/>
+	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+		<property name="locateExistingServerIfPossible" value="true" />
+	</bean>
 
 	<si:channel id="testChannel"/>
 
-	<jmx:mbean-export id="integratioMbeanExporter" 
-					  server="mbs" 
+	<jmx:mbean-export id="integratioMbeanExporter"
+					  server="mbs"
 					  default-domain="tests.MBeanExpoerterParser"
 					  object-name-static-properties="appProperties"
 					  object-naming-strategy="keyNamer"
@@ -29,7 +29,7 @@
 		counts-enabled-patterns="foo, !baz, ba*"
 		stats-enabled-patterns="fiz, buz"
 		metrics-factory="mf" />
-						  
+
 	<util:properties id="appProperties">
 		<prop key="foo">foo</prop>
 		<prop key="bar">bar</prop>
