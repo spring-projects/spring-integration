@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,28 @@ package org.springframework.integration.monitor;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
-import org.springframework.util.ClassUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Tareq Abedrabbo
@@ -43,75 +49,62 @@ import org.springframework.util.ClassUtils;
  *
  * @since 2.0.4
  */
+@SpringJUnitConfig
+@DirtiesContext
 public class MessageMetricsAdviceTests {
 
-	private GenericApplicationContext applicationContext;
+	@Autowired
+	private BeanFactory beanFactory;
 
-	private ConfigurableListableBeanFactory beanFactory;
+	private BeanDefinitionRegistry beanDefinitionRegistry;
 
-	private IntegrationMBeanExporter mBeanExporter;
-
-	private MessageHandler handler;
-
-	private MessageChannel channel;
-
-	@Before
-	public void setUp() throws Exception {
-		this.applicationContext = TestUtils.createTestApplicationContext();
-		this.beanFactory = this.applicationContext.getBeanFactory();
-		this.channel = new NullChannel();
-		this.mBeanExporter = new IntegrationMBeanExporter();
-		this.mBeanExporter.setApplicationContext(this.applicationContext);
-		this.mBeanExporter.setBeanFactory(this.beanFactory);
-		this.mBeanExporter.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
-		this.mBeanExporter.afterPropertiesSet();
-		this.handler = new DummyHandler();
-		applicationContext.refresh();
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		if (this.applicationContext != null) {
-			this.applicationContext.close();
-		}
+	@BeforeEach
+	public void setup() {
+		this.beanDefinitionRegistry = (BeanDefinitionRegistry) this.beanFactory;
 	}
 
 	@Test
-	public void exportAdvisedHandler() throws Exception {
-
+	void exportAdvisedHandler() {
 		DummyInterceptor interceptor = new DummyInterceptor();
 		NameMatchMethodPointcutAdvisor advisor = new NameMatchMethodPointcutAdvisor(interceptor);
 		advisor.addMethodName("handleMessage");
 
-		ProxyFactory factory = new ProxyFactory(this.handler);
+		MessageHandler handler = new DummyHandler();
+
+		ProxyFactory factory = new ProxyFactory(handler);
 		factory.addAdvisor(advisor);
 		MessageHandler advised = (MessageHandler) factory.getProxy();
 
-		this.beanFactory.registerSingleton("test", advised);
-		this.beanFactory.initializeBean(advised, "test");
+		this.beanDefinitionRegistry.registerBeanDefinition("test",
+				BeanDefinitionBuilder.genericBeanDefinition(MessageHandler.class, () -> advised)
+				.getRawBeanDefinition());
 
-		mBeanExporter.afterSingletonsInstantiated();
 		MessageHandler exported = this.beanFactory.getBean("test", MessageHandler.class);
 		exported.handleMessage(MessageBuilder.withPayload("test").build());
+
+		this.beanDefinitionRegistry.removeBeanDefinition("test");
 	}
 
 	@Test
-	public void exportAdvisedChannel() throws Exception {
-
+	void exportAdvisedChannel() {
 		DummyInterceptor interceptor = new DummyInterceptor();
 		NameMatchMethodPointcutAdvisor advisor = new NameMatchMethodPointcutAdvisor(interceptor);
 		advisor.addMethodName("send");
+
+		MessageChannel channel = new NullChannel();
 
 		ProxyFactory factory = new ProxyFactory(channel);
 		factory.addAdvisor(advisor);
 		MessageChannel advised = (MessageChannel) factory.getProxy();
 
-		this.beanFactory.registerSingleton("test", advised);
-		this.beanFactory.initializeBean(advised, "test");
+		this.beanDefinitionRegistry.registerBeanDefinition("test",
+				BeanDefinitionBuilder.genericBeanDefinition(MessageChannel.class, () -> advised)
+						.getRawBeanDefinition());
 
-		mBeanExporter.afterSingletonsInstantiated();
 		MessageChannel exported = this.beanFactory.getBean("test", MessageChannel.class);
 		exported.send(MessageBuilder.withPayload("test").build());
+
+		this.beanDefinitionRegistry.removeBeanDefinition("test");
 	}
 
 	private static class DummyHandler implements MessageHandler {
@@ -147,6 +140,20 @@ public class MessageMetricsAdviceTests {
 		@Override
 		public String toString() {
 			return super.toString() + "{" + "invoked=" + invoked + '}';
+		}
+
+	}
+
+	@Configuration
+	@EnableIntegrationMBeanExport
+	@EnableIntegration
+	public static class Config {
+
+		@Bean
+		public MBeanServerFactoryBean fb() {
+			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
+			fb.setLocateExistingServerIfPossible(true);
+			return fb;
 		}
 
 	}

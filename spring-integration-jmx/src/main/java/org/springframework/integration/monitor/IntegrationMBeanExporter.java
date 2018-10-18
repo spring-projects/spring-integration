@@ -312,7 +312,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 		if (this.singletonsInstantiated) {
 			try {
 				if (bean instanceof MessageChannelMetrics) {
-					MessageChannelMetrics monitor = (MessageChannelMetrics) bean;
+					MessageChannelMetrics monitor = (MessageChannelMetrics) extractTarget(bean);
 					this.channels.add(monitor);
 					registerChannel(monitor);
 					this.runtimeBeans.add(bean);
@@ -326,7 +326,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 						IntegrationConsumer integrationConsumer = (IntegrationConsumer) bean;
 						MessageHandler handler = integrationConsumer.getHandler();
 						if (handler instanceof MessageHandlerMetrics) {
-							MessageHandlerMetrics messageHandlerMetrics = (MessageHandlerMetrics) handler;
+							MessageHandlerMetrics messageHandlerMetrics =
+									(MessageHandlerMetrics) extractTarget(handler);
 							registerHandler(messageHandlerMetrics);
 							this.handlers.add(messageHandlerMetrics);
 							this.runtimeBeans.add(messageHandlerMetrics);
@@ -337,7 +338,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 						SourcePollingChannelAdapter pollingChannelAdapter = (SourcePollingChannelAdapter) bean;
 						MessageSource<?> messageSource = pollingChannelAdapter.getMessageSource();
 						if (messageSource instanceof MessageSourceMetrics) {
-							MessageSourceMetrics messageSourceMetrics = (MessageSourceMetrics) messageSource;
+							MessageSourceMetrics messageSourceMetrics =
+									(MessageSourceMetrics) extractTarget(messageSource);
 							registerSource(messageSourceMetrics);
 							this.sources.add(messageSourceMetrics);
 							this.runtimeBeans.add(messageSourceMetrics);
