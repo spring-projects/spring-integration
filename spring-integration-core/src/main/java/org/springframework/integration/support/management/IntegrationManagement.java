@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.management;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -27,7 +28,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
  * @since 4.2
  *
  */
-public interface IntegrationManagement {
+public interface IntegrationManagement extends DisposableBean {
 
 	String METER_PREFIX = "spring.integration.";
 

@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @since 5.0.4
  *
  */
-public interface TimerFacade {
+public interface TimerFacade extends MeterFacade {
 
 	void record(long time, TimeUnit unit);
 

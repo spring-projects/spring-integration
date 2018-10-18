@@ -233,4 +233,11 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	 */
 	protected abstract Object doReceive();
 
+	@Override
+	public void destroy() throws Exception {
+		if (this.receiveCounter != null) {
+			this.receiveCounter.remove();
+		}
+	}
+
 }

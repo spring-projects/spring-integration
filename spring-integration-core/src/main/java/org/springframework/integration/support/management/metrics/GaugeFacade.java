@@ -21,6 +21,6 @@ package org.springframework.integration.support.management.metrics;
  * @since 5.0.4
  *
  */
-public interface GaugeFacade {
+public interface GaugeFacade extends MeterFacade {
 
 }

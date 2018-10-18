@@ -273,4 +273,11 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 		return (this.beanName != null) ? this.beanName : super.toString();
 	}
 
+	@Override
+	public void destroy() throws Exception {
+		if (this.successTimer != null) {
+			this.successTimer.remove();
+		}
+	}
+
 }

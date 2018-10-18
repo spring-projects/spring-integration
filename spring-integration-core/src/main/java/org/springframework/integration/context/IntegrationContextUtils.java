@@ -99,6 +99,8 @@ public abstract class IntegrationContextUtils {
 
 	public static final String LIST_ARGUMENT_RESOLVERS_BEAN_NAME = "integrationListArgumentResolvers";
 
+	public static final String DISPOSABLES_BEAN_NAME = "integrationDisposableAutoCreatedBeans";
+
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
 	 * @return The {@link MetadataStore} bean whose name is "metadataStore".

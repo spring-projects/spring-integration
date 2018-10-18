@@ -139,14 +139,15 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 		catch (RuntimeException e) {
 			if (countsEnabled && !counted) {
 				if (getMetricsCaptor() != null) {
-					getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
+					CounterFacade counter = getMetricsCaptor().counterBuilder(RECEIVE_COUNTER_NAME)
 							.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 							.tag("type", "channel")
 							.tag("result", "failure")
 							.tag("exception", e.getClass().getSimpleName())
 							.description("Messages received")
-							.build()
-							.increment();
+							.build();
+					this.meters.add(counter);
+					counter.increment();
 				}
 				getMetrics().afterError();
 			}
@@ -230,5 +231,13 @@ public abstract class AbstractPollableChannel extends AbstractMessageChannel
 	 */
 	@Nullable
 	protected abstract Message<?> doReceive(long timeout);
+
+	@Override
+	public void destroy() throws Exception {
+		super.destroy();
+		if (this.receiveCounter != null) {
+			this.receiveCounter.remove();
+		}
+	}
 
 }

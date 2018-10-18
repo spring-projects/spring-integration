@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.GaugeFacade;
+import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 
@@ -71,6 +73,11 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 	@Override
 	public SampleFacade start() {
 		return new MicroSample(Timer.start(this.meterRegistry));
+	}
+
+	@Override
+	public MeterFacade removeMeter(MeterFacade facade) {
+		return facade.remove();
 	}
 
 	/**
@@ -135,17 +142,49 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public MicroTimer build() {
-			return new MicroTimer(this.builder.register(this.meterRegistry));
+			return new MicroTimer(this.builder.register(this.meterRegistry), this.meterRegistry);
 		}
 
 	}
 
-	private static class MicroTimer implements TimerFacade {
+	private static abstract class AbstractMeter implements MeterFacade {
+
+		protected final MeterRegistry meterRegistry; // NOSONAR
+
+		protected AbstractMeter(MeterRegistry meterRegistry) {
+			this.meterRegistry = meterRegistry;
+		}
+
+		/**
+		 * Get the meter.
+		 * @return the meter.
+		 */
+		protected abstract Meter getMeter();
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T extends MeterFacade> T remove() {
+			if (this.meterRegistry.remove(getMeter()) != null) {
+				return (T) this;
+			}
+			else {
+				return null;
+			}
+		}
+
+	}
+	private static class MicroTimer extends AbstractMeter implements TimerFacade {
 
 		private final Timer timer;
 
-		MicroTimer(Timer timer) {
+		MicroTimer(Timer timer, MeterRegistry meterRegistry) {
+			super(meterRegistry);
 			this.timer = timer;
+		}
+
+		@Override
+		protected Meter getMeter() {
+			return this.timer;
 		}
 
 		@Override
@@ -180,17 +219,23 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public CounterFacade build() {
-			return new MicroCounter(this.builder.register(this.meterRegistry));
+			return new MicroCounter(this.builder.register(this.meterRegistry), this.meterRegistry);
 		}
 
 	}
 
-	private static class MicroCounter implements CounterFacade {
+	private static class MicroCounter extends AbstractMeter implements CounterFacade {
 
 		private final Counter counter;
 
-		MicroCounter(Counter counter) {
+		MicroCounter(Counter counter, MeterRegistry meterRegistry) {
+			super(meterRegistry);
 			this.counter = counter;
+		}
+
+		@Override
+		protected Meter getMeter() {
+			return this.counter;
 		}
 
 		@Override
@@ -225,18 +270,23 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 		@Override
 		public GaugeFacade build() {
-			return new MicroGauge(this.builder.register(this.meterRegistry));
+			return new MicroGauge(this.builder.register(this.meterRegistry), this.meterRegistry);
 		}
 
 	}
 
-	private static class MicroGauge implements GaugeFacade {
+	private static class MicroGauge extends AbstractMeter implements GaugeFacade {
 
-		@SuppressWarnings("unused")
 		private final Gauge gauge;
 
-		MicroGauge(Gauge gauge) {
+		MicroGauge(Gauge gauge, MeterRegistry meterRegistry) {
+			super(meterRegistry);
 			this.gauge = gauge;
+		}
+
+		@Override
+		protected Meter getMeter() {
+			return this.gauge;
 		}
 
 	}

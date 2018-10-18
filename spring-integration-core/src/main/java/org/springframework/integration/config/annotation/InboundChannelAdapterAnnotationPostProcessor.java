@@ -131,6 +131,9 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 			this.beanFactory.registerSingleton(messageSourceBeanName, methodInvokingMessageSource);
 			messageSource = (MessageSource<?>) this.beanFactory
 					.initializeBean(methodInvokingMessageSource, messageSourceBeanName);
+			if (this.disposables != null) {
+				this.disposables.addOne(methodInvokingMessageSource);
+			}
 		}
 		return messageSource;
 	}
