@@ -34,6 +34,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionValidationException;
@@ -108,6 +109,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final Class<T> annotationType;
 
+	protected final Disposables disposables; // NOSONAR
+
 	@SuppressWarnings("unchecked")
 	public AbstractMethodAnnotationPostProcessor(ConfigurableListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
@@ -123,6 +126,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		this.annotationType = (Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
 				MethodAnnotationPostProcessor.class);
+		Disposables disposables = null;
+		try {
+			disposables = beanFactory.getBean(Disposables.class);
+		}
+		catch (Exception e) {
+			// NOSONAR - only for test cases
+		}
+		this.disposables = disposables;
 	}
 
 
@@ -177,6 +188,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 			this.beanFactory.registerSingleton(handlerBeanName, handler);
 			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
+			if (handler instanceof DisposableBean && this.disposables != null) {
+				this.disposables.add((DisposableBean) handler);
+			}
 		}
 
 		if (AnnotatedElementUtils.isAnnotated(method, IdempotentReceiver.class.getName())
@@ -297,6 +311,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					inputChannel = new DirectChannel();
 					this.beanFactory.registerSingleton(inputChannelName, inputChannel);
 					inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
+					if (this.disposables != null) {
+						this.disposables.add((DisposableBean) inputChannel);
+					}
 				}
 				else {
 					throw e;

@@ -59,6 +59,17 @@ public interface MetricsCaptor {
 	SampleFacade start();
 
 	/**
+	 * Remove a meter facade.
+	 * @param facade the facade to remove.
+	 * @return the removed facade, or null.
+	 * @since 5.1
+	 */
+	@Nullable
+	default MeterFacade removeMeter(MeterFacade facade) {
+		return null;
+	}
+
+	/**
 	 * A builder for a timer.
 	 */
 	interface TimerBuilder {

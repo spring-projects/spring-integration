@@ -45,10 +45,10 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.search.MeterNotFoundException;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
@@ -58,7 +58,6 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
  *
  */
 @RunWith(SpringRunner.class)
-@DirtiesContext
 public class MicrometerMetricsTests {
 
 	@Autowired
@@ -86,7 +85,7 @@ public class MicrometerMetricsTests {
 	private NullChannel nullChannel;
 
 	@Test
-	public void testSend() {
+	public void testSend() throws Exception {
 		GenericMessage<String> message = new GenericMessage<>("foo");
 		this.channel.send(message);
 		try {
@@ -170,6 +169,39 @@ public class MicrometerMetricsTests {
 				.tag("name", "newChannel")
 				.tag("result", "success")
 				.timer().count()).isEqualTo(1);
+
+		// Test meter removal
+		registry.get("spring.integration.send")
+			.tag("name", "newChannel")
+			.tag("result", "success")
+			.timer();
+		newChannel.destroy();
+		try {
+			registry.get("spring.integration.send")
+				.tag("name", "newChannel")
+				.tag("result", "success")
+				.timer();
+			fail("Expected MeterNotFoundException");
+		}
+		catch (MeterNotFoundException e) {
+			assertThat(e).hasMessageContaining("A meter with name 'spring.integration.send' was found");
+			assertThat(e).hasMessageContaining("No meters have a tag 'name' with value 'newChannel'");
+		}
+		this.context.close();
+		try {
+			registry.get("spring.integration.send").timers();
+			fail("Expected MeterNotFoundException");
+		}
+		catch (MeterNotFoundException e) {
+			assertThat(e).hasMessageContaining("No meter with name 'spring.integration.send' was found");
+		}
+		try {
+			registry.get("spring.integration.receive").counters();
+			fail("Expected MeterNotFoundException");
+		}
+		catch (MeterNotFoundException e) {
+			assertThat(e).hasMessageContaining("No meter with name 'spring.integration.receive' was found");
+		}
 	}
 
 	@Configuration

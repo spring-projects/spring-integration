@@ -187,4 +187,9 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		return this.delegate.getOverrides();
 	}
 
+	@Override
+	public void destroy() throws Exception {
+		this.delegate.destroy();
+	}
+
 }

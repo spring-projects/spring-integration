@@ -22,6 +22,8 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
@@ -39,6 +41,7 @@ import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.MetricsContext;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.TrackableComponent;
+import org.springframework.integration.support.management.metrics.MeterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
@@ -72,6 +75,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	private final Comparator<Object> orderComparator = new OrderComparator();
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
+
+	protected final Set<MeterFacade> meters = ConcurrentHashMap.newKeySet(); // NOSONAR
 
 	private volatile boolean shouldTrack = false;
 
@@ -493,13 +498,15 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	private TimerFacade buildSendTimer(boolean success, String exception) {
-		return this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
+		TimerFacade timer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "channel")
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 				.tag("result", success ? "success" : "failure")
 				.tag("exception", exception)
 				.description("Send processing time")
 				.build();
+		this.meters.add(timer);
+		return timer;
 	}
 
 	private Message<?> convertPayloadIfNecessary(Message<?> message) {
@@ -544,6 +551,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 */
 	protected abstract boolean doSend(Message<?> message, long timeout);
 
+	@Override
+	public void destroy() throws Exception {
+		this.meters.forEach(t -> t.remove());
+	}
 
 	/**
 	 * A convenience wrapper class for the list of ChannelInterceptors.

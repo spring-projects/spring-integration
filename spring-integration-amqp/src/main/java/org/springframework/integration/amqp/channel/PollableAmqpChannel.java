@@ -352,4 +352,12 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 		return this.executorInterceptorsSize > 0;
 	}
 
+	@Override
+	public void destroy() throws Exception {
+		super.destroy();
+		if (this.receiveCounter != null) {
+			this.receiveCounter.remove();
+		}
+	}
+
 }

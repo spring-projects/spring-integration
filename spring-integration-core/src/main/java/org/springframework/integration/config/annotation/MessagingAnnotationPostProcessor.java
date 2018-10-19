@@ -38,6 +38,8 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
@@ -50,6 +52,7 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.util.Assert;
@@ -94,6 +97,10 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
+		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(
+				IntegrationContextUtils.DISPOSABLES_BEAN_NAME,
+				BeanDefinitionBuilder.genericBeanDefinition(Disposables.class, () -> new Disposables())
+						.getRawBeanDefinition());
 		this.postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));

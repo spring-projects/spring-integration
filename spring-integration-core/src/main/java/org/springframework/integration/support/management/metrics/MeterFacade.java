@@ -16,13 +16,25 @@
 
 package org.springframework.integration.support.management.metrics;
 
+import org.springframework.lang.Nullable;
+
 /**
+ * Facade for Meters.
+ *
  * @author Gary Russell
- * @since 5.0.4
+ * @since 5.1
  *
  */
-public interface CounterFacade extends MeterFacade {
+public interface MeterFacade {
 
-	void increment();
+	/**
+	 * Remove this meter facade.
+	 * @param <T> the type of meter removed.
+	 * @return the facade that was removed, or null.
+	 */
+	@Nullable
+	default <T extends MeterFacade> T remove() {
+		return null;
+	}
 
 }

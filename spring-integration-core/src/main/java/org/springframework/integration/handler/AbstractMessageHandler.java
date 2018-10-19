@@ -16,6 +16,9 @@
 
 package org.springframework.integration.handler;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.reactivestreams.Subscription;
 
 import org.springframework.core.Ordered;
@@ -59,6 +62,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
+	private final Set<TimerFacade> timers = ConcurrentHashMap.newKeySet();
+
 	private volatile boolean shouldTrack = false;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
@@ -90,7 +95,6 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 		this.managementOverrides.loggingConfigured = true;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void registerMetricsCaptor(MetricsCaptor metricsCaptor) {
 		this.metricsCaptor = metricsCaptor;
@@ -185,13 +189,15 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	}
 
 	private TimerFacade buildSendTimer(boolean success, String exception) {
-		return this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
+		TimerFacade timer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 				.tag("type", "handler")
 				.tag("name", getComponentName() == null ? "unknown" : getComponentName())
 				.tag("result", success ? "success" : "failure")
 				.tag("exception", exception)
 				.description("Send processing time")
 				.build();
+		this.timers.add(timer);
+		return timer;
 	}
 
 	@Override
@@ -328,6 +334,11 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	@Override
 	public String getManagedType() {
 		return this.managedType;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		this.timers.forEach(t -> t.remove());
 	}
 
 }

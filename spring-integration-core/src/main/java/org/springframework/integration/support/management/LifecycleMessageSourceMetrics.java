@@ -126,4 +126,9 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 		return this.delegate.getOverrides();
 	}
 
+	@Override
+	public void destroy() throws Exception {
+		this.delegate.destroy();
+	}
+
 }
