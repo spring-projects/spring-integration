@@ -28,6 +28,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -62,7 +63,12 @@ public class PollingLifecycleTests {
 
 	@Before
 	public void init() {
-		taskScheduler.afterPropertiesSet();
+		this.taskScheduler.afterPropertiesSet();
+	}
+
+	@After
+	public void tearDown() {
+		this.taskScheduler.destroy();
 	}
 
 	@Test
@@ -90,13 +96,10 @@ public class PollingLifecycleTests {
 		assertTrue(latch.await(2, TimeUnit.SECONDS));
 		Mockito.verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 		consumer.stop();
+		Mockito.reset(handler);
 		for (int i = 0; i < 10; i++) {
 			channel.send(new GenericMessage<>("foo"));
 		}
-		Thread.sleep(2000); // give enough time for poller to kick in if it didn't stop properly
-		// we'll still have a natural race condition between call to stop() and poller polling
-		// so what we really have to assert is that it doesn't poll for more then once after stop() was called
-		Mockito.reset(handler);
 		Mockito.verify(handler, atMost(1)).handleMessage(Mockito.any(Message.class));
 	}
 
@@ -124,7 +127,7 @@ public class PollingLifecycleTests {
 		adapterFactory.setOutputChannel(channel);
 		adapterFactory.setBeanFactory(mock(ConfigurableBeanFactory.class));
 		SourcePollingChannelAdapter adapter = adapterFactory.getObject();
-		adapter.setTaskScheduler(taskScheduler);
+		adapter.setTaskScheduler(this.taskScheduler);
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertTrue(latch.await(20, TimeUnit.SECONDS));
@@ -165,18 +168,19 @@ public class PollingLifecycleTests {
 		adapterFactory.setOutputChannel(channel);
 		adapterFactory.setBeanFactory(mock(ConfigurableBeanFactory.class));
 		SourcePollingChannelAdapter adapter = adapterFactory.getObject();
-		adapter.setTaskScheduler(taskScheduler);
+		adapter.setTaskScheduler(this.taskScheduler);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(10_000, TimeUnit.SECONDS));
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		//
 		adapter.stop();
-		assertTrue(interruptedLatch.await(10_000, TimeUnit.SECONDS));
+
+		assertTrue(interruptedLatch.await(10, TimeUnit.SECONDS));
 		Mockito.verify(caughtInterrupted, times(1)).run();
 	}
 
 	@Test
-	public void testAdapterLifecycleIsPropagatedToMessageSource() throws Exception {
+	public void testAdapterLifecycleIsPropagatedToMessageSource() {
 		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
 		adapterFactory.setOutputChannel(new NullChannel());
 		adapterFactory.setBeanFactory(mock(ConfigurableBeanFactory.class));
