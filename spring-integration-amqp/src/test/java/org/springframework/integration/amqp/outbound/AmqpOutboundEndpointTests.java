@@ -177,7 +177,7 @@ public class AmqpOutboundEndpointTests {
 				.setHeader(AmqpHeaders.CONTENT_TYPE, "application/json")
 				.build();
 		this.ctRequestChannel.send(message);
-		org.springframework.amqp.core.Message m = template.receive();
+		org.springframework.amqp.core.Message m = receive(template);
 		assertNotNull(m);
 		assertEquals("\"hello\"", new String(m.getBody(), "UTF-8"));
 		assertEquals("application/json", m.getMessageProperties().getContentType());
@@ -186,13 +186,24 @@ public class AmqpOutboundEndpointTests {
 		message = MessageBuilder.withPayload("hello")
 				.build();
 		this.ctRequestChannel.send(message);
-		m = template.receive();
+		m = receive(template);
 		assertNotNull(m);
 		assertEquals("hello", new String(m.getBody(), "UTF-8"));
 		assertEquals("text/plain", m.getMessageProperties().getContentType());
 		while (template.receive() != null) {
 			// drain
 		}
+	}
+
+	private org.springframework.amqp.core.Message receive(RabbitTemplate template) throws Exception {
+		int n = 0;
+		org.springframework.amqp.core.Message message = template.receive();
+		while (message == null && n++ < 100) {
+			Thread.sleep(100);
+			message = template.receive();
+		}
+		assertNotNull(message);
+		return message;
 	}
 
 }

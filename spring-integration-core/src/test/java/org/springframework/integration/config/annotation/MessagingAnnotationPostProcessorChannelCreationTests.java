@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.withSettings;
 
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.MessageChannel;
@@ -46,7 +48,8 @@ public class MessagingAnnotationPostProcessorChannelCreationTests {
 
 	@Test
 	public void testAutoCreateChannel() {
-		ConfigurableListableBeanFactory beanFactory = mock(ConfigurableListableBeanFactory.class);
+		ConfigurableListableBeanFactory beanFactory = mock(ConfigurableListableBeanFactory.class,
+				withSettings().extraInterfaces(BeanDefinitionRegistry.class));
 		given(beanFactory.getBean("channel", MessageChannel.class)).willThrow(NoSuchBeanDefinitionException.class);
 		willAnswer(invocation -> invocation.getArgument(0))
 				.given(beanFactory).initializeBean(any(DirectChannel.class), eq("channel"));
@@ -61,7 +64,8 @@ public class MessagingAnnotationPostProcessorChannelCreationTests {
 
 	@Test
 	public void testDontCreateChannelWhenChannelHasBadDefinition() {
-		ConfigurableListableBeanFactory beanFactory = mock(ConfigurableListableBeanFactory.class);
+		ConfigurableListableBeanFactory beanFactory = mock(ConfigurableListableBeanFactory.class,
+				withSettings().extraInterfaces(BeanDefinitionRegistry.class));
 		given(beanFactory.getBean("channel", MessageChannel.class)).willThrow(BeanCreationException.class);
 		willAnswer(invocation -> invocation.getArgument(0))
 				.given(beanFactory).initializeBean(any(DirectChannel.class), eq("channel"));

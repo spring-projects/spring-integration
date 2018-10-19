@@ -18,7 +18,6 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,10 +35,11 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
@@ -71,8 +71,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @author Rick Hogge
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean,
-		DisposableBean {
+public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
@@ -98,7 +97,10 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		this.beanFactory.registerSingleton(IntegrationContextUtils.DISPOSABLES_BEAN_NAME, new Disposables());
+		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(
+				IntegrationContextUtils.DISPOSABLES_BEAN_NAME,
+				BeanDefinitionBuilder.genericBeanDefinition(Disposables.class, () -> new Disposables())
+						.getRawBeanDefinition());
 		this.postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
 		this.postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
@@ -275,32 +277,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	protected Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> getPostProcessors() {
 		return this.postProcessors;
-	}
-
-	@Override
-	public void destroy() throws Exception {
-		this.beanFactory.getBean(Disposables.class).destroy();
-	}
-
-	public static class Disposables implements DisposableBean {
-
-		private final List<DisposableBean> disposables = new ArrayList<>();
-
-		public void addOne(DisposableBean disposable) {
-			this.disposables.add(disposable);
-		}
-
-		@Override
-		public void destroy() throws Exception {
-			this.disposables.forEach(d -> {
-				try {
-					d.destroy();
-				}
-				catch (Exception e) {
-					// NOSONAR
-				}
-			});
-		}
 	}
 
 }

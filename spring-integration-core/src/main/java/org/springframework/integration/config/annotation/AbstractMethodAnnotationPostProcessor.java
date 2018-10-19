@@ -51,7 +51,6 @@ import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.config.IntegrationConfigUtils;
-import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor.Disposables;
 import org.springframework.integration.context.Orderable;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
@@ -190,7 +189,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			this.beanFactory.registerSingleton(handlerBeanName, handler);
 			handler = (MessageHandler) this.beanFactory.initializeBean(handler, handlerBeanName);
 			if (handler instanceof DisposableBean && this.disposables != null) {
-				this.disposables.addOne((DisposableBean) handler);
+				this.disposables.add((DisposableBean) handler);
 			}
 		}
 
@@ -313,7 +312,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					this.beanFactory.registerSingleton(inputChannelName, inputChannel);
 					inputChannel = (MessageChannel) this.beanFactory.initializeBean(inputChannel, inputChannelName);
 					if (this.disposables != null) {
-						this.disposables.addOne((DisposableBean) inputChannel);
+						this.disposables.add((DisposableBean) inputChannel);
 					}
 				}
 				else {

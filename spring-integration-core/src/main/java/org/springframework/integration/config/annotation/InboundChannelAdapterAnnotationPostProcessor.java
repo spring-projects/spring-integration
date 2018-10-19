@@ -132,7 +132,7 @@ public class InboundChannelAdapterAnnotationPostProcessor extends
 			messageSource = (MessageSource<?>) this.beanFactory
 					.initializeBean(methodInvokingMessageSource, messageSourceBeanName);
 			if (this.disposables != null) {
-				this.disposables.addOne(methodInvokingMessageSource);
+				this.disposables.add(methodInvokingMessageSource);
 			}
 		}
 		return messageSource;

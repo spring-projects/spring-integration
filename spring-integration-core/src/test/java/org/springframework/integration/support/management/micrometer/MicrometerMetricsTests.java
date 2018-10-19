@@ -184,7 +184,8 @@ public class MicrometerMetricsTests {
 			fail("Expected MeterNotFoundException");
 		}
 		catch (MeterNotFoundException e) {
-			// NOSONAR
+			assertThat(e).hasMessageContaining("A meter with name 'spring.integration.send' was found");
+			assertThat(e).hasMessageContaining("No meters have a tag 'name' with value 'newChannel'");
 		}
 		this.context.close();
 		try {
@@ -192,14 +193,14 @@ public class MicrometerMetricsTests {
 			fail("Expected MeterNotFoundException");
 		}
 		catch (MeterNotFoundException e) {
-			// NOSONAR
+			assertThat(e).hasMessageContaining("No meter with name 'spring.integration.send' was found");
 		}
 		try {
 			registry.get("spring.integration.receive").counters();
 			fail("Expected MeterNotFoundException");
 		}
 		catch (MeterNotFoundException e) {
-			// NOSONAR
+			assertThat(e).hasMessageContaining("No meter with name 'spring.integration.receive' was found");
 		}
 	}
 
