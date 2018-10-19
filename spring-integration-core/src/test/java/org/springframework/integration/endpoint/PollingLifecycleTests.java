@@ -52,6 +52,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class PollingLifecycleTests {
 
@@ -144,16 +145,18 @@ public class PollingLifecycleTests {
 		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
 		adapterFactory.setPollerMetadata(pollerMetadata);
 		final Runnable caughtInterrupted = mock(Runnable.class);
+		final CountDownLatch interruptedLatch = new CountDownLatch(1);
 		MessageSource<String> source = () -> {
 
 			try {
 				for (int i = 0; i < 10; i++) {
-					Thread.sleep(10);
+					Thread.sleep(latch.getCount() > 0 ? 10 : 1000);
 					latch.countDown();
 				}
 			}
 			catch (InterruptedException e) {
 				caughtInterrupted.run();
+				interruptedLatch.countDown();
 			}
 
 			return new GenericMessage<>("hello");
@@ -165,10 +168,10 @@ public class PollingLifecycleTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(3000, TimeUnit.SECONDS));
+		assertTrue(latch.await(10_000, TimeUnit.SECONDS));
 		//
 		adapter.stop();
-		Thread.sleep(10);
+		assertTrue(interruptedLatch.await(10_000, TimeUnit.SECONDS));
 		Mockito.verify(caughtInterrupted, times(1)).run();
 	}
 
