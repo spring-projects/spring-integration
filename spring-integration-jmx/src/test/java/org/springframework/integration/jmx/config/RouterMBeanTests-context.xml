@@ -17,7 +17,7 @@
 
 	<int:router id="ptRouter" input-channel="testChannel" expression="payload instanceof String ? 'stringChannel' : 'intChannel'"/>
 
-	<context:mbean-server id="mbs" />
+	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<context:mbean-export server="mbs" default-domain="test.RouterMBean" />
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@ import javax.management.Notification;
 import javax.management.ObjectName;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -47,25 +49,31 @@ import org.springframework.messaging.Message;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class NotificationListeningMessageProducerTests {
 
-	private volatile MBeanServer server;
-
-	private volatile ObjectName objectName;
+	private static MBeanServerFactoryBean serverFactoryBean;
 
 	private final NumberHolder numberHolder = new NumberHolder();
 
+	private MBeanServer server;
+
+	private ObjectName objectName;
+
+
+	@BeforeClass
+	public static void setupClass() {
+		serverFactoryBean = new MBeanServerFactoryBean();
+		serverFactoryBean.afterPropertiesSet();
+	}
 
 	@Before
 	public void setup() throws Exception {
-		MBeanServerFactoryBean serverFactoryBean = new MBeanServerFactoryBean();
-		serverFactoryBean.setLocateExistingServerIfPossible(true);
-		serverFactoryBean.afterPropertiesSet();
 		this.server = serverFactoryBean.getObject();
 		MBeanExporter exporter = new MBeanExporter();
-		exporter.setAutodetect(false);
+		exporter.setServer(this.server);
 		exporter.afterPropertiesSet();
 		this.objectName = ObjectNameManager.getInstance("si:name=numberHolder");
 		exporter.registerManagedResource(this.numberHolder, this.objectName);
@@ -76,8 +84,13 @@ public class NotificationListeningMessageProducerTests {
 		this.server.unregisterMBean(this.objectName);
 	}
 
+	@AfterClass
+	public static void tearDown() {
+		serverFactoryBean.destroy();
+	}
+
 	@Test
-	public void simpleNotification() throws Exception {
+	public void simpleNotification() {
 		QueueChannel outputChannel = new QueueChannel();
 		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
@@ -98,7 +111,7 @@ public class NotificationListeningMessageProducerTests {
 	}
 
 	@Test
-	public void notificationWithHandback() throws Exception {
+	public void notificationWithHandback() {
 		QueueChannel outputChannel = new QueueChannel();
 		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
@@ -122,7 +135,7 @@ public class NotificationListeningMessageProducerTests {
 
 	@Test
 	@SuppressWarnings("serial")
-	public void notificationWithFilter() throws Exception {
+	public void notificationWithFilter() {
 		QueueChannel outputChannel = new QueueChannel();
 		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
@@ -170,6 +183,7 @@ public class NotificationListeningMessageProducerTests {
 			Notification notification = new Notification("testType", this, sequence.getAndIncrement(), message);
 			this.notificationPublisher.sendNotification(notification);
 		}
+
 	}
 
 }

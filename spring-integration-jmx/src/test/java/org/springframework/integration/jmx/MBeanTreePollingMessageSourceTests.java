@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,30 +25,38 @@ import java.util.Map;
 
 import javax.management.MBeanServer;
 
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 
 /**
  * @author Stuart Williams
+ * @author Artem Bilan
  *
  */
 public class MBeanTreePollingMessageSourceTests {
 
-	private MBeanServer server;
+	private static MBeanServerFactoryBean factoryBean;
 
-	@Before
-	public void setup() {
-		MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
+	private static MBeanServer server;
+
+	@BeforeClass
+	public static void setup() {
+		factoryBean = new MBeanServerFactoryBean();
 		factoryBean.setLocateExistingServerIfPossible(true);
 		factoryBean.afterPropertiesSet();
-		this.server = factoryBean.getObject();
+		server = factoryBean.getObject();
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		factoryBean.destroy();
 	}
 
 	@Test
 	public void testDefaultPoll() {
-
 		MBeanObjectConverter converter = new DefaultMBeanObjectConverter();
 		MBeanTreePollingMessageSource source = new MBeanTreePollingMessageSource(converter);
 		source.setServer(server);

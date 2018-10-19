@@ -133,9 +133,7 @@ public class EnableMBeanExportTests {
 
 		@Bean
 		public MBeanServerFactoryBean mbeanServer() {
-			MBeanServerFactoryBean mBeanServerFactoryBean = new MBeanServerFactoryBean();
-			mBeanServerFactoryBean.setLocateExistingServerIfPossible(true);
-			return mBeanServerFactoryBean;
+			return new MBeanServerFactoryBean();
 		}
 
 		@Bean

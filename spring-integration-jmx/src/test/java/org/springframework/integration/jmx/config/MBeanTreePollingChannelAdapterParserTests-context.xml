@@ -13,8 +13,11 @@
 			http://www.springframework.org/schema/integration/jmx
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
-	<context:mbean-export/>
-	<context:mbean-server/>
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+		<property name="locateExistingServerIfPossible" value="true"/>
+	</bean>
+
+	<context:mbean-export server="mbeanServer"/>
 
 	<jmx:tree-polling-channel-adapter id="adapter-default"
 			channel="channel1"
@@ -30,7 +33,7 @@
 			channel="channel2"
 			auto-startup="false">
 		<si:poller max-messages-per-poll="1" fixed-rate="5000"/>
-		<bean class="org.springframework.integration.jmx.DefaultMBeanObjectConverter"></bean>
+		<bean class="org.springframework.integration.jmx.DefaultMBeanObjectConverter"/>
 	</jmx:tree-polling-channel-adapter>
 
 	<si:channel id="channel2">

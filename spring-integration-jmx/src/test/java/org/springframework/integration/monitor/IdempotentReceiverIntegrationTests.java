@@ -242,9 +242,7 @@ public class IdempotentReceiverIntegrationTests {
 
 		@Bean
 		public static MBeanServerFactoryBean mBeanServer() {
-			MBeanServerFactoryBean mBeanServerFactoryBean = new MBeanServerFactoryBean();
-			mBeanServerFactoryBean.setLocateExistingServerIfPossible(true);
-			return mBeanServerFactoryBean;
+			return new MBeanServerFactoryBean();
 		}
 
 		@Bean

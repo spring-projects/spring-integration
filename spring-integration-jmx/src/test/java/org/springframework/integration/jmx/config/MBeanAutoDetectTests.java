@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,14 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class MBeanAutoDetectTests {
@@ -57,7 +58,6 @@ public class MBeanAutoDetectTests {
 	}
 
 	@Test
-	@Ignore // Fails because the MBeanExporter is created before the router
 	public void testRouterMBeanExistsWhenDefinedSecond() throws Exception {
 		context = new ClassPathXmlApplicationContext("MBeanAutoDetectSecondTests-context.xml", getClass());
 		server = context.getBean(MBeanServer.class);

@@ -10,8 +10,7 @@
 		class="org.springframework.integration.monitor.IntegrationMBeanExporter"
 		p:server-ref="mbeanServer" p:defaultDomain="forum" />
 
-	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"
-		p:locateExistingServerIfPossible="true" />
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<int:chain input-channel="inputChannel">
 		<int:transformer>

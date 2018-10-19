@@ -134,7 +134,7 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 				BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) bean.getClass(), () -> bean)
 						.getRawBeanDefinition();
 
-		((BeanDefinitionRegistry) this.beanFactory).registerBeanDefinition(beanName, beanDefinition);
+		this.beanDefinitionRegistry.registerBeanDefinition(beanName, beanDefinition);
 
 		if (parentName != null) {
 			this.beanFactory.registerDependentBean(parentName, beanName);

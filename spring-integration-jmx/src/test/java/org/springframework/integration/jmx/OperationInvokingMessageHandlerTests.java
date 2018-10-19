@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ import java.util.Map;
 import javax.management.MBeanServer;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -42,45 +44,58 @@ import org.springframework.messaging.MessagingException;
 
 /**
  * See DynamicRouterTests for additional tests where the MBean is registered by the Spring exporter.
- * @see DynamicRouterTests
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
+ *
+ * @see DynamicRouterTests
  */
 public class OperationInvokingMessageHandlerTests {
 
+	private static MBeanServerFactoryBean factoryBean;
+
+	private static MBeanServer server;
+
 	private final String objectName = "si:name=test";
 
-	private volatile MBeanServer server;
+	@BeforeClass
+	public static void setupClass() {
+		factoryBean = new MBeanServerFactoryBean();
+		factoryBean.afterPropertiesSet();
+		server = factoryBean.getObject();
+	}
 
+	@AfterClass
+	public static void tearDown() {
+		factoryBean.destroy();
+	}
 
 	@Before
 	public void setup() throws Exception {
-		MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
-		factoryBean.setLocateExistingServerIfPossible(true);
-		factoryBean.afterPropertiesSet();
-		this.server = factoryBean.getObject();
-		this.server.registerMBean(new TestOps(), ObjectNameManager.getInstance(this.objectName));
+		server.registerMBean(new TestOps(), ObjectNameManager.getInstance(this.objectName));
 	}
 
 	@After
 	public void cleanup() throws Exception {
-		this.server.unregisterMBean(ObjectNameManager.getInstance(this.objectName));
+		server.unregisterMBean(ObjectNameManager.getInstance(this.objectName));
 	}
 
 
 	@Test
-	public void invocationWithMapPayload() throws Exception {
+	public void invocationWithMapPayload() {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
-		handler.setServer(this.server);
+		handler.setServer(server);
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("x");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<>();
 		params.put("p1", "foo");
 		params.put("p2", "bar");
 		Message<?> message = MessageBuilder.withPayload(params).build();
@@ -91,10 +106,10 @@ public class OperationInvokingMessageHandlerTests {
 	}
 
 	@Test
-	public void invocationWithPayloadNoReturnValue() throws Exception {
+	public void invocationWithPayloadNoReturnValue() {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
-		handler.setServer(this.server);
+		handler.setServer(server);
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("y");
@@ -105,16 +120,16 @@ public class OperationInvokingMessageHandlerTests {
 	}
 
 	@Test(expected = MessagingException.class)
-	public void invocationWithMapPayloadNotEnoughParameters() throws Exception {
+	public void invocationWithMapPayloadNotEnoughParameters() {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
-		handler.setServer(this.server);
+		handler.setServer(server);
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("x");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<>();
 		params.put("p1", "foo");
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
@@ -124,16 +139,16 @@ public class OperationInvokingMessageHandlerTests {
 	}
 
 	@Test
-	public void invocationWithListPayload() throws Exception {
+	public void invocationWithListPayload() {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
-		handler.setServer(this.server);
+		handler.setServer(server);
 		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.setOperationName("x");
 		handler.setBeanFactory(mock(BeanFactory.class));
 		handler.afterPropertiesSet();
-		List<Object> params = Arrays.asList(new Object[] { "foo", new Integer(123) });
+		List<Object> params = Arrays.asList(new Object[] { "foo", 123 });
 		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
@@ -148,8 +163,8 @@ public class OperationInvokingMessageHandlerTests {
 		String x(String s, Integer i);
 
 		void y(String s);
-	}
 
+	}
 
 	public static class TestOps implements TestOpsMBean {
 
@@ -164,7 +179,9 @@ public class OperationInvokingMessageHandlerTests {
 		}
 
 		@Override
-		public void y(String s) { }
+		public void y(String s) {
+		}
+
 	}
 
 }

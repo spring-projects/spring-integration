@@ -14,7 +14,7 @@
 
 	<jmx:mbean-export id="integrationMbeanExporter" server="mbs" default-domain="test.MBeanRegistration"/>
 
-	<context:mbean-server id="mbs" />
+	<bean id="mbs" class="org.springframework.jmx.support.MBeanServerFactoryBean"/>
 
 	<context:mbean-export server="mbs" default-domain="test.MBeanRegistration"/>
 

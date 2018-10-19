@@ -73,15 +73,13 @@ public class MessageSourceTests {
 	}
 
 	@Configuration
-	@EnableIntegrationMBeanExport(defaultDomain = "foo")
+	@EnableIntegrationMBeanExport(server = "mbeanServer", defaultDomain = "foo")
 	@EnableIntegration
 	public static class Config {
 
 		@Bean
-		public MBeanServerFactoryBean fb() {
-			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
-			fb.setLocateExistingServerIfPossible(true);
-			return fb;
+		public MBeanServerFactoryBean mbeanServer() {
+			return new MBeanServerFactoryBean();
 		}
 
 		@Bean

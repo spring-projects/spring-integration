@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -51,11 +52,18 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jmx.config.EnableIntegrationMBeanExport;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
+/**
+ * @author Dave Syer
+ * @author Gary Russell
+ * @author Artem Bilan
+ *
+ */
 public class MBeanExporterIntegrationTests {
 
 	private IntegrationMBeanExporter messageChannelsMonitor;
@@ -70,21 +78,21 @@ public class MBeanExporterIntegrationTests {
 	}
 
 	@Test
-	public void testCircularReferenceNoChannel() throws Exception {
+	public void testCircularReferenceNoChannel() {
 		context = new GenericXmlApplicationContext(getClass(), "oref-nonchannel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 	}
 
 	@Test
-	public void testCircularReferenceNoChannelInFactoryBean() throws Exception {
+	public void testCircularReferenceNoChannelInFactoryBean() {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-nonchannel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 	}
 
 	@Test
-	public void testCircularReferenceWithChannel() throws Exception {
+	public void testCircularReferenceWithChannel() {
 		context = new GenericXmlApplicationContext(getClass(), "oref-channel.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
@@ -98,11 +106,13 @@ public class MBeanExporterIntegrationTests {
 		assertTrue(Arrays.asList(messageChannelsMonitor.getChannelNames()).contains("anonymous"));
 		MBeanServer server = context.getBean(MBeanServer.class);
 		assertEquals(1, server.queryNames(ObjectName.getInstance("com.foo:*"), null).size());
-		assertEquals(1, server.queryNames(ObjectName.getInstance("org.springframework.integration:name=anonymous,*"), null).size());
+		assertEquals(1,
+				server.queryNames(ObjectName.getInstance("org.springframework.integration:name=anonymous,*"), null)
+						.size());
 	}
 
 	@Test
-	public void testCircularReferenceWithChannelInFactoryBeanAutodetected() throws Exception {
+	public void testCircularReferenceWithChannelInFactoryBeanAutodetected() {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-channel-autodetect.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
@@ -114,7 +124,9 @@ public class MBeanExporterIntegrationTests {
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 		MBeanServer server = context.getBean(MBeanServer.class);
-		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
+		Set<ObjectName> names =
+				server.queryNames(
+						ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
 		assertEquals(2, names.size());
 		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=explicit,*"), null);
 		assertEquals(1, names.size());
@@ -129,7 +141,7 @@ public class MBeanExporterIntegrationTests {
 		// Lifecycle method name
 		assertEquals("start", startName);
 		assertTrue((Boolean) server.invoke(names.iterator().next(), "isRunning", null, null));
-		messageChannelsMonitor.stopActiveComponents(3000);
+		messageChannelsMonitor.stopActiveComponents(100);
 		assertFalse((Boolean) server.invoke(names.iterator().next(), "isRunning", null, null));
 		ActiveChannel activeChannel = context.getBean("activeChannel", ActiveChannel.class);
 		assertTrue(activeChannel.isStopCalled());
@@ -144,7 +156,7 @@ public class MBeanExporterIntegrationTests {
 		QueueChannel input2 = (QueueChannel) extractTarget(context.getBean("input2"));
 		input.purge(null);
 		input2.purge(null);
-		input.send(new GenericMessage<String>("foo"));
+		input.send(new GenericMessage<>("foo"));
 		assertNotNull(input2.receive(10000));
 	}
 
@@ -185,7 +197,9 @@ public class MBeanExporterIntegrationTests {
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 		MBeanServer server = context.getBean(MBeanServer.class);
-		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
+		Set<ObjectName> names =
+				server.queryNames(
+						ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
 		assertEquals(1, names.size());
 		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=gateway,*"), null);
 		assertEquals(1, names.size());
@@ -204,7 +218,8 @@ public class MBeanExporterIntegrationTests {
 
 		context = new GenericXmlApplicationContext(getClass(), "lifecycle-no-source.xml");
 		server = context.getBean(MBeanServer.class);
-		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
+		names = server.queryNames(
+				ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
 		assertEquals(1, names.size());
 		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=gateway,*"), null);
 		assertEquals(1, names.size());
@@ -216,10 +231,13 @@ public class MBeanExporterIntegrationTests {
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 		MBeanServer server = context.getBean(MBeanServer.class);
-		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=MessageChannel,*"), null);
+		Set<ObjectName> names =
+				server.queryNames(
+						ObjectName.getInstance("org.springframework.integration:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
 		assertEquals(1, names.size());
-		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=MessageHandler,*"), null);
+		names = server.queryNames(
+				ObjectName.getInstance("org.springframework.integration:type=MessageHandler,*"), null);
 		assertEquals(0, names.size());
 	}
 
@@ -229,7 +247,9 @@ public class MBeanExporterIntegrationTests {
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 		MBeanServer server = context.getBean(MBeanServer.class);
-		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
+		Set<ObjectName> names =
+				server.queryNames(
+						ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
 		assertEquals(2, names.size());
 	}
 
@@ -247,11 +267,25 @@ public class MBeanExporterIntegrationTests {
 	@EnableIntegrationMBeanExport(defaultDomain = "config1")
 	public static class Config1 {
 
+		@Bean
+		public MBeanServerFactoryBean fb() {
+			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
+			fb.setLocateExistingServerIfPossible(true);
+			return fb;
+		}
+
 	}
 
 	@EnableIntegration
 	@EnableIntegrationMBeanExport(defaultDomain = "config2")
 	public static class Config2 {
+
+		@Bean
+		public MBeanServerFactoryBean fb() {
+			MBeanServerFactoryBean fb = new MBeanServerFactoryBean();
+			fb.setLocateExistingServerIfPossible(true);
+			return fb;
+		}
 
 	}
 
@@ -313,7 +347,7 @@ public class MBeanExporterIntegrationTests {
 		}
 
 		@Override
-		public void afterPropertiesSet() throws Exception {
+		public void afterPropertiesSet() {
 			Assert.state(date != null, "A date must be provided");
 		}
 
@@ -322,6 +356,7 @@ public class MBeanExporterIntegrationTests {
 	public static class MetricFactoryBean implements FactoryBean<Metric> {
 
 		private MessageChannel channel;
+
 		private final Metric date = new Metric();
 
 		public void setChannel(MessageChannel channel) {
@@ -329,7 +364,7 @@ public class MBeanExporterIntegrationTests {
 		}
 
 		@Override
-		public Metric getObject() throws Exception {
+		public Metric getObject() {
 			Assert.state(channel != null, "A channel must be provided");
 			return date;
 		}
@@ -367,11 +402,15 @@ public class MBeanExporterIntegrationTests {
 	}
 
 	public interface Service {
+
 		String execute() throws Exception;
+
 		int getCounter();
+
 	}
 
 	public static class SimpleService implements Service {
+
 		private int counter;
 
 		@Override
@@ -385,10 +424,13 @@ public class MBeanExporterIntegrationTests {
 		public int getCounter() {
 			return counter;
 		}
+
 	}
 
 	public interface ActiveChannel {
+
 		boolean isStopCalled();
+
 	}
 
 	public static class ActiveChannelImpl extends AbstractMessageChannel implements Lifecycle, ActiveChannel {
@@ -418,6 +460,7 @@ public class MBeanExporterIntegrationTests {
 		public boolean isStopCalled() {
 			return this.stopCalled;
 		}
+
 	}
 
 	public static class OtherActiveComponent extends MessageProducerSupport
@@ -446,9 +489,11 @@ public class MBeanExporterIntegrationTests {
 			this.afterCalled = true;
 			return 0;
 		}
+
 	}
 
 	public static class AMessageProducer extends MessageProducerSupport {
+
 	}
 
 }

@@ -145,7 +145,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	}
 
 	@Override
-	public SourcePollingChannelAdapter getObject() throws Exception {
+	public SourcePollingChannelAdapter getObject() {
 		if (this.adapter == null) {
 			initializeAdapter();
 		}
@@ -169,15 +169,18 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			}
 			Assert.notNull(this.source, "source is required");
 
-			if (StringUtils.hasText(this.outputChannelName)) {
-				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
-				this.outputChannel = this.channelResolver.resolveDestination(this.outputChannelName);
-			}
-
-			Assert.notNull(this.outputChannel, "outputChannel is required");
 			SourcePollingChannelAdapter spca = new SourcePollingChannelAdapter();
 			spca.setSource(this.source);
-			spca.setOutputChannel(this.outputChannel);
+
+			if (StringUtils.hasText(this.outputChannelName)) {
+				Assert.isNull(this.outputChannel, "'outputChannelName' and 'outputChannel' are mutually exclusive.");
+				spca.setOutputChannelName(this.outputChannelName);
+			}
+			else {
+				Assert.notNull(this.outputChannel, "outputChannel is required");
+				spca.setOutputChannel(this.outputChannel);
+			}
+
 			if (this.pollerMetadata == null) {
 				this.pollerMetadata = PollerMetadata.getDefaultPollerMetadata(this.beanFactory);
 				Assert.notNull(this.pollerMetadata, "No poller has been defined for channel-adapter '"

@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
 import javax.management.ObjectInstance;
 
 import org.junit.Test;
@@ -44,9 +43,7 @@ public class Int2307Tests {
 	@Test
 	public void testInt2307_DefaultMBeanExporter() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("single-config.xml", getClass());
-		List<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
-		assertEquals(1, servers.size());
-		MBeanServer server = servers.get(0);
+		MBeanServer server = context.getBean(MBeanServer.class);
 		Set<ObjectInstance> mbeans = server.queryMBeans(null, null);
 		int bits = 0;
 		int count = 0;
