@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ public class CachingSessionFactoryTests {
 	public void testCacheAndReset() {
 		TestSessionFactory factory = new TestSessionFactory();
 		CachingSessionFactory<String> cache = new CachingSessionFactory<String>(factory);
+		cache.setTestSession(true);
 		Session<String> sess1 = cache.getSession();
 		assertEquals("session:1", TestUtils.getPropertyValue(sess1, "targetSession.id"));
 		Session<String> sess2 = cache.getSession();
@@ -61,6 +62,7 @@ public class CachingSessionFactoryTests {
 		assertTrue(sess1.isOpen());
 		sess1 = cache.getSession();
 		assertEquals("session:1", TestUtils.getPropertyValue(sess1, "targetSession.id"));
+		assertTrue((TestUtils.getPropertyValue(sess1, "targetSession.testCalled", Boolean.class)));
 		sess1.close();
 		assertTrue(sess1.isOpen());
 		// reset the cache; should close idle (sess1); sess2 should closed later
@@ -121,6 +123,8 @@ public class CachingSessionFactoryTests {
 		private final String id;
 
 		private volatile boolean open = true;
+
+		private boolean testCalled;
 
 		private TestSession(String id) {
 			this.id = id;
@@ -195,6 +199,12 @@ public class CachingSessionFactoryTests {
 		@Override
 		public Object getClientInstance() {
 			return null;
+		}
+
+		@Override
+		public boolean test() {
+			this.testCalled = true;
+			return true;
 		}
 
 	}

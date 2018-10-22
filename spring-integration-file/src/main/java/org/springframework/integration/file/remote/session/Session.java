@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,5 +106,15 @@ public interface Session<F> extends Closeable {
 	 * @since 4.1
 	 */
 	Object getClientInstance();
+
+	/**
+	 * Test the session is still alive, e.g. when checking out from a pool.
+	 * The default implementation simply delegates to {@link #isOpen()}.
+	 * @return true if the test is successful.
+	 * @since 5.1
+	 */
+	default boolean test() {
+		return this.isOpen();
+	}
 
 }

@@ -253,6 +253,9 @@ When invoked, all idle sessions are immediately closed and in-use sessions are c
 When using `isSharedSession=true`, the channel is closed and the shared session is closed only when the last channel is closed.
 New requests for sessions establish new sessions as necessary.
 
+Starting with version 5.1, the `CachingSessionFactory` has a new poperty `testSession`.
+When true, the session will be tested by performing a `stat(getHome())` command to ensure it is still active; if not, it will be removed from the cache; a new session is created if no active sessions are in the cache.
+
 [[sftp-rft]]
 === Using `RemoteFileTemplate`
 
@@ -476,6 +479,7 @@ public class SftpJavaApplication {
         factory.setUser("foo");
         factory.setPassword("foo");
         factory.setAllowUnknownKeys(true);
+        factory.setTestSession(true);
         return new CachingSessionFactory<LsEntry>(factory);
     }
 
@@ -873,6 +877,7 @@ public class SftpJavaApplication {
         factory.setUser("foo");
         factory.setPassword("foo");
         factory.setAllowUnknownKeys(true);
+        factory.setTestSession(true);
         return new CachingSessionFactory<LsEntry>(factory);
     }
 
@@ -1257,6 +1262,7 @@ public class SftpJavaApplication {
         sf.setPort(port);
         sf.setUsername("foo");
         sf.setPassword("foo");
+        factory.setTestSession(true);
         return new CachingSessionFactory<LsEntry>(sf);
     }
 
