@@ -48,7 +48,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	public static final String MICROMETER_CAPTOR_NAME = "integrationMicrometerMetricsCaptor";
 
-	private final MeterRegistry meterRegistry;
+	protected final MeterRegistry meterRegistry; // NOSONAR
 
 	public MicrometerMetricsCaptor(MeterRegistry meterRegistry) {
 		Assert.notNull(meterRegistry, "meterRegistry cannot be null");
@@ -81,7 +81,8 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 	}
 
 	/**
-	 * Add a MicrometerMetricsCaptor to the context if there's a MeterRegistry.
+	 * Add a MicrometerMetricsCaptor to the context if there's a MeterRegistry; if
+	 * there's already a {@link MetricsCaptor} bean, return that.
 	 * @param applicationContext the application context.
 	 * @return the instance.
 	 */
@@ -93,13 +94,12 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 				((GenericApplicationContext) applicationContext).registerBean(MICROMETER_CAPTOR_NAME,
 						MicrometerMetricsCaptor.class,
 						() -> new MicrometerMetricsCaptor(registry));
-				return applicationContext.getBean(MicrometerMetricsCaptor.class);
 			}
+			return applicationContext.getBean(MICROMETER_CAPTOR_NAME, MetricsCaptor.class);
 		}
 		catch (NoSuchBeanDefinitionException e) {
 			return null;
 		}
-		return null;
 	}
 
 	private class MicroSample implements SampleFacade {
@@ -110,16 +110,17 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 			this.sample = sample;
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public void stop(TimerFacade timer) {
-			this.sample.stop(((MicroTimer) timer).timer);
+			this.sample.stop(((AbstractMeter<Timer>) timer).getMeter());
 		}
 
 	}
 
-	private static class MicroTimerBuilder implements TimerBuilder {
+	protected static class MicroTimerBuilder implements TimerBuilder {
 
-		private final MeterRegistry meterRegistry;
+		protected final MeterRegistry meterRegistry; // NOSONAR
 
 		private final Timer.Builder builder;
 
@@ -147,7 +148,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	private static abstract class AbstractMeter implements MeterFacade {
+	protected static abstract class AbstractMeter<M extends Meter> implements MeterFacade {
 
 		protected final MeterRegistry meterRegistry; // NOSONAR
 
@@ -159,7 +160,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 		 * Get the meter.
 		 * @return the meter.
 		 */
-		protected abstract Meter getMeter();
+		protected abstract M getMeter();
 
 		@SuppressWarnings("unchecked")
 		@Override
@@ -173,17 +174,18 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 		}
 
 	}
-	private static class MicroTimer extends AbstractMeter implements TimerFacade {
+
+	protected static class MicroTimer extends AbstractMeter<Timer> implements TimerFacade {
 
 		private final Timer timer;
 
-		MicroTimer(Timer timer, MeterRegistry meterRegistry) {
+		protected MicroTimer(Timer timer, MeterRegistry meterRegistry) {
 			super(meterRegistry);
 			this.timer = timer;
 		}
 
 		@Override
-		protected Meter getMeter() {
+		protected Timer getMeter() {
 			return this.timer;
 		}
 
@@ -194,13 +196,13 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	private static class MicroCounterBuilder implements CounterBuilder {
+	protected static class MicroCounterBuilder implements CounterBuilder {
 
-		private final MeterRegistry meterRegistry;
+		protected final MeterRegistry meterRegistry; // NOSONAR
 
 		private final Counter.Builder builder;
 
-		MicroCounterBuilder(MeterRegistry meterRegistry, String name) {
+		protected MicroCounterBuilder(MeterRegistry meterRegistry, String name) {
 			this.meterRegistry = meterRegistry;
 			this.builder = Counter.builder(name);
 		}
@@ -224,17 +226,17 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	private static class MicroCounter extends AbstractMeter implements CounterFacade {
+	protected static class MicroCounter extends AbstractMeter<Counter> implements CounterFacade {
 
 		private final Counter counter;
 
-		MicroCounter(Counter counter, MeterRegistry meterRegistry) {
+		protected MicroCounter(Counter counter, MeterRegistry meterRegistry) {
 			super(meterRegistry);
 			this.counter = counter;
 		}
 
 		@Override
-		protected Meter getMeter() {
+		protected Counter getMeter() {
 			return this.counter;
 		}
 
@@ -245,13 +247,13 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	private static class MicroGaugeBuilder implements GaugeBuilder {
+	protected static class MicroGaugeBuilder implements GaugeBuilder {
 
-		private final MeterRegistry meterRegistry;
+		protected final MeterRegistry meterRegistry; // NOSONAR
 
 		private final Gauge.Builder<Object> builder;
 
-		MicroGaugeBuilder(MeterRegistry meterRegistry, String name, Object obj, ToDoubleFunction<Object> f) {
+		protected MicroGaugeBuilder(MeterRegistry meterRegistry, String name, Object obj, ToDoubleFunction<Object> f) {
 			this.meterRegistry = meterRegistry;
 			this.builder = Gauge.builder(name, obj, f);
 		}
@@ -275,17 +277,17 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	private static class MicroGauge extends AbstractMeter implements GaugeFacade {
+	protected static class MicroGauge extends AbstractMeter<Gauge> implements GaugeFacade {
 
 		private final Gauge gauge;
 
-		MicroGauge(Gauge gauge, MeterRegistry meterRegistry) {
+		protected MicroGauge(Gauge gauge, MeterRegistry meterRegistry) {
 			super(meterRegistry);
 			this.gauge = gauge;
 		}
 
 		@Override
-		protected Meter getMeter() {
+		protected Gauge getMeter() {
 			return this.gauge;
 		}
 
