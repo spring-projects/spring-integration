@@ -124,6 +124,7 @@ public class CachingSessionFactoryTests {
 
 		private volatile boolean open = true;
 
+		@SuppressWarnings("unused")
 		private boolean testCalled;
 
 		private TestSession(String id) {
