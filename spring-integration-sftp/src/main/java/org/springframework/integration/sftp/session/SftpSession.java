@@ -285,7 +285,7 @@ public class SftpSession implements Session<LsEntry> {
 
 	private boolean doTest() {
 		try {
-			this.channel.stat(this.channel.getHome());
+			this.channel.lstat(this.channel.getHome());
 			return true;
 		}
 		catch (Exception e) {
