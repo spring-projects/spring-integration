@@ -12,7 +12,7 @@ To download, install, and run Redis, see the http://redis.io/download[Redis docu
 To begin interacting with Redis, you first need to connect to it.
 Spring Integration uses support provided by another Spring project, https://github.com/SpringSource/spring-data-redis[Spring Data Redis], which provides typical Spring constructs: `ConnectionFactory` and `Template`.
 Those abstractions simplify integration with several Redis client Java APIs.
-Currently Spring Data Redis supports https://github.com/xetorthio/jedis[jedis], http://code.google.com/p/jredis/[jredis] and https://github.com/e-mzungu/rjc[Redis Java Client (RJC)].
+Currently Spring Data Redis supports https://github.com/xetorthio/jedis[Jedis] and https://lettuce.io/[Lettuce].
 
 ==== Using `RedisConnectionFactory`
 
@@ -26,7 +26,6 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 
     /**
      * Provides a suitable connection for interacting with Redis.
-     *
      * @return connection for interacting with Redis.
      */
     RedisConnection getConnection();
@@ -34,23 +33,23 @@ public interface RedisConnectionFactory extends PersistenceExceptionTranslator {
 ----
 ====
 
-The following example shows how to create a `JedisConnectionFactory` in Java:
+The following example shows how to create a `LettuceConnectionFactory` in Java:
 
 ====
 [source,java]
 ----
-JedisConnectionFactory jcf = new JedisConnectionFactory();
-jcf.afterPropertiesSet();
+LettuceConnectionFactory cf = new LettuceConnectionFactory();
+cf.afterPropertiesSet();
 ----
 ====
 
-The following example shows how to create a `JedisConnectionFactory` in Spring's XML configuration:
+The following example shows how to create a `LettuceConnectionFactory` in Spring's XML configuration:
 
 ====
 [source,xml]
 ----
 <bean id="redisConnectionFactory"
-    class="o.s.data.redis.connection.jedis.JedisConnectionFactory">
+    class="o.s.data.redis.connection.lettuce.LettuceConnectionFactory">
     <property name="port" value="7379" />
 </bean>
 ----
@@ -62,7 +61,7 @@ Once you have an instance of `RedisConnectionFactory`, you can create an instanc
 ==== Using `RedisTemplate`
 
 As with other template classes in Spring (such as `JdbcTemplate` and `JmsTemplate`) `RedisTemplate` is a helper class that simplifies Redis data access code.
-For more information about `RedisTemplate` and its variations (such as `StringRedisTemplate`) see the http://static.springsource.org/spring-data/data-redis/docs/current/reference/[Spring Data Redis documentation].
+For more information about `RedisTemplate` and its variations (such as `StringRedisTemplate`) see the https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/[Spring Data Redis documentation].
 
 The following example shows how to create an instance of `RedisTemplate` in Java:
 
@@ -79,7 +78,8 @@ The following example shows how to create an instance of `RedisTemplate` in Spri
 ====
 [source,xml]
 ----
-<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+<bean id="redisTemplate"
+         class="org.springframework.data.redis.core.RedisTemplate">
     <property name="connectionFactory" ref="redisConnectionFactory"/>
 </bean>
 ----
@@ -112,7 +112,7 @@ The difference is that this channel is backed by a Redis topic name: a `String` 
 However, unlike JMS, this topic does not have to be created in advance or even auto-created by Redis.
 In Redis, topics are simple `String` values that play the role of an address.
 The producer and consumer can communicate by using the same `String` value as their topic name.
-A simple subscription to this channel means that asynchronous publish-subcribe messaging is possible between the producing and consuming endpoints.
+A simple subscription to this channel means that asynchronous publish-subscribe messaging is possible between the producing and consuming endpoints.
 However, unlike the asynchronous message channels created by adding a `<queue/>` element within a simple Spring Integration `<channel/>` element, the messages are not stored in an in-memory queue.
 Instead, those messages are passed through Redis, which lets you rely on its support for persistence and clustering as well as its interoperability with other non-Java platforms.
 
@@ -133,7 +133,7 @@ The following example shows how to configure a Redis inbound channel adapter:
        message-converter="testConverter" />
 
 <bean id="redisConnectionFactory"
-    class="o.s.data.redis.connection.jedis.JedisConnectionFactory">
+    class="o.s.data.redis.connection.lettuce.LettuceConnectionFactory">
     <property name="port" value="7379" />
 </bean>
 
@@ -141,7 +141,7 @@ The following example shows how to configure a Redis inbound channel adapter:
 ----
 ====
 
-The preceding examle shows a simple but complete configuration of a Redis inbound channel adapter.
+The preceding example shows a simple but complete configuration of a Redis inbound channel adapter.
 Note that the preceding configuration relies on the familiar Spring paradigm of auto-discovering certain beans.
 In this case, the `redisConnectionFactory` is implicitly injected into the adapter.
 You can specify it explicitly by using the `connection-factory` attribute instead.
@@ -180,7 +180,7 @@ The following example shows how to configure a Redis outbound channel adapter:
     message-converter="testConverter"/>
 
 <bean id="redisConnectionFactory"
-    class="o.s.data.redis.connection.jedis.JedisConnectionFactory">
+    class="o.s.data.redis.connection.lettuce.LettuceConnectionFactory">
     <property name="port" value="7379"/>
 </bean>
 
@@ -256,11 +256,15 @@ Its default is `true`.
 Since version 4.3.
 ====
 
+IMPORTANT: The `task-executor` has to be configured with more than one thread for processing; otherwise there is a possible deadlock when the `RedisQueueMessageDrivenEndpoint` tries to restart the listener task after an error.
+The `errorChannel` can be used to process those errors, to avoid restarts, but it preferable to not expose your application to the possible deadlock situation.
+See Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling-task-executor-types[Reference Manual] for possible `TaskExecutor` implementations.
+
 [[redis-queue-outbound-channel-adapter]]
 ==== Redis Queue Outbound Channel Adapter
 
-Spring Integration 3.0 introduced a queue outbound channel adapter to "`push`" to a Redis list from Spring Integration messages. By default,
-it uses "`left push`", but you can configure it to use "`right push`" instead.
+Spring Integration 3.0 introduced a queue outbound channel adapter to "`push`" to a Redis list from Spring Integration messages.
+By default, it uses "`left push`", but you can configure it to use "`right push`" instead.
 The following listing shows all the available attributes for a Redis `queue-outbound-channel-adapter`:
 
 ====
@@ -315,7 +319,7 @@ Handling these events with an `<int-event:inbound-channel-adapter/>` can be usef
 
 As described in the _Enterprise Integration Patterns_ (EIP) book, a http://www.eaipatterns.com/MessageStore.html[message store] lets you persist messages.
 This can be useful when dealing with components that have a capability to buffer messages (aggregator, resequencer, and others) when reliability is a concern.
-In Spring Integration, the `MessageStore` strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[ claim check] pattern, which is described in EIP as well.
+In Spring Integration, the `MessageStore` strategy also provides the foundation for the http://www.eaipatterns.com/StoreInLibrary.html[claim check] pattern, which is described in EIP as well.
 
 Spring Integration's Redis module provides the `RedisMessageStore`.
 The following example shows how to use it with a aggregator:
@@ -347,7 +351,7 @@ To manage JSON serialization in the `RedisMessageStore`, you must configure it i
 ====
 [source,java]
 ----
-RedisMessageStore store = new RedisMessageStore(jedisConnectionFactory);
+RedisMessageStore store = new RedisMessageStore(redisConnectionFactory);
 ObjectMapper mapper = JacksonJsonUtils.messagingAwareMapper();
 RedisSerializer<Object> serializer = new GenericJackson2JsonRedisSerializer(mapper);
 store.setValueSerializer(serializer);
@@ -423,7 +427,7 @@ By default, this `key` has a value of `MetaData`.
 
 Starting with version 4.0, this store implements `ConcurrentMetadataStore`, letting it be reliably shared across multiple application instances where only one instance is allowed to store or modify a key's value.
 
-IMPORTANT: You canot use the `RedisMetadataStore.replace()` (for example, in the `AbstractPersistentAcceptOnceFileListFilter`) with a Redis cluster, since the `WATCH` command for atomicity is not currently supported.
+IMPORTANT: You cannot use the `RedisMetadataStore.replace()` (for example, in the `AbstractPersistentAcceptOnceFileListFilter`) with a Redis cluster, since the `WATCH` command for atomicity is not currently supported.
 
 [[redis-store-inbound-channel-adapter]]
 === Redis Store Inbound Channel Adapter
@@ -732,6 +736,10 @@ It is typically applied for queue-based limited request-channels.
 If this attribute is set to `true`, the `serializer` cannot be an empty string, because messages require some form of deserialization (JDK serialization by default).
 <11> The time (in milliseconds) the listener task should sleep after exceptions on the "`right pop`" operation before restarting the listener task.
 ====
+
+IMPORTANT: The `task-executor` has to be configured with more than one thread for processing; otherwise there is a possible deadlock when the `RedisQueueMessageDrivenEndpoint` tries to restart the listener task after an error.
+The `errorChannel` can be used to process those errors, to avoid restarts, but it preferable to not expose your application to the possible deadlock situation.
+See Spring Framework https://docs.spring.io/spring/docs/current/spring-framework-reference/integration.html#scheduling-task-executor-types[Reference Manual] for possible `TaskExecutor` implementations.
 
 [[redis-lock-registry]]
 === Redis Lock Registry
