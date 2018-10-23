@@ -1413,7 +1413,7 @@ Starting with Spring Integration 3.0, the `CachingConnectionFactory` provides a 
 When invoked, all idle sessions are immediately closed and in-use sessions are closed when they are returned to the cache.
 New requests for sessions establish new sessions as necessary.
 
-Starting with version 5.1, the `CachingSessionFactory` has a new poperty `testSession`.
+Starting with version 5.1, the `CachingSessionFactory` has a new property `testSession`.
 When true, the session will be tested by sending a NOOP command to ensure it is still active; if not, it will be removed from the cache; a new session is created if no active sessions are in the cache.
 
 [[ftp-rft]]
