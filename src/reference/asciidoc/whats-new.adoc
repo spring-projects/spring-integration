@@ -162,6 +162,10 @@ See <<ftp-streaming>> and <<sftp-streaming>> for more information.
 In addition, the synchronizers for inbound channel adapters can now be provided with a `Comparator`.
 This is useful when using `maxFetchSize` to limit the files retrieved.
 
+The `CachingSessionFactory` has a new property `testSession` which, when true, causes the factory to perform a `test()` operation on the `Session` when checking out an existing session from the cache.
+
+See <<sftp-session-caching>> and <<ftp-session-caching>> for more information.
+
 [[x51.-tcp]]
 === TCP Support
 

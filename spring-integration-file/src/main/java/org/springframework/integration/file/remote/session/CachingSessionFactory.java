@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 	private final boolean isSharedSessionCapable;
 
+	private boolean testSession;
+
 	private volatile long sharedSessionEpoch;
 
 	/**
@@ -83,7 +85,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 			@Override
 			public boolean isStale(Session<F> session) {
-				return !session.isOpen();
+				return CachingSessionFactory.this.testSession ? !session.test() : !session.isOpen();
 			}
 
 			@Override
@@ -113,6 +115,15 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 */
 	public void setPoolSize(int poolSize) {
 		this.pool.setPoolSize(poolSize);
+	}
+
+	/**
+	 * Set to true to test the session when checking one out from the cache.
+	 * @param testSession true to test.
+	 * @since 5.1
+	 */
+	public void setTestSession(boolean testSession) {
+		this.testSession = testSession;
 	}
 
 	/**
