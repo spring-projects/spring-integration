@@ -210,3 +210,9 @@ e.g. `org.springframework.integration:type=MessageChannel,` `name="input#foo.myG
 
 It is now simpler to customize the standard Micrometer meters created by the framework.
 See <<micrometer-integration>> for more information.
+
+[[x51.-integration-graph]]
+=== Integration Graph Customization
+
+It is now possible to add additional properties to the `IntegrationNode` s via `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` on the `IntegrationGraphServer`.
+See <<<<integration-graph>>>> for more information.
