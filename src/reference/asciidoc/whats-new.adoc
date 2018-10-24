@@ -212,7 +212,7 @@ It is now simpler to customize the standard Micrometer meters created by the fra
 See <<micrometer-integration>> for more information.
 
 [[x51.-integration-graph]]
-=== The Integration Graph Customization
+=== Integration Graph Customization
 
 It is now possible to add additional properties to the `IntegrationNode` s via `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` on the `IntegrationGraphServer`.
 See <<<<integration-graph>>>> for more information.

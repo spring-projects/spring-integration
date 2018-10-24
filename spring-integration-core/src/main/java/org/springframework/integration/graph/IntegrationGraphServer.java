@@ -138,9 +138,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 	}
 
 	/**
-	 * Get beans for provided type from the application context.
+	 * Get beans for the provided type from the application context.
 	 * This method can be extended for some custom logic, e.g. get beans
-	 * form the parent application context as well.
+	 * from the parent application context as well.
 	 * @param type the type for beans to obtain
 	 * @param <T> the type for beans to obtain
 	 * @return a {@link Map} of bean for the provided type

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.graph;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Base class for all nodes.
@@ -44,6 +46,8 @@ public abstract class IntegrationNode {
 	private final String componentType;
 
 	private final Map<String, Object> properties = new HashMap<>();
+
+	private final Map<String, Object> unmodifiableProperties = Collections.unmodifiableMap(this.properties);
 
 	protected IntegrationNode(int nodeId, String name, Object nodeObject, Stats stats) {
 		this.nodeId = nodeId;
@@ -78,7 +82,7 @@ public abstract class IntegrationNode {
 	}
 
 	public Map<String, Object> getProperties() {
-		return this.properties.size() == 0 ? null : this.properties;
+		return this.unmodifiableProperties;
 	}
 
 	/**
@@ -88,6 +92,7 @@ public abstract class IntegrationNode {
 	 * @since 5.1
 	 */
 	public void addProperty(String name, Object value) {
+		Assert.hasText(name, "'name' must not be null");
 		this.properties.put(name, value);
 	}
 
