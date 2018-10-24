@@ -82,7 +82,7 @@ or from an `AbstractReplyProducingMessageHandler` to a `MessageChannel`.
 For convenience and to let you determine a link's purpose, the model includes the `type` attribute.
 The possible types are:
 
-* `input`: Identifes the direction from `MessageChannel` to the endpoint, `inputChannel`, or `requestChannel` property
+* `input`: Identifies the direction from `MessageChannel` to the endpoint, `inputChannel`, or `requestChannel` property
 * `output`: The direction from the `MessageHandler`, `MessageProducer`, or `SourcePollingChannelAdapter` to the `MessageChannel` through an `outputChannel` or `replyChannel` property
 * `error`: From `MessageHandler` on `PollingConsumer` or `MessageProducer` or `SourcePollingChannelAdapter` to the `MessageChannel` through an `errorChannel` property;
 * `discard`: From `DiscardingMessageHandler` (such as `MessageFilter`) to the `MessageChannel` through an `errorChannel` property.
@@ -146,6 +146,25 @@ The `nodeId` represents a unique incremental identifier to let you distinguish o
 It is also used in the `links` element to represent a relationship (connection) of this component to others, if any.
 The `input` and `output` attributes are for the `inputChannel` and `outputChannel` properties of the `AbstractEndpoint`, `MessageHandler`, `SourcePollingChannelAdapter`, or `MessageProducerSupport`.
 See the next section for more information.
+
+Starting with version 5.1, the `IntegrationGraphServer` accepts a `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` for population additional properties on the `IntegrationNode` for particular `NamedComponent`.
+For example you can expose a `SmartLifecycle` `autoStartup` and `running` properties into the target graph:
+
+====
+[source,java]
+----
+server.setAdditionalPropertiesCallback(namedComponent -> {
+            Map<String, Object> properties = null;
+            if (namedComponent instanceof SmartLifecycle) {
+                SmartLifecycle smartLifecycle = (SmartLifecycle) namedComponent;
+                properties = new HashMap<>();
+                properties.put("auto-startup", smartLifecycle.isAutoStartup());
+                properties.put("running", smartLifecycle.isRunning());
+            }
+            return properties;
+        });
+----
+====
 
 ==== Graph Runtime Model
 

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
@@ -50,6 +52,7 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.graph.Graph;
 import org.springframework.integration.graph.IntegrationGraphServer;
+import org.springframework.integration.json.JsonPathUtils;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.HeaderValueRouter;
 import org.springframework.integration.router.RecipientListRouter;
@@ -67,6 +70,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import net.minidev.json.JSONArray;
 
 /**
  * @author Gary Russell
@@ -97,13 +101,28 @@ public class IntegrationGraphServerTests {
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		objectMapper.writeValue(baos, graph);
 
-//		System . out . println(new String(baos.toByteArray()));
+		//		System . out . println(new String(baos.toByteArray()));
 
 		Map<?, ?> map = objectMapper.readValue(baos.toByteArray(), Map.class);
 		assertThat(map.size()).isEqualTo(3);
 		List<Map<?, ?>> nodes = (List<Map<?, ?>>) map.get("nodes");
 		assertThat(nodes).isNotNull();
 		assertThat(nodes.size()).isEqualTo(32);
+
+		JSONArray jsonArray =
+				JsonPathUtils.evaluate(baos.toByteArray(), "$..nodes[?(@.componentType == 'gateway')]");
+
+		assertThat(jsonArray.size()).isEqualTo(3);
+
+		Map<String, Object> gateway1 = (Map) jsonArray.get(0);
+
+		Map<String, Object> properties = (Map<String, Object>) gateway1.get("properties");
+
+		assertThat(properties).isNotNull();
+
+		assertThat(properties.get("auto-startup")).isEqualTo(Boolean.TRUE);
+		assertThat(properties.get("running")).isEqualTo(Boolean.TRUE);
+
 		List<Map<?, ?>> links = (List<Map<?, ?>>) map.get("links");
 		assertThat(links).isNotNull();
 		assertThat(links.size()).isEqualTo(33);
@@ -119,7 +138,7 @@ public class IntegrationGraphServerTests {
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 		objectMapper.writeValue(baos, graph);
 
-//		System . out . println(new String(baos.toByteArray()));
+		//		System . out . println(new String(baos.toByteArray()));
 
 		map = objectMapper.readValue(baos.toByteArray(), Map.class);
 		assertThat(map.size()).isEqualTo(3);
@@ -135,7 +154,8 @@ public class IntegrationGraphServerTests {
 	public void testIncludesDynamic() {
 		Graph graph = this.server.getGraph();
 		assertThat(graph.getNodes().size()).isEqualTo(32);
-		IntegrationFlow flow = f -> f.handle(m -> { });
+		IntegrationFlow flow = f -> f.handle(m -> {
+		});
 		IntegrationFlowRegistration reg = this.flowContext.registration(flow).register();
 		graph = this.server.rebuild();
 		assertThat(graph.getNodes().size()).isEqualTo(34);
@@ -155,6 +175,16 @@ public class IntegrationGraphServerTests {
 		public IntegrationGraphServer server() {
 			IntegrationGraphServer server = new IntegrationGraphServer();
 			server.setApplicationName("myAppName:1.0");
+			server.setAdditionalPropertiesCallback(namedComponent -> {
+				Map<String, Object> properties = null;
+				if (namedComponent instanceof SmartLifecycle) {
+					SmartLifecycle smartLifecycle = (SmartLifecycle) namedComponent;
+					properties = new HashMap<>();
+					properties.put("auto-startup", smartLifecycle.isAutoStartup());
+					properties.put("running", smartLifecycle.isRunning());
+				}
+				return properties;
+			});
 			return server;
 		}
 

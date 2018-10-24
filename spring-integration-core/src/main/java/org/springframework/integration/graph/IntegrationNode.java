@@ -22,11 +22,14 @@ import java.util.Map;
 import org.springframework.expression.Expression;
 import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.lang.Nullable;
 
 /**
  * Base class for all nodes.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  *
  */
@@ -40,13 +43,15 @@ public abstract class IntegrationNode {
 
 	private final String componentType;
 
-	private final Map<String, Object> properties = new HashMap<String, Object>();
+	private final Map<String, Object> properties = new HashMap<>();
 
 	protected IntegrationNode(int nodeId, String name, Object nodeObject, Stats stats) {
 		this.nodeId = nodeId;
 		this.name = name;
-		this.componentType = nodeObject instanceof NamedComponent ? ((NamedComponent) nodeObject).getComponentType()
-				: nodeObject.getClass().getSimpleName();
+		this.componentType =
+				nodeObject instanceof NamedComponent
+						? ((NamedComponent) nodeObject).getComponentType()
+						: nodeObject.getClass().getSimpleName();
 		this.stats = stats;
 		if (nodeObject instanceof ExpressionCapable) {
 			Expression expression = ((ExpressionCapable) nodeObject).getExpression();
@@ -74,6 +79,27 @@ public abstract class IntegrationNode {
 
 	public Map<String, Object> getProperties() {
 		return this.properties.size() == 0 ? null : this.properties;
+	}
+
+	/**
+	 * Add extra property to the node.
+	 * @param name the name for property
+	 * @param value the value of the property
+	 * @since 5.1
+	 */
+	public void addProperty(String name, Object value) {
+		this.properties.put(name, value);
+	}
+
+	/**
+	 * Add extra property to the node.
+	 * @param properties additional properties to add
+	 * @since 5.1
+	 */
+	public void addProperties(@Nullable Map<String, Object> properties) {
+		if (properties != null) {
+			this.properties.putAll(properties);
+		}
 	}
 
 	public static class Stats {
