@@ -967,6 +967,40 @@ public class RemoteFileOutboundGatewayTests {
 				equalTo("foo/baz.txt"), equalTo("foo/qux.txt"), equalTo("foo/" + dir1.getName() + "/" + file3.getName())));
 	}
 
+	@Test
+	public void testMputCollection() throws Exception {
+		@SuppressWarnings("unchecked")
+		SessionFactory<TestLsEntry> sessionFactory = mock(SessionFactory.class);
+		@SuppressWarnings("unchecked")
+		Session<TestLsEntry> session = mock(Session.class);
+		RemoteFileTemplate<TestLsEntry> template = new RemoteFileTemplate<TestLsEntry>(sessionFactory);
+		template.setRemoteDirectoryExpression(new LiteralExpression("foo/"));
+		template.setBeanFactory(mock(BeanFactory.class));
+		template.afterPropertiesSet();
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway(template, "mput", "payload");
+		gw.afterPropertiesSet();
+		when(sessionFactory.getSession()).thenReturn(session);
+		final AtomicReference<String> written = new AtomicReference<String>();
+		doAnswer(invocation -> {
+			written.set(invocation.getArgument(1));
+			return null;
+		}).when(session).write(any(InputStream.class), anyString());
+		List<File> files = new ArrayList<>();
+		files.add(tempFolder.newFile("fiz.txt"));
+		files.add(tempFolder.newFile("buz.txt"));
+		Message<List<File>> requestMessage = MessageBuilder.withPayload(files)
+				.build();
+		@SuppressWarnings("unchecked")
+		List<String> out = (List<String>) gw.handleRequestMessage(requestMessage);
+		assertEquals(2, out.size());
+		assertThat(out.get(0),
+				not(equalTo(out.get(1))));
+		assertThat(out.get(0), equalTo("foo/fiz.txt"));
+		assertThat(out.get(1), equalTo("foo/buz.txt"));
+		assertThat(written.get(), equalTo("foo/buz.txt.writing"));
+		verify(session).rename("foo/buz.txt.writing", "foo/buz.txt");
+	}
+
 	abstract static class TestSession implements Session<TestLsEntry> {
 
 		private boolean open;

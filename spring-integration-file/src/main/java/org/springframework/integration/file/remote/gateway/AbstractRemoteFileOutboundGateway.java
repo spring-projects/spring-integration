@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -806,16 +807,24 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private Object doMput(Message<?> requestMessage) {
 		File file = null;
-		if (requestMessage.getPayload() instanceof File) {
-			file = (File) requestMessage.getPayload();
+		Object payload = requestMessage.getPayload();
+		if (payload instanceof File) {
+			file = (File) payload;
 		}
-		else if (requestMessage.getPayload() instanceof String) {
-			file = new File((String) requestMessage.getPayload());
+		else if (payload instanceof String) {
+			file = new File((String) payload);
 		}
-		else {
-			throw new IllegalArgumentException("Only File or String payloads allowed for 'mput'");
+		else if (!(payload instanceof Collection)) {
+			throw new IllegalArgumentException(
+					"Only File or String payloads (or Collection of File/String) allowed for 'mput', received: "
+							+ payload.getClass());
 		}
-		if (!file.isDirectory()) {
+		if ((payload instanceof Collection)) {
+			return ((Collection<?>) payload).stream()
+					.map(p -> doMput(new MutableMessage<>(p, requestMessage.getHeaders())))
+					.collect(Collectors.toList());
+		}
+		else if (!file.isDirectory()) {
 			return doPut(requestMessage);
 		}
 		else {

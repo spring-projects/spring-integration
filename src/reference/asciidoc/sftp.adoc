@@ -1136,7 +1136,8 @@ When configuring the adapter using java, you can use `setChmod(0600)`.
 
 * `-R`: Recursive -- send all files (possibly filtered) in the directory and subdirectories
 
-The message payload must be a `java.io.File` that represents a local directory.
+The message payload must be a `java.io.File` (or `String`) that represents a local directory.
+Since version 5.1, a collection of `File` or `String` is also supported.
 
 The same attributes as the <<sftp-put-command,`put` command>> are supported.
 In addition, you can filter files in the local directory with one of `mput-pattern`, `mput-regex`, `mput-filter`, or `mput-filter-expression`.

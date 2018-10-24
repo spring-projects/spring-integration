@@ -293,7 +293,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 				"Cannot append when using a temporary file name");
 		Assert.isTrue(!FileExistsMode.REPLACE_IF_MODIFIED.equals(mode),
 				"FilExistsMode.REPLACE_IF_MODIFIED can only be used for local files");
-		final StreamHolder inputStreamHolder = this.payloadToInputStream(message);
+		final StreamHolder inputStreamHolder = payloadToInputStream(message);
 		if (inputStreamHolder != null) {
 			try {
 				return this.execute(session -> {
