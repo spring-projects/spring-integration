@@ -1172,7 +1172,8 @@ The `mput` sends multiple files to the server and supports only one option:
 * `-R`: Recursive.
 Send all files (possibly filtered) in the directory and its subdirectories.
 
-The message payload must be a `java.io.File` that represents a local directory.
+The message payload must be a `java.io.File` (or `String`) that represents a local directory.
+Since version 5.1, a collection of `File` or `String` is also supported.
 
 This command supports the same attributes as the <<ftp-put-command,`put` command>>.
 In addition, files in the local directory can be filtered with one of `mput-pattern`, `mput-regex`, `mput-filter`, or `mput-filter-expression`.

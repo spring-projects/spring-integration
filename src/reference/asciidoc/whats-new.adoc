@@ -166,6 +166,9 @@ The `CachingSessionFactory` has a new property `testSession` which, when true, c
 
 See <<sftp-session-caching>> and <<ftp-session-caching>> for more information.
 
+The outbound gateway MPUT command now supports a message payload with a collection of files or strings.
+See <<sftp-outbound-gateway>> and <<ftp-outbound-gateway>> for more information.
+
 [[x51.-tcp]]
 === TCP Support
 
