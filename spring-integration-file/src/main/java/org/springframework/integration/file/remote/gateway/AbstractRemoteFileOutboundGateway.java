@@ -821,9 +821,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		if ((payload instanceof Collection)) {
 			return ((Collection<?>) payload).stream()
-					.map(p -> doMput(getMessageBuilderFactory().withPayload(p)
-							.copyHeaders(requestMessage.getHeaders())
-							.build()))
+					.map(p -> doMput(new MutableMessage<>(p, requestMessage.getHeaders())))
 					.collect(Collectors.toList());
 		}
 		else if (!file.isDirectory()) {
