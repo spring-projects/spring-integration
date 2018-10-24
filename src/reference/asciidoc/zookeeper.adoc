@@ -7,6 +7,26 @@ Version 4.2 added https://zookeeper.apache.org/[Zookeeper] support to the framew
 * <<zk-lock-registry,A lock registry>>
 * <<zk-leadership,Leadership event handling>>
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-zookeeper</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-zookeeper:{project-version}"
+----
+====
+
 [[zk-metadata-store]]
 === Zookeeper Metadata Store
 

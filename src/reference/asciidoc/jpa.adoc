@@ -2,6 +2,29 @@
 == JPA Support
 
 Spring Integration's JPA (Java Persistence API) module provides components for performing various database operations using JPA.
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-jpa</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-jpa:{project-version}"
+----
+====
+
+The JPA API must be included via some vendor-specific implementation, e.g. Hibernate ORM Framework.
+
 The following components are provided:
 
 * <<jpa-inbound-channel-adapter,Inbound channel adapter>>

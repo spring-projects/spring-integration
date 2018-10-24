@@ -6,6 +6,28 @@ It is based on the architecture, infrastructure, and API from the Spring Framewo
 Therefore, many of Spring WebSocket's components (such as `SubProtocolHandler` or `WebSocketClient`) and configuration options (such as  `@EnableWebSocketMessageBroker`) can be reused within Spring Integration.
 For more information, see the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/#websocket[Spring Framework WebSocket Support] chapter in the Spring Framework reference manual.
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-websocket</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-websocket:{project-version}"
+----
+====
+
+For server side, the `org.springframework:spring-webmvc` dependency must be included explicitly.
+
 The Spring Framework WebSocket infrastructure is based on the Spring messaging foundation and provides a basic messaging framework based on the same `MessageChannel` implementations and `MessageHandler` implementations that Spring Integration uses (and some POJO-method annotation mappings).
 Consequently, Spring Integration can be directly involved in a WebSocket flow, even without WebSocket adapters.
 For this purpose, you can configure a Spring Integration `@MessagingGateway` with appropriate annotations, as the following example shows:

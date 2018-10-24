@@ -2,6 +2,27 @@
 === JMX Support
 
 Spring Integration provides channel Adapters for receiving and publishing JMX Notifications.
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-jmx</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-jmx:{project-version}"
+----
+====
+
 An inbound channel adapter allows for polling JMX MBean attribute values, and an outbound channel adapter allows for invoking JMX MBean operations.
 
 [[jmx-notification-listening-channel-adapter]]

@@ -10,6 +10,26 @@ The SFTP protocol requires a secure channel, such as SSH, and visibility to a cl
 Spring Integration supports sending and receiving files over SFTP by providing three client side endpoints: inbound channel adapter, outbound channel adapter, and outbound gateway.
 It also provides convenient namespace configuration to define these client components.
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-sftp</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-sftp:{project-version}"
+----
+====
+
 To include the SFTP namespace in your xml configuration, include the following attributes on the root element:
 
 ====

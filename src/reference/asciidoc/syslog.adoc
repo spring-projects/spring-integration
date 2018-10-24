@@ -2,6 +2,27 @@
 == Syslog Support
 
 Spring Integration 2.2 introduced the syslog transformer: `SyslogToMapTransformer`.
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-syslog</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-syslog:{project-version}"
+----
+====
+
 This transformer, together with a `UDP` or `TCP` inbound adapter, could be used to receive and analyze syslog records from other hosts.
 The transformer creates a message payload that contains a map of the elements from the syslog message.
 

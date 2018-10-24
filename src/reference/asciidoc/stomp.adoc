@@ -6,6 +6,28 @@ It is based on the architecture, infrastructure, and API from the Spring Framewo
 Spring Integration uses many of Spring STOMP components (such as `StompSession` and `StompClientSupport`).
 For more information, see the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html#websocket-stomp-client[Spring Framework STOMP Support] chapter in the Spring Framework reference manual.
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-stomp</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-stomp:{project-version}"
+----
+====
+
+For server side components you need to add a `org.springframework:spring-websocket` and/or `io.projectreactor.netty:reactor-netty` dependencies.
+
 [[stomp-overview]]
 === Overview
 
@@ -19,13 +41,9 @@ The Spring Framework provides the following implementations:
 You can provide any other `StompClientSupport` implementation.
 See the https://docs.spring.io/spring-integration/api/[Javadoc] of those classes.
 
-The `StompClientSupport` class is designed as a _factory_ to produce a `StompSession` for the provided
-`StompSessionHandler` and all the remaining work is done through the _callbacks_ to that `StompSessionHandler`
-and `StompSession` abstraction.
-With the Spring Integration _adapter_ abstraction, we
-need to provide some managed shared object to represent our application as a STOMP client with its unique session.
-For this purpose, Spring Integration provides the `StompSessionManager` abstraction to manage the _single_
-`StompSession` between any provided `StompSessionHandler`.
+The `StompClientSupport` class is designed as a _factory_ to produce a `StompSession` for the provided `StompSessionHandler` and all the remaining work is done through the _callbacks_ to that `StompSessionHandler` and `StompSession` abstraction.
+With the Spring Integration _adapter_ abstraction, we need to provide some managed shared object to represent our application as a STOMP client with its unique session.
+For this purpose, Spring Integration provides the `StompSessionManager` abstraction to manage the _single_ `StompSession` between any provided `StompSessionHandler`.
 This allows the use of _inbound_ or _outbound_ channel adapters (or both) for the particular STOMP Broker.
 See `StompSessionManager` (and its implementations) JavaDocs for more information.
 
@@ -40,8 +58,7 @@ For more configuration options, see <<stomp-namespace>> and the `StompInboundCha
 [[stomp-outbound-adapter]]
 === STOMP Outbound Channel Adapter
 
-The `StompMessageHandler` is the `MessageHandler` for the `<int-stomp:outbound-channel-adapter>` and is used
-to send the outgoing `Message<?>` instances to the STOMP `destination` (pre-configured or determined at runtime with a SpEL expression) through the `StompSession` (which is provided by the shared `StompSessionManager`).
+The `StompMessageHandler` is the `MessageHandler` for the `<int-stomp:outbound-channel-adapter>` and is used to send the outgoing `Message<?>` instances to the STOMP `destination` (pre-configured or determined at runtime with a SpEL expression) through the `StompSession` (which is provided by the shared `StompSessionManager`).
 
 For more configuration options see <<stomp-namespace>> and the `StompMessageHandler` https://docs.spring.io/spring-integration/api/org/springframework/integration/stomp/outbound/StompMessageHandler.html[Javadoc].
 
@@ -73,19 +90,16 @@ It provides `fromHeaders()` and `toHeaders()` operations for the inbound and out
 As with many other Spring Integration modules, the `IntegrationStompHeaders` class has been introduced to map standard STOMP headers to `MessageHeaders`, with `stomp_` as the header name prefix.
 In addition, all `MessageHeaders` instances with that prefix are mapped to the `StompHeaders` when sending to a destination.
 
-For more information, see the https://docs.spring.io/spring-integration/api/[Javadoc] for those classes and the `mapped-headers` attribute description in the
-<<stomp-namespace>>.
+For more information, see the https://docs.spring.io/spring-integration/api/[Javadoc] for those classes and the `mapped-headers` attribute description in the <<stomp-namespace>>.
 
 [[stomp-events]]
 === STOMP Integration Events
 
 Many STOMP operations are asynchronous, including error handling.
-For example, STOMP has a `RECEIPT` server frame that it returns when a client frame has requested one by adding
-the `RECEIPT` header.
+For example, STOMP has a `RECEIPT` server frame that it returns when a client frame has requested one by adding the `RECEIPT` header.
 To provide access to these asynchronous events, Spring Integration emits `StompIntegrationEvent` instances, which you can obtain by implementing an `ApplicationListener` or by using an `<int-event:inbound-channel-adapter>` (see <<appevent-inbound>>).
 
-Specifically, a `StompExceptionEvent` is emitted from the `AbstractStompSessionManager` when a
-`stompSessionListenableFuture` receives `onFailure()` due to failure to connect to STOMP broker.
+Specifically, a `StompExceptionEvent` is emitted from the `AbstractStompSessionManager` when a `stompSessionListenableFuture` receives `onFailure()` due to failure to connect to STOMP broker.
 Another example is the `StompMessageHandler`.
 It processes `ERROR` STOMP frames, which are server responses to improper (unaccepted) messages sent by this `StompMessageHandler`.
 
@@ -191,7 +205,7 @@ To include it in your configuration, provide the following namespace declaration
 ----
 
 [[stomp-outbound-channel-adapter]]
-==== Understanding the <int-stomp:outbound-channel-adapter> Element
+==== Understanding the `<int-stomp:outbound-channel-adapter>` Element
 
 The following listing shows the available attributes for the STOMP outbound channel adapter:
 

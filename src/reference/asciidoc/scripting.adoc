@@ -3,7 +3,29 @@
 
 Spring Integration 2.1 added support for the http://jcp.org/aboutJava/communityprocess/pr/jsr223/[JSR223 Scripting for Java specification], introduced in Java version 6.
 It lets you use scripts written in any supported language (including Ruby, JRuby, Javascript, and Groovy) to provide the logic for various integration components, similar to the way the Spring Expression Language (SpEL) is used in Spring Integration.
-For more information about JSR223, see the https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/prog_guide/api.html[documentation]
+For more information about JSR223, see the https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/prog_guide/api.html[documentation].
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-scripting</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-scripting:{project-version}"
+----
+====
+
+In addition you need to add a script engine implementation, e.g. JRuby, Jython.
 
 IMPORTANT: Note that this feature requires Java 6 or higher.
 

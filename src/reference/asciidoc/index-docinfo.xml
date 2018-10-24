@@ -1,5 +1,5 @@
 <productname>Spring Integration</productname>
-<releaseinfo>{spring-integration-version}</releaseinfo>
+<releaseinfo>{project-version}</releaseinfo>
     <authorgroup>
       <author>
         <firstname>Mark</firstname>

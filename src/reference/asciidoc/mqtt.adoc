@@ -2,6 +2,27 @@
 == MQTT Support
 
 Spring Integration provides inbound and outbound channel adapters to support the Message Queueing Telemetry Transport (MQTT) protocol.
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-mqtt</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-mqtt:{project-version}"
+----
+====
+
 The current implementation uses the http://www.eclipse.org/paho/[Eclipse Paho MQTT Client] library.
 
 Configuration of both adapters is achieved using the `DefaultMqttPahoClientFactory`.

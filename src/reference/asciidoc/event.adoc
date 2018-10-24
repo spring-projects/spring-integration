@@ -4,6 +4,26 @@
 Spring Integration provides support for inbound and outbound `ApplicationEvents`, as defined by the underlying Spring Framework.
 For more information about Spring's support for events and listeners, see the http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#context-functionality-events[Spring Reference Manual].
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-event</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-event:{project-version}"
+----
+====
+
 [[appevent-inbound]]
 === Receiving Spring Application Events
 
@@ -75,5 +95,4 @@ In the preceding example, all messages sent to the 'eventChannel' channel are pu
 If the payload of the message is an `ApplicationEvent`, it is passed as-is.
 Otherwise, the message itself is wrapped in a `MessagingEvent` instance.
 
-Starting with version 4.2, you can configure the `ApplicationEventPublishingMessageHandler` (`<int-event:outbound-channel-adapter>`) with the `publish-payload` boolean attribute to publish to the application context `payload` as is,
-instead of wrapping it to a `MessagingEvent` instance.
+Starting with version 4.2, you can configure the `ApplicationEventPublishingMessageHandler` (`<int-event:outbound-channel-adapter>`) with the `publish-payload` boolean attribute to publish to the application context `payload` as is, instead of wrapping it to a `MessagingEvent` instance.
