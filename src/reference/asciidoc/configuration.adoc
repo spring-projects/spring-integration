@@ -133,9 +133,7 @@ Such endpoints have no poller configuration, since their handlers are invoked di
 
 [IMPORTANT]
 =====
-When running in a JEE container, you may need to use Spring's `TimerManagerTaskScheduler`, as described
-http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-task-scheduler-implementations[here],
-instead of the default `taskScheduler`.
+When running in a JEE container, you may need to use Spring's `TimerManagerTaskScheduler`, as described http://docs.spring.io/spring/docs/current/spring-framework-reference/html/scheduling.html#scheduling-task-scheduler-implementations[here], instead of the default `taskScheduler`.
 To do so, define a bean with the appropriate JNDI name for your environment, as the following example shows:
 
 ====
@@ -154,8 +152,7 @@ The next section describes what happens if exceptions occur within the asynchron
 [[namespace-errorhandler]]
 === Error Handling
 
-As described in the <<overview,overview>> at the very beginning of this manual, one of the main motivations behind a message-oriented
-framework such as Spring Integration is to promote loose coupling between components.
+As described in the <<overview,overview>> at the very beginning of this manual, one of the main motivations behind a message-oriented framework such as Spring Integration is to promote loose coupling between components.
 The message channel plays an important role, in that producers and consumers do not have to know about each other.
 However, the advantages also have some drawbacks.
 Some things become more complicated in a loosely coupled environment, and one example is error handling.
@@ -200,10 +197,8 @@ The following example shows how to define an error channel backed by a queue wit
 
 NOTE: The default error channel is a `PublishSubscribeChannel`.
 
-The most important thing to understand here is that the messaging-based error handling applies only to exceptions
-that are thrown by a Spring Integration task that is executing within a `TaskExecutor`.
-This does not apply to exceptions thrown by a handler that operates within the same thread as the sender (for example,
-through a `DirectChannel` as described earlier in this section).
+The most important thing to understand here is that the messaging-based error handling applies only to exceptions that are thrown by a Spring Integration task that is executing within a `TaskExecutor`.
+This does not apply to exceptions thrown by a handler that operates within the same thread as the sender (for example, through a `DirectChannel` as described earlier in this section).
 
 NOTE: When exceptions occur in a scheduled poller task's execution, those exceptions are wrapped in `ErrorMessage` instances and sent to the 'errorChannel' as well.
 
@@ -227,8 +222,7 @@ The `DefaultErrorMessageStrategy` does exactly that.
 
 Certain global framework properties can be overridden by providing a properties file on the classpath.
 
-The default properties can be found in `/META-INF/spring.integration.default.properties` in the `spring-integration-core`
-jar.
+The default properties can be found in `/META-INF/spring.integration.default.properties` in the `spring-integration-core` jar.
 You can see them on GitHub https://github.com/spring-projects/spring-integration/blob/master/spring-integration-core/src/main/resources/META-INF/spring.integration.default.properties[here].
 The following listing shows the default values:
 
@@ -245,8 +239,7 @@ spring.integration.endpoints.noAutoStartup= <7>
 spring.integration.postProcessDynamicBeans=false <8>
 ----
 
-<1> When true, `input-channel` instances are automatically declared as `DirectChannel` instances when not explicitly found in the
-application context.
+<1> When true, `input-channel` instances are automatically declared as `DirectChannel` instances when not explicitly found in the application context.
 
 <2> Sets the default number of subscribers allowed on, for example, a `DirectChannel`.
 It can be used to avoid inadvertently subscribing multiple endpoints to the same channel.
@@ -259,8 +252,7 @@ You can override it on individual channels by setting the `max-subscribers` attr
 <4> The number of threads available in the default `taskScheduler` bean.
 See <<namespace-taskscheduler>>.
 
-<5> When `true`, messages that arrive at a gateway reply channel throw an exception when the gateway is not
-expecting a reply (because the sending thread has timed out or already received a reply).
+<5> When `true`, messages that arrive at a gateway reply channel throw an exception when the gateway is not expecting a reply (because the sending thread has timed out or already received a reply).
 
 <6> A comma-separated list of message header names that should not be populated into `Message` instances during a header copying operation.
 The list is used by the `DefaultMessageBuilderFactory` bean and propagated to the `IntegrationMessageHeaderAccessor` instances (see <<message-header-accessor>>) used to build messages via `MessageBuilder` (see <<message-builder>>).
@@ -278,6 +270,22 @@ Since version 4.3.15.
 
 These properties can be overridden by adding a `/META-INF/spring.integration.properties` file to the classpath.
 You need not provide all the properties -- only those that you want to override.
+
+Starting with version 5.1, all the merged global properties are printed in the logs after application context startup when a `DEBUG` logic level is turned on for the `org.springframework.integration` category.
+The output looks like this:
+====
+[source]
+----
+Spring Integration global properties:
+
+spring.integration.endpoints.noAutoStartup=fooService*
+spring.integration.taskScheduler.poolSize=20
+spring.integration.channels.maxUnicastSubscribers=0x7fffffff
+spring.integration.channels.autoCreate=true
+spring.integration.channels.maxBroadcastSubscribers=0x7fffffff
+spring.integration.readOnly.headers=
+spring.integration.messagingTemplate.throwExceptionOnLateReply=true
+----
 
 [[annotations]]
 === Annotation Support
