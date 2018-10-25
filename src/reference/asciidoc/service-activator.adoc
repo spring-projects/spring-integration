@@ -166,12 +166,13 @@ An `ErrorMessage` is sent to the `errorChannel` message header, if present. Othe
 [[service-activator-return-type]]
 ==== Service Activator and Method Return Type
 
-The service method can return any type which becomes as a reply message payload.
+The service method can return any type which becomes reply message payload.
 In this case a new `Message<?>` object is created and all the headers from a request message are copied.
-This works the same way for most Spring Integration `MessageHandler` implementation, when interaction is based on the POJO method invocation.
+This works the same way for most Spring Integration `MessageHandler` implementations, when interaction is based on a POJO method invocation.
 
-A full `Message<?>` object can be returned from the method as well.
-However need to keep in mind that, unlike <<transformer>>, in case of Service Activator this message is going to be modified for copying the headers from a request message if they not present in the returned message already.
-So, if you try to perform some existing headers removal in your service method, they are going to appear in the reply message back.
-This, essentially, not a Service Activator responsibility to remove headers for reply message and pursuing the loosely-coupling principle it is a proper way to pair with a `HeaderFilter` in the integration flow.
-The Transformer can be used in a Service Activator role, but returning a full `Message<?>` from method call is already an end-user responsibility and you need to ensure the proper headers population for a reply message, including copying request message headers.
+A complete `Message<?>` object can also be returned from the method.
+However keep in mind that, unlike <<transformer transformers>>, for a Service Activator this message will be modified by copying the headers from the request message if they are not already present in the returned message.
+So, if your method parameter is a `Message<?>` and you copy some, but not all, existing headers in your service method, they will reappear in the reply message.
+It is not a Service Activator responsibility to remove headers from a reply message and, pursuing the loosely-coupled principle, it is better to add a `HeaderFilter` in the integration flow.
+Alternatively, a Transformer can be used instead of a Service Activator but, in that case, when returning a full `Message<?>` the method is completely responsible for the message, including copying request message headers (if needed).
+It is important to ensure that important framework headers (e.g. `replyChannel`, `errorChannel`), if present, must be preserved.
