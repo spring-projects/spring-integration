@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 @Target({})
@@ -91,5 +92,16 @@ public @interface Poller {
 	 * @since 4.3.3
 	 */
 	String errorChannel() default "";
+
+	/**
+	 * Only applies to polling consumers.
+	 * @return the time the poll thread will wait after the trigger for a new message to arrive.
+	 * Defaults to 1000 (1 second).
+	 * For polled inbound channel adapters, whether or not the polling thread blocks
+	 * is dependent on the message source implementation.
+	 * Can be specified as 'property placeholder', e.g. {@code ${my.poller.receiveTimeout}}.
+	 * @since 5.1
+	 */
+	String receiveTimeout() default "";
 
 }
