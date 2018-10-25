@@ -47,6 +47,7 @@ The following changes have been made in version 5.1:
 * <<x5.1-publisher>>
 * <<x51.-integration-graph>>
 * <<x51.-global-properties>>
+* <<x51.-poller-annotation>>
 
 [[x5.1-java-dsl]]
 ==== Java DSL
@@ -222,8 +223,14 @@ See <<micrometer-integration>> for more information.
 It is now possible to add additional properties to the `IntegrationNode` s via `Function<NamedComponent, Map<String, Object>> additionalPropertiesCallback` on the `IntegrationGraphServer`.
 See <<integration-graph>> for more information.
 
-[[x51.-x51.-global-properties]]
+[[x51.-global-properties]]
 === Integration Global Properties
 
 The Integration global properties (including defaults) can now be printed in the logs, when a `DEBUG` logic level is turned on for the `org.springframework.integration` category.
 See <<global-properties>> for more information.
+
+[[x51.-poller-annotation]]
+=== The `receiveTimeout` for `@Poller`
+
+The `@Poller` annotation now provides a `receiveTimeout` option for convenience.
+See <<configuration-using-poller-annotation>> for more information.

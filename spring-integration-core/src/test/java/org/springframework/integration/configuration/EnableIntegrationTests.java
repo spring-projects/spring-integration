@@ -149,6 +149,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 @ContextConfiguration(loader = NoBeansOverrideAnnotationConfigContextLoader.class,
@@ -295,7 +296,6 @@ public class EnableIntegrationTests {
 
 	@Test
 	public void testAnnotatedServiceActivator() throws Exception {
-		this.serviceActivatorEndpoint.setReceiveTimeout(10000);
 		this.serviceActivatorEndpoint.start();
 		assertTrue(this.inputReceiveLatch.await(10, TimeUnit.SECONDS));
 
@@ -1239,7 +1239,9 @@ public class EnableIntegrationTests {
 
 		@Override
 		@ServiceActivator(inputChannel = "input", outputChannel = "output", autoStartup = "false",
-				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedDelay = "${poller.interval}"))
+				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}",
+						fixedDelay = "${poller.interval}",
+						receiveTimeout = "${poller.receiveTimeout}"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
 		@Role("foo")
@@ -1249,7 +1251,8 @@ public class EnableIntegrationTests {
 
 		@Override
 		@ServiceActivator(inputChannel = "input1", outputChannel = "output",
-				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}", fixedRate = "${poller.interval}"))
+				poller = @Poller(maxMessagesPerPoll = "${poller.maxMessagesPerPoll}",
+						fixedRate = "${poller.interval}"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
 		public String handle1(String payload) {
@@ -1285,7 +1288,8 @@ public class EnableIntegrationTests {
 		/*
 		 * This is an error because input5 is not defined and is therefore a DirectChannel.
 		 */
-		/*@ServiceActivator(inputChannel = "input5", outputChannel = "output", poller = @Poller("defaultPollerMetadata"))
+		/*@ServiceActivator(inputChannel = "input5", outputChannel = "output",
+							poller = @Poller("defaultPollerMetadata"))
 		@Publisher
 		@Payload("#args[0].toLowerCase()")
 		public String handle5(String payload) {
@@ -1669,8 +1673,9 @@ public class EnableIntegrationTests {
 	}
 
 	// Error because the annotation is on a class; it must be on an interface
-//	@MessagingGateway(defaultRequestChannel = "gatewayChannel", defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
-//	public static class TestGateway2 { }
+	//	@MessagingGateway(defaultRequestChannel = "gatewayChannel",
+	//        defaultHeaders = @GatewayHeader(name = "foo", value = "FOO"))
+	//	public static class TestGateway2 { }
 
 
 	public static class TestSpelFunction {

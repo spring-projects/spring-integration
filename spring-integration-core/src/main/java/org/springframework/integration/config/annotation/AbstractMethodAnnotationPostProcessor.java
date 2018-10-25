@@ -364,6 +364,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			String maxMessagesPerPollValue = this.beanFactory.resolveEmbeddedValue(poller.maxMessagesPerPoll());
 			String cron = this.beanFactory.resolveEmbeddedValue(poller.cron());
 			String errorChannel = this.beanFactory.resolveEmbeddedValue(poller.errorChannel());
+			String receiveTimeout = this.beanFactory.resolveEmbeddedValue(poller.receiveTimeout());
 
 			if (StringUtils.hasText(ref)) {
 				Assert.state(!StringUtils.hasText(triggerRef) && !StringUtils.hasText(executorRef) &&
@@ -415,6 +416,10 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					errorHandler.setDefaultErrorChannelName(errorChannel);
 					errorHandler.setBeanFactory(this.beanFactory);
 					pollerMetadata.setErrorHandler(errorHandler);
+				}
+
+				if (StringUtils.hasText(receiveTimeout)) {
+					pollerMetadata.setReceiveTimeout(Long.parseLong(receiveTimeout));
 				}
 			}
 		}
@@ -499,8 +504,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			for (Annotation annotation : annotations) {
 				Object value = AnnotationUtils.getValue(annotation, attribute);
 				if (MessagingAnnotationUtils.hasValue(value)) {
-					throw new BeanDefinitionValidationException("The MessageHandler [" + handlerBeanName + "] can not" +
-							" be populated because of ambiguity with annotation attributes " +
+					throw new BeanDefinitionValidationException("The MessageHandler [" + handlerBeanName +
+							"] can not be populated because of ambiguity with annotation attributes " +
 							this.messageHandlerAttributes + " which are not allowed when an integration annotation " +
 							"is used with a @Bean definition for a MessageHandler." +
 							"\nThe attribute causing the ambiguity is: [" + attribute + "]." +
