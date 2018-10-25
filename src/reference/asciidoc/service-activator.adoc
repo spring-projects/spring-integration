@@ -175,4 +175,4 @@ However keep in mind that, unlike <<transformer, transformers>>, for a Service A
 So, if your method parameter is a `Message<?>` and you copy some, but not all, existing headers in your service method, they will reappear in the reply message.
 It is not a Service Activator responsibility to remove headers from a reply message and, pursuing the loosely-coupled principle, it is better to add a `HeaderFilter` in the integration flow.
 Alternatively, a Transformer can be used instead of a Service Activator but, in that case, when returning a full `Message<?>` the method is completely responsible for the message, including copying request message headers (if needed).
-It is important to ensure that important framework headers (e.g. `replyChannel`, `errorChannel`), if present, must be preserved.
+You must ensure that important framework headers (e.g. `replyChannel`, `errorChannel`), if present, have to be preserved.
