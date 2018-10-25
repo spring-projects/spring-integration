@@ -38,7 +38,7 @@ The Aggregation API consists of a number of classes:
 
 ===== `AggregatingMessageHandler`
 
-The `AggregatingMessageHandler` (a subclass of `AbstractCorrelatingMessageHandler`) is a `MessageHandler` implementation, encapsulating the common functionalities of an aggregator (and other correlating use cases), which are as follows:
+The `AggregatingMessageHandler` (a subclass of `AbstractCorrelatingMessageHandler`) is a `MessageHandler` implementation, encapsulating the common functionality of an aggregator (and other correlating use cases), which are as follows:
 
 * Correlating messages into a group to be aggregated
 * Maintaining those messages in a `MessageStore` until the group can be released
@@ -245,7 +245,7 @@ The following example shows how to configure an aggregator with the previous imp
 ----
 ====
 
-===== `CorrelationStrategy`
+===== Correlation Strategy
 
 The `CorrelationStrategy` interface is defined as follows:
 
@@ -271,9 +271,10 @@ This implementation returns the value of one of the message headers (whose name 
 By default, the correlation strategy is a `HeaderAttributeCorrelationStrategy` that returns the value of the `CORRELATION_ID` header attribute.
 If you have a custom header name you would like to use for correlation, you can configure it on an instance of `HeaderAttributeCorrelationStrategy` and provide that as a reference for the aggregator's correlation strategy.
 
-===== `LockRegistry`
+===== Lock Registry
 
 Changes to groups are thread safe.
+So, when you send messages for the same correlation ID concurrently, only one of them will be processed in the aggregator, making it effectively as a *single-threaded per message group*.
 A `LockRegistry` is used to obtain a lock for the resolved correlation ID.
 A `DefaultLockRegistry` is used by default (in-memory).
 For synchronizing updates across servers where a shared `MessageGroupStore` is being used, you must configure a shared lock registry.
