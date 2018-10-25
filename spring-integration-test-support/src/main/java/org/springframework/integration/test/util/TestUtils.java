@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.messaging.Message;
@@ -134,30 +129,14 @@ public abstract class TestUtils {
 		return scheduler;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static void registerBean(String beanName, Object bean, BeanFactory beanFactory) {
 		Assert.notNull(beanName, "bean name must not be null");
-		ConfigurableListableBeanFactory configurableListableBeanFactory = null;
-		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			configurableListableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
-		}
-		else if (beanFactory instanceof GenericApplicationContext) {
-			configurableListableBeanFactory = ((GenericApplicationContext) beanFactory).getBeanFactory();
-		}
-		if (bean instanceof BeanNameAware) {
-			((BeanNameAware) bean).setBeanName(beanName);
-		}
-		if (bean instanceof BeanFactoryAware) {
-			((BeanFactoryAware) bean).setBeanFactory(beanFactory);
-		}
-		if (bean instanceof InitializingBean) {
-			try {
-				((InitializingBean) bean).afterPropertiesSet();
-			}
-			catch (Exception e) {
-				throw new FatalBeanException("failed to register bean with test context", e);
-			}
-		}
-		configurableListableBeanFactory.registerSingleton(beanName, bean); //NOSONAR false positive
+		Assert.isInstanceOf(GenericApplicationContext.class, beanFactory,
+				"beanFactory must be an instance of GenericApplicationContext");
+		GenericApplicationContext applicationContext = (GenericApplicationContext) beanFactory;
+
+		applicationContext.registerBean(beanName, (Class<Object>) bean.getClass(), () -> bean);
 	}
 
 
