@@ -153,14 +153,25 @@ See <<java-dsl-handle>> in the Java DSL chapter for more information about confi
 ==== Asynchronous Service Activator
 
 The service activator is invoked by the calling thread.
-This is an upstream thread if the input channel is a
-`SubscribableChannel` or a poller thread for a `PollableChannel`.
-If the service returns a `ListenableFuture<?>`, the default action is to send that as the payload of the message sent
-to the output (or reply) channel.
-Starting with version 4.3, you can now set the `async` attribute to `true` (by using `setAsync(true)` when using
-Java configuration).
+This is an upstream thread if the input channel is a `SubscribableChannel` or a poller thread for a `PollableChannel`.
+If the service returns a `ListenableFuture<?>`, the default action is to send that as the payload of the message sent to the output (or reply) channel.
+Starting with version 4.3, you can now set the `async` attribute to `true` (by using `setAsync(true)` when using Java configuration).
 If the service returns a `ListenableFuture<?>` when this the `async` attribute is set to `true`, the calling thread is released immediately and the reply message is sent on the thread (from within your service) that completes the future.
-This is particularly advantageous for long-running services that use a `PollableChannel`, because the poller thread is
-released to perform other services within the framework.
+This is particularly advantageous for long-running services that use a `PollableChannel`, because the poller thread is released to perform other services within the framework.
 
-If the service completes the future with an `Exception`, normal error processing occurs. An `ErrorMessage` is sent to the `errorChannel` message header, if present. Otherwise, an `ErrorMessage` is sent to the default `errorChannel` (if available).
+If the service completes the future with an `Exception`, normal error processing occurs.
+An `ErrorMessage` is sent to the `errorChannel` message header, if present. Otherwise, an `ErrorMessage` is sent to the default `errorChannel` (if available).
+
+
+[[service-activator-return-type]]
+==== Service Activator and Method Return Type
+
+The service method can return any type which becomes as a reply message payload.
+In this case a new `Message<?>` object is created and all the headers from a request message are copied.
+This works the same way for most Spring Integration `MessageHandler` implementation, when interaction is based on the POJO method invocation.
+
+A full `Message<?>` object can be returned from the method as well.
+However need to keep in mind that, unlike <<transformer>>, in case of Service Activator this message is going to be modified for copying the headers from a request message if they not present in the returned message already.
+So, if you try to perform some existing headers removal in your service method, they are going to appear in the reply message back.
+This, essentially, not a Service Activator responsibility to remove headers for reply message and pursuing the loosely-coupling principle it is a proper way to pair with a `HeaderFilter` in the integration flow.
+The Transformer can be used in a Service Activator role, but returning a full `Message<?>` from method call is already an end-user responsibility and you need to ensure the proper headers population for a reply message, including copying request message headers.
