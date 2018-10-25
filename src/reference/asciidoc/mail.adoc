@@ -3,6 +3,28 @@
 
 This section describes how to work with mail messages in Spring Integration.
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-mail</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-mail:{project-version}"
+----
+====
+
+The `javax.mail:javax.mail-api` must be included via vendor-specific implementation.
+
 [[mail-outbound]]
 === Mail-sending Channel Adapter
 
@@ -346,11 +368,11 @@ If not specified, the previous behavior is retained (peek is `true`).
 ==== IMAP `idle` and Lost Connections
 
 When using an IMAP `idle` channel adapter, connections to the server may be lost (for example, through network failure) and, since the JavaMail documentation explicitly states that the actual IMAP API is experimental, it is important to understand the differences in the API and how to deal with them when configuring IMAP `idle` adapters.
-Currently, Spring Integration mail adapters were tested with JavaMail 1.4.1 and JavaMail 1.4.3,.
+Currently, Spring Integration mail adapters were tested with JavaMail 1.4.1 and JavaMail 1.4.3.
 Depending on which one is used, you must pay special attention to some of the JavaMail properties that need to be set with regard to auto-reconnect.
 
-NOTE: The following behavior was observed with Gmail but should provide you with some tips on how to solve re-connect
-issue with other providers. However feedback is always welcome.
+NOTE: The following behavior was observed with Gmail but should provide you with some tips on how to solve re-connect issue with other providers.
+However feedback is always welcome.
 Again, the following notes are based on Gmail.
 
 With JavaMail 1.4.1, if you set the `mail.imaps.timeout` property to a relatively short period of time (approximately 5 min in our testing), `IMAPFolder.idle()` throws `FolderClosedException` after this timeout.
@@ -405,8 +427,7 @@ You can obtain the events by using an `<int-event:inbound-channel-adapter>` or a
 
 If `shouldMarkMessagesAsRead` is true, the IMAP adapters set the `\Seen` flag.
 
-In addition, when an email server does not support the `\Recent` flag, the IMAP adapters mark messages with a user
-flag (by default, `spring-integration-mail-adapter`), as long as the server supports user flags.
+In addition, when an email server does not support the `\Recent` flag, the IMAP adapters mark messages with a user flag (by default, `spring-integration-mail-adapter`), as long as the server supports user flags.
 If not, `Flag.FLAGGED` is set to `true`.
 These flags are applied regardless of the `shouldMarkMessagesRead` setting.
 
@@ -428,7 +449,7 @@ This is similar to looking at your email client while scrolling through all the 
 
 Spring Integration 2.0.4 introduced the `mail-filter-expression` attribute on `inbound-channel-adapter` and `imap-idle-channel-adapter`.
 This attribute lets you provide an expression that is a combination of SpEL and a regular expression.
-For example if you would like to read only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).*Spring Integration.*"`
+For example if you would like to read only emails that contain 'Spring Integration' in the subject line, you would configure the `mail-filter-expression` attribute like as follows: `mail-filter-expression="subject matches '(?i).*Spring Integration.*"`.
 
 Since `javax.mail.internet.MimeMessage` is the root context of the SpEL evaluation context, you can filter on any value available through `MimeMessage`, including the actual body of the message.
 This one is particularly important, since reading the body of the message typically results in such messages being marked as `SEEN` by default.

@@ -6,9 +6,27 @@ Moreover, it is critical for distributed systems, such as those built on Enterpr
 Messaging independence and loose coupling let target systems communicate with each other with any type of data in the message's `payload`.
 We can either trust all those messages or secure our service against "`infecting`" messages.
 
-Spring Integration, together with
-http://projects.spring.io/spring-security/[Spring Security], provides a simple and comprehensive way to
-secure message channels, as well as other part of the integration solution.
+Spring Integration, together with http://projects.spring.io/spring-security/[Spring Security], provides a simple and comprehensive way to secure message channels, as well as other part of the integration solution.
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-security</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-security:{project-version}"
+----
+====
 
 [[securing-channels]]
 === Securing channels

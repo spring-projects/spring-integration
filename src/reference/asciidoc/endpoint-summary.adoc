@@ -3,6 +3,25 @@
 
 As discussed in the earlier sections, Spring Integration provides a number of endpoints used to interface with external systems, file systems, and others.
 
+For transparent dependency management Spring Integration provides a bill-of-materials POM to be imported into the Maven configuration:
+
+====
+[source, xml, subs="normal"]
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-bom</artifactId>
+            <version>{project-version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+----
+====
+
 To recap:
 
 * Inbound channel adapters are used for one-way integration to bring data into the messaging application.

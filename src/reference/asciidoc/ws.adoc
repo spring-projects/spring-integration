@@ -10,6 +10,26 @@ This chapter describes Spring Integration's support for web services, including:
 * <<ws-message-headers>>
 * <<mtom-support>>
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-ws</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-ws:{project-version}"
+----
+====
+
 [[webservices-outbound]]
 === Outbound Web Service Gateways
 
@@ -63,20 +83,15 @@ Both gateways implement the Spring Web Services `MessageEndpoint` interface, so 
 For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering http://docs.spring.io/spring-ws/docs/current/reference/html/server.html[creating a web service].
 The chapter covering http://docs.spring.io/spring/docs/current/spring-framework-reference/html/oxm.html[Object/XML mapping] is also applicable again.
 
-To add the `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway` configurations to the Spring WS
-infrastructure, you should add the `EndpointMapping` definition between `MessageDispatcherServlet` and the target
-`MessageEndpoint` implementations, as you would for a normal Spring WS application.
-For this purpose (from the Spring Integration perspective), Spring WS provides the following convenient `EndpointMapping`
-implementations:
+To add the `SimpleWebServiceInboundGateway` and `MarshallingWebServiceInboundGateway` configurations to the Spring WS infrastructure, you should add the `EndpointMapping` definition between `MessageDispatcherServlet` and the target `MessageEndpoint` implementations, as you would for a normal Spring WS application.
+For this purpose (from the Spring Integration perspective), Spring WS provides the following convenient `EndpointMapping` implementations:
 
 * `o.s.ws.server.endpoint.mapping.UriEndpointMapping`
 * `o.s.ws.server.endpoint.mapping.PayloadRootQNameEndpointMapping`
 * `o.s.ws.soap.server.endpoint.mapping.SoapActionEndpointMapping`
 * `o.s.ws.server.endpoint.mapping.XPathPayloadEndpointMapping`
 
-You must specify the beans for these classes in the application context and reference the
-`SimpleWebServiceInboundGateway` and/or `MarshallingWebServiceInboundGateway` bean definitions according to the WS
-mapping algorithm.
+You must specify the beans for these classes in the application context and reference the `SimpleWebServiceInboundGateway` and/or `MarshallingWebServiceInboundGateway` bean definitions according to the WS mapping algorithm.
 
 See the http://docs.spring.io/spring-ws/docs/current/reference/html/server.html#server-endpoint-mapping[endpoint mappings] for more information.
 
@@ -204,15 +219,13 @@ NOTE: If you set `DestinationProvider`, `encode-uri` is ignored.
 === WS Message Headers
 
 The Spring Integration web service gateways automatically map the SOAP action header.
-By default, it is copied to and from Spring Integration `MessageHeaders` by using the
-http://docs.spring.io/spring-integration/api/org/springframework/integration/ws/DefaultSoapHeaderMapper.html[`DefaultSoapHeaderMapper`].
+By default, it is copied to and from Spring Integration `MessageHeaders` by using the http://docs.spring.io/spring-integration/api/org/springframework/integration/ws/DefaultSoapHeaderMapper.html[`DefaultSoapHeaderMapper`].
 
 You can pass in your own implementation of SOAP-specific header mappers, as the gateways have properties to support doing so.
 
 Unless explicitly specified by the `requestHeaderNames` or `replyHeaderNames` properties of the `DefaultSoapHeaderMapper`, any user-defined SOAP headers are not copied to or from a SOAP Message.
 
-When you use the XML namespace for configuration, you can set these properties by using the `mapped-request-headers` and
-`mapped-reply-headers` attributes, you can provide a custom mapper by setting the `header-mapper` attribute.
+When you use the XML namespace for configuration, you can set these properties by using the `mapped-request-headers` and `mapped-reply-headers` attributes, you can provide a custom mapper by setting the `header-mapper` attribute.
 
 TIP: When mapping user-defined headers, the values can also contain simple wildcard patterns (such `myheader*` or `*myheader`).
 For example, if you need to copy all user-defined headers, you can use the wildcard character: `*`.
@@ -223,15 +236,12 @@ NOTE: Rather than using the wildcard (`*`), we recommend using the following com
 Doing so avoids mapping `request` headers to the reply.
 
 Starting with version 4.3, you can negate patterns in the header mappings by preceding the pattern with `!`.
-Negated patterns get priority, so a list such as
-`STANDARD_REQUEST_HEADERS,thing1,thing*,!thing2,!thing3,qux,!thing1` does not map `thing1`, `thing2`, or `thing3`. It does map the standard headers, `thing4`, and `qux`.
+Negated patterns get priority, so a list such as `STANDARD_REQUEST_HEADERS,thing1,thing*,!thing2,!thing3,qux,!thing1` does not map `thing1`, `thing2`, or `thing3`. It does map the standard headers, `thing4`, and `qux`.
 (Note that `thing1` is included in both non-negated and negated forms. Because negated values take precedence, `thing1` is not mapped.)
 
-IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you can escape it with
-`\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`. `!myBangHeader` is then mapped.
+IMPORTANT: If you have a user-defined header that begins with `!` that you do wish to map, you can escape it with `\`, as follows: `STANDARD_REQUEST_HEADERS,\!myBangHeader`. `!myBangHeader` is then mapped.
 
-Inbound SOAP headers (request headers for the inbound gateway and reply headers for the outbound gateway) are mapped as
-`SoapHeaderElement` objects.
+Inbound SOAP headers (request headers for the inbound gateway and reply headers for the outbound gateway) are mapped as `SoapHeaderElement` objects.
 You can explore the contents by accessing the `Source`:
 
 ====

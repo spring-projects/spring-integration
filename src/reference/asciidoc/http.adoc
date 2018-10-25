@@ -5,6 +5,28 @@ Spring Integration's HTTP support allows for the running of HTTP requests and th
 The HTTP support consists of the following gateway implementations: `HttpInboundEndpoint` and `HttpRequestExecutingMessageHandler`.
 See also <<webflux>>.
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-http</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-http:{project-version}"
+----
+====
+
+The `javax.servlet:javax.servlet-api` dependency must be provided on the target Servlet container.
+
 [[http-inbound]]
 === Http Inbound Components
 

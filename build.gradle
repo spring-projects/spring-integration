@@ -783,7 +783,6 @@ asciidoctor {
 		imagesdir: '',
 		stylesdir: "stylesheets/",
 		stylesheet: 'golo.css',
-		'spring-integration-version': "$version",
 		'source-highlighter': 'highlightjs'
 	]
 }

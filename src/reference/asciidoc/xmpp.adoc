@@ -7,14 +7,34 @@ XMPP stands for "`Extensible Messaging and Presence Protocol`".
 XMPP describes a way for multiple agents to communicate with each other in a distributed system.
 The canonical use case is to send and receive chat messages, though XMPP can be (and is) used for other kinds of applications.
 XMPP describes a network of actors.
-Within that network, actors may address each other directly and broadcast status changes (such as
-"`presence`").
+Within that network, actors may address each other directly and broadcast status changes (such as "`presence`").
 
 XMPP provides the messaging fabric that underlies some of the biggest instant messaging networks in the world, including Google Talk (GTalk, which is also available from within GMail) and Facebook Chat.
 Many good open-source XMPP servers are available.
 Two popular implementations are http://www.igniterealtime.org/projects/openfire/[Openfire] and http://www.ejabberd.im[ejabberd].
 
 Spring integration provides support for XMPP by providing XMPP adapters, which support sending and receiving both XMPP chat messages and presence changes from other entries in a client's roster.
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-xmpp</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-xmpp:{project-version}"
+----
+====
+
 As with other adapters, the XMPP adapters come with support for a convenient namespace-based configuration.
 To configure the XMPP namespace, include the following elements in the headers of your XML configuration file:
 
@@ -97,9 +117,7 @@ When started, it registers a `PacketListener` that listens for incoming XMPP cha
 It forwards any received messages to the underlying adapter, which converts them to Spring Integration messages and sends them to the specified `channel`.
 When stopped, it unregisters the `PacketListener`.
 
-Starting with version 4.3, the `ChatMessageListeningEndpoint` (and its `<int-xmpp:inbound-channel-adapter>`)
-supports the injection of a `org.jivesoftware.smack.filter.StanzaFilter` to be registered on the provided `XMPPConnection`,
-together with an internal `StanzaListener` implementation.
+Starting with version 4.3, the `ChatMessageListeningEndpoint` (and its `<int-xmpp:inbound-channel-adapter>`) supports the injection of a `org.jivesoftware.smack.filter.StanzaFilter` to be registered on the provided `XMPPConnection`, together with an internal `StanzaListener` implementation.
 See the https://www.igniterealtime.org/builds/smack/docs/latest/javadoc/org/jivesoftware/smack/XMPPConnection.html#addAsyncStanzaListener%28org.jivesoftware.smack.StanzaListener,%20org.jivesoftware.smack.filter.StanzaFilter%29[Javadoc] for more information.
 
 Version 4.3 introduced the `payload-expression` attribute for the `ChatMessageListeningEndpoint`.
@@ -150,8 +168,7 @@ The `outbound-channel-adapter` element provides configuration support for the XM
 ----
 ====
 
-The adapter expects its input to be (at a minimum) a payload of type `java.lang.String` and a header value for
-`XmppHeaders.CHAT_TO` that specifies to which user the message should be sent.
+The adapter expects its input to be (at a minimum) a payload of type `java.lang.String` and a header value for `XmppHeaders.CHAT_TO` that specifies to which user the message should be sent.
 To create a message, you can use Java code similar to the following:
 
 ====

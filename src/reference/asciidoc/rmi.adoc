@@ -7,6 +7,26 @@ The first section deals with sending messages over RMI.
 The second section shows how to receive messages over RMI.
 The last section shows how to define RMI channel adapters by using the namespace support.
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-rmi</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-rmi:{project-version}"
+----
+====
+
 [[rmi-outbound]]
 === Outbound RMI
 

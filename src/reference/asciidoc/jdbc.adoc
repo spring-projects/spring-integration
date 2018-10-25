@@ -4,6 +4,26 @@
 Spring Integration provides channel adapters for receiving and sending messages by using database queries.
 Through those adapters, Spring Integration supports not only plain JDBC SQL queries but also stored procedure and stored function calls.
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-jdbc</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-jdbc:{project-version}"
+----
+====
+
 By default, the following JDBC components are available:
 
 * <<jdbc-inbound-channel-adapter,Inbound Channel Adapter>>

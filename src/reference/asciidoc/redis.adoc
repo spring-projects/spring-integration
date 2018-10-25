@@ -4,6 +4,28 @@
 Spring Integration 2.1 introduced support for http://redis.io/[Redis]: "`an open source advanced key-value store`".
 This support comes in the form of a Redis-based `MessageStore` as well as publish-subscribe messaging adapters that are supported by Redis through its http://redis.io/topics/pubsub[`PUBLISH`, `SUBSCRIBE`, and `UNSUBSCRIBE`] commands.
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-redis</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-redis:{project-version}"
+----
+====
+
+You also need to include Redis client dependency, e.g. Lettuce.
+
 To download, install, and run Redis, see the http://redis.io/download[Redis documentation].
 
 [[redis-connection]]

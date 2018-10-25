@@ -2,6 +2,27 @@
 == AMQP Support
 
 Spring Integration provides channel adapters for receiving and sending messages by using the Advanced Message Queuing Protocol (AMQP).
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-amqp</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-amqp:{project-version}"
+----
+====
+
 The following adapters are available:
 
 * <<amqp-inbound-channel-adapter,Inbound Channel Adapter>>
@@ -18,8 +39,7 @@ Spring AMQP provides similar semantics to (http://docs.spring.io/spring/docs/cur
 Whereas the provided AMQP Channel Adapters are intended for unidirectional messaging (send or receive) only, Spring Integration also provides inbound and outbound AMQP gateways for request-reply operations.
 
 TIP:
-You should familiarize yourself with the
-http://docs.spring.io/spring-amqp/reference/html/[reference documentation of the Spring AMQP project].
+You should familiarize yourself with the http://docs.spring.io/spring-amqp/reference/html/[reference documentation of the Spring AMQP project].
 It provides much more in-depth information about Spring's integration with AMQP in general and RabbitMQ in particular.
 
 [[amqp-inbound-channel-adapter]]

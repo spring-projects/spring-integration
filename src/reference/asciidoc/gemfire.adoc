@@ -1,7 +1,27 @@
 [[gemfire]]
 == Pivotal GemFire and Apache Geode Support
 
-Spring Integration provides support for Pivotal GemFire and Apache Geode
+Spring Integration provides support for Pivotal GemFire and Apache Geode.
+
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-gemfire</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-gemfire:{project-version}"
+----
+====
 
 GemFire is a distributed data management platform that provides a key-value data grid along with advanced distributed system features, such as event processing, continuous querying, and remote function execution.
 This guide assumes some familiarity with the commercial https://pivotal.io/pivotal-gemfire[Pivotal GemFire] or Open Source http://geode.apache.org[Apache Geode].

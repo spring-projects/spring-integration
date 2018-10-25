@@ -14,6 +14,26 @@ Spring Integration's XML support extends the core of Spring Integration with the
 * <<xpath-spel-function,#xpath SpEL Function>>
 * <<xml-validating-filter,Validating Filter>>
 
+You need to include this dependency into your project:
+
+====
+.Maven
+[source, xml, subs="normal"]
+----
+<dependency>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-xml</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+[source, groovy, subs="normal"]
+----
+compile "org.springframework.integration:spring-integration-xml:{project-version}"
+----
+====
+
 These components make working with XML messages in Spring Integration simpler.
 The messaging components work with XML that is represented in a range of formats, including instances of `java.lang.String`, `org.w3c.dom.Document`, and `javax.xml.transform.Source`.
 However, where a DOM representation is required (for example, in order to evaluate an XPath expression), the `String` payload is converted into the required type and then converted back to `String`.
@@ -56,7 +76,7 @@ When XPath expressions are created, the best XPath implementation that is availa
 
 NOTE: Internally, Spring Integration uses the XPath functionality provided by the Spring Web Services project (http://www.spring.io/spring-ws).
 Specifically, we use the Spring Web Services XML module (spring-xml-x.x.x.jar).
-For a deeper understanding, see the respective documentation at http://docs.spring.io/spring-ws/docs/current/reference/html/common.html#xpath
+For a deeper understanding, see the respective documentation at http://docs.spring.io/spring-ws/docs/current/reference/html/common.html#xpath.
 
 Here is an overview of all available configuration parameters of the `xpath-expression` element:
 The following listing shows the available attributes for the `xpath-expression` element:
@@ -322,7 +342,7 @@ That may be useful for certain custom implementations of the `Marshaller` interf
 [[xml-xslt-payload-transformers]]
 ===== XsltPayloadTransformer
 
-http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[`XsltPayloadTransformer`] transforms XML payloads by using http://en.wikipedia.org/wiki/XSL_Transformations[Extensible Stylesheet Language Transformations] (XSLT).
+The http://docs.spring.io/spring-integration/api/org/springframework/integration/xml/transformer/XsltPayloadTransformer.html[`XsltPayloadTransformer`] transforms XML payloads by using http://en.wikipedia.org/wiki/XSL_Transformations[Extensible Stylesheet Language Transformations] (XSLT).
 The transformer's constructor requires an instance of either http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/core/io/Resource.html[Resource] or http://docs.oracle.com/javase/6/docs/api/javax/xml/transform/Templates.html[Templates] to be passed in.
 Passing in a `Templates` instance allows for greater configuration of the `TransformerFactory` used to create the template instance.
 
@@ -722,9 +742,7 @@ XPath splitter namespace support lets you create a message endpoint with an inpu
 </int-xml:xpath-splitter>
 ----
 
-Starting with version 4.2, the `XPathMessageSplitter` exposes the `outputProperties`
-(such as `OutputKeys.OMIT_XML_DECLARATION`) property for an `javax.xml.transform.Transformer` instance when a
-request `payload` is not of type `org.w3c.dom.Node`.
+Starting with version 4.2, the `XPathMessageSplitter` exposes the `outputProperties` (such as `OutputKeys.OMIT_XML_DECLARATION`) property for an `javax.xml.transform.Transformer` instance when a request `payload` is not of type `org.w3c.dom.Node`.
 The following example defines a property and uses it with the `output-properties` property:
 
 ====
@@ -1015,7 +1033,7 @@ The following listing shows some usage examples:
 ----
 ====
 
-`#xpath` also supports a third optional parameter for converting the result of the XPath evaluation.
+The `#xpath()` also supports a third optional parameter for converting the result of the XPath evaluation.
 It can be one of the String constants (`string`, `boolean`, `number`, `node`, `node_list` and `document_list`) or an `org.springframework.xml.xpath.NodeMapper` instance.
 By default, the `#xpath` SpEL function returns a `String` representation of the XPath evaluation.
 
