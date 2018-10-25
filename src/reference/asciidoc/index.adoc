@@ -1,6 +1,6 @@
 [[spring-integration-reference]]
 = Spring Integration Reference Manual
-:revnumber: {version}
+:revnumber: {project-version}
 :revdate: {localdate}
 :linkcss:
 :doctype: book
