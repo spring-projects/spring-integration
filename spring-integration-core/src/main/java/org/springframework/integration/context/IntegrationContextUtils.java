@@ -19,6 +19,8 @@ package org.springframework.integration.context;
 import java.util.Properties;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.config.IntegrationConfigUtils;
@@ -56,6 +58,8 @@ public abstract class IntegrationContextUtils {
 	public static final String INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME = "integrationHeaderChannelRegistry";
 
 	public static final String INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME = "integrationGlobalProperties";
+
+	public static final String MERGED_INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME = "mergedIntegrationGlobalProperties";
 
 	public static final String CHANNEL_INITIALIZER_BEAN_NAME = "channelInitializer";
 
@@ -176,14 +180,32 @@ public abstract class IntegrationContextUtils {
 	 *         provided {@code #beanFactory} or provided {@code #beanFactory} is null.
 	 */
 	public static Properties getIntegrationProperties(BeanFactory beanFactory) {
-		Properties properties = new Properties();
-		properties.putAll(IntegrationProperties.defaults());
+		Properties properties;
 		if (beanFactory != null) {
-			Properties userProperties =
-					getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
-			if (userProperties != null) {
-				properties.putAll(userProperties);
+			properties = getBeanOfType(beanFactory, MERGED_INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
+			if (properties == null) {
+				Properties propertiesToRegister = new Properties();
+				propertiesToRegister.putAll(IntegrationProperties.defaults());
+				Properties userProperties =
+						getBeanOfType(beanFactory, INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, Properties.class);
+				if (userProperties != null) {
+					propertiesToRegister.putAll(userProperties);
+				}
+
+				if (beanFactory instanceof BeanDefinitionRegistry) {
+					BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+					RootBeanDefinition beanDefinition = new RootBeanDefinition(Properties.class);
+					beanDefinition.setInstanceSupplier(() -> propertiesToRegister);
+
+					registry.registerBeanDefinition(MERGED_INTEGRATION_GLOBAL_PROPERTIES_BEAN_NAME, beanDefinition);
+				}
+
+				properties = propertiesToRegister;
 			}
+		}
+		else {
+			properties = new Properties();
+			properties.putAll(IntegrationProperties.defaults());
 		}
 		return properties;
 	}
