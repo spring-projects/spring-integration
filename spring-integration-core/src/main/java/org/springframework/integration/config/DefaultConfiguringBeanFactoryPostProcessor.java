@@ -17,10 +17,13 @@
 package org.springframework.integration.config;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
@@ -29,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -80,7 +84,8 @@ import org.springframework.util.ClassUtils;
  *
  * @see IntegrationContextUtils
  */
-class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProcessor, BeanClassLoaderAware {
+class DefaultConfiguringBeanFactoryPostProcessor
+		implements BeanFactoryPostProcessor, BeanClassLoaderAware, SmartInitializingSingleton {
 
 	private static final Log logger = LogFactory.getLog(DefaultConfiguringBeanFactoryPostProcessor.class);
 
@@ -128,6 +133,18 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		}
 	}
 
+	@Override
+	public void afterSingletonsInstantiated() {
+		if (logger.isDebugEnabled()) {
+			Properties integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
+
+			StringWriter writer = new StringWriter();
+			integrationProperties.list(new PrintWriter(writer));
+			StringBuffer propertiesBuffer = writer.getBuffer()
+					.delete(0, "-- listing properties --".length());
+			logger.debug("\nSpring Integration global properties:\n" + propertiesBuffer);
+		}
+	}
 
 	/**
 	 * Register a null channel in the application context.
@@ -135,7 +152,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	 */
 	private void registerNullChannel() {
 		if (this.beanFactory.containsBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
-			BeanDefinition nullChannelDefinition = null;
+			BeanDefinition nullChannelDefinition;
 			if (this.beanFactory.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
 				nullChannelDefinition =
 						this.beanFactory.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
@@ -319,7 +336,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 					jsonPathClass = null;
 					logger.warn("The '#jsonPath' SpEL function cannot be registered. " +
 							"An old json-path.jar version is detected in the classpath." +
-							"At least 1.2.0 is required; see version information at: " +
+							"At least 2.4.0 is required; see version information at: " +
 							"https://github.com/jayway/JsonPath/releases", e);
 
 				}
@@ -482,7 +499,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	private BeanDefinition internalArgumentResolversBuilder(boolean listCapable) {
 		ManagedList<BeanDefinition> resolvers = new ManagedList<>();
 		resolvers.add(new RootBeanDefinition(PayloadExpressionArgumentResolver.class));
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(NullAwarePayloadArgumentResolver.class);
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(NullAwarePayloadArgumentResolver.class);
 		builder.addConstructorArgReference(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME);
 		// TODO Validator ?
 		resolvers.add(builder.getBeanDefinition());
