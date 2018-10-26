@@ -30,6 +30,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceUtils.ParameterExpressionEvaluator;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -55,7 +56,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 		this(null);
 	}
 
-	public ExpressionEvaluatingParameterSourceFactory(BeanFactory beanFactory) {
+	public ExpressionEvaluatingParameterSourceFactory(@Nullable BeanFactory beanFactory) {
 		this.parameters = new ArrayList<>();
 		this.expressionEvaluator.setBeanFactory(beanFactory);
 	}
@@ -78,6 +79,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 	}
 
+	@Override
 	public PositionSupportingParameterSource createParameterSource(final Object input) {
 		return new ExpressionEvaluatingParameterSource(input, this.parameters, this.expressionEvaluator);
 	}
@@ -109,6 +111,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 		}
 
+		@Override
 		public Object getValueByPosition(int position) {
 
 			Assert.isTrue(position >= 0, "The position must be non-negative.");
@@ -148,6 +151,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 		}
 
+		@Override
 		public Object getValue(String paramName) {
 			if (this.values.containsKey(paramName)) {
 				return this.values.get(paramName);
@@ -178,6 +182,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 			return value;
 		}
 
+		@Override
 		public boolean hasValue(String paramName) {
 			try {
 				final Object value = getValue(paramName);

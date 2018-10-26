@@ -702,7 +702,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @return the error message.
 	 * @since 4.3.10
 	 */
-	protected final ErrorMessage buildErrorMessage(Message<?> requestMessage, Throwable throwable) {
+	protected final ErrorMessage buildErrorMessage(@Nullable Message<?> requestMessage, Throwable throwable) {
 		return this.errorMessageStrategy.buildErrorMessage(throwable, getErrorMessageAttributes(requestMessage));
 	}
 

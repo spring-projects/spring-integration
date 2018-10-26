@@ -22,6 +22,7 @@ import javax.jms.Destination;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.lang.Nullable;
 
 /**
  * Factory class for JMS components.
@@ -48,7 +49,9 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsPollableMessageChannelSpec} instance
 	 */
-	public static JmsPollableMessageChannelSpec<?> pollableChannel(String id, ConnectionFactory connectionFactory) {
+	public static JmsPollableMessageChannelSpec<?> pollableChannel(@Nullable String id,
+			ConnectionFactory connectionFactory) {
+
 		return new JmsPollableMessageChannelSpec<>(connectionFactory).id(id);
 	}
 
@@ -67,7 +70,7 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsMessageChannelSpec} instance
 	 */
-	public static JmsMessageChannelSpec<?> channel(String id, ConnectionFactory connectionFactory) {
+	public static JmsMessageChannelSpec<?> channel(@Nullable String id, ConnectionFactory connectionFactory) {
 		return new JmsMessageChannelSpec<>(connectionFactory)
 				.id(id);
 	}
@@ -87,7 +90,7 @@ public final class Jms {
 	 * @param connectionFactory the JMS ConnectionFactory to build on
 	 * @return the {@link JmsPublishSubscribeMessageChannelSpec} instance
 	 */
-	public static JmsPublishSubscribeMessageChannelSpec publishSubscribeChannel(String id,
+	public static JmsPublishSubscribeMessageChannelSpec publishSubscribeChannel(@Nullable String id,
 			ConnectionFactory connectionFactory) {
 
 		return new JmsPublishSubscribeMessageChannelSpec(connectionFactory).id(id);

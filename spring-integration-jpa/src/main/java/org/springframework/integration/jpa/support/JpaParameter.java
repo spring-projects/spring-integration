@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jpa.support;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -59,7 +60,7 @@ public class JpaParameter {
 	 * @param value If null, the expression property must be set
 	 * @param expression If null, the value property must be set
 	 */
-	public JpaParameter(String name, Object value, String expression) {
+	public JpaParameter(String name, @Nullable Object value, @Nullable String expression) {
 		super();
 
 		Assert.hasText(name, "'name' must not be empty.");
@@ -76,7 +77,7 @@ public class JpaParameter {
 	 * @param value If null, the expression property must be set
 	 * @param expression If null, the value property must be set
 	 */
-	public JpaParameter(Object value, String expression) {
+	public JpaParameter(@Nullable Object value, @Nullable String expression) {
 		this.value = value;
 		this.setExpression(expression);
 	}

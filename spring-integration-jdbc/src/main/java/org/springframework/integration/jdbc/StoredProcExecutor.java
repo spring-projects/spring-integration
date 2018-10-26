@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -282,7 +283,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * @return Map containing the stored procedure results if any.
 	 */
 	public Map<String, Object> executeStoredProcedure() {
-		return executeStoredProcedureInternal(new Object(), this.evaluateExpression(null));
+		return executeStoredProcedureInternal(new Object(), evaluateExpression(null));
 	}
 
 	/**
@@ -311,9 +312,10 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	}
 
-	private String evaluateExpression(Message<?> message) {
-		final String storedProcedureNameToUse = this.storedProcedureNameExpression.getValue(this.evaluationContext,
-				message, String.class);
+	private String evaluateExpression(@Nullable Message<?> message) {
+		final String storedProcedureNameToUse = message == null
+				? this.storedProcedureNameExpression.getValue(this.evaluationContext, String.class)
+				: this.storedProcedureNameExpression.getValue(this.evaluationContext, message, String.class);
 
 		Assert.hasText(storedProcedureNameToUse, String.format(
 				"Unable to resolve Stored Procedure/Function name for the provided Expression '%s'.",

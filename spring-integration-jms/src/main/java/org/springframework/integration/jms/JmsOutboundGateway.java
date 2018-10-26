@@ -1416,11 +1416,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 					if (logger.isWarnEnabled()) {
 						logger.warn("Unexpected error obtaining destination description: " + e.getMessage());
 					}
-					return null;
+					return "";
 				}
 			}
 			else {
-				return null;
+				return "";
 			}
 		}
 
