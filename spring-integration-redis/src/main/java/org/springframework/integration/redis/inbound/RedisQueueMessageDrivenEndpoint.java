@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.inbound;
 
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -187,30 +188,9 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 
 	@SuppressWarnings("unchecked")
 	private void popMessageAndSend() {
-		Message<Object> message = null;
+		byte[] value = popForValue();
 
-		byte[] value = null;
-		try {
-			if (this.rightPop) {
-				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
-			}
-			else {
-				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
-			}
-		}
-		catch (Exception e) {
-			this.listening = false;
-			if (this.active) {
-				logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
-						+ " milliseconds.", e);
-				this.publishException(e);
-				this.sleepBeforeRecoveryAttempt();
-			}
-			else {
-				logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
-			}
-			return;
-		}
+		Message<Object> message = null;
 
 		if (value != null) {
 			if (this.expectMessage) {
@@ -226,7 +206,9 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				if (this.serializer != null) {
 					payload = this.serializer.deserialize(value);
 				}
-				message = this.getMessageBuilderFactory().withPayload(payload).build();
+				if (payload != null) {
+					message = getMessageBuilderFactory().withPayload(payload).build();
+				}
 			}
 		}
 
@@ -243,6 +225,31 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 				}
 			}
 		}
+	}
+
+	private byte[] popForValue() {
+		byte[] value = null;
+		try {
+			if (this.rightPop) {
+				value = this.boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			}
+			else {
+				value = this.boundListOperations.leftPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
+			}
+		}
+		catch (Exception e) {
+			this.listening = false;
+			if (this.active) {
+				logger.error("Failed to execute listening task. Will attempt to resubmit in " + this.recoveryInterval
+						+ " milliseconds.", e);
+				publishException(e);
+				sleepBeforeRecoveryAttempt();
+			}
+			else {
+				logger.debug("Failed to execute listening task. " + e.getClass() + ": " + e.getMessage());
+			}
+		}
+		return value;
 	}
 
 	@Override
@@ -293,7 +300,8 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	@Override
 	protected void doStop() {
 		super.doStop();
-		this.active = this.listening = false;
+		this.active = false;
+		this.listening = false;
 	}
 
 	public boolean isListening() {
@@ -304,12 +312,12 @@ public class RedisQueueMessageDrivenEndpoint extends MessageProducerSupport impl
 	 * Returns the size of the Queue specified by {@link #boundListOperations}. The queue is
 	 * represented by a Redis list. If the queue does not exist <code>0</code>
 	 * is returned. See also http://redis.io/commands/llen
-	 *
 	 * @return Size of the queue. Never negative.
 	 */
 	@ManagedMetric
 	public long getQueueSize() {
-		return this.boundListOperations.size();
+		return Optional.ofNullable(this.boundListOperations.size())
+				.orElse(0L);
 	}
 
 	/**

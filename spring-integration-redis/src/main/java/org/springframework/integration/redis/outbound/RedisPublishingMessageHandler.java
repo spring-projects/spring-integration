@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class RedisPublishingMessageHandler extends AbstractMessageHandler {
@@ -86,7 +87,7 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		Assert.notNull(this.topicExpression, "'topicExpression' must not be null.");
 		if (this.messageConverter instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageConverter).setBeanFactory(getBeanFactory());
@@ -98,9 +99,9 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected void handleMessageInternal(Message<?> message) {
 		String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
-		Object value = this.messageConverter.fromMessage(message, null);
+		Object value = this.messageConverter.fromMessage(message, Object.class);
 
 		if (value instanceof byte[]) {
 			this.template.convertAndSend(topic, value);

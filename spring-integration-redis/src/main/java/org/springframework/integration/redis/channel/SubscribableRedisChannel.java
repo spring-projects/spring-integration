@@ -73,11 +73,11 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 	private volatile boolean initialized;
 
 	// defaults
-	private volatile Executor taskExecutor = new SimpleAsyncTaskExecutor();
+	private Executor taskExecutor = new SimpleAsyncTaskExecutor();
 
-	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
+	private RedisSerializer<?> serializer = new StringRedisSerializer();
 
-	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
+	private MessageConverter messageConverter = new SimpleMessageConverter();
 
 	public SubscribableRedisChannel(RedisConnectionFactory connectionFactory, String topicName) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
@@ -125,7 +125,8 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 
 	@Override
 	protected boolean doSend(Message<?> message, long arg1) {
-		this.redisTemplate.convertAndSend(this.topicName, this.messageConverter.fromMessage(message, Object.class));
+		Object value = this.messageConverter.fromMessage(message, Object.class);
+		this.redisTemplate.convertAndSend(this.topicName, value); // NOSONAR - null can be sent
 		return true;
 	}
 
@@ -136,9 +137,8 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 		}
 		super.onInit();
 		if (this.maxSubscribers == null) {
-			Integer maxSubscribers =
-					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class);
-			this.setMaxSubscribers(maxSubscribers);
+			setMaxSubscribers(
+					getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_BROADCAST_SUBSCRIBERS, Integer.class));
 		}
 		if (this.messageConverter == null) {
 			this.messageConverter = new SimpleMessageConverter();
@@ -214,8 +214,10 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 				SubscribableRedisChannel.this.dispatcher.dispatch(siMessage);
 			}
 			catch (MessageDispatchingException e) {
-				String topicName = SubscribableRedisChannel.this.topicName;
-				topicName = StringUtils.hasText(topicName) ? topicName : "unknown";
+				String topicName =
+						StringUtils.hasText(SubscribableRedisChannel.this.topicName)
+								? SubscribableRedisChannel.this.topicName
+								: "unknown";
 				throw new MessageDeliveryException(siMessage, e.getMessage()
 						+ " for redis-channel '"
 						+ topicName

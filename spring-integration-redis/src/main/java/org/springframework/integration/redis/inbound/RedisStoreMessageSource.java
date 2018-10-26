@@ -88,11 +88,10 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 		Assert.notNull(keyExpression, "'keyExpression' must not be null");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 
-		StringRedisTemplate redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(connectionFactory);
-		redisTemplate.afterPropertiesSet();
+		this.redisTemplate = new StringRedisTemplate();
+		this.redisTemplate.setConnectionFactory(connectionFactory);
+		this.redisTemplate.afterPropertiesSet();
 
-		this.redisTemplate = redisTemplate;
 		this.keyExpression = keyExpression;
 	}
 
