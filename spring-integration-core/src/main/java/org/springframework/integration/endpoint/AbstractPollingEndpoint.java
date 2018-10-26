@@ -341,7 +341,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						failedMessage = ((IntegrationResourceHolder) resource).getMessage();
 					}
 				}
-				throw new MessagingException(failedMessage, e);
+				throw new MessagingException(failedMessage, e); // NOSONAR (null failedMessage)
 			}
 		}
 		finally {

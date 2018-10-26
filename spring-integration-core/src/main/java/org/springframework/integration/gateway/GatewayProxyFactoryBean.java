@@ -63,6 +63,7 @@ import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.TrackableComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -324,7 +325,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	 * {@link java.util.concurrent.Future} return types must be returned by the downstream flow.
 	 * @param executor The executor.
 	 */
-	public void setAsyncExecutor(Executor executor) {
+	public void setAsyncExecutor(@Nullable Executor executor) {
 		if (executor == null && logger.isInfoEnabled()) {
 			logger.info("A null executor disables the async gateway; " +
 					"methods returning Future<?> will run on the calling thread");
@@ -474,6 +475,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 	}
 
+	@Nullable
 	private Object invokeGatewayMethod(MethodInvocation invocation, boolean runningOnCallerThread) throws Exception {
 		if (!this.initialized) {
 			this.afterPropertiesSet();

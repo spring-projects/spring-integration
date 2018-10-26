@@ -98,9 +98,11 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 			}
 			catch (ParserConfigurationException e) {
 				parserContext.getReaderContext().error(e.getMessage(), element);
+				// NOSONAR below to prevent a false positive in SONAR for a null gatherer
 			}
 		}
-		gathererDefinition = GATHERER_PARSER.parse(gatherer, new ParserContext(parserContext.getReaderContext(),
+		gathererDefinition = GATHERER_PARSER.parse(gatherer, // NOSONAR
+				new ParserContext(parserContext.getReaderContext(),
 				parserContext.getDelegate(), scatterGatherDefinition));
 		String gathererId = id + ".gatherer";
 		if (gatherer != null && gatherer.hasAttribute(ID_ATTRIBUTE)) {

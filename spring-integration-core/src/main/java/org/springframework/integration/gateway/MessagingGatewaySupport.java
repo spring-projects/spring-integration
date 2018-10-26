@@ -471,6 +471,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	private Object doSendAndReceive(Object object, boolean shouldConvert) {
 		this.initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");

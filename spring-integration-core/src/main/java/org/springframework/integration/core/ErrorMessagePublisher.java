@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.integration.support.DefaultErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -144,7 +145,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	 * @param failedMessage the message.
 	 * @param throwable the throwable.
 	 */
-	public void publish(Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) {
+	public void publish(@Nullable Message<?> inputMessage, Message<?> failedMessage, Throwable throwable) {
 		publish(throwable, ErrorMessageUtils.getAttributeAccessor(inputMessage, failedMessage));
 	}
 

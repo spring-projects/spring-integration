@@ -118,20 +118,25 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		this(method, null);
 	}
 
-	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
+	GatewayMethodInboundMessageMapper(Method method, @Nullable Map<String, Expression> headerExpressions) {
 		this(method, headerExpressions, null, null, null);
 	}
 
-	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
-			Map<String, Expression> globalHeaderExpressions, MethodArgsMessageMapper mapper,
-			MessageBuilderFactory messageBuilderFactory) {
+	GatewayMethodInboundMessageMapper(Method method,
+			@Nullable Map<String, Expression> headerExpressions,
+			@Nullable Map<String, Expression> globalHeaderExpressions,
+			@Nullable MethodArgsMessageMapper mapper,
+			@Nullable MessageBuilderFactory messageBuilderFactory) {
 		this(method, headerExpressions, globalHeaderExpressions, null, mapper, messageBuilderFactory);
 	}
 
-	GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions,
-			Map<String, Expression> globalHeaderExpressions, Map<String, Object> headers,
-			MethodArgsMessageMapper mapper,
-			MessageBuilderFactory messageBuilderFactory) {
+	GatewayMethodInboundMessageMapper(Method method,
+			@Nullable Map<String, Expression> headerExpressions,
+			@Nullable Map<String, Expression> globalHeaderExpressions,
+			@Nullable Map<String, Object> headers,
+			@Nullable MethodArgsMessageMapper mapper,
+			@Nullable MessageBuilderFactory messageBuilderFactory) {
+
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.headerExpressions = headerExpressions;
@@ -262,6 +267,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return parameterList;
 	}
 
+	@Nullable
 	private static Expression parsePayloadExpression(Method method) {
 		Expression expression = null;
 		Annotation payload = method.getAnnotation(Payload.class);

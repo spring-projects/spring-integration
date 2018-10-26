@@ -40,7 +40,12 @@ public class DefaultErrorMessageStrategy implements ErrorMessageStrategy {
 	public ErrorMessage buildErrorMessage(Throwable throwable, @Nullable AttributeAccessor attributes) {
 		Object inputMessage = attributes == null ? null
 				: attributes.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
-		return new ErrorMessage(throwable, inputMessage instanceof Message ? (Message<?>) inputMessage : null);
+		if (inputMessage instanceof Message) {
+			return new ErrorMessage(throwable, (Message<?>) inputMessage);
+		}
+		else {
+			return new ErrorMessage(throwable);
+		}
 	}
 
 }

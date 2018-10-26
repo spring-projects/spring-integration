@@ -74,6 +74,7 @@ public class MutableMessageHeaders extends MessageHeaders {
 		return super.getRawHeaders().remove(key);
 	}
 
+	@Nullable
 	private static UUID extractId(@Nullable Map<String, Object> headers) {
 		if (headers != null && headers.containsKey(MessageHeaders.ID)) {
 			Object id = headers.get(MessageHeaders.ID);
@@ -92,6 +93,7 @@ public class MutableMessageHeaders extends MessageHeaders {
 		return null;
 	}
 
+	@Nullable
 	private static Long extractTimestamp(@Nullable Map<String, Object> headers) {
 		if (headers != null && headers.containsKey(MessageHeaders.TIMESTAMP)) {
 			Object timestamp = headers.get(MessageHeaders.TIMESTAMP);

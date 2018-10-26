@@ -226,7 +226,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	public ConversionService getConversionService() {
-		if (this.conversionService == null && this.beanFactory != null) {
+		if (this.conversionService == null && this.beanFactory != null) { // NOSONAR double lock fetching bean, not creating
 			synchronized (this) {
 				if (this.conversionService == null) {
 					this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);

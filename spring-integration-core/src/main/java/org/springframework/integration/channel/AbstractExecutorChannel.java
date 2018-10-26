@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.support.MessagingExceptionWrapper;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
@@ -60,7 +61,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 
 	protected volatile int executorInterceptorsSize;
 
-	public AbstractExecutorChannel(Executor executor) {
+	public AbstractExecutorChannel(@Nullable Executor executor) {
 		this.executor = executor;
 	}
 
@@ -171,6 +172,7 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 			}
 		}
 
+		@Nullable
 		private Message<?> applyBeforeHandle(Message<?> message, Deque<ExecutorChannelInterceptor> interceptorStack) {
 			Message<?> theMessage = message;
 			for (ChannelInterceptor interceptor : AbstractExecutorChannel.this.interceptors.interceptors) {

@@ -598,13 +598,14 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				Deque<ChannelInterceptor> interceptorStack) {
 			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : this.interceptors) {
+					Message<?> previous = message;
 					message = interceptor.preSend(message, channel);
 					if (message == null) {
 						if (this.logger.isDebugEnabled()) {
 							this.logger.debug(interceptor.getClass().getSimpleName()
 									+ " returned null from preSend, i.e. precluding the send.");
 						}
-						afterSendCompletion(null, channel, false, null, interceptorStack);
+						afterSendCompletion(previous, channel, false, null, interceptorStack);
 						return null;
 					}
 					interceptorStack.add(interceptor);

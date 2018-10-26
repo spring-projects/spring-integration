@@ -69,7 +69,7 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 
 	private Set<String> readOnlyHeaders = new HashSet<>();
 
-	public IntegrationMessageHeaderAccessor(Message<?> message) {
+	public IntegrationMessageHeaderAccessor(@Nullable Message<?> message) {
 		super(message);
 	}
 

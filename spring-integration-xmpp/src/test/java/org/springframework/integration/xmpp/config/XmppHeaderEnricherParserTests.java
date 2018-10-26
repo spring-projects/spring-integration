@@ -48,6 +48,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Josh Long
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.0
  */
@@ -68,7 +69,7 @@ public class XmppHeaderEnricherParserTests {
 		CountDownLatch callLatch = new CountDownLatch(1);
 		MessageHandler handler = mock(MessageHandler.class);
 		willAnswer(invocation -> {
-			Message message = invocation.getArgument(0);
+			Message<?> message = invocation.getArgument(0);
 			String chatToUser = (String) message.getHeaders().get(XmppHeaders.TO);
 			assertNotNull(chatToUser);
 			assertEquals("test1@example.org", chatToUser);
