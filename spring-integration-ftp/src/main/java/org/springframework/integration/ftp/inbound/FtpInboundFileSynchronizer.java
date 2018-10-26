@@ -42,7 +42,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	 */
 	public FtpInboundFileSynchronizer(SessionFactory<FTPFile> sessionFactory) {
 		super(sessionFactory);
-		doSetRemoteDirectoryExpression(new LiteralExpression(null));
+		doSetRemoteDirectoryExpression(new LiteralExpression(null)); // NOSONAR - LE can actually handle null ok
 		doSetFilter(new FtpPersistentAcceptOnceFileListFilter(new SimpleMetadataStore(), "ftpMessageSource"));
 	}
 

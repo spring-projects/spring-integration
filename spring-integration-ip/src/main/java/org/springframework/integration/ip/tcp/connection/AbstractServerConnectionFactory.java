@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2016 the original author or authors.
+ * Copyright 2001-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Date;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.integration.context.OrderlyShutdownCapable;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -66,6 +67,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	}
 
 	@Override
+	@Nullable
 	public SocketAddress getServerSocketAddress() {
 		return null;
 	}

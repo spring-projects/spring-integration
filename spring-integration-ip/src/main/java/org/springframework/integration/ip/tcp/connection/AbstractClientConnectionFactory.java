@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 
 /**
  * Abstract class for client connection factories; client connection factories
@@ -79,6 +80,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		return obtainNewConnection();
 	}
 
+	@Nullable
 	protected final TcpConnectionSupport obtainSharedConnection() throws InterruptedException {
 		this.theConnectionLock.readLock().lockInterruptibly();
 		try {

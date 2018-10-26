@@ -34,6 +34,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.util.Assert;
@@ -93,7 +94,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 		this(null);
 	}
 
-	public TcpConnectionSupport(ApplicationEventPublisher applicationEventPublisher) {
+	public TcpConnectionSupport(@Nullable ApplicationEventPublisher applicationEventPublisher) {
 		this.server = false;
 		this.applicationEventPublisher = applicationEventPublisher;
 		this.socketInfo = null;

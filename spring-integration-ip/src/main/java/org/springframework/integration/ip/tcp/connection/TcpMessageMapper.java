@@ -238,6 +238,7 @@ public class TcpMessageMapper implements
 	 * @param connection the connection.
 	 * @return A Map of {@code <String, ?>} headers to be added to the message.
 	 */
+	@Nullable
 	protected Map<String, ?> supplyCustomHeaders(TcpConnection connection) {
 		return null;
 	}

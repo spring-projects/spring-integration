@@ -449,7 +449,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
 			final File directory =
-					new File(this.destinationDirectoryExpression.getValue(this.evaluationContext, null, String.class));
+					new File(this.destinationDirectoryExpression.getValue(this.evaluationContext, String.class));
 
 			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}

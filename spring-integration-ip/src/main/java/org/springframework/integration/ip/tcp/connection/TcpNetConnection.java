@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2017 the original author or authors.
+ * Copyright 2001-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
@@ -129,6 +130,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	}
 
 	@Override
+	@Nullable
 	public Object getDeserializerStateKey() {
 		try {
 			return inputStream();
@@ -139,6 +141,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	}
 
 	@Override
+	@Nullable
 	public SSLSession getSslSession() {
 		if (this.socket instanceof SSLSocket) {
 			return ((SSLSocket) this.socket).getSession();

@@ -180,7 +180,7 @@ public class TcpNioClientConnectionFactory extends
 						}
 					}
 				}
-				this.processNioSelections(selectionCount, this.selector, null, this.channelMap);
+				processNioSelections(selectionCount, this.selector, null, this.channelMap);
 			}
 		}
 		catch (ClosedSelectorException cse) {

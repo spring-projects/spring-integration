@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ public interface InboundMessageMapper<T> {
 	 * @throws Exception the exception thrown by the underlying mapper implementation
 	 * @since 5.0
 	 */
+	@Nullable
 	Message<?> toMessage(T object, @Nullable Map<String, Object> headers) throws Exception;
 
 }

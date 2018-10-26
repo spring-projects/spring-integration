@@ -42,6 +42,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.integration.util.CompositeExecutor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -183,6 +184,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	}
 
 	@Override
+	@Nullable
 	public SSLSession getSslSession() {
 		return null;
 	}
@@ -332,6 +334,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @return The Message or null if no data is available.
 	 * @throws IOException
 	 */
+	@Nullable
 	private synchronized Message<?> convert() throws Exception {
 		if (logger.isTraceEnabled()) {
 			logger.trace(getConnectionId() + " checking data avail (convert): " + this.channelInputStream.available() +
@@ -711,6 +714,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 			return bite;
 		}
 
+		@Nullable
 		private byte[] getNextBuffer() throws IOException {
 			byte[] buffer = null;
 			while (buffer == null) {

@@ -30,6 +30,7 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -85,6 +86,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	@Override
+	@Nullable
 	public SocketAddress getServerSocketAddress() {
 		if (this.serverChannel != null) {
 			try {
@@ -235,6 +237,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 	}
 
+	@Nullable
 	private TcpNioConnection createTcpNioConnection(SocketChannel socketChannel) {
 		try {
 			TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(socketChannel, true,

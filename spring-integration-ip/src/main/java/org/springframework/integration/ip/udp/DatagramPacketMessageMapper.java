@@ -204,6 +204,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	}
 
 	@Override
+	@Nullable
 	public Message<byte[]> toMessage(DatagramPacket packet, @Nullable Map<String, Object> headers) throws Exception {
 		int offset = packet.getOffset();
 		int length = packet.getLength();

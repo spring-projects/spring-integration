@@ -26,6 +26,7 @@ import java.net.SocketTimeoutException;
 
 import javax.net.ServerSocketFactory;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -70,6 +71,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	@Override
+	@Nullable
 	public SocketAddress getServerSocketAddress() {
 		if (this.serverSocket != null) {
 			return this.serverSocket.getLocalSocketAddress();

@@ -48,6 +48,7 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -610,8 +611,10 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	 * @param connections Map of connections.
 	 * @throws IOException Any IOException.
 	 */
-	protected void processNioSelections(int selectionCount, final Selector selector, ServerSocketChannel server,
+	protected void processNioSelections(int selectionCount, final Selector selector,
+			@Nullable ServerSocketChannel server,
 			Map<SocketChannel, TcpNioConnection> connections) throws IOException {
+
 		final long now = System.currentTimeMillis();
 		rescheduleDelayedReads(selector, now);
 		if (this.soTimeout > 0 ||
