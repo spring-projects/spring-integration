@@ -57,9 +57,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private volatile long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
-	private volatile int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+	private volatile long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
 	private volatile IMqttClient client;
 
@@ -128,7 +128,7 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 	 * @param recoveryInterval the interval.
 	 * @since 4.2.2
 	 */
-	public void setRecoveryInterval(int recoveryInterval) {
+	public synchronized void setRecoveryInterval(int recoveryInterval) {
 		this.recoveryInterval = recoveryInterval;
 	}
 
