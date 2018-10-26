@@ -165,23 +165,22 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 			this.client = null;
 		}
 		if (this.client == null) {
-			IMqttAsyncClient client = null;
 			try {
 				MqttConnectOptions connectionOptions = this.clientFactory.getConnectionOptions();
 				Assert.state(this.getUrl() != null || connectionOptions.getServerURIs() != null,
 						"If no 'url' provided, connectionOptions.getServerURIs() must not be null");
-				client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
+				this.client = this.clientFactory.getAsyncClientInstance(this.getUrl(), this.getClientId());
 				incrementClientInstance();
-				client.setCallback(this);
-				client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
-				this.client = client;
+				this.client.setCallback(this);
+				this.client.connect(connectionOptions).waitForCompletion(this.completionTimeout);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Client connected");
 				}
 			}
 			catch (MqttException e) {
-				if (client != null) {
-					client.close();
+				if (this.client != null) {
+					this.client.close();
+					this.client = null;
 				}
 				throw new MessagingException("Failed to connect", e);
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.mqtt.support;
+
+import java.nio.charset.Charset;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -38,12 +40,13 @@ import org.springframework.util.Assert;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
 public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFactoryAware {
 
-	private final String charset;
+	private final Charset charset;
 
 	private final int defaultQos;
 
@@ -68,7 +71,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 * Construct a converter with default options (qos=0, retain=false, charset=UTF-8).
 	 */
 	public DefaultPahoMessageConverter() {
-		this (0, false);
+		this(0, false);
 	}
 
 	/**
@@ -86,7 +89,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	/**
 	 * Construct a converter with default options (qos=0, retain=false) and
 	 * the supplied charset.
-	 * @param charset the charset used to convert outbound String paylaods to {@code byte[]} and inbound
+	 * @param charset the charset used to convert outbound String payloads to {@code byte[]} and inbound
 	 * {@code byte[]} to String (unless {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
 	 * @since 4.1.2
 	 */
@@ -99,7 +102,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 * retain settings and the supplied charset.
 	 * @param defaultQos the default qos.
 	 * @param defaultRetained the default retained.
-	 * @param charset the charset used to convert outbound String paylaods to
+	 * @param charset the charset used to convert outbound String payloads to
 	 * {@code byte[]} and inbound {@code byte[]} to String (unless
 	 * {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
 	 */
@@ -121,6 +124,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 */
 	public DefaultPahoMessageConverter(int defaultQos, MessageProcessor<Integer> qosProcessor, boolean defaultRetained,
 			MessageProcessor<Boolean> retainedProcessor) {
+
 		this(defaultQos, qosProcessor, defaultRetained, retainedProcessor, "UTF-8");
 	}
 
@@ -131,20 +135,21 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 * @param qosProcessor a message processor to determine the qos.
 	 * @param defaultRetained the default retained.
 	 * @param retainedProcessor a message processor to determine the retained flag.
-	 * @param charset the charset used to convert outbound String paylaods to
+	 * @param charset the charset used to convert outbound String payloads to
 	 * {@code byte[]} and inbound {@code byte[]} to String (unless
 	 * {@link #setPayloadAsBytes(boolean) payloadAdBytes} is true).
 	 * @since 5.0
 	 */
 	public DefaultPahoMessageConverter(int defaultQos, MessageProcessor<Integer> qosProcessor, boolean defaultRetained,
 			MessageProcessor<Boolean> retainedProcessor, String charset) {
+
 		Assert.notNull(qosProcessor, "'qosProcessor' cannot be null");
 		Assert.notNull(retainedProcessor, "'retainedProcessor' cannot be null");
 		this.defaultQos = defaultQos;
 		this.qosProcessor = qosProcessor;
 		this.defaultRetained = defaultRetained;
 		this.retainedProcessor = retainedProcessor;
-		this.charset = charset;
+		this.charset = Charset.forName(charset);
 	}
 
 	@Override
@@ -201,18 +206,19 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 		return toMessage(null, (MqttMessage) mqttMessage);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Message<?> toMessage(String topic, MqttMessage mqttMessage) {
 		try {
-			AbstractIntegrationMessageBuilder<Object> messageBuilder;
+			AbstractIntegrationMessageBuilder<?> messageBuilder;
 			if (this.bytesMessageMapper != null) {
-				messageBuilder = (AbstractIntegrationMessageBuilder<Object>) getMessageBuilderFactory()
-						.fromMessage(this.bytesMessageMapper.toMessage(mqttMessage.getPayload()));
+				messageBuilder =
+						getMessageBuilderFactory()
+								.fromMessage(this.bytesMessageMapper.toMessage(mqttMessage.getPayload()));
 			}
 			else {
-				messageBuilder = getMessageBuilderFactory()
-					.withPayload(mqttBytesToPayload(mqttMessage));
+				messageBuilder =
+						getMessageBuilderFactory()
+								.withPayload(mqttBytesToPayload(mqttMessage));
 			}
 			messageBuilder
 					.setHeader(MqttHeaders.RECEIVED_QOS, mqttMessage.getQos())
@@ -242,12 +248,10 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	/**
 	 * Subclasses can override this method to convert the byte[] to a payload.
 	 * The default implementation creates a String (default) or byte[].
-	 *
 	 * @param mqttMessage The inbound message.
 	 * @return The payload for the Spring integration message
-	 * @throws Exception Any.
 	 */
-	protected Object mqttBytesToPayload(MqttMessage mqttMessage) throws Exception {
+	protected Object mqttBytesToPayload(MqttMessage mqttMessage) {
 		if (this.payloadAsBytes) {
 			return mqttMessage.getPayload();
 		}
@@ -261,7 +265,6 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 	 * The default implementation accepts a byte[] or String payload.
 	 * If a {@link BytesMessageMapper} is provided, conversion to byte[]
 	 * is delegated to it, so any payload that it can handle is supported.
-	 *
 	 * @param message The outbound Message.
 	 * @return The byte[] which will become the payload of the MQTT Message.
 	 */
@@ -283,12 +286,7 @@ public class DefaultPahoMessageConverter implements MqttMessageConverter, BeanFa
 							+ payload.getClass().getName() + " payloads");
 			byte[] payloadBytes;
 			if (payload instanceof String) {
-				try {
-					payloadBytes = ((String) payload).getBytes(this.charset);
-				}
-				catch (Exception e) {
-					throw new MessageConversionException("failed to convert Message to object", e);
-				}
+				payloadBytes = ((String) payload).getBytes(this.charset);
 			}
 			else {
 				payloadBytes = (byte[]) payload;

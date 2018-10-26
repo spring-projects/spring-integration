@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,18 @@ import org.springframework.util.StringUtils;
  * respective {@link BeanDefinition}s.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
-public final class MqttParserUtils {
+final class MqttParserUtils {
 
-	/** Prevent instantiation. */
 	private MqttParserUtils() {
-		throw new AssertionError();
+
 	}
 
-	public static void parseCommon(Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
-
+	static void parseCommon(Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
 		ValueHolder holder;
 		int n = 0;
 		String url = element.getAttribute("url");
@@ -54,7 +54,7 @@ public final class MqttParserUtils {
 			holder.setType("java.lang.String");
 		}
 		builder.addConstructorArgValue(element.getAttribute("client-id"));
-		holder = builder.getRawBeanDefinition().getConstructorArgumentValues().getIndexedArgumentValues().get(n++);
+		holder = builder.getRawBeanDefinition().getConstructorArgumentValues().getIndexedArgumentValues().get(n);
 		holder.setType("java.lang.String");
 		String clientFactory = element.getAttribute("client-factory");
 		if (StringUtils.hasText(clientFactory)) {

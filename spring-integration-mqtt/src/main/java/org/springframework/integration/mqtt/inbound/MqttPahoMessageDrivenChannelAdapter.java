@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  *
- * @since 1.0
+ * @since 4.0
  *
  */
 public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDrivenChannelAdapter
@@ -57,9 +57,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
-
 	private volatile long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
+
+	private volatile int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
 
 	private volatile IMqttClient client;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.springframework.util.Assert;
  * Abstract class for MQTT Message-Driven Channel Adapters.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -50,7 +52,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 
 	private volatile MqttMessageConverter converter;
 
-	protected final Lock topicLock = new ReentrantLock();
+	protected final Lock topicLock = new ReentrantLock(); // NOSONAR
 
 	public AbstractMqttMessageDrivenChannelAdapter(String url, String clientId, String... topic) {
 		Assert.hasText(clientId, "'clientId' cannot be null or empty");
@@ -58,7 +60,7 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		Assert.noNullElements(topic, "'topics' cannot have null elements");
 		this.url = url;
 		this.clientId = clientId;
-		this.topics = new LinkedHashSet<Topic>();
+		this.topics = new LinkedHashSet<>();
 		for (String t : topic) {
 			this.topics.add(new Topic(t, 1));
 		}
@@ -225,10 +227,8 @@ public abstract class AbstractMqttMessageDrivenChannelAdapter extends MessagePro
 		this.topicLock.lock();
 		try {
 			for (String t : topic) {
-				if (this.topics.remove(new Topic(t, 0))) {
-					if (this.logger.isDebugEnabled()) {
-						logger.debug("Removed '" + t + "' from subscriptions.");
-					}
+				if (this.topics.remove(new Topic(t, 0)) && this.logger.isDebugEnabled()) {
+					logger.debug("Removed '" + t + "' from subscriptions.");
 				}
 			}
 		}
