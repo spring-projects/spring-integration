@@ -52,7 +52,8 @@ public final class IntegrationUtils {
 	/**
 	 * Should be set to TRUE on CI plans and framework developer systems.
 	 */
-	public static final boolean fatalWhenNoBeanFactory = Boolean.valueOf(System.getenv("SI_FATAL_WHEN_NO_BEANFACTORY"));
+	public static final boolean fatalWhenNoBeanFactory =
+			Boolean.valueOf(System.getenv("SI_FATAL_WHEN_NO_BEANFACTORY"));
 
 	private IntegrationUtils() {
 		super();
@@ -154,7 +155,9 @@ public final class IntegrationUtils {
 	 * @return the wrapper, if necessary, or the original exception.
 	 * @since 5.0.4
 	 */
-	public static RuntimeException wrapInDeliveryExceptionIfNecessary(Message<?> message, Supplier<String> text, Exception e) {
+	public static RuntimeException wrapInDeliveryExceptionIfNecessary(Message<?> message, Supplier<String> text,
+			Exception e) {
+
 		RuntimeException runtimeException = (e instanceof RuntimeException)
 				? (RuntimeException) e
 				: new MessageDeliveryException(message, text.get(), e);
@@ -175,7 +178,9 @@ public final class IntegrationUtils {
 	 * @return the wrapper, if necessary, or the original exception.
 	 * @since 5.0.4
 	 */
-	public static RuntimeException wrapInHandlingExceptionIfNecessary(Message<?> message, Supplier<String> text, Exception e) {
+	public static RuntimeException wrapInHandlingExceptionIfNecessary(Message<?> message, Supplier<String> text,
+			Exception e) {
+
 		RuntimeException runtimeException = (e instanceof RuntimeException)
 				? (RuntimeException) e
 				: new MessageHandlingException(message, text.get(), e);

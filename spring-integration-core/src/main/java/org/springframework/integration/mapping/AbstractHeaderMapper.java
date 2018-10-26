@@ -280,6 +280,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	protected <V> V getHeaderIfAvailable(Map<String, Object> headers, String name, Class<V> type) {
 		Object value = headers.get(name);
 		if (value == null) {

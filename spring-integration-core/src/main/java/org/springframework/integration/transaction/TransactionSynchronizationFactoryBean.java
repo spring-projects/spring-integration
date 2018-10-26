@@ -16,6 +16,8 @@
 
 package org.springframework.integration.transaction;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -33,12 +35,15 @@ import org.springframework.util.StringUtils;
  * from JavaConfig to populate {@link DefaultTransactionSynchronizationFactory} bean.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class TransactionSynchronizationFactoryBean implements FactoryBean<DefaultTransactionSynchronizationFactory>,
 		BeanFactoryAware {
 
 	private final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	private final AtomicInteger counter = new AtomicInteger();
 
 	private BeanFactory beanFactory;
 
@@ -199,7 +204,8 @@ public class TransactionSynchronizationFactoryBean implements FactoryBean<Defaul
 		}
 
 		if (this.beanFactory instanceof AutowireCapableBeanFactory) {
-			((AutowireCapableBeanFactory) this.beanFactory).initializeBean(processor, null);
+			((AutowireCapableBeanFactory) this.beanFactory).initializeBean(processor,
+					getClass().getName() + "#" + TransactionSynchronizationFactoryBean.this.counter.incrementAndGet());
 		}
 
 		return new DefaultTransactionSynchronizationFactory(processor);

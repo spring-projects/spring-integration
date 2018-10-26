@@ -102,7 +102,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 		}
 	}
 
-	private class MicroSample implements SampleFacade {
+	private static class MicroSample implements SampleFacade {
 
 		private final Timer.Sample sample;
 

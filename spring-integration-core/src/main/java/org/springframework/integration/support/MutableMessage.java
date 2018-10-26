@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
@@ -60,7 +61,7 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 		this(payload, (Map<String, Object>) null);
 	}
 
-	public MutableMessage(T payload, Map<String, Object> headers) {
+	public MutableMessage(T payload, @Nullable Map<String, Object> headers) {
 		this(payload, new MutableMessageHeaders(headers));
 	}
 
@@ -85,6 +86,7 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 		return this.headers.getRawHeaders();
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(getClass().getSimpleName());
 		sb.append(" [payload=");

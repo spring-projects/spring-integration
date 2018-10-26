@@ -32,6 +32,7 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
@@ -326,7 +327,7 @@ public final class IntegrationFlows {
 	 * @param beanName the bean name to be used for registering bean for the gateway proxy
 	 * @return new {@link IntegrationFlowBuilder}.
 	 */
-	public static IntegrationFlowBuilder from(Class<?> serviceInterface, String beanName) {
+	public static IntegrationFlowBuilder from(Class<?> serviceInterface, @Nullable String beanName) {
 		final DirectChannel gatewayRequestChannel = new DirectChannel();
 
 		GatewayProxyFactoryBean gatewayProxyFactoryBean = new AnnotationGatewayProxyFactoryBean(serviceInterface);

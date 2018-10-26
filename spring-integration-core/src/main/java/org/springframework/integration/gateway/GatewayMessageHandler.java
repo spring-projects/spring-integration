@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,8 @@ public class GatewayMessageHandler extends AbstractReplyProducingMessageHandler 
 		BeanFactory beanFactory = getBeanFactory();
 
 		if (beanFactory instanceof ConfigurableListableBeanFactory) {
-			((ConfigurableListableBeanFactory) beanFactory).initializeBean(this.gatewayProxyFactoryBean, null);
+			((ConfigurableListableBeanFactory) beanFactory).initializeBean(this.gatewayProxyFactoryBean,
+					getComponentName() + "#gpfb");
 		}
 		try {
 			this.exchanger = (RequestReplyExchanger) this.gatewayProxyFactoryBean.getObject();

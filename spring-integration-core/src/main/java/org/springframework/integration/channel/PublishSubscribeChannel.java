@@ -22,6 +22,7 @@ import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
@@ -49,7 +50,7 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 	 * the message sender's thread.
 	 * @param executor The executor.
 	 */
-	public PublishSubscribeChannel(Executor executor) {
+	public PublishSubscribeChannel(@Nullable Executor executor) {
 		super(executor);
 		this.dispatcher = new BroadcastingDispatcher(executor);
 	}

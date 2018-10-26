@@ -24,6 +24,7 @@ import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.util.UpperBound;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -84,7 +85,7 @@ public class PriorityChannel extends QueueChannel {
 	 * @param capacity The capacity.
 	 * @param comparator The comparator.
 	 */
-	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
+	public PriorityChannel(int capacity, @Nullable Comparator<Message<?>> comparator) {
 		super(new PriorityBlockingQueue<>(11, new SequenceFallbackComparator(comparator)));
 		this.upperBound = new UpperBound(capacity);
 		this.useMessageStore = false;

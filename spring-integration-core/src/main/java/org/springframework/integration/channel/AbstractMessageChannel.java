@@ -554,7 +554,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 	@Override
 	public void destroy() throws Exception {
-		this.meters.forEach(t -> t.remove());
+		this.meters.forEach(MeterFacade::remove);
 	}
 
 	/**
@@ -566,7 +566,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 
 		protected final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
 
-		private volatile int size;
+		private int size;
 
 		public ChannelInterceptorList(Log logger) {
 			this.logger = logger;
@@ -594,17 +594,19 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			this.interceptors.add(index, interceptor);
 		}
 
+		@Nullable
 		public Message<?> preSend(Message<?> message, MessageChannel channel,
 				Deque<ChannelInterceptor> interceptorStack) {
 			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : this.interceptors) {
+					Message<?> previous = message;
 					message = interceptor.preSend(message, channel);
 					if (message == null) {
 						if (this.logger.isDebugEnabled()) {
 							this.logger.debug(interceptor.getClass().getSimpleName()
 									+ " returned null from preSend, i.e. precluding the send.");
 						}
-						afterSendCompletion(null, channel, false, null, interceptorStack);
+						afterSendCompletion(previous, channel, false, null, interceptorStack);
 						return null;
 					}
 					interceptorStack.add(interceptor);
@@ -648,6 +650,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			return true;
 		}
 
+		@Nullable
 		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : this.interceptors) {
@@ -688,6 +691,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 
+		@Nullable
 		public ChannelInterceptor remove(int index) {
 			ChannelInterceptor removed = this.interceptors.remove(index);
 			if (removed != null) {

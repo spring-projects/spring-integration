@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@ package org.springframework.integration.leader;
 
 import java.util.UUID;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
  * Base implementation of a {@link Candidate}.
  *
  * @author Janne Valkealahti
+ * @author Gary Russell
  *
  */
 public abstract class AbstractCandidate implements Candidate {
@@ -47,7 +49,7 @@ public abstract class AbstractCandidate implements Candidate {
 	 * @param id the identifier
 	 * @param role the role
 	 */
-	public AbstractCandidate(String id, String role) {
+	public AbstractCandidate(@Nullable String id, @Nullable String role) {
 		this.id = StringUtils.hasText(id) ? id : UUID.randomUUID().toString();
 		this.role = StringUtils.hasText(role) ? role : DEFAULT_ROLE;
 	}

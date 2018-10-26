@@ -227,11 +227,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	public ConversionService getConversionService() {
 		if (this.conversionService == null && this.beanFactory != null) {
-			synchronized (this) {
-				if (this.conversionService == null) {
-					this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
-				}
-			}
+			this.conversionService = IntegrationUtils.getConversionService(this.beanFactory);
 			if (this.conversionService == null && this.logger.isDebugEnabled()) {
 				this.logger.debug("Unable to attempt conversion of Message payload types. Component '" +
 						this.getComponentName() + "' has no explicit ConversionService reference, " +
