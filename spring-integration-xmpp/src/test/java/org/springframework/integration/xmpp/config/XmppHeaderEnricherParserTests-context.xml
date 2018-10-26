@@ -8,11 +8,15 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="input"/>
+	<channel id="input">
+		<queue/>
+	</channel>
+
 	<channel id="output"/>
 
 	<xmpp:header-enricher input-channel="input" output-channel="output">
 		<xmpp:chat-to value="test1@example.org"/>
+		<poller fixed-delay="100"/>
 	</xmpp:header-enricher>
 
 </beans:beans>

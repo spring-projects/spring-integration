@@ -28,6 +28,10 @@
 		<xsd:complexType >
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
+					<xsd:sequence>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" />
+					</xsd:sequence>
 					<xsd:attribute name="marshaller" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -83,6 +87,10 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
+					<xsd:sequence>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" />
+					</xsd:sequence>
 					<xsd:attribute name="unmarshaller" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -125,6 +133,8 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 						</xsd:element>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" />
 					</xsd:sequence>
 					<xsd:attribute name="xslt-param-headers" type="xsd:string" use="optional">
 						<xsd:annotation>
@@ -262,6 +272,10 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
+					<xsd:sequence>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" />
+					</xsd:sequence>
 					<xsd:attribute name="xpath-expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -339,8 +353,10 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
-					<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+					<xsd:sequence maxOccurs="unbounded">
 						<xsd:element type="xpathHeaderType" name="header"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" />
 					</xsd:sequence>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>
@@ -480,8 +496,8 @@
 		<xsd:complexContent>
 			<xsd:extension base="commonXPathRouterType">
 				<xsd:sequence>
-					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-					<xsd:element ref="xpath-expression"   minOccurs="0" maxOccurs="1">
+					<xsd:element ref="integration:poller" minOccurs="0" />
+					<xsd:element ref="xpath-expression"   minOccurs="0" >
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 								Internally XPath expressions will be evaluated as
@@ -517,6 +533,8 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+								 minOccurs="0" />
 					</xsd:sequence>
 					<xsd:attributeGroup ref="integration:topLevelRouterAttributeGroup"/>
 					<xsd:attribute name="converter" type="xsd:string">
@@ -713,7 +731,9 @@
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
 					<xsd:sequence>
-						<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="xpath-expression" minOccurs="0" />
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" />
 					</xsd:sequence>
 					<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
 						<xsd:annotation>
@@ -842,7 +862,8 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="integration:poller" minOccurs="0"/>
+			<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType" minOccurs="0" />
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="discard-channel" type="xsd:string">

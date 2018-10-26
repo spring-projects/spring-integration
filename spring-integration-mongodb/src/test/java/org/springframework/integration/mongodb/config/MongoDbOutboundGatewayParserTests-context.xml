@@ -8,13 +8,23 @@
 		http://www.springframework.org/schema/integration/mongodb http://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
 	<int:channel id="in"/>
+
+	<int:channel id="inQueue">
+		<int:queue />
+	</int:channel>
+
 	<int:channel id="out"/>
 
 	<int-mongodb:outbound-gateway id="minimalConfig"
 			query="{'name' : 'foo'}"
 			collection-name="foo"
-			request-channel="in"
-			reply-channel="out"/>
+			request-channel="inQueue"
+			reply-channel="out">
+		<int:poller fixed-delay="1000"/>
+		<int-mongodb:request-handler-advice-chain>
+			<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice"/>
+		</int-mongodb:request-handler-advice-chain>
+	</int-mongodb:outbound-gateway>
 
 	<int-mongodb:outbound-gateway id="fullConfigWithCollectionExpression"
 			mongodb-factory="mongoDbFactory"

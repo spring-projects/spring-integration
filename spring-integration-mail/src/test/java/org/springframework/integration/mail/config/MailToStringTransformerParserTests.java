@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import javax.mail.internet.MimeMessage;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -38,47 +38,52 @@ import org.springframework.messaging.support.GenericMessage;
  * @author Mark Fisher
  * @author Artem Bilan
  */
-public class MailToStringTransformerParserTests {
+class MailToStringTransformerParserTests {
 
 	@Test
-	public void topLevelTransformer() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"mailToStringTransformerParserTests.xml",  this.getClass());
-		MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
-		PollableChannel output = (PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
-		MimeMessage mimeMessage = Mockito.mock(MimeMessage.class);
-		Mockito.when(mimeMessage.getContent()).thenReturn("hello");
-		input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
-		Message<?> result = output.receive(0);
-		assertNotNull(result);
-		assertEquals("hello", result.getPayload());
-		Mockito.verify(mimeMessage).getContent();
+	void topLevelTransformer() throws Exception {
+		try (ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("mailToStringTransformerParserTests.xml", this.getClass());) {
+
+			MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
+			PollableChannel output =
+					(PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
+			MimeMessage mimeMessage = Mockito.mock(MimeMessage.class);
+			Mockito.when(mimeMessage.getContent()).thenReturn("hello");
+			input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
+			Message<?> result = output.receive(10_000);
+			assertNotNull(result);
+			assertEquals("hello", result.getPayload());
+			Mockito.verify(mimeMessage).getContent();
+		}
 	}
 
 	@Test
-	public void transformerWithinChain() throws Exception {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"mailToStringTransformerWithinChain.xml",  this.getClass());
-		MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
-		PollableChannel output = (PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
-		MimeMessage mimeMessage = Mockito.mock(MimeMessage.class);
-		Mockito.when(mimeMessage.getContent()).thenReturn("foo");
-		input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
-		Message<?> result = output.receive(0);
-		assertNotNull(result);
-		assertEquals("FOO!!!", result.getPayload());
-		Mockito.verify(mimeMessage).getContent();
+	void transformerWithinChain() throws Exception {
+		try (ClassPathXmlApplicationContext context =
+				new ClassPathXmlApplicationContext("mailToStringTransformerWithinChain.xml", this.getClass());) {
+
+			MessageChannel input = new BeanFactoryChannelResolver(context).resolveDestination("input");
+			PollableChannel output =
+					(PollableChannel) new BeanFactoryChannelResolver(context).resolveDestination("output");
+			MimeMessage mimeMessage = Mockito.mock(MimeMessage.class);
+			Mockito.when(mimeMessage.getContent()).thenReturn("foo");
+			input.send(new GenericMessage<javax.mail.Message>(mimeMessage));
+			Message<?> result = output.receive(0);
+			assertNotNull(result);
+			assertEquals("FOO!!!", result.getPayload());
+			Mockito.verify(mimeMessage).getContent();
+		}
 	}
 
-	@Test(expected = BeanDefinitionStoreException.class)
-	public void topLevelTransformerMissingInput() {
+	@Test
+	void topLevelTransformerMissingInput() {
 		try {
 			new ClassPathXmlApplicationContext("mailToStringTransformerWithoutInputChannel.xml", this.getClass())
 					.close();
 		}
 		catch (BeanDefinitionStoreException e) {
 			assertTrue(e.getMessage().contains("input-channel"));
-			throw e;
 		}
 	}
 
