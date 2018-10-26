@@ -22,6 +22,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.remoting.rmi.RmiServiceExporter;
@@ -118,6 +119,7 @@ public class RmiInboundGateway extends MessagingGatewaySupport
 	}
 
 	@Override
+	@Nullable
 	public Message<?> exchange(Message<?> message) {
 		if (this.expectReply) {
 			return sendAndReceiveMessage(message);

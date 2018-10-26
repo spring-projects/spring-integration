@@ -57,9 +57,9 @@ public class MqttPahoMessageDrivenChannelAdapter extends AbstractMqttMessageDriv
 
 	private final MqttPahoClientFactory clientFactory;
 
-	private long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
-
 	private int recoveryInterval = DEFAULT_RECOVERY_INTERVAL;
+
+	private volatile long completionTimeout = DEFAULT_COMPLETION_TIMEOUT;
 
 	private volatile IMqttClient client;
 
