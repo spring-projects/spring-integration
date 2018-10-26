@@ -13,14 +13,18 @@
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-	<si:channel id="input"/>
+	<si:channel id="input">
+		<si:queue/>
+	</si:channel>
 
 	<si:channel id="output"/>
 
 	<file:file-to-string-transformer id="transformer"
 			input-channel="input"
 			delete-files="${files.delete}"
-			output-channel="output"/>
+			output-channel="output">
+		<si:poller fixed-delay="100"/>
+	</file:file-to-string-transformer>
 
 	<context:property-placeholder location="org/springframework/integration/file/config/fileToStringTransformerParserTests.properties"/>
 

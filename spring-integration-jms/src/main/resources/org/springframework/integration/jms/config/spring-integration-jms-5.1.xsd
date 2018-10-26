@@ -1387,6 +1387,7 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>

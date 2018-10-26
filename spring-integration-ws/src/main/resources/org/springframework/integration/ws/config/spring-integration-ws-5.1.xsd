@@ -465,8 +465,9 @@ this list can also be simple patterns to be matched against the header names (e.
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
-					<xsd:choice minOccurs="1" maxOccurs="1">
+					<xsd:choice maxOccurs="2">
 						<xsd:element name="soap-action" type="headerType"/>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>

@@ -292,7 +292,7 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
-					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+					<xsd:choice maxOccurs="unbounded">
 						<xsd:element name="chat-to" type="headerType">
 							<xsd:annotation>
 								<xsd:documentation>
@@ -308,6 +308,7 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>

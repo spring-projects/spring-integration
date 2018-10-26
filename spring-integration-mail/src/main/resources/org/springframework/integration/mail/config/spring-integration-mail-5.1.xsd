@@ -298,6 +298,9 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
+					</xsd:sequence>
 					<xsd:attribute name="charset" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -314,7 +317,7 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
-					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+					<xsd:choice maxOccurs="unbounded">
 						<xsd:element name="subject" type="headerType"/>
 						<xsd:element name="to" type="headerType"/>
 						<xsd:element name="cc" type="headerType"/>
@@ -324,6 +327,7 @@
 						<xsd:element name="content-type" type="headerType"/>
 						<xsd:element name="attachment-filename" type="headerType"/>
 						<xsd:element name="multipart-mode" type="headerType"/>
+						<xsd:element ref="integration:poller" minOccurs="0"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>

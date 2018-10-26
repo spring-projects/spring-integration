@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
+
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,14 +38,20 @@ import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
 import org.springframework.integration.mongodb.outbound.MongoDbOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Xavier Padró
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
 @ContextConfiguration
@@ -61,8 +70,9 @@ public class MongoDbOutboundGatewayParserTests {
 
 	@Test
 	public void minimalConfig() {
+		AbstractEndpoint endpoint = this.context.getBean("minimalConfig", AbstractEndpoint.class);
 		MongoDbOutboundGateway gateway =
-				TestUtils.getPropertyValue(context.getBean("minimalConfig"), "handler", MongoDbOutboundGateway.class);
+				TestUtils.getPropertyValue(endpoint, "handler", MongoDbOutboundGateway.class);
 
 		assertNotNull(TestUtils.getPropertyValue(gateway, "mongoTemplate"));
 		assertSame(this.mongoDbFactory, TestUtils.getPropertyValue(gateway, "mongoDbFactory"));
@@ -70,6 +80,11 @@ public class MongoDbOutboundGatewayParserTests {
 		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"),
 				instanceOf(LiteralExpression.class));
 		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
+
+		assertThat(endpoint, Matchers.instanceOf(PollingConsumer.class));
+		MessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
+		List<?> advices = TestUtils.getPropertyValue(handler, "adviceChain", List.class);
+		assertThat(advices.get(0), Matchers.instanceOf(RequestHandlerRetryAdvice.class));
 	}
 
 	@Test

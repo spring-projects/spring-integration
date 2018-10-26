@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,17 @@ import org.springframework.integration.mail.MailHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext
 public class MailHeaderEnricherTests {
 
 	@Autowired
@@ -51,8 +54,8 @@ public class MailHeaderEnricherTests {
 	@Test
 	public void literalValues() {
 		MessagingTemplate template = new MessagingTemplate();
-		template.setDefaultDestination(literalValuesInput);
-		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
+		template.setDefaultDestination(this.literalValuesInput);
+		Message<?> result = template.sendAndReceive(new GenericMessage<>("test"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("test.to", headers.get(MailHeaders.TO));
 		assertEquals("test.cc", headers.get(MailHeaders.CC));
@@ -67,8 +70,8 @@ public class MailHeaderEnricherTests {
 	@Test
 	public void expressions() {
 		MessagingTemplate template = new MessagingTemplate();
-		template.setDefaultDestination(expressionsInput);
-		Message<?> result = template.sendAndReceive(new GenericMessage<String>("foo"));
+		template.setDefaultDestination(this.expressionsInput);
+		Message<?> result = template.sendAndReceive(new GenericMessage<>("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("foo.to", headers.get(MailHeaders.TO));
 		assertEquals("foo.cc", headers.get(MailHeaders.CC));

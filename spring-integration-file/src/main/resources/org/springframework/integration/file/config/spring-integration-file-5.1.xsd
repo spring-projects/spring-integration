@@ -651,6 +651,11 @@ Only files matching this regular expression will be picked up by this adapter.
     </xsd:element>
 
     <xsd:complexType name="transformerType">
+		<xsd:choice minOccurs="0" maxOccurs="2">
+			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+						 minOccurs="0" maxOccurs="1" />
+		</xsd:choice>
         <xsd:attribute name="id" type="xsd:string">
             <xsd:annotation>
 				<xsd:documentation>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -59,19 +60,19 @@ public class JmsHeaderEnricherTests {
 
 	@Test // INT-804
 	public void verifyReplyToValue() throws Exception {
-		valueTestInput.send(new GenericMessage<String>("test"));
-		Message<?> result = output.receive(0);
-		assertEquals(testDestination, result.getHeaders().get(JmsHeaders.REPLY_TO));
+		this.valueTestInput.send(new GenericMessage<>("test"));
+		Message<?> result = output.receive(10_000);
+		assertEquals(this.testDestination, result.getHeaders().get(JmsHeaders.REPLY_TO));
 		StubTextMessage jmsMessage = new StubTextMessage();
 		DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 		headerMapper.fromHeaders(result.getHeaders(), jmsMessage);
-		assertEquals(testDestination, jmsMessage.getJMSReplyTo());
+		assertEquals(this.testDestination, jmsMessage.getJMSReplyTo());
 	}
 
 	@Test
 	public void verifyCorrelationIdValue() throws Exception {
-		valueTestInput.send(new GenericMessage<String>("test"));
-		Message<?> result = output.receive(0);
+		this.valueTestInput.send(new GenericMessage<>("test"));
+		Message<?> result = output.receive(10_000);
 		assertEquals("ABC", result.getHeaders().get(JmsHeaders.CORRELATION_ID));
 		StubTextMessage jmsMessage = new StubTextMessage();
 		DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
@@ -81,7 +82,7 @@ public class JmsHeaderEnricherTests {
 
 	@Test // see INT-1122 and INT-1123
 	public void verifyCorrelationIdExpression() throws Exception {
-		expressionTestInput.send(new GenericMessage<String>("test"));
+		this.expressionTestInput.send(new GenericMessage<>("test"));
 		Message<?> result = output.receive(0);
 		assertEquals(123, result.getHeaders().get(JmsHeaders.CORRELATION_ID));
 		StubTextMessage jmsMessage = new StubTextMessage();

@@ -116,6 +116,11 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="mongodbAdapterType">
+					<xsd:choice minOccurs="0" maxOccurs="2">
+						<xsd:element ref="integration:poller" minOccurs="0"/>
+						<xsd:element name="request-handler-advice-chain" type="integration:handlerAdviceChainType"
+									 minOccurs="0" />
+					</xsd:choice>
 					<xsd:attribute name="request-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
