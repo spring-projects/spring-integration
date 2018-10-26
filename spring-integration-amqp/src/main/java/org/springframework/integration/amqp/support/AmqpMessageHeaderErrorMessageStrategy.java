@@ -51,7 +51,12 @@ public class AmqpMessageHeaderErrorMessageStrategy implements ErrorMessageStrate
 				: context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
 		Map<String, Object> headers = context == null ? new HashMap<String, Object>() :
 				Collections.singletonMap(AMQP_RAW_MESSAGE, context.getAttribute(AMQP_RAW_MESSAGE));
-		return new ErrorMessage(throwable, headers, inputMessage instanceof Message ? (Message<?>) inputMessage : null);
+		if (inputMessage instanceof Message) {
+			return new ErrorMessage(throwable, headers, (Message<?>) inputMessage);
+		}
+		else {
+			return new ErrorMessage(throwable, headers);
+		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.support;
 
 import org.springframework.core.AttributeAccessor;
 import org.springframework.core.AttributeAccessorSupport;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -49,7 +50,9 @@ public final class ErrorMessageUtils {
 	 * @param failedMessage the failed message.
 	 * @return the context.
 	 */
-	public static AttributeAccessor getAttributeAccessor(Message<?> inputMessage, Message<?> failedMessage) {
+	public static AttributeAccessor getAttributeAccessor(@Nullable Message<?> inputMessage,
+			@Nullable Message<?> failedMessage) {
+
 		AttributeAccessorSupport attributes = new ErrorMessageAttributes();
 		if (inputMessage != null) {
 			attributes.setAttribute(INPUT_MESSAGE_CONTEXT_KEY, inputMessage);

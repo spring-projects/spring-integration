@@ -46,6 +46,7 @@ import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.SampleFacade;
 import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -620,8 +621,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			}
 		}
 
-		public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex,
-				Deque<ChannelInterceptor> interceptorStack) {
+		public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent,
+				@Nullable Exception ex, Deque<ChannelInterceptor> interceptorStack) {
+
 			for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
 				ChannelInterceptor interceptor = iterator.next();
 				try {
@@ -658,8 +660,9 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			return message;
 		}
 
-		public void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex,
-				Deque<ChannelInterceptor> interceptorStack) {
+		public void afterReceiveCompletion(@Nullable Message<?> message, MessageChannel channel,
+				@Nullable Exception ex, Deque<ChannelInterceptor> interceptorStack) {
+
 			for (Iterator<ChannelInterceptor> iterator = interceptorStack.descendingIterator(); iterator.hasNext(); ) {
 				ChannelInterceptor interceptor = iterator.next();
 				try {

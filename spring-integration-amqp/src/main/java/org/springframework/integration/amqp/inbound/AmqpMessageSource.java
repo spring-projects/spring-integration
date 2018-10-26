@@ -159,7 +159,7 @@ public class AmqpMessageSource extends AbstractMessageSource<Object> {
 
 	@Override
 	protected AbstractIntegrationMessageBuilder<Object> doReceive() {
-		Connection connection = this.connectionFactory.createConnection();
+		Connection connection = this.connectionFactory.createConnection(); // NOSONAR - RabbitUtils
 		Channel channel = connection.createChannel(this.transacted);
 		try {
 			GetResponse resp = channel.basicGet(this.queue, false);

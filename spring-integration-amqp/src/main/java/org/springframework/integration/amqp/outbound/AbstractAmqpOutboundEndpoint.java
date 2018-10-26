@@ -307,7 +307,7 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 		this.errorMessageStrategy = errorMessageStrategy;
 	}
 
-	protected final void setConnectionFactory(ConnectionFactory connectionFactory) {
+	protected synchronized final void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
 

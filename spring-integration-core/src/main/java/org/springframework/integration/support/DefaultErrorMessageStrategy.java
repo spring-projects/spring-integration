@@ -17,6 +17,7 @@
 package org.springframework.integration.support;
 
 import org.springframework.core.AttributeAccessor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
@@ -36,7 +37,7 @@ import org.springframework.messaging.support.ErrorMessage;
 public class DefaultErrorMessageStrategy implements ErrorMessageStrategy {
 
 	@Override
-	public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor attributes) {
+	public ErrorMessage buildErrorMessage(Throwable throwable, @Nullable AttributeAccessor attributes) {
 		Object inputMessage = attributes == null ? null
 				: attributes.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
 		return new ErrorMessage(throwable, inputMessage instanceof Message ? (Message<?>) inputMessage : null);

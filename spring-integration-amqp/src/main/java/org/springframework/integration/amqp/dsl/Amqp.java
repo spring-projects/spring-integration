@@ -23,6 +23,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.DirectMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpMessageSource.AmqpAckCallbackFactory;
+import org.springframework.lang.Nullable;
 
 /**
  * Factory class for AMQP components.
@@ -278,7 +279,9 @@ public final class Amqp {
 	 * @param connectionFactory the connectionFactory.
 	 * @return the AmqpPollableMessageChannelSpec.
 	 */
-	public static AmqpPollableMessageChannelSpec<?> pollableChannel(String id, ConnectionFactory connectionFactory) {
+	public static AmqpPollableMessageChannelSpec<?> pollableChannel(@Nullable String id,
+			ConnectionFactory connectionFactory) {
+
 		return new AmqpPollableMessageChannelSpec<>(connectionFactory)
 				.id(id);
 	}
@@ -298,7 +301,7 @@ public final class Amqp {
 	 * @param connectionFactory the connectionFactory.
 	 * @return the AmqpMessageChannelSpec.
 	 */
-	public static AmqpMessageChannelSpec<?> channel(String id, ConnectionFactory connectionFactory) {
+	public static AmqpMessageChannelSpec<?> channel(@Nullable String id, ConnectionFactory connectionFactory) {
 		return new AmqpMessageChannelSpec<>(connectionFactory)
 				.id(id);
 	}
@@ -318,7 +321,7 @@ public final class Amqp {
 	 * @param connectionFactory the connectionFactory.
 	 * @return the AmqpPublishSubscribeMessageChannelSpec.
 	 */
-	public static AmqpPublishSubscribeMessageChannelSpec publishSubscribeChannel(String id,
+	public static AmqpPublishSubscribeMessageChannelSpec publishSubscribeChannel(@Nullable String id,
 			ConnectionFactory connectionFactory) {
 
 		return new AmqpPublishSubscribeMessageChannelSpec(connectionFactory).id(id);
