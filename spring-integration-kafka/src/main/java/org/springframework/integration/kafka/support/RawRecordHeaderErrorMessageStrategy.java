@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.core.AttributeAccessor;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ErrorMessage;
 
@@ -39,12 +40,16 @@ import org.springframework.messaging.support.ErrorMessage;
 public class RawRecordHeaderErrorMessageStrategy implements ErrorMessageStrategy {
 
 	@Override
-	public ErrorMessage buildErrorMessage(Throwable throwable, AttributeAccessor context) {
+	public ErrorMessage buildErrorMessage(Throwable throwable, @Nullable AttributeAccessor context) {
 		Object inputMessage = context.getAttribute(ErrorMessageUtils.INPUT_MESSAGE_CONTEXT_KEY);
 		Map<String, Object> headers =
 				Collections.singletonMap(KafkaHeaders.RAW_DATA, context.getAttribute(KafkaHeaders.RAW_DATA));
-		return new ErrorMessage(throwable, headers,
-				inputMessage instanceof Message<?> ? (Message<?>) inputMessage : null);
+		if (inputMessage instanceof Message) {
+			return new ErrorMessage(throwable, headers, (Message<?>) inputMessage);
+		}
+		else {
+			return new ErrorMessage(throwable, headers);
+		}
 	}
 
 }
