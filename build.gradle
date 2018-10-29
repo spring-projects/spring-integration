@@ -122,7 +122,7 @@ subprojects { subproject ->
 		lettuceVersion = '5.1.0.RELEASE'
 		log4jVersion = '2.11.1'
 		micrometerVersion = '1.1.0'
-		mockitoVersion = '2.23.1'
+		mockitoVersion = '2.23.0'
 		mysqlVersion = '8.0.11'
 		pahoMqttClientVersion = '1.2.0'
 		postgresVersion = '42.0.0'
