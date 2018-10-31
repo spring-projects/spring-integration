@@ -269,9 +269,47 @@ public class AggregatorTests {
 	}
 
 	@Test
+	public void testCompleteGroupWithinTimeoutDeferredSend() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
+		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
+		Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, null);
+
+		this.aggregator.setReleaseLockBeforeSend(true);
+		this.aggregator.handleMessage(message1);
+		this.aggregator.handleMessage(message2);
+		this.aggregator.handleMessage(message3);
+
+		Message<?> reply = replyChannel.receive(10000);
+		assertNotNull(reply);
+		assertEquals(reply.getPayload(), 105);
+	}
+
+	@Test
 	public void testShouldNotSendPartialResultOnTimeoutByDefault() {
 		QueueChannel discardChannel = new QueueChannel();
 		this.aggregator.setDiscardChannel(discardChannel);
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = createMessage(3, "ABC", 2, 1, replyChannel, null);
+		this.aggregator.handleMessage(message);
+		this.store.expireMessageGroups(-10000);
+		Message<?> reply = replyChannel.receive(0);
+		assertNull("No message should have been sent normally", reply);
+		Message<?> discardedMessage = discardChannel.receive(1000);
+		assertNotNull("A message should have been discarded", discardedMessage);
+		assertEquals(message, discardedMessage);
+		assertEquals(1, expiryEvents.size());
+		assertSame(this.aggregator, expiryEvents.get(0).getSource());
+		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
+		assertEquals(1, this.expiryEvents.get(0).getMessageCount());
+		assertTrue(this.expiryEvents.get(0).isDiscarded());
+	}
+
+	@Test
+	public void testShouldNotSendPartialResultOnTimeoutByDefaultDeferredSend() {
+		QueueChannel discardChannel = new QueueChannel();
+		this.aggregator.setDiscardChannel(discardChannel);
+		this.aggregator.setReleaseLockBeforeSend(true);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = createMessage(3, "ABC", 2, 1, replyChannel, null);
 		this.aggregator.handleMessage(message);
@@ -314,6 +352,36 @@ public class AggregatorTests {
 	public void testGroupRemainsAfterTimeout() {
 		this.aggregator.setSendPartialResultOnExpiry(true);
 		this.aggregator.setExpireGroupsUponTimeout(false);
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
+		this.aggregator.setDiscardChannel(discardChannel);
+		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
+		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
+		this.aggregator.handleMessage(message1);
+		this.aggregator.handleMessage(message2);
+		this.store.expireMessageGroups(-10000);
+		Message<?> reply = replyChannel.receive(1000);
+		assertNotNull("A reply message should have been received", reply);
+		assertEquals(15, reply.getPayload());
+		assertEquals(1, expiryEvents.size());
+		assertSame(this.aggregator, expiryEvents.get(0).getSource());
+		assertEquals("ABC", this.expiryEvents.get(0).getGroupId());
+		assertEquals(2, this.expiryEvents.get(0).getMessageCount());
+		assertFalse(this.expiryEvents.get(0).isDiscarded());
+		assertEquals(0, this.store.getMessageGroup("ABC").size());
+		Message<?> message3 = createMessage(5, "ABC", 3, 3, replyChannel, null);
+		this.aggregator.handleMessage(message3);
+		assertEquals(0, this.store.getMessageGroup("ABC").size());
+		Message<?> discardedMessage = discardChannel.receive(1000);
+		assertNotNull("A message should have been discarded", discardedMessage);
+		assertSame(message3, discardedMessage);
+	}
+
+	@Test
+	public void testGroupRemainsAfterTimeoutDeferredDiscard() {
+		this.aggregator.setSendPartialResultOnExpiry(true);
+		this.aggregator.setExpireGroupsUponTimeout(false);
+		this.aggregator.setReleaseLockBeforeSend(true);
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
 		this.aggregator.setDiscardChannel(discardChannel);

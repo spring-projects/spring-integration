@@ -99,6 +99,7 @@ public class AggregatorParserTests {
 		Object mbf = context.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME);
 		Object handler = context.getBean("aggregatorWithReference.handler");
 		assertSame(mbf, TestUtils.getPropertyValue(handler, "outputProcessor.messageBuilderFactory"));
+		assertTrue(TestUtils.getPropertyValue(handler, "releaseLockBeforeSend", Boolean.class));
 	}
 
 	@Test
@@ -115,6 +116,8 @@ public class AggregatorParserTests {
 
 		assertEquals(3, output.getQueueSize());
 		output.purge(null);
+		assertFalse(TestUtils.getPropertyValue(context.getBean("aggregatorWithMGPReference.handler"),
+				"releaseLockBeforeSend", Boolean.class));
 	}
 
 	@Test

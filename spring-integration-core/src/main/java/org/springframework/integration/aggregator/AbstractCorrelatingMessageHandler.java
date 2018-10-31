@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,6 +64,9 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
+
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
  * {@link MessageStore}. This class takes care of correlated groups of messages
@@ -104,6 +108,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private final Set<Object> groupIds = ConcurrentHashMap.newKeySet();
 
+	private final ThreadLocal<Tuple2<Object, Message<?>>> deferredSends = new ThreadLocal<>();
+
+	private final ThreadLocal<List<Message<?>>> deferredDiscards = new ThreadLocal<>();
+
 	private MessageGroupProcessor outputProcessor;
 
 	private MessageGroupStore messageStore;
@@ -143,6 +151,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private boolean expireGroupsUponTimeout = true;
 
 	private boolean popSequence = true;
+
+	private boolean releaseLockBeforeSend;
 
 	private volatile boolean running;
 
@@ -287,6 +297,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
+	}
+
+	protected boolean isReleaseLockBeforeSend() {
+		return this.releaseLockBeforeSend;
+	}
+
+	/**
+	 * Set to true to release the message group lock before sending any output. See
+	 * "Avoiding Deadlocks" in the Aggregator section of the reference manual for more
+	 * information as to why this might be needed.
+	 * @param releaseLockBeforeSend
+	 * @since 5.0.10
+	 */
+	public void setReleaseLockBeforeSend(boolean releaseLockBeforeSend) {
+		this.releaseLockBeforeSend = releaseLockBeforeSend;
 	}
 
 	@Override
@@ -439,6 +464,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		UUID groupIdUuid = UUIDConverter.getUUID(correlationKey);
 		Lock lock = this.lockRegistry.obtain(groupIdUuid.toString());
 
+		boolean maybeOutput = false;
 		lock.lockInterruptibly();
 		try {
 			ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(groupIdUuid);
@@ -464,6 +490,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 					Collection<Message<?>> completedMessages = null;
 					try {
 						completedMessages = completeGroup(message, correlationKey, messageGroup);
+						maybeOutput = true;
 					}
 					finally {
 						// Possible clean (implementation dependency) up
@@ -479,11 +506,22 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 			else {
-				discardMessage(message);
+				if (this.releaseLockBeforeSend) {
+					LinkedList<Message<?>> deferred = new LinkedList<>();
+					this.deferredDiscards.set(deferred);
+					deferred.add(message);
+					maybeOutput = true;
+				}
+				else {
+					discardMessage(message);
+				}
 			}
 		}
 		finally {
 			lock.unlock();
+		}
+		if (maybeOutput && this.releaseLockBeforeSend) {
+			deferredSend();
 		}
 	}
 
@@ -614,6 +652,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		// UUIDConverter is no-op if already converted
 		Lock lock = this.lockRegistry.obtain(UUIDConverter.getUUID(correlationKey).toString());
 		boolean removeGroup = true;
+		boolean maybeOutput = false;
 		try {
 			lock.lockInterruptibly();
 			try {
@@ -659,6 +698,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						else {
 							expireGroup(correlationKey, groupNow);
 						}
+						maybeOutput = true;
 						if (!this.expireGroupsUponTimeout) {
 							afterRelease(groupNow, groupNow.getMessages(), true);
 							removeGroup = false;
@@ -709,6 +749,24 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			Thread.currentThread().interrupt();
 			this.logger.debug("Thread was interrupted while trying to obtain lock");
 		}
+		if (maybeOutput && this.releaseLockBeforeSend) {
+			deferredSend();
+		}
+	}
+
+	protected void deferredSend() {
+		Tuple2<Object, Message<?>> tuple2 = this.deferredSends.get();
+		if (tuple2 != null) {
+			this.deferredSends.remove();
+			sendOutputs(tuple2.getT1(), tuple2.getT2());
+		}
+		else {
+			List<Message<?>> deferred = this.deferredDiscards.get();
+			if (deferred != null) {
+				this.deferredDiscards.remove();
+				deferred.forEach(m -> discardMessage(m));
+			}
+		}
 	}
 
 	protected void remove(MessageGroup group) {
@@ -744,8 +802,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						+ correlationKey + "] to: "
 						+ (this.discardChannelName != null ? this.discardChannelName : this.discardChannel));
 			}
-			for (Message<?> message : group.getMessages()) {
-				discardMessage(message);
+			if (this.releaseLockBeforeSend) {
+				LinkedList<Message<?>> deferred = new LinkedList<>();
+				this.deferredDiscards.set(deferred);
+				group.getMessages().forEach(m -> deferred.add(m));
+			}
+			else {
+				group.getMessages().forEach(m -> discardMessage(m));
 			}
 		}
 		if (this.applicationEventPublisher != null) {
@@ -787,8 +850,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			}
 			result = messageBuilder.popSequenceDetails();
 		}
-
-		sendOutputs(result, message);
+		if (this.releaseLockBeforeSend) {
+			this.deferredSends.set(Tuples.of(result, message));
+		}
+		else {
+			sendOutputs(result, message);
+		}
 		return partialSequence;
 	}
 

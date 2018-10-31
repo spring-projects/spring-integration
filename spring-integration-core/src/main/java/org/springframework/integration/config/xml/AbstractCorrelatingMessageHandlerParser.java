@@ -63,6 +63,8 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	private static final String EXPIRE_GROUPS_UPON_TIMEOUT = "expire-groups-upon-timeout";
 
+	private static final String RELEASE_LOCK = "release-lock-before-send";
+
 	protected void doParse(BeanDefinitionBuilder builder, Element element, BeanMetadataElement processor,
 			ParserContext parserContext) {
 		IntegrationNamespaceUtils.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE,
@@ -97,6 +99,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 				builder.getRawBeanDefinition(), parserContext, "forceReleaseAdviceChain");
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_TIMEOUT);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, RELEASE_LOCK);
 	}
 
 }

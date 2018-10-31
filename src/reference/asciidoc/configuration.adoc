@@ -286,6 +286,7 @@ spring.integration.channels.maxBroadcastSubscribers=0x7fffffff
 spring.integration.readOnly.headers=
 spring.integration.messagingTemplate.throwExceptionOnLateReply=true
 ----
+====
 
 [[annotations]]
 === Annotation Support

@@ -3915,6 +3915,19 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="release-lock-before-send">
+					<xsd:annotation>
+						<xsd:documentation>
+							Set to true to release the message group lock before sending any
+							output. See "Avoiding Deadlocks" in the Aggregator section of
+							the reference manual for more information as to why this might
+							be needed.
+						</xsd:documentation>
+					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:union memberTypes="xsd:boolean xsd:string" />
+					</xsd:simpleType>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
