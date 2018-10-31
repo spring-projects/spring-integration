@@ -279,6 +279,47 @@ A `LockRegistry` is used to obtain a lock for the resolved correlation ID.
 A `DefaultLockRegistry` is used by default (in-memory).
 For synchronizing updates across servers where a shared `MessageGroupStore` is being used, you must configure a shared lock registry.
 
+[[aggregator-deadlocks]]
+===== Avoiding Deadlocks
+
+As discussed above, when message groups are mutated (messages added or released) a lock is held.
+
+Consider the following flow:
+
+====
+[source]
+----
+...->aggregator1-> ... ->aggregator2-> ...
+----
+====
+
+If there are multiple threads, **and the aggregators share a common lock registry**, it is possible to get a deadlock.
+This will cause hung threads and `jstack <pid>` might present a result such as:
+
+====
+[source]
+----
+Found one Java-level deadlock:
+=============================
+"t2":
+  waiting for ownable synchronizer 0x000000076c1cbfa0, (a java.util.concurrent.locks.ReentrantLock$NonfairSync),
+  which is held by "t1"
+"t1":
+  waiting for ownable synchronizer 0x000000076c1ccc00, (a java.util.concurrent.locks.ReentrantLock$NonfairSync),
+  which is held by "t2"
+----
+====
+
+There are several ways to avoid this problem:
+
+* ensure each aggregator has its own lock registry (this can be a shared registry across application instances but two or more aggregators in the flow must each have a distinct registry)
+* use an `ExecutorChannel` or `QueueChannel` as the output channel of the aggregator so that the downstream flow runs on a new thread
+* starting with version 5.1.1, set the `releaseLockBeforeSend` aggregator property to `true`
+
+NOTE: This problem can also be caused if, for some reason, the output of a single aggregator is eventually routed back to the same aggregator.
+Of course, the first solution above does not apply in this case.
+
+
 [[aggregator-java-dsl]]
 ==== Configuring an Aggregator in Java DSL
 

@@ -89,6 +89,8 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	private Boolean popSequence;
 
+	private Boolean releaseLockBeforeSend;
+
 	public void setProcessorBean(Object processorBean) {
 		this.processorBean = processorBean;
 	}
@@ -171,6 +173,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 	public void setPopSequence(Boolean popSequence) {
 		this.popSequence = popSequence;
+	}
+
+	public void setReleaseLockBeforeSend(Boolean releaseLockBeforeSend) {
+		this.releaseLockBeforeSend = releaseLockBeforeSend;
 	}
 
 	@Override
@@ -263,6 +269,10 @@ public class AggregatorFactoryBean extends AbstractSimpleMessageHandlerFactoryBe
 
 		if (this.popSequence != null) {
 			aggregator.setPopSequence(this.popSequence);
+		}
+
+		if (this.releaseLockBeforeSend != null) {
+			aggregator.setReleaseLockBeforeSend(this.releaseLockBeforeSend);
 		}
 
 		return aggregator;

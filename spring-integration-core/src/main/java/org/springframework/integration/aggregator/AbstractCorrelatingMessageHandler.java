@@ -118,9 +118,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private String discardChannelName;
 
-	private boolean sendPartialResultOnExpiry = false;
+	private boolean sendPartialResultOnExpiry;
 
-	private boolean sequenceAware = false;
+	private boolean sequenceAware;
 
 	private LockRegistry lockRegistry = new DefaultLockRegistry();
 
@@ -143,6 +143,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private boolean expireGroupsUponTimeout = true;
 
 	private boolean popSequence = true;
+
+	private boolean releaseLockBeforeSend;
 
 	private volatile boolean running;
 
@@ -287,6 +289,21 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@Override
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
+	}
+
+	protected boolean isReleaseLockBeforeSend() {
+		return this.releaseLockBeforeSend;
+	}
+
+	/**
+	 * Set to true to release the message group lock before sending any output. See
+	 * "Avoiding Deadlocks" in the Aggregator section of the reference manual for more
+	 * information as to why this might be needed.
+	 * @param releaseLockBeforeSend true to release the lock.
+	 * @since 5.1.1
+	 */
+	public void setReleaseLockBeforeSend(boolean releaseLockBeforeSend) {
+		this.releaseLockBeforeSend = releaseLockBeforeSend;
 	}
 
 	@Override
@@ -439,6 +456,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		UUID groupIdUuid = UUIDConverter.getUUID(correlationKey);
 		Lock lock = this.lockRegistry.obtain(groupIdUuid.toString());
 
+		boolean noOutput = true;
 		lock.lockInterruptibly();
 		try {
 			ScheduledFuture<?> scheduledFuture = this.expireGroupScheduledFutures.remove(groupIdUuid);
@@ -463,7 +481,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				if (this.releaseStrategy.canRelease(messageGroup)) {
 					Collection<Message<?>> completedMessages = null;
 					try {
-						completedMessages = completeGroup(message, correlationKey, messageGroup);
+						noOutput = false;
+						completedMessages = completeGroup(message, correlationKey, messageGroup, lock);
 					}
 					finally {
 						// Possible clean (implementation dependency) up
@@ -479,11 +498,14 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 			else {
-				discardMessage(message);
+				noOutput = false;
+				discardMessage(message, lock);
 			}
 		}
 		finally {
-			lock.unlock();
+			if (noOutput || !this.releaseLockBeforeSend) {
+				lock.unlock();
+			}
 		}
 	}
 
@@ -586,6 +608,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		}
 	}
 
+	private void discardMessage(Message<?> message, Lock lock) {
+		if (this.releaseLockBeforeSend) {
+			lock.unlock();
+		}
+		discardMessage(message);
+	}
+
 	private void discardMessage(Message<?> message) {
 		this.messagingTemplate.send(getDiscardChannel(), message);
 	}
@@ -609,11 +638,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	protected void forceComplete(MessageGroup group) {
-
 		Object correlationKey = group.getGroupId();
 		// UUIDConverter is no-op if already converted
 		Lock lock = this.lockRegistry.obtain(UUIDConverter.getUUID(correlationKey).toString());
 		boolean removeGroup = true;
+		boolean noOutput = true;
 		try {
 			lock.lockInterruptibly();
 			try {
@@ -653,11 +682,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						&& group.getTimestamp() == groupNow.getTimestamp()) {
 
 					if (groupSize > 0) {
+						noOutput = false;
 						if (this.releaseStrategy.canRelease(groupNow)) {
-							completeGroup(correlationKey, groupNow);
+							completeGroup(correlationKey, groupNow, lock);
 						}
 						else {
-							expireGroup(correlationKey, groupNow);
+							expireGroup(correlationKey, groupNow, lock);
 						}
 						if (!this.expireGroupsUponTimeout) {
 							afterRelease(groupNow, groupNow.getMessages(), true);
@@ -697,11 +727,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			finally {
 				try {
 					if (removeGroup) {
-						this.remove(group);
+						remove(group);
 					}
 				}
 				finally {
-					lock.unlock();
+					if (noOutput || !this.releaseLockBeforeSend) {
+						lock.unlock();
+					}
 				}
 			}
 		}
@@ -727,7 +759,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return this.messageStore.addMessageToGroup(correlationKey, message);
 	}
 
-	protected void expireGroup(Object correlationKey, MessageGroup group) {
+	protected void expireGroup(Object correlationKey, MessageGroup group, Lock lock) {
 		if (this.logger.isInfoEnabled()) {
 			this.logger.info("Expiring MessageGroup with correlationKey[" + correlationKey + "]");
 		}
@@ -736,7 +768,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				this.logger.debug("Prematurely releasing partially complete group with key ["
 						+ correlationKey + "] to: " + getOutputChannel());
 			}
-			completeGroup(correlationKey, group);
+			completeGroup(correlationKey, group, lock);
 		}
 		else {
 			if (this.logger.isDebugEnabled()) {
@@ -744,50 +776,62 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						+ correlationKey + "] to: "
 						+ (this.discardChannelName != null ? this.discardChannelName : this.discardChannel));
 			}
-			for (Message<?> message : group.getMessages()) {
-				discardMessage(message);
+			if (this.releaseLockBeforeSend) {
+				lock.unlock();
 			}
+			group.getMessages()
+					.forEach(this::discardMessage);
 		}
 		if (this.applicationEventPublisher != null) {
-			this.applicationEventPublisher.publishEvent(new MessageGroupExpiredEvent(this, correlationKey, group
-					.size(), new Date(group.getLastModified()), new Date(), !this.sendPartialResultOnExpiry));
+			this.applicationEventPublisher.publishEvent(
+					new MessageGroupExpiredEvent(this, correlationKey, group.size(),
+							new Date(group.getLastModified()), new Date(), !this.sendPartialResultOnExpiry));
 		}
 	}
 
-	protected void completeGroup(Object correlationKey, MessageGroup group) {
+	protected void completeGroup(Object correlationKey, MessageGroup group, Lock lock) {
 		Message<?> first = null;
 		if (group != null) {
 			first = group.getOne();
 		}
-		completeGroup(first, correlationKey, group);
+		completeGroup(first, correlationKey, group, lock);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("Completing group with correlationKey [" + correlationKey + "]");
-		}
+	protected Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group,
+			Lock lock) {
 
-		Object result = this.outputProcessor.processMessageGroup(group);
 		Collection<Message<?>> partialSequence = null;
-		if (result instanceof Collection<?>) {
-			verifyResultCollectionConsistsOfMessages((Collection<?>) result);
-			partialSequence = (Collection<Message<?>>) result;
-		}
-
-		if (this.popSequence && partialSequence == null && !(result instanceof Message<?>)) {
-			AbstractIntegrationMessageBuilder<?> messageBuilder;
-			if (result instanceof AbstractIntegrationMessageBuilder<?>) {
-				messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
+		Object result;
+		try {
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 			}
-			else {
-				messageBuilder = getMessageBuilderFactory()
-						.withPayload(result)
-						.copyHeaders(message.getHeaders());
-			}
-			result = messageBuilder.popSequenceDetails();
-		}
 
+			result = this.outputProcessor.processMessageGroup(group);
+			if (result instanceof Collection<?>) {
+				verifyResultCollectionConsistsOfMessages((Collection<?>) result);
+				partialSequence = (Collection<Message<?>>) result;
+			}
+
+			if (this.popSequence && partialSequence == null && !(result instanceof Message<?>)) {
+				AbstractIntegrationMessageBuilder<?> messageBuilder;
+				if (result instanceof AbstractIntegrationMessageBuilder<?>) {
+					messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
+				}
+				else {
+					messageBuilder = getMessageBuilderFactory()
+							.withPayload(result)
+							.copyHeaders(message.getHeaders());
+				}
+				result = messageBuilder.popSequenceDetails();
+			}
+		}
+		finally {
+			if (this.releaseLockBeforeSend) {
+				lock.unlock();
+			}
+		}
 		sendOutputs(result, message);
 		return partialSequence;
 	}
@@ -870,11 +914,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.size() == 0) {
 				return true;
 			}
-			Integer messageSequenceNumber = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
-					Integer.class);
+			Integer messageSequenceNumber = message.getHeaders()
+					.get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, Integer.class);
 			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
-				Integer messageSequenceSize = message.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
-						Integer.class);
+				Integer messageSequenceSize = message.getHeaders()
+						.get(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, Integer.class);
 				if (messageSequenceSize == null) {
 					messageSequenceSize = 0;
 				}
