@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -380,6 +381,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	}
 
 	@Test
+	@Ignore("Time sensitive: the empty group might be removed before main thread reaches assertion for size")
 	public void testScheduleRemoveAnEmptyGroupAfterConfiguredDelay() throws Exception {
 		final MessageGroupStore groupStore = new SimpleMessageStore();
 		AggregatingMessageHandler handler = new AggregatingMessageHandler(group -> group, groupStore);
