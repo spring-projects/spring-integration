@@ -407,7 +407,7 @@ project('spring-integration-groovy') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile project(":spring-integration-scripting")
-		compile "org.codehaus.groovy:groovy-all:$groovyVersion"
+		compile "org.codehaus.groovy:groovy:$groovyVersion"
 		compile "org.springframework:spring-context-support:$springVersion"
 
 		testCompile "org.springframework:spring-web:$springVersion"
@@ -566,7 +566,8 @@ project('spring-integration-scripting') {
 		compile project(":spring-integration-core")
 
 		testCompile("org.jruby:jruby:$jrubyVersion")
-		testCompile("org.codehaus.groovy:groovy-all:$groovyVersion")
+		testCompile("org.codehaus.groovy:groovy:$groovyVersion")
+		testCompile("org.codehaus.groovy:groovy-jsr223:$groovyVersion")
 		testCompile("org.python:jython-standalone:$jythonVersion")
 	}
 }
