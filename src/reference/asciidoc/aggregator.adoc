@@ -314,7 +314,7 @@ There are several ways to avoid this problem:
 
 * ensure each aggregator has its own lock registry (this can be a shared registry across application instances but two or more aggregators in the flow must each have a distinct registry)
 * use an `ExecutorChannel` or `QueueChannel` as the output channel of the aggregator so that the downstream flow runs on a new thread
-* starting with version 5.0.10, set the `releaseLockBeforeSend` aggregator property to `true`
+* starting with version 5.1.1, set the `releaseLockBeforeSend` aggregator property to `true`
 
 NOTE: This problem can also be caused if, for some reason, the output of a single aggregator is eventually routed back to the same aggregator.
 Of course, the first solution above does not apply in this case.
