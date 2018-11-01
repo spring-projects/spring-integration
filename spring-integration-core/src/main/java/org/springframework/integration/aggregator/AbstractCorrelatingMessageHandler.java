@@ -481,8 +481,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				if (this.releaseStrategy.canRelease(messageGroup)) {
 					Collection<Message<?>> completedMessages = null;
 					try {
-						completedMessages = completeGroup(message, correlationKey, messageGroup, lock);
 						noOutput = false;
+						completedMessages = completeGroup(message, correlationKey, messageGroup, lock);
 					}
 					finally {
 						// Possible clean (implementation dependency) up
@@ -498,8 +498,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 				}
 			}
 			else {
-				discardMessage(message, lock);
 				noOutput = false;
+				discardMessage(message, lock);
 			}
 		}
 		finally {
@@ -683,13 +683,13 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 						&& group.getTimestamp() == groupNow.getTimestamp()) {
 
 					if (groupSize > 0) {
+						noOutput = false;
 						if (this.releaseStrategy.canRelease(groupNow)) {
 							completeGroup(correlationKey, groupNow, lock);
 						}
 						else {
 							expireGroup(correlationKey, groupNow, lock);
 						}
-						noOutput = false;
 						if (!this.expireGroupsUponTimeout) {
 							afterRelease(groupNow, groupNow.getMessages(), true);
 							removeGroup = false;
@@ -799,31 +799,36 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	@SuppressWarnings("unchecked")
 	protected Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group,
 			Lock lock) {
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("Completing group with correlationKey [" + correlationKey + "]");
-		}
-
-		Object result = this.outputProcessor.processMessageGroup(group);
 		Collection<Message<?>> partialSequence = null;
-		if (result instanceof Collection<?>) {
-			verifyResultCollectionConsistsOfMessages((Collection<?>) result);
-			partialSequence = (Collection<Message<?>>) result;
-		}
+		Object result = null;
+		try {
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Completing group with correlationKey [" + correlationKey + "]");
+			}
 
-		if (this.popSequence && partialSequence == null && !(result instanceof Message<?>)) {
-			AbstractIntegrationMessageBuilder<?> messageBuilder;
-			if (result instanceof AbstractIntegrationMessageBuilder<?>) {
-				messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
+			result = this.outputProcessor.processMessageGroup(group);
+			if (result instanceof Collection<?>) {
+				verifyResultCollectionConsistsOfMessages((Collection<?>) result);
+				partialSequence = (Collection<Message<?>>) result;
 			}
-			else {
-				messageBuilder = getMessageBuilderFactory()
-						.withPayload(result)
-						.copyHeaders(message.getHeaders());
+
+			if (this.popSequence && partialSequence == null && !(result instanceof Message<?>)) {
+				AbstractIntegrationMessageBuilder<?> messageBuilder;
+				if (result instanceof AbstractIntegrationMessageBuilder<?>) {
+					messageBuilder = (AbstractIntegrationMessageBuilder<?>) result;
+				}
+				else {
+					messageBuilder = getMessageBuilderFactory()
+							.withPayload(result)
+							.copyHeaders(message.getHeaders());
+				}
+				result = messageBuilder.popSequenceDetails();
 			}
-			result = messageBuilder.popSequenceDetails();
 		}
-		if (this.releaseLockBeforeSend) {
-			lock.unlock();
+		finally {
+			if (this.releaseLockBeforeSend) {
+				lock.unlock();
+			}
 		}
 		sendOutputs(result, message);
 		return partialSequence;
