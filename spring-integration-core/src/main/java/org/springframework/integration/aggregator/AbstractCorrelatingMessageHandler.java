@@ -612,7 +612,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		if (this.releaseLockBeforeSend) {
 			lock.unlock();
 		}
-		this.messagingTemplate.send(getDiscardChannel(), message);
+		discardMessage(message);
 	}
 
 	private void discardMessage(Message<?> message) {
@@ -780,7 +780,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 			if (this.releaseLockBeforeSend) {
 				lock.unlock();
 			}
-			group.getMessages().forEach(m -> discardMessage(m));
+			group.getMessages().forEach(this::discardMessage);
 		}
 		if (this.applicationEventPublisher != null) {
 			this.applicationEventPublisher.publishEvent(new MessageGroupExpiredEvent(this, correlationKey, group
