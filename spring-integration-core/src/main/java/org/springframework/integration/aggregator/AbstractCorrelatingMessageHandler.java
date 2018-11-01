@@ -299,7 +299,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 * Set to true to release the message group lock before sending any output. See
 	 * "Avoiding Deadlocks" in the Aggregator section of the reference manual for more
 	 * information as to why this might be needed.
-	 * @param releaseLockBeforeSend
+	 * @param releaseLockBeforeSend true to release the lock.
 	 * @since 5.0.10
 	 */
 	public void setReleaseLockBeforeSend(boolean releaseLockBeforeSend) {
