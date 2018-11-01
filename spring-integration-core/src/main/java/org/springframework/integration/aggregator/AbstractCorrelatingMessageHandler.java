@@ -300,7 +300,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	 * "Avoiding Deadlocks" in the Aggregator section of the reference manual for more
 	 * information as to why this might be needed.
 	 * @param releaseLockBeforeSend true to release the lock.
-	 * @since 5.0.10
+	 * @since 5.1.1
 	 */
 	public void setReleaseLockBeforeSend(boolean releaseLockBeforeSend) {
 		this.releaseLockBeforeSend = releaseLockBeforeSend;
