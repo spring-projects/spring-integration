@@ -16,11 +16,12 @@
 
 package org.springframework.integration.metadata;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.util.Assert;
-
 
 /**
  * Simple implementation of {@link MetadataStore} that uses a {@link ConcurrentMap} for the data store.
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Turanski
  * @since 2.0
  */
 public class SimpleMetadataStore implements ConcurrentMetadataStore {
@@ -46,6 +48,7 @@ public class SimpleMetadataStore implements ConcurrentMetadataStore {
 	/**
 	 * Instantiate a {@link SimpleMetadataStore} using the provided {@link ConcurrentMap}.
 	 * The implementation may be a distributed map provided by projects such as Redis and Hazelcast.
+	 *
 	 * @param metadata the {@link ConcurrentMap} instance for metadata.
 	 * @since 4.1.4
 	 */
@@ -67,6 +70,11 @@ public class SimpleMetadataStore implements ConcurrentMetadataStore {
 	@Override
 	public String remove(String key) {
 		return this.metadata.remove(key);
+	}
+
+	@Override
+	public Set<String> keySet() {
+		return Collections.unmodifiableSet(this.metadata.keySet());
 	}
 
 	@Override

@@ -16,6 +16,10 @@
 
 package org.springframework.integration.jdbc.metadata;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -37,6 +41,7 @@ import org.springframework.util.Assert;
  *
  * @author Bojan Vukasovic
  * @author Artem Bilan
+ * @author David Turanski
  *
  * @since 5.0
  */
@@ -67,6 +72,8 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 
 	private String putIfAbsentValueQuery = "INSERT INTO %sMETADATA_STORE(METADATA_KEY, METADATA_VALUE, REGION) "
 			+ "SELECT ?, ?, ? FROM %sMETADATA_STORE WHERE METADATA_KEY=? AND REGION=? HAVING COUNT(*)=0";
+
+	private String getAllKeysQuery = "SELECT METADATA_KEY from %sMETADATA_STORE WHERE REGION=?";
 
 	/**
 	 * Instantiate a {@link JdbcMetadataStore} using provided dataSource {@link DataSource}.
@@ -129,6 +136,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		this.replaceValueByKeyQuery = String.format(this.replaceValueByKeyQuery, this.tablePrefix);
 		this.removeValueQuery = String.format(this.removeValueQuery, this.tablePrefix);
 		this.putIfAbsentValueQuery = String.format(this.putIfAbsentValueQuery, this.tablePrefix, this.tablePrefix);
+		this.getAllKeysQuery = String.format(this.getAllKeysQuery, this.tablePrefix);
 	}
 
 	@Override
@@ -245,5 +253,10 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 		}
 		return null;
 	}
-
+	@Override
+	public Set<String> keySet() {
+		Set<String> keys = new HashSet<>();
+		keys.addAll(this.jdbcTemplate.queryForList(this.getAllKeysQuery, new Object[]{this.region}, String.class));
+		return Collections.unmodifiableSet(keys);
+	}
 }

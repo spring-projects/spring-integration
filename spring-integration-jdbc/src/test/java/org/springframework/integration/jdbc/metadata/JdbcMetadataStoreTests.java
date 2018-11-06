@@ -16,8 +16,10 @@
 
 package org.springframework.integration.jdbc.metadata;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import javax.sql.DataSource;
 
@@ -35,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Bojan Vukasovic
  * @author Artem Bilan
  *
+ * @author David Turanski
  * @since 5.0
  */
 @ContextConfiguration
@@ -107,6 +110,13 @@ public class JdbcMetadataStoreTests {
 		metadataStore.replace("foo", "bar1", "bar2");
 		String bar = metadataStore.get("foo");
 		assertEquals("bar", bar);
+	}
+
+	@Test
+	public void keySet() {
+		metadataStore.put("foo1", "bar");
+		metadataStore.put("foo2", "bar2");
+		assertThat(metadataStore.keySet(),containsInAnyOrder("foo1","foo2"));
 	}
 
 }

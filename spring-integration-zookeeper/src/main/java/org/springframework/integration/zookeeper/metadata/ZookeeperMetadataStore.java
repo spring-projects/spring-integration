@@ -16,7 +16,9 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -43,6 +45,7 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  * @author Gary Russell
  * @author Artem Bilan
+ * @author David Turanski
  *
  * @since 4.2
  */
@@ -248,6 +251,10 @@ public class ZookeeperMetadataStore implements ListenableMetadataStore, SmartLif
 				throw new ZookeeperMetadataStoreException("Exception while deleting key '" + key + "'", e);
 			}
 		}
+	}
+	@Override
+	public Set<String> keySet() {
+		return Collections.unmodifiableSet(this.updateMap.keySet());
 	}
 
 	private void updateNode(String key, String value, int version) throws Exception {

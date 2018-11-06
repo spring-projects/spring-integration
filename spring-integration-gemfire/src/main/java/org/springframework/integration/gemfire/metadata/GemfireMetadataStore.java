@@ -16,8 +16,10 @@
 
 package org.springframework.integration.gemfire.metadata;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.geode.cache.Cache;
@@ -39,6 +41,7 @@ import org.springframework.util.Assert;
  *
  * @author Artem Bilan
  * @author Venil Noronha
+ * @author David Turanski
  *
  * @since 4.0
  */
@@ -96,6 +99,10 @@ public class GemfireMetadataStore implements ListenableMetadataStore {
 	public String remove(String key) {
 		Assert.notNull(key, "'key' must not be null.");
 		return this.region.remove(key);
+	}
+	@Override
+	public Set<String> keySet() {
+		return Collections.unmodifiableSet(this.region.keySet());
 	}
 
 	@Override

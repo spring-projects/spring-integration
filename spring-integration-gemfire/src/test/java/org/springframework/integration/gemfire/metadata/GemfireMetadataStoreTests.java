@@ -16,8 +16,10 @@
 
 package org.springframework.integration.gemfire.metadata;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.apache.geode.cache.Cache;
@@ -35,6 +37,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
+ * @author David Turanski
  * @since 4.0
  *
  */
@@ -165,6 +168,13 @@ public class GemfireMetadataStoreTests {
 		GemfireTemplate gemfireTemplate = new GemfireTemplate(region);
 
 		assertEquals("Integration", gemfireTemplate.get("GemfireMetadataStoreTests-Spring"));
+	}
+
+	@Test
+	public void testKeySet() {
+		metadataStore.put("foo1", "bar1");
+		metadataStore.put("foo2", "bar2");
+		assertThat(metadataStore.keySet(), containsInAnyOrder("foo1", "foo2"));
 	}
 
 }

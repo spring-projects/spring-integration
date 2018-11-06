@@ -16,8 +16,12 @@
 
 package org.springframework.integration.mongodb.metadata;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.bson.Document;
 
@@ -40,6 +44,7 @@ import com.mongodb.DBCollection;
  *
  * @author Senthil Arumugam, Samiraj Panneer Selvam
  * @author Artem Bilan
+ * @author David Turanski
  * @since 4.2
  *
  */
@@ -148,6 +153,14 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 		@SuppressWarnings("unchecked")
 		Map<String, String> result = this.template.findAndRemove(query, Map.class, this.collectionName);
 		return result == null ? null : result.get(VALUE);
+	}
+	@Override
+	public Set<String> keySet() {
+		List<String> result = this.template.findDistinct(new Query(), ID_FIELD, this.collectionName, Map.class,
+				String.class);
+		Set<String> keys = new HashSet<>();
+		keys.addAll(result);
+		return Collections.unmodifiableSet(keys);
 	}
 
 	/**

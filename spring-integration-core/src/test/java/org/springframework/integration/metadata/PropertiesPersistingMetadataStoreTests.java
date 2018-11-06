@@ -16,6 +16,7 @@
 
 package org.springframework.integration.metadata;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -37,6 +38,7 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
  * @author Mark Fisher
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author David Turanski
  * @since 2.0
  */
 public class PropertiesPersistingMetadataStoreTests {
@@ -92,6 +94,19 @@ public class PropertiesPersistingMetadataStoreTests {
 		assertNotNull(persistentProperties);
 		assertEquals(1, persistentProperties.size());
 		assertEquals("bar", persistentProperties.get("foo"));
+	}
+
+	@Test
+	public void validateKeySet() throws Exception {
+		new File(this.folder.getRoot(), "foo.properties");
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.setBaseDirectory(folder.getRoot().getAbsolutePath());
+		metadataStore.setFileName("foo.properties");
+		metadataStore.afterPropertiesSet();
+		metadataStore.put("foo1", "bar1");
+		metadataStore.put("foo2", "bar2");
+		metadataStore.close();
+		assertThat(metadataStore.keySet()).containsExactlyInAnyOrder("foo1","foo2");
 	}
 
 }

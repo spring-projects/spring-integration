@@ -16,6 +16,9 @@
 
 package org.springframework.integration.redis.metadata;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisOperations;
@@ -35,6 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author David Turanski
  *
  * @since 3.0
  */
@@ -138,6 +142,10 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 			Assert.isInstanceOf(String.class, removed, "The removed value was an invalid type");
 		}
 		return (String) removed;
+	}
+	@Override
+	public Set<String> keySet() {
+		return Collections.unmodifiableSet(this.properties.stringPropertyNames());
 	}
 
 	@Override

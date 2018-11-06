@@ -16,6 +16,9 @@
 
 package org.springframework.integration.metadata;
 
+import java.util.Set;
+import java.util.stream.Stream;
+
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
@@ -27,6 +30,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author David Turanski
  * @since 2.0
  */
 @ManagedResource
@@ -57,5 +61,11 @@ public interface MetadataStore {
 	 */
 	@ManagedAttribute
 	String remove(String key);
+
+	/**
+	 * Return all keys from this MetadataStore.
+	 * @return all keys as a Set.
+	 */
+	Set<String> keySet();
 
 }

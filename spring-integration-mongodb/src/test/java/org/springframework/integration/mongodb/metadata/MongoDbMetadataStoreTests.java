@@ -16,10 +16,14 @@
 
 package org.springframework.integration.mongodb.metadata;
 
+import java.util.Set;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
@@ -33,6 +37,7 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 /**
  * @author Senthil Arumugam, Samiraj Panneer Selvam
  * @author Artem Bilan
+ * @author David Turanski
  * @since 4.2
  *
  */
@@ -41,6 +46,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	private final static String DEFAULT_COLLECTION_NAME = "metadataStore";
 
 	private final String file1 = "/remotepath/filesTodownload/file-1.txt";
+	private final String file2 = "/remotepath/filesTodownload/file-2.txt";
 
 	private final String file1Id = "12345";
 
@@ -84,10 +90,14 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		assertNull(fileID);
 
 		store.put(file1, file1Id);
+		store.put(file2, file1Id);
 
 		fileID = store.get(file1);
 		assertNotNull(fileID);
 		assertEquals(file1Id, fileID);
+
+		Set<String> keys = store.keySet();
+		assertThat(keys, containsInAnyOrder(file1, file2));
 	}
 
 	@Test

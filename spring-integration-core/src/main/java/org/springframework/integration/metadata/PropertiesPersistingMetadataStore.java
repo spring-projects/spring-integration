@@ -26,7 +26,9 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
@@ -74,6 +76,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	/**
 	 * Set the location for the properties file. Defaults to
 	 * {@code 'java.io.tmpdir' +  "/spring-integration/"}.
+	 *
 	 * @param baseDirectory the directory.
 	 */
 	public void setBaseDirectory(String baseDirectory) {
@@ -84,6 +87,7 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 	/**
 	 * Set the name of the properties file in {@link #setBaseDirectory(String)}.
 	 * Defaults to {@code metadata-store.properties},
+	 *
 	 * @param fileName the properties file name.
 	 */
 	public void setFileName(String fileName) {
@@ -147,6 +151,10 @@ public class PropertiesPersistingMetadataStore implements ConcurrentMetadataStor
 			this.dirty = true;
 			lock.unlock();
 		}
+	}
+	@Override
+	public Set<String> keySet() {
+		return Collections.unmodifiableSet(this.metadata.stringPropertyNames());
 	}
 
 	@Override

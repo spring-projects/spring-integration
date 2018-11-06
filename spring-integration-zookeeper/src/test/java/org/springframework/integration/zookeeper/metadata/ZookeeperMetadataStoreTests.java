@@ -16,17 +16,6 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.springframework.integration.test.matcher.EqualsResultMatcher.equalsResult;
-import static org.springframework.integration.test.matcher.EventuallyMatcher.eventually;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,10 +38,21 @@ import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.springframework.integration.test.matcher.EqualsResultMatcher.equalsResult;
+import static org.springframework.integration.test.matcher.EventuallyMatcher.eventually;
+
 /**
  * @author Marius Bogoevici
  * @author Artem Bilan
- *
  * @since 4.2
  */
 public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
@@ -89,7 +89,6 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 				IntegrationUtils.bytesToString(client.getData().forPath(metadataStore.getPath(testKey)), "UTF-8"));
 	}
 
-
 	@Test
 	public void testGetValueFromMetadataStore() throws Exception {
 		String testKey = "ZookeeperMetadataStoreTests-GetValue";
@@ -97,7 +96,6 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 		String retrievedValue = metadataStore.get(testKey);
 		assertEquals("Hello Zookeeper", retrievedValue);
 	}
-
 
 	@Test
 	public void testPutIfAbsent() throws Exception {
@@ -380,6 +378,15 @@ public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
 			assertThat(e, instanceOf(IllegalStateException.class));
 			assertThat(e.getMessage(), containsString("ZookeeperMetadataStore has to be started before using."));
 		}
+	}
+
+	@Test
+	public void testKeySet() {
+		ZookeeperMetadataStore zookeeperMetadataStore = new ZookeeperMetadataStore(this.client);
+		zookeeperMetadataStore.put("foo1", "bar1");
+		zookeeperMetadataStore.put("foo2", "bar2");
+		assertThat(zookeeperMetadataStore.keySet(), containsInAnyOrder("foo1", "foo2"));
+
 	}
 
 	private void waitAtBarrier(String barrierName, Map<String, CyclicBarrier> barriers) {

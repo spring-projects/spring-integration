@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.metadata;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
@@ -34,6 +35,7 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Gary Russell
+ * @author David Turanski
  * @since 3.0
  *
  */
@@ -168,6 +170,17 @@ public class RedisMetadataStoreTests extends RedisAvailableTests {
 
 		assertEquals(testValue, metadataStore.remove(testKey));
 		assertNull(metadataStore.remove(testKey));
+	}
+
+	@Test
+	@RedisAvailable
+	public void testKeySet() {
+		RedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMetadataStore metadataStore = new RedisMetadataStore(jcf, "testMetadata");
+		metadataStore.put("foo1","bar1");
+		metadataStore.put("foo2","bar2");
+		assertThat(metadataStore.keySet()).containsExactlyInAnyOrder("foo1","foo2");
+
 	}
 
 }
