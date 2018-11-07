@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -31,15 +31,17 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class CollectionAndArrayTests {
@@ -47,9 +49,10 @@ public class CollectionAndArrayTests {
 	@Test
 	public void listWithRequestReplyHandler() {
 		MessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				return Arrays.asList(new String[] { "foo", "bar" });
+				return Arrays.asList("foo", "bar");
 			}
 		};
 		QueueChannel channel = new QueueChannel();
@@ -66,9 +69,10 @@ public class CollectionAndArrayTests {
 	@Test
 	public void setWithRequestReplyHandler() {
 		MessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				return new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" }));
+				return new HashSet<>(Arrays.asList("foo", "bar"));
 			}
 		};
 		QueueChannel channel = new QueueChannel();
@@ -85,6 +89,7 @@ public class CollectionAndArrayTests {
 	@Test
 	public void arrayWithRequestReplyHandler() {
 		MessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return new String[] { "foo", "bar" };
@@ -104,9 +109,10 @@ public class CollectionAndArrayTests {
 	@Test
 	public void listWithSplittingHandler() {
 		AbstractMessageSplitter handler = new AbstractMessageSplitter() {
+
 			@Override
 			protected Object splitMessage(Message<?> message) {
-				return Arrays.asList(new String[] { "foo", "bar" });
+				return Arrays.asList("foo", "bar");
 			}
 		};
 		QueueChannel channel = new QueueChannel();
@@ -125,9 +131,10 @@ public class CollectionAndArrayTests {
 	@Test
 	public void setWithSplittingHandler() {
 		AbstractMessageSplitter handler = new AbstractMessageSplitter() {
+
 			@Override
 			protected Object splitMessage(Message<?> message) {
-				return new HashSet<String>(Arrays.asList(new String[] { "foo", "bar" }));
+				return new HashSet<String>(Arrays.asList("foo", "bar"));
 			}
 		};
 		QueueChannel channel = new QueueChannel();
@@ -144,6 +151,7 @@ public class CollectionAndArrayTests {
 	@Test
 	public void arrayWithSplittingHandler() {
 		AbstractMessageSplitter handler = new AbstractMessageSplitter() {
+
 			@Override
 			protected Object splitMessage(Message<?> message) {
 				return new String[] { "foo", "bar" };

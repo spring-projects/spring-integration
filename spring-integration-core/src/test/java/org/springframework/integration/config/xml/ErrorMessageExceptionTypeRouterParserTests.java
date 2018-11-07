@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,23 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ErrorMessage;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
- *
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -53,12 +54,13 @@ public class ErrorMessageExceptionTypeRouterParserTests {
 	public void validateExceptionTypeRouterConfig() {
 
 		inputChannel.send(new ErrorMessage(new NullPointerException()));
-		assertTrue(npeChannel.receive(1000).getPayload() instanceof NullPointerException);
+		assertThat(npeChannel.receive(1000).getPayload(), instanceOf(NullPointerException.class));
 
 		inputChannel.send(new ErrorMessage(new IllegalArgumentException()));
-		assertTrue(illegalChannel.receive(1000).getPayload()  instanceof IllegalArgumentException);
+		assertThat(illegalChannel.receive(1000).getPayload(), instanceOf(IllegalArgumentException.class));
 
 		inputChannel.send(new ErrorMessage(new RuntimeException()));
-		assertTrue(defaultChannel.receive(1000).getPayload()  instanceof RuntimeException);
+		assertThat(defaultChannel.receive(1000).getPayload(), instanceOf(RuntimeException.class));
 	}
+
 }

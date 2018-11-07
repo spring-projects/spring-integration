@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,38 @@
 
 package org.springframework.integration.jpa.outbound;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.jpa.test.JpaTestUtils;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class JpaOutboundChannelAdapterTransactionalTests {
 
 	@Autowired
@@ -54,24 +58,25 @@ public class JpaOutboundChannelAdapterTransactionalTests {
 	DataSource dataSource;
 
 	@Test
-	@DirtiesContext
-	public void saveEntityWithTransaction() throws InterruptedException {
-
-		List<?> results1 = new JdbcTemplate(dataSource).queryForList("Select * from Student");
-		Assert.assertNotNull(results1);
-		Assert.assertTrue(results1.size() == 3);
+	public void saveEntityWithTransaction() {
+		List<?> results1 =
+				new JdbcTemplate(this.dataSource)
+						.queryForList("Select * from Student");
+		assertNotNull(results1);
+		assertEquals(3, results1.size());
 
 		StudentDomain testStudent = JpaTestUtils.getTestStudent();
 		Message<StudentDomain> message = MessageBuilder.withPayload(testStudent).build();
 
-		channel.send(message);
+		this.channel.send(message);
 
-		List<?> results2 = new JdbcTemplate(dataSource).queryForList("Select * from Student");
-		Assert.assertNotNull(results2);
-		Assert.assertTrue(results2.size() == 4);
+		List<?> results2 =
+				new JdbcTemplate(this.dataSource)
+						.queryForList("Select * from Student");
+		assertNotNull(results2);
+		assertEquals(4, results2.size());
 
-		Assert.assertNull(testStudent.getRollNumber());
-
+		assertNull(testStudent.getRollNumber());
 	}
 
 }

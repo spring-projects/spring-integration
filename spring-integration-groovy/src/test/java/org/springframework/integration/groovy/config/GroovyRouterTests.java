@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -64,11 +65,11 @@ public class GroovyRouterTests {
 
 	@Test
 	public void referencedScript() { // long is > 3
-		Message<?> message1 = new GenericMessage<String>("aardvark");
-		Message<?> message2 = new GenericMessage<String>("bear");
-		Message<?> message3 = new GenericMessage<String>("cat");
-		Message<?> message4 = new GenericMessage<String>("dog");
-		Message<?> message5 = new GenericMessage<String>("elephant");
+		Message<?> message1 = new GenericMessage<>("aardvark");
+		Message<?> message2 = new GenericMessage<>("bear");
+		Message<?> message3 = new GenericMessage<>("cat");
+		Message<?> message4 = new GenericMessage<>("dog");
+		Message<?> message5 = new GenericMessage<>("elephant");
 		this.referencedScriptInput.send(message1);
 		this.referencedScriptInput.send(message2);
 		this.referencedScriptInput.send(message3);
@@ -85,11 +86,11 @@ public class GroovyRouterTests {
 
 	@Test
 	public void inlineScript() { // long is > 5
-		Message<?> message1 = new GenericMessage<String>("aardvark");
-		Message<?> message2 = new GenericMessage<String>("bear");
-		Message<?> message3 = new GenericMessage<String>("cat");
-		Message<?> message4 = new GenericMessage<String>("dog");
-		Message<?> message5 = new GenericMessage<String>("elephant");
+		Message<?> message1 = new GenericMessage<>("aardvark");
+		Message<?> message2 = new GenericMessage<>("bear");
+		Message<?> message3 = new GenericMessage<>("cat");
+		Message<?> message4 = new GenericMessage<>("dog");
+		Message<?> message5 = new GenericMessage<>("elephant");
 		this.inlineScriptInput.send(message1);
 		this.inlineScriptInput.send(message2);
 		this.inlineScriptInput.send(message3);

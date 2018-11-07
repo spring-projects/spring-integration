@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,16 +25,23 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Artem Bilan
- * @since 2.0.0
+ *
+ * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class ProducerAndConsumerAutoStartupTests {
 
 	@Autowired
@@ -52,7 +53,7 @@ public class ProducerAndConsumerAutoStartupTests {
 
 	@Test
 	public void test() throws Exception {
-		List<Integer> received = new ArrayList<Integer>();
+		List<Integer> received = new ArrayList<>();
 		for (int i = 0; i < 3; i++) {
 			received.add(this.consumer.poll(10000));
 		}
@@ -67,7 +68,7 @@ public class ProducerAndConsumerAutoStartupTests {
 
 		private final AtomicInteger count = new AtomicInteger();
 
-		public Integer next() throws InterruptedException {
+		public Integer next() {
 			if (this.count.get() > 2) {
 				//prevent message overload
 				return null;
@@ -80,7 +81,7 @@ public class ProducerAndConsumerAutoStartupTests {
 
 	static class Consumer {
 
-		private final BlockingQueue<Integer> numbers = new LinkedBlockingQueue<Integer>();
+		private final BlockingQueue<Integer> numbers = new LinkedBlockingQueue<>();
 
 		public void receive(Integer number) {
 			this.numbers.add(number);

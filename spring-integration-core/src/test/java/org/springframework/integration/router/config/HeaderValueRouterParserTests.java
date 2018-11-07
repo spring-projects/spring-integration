@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,22 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -60,10 +61,11 @@ public class HeaderValueRouterParserTests {
 		PollableChannel channel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
 		message1 = channel1.receive();
-		assertTrue(message1.getHeaders().get("testHeader").equals("channel1"));
+		assertEquals("channel1", message1.getHeaders().get("testHeader"));
 		message2 = channel2.receive();
-		assertTrue(message2.getHeaders().get("testHeader").equals("channel2"));
+		assertEquals("channel2", message2.getHeaders().get("testHeader"));
 	}
+
 	@Test
 	public void testHeaderValuesWithMapResolver() {
 		context.start();
@@ -78,18 +80,22 @@ public class HeaderValueRouterParserTests {
 		PollableChannel channel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
 		message1 = channel1.receive();
-		assertTrue(message1.getHeaders().get("testHeader").equals("1"));
+		assertEquals("1", message1.getHeaders().get("testHeader"));
 		message2 = channel2.receive();
-		assertTrue(message2.getHeaders().get("testHeader").equals("2"));
+		assertEquals("2", message2.getHeaders().get("testHeader"));
 	}
 
 
 	public interface TestServiceA {
+
 		void foo(Message<?> message);
+
 	}
 
 	public interface TestServiceB {
+
 		void foo(Message<?> message);
+
 	}
 
 }

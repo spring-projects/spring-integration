@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,21 @@
 
 package org.springframework.integration.endpoint.annotation;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @MessageEndpoint
 public class MessageParameterAnnotatedEndpoint {
 
 	@ServiceActivator(inputChannel = "inputChannel", outputChannel = "outputChannel")
 	public Message<String> sayHello(Message<?> message) {
-		return new GenericMessage<String>("hello " + message.getPayload());
+		return new GenericMessage<>("hello " + message.getPayload());
 	}
 
 }

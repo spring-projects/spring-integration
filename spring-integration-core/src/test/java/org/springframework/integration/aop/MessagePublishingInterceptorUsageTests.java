@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,20 @@
 package org.springframework.integration.aop;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.messaging.Message;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -43,9 +45,9 @@ public class MessagePublishingInterceptorUsageTests {
 
 	@Test
 	public void demoMessagePublishingInterceptor() {
-		String name = testBean.setName("John", "Doe");
+		String name = this.testBean.setName("John", "Doe");
 		Assert.assertNotNull(name);
-		Message<?> message = channel.receive(1000);
+		Message<?> message = this.channel.receive(1000);
 		Assert.assertNotNull(message);
 		Assert.assertEquals("John Doe", message.getPayload());
 		Assert.assertEquals("bar", message.getHeaders().get("foo"));
@@ -57,6 +59,7 @@ public class MessagePublishingInterceptorUsageTests {
 		public String setName(String fname, String lname) {
 			return fname + " " + lname;
 		}
+
 	}
 
 }

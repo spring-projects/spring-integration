@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,20 +29,20 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.Message;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MessagingAnnotationPostProcessorAopIntegrationTests {
@@ -57,12 +57,12 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 
 
 	@Test
-	public void parseConfig() throws Exception {
-		assertThat(input, notNullValue());
+	public void parseConfig() {
+		assertThat(this.input, notNullValue());
 	}
 
 	@Test
-	public void sendMessage() throws Exception {
+	public void sendMessage() {
 		input.send(MessageBuilder.withPayload(new AtomicInteger(0)).build());
 		Message<?> reply = output.receive(1000);
 		assertEquals(111, ((Integer) reply.getPayload()).intValue());
@@ -76,6 +76,7 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 		public void addOneHundred(Message<?> message) {
 			((AtomicInteger) message.getPayload()).addAndGet(100);
 		}
+
 	}
 
 
@@ -86,6 +87,7 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 		public void addTen(AtomicInteger n) {
 			n.addAndGet(10);
 		}
+
 	}
 
 
@@ -96,6 +98,7 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 		public int addOne(AtomicInteger n) {
 			return n.addAndGet(1);
 		}
+
 	}
 
 }

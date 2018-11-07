@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,20 +25,22 @@ import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.messaging.support.GenericMessage;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class AggregateMessageDeliveryExceptionTests {
 
-	private Message<?> message = new GenericMessage<String>("foo");
+	private Message<?> message = new GenericMessage<>("foo");
 
-	private AggregateMessageDeliveryException exception = new AggregateMessageDeliveryException(message,
-			"something went wrong", exceptionsList());
+	private AggregateMessageDeliveryException exception =
+			new AggregateMessageDeliveryException(this.message, "something went wrong", exceptionsList());
 
 	private MessageDeliveryException firstProblem;
 
@@ -67,7 +69,7 @@ public class AggregateMessageDeliveryExceptionTests {
 
 	@Test
 	public void shouldShowFirstOriginalExceptionInCause() {
-		assertThat((MessageDeliveryException) exception.getCause(), is(firstProblem));
+		assertThat(this.exception.getCause(), is(this.firstProblem));
 	}
 
 }

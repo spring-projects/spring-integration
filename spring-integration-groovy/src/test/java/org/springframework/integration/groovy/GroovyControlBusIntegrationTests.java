@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,14 @@ import java.io.IOException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
@@ -67,7 +68,7 @@ public class GroovyControlBusIntegrationTests {
 		assertNull(this.output.receive(500));
 		this.scheduler.afterPropertiesSet();
 
-		Resource scriptResource = new ClassPathResource("GroovyControlBusDelayerManagementTest.groovy", this.getClass());
+		Resource scriptResource = new ClassPathResource("GroovyControlBusDelayerManagementTest.groovy", getClass());
 		ScriptSource scriptSource = new ResourceScriptSource(scriptResource);
 		Message<?> message = MessageBuilder.withPayload(scriptSource.getScriptAsString()).build();
 		this.controlBus.send(message);

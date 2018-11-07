@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.router.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,18 +27,20 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.router.RecipientListRouter;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 1.0.3
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -62,12 +63,12 @@ public class RecipientListRouterParserTests {
 	@Test
 	public void checkMessageRouting() {
 		context.start();
-		Message<?> message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<>(1);
 		channel.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
-		assertTrue(chanel1.receive(0).getPayload().equals(1));
-		assertTrue(chanel2.receive(0).getPayload().equals(1));
+		assertEquals(1, chanel1.receive(0).getPayload());
+		assertEquals(1, chanel2.receive(0).getPayload());
 	}
 
 	@Test
@@ -77,7 +78,7 @@ public class RecipientListRouterParserTests {
 		assertEquals(RecipientListRouter.class, handler.getClass());
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
-		assertEquals(new Long(-1), new DirectFieldAccessor(
+		assertEquals(-1L, new DirectFieldAccessor(
 				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("applySequence"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreSendFailures"));
@@ -90,7 +91,7 @@ public class RecipientListRouterParserTests {
 		assertEquals(RecipientListRouter.class, handler.getClass());
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
-		assertEquals(new Long(1234), new DirectFieldAccessor(
+		assertEquals(1234L, new DirectFieldAccessor(
 				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("applySequence"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("ignoreSendFailures"));
@@ -99,24 +100,24 @@ public class RecipientListRouterParserTests {
 	@Test
 	public void simpleDynamicRouter() {
 		context.start();
-		Message<?> message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<>(1);
 		simpleDynamicInput.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
-		assertTrue(chanel1.receive(0).getPayload().equals(1));
+		assertEquals(1, chanel1.receive(0).getPayload());
 		assertNull(chanel2.receive(0));
 	}
 
 	@Test
 	public void noSelectorMatchRouter() {
 		context.start();
-		Message<?> message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<>(1);
 		noSelectorMatchInput.send(message);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
 		Message<?> output = chanel1.receive(0);
 		assertNotNull(output);
-		assertTrue(output.getPayload().equals(1));
+		assertEquals(1, output.getPayload());
 		assertNull(chanel2.receive(0));
 	}
 
@@ -125,6 +126,7 @@ public class RecipientListRouterParserTests {
 		public boolean accept(int number) {
 			return number == 1;
 		}
+
 	}
 
 }

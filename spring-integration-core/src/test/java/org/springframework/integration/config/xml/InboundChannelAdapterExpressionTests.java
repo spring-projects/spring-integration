@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -39,6 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -51,7 +53,8 @@ public class InboundChannelAdapterExpressionTests {
 
 	@Test
 	public void fixedDelay() {
-		SourcePollingChannelAdapter adapter = context.getBean("fixedDelayProducer", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapter =
+				this.context.getBean("fixedDelayProducer", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isAutoStartup());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
@@ -59,14 +62,15 @@ public class InboundChannelAdapterExpressionTests {
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(1234L, triggerAccessor.getPropertyValue("period"));
 		assertEquals(Boolean.FALSE, triggerAccessor.getPropertyValue("fixedRate"));
-		assertEquals(context.getBean("fixedDelayChannel"), adapterAccessor.getPropertyValue("outputChannel"));
+		assertEquals(this.context.getBean("fixedDelayChannel"), adapterAccessor.getPropertyValue("outputChannel"));
 		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
 		assertEquals("'fixedDelayTest'", expression.getExpressionString());
 	}
 
 	@Test
 	public void fixedRate() {
-		SourcePollingChannelAdapter adapter = context.getBean("fixedRateProducer", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapter =
+				this.context.getBean("fixedRateProducer", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isAutoStartup());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
@@ -74,33 +78,35 @@ public class InboundChannelAdapterExpressionTests {
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(5678L, triggerAccessor.getPropertyValue("period"));
 		assertEquals(Boolean.TRUE, triggerAccessor.getPropertyValue("fixedRate"));
-		assertEquals(context.getBean("fixedRateChannel"), adapterAccessor.getPropertyValue("outputChannel"));
+		assertEquals(this.context.getBean("fixedRateChannel"), adapterAccessor.getPropertyValue("outputChannel"));
 		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
 		assertEquals("'fixedRateTest'", expression.getExpressionString());
 	}
 
 	@Test
 	public void cron() {
-		SourcePollingChannelAdapter adapter = context.getBean("cronProducer", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapter =
+				this.context.getBean("cronProducer", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isAutoStartup());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertEquals(CronTrigger.class, trigger.getClass());
 		assertEquals("7 6 5 4 3 ?", new DirectFieldAccessor(new DirectFieldAccessor(
 				trigger).getPropertyValue("sequenceGenerator")).getPropertyValue("expression"));
-		assertEquals(context.getBean("cronChannel"), adapterAccessor.getPropertyValue("outputChannel"));
+		assertEquals(this.context.getBean("cronChannel"), adapterAccessor.getPropertyValue("outputChannel"));
 		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
 		assertEquals("'cronTest'", expression.getExpressionString());
 	}
 
 	@Test
 	public void triggerRef() {
-		SourcePollingChannelAdapter adapter = context.getBean("triggerRefProducer", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapter =
+				this.context.getBean("triggerRefProducer", SourcePollingChannelAdapter.class);
 		assertTrue(adapter.isAutoStartup());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
-		assertEquals(context.getBean("customTrigger"), trigger);
-		assertEquals(context.getBean("triggerRefChannel"), adapterAccessor.getPropertyValue("outputChannel"));
+		assertEquals(this.context.getBean("customTrigger"), trigger);
+		assertEquals(this.context.getBean("triggerRefChannel"), adapterAccessor.getPropertyValue("outputChannel"));
 		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
 		assertEquals("'triggerRefTest'", expression.getExpressionString());
 	}
@@ -108,9 +114,11 @@ public class InboundChannelAdapterExpressionTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void headerExpressions() {
-		SourcePollingChannelAdapter adapter = context.getBean("headerExpressionsProducer", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapter =
+				this.context.getBean("headerExpressionsProducer", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isAutoStartup());
-		Map<String, Expression> headerExpressions = TestUtils.getPropertyValue(adapter, "source.headerExpressions", Map.class);
+		Map<String, Expression> headerExpressions =
+				TestUtils.getPropertyValue(adapter, "source.headerExpressions", Map.class);
 		assertEquals(2, headerExpressions.size());
 		assertEquals("6 * 7", headerExpressions.get("foo").getExpressionString());
 		assertEquals("x", headerExpressions.get("bar").getExpressionString());
@@ -120,10 +128,10 @@ public class InboundChannelAdapterExpressionTests {
 
 	@Test
 	public void testInt2867InnerExpression() {
-		SourcePollingChannelAdapter adapter = context.getBean("expressionElement", SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapter =
+				this.context.getBean("expressionElement", SourcePollingChannelAdapter.class);
 		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
 		assertEquals("'Hello World!'", expression.getExpressionString());
-
 	}
 
 }

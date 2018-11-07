@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,18 +23,20 @@ import java.util.Date;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -48,7 +50,10 @@ public class ControlBusChainTests {
 
 	@Test
 	public void testDefaultEvaluationContext() {
-		Message<?> message = MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo").setHeader("foo", "bar").build();
+		Message<?> message =
+				MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo")
+						.setHeader("foo", "bar")
+						.build();
 		this.input.send(message);
 		assertEquals("catbar", output.receive(0).getPayload());
 		assertNull(output.receive(0));
@@ -61,12 +66,15 @@ public class ControlBusChainTests {
 		public String convert(String input) {
 			return "cat";
 		}
+
 	}
 
 	public static class AdapterService {
+
 		public Message<String> receive() {
-			return new GenericMessage<String>(new Date().toString());
+			return new GenericMessage<>(new Date().toString());
 		}
+
 	}
 
 }

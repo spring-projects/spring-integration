@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.springframework.integration.jpa.core;
 
+import static org.junit.Assert.fail;
+
 import java.text.ParseException;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -33,11 +35,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * <pre>
  * {@code
- * -javaagent:/home/<user>/.m2/repository/org/springframework/spring-instrument/3.1.1.RELEASE/spring-instrument-3.1.1.RELEASE.jar
+ * -javaagent:/home/<user>/.m2/repository/org/springframework/spring-instrument/3.1.1.RELEASE/spring-instrument-3.1.1
+ * .RELEASE.jar
  * }
  * </pre>
  *
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -48,7 +53,6 @@ public class EclipseLinkJpaOperationsTests extends AbstractJpaOperationsTests {
 	@Test
 	@Override
 	public void testExecuteUpdateWithNativeQuery() {
-
 		try {
 			super.testExecuteUpdateWithNativeQuery();
 		}
@@ -56,13 +60,12 @@ public class EclipseLinkJpaOperationsTests extends AbstractJpaOperationsTests {
 			return;
 		}
 
-		Assert.fail("Was expecting an Exception as OpenJPA does not support Native SQL Queries with Named Parameters.");
+		fail("Was expecting an Exception as OpenJPA does not support Native SQL Queries with Named Parameters.");
 	}
 
 	@Test
 	@Override
 	public void testExecuteUpdateWithNativeNamedQuery() {
-
 		try {
 			super.testExecuteUpdateWithNativeNamedQuery();
 		}
@@ -70,7 +73,7 @@ public class EclipseLinkJpaOperationsTests extends AbstractJpaOperationsTests {
 			return;
 		}
 
-		Assert.fail("Was expecting an Exception as OpenJPA does not support Native SQL Queries with Named Parameters.");
+		fail("Was expecting an Exception as OpenJPA does not support Native SQL Queries with Named Parameters.");
 	}
 
 	@Test

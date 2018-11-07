@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,16 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -48,28 +50,28 @@ public class GatewayWithPayloadExpressionTests {
 
 
 	@Test
-	public void simpleExpression() throws Exception {
+	public void simpleExpression() {
 		gateway.send1("foo");
 		Message<?> result = input.receive(0);
 		assertEquals("foobar", result.getPayload());
 	}
 
 	@Test
-	public void beanResolvingExpression() throws Exception {
+	public void beanResolvingExpression() {
 		gateway.send2("foo");
 		Message<?> result = input.receive(0);
 		assertEquals(324, result.getPayload());
 	}
 
 	@Test
-	public void payloadAnnotationExpression() throws Exception {
+	public void payloadAnnotationExpression() {
 		annotatedGateway.send("foo", "bar");
 		Message<?> result = input.receive(0);
 		assertEquals("foobar", result.getPayload());
 	}
 
 	@Test
-	public void noArgMethodWithPayloadExpression() throws Exception {
+	public void noArgMethodWithPayloadExpression() {
 		gateway.send3();
 		Message<?> result = input.receive(0);
 		assertEquals("send3", result.getPayload());
@@ -83,6 +85,7 @@ public class GatewayWithPayloadExpressionTests {
 		void send2(String value);
 
 		void send3();
+
 	}
 
 
@@ -103,6 +106,7 @@ public class GatewayWithPayloadExpressionTests {
 			}
 			return sum;
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import javax.sql.DataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Bojan Vukasovic
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
 @ContextConfiguration
@@ -47,7 +50,7 @@ public class JdbcMetadataStoreTests {
 	private JdbcMetadataStore metadataStore;
 
 	@Before
-	public void init() throws Exception {
+	public void init() {
 		metadataStore = new JdbcMetadataStore(dataSource);
 		metadataStore.afterPropertiesSet();
 	}

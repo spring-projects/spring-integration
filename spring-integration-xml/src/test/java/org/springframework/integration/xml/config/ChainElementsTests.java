@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.integration.xml.config;
 
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -27,23 +30,25 @@ import org.junit.Test;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.integration.xml.transformer.XPathTransformer;
 
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.2
  */
 public class ChainElementsTests {
 
 	@Test
 	public void chainXPathTransformer() throws Exception {
-
 		try {
-			this.bootStrap("xpath-transformer");
+			bootStrap("xpath-transformer");
 			fail("Expected a BeanDefinitionParsingException to be thrown.");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -59,16 +64,15 @@ public class ChainElementsTests {
 
 	@Test
 	public void chainXPathTransformerId() throws Exception {
-
-		this.bootStrap("xpath-transformer-id");
-
+		try (ConfigurableApplicationContext ctx = bootStrap("xpath-transformer-id")) {
+			assertNotNull(ctx.getBean(XPathTransformer.class));
+		}
 	}
 
 	@Test
 	public void chainXPathRouterOrder() throws Exception {
-
 		try {
-			this.bootStrap("xpath-router-order");
+			bootStrap("xpath-router-order");
 			fail("Expected a BeanDefinitionParsingException to be thrown.");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -84,9 +88,8 @@ public class ChainElementsTests {
 
 	@Test
 	public void chainXPathTransformerPoller() throws Exception {
-
 		try {
-			this.bootStrap("xpath-transformer-poller");
+			bootStrap("xpath-transformer-poller");
 			fail("Expected a BeanDefinitionParsingException to be thrown.");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -94,23 +97,28 @@ public class ChainElementsTests {
 					"'int-xml:xpath-transformer' must not define a 'poller' " +
 					"sub-element when used within a chain.";
 			final String actualMessage = e.getMessage();
-			assertTrue("Error message did not start with '" + expectedMessage +
-					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
+			assertThat("Error message did not start with '" + expectedMessage +
+					"' but instead returned: '" + actualMessage + "'", actualMessage, startsWith(expectedMessage));
 		}
 	}
 
 	@Test
 	public void chainXPathTransformerSuccess() throws Exception {
-		this.bootStrap("xpath-transformer-success");
+		try (ConfigurableApplicationContext ctx = bootStrap("xpath-transformer-success")) {
+			assertNotNull(ctx.getBean(XPathTransformer.class));
+		}
 	}
 
-	private ApplicationContext bootStrap(String configProperty) throws Exception {
+	private ConfigurableApplicationContext bootStrap(String configProperty) throws Exception {
 		PropertiesFactoryBean pfb = new PropertiesFactoryBean();
-		pfb.setLocation(new ClassPathResource("org/springframework/integration/xml/config/chain-elements-config.properties"));
+		pfb.setLocation(new ClassPathResource(
+				"org/springframework/integration/xml/config/chain-elements-config.properties"));
 		pfb.afterPropertiesSet();
 		Properties prop = pfb.getObject();
 		StringBuffer buffer = new StringBuffer();
-		buffer.append(prop.getProperty("xmlheaders")).append(prop.getProperty(configProperty)).append(prop.getProperty("xmlfooter"));
+		buffer.append(prop.getProperty("xmlheaders"))
+				.append(prop.getProperty(configProperty))
+				.append(prop.getProperty("xmlfooter"));
 		ByteArrayInputStream stream = new ByteArrayInputStream(buffer.toString().getBytes());
 
 		GenericApplicationContext ac = new GenericApplicationContext();

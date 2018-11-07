@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,25 @@ import static org.junit.Assert.fail;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import groovy.lang.Binding;
-import groovy.lang.MissingPropertyException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.messaging.Message;
+
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.test.annotation.Repeat;
+
+import groovy.lang.Binding;
+import groovy.lang.MissingPropertyException;
 
 /**
  * @author Dave Syer
  * @author Artem Bilan
  * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 public class GroovyScriptPayloadMessageProcessorTests {
@@ -51,7 +54,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 
 	@Test
 	@Repeat(20)
-	public void testSimpleExecution() throws Exception {
+	public void testSimpleExecution() {
 		int count = countHolder.getAndIncrement();
 		Message<?> message = MessageBuilder.withPayload("headers.foo" + count).setHeader("foo" + count, "bar").build();
 		processor = new GroovyCommandMessageProcessor();
@@ -60,7 +63,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	}
 
 	@Test
-	public void testDoubleExecutionWithNewScript() throws Exception {
+	public void testDoubleExecutionWithNewScript() {
 		processor = new GroovyCommandMessageProcessor();
 		Message<?> message = MessageBuilder.withPayload("headers.foo").setHeader("foo", "bar").build();
 		Object result = processor.processMessage(message);
@@ -71,19 +74,20 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	}
 
 	@Test
-	public void testSimpleExecutionWithContext() throws Exception {
+	public void testSimpleExecutionWithContext() {
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam foo is $headers.foo\"")
 				.setHeader("foo", "bar").build();
 		ScriptVariableGenerator scriptVariableGenerator =
-				new DefaultScriptVariableGenerator(Collections.singletonMap("spam", (Object) "bucket"));
+				new DefaultScriptVariableGenerator(Collections.singletonMap("spam", "bucket"));
 		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(scriptVariableGenerator);
 		Object result = processor.processMessage(message);
 		assertEquals("spam is bucket foo is bar", result.toString());
 	}
 
 	@Test //INT-2567
-	public void testBindingOverwrite() throws Exception {
+	public void testBindingOverwrite() {
 		Binding binding = new Binding() {
+
 			@Override
 			public Object getVariable(String name) {
 				throw new RuntimeException("intentional");
@@ -101,22 +105,23 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	}
 
 	@Test //INT-2567
-	public void testBindingOverwriteWithContext() throws Exception {
+	public void testBindingOverwriteWithContext() {
 		final String defaultValue = "default";
 		Binding binding = new Binding() {
+
 			@Override
 			public Object getVariable(String name) {
 				try {
 					return super.getVariable(name);
 				}
 				catch (MissingPropertyException e) {
-				// ignore
+					// ignore
 				}
 				return defaultValue;
 			}
 		};
 		ScriptVariableGenerator scriptVariableGenerator =
-				new DefaultScriptVariableGenerator(Collections.singletonMap("spam", (Object) "bucket"));
+				new DefaultScriptVariableGenerator(Collections.singletonMap("spam", "bucket"));
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam, foo is $foo\"").build();
 		processor = new GroovyCommandMessageProcessor(binding, scriptVariableGenerator);
 		Object result = processor.processMessage(message);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.annotation.Publisher;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.integration.annotation.Publisher;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -49,9 +51,9 @@ public class MessagePublishingAnnotationUsageTests {
 
 	@Test
 	public void headerWithExplicitName() {
-		String name = testBean.defaultPayload("John", "Doe");
+		String name = this.testBean.defaultPayload("John", "Doe");
 		assertNotNull(name);
-		Message<?> message = channel.receive(1000);
+		Message<?> message = this.channel.receive(1000);
 		assertNotNull(message);
 		assertEquals("John Doe", message.getPayload());
 		assertEquals("Doe", message.getHeaders().get("last"));
@@ -59,9 +61,9 @@ public class MessagePublishingAnnotationUsageTests {
 
 	@Test
 	public void headerWithImplicitName() {
-		String name = testBean.defaultPayloadButExplicitAnnotation("John", "Doe");
+		String name = this.testBean.defaultPayloadButExplicitAnnotation("John", "Doe");
 		assertNotNull(name);
-		Message<?> message = channel.receive(1000);
+		Message<?> message = this.channel.receive(1000);
 		assertNotNull(message);
 		assertEquals("John Doe", message.getPayload());
 		assertEquals("Doe", message.getHeaders().get("lname"));
@@ -69,10 +71,10 @@ public class MessagePublishingAnnotationUsageTests {
 
 	@Test
 	public void payloadAsArgument() {
-		String name = testBean.argumentAsPayload("John", "Doe");
+		String name = this.testBean.argumentAsPayload("John", "Doe");
 		assertNotNull(name);
 		assertEquals("John Doe", name);
-		Message<?> message = channel.receive(1000);
+		Message<?> message = this.channel.receive(1000);
 		assertNotNull(message);
 		assertEquals("John", message.getPayload());
 		assertEquals("Doe", message.getHeaders().get("lname"));
@@ -96,6 +98,7 @@ public class MessagePublishingAnnotationUsageTests {
 		public String argumentAsPayload(@Payload String fname, @Header String lname) {
 			return fname + " " + lname;
 		}
+
 	}
 
 }

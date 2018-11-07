@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,49 +26,55 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class RouterFactoryBeanDelegationTests {
 
-	@Autowired @Qualifier("input")
+	@Autowired
+	@Qualifier("input")
 	private MessageChannel input;
 
-	@Autowired @Qualifier("strings")
+	@Autowired
+	@Qualifier("strings")
 	private PollableChannel strings;
 
-	@Autowired @Qualifier("discard")
+	@Autowired
+	@Qualifier("discard")
 	private PollableChannel discard;
 
-	@Autowired @Qualifier("org.springframework.integration.config.RouterFactoryBean#0")
+	@Autowired
+	@Qualifier("org.springframework.integration.config.RouterFactoryBean#0")
 	private AbstractMappingMessageRouter router;
 
 
 	@Test
 	public void checkResolutionRequiredConfiguredOnTargetRouter() {
+		@SuppressWarnings("unchecked")
 		boolean resolutionRequired = (Boolean) new DirectFieldAccessor(router).getPropertyValue("resolutionRequired");
 		assertTrue("The 'resolutionRequired' property should be 'true'", resolutionRequired);
 	}
 
 	@Test
 	public void routeWithMappedType() {
-		input.send(new GenericMessage<String>("test"));
+		input.send(new GenericMessage<>("test"));
 		assertNull(discard.receive(0));
 		assertNotNull(strings.receive(0));
 	}
 
 	@Test
 	public void routeWithUnmappedType() {
-		input.send(new GenericMessage<Integer>(123));
+		input.send(new GenericMessage<>(123));
 		assertNull(strings.receive(0));
 		assertNotNull(discard.receive(0));
 	}

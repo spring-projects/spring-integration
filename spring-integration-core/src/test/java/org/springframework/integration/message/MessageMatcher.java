@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -42,11 +43,13 @@ import org.springframework.messaging.MessageHeaders;
  * </pre>
  *
  * @author Dave Syer
+ * @author Artem Bilan
  *
  */
 public class MessageMatcher extends BaseMatcher<Message<?>> {
 
 	private final Object payload;
+
 	private final Map<String, Object> headers;
 
 	public MessageMatcher(Message<?> operand) {
@@ -55,7 +58,7 @@ public class MessageMatcher extends BaseMatcher<Message<?>> {
 	}
 
 	private Map<String, Object> getHeaders(Message<?> operand) {
-		HashMap<String, Object> headers = new HashMap<String, Object>(operand.getHeaders());
+		HashMap<String, Object> headers = new HashMap<>(operand.getHeaders());
 		headers.remove(MessageHeaders.ID);
 		headers.remove(MessageHeaders.TIMESTAMP);
 		return headers;
@@ -64,11 +67,13 @@ public class MessageMatcher extends BaseMatcher<Message<?>> {
 	public boolean matches(Object arg) {
 		Message<?> input = (Message<?>) arg;
 		Map<String, Object> inputHeaders = getHeaders(input);
-		return input.getPayload().equals(payload) && inputHeaders.equals(headers);
+		return input.getPayload().equals(this.payload) && inputHeaders.equals(this.headers);
 	}
 
 	public void describeTo(Description description) {
-		description.appendText("Headers match except ID and timestamp for payload: ").appendValue(payload).appendText(" and headers: ").appendValue(headers);
+		description.appendText("Headers match except ID and timestamp for payload: ")
+				.appendValue(this.payload).appendText(" and headers: ")
+				.appendValue(this.headers);
 	}
 
 }

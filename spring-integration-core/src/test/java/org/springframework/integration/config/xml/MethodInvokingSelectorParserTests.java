@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.config.xml;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
@@ -27,16 +26,17 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.integration.selector.MessageSelectorChain;
+import org.springframework.messaging.Message;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -48,16 +48,18 @@ public class MethodInvokingSelectorParserTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void configOK() throws Exception {
+	public void configOK() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(chain);
 		List<MessageSelector> selectors = (List<MessageSelector>) accessor.getPropertyValue("selectors");
-		assertThat(selectors.get(0), is(instanceOf(MethodInvokingSelector.class)));
+		assertThat(selectors.get(0), instanceOf(MethodInvokingSelector.class));
 	}
 
 	public static class TestFilter {
+
 		public boolean accept(Message<?> m) {
 			return true;
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package org.springframework.integration.jpa.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import javax.persistence.EntityManager;
 
 import org.junit.Test;
@@ -39,9 +39,9 @@ import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
 import org.springframework.integration.jpa.test.Consumer;
 import org.springframework.integration.jpa.test.JpaTestUtils;
-import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.test.util.OnlyOnceTrigger;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.test.annotation.DirtiesContext;
@@ -56,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -63,6 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration
 @Rollback
 @Transactional("transactionManager")
+@DirtiesContext
 public class JpaPollingChannelAdapterTests {
 
 	@Autowired
@@ -88,8 +90,6 @@ public class JpaPollingChannelAdapterTests {
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use a plain entity class
 	 * to retrieve a list of records from the database.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	@DirtiesContext
@@ -99,17 +99,18 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setEntityClass(StudentDomain.class);
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		final List<Message<Collection<?>>> received = new ArrayList<>();
 
 		final Consumer consumer = new Consumer();
 
@@ -124,15 +125,12 @@ public class JpaPollingChannelAdapterTests {
 
 		Collection<?> primeNumbers = message.getPayload();
 
-		assertTrue(primeNumbers.size() == 3);
-
+		assertEquals(3, primeNumbers.size());
 	}
 
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use JpQL query
 	 * to retrieve a list of records from the database.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void testWithJpaQuery() throws Exception {
@@ -142,17 +140,18 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student");
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		final List<Message<Collection<?>>> received = new ArrayList<>();
 
 		final Consumer consumer = new Consumer();
 
@@ -167,15 +166,12 @@ public class JpaPollingChannelAdapterTests {
 
 		Collection<?> primeNumbers = message.getPayload();
 
-		assertTrue(primeNumbers.size() == 3);
-
+		assertEquals(3, primeNumbers.size());
 	}
 
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use JpQL query
 	 * to retrieve a list of records from the database with a maxRows value of 1.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void testWithJpaQueryAndMaxResults() throws Exception {
@@ -186,17 +182,18 @@ public class JpaPollingChannelAdapterTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student");
 		jpaExecutor.setMaxResultsExpression(new LiteralExpression("1"));
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		final List<Message<Collection<?>>> received = new ArrayList<>();
 
 		final Consumer consumer = new Consumer();
 
@@ -211,15 +208,12 @@ public class JpaPollingChannelAdapterTests {
 
 		Collection<?> primeNumbers = message.getPayload();
 
-		assertTrue(primeNumbers.size() == 1);
-
+		assertEquals(1, primeNumbers.size());
 	}
 
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use JpQL query
 	 * to retrieve a list of records from the database.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void testWithJpaQueryOneResultOnly() throws Exception {
@@ -229,16 +223,17 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student s where s.firstName = 'First Two'");
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		final List<Message<Collection<?>>> received = new ArrayList<>();
 
 		final Consumer consumer = new Consumer();
 
@@ -253,7 +248,7 @@ public class JpaPollingChannelAdapterTests {
 
 		Collection<?> students = message.getPayload();
 
-		assertTrue(students.size() == 1);
+		assertEquals(1, students.size());
 
 		StudentDomain student = (StudentDomain) students.iterator().next();
 
@@ -264,8 +259,6 @@ public class JpaPollingChannelAdapterTests {
 	 * In this test, a Jpa Polling Channel Adapter will use JpQL query
 	 * to retrieve a list of records from the database. Additionally, the records
 	 * will be deleted after the polling.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	@DirtiesContext
@@ -278,17 +271,18 @@ public class JpaPollingChannelAdapterTests {
 		jpaExecutor.setDeleteAfterPoll(true);
 		jpaExecutor.setDeleteInBatch(true);
 		jpaExecutor.setFlush(true);
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		final List<Message<Collection<?>>> received = new ArrayList<>();
 
 		final Consumer consumer = new Consumer();
 
@@ -303,8 +297,7 @@ public class JpaPollingChannelAdapterTests {
 
 		Collection<?> students = message.getPayload();
 
-		assertTrue(students.size() == 3);
-
+		assertEquals(3, students.size());
 
 		Long studentCount = waitForDeletes(students);
 
@@ -337,35 +330,31 @@ public class JpaPollingChannelAdapterTests {
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setJpaQuery("from Student s where s.lastName = 'Something Else'");
 		jpaExecutor.setDeleteAfterPoll(true);
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
-
-		Thread.sleep(1000);
 
 		final Consumer consumer = new Consumer();
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
-		received.add(consumer.poll(10000));
+		final List<Message<Collection<?>>> received = new ArrayList<>();
+		received.add(consumer.poll(100));
 
 		final Message<Collection<?>> message = received.get(0);
 
 		adapter.stop();
 
 		assertNull(message);
-
 	}
 
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use JpQL query
-	 * to retrieve a list of records from the database. Additionaly, the records
+	 * to retrieve a list of records from the database. Additionally, the records
 	 * will be deleted after the polling.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	@DirtiesContext
@@ -377,19 +366,18 @@ public class JpaPollingChannelAdapterTests {
 		jpaExecutor.setJpaQuery("from Student s");
 		jpaExecutor.setDeleteAfterPoll(true);
 		jpaExecutor.setDeleteInBatch(false);
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
-
-		Thread.sleep(1000);
 
 		final Consumer consumer = new Consumer();
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		final List<Message<Collection<?>>> received = new ArrayList<>();
 		received.add(consumer.poll(10000));
 
 		final Message<Collection<?>> message = received.get(0);
@@ -401,7 +389,7 @@ public class JpaPollingChannelAdapterTests {
 
 		final Collection<?> students = message.getPayload();
 
-		assertTrue(students.size() == 3);
+		assertEquals(3, students.size());
 
 		Long studentCount = waitForDeletes(students);
 
@@ -412,8 +400,6 @@ public class JpaPollingChannelAdapterTests {
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use a Native SQL query
 	 * to retrieve a list of records from the database.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void testWithNativeSqlQuery() throws Exception {
@@ -423,17 +409,18 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setNativeQuery("select * from Student where lastName = 'Last One'");
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		final List<Message<Collection<?>>> received = new ArrayList<>();
 
 		final Consumer consumer = new Consumer();
 
@@ -448,15 +435,12 @@ public class JpaPollingChannelAdapterTests {
 
 		Collection<?> students = message.getPayload();
 
-		assertTrue(students.size() == 1);
-
+		assertEquals(1, students.size());
 	}
 
 	/**
 	 * In this test, a Jpa Polling Channel Adapter will use Named query
 	 * to retrieve a list of records from the database.
-	 *
-	 * @throws Exception
 	 */
 	@Test
 	public void testWithNamedQuery() throws Exception {
@@ -466,17 +450,18 @@ public class JpaPollingChannelAdapterTests {
 
 		final JpaExecutor jpaExecutor = new JpaExecutor(entityManager);
 		jpaExecutor.setNamedQuery("selectStudent");
+		jpaExecutor.setBeanFactory(this.context);
 		jpaExecutor.afterPropertiesSet();
 
 		final JpaPollingChannelAdapter jpaPollingChannelAdapter = new JpaPollingChannelAdapter(jpaExecutor);
 
 		final SourcePollingChannelAdapter adapter = JpaTestUtils.getSourcePollingChannelAdapter(
-				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, this.getClass().getClassLoader());
+				jpaPollingChannelAdapter, this.outputChannel, this.poller, this.context, getClass().getClassLoader());
 		adapter.start();
 
 		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		final List<Message<Collection<?>>> received = new ArrayList<Message<Collection<?>>>();
+		final List<Message<Collection<?>>> received = new ArrayList<>();
 
 		final Consumer consumer = new Consumer();
 
@@ -491,8 +476,7 @@ public class JpaPollingChannelAdapterTests {
 
 		Collection<?> students = message.getPayload();
 
-		assertTrue(students.size() == 1);
-
+		assertEquals(1, students.size());
 	}
 
 }

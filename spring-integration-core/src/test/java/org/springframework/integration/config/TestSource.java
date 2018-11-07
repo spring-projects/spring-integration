@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,18 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class TestSource implements MessageSource<String> {
 
 	public Message<String> receive() {
-		return new GenericMessage<String>("test");
+		return new GenericMessage<>("test");
 	}
 
 }

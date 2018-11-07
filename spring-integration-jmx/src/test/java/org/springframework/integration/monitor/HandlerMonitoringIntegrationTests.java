@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,17 @@ import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 
+/**
+ * @author Dave Syer
+ * @author Gary Russell
+ * @author Artem Bilan
+ */
 public class HandlerMonitoringIntegrationTests {
 
 	private static Log logger = LogFactory.getLog(HandlerMonitoringIntegrationTests.class);
@@ -50,24 +56,23 @@ public class HandlerMonitoringIntegrationTests {
 	}
 
 	@Test
-	public void testSendAndHandleWithEndpointName() throws Exception {
+	public void testSendAndHandleWithEndpointName() {
 		// The handler monitor is registered under the endpoint id (since it is explicit)
 		doTest("explicit-handler.xml", "input", "explicit");
 	}
 
 	@Test
-	public void testSendAndHandleWithAnonymousHandler() throws Exception {
+	public void testSendAndHandleWithAnonymousHandler() {
 		doTest("anonymous-handler.xml", "anonymous", "anonymous");
 	}
 
 	@Test
-	public void testSendAndHandleWithProxiedHandler() throws Exception {
+	public void testSendAndHandleWithProxiedHandler() {
 		doTest("proxy-handler.xml", "anonymous", "anonymous");
 	}
 
 	@Test
-	public void testErrorLogger() throws Exception {
-
+	public void testErrorLogger() {
 		ClassPathXmlApplicationContext context = createContext("anonymous-handler.xml", "anonymous");
 		try {
 			assertTrue(Arrays.asList(messageHandlersMonitor.getHandlerNames()).contains("errorLogger"));
@@ -78,14 +83,11 @@ public class HandlerMonitoringIntegrationTests {
 
 	}
 
-	private void doTest(String config, String channelName, String monitor) throws Exception {
-
+	private void doTest(String config, String channelName, String monitor) {
 		ClassPathXmlApplicationContext context = createContext(config, channelName);
-
 		try {
-
 			int before = service.getCounter();
-			channel.send(new GenericMessage<String>("bar"));
+			channel.send(new GenericMessage<>("bar"));
 			assertEquals(before + 1, service.getCounter());
 
 			int count = messageHandlersMonitor.getHandlerDuration(monitor).getCount();
@@ -95,40 +97,47 @@ public class HandlerMonitoringIntegrationTests {
 		finally {
 			context.close();
 		}
-
 	}
 
 	private ClassPathXmlApplicationContext createContext(String config, String channelName) {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(config, getClass());
-		context.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
+		context.getAutowireCapableBeanFactory()
+				.autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
 		channel = context.getBean(channelName, MessageChannel.class);
 		return context;
 	}
 
 	public interface Service {
+
 		void execute(String input) throws Exception;
+
 		int getCounter();
+
 	}
 
 	public static class SimpleService implements Service {
+
 		private int counter;
 
 		public void execute(String input) throws Exception {
 			Thread.sleep(10L); // make the duration non-zero
-			counter++;
+			this.counter++;
 		}
 
 		public int getCounter() {
 			return counter;
 		}
+
 	}
 
 	@Aspect
 	public static class HandlerInterceptor {
+
 		@Before("execution(* *..*Tests*(String)) && args(input)")
 		public void around(String input) {
 			logger.debug("Handling: " + input);
 		}
+
 	}
 
 }

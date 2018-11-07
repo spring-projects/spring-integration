@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,22 +24,25 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.transformer.ContentEnricher;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.1
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -67,7 +70,8 @@ public class EnricherParserTestsWithoutRequestChannel {
 		assertEquals(false, accessor.getPropertyValue("shouldClonePayload"));
 		assertNull(accessor.getPropertyValue("requestPayloadExpression"));
 
-		Map<Expression, Expression> propertyExpressions = (Map<Expression, Expression>) accessor.getPropertyValue("propertyExpressions");
+		Map<Expression, Expression> propertyExpressions =
+				(Map<Expression, Expression>) accessor.getPropertyValue("propertyExpressions");
 		for (Map.Entry<Expression, Expression> e : propertyExpressions.entrySet()) {
 			if ("name".equals(e.getKey().getExpressionString())) {
 				assertEquals("payload.name", e.getValue().getExpressionString());
@@ -76,7 +80,8 @@ public class EnricherParserTestsWithoutRequestChannel {
 				assertEquals("42", e.getValue().getExpressionString());
 			}
 			else {
-				throw new IllegalStateException("expected 'name' and 'age' only, not: " + e.getKey().getExpressionString());
+				throw new IllegalStateException(
+						"expected 'name' and 'age' only, not: " + e.getKey().getExpressionString());
 			}
 		}
 	}
@@ -126,6 +131,7 @@ public class EnricherParserTestsWithoutRequestChannel {
 			copy.setAge(this.age);
 			return copy;
 		}
+
 	}
 
 }

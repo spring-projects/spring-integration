@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -167,7 +168,7 @@ public class HttpInboundGatewayParserTests {
 	}
 
 	@Test
-	public void testController() throws Exception {
+	public void testController() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundController);
 		String errorCode = (String) accessor.getPropertyValue("errorCode");
 		assertEquals("oops", errorCode);
@@ -176,7 +177,7 @@ public class HttpInboundGatewayParserTests {
 	}
 
 	@Test
-	public void testControllerViewExp() throws Exception {
+	public void testControllerViewExp() {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundControllerViewExp);
 		String errorCode = (String) accessor.getPropertyValue("errorCode");
 		assertEquals("oops", errorCode);
@@ -186,16 +187,16 @@ public class HttpInboundGatewayParserTests {
 	}
 
 	@Test
-	public void requestWithHeaders() throws Exception {
+	public void requestWithHeaders() {
 		DefaultHttpHeaderMapper headerMapper =
-				(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
+				TestUtils.getPropertyValue(this.withMappedHeaders, "headerMapper", DefaultHttpHeaderMapper.class);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("foo", "foo");
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
 		Map<String, Object> map = headerMapper.toHeaders(headers);
-		assertTrue(map.size() == 2);
+		assertEquals(2, map.size());
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));
 
@@ -204,15 +205,16 @@ public class HttpInboundGatewayParserTests {
 		MessageHeaders mh = new MessageHeaders(mapOfHeaders);
 		headers = new HttpHeaders();
 		headerMapper.fromHeaders(mh, headers);
-		assertTrue(headers.size() == 1);
+		assertEquals(1, headers.size());
 		List<String> abc = headers.get("abc");
 		assertEquals("abc", abc.get(0));
 	}
 
 	@Test
-	public void requestWithHeadersWithConversionService() throws Exception {
+	public void requestWithHeadersWithConversionService() {
 		DefaultHttpHeaderMapper headerMapper =
-				(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeadersAndConverter, "headerMapper");
+				TestUtils.getPropertyValue(this.withMappedHeadersAndConverter,
+						"headerMapper", DefaultHttpHeaderMapper.class);
 
 		headerMapper.setUserDefinedHeaderPrefix("X-");
 
@@ -221,11 +223,11 @@ public class HttpInboundGatewayParserTests {
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
 		Map<String, Object> map = headerMapper.toHeaders(headers);
-		assertTrue(map.size() == 2);
+		assertEquals(2, map.size());
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));
 
-		Map<String, Object> mapOfHeaders = new HashMap<String, Object>();
+		Map<String, Object> mapOfHeaders = new HashMap<>();
 		mapOfHeaders.put("abc", "abc");
 		Person person = new Person();
 		person.setName("Oleg");
@@ -233,7 +235,7 @@ public class HttpInboundGatewayParserTests {
 		MessageHeaders mh = new MessageHeaders(mapOfHeaders);
 		headers = new HttpHeaders();
 		headerMapper.fromHeaders(mh, headers);
-		assertTrue(headers.size() == 2);
+		assertEquals(2, headers.size());
 		List<String> abc = headers.get("X-abc");
 		assertEquals("abc", abc.get(0));
 		List<String> personHeaders = headers.get("X-person");
@@ -244,7 +246,7 @@ public class HttpInboundGatewayParserTests {
 	public void testInboundGatewayWithMessageConverterDefaults() {
 		@SuppressWarnings("unchecked")
 		List<HttpMessageConverter<?>> messageConverters =
-				TestUtils.getPropertyValue(gatewayWithOneCustomConverter, "messageConverters", List.class);
+				TestUtils.getPropertyValue(this.gatewayWithOneCustomConverter, "messageConverters", List.class);
 		assertThat("There should be only 1 message converter, by default register-default-converters is off",
 				messageConverters.size(), is(1));
 
@@ -255,7 +257,8 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void testInboundGatewayWithNoMessageConverterDefaults() {
 		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(gatewayNoDefaultConverters, "messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters =
+				TestUtils.getPropertyValue(this.gatewayNoDefaultConverters, "messageConverters", List.class);
 		//First converter should be the customized one
 		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
 
@@ -266,7 +269,9 @@ public class HttpInboundGatewayParserTests {
 	@Test
 	public void testInboundGatewayWithCustomAndDefaultMessageConverters() {
 		@SuppressWarnings("unchecked")
-		List<HttpMessageConverter<?>> messageConverters = TestUtils.getPropertyValue(gatewayWithCustomAndDefaultConverters, "messageConverters", List.class);
+		List<HttpMessageConverter<?>> messageConverters =
+				TestUtils.getPropertyValue(this.gatewayWithCustomAndDefaultConverters, "messageConverters",
+						List.class);
 		//First converter should be the customized one
 		assertThat(messageConverters.get(0), instanceOf(SerializingHttpMessageConverter.class));
 

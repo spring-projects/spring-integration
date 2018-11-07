@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,29 @@ package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class DirectChannelSubscriptionTests {
 
@@ -51,8 +53,13 @@ public class DirectChannelSubscriptionTests {
 
 	@Before
 	public void setupChannels() {
-		context.registerChannel("sourceChannel", sourceChannel);
-		context.registerChannel("targetChannel", targetChannel);
+		this.context.registerChannel("sourceChannel", this.sourceChannel);
+		this.context.registerChannel("targetChannel", this.targetChannel);
+	}
+
+	@After
+	public void tearDown() {
+		this.context.close();
 	}
 
 
@@ -60,8 +67,8 @@ public class DirectChannelSubscriptionTests {
 	public void sendAndReceiveForRegisteredEndpoint() {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "handle");
-		serviceActivator.setOutputChannel(targetChannel);
-		EventDrivenConsumer endpoint = new EventDrivenConsumer(sourceChannel, serviceActivator);
+		serviceActivator.setOutputChannel(this.targetChannel);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(this.sourceChannel, serviceActivator);
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 		this.sourceChannel.send(new GenericMessage<String>("foo"));
@@ -73,20 +80,21 @@ public class DirectChannelSubscriptionTests {
 	@Test
 	public void sendAndReceiveForAnnotatedEndpoint() {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.setBeanFactory(context.getBeanFactory());
+		postProcessor.setBeanFactory(this.context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		TestEndpoint endpoint = new TestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
-		context.refresh();
-		this.sourceChannel.send(new GenericMessage<String>("foo"));
+		this.context.refresh();
+		this.sourceChannel.send(new GenericMessage<>("foo"));
 		Message<?> response = this.targetChannel.receive();
 		assertEquals("foo-from-annotated-endpoint", response.getPayload());
-		context.stop();
+		this.context.stop();
 	}
 
 	@Test(expected = MessagingException.class)
 	public void exceptionThrownFromRegisteredEndpoint() {
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
 			@Override
 			public Object handleRequestMessage(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
@@ -94,31 +102,31 @@ public class DirectChannelSubscriptionTests {
 		};
 		handler.setOutputChannel(targetChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(sourceChannel, handler);
-		context.registerEndpoint("testEndpoint", endpoint);
-		context.refresh();
+		this.context.registerEndpoint("testEndpoint", endpoint);
+		this.context.refresh();
 		try {
-			this.sourceChannel.send(new GenericMessage<String>("foo"));
+			this.sourceChannel.send(new GenericMessage<>("foo"));
 		}
 		finally {
-			context.stop();
+			this.context.stop();
 		}
 	}
 
 	@Test(expected = MessagingException.class)
 	public void exceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
-		context.registerChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, errorChannel);
+		this.context.registerChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.setBeanFactory(context.getBeanFactory());
+		postProcessor.setBeanFactory(this.context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		FailingTestEndpoint endpoint = new FailingTestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
-		context.refresh();
+		this.context.refresh();
 		try {
 			this.sourceChannel.send(new GenericMessage<String>("foo"));
 		}
 		finally {
-			context.stop();
+			this.context.stop();
 		}
 	}
 
@@ -126,8 +134,9 @@ public class DirectChannelSubscriptionTests {
 	static class TestBean {
 
 		public Message<?> handle(Message<?> message) {
-			return new GenericMessage<String>(message.getPayload() + "!");
+			return new GenericMessage<>(message.getPayload() + "!");
 		}
+
 	}
 
 
@@ -136,8 +145,9 @@ public class DirectChannelSubscriptionTests {
 
 		@ServiceActivator(inputChannel = "sourceChannel", outputChannel = "targetChannel")
 		public Message<?> handle(Message<?> message) {
-			return new GenericMessage<String>(message.getPayload() + "-from-annotated-endpoint");
+			return new GenericMessage<>(message.getPayload() + "-from-annotated-endpoint");
 		}
+
 	}
 
 
@@ -148,6 +158,7 @@ public class DirectChannelSubscriptionTests {
 		public Message<?> handle(Message<?> message) {
 			throw new RuntimeException("intentional test failure");
 		}
+
 	}
 
 }

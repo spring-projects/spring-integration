@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import groovy.lang.GroovyObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,19 +34,21 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanIsAbstractException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.handler.advice.AbstractRequestHandlerAdvice;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+
+import groovy.lang.GroovyObject;
 
 
 /**
@@ -55,6 +56,7 @@ import org.springframework.web.context.request.RequestContextHolder;
  * @author Artem Bilan
  * @author Gary Russell
  * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -81,7 +83,11 @@ public class GroovyControlBusTests {
 	@Test
 	public void testOperationOfControlBus() { // long is > 3
 		this.groovyCustomizer.executed = false;
-		Message<?> message = MessageBuilder.withPayload("def result = service.convert('aardvark'); def foo = headers.foo; result+foo").setHeader("foo", "bar").build();
+		Message<?> message =
+				MessageBuilder.withPayload(
+						"def result = service.convert('aardvark'); def foo = headers.foo; result+foo")
+						.setHeader("foo", "bar")
+						.build();
 		this.input.send(message);
 		assertEquals("catbar", output.receive(0).getPayload());
 		assertNull(output.receive(0));
@@ -91,7 +97,9 @@ public class GroovyControlBusTests {
 
 	@Test //INT-2567
 	public void testOperationWithCustomScope() {
-		Message<?> message = MessageBuilder.withPayload("def result = threadScopedService.convert('testString')").build();
+		Message<?> message =
+				MessageBuilder.withPayload("def result = threadScopedService.convert('testString')")
+						.build();
 		this.input.send(message);
 		assertEquals("cat", output.receive(0).getPayload());
 	}
@@ -99,13 +107,16 @@ public class GroovyControlBusTests {
 	@Test //INT-2567
 	public void testFailOperationWithCustomScope() {
 		try {
-			Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
+			Message<?> message =
+					MessageBuilder.withPayload("def result = requestScopedService.convert('testString')")
+							.build();
 			this.input.send(message);
 			fail("Expected BeanCreationException");
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
-			assertTrue("Expected BeanCreationException, got " + cause.getClass() + ":" + cause.getMessage(), cause instanceof BeanCreationException);
+			assertTrue("Expected BeanCreationException, got " + cause.getClass() + ":" + cause
+					.getMessage(), cause instanceof BeanCreationException);
 			assertTrue(cause.getMessage().contains("requestScopedService"));
 		}
 	}
@@ -113,7 +124,9 @@ public class GroovyControlBusTests {
 	@Test //INT-2567
 	public void testOperationWithRequestCustomScope() {
 		RequestContextHolder.setRequestAttributes(new MockRequestAttributes());
-		Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
+		Message<?> message =
+				MessageBuilder.withPayload("def result = requestScopedService.convert('testString')")
+						.build();
 		this.input.send(message);
 		assertEquals("cat", output.receive(0).getPayload());
 
@@ -123,13 +136,16 @@ public class GroovyControlBusTests {
 	@Test //INT-2567
 	public void testFailOperationOnNonManagedComponent() {
 		try {
-			Message<?> message = MessageBuilder.withPayload("def result = nonManagedService.convert('testString')").build();
+			Message<?> message =
+					MessageBuilder.withPayload("def result = nonManagedService.convert('testString')")
+							.build();
 			this.input.send(message);
 			fail("Expected BeanCreationNotAllowedException");
 		}
 		catch (MessageHandlingException e) {
 			Throwable cause = e.getCause();
-			assertTrue("Expected BeanCreationNotAllowedException, got " + cause.getClass() + ":" + cause.getMessage(), cause instanceof BeanCreationNotAllowedException);
+			assertTrue("Expected BeanCreationNotAllowedException, got " + cause.getClass() + ":" + cause.getMessage(),
+					cause instanceof BeanCreationNotAllowedException);
 			assertTrue(cause.getMessage().contains("nonManagedService"));
 		}
 	}
@@ -143,7 +159,8 @@ public class GroovyControlBusTests {
 		}
 		catch (MessageHandlingException e) {
 			Throwable cause = e.getCause();
-			assertTrue("Expected BeanIsAbstractException, got " + cause.getClass() + ":" + cause.getMessage(), cause instanceof BeanIsAbstractException);
+			assertTrue("Expected BeanIsAbstractException, got " + cause.getClass() + ":" + cause.getMessage(),
+					cause instanceof BeanIsAbstractException);
 			assertTrue(cause.getMessage().contains("abstractService"));
 		}
 	}
@@ -162,6 +179,7 @@ public class GroovyControlBusTests {
 		public String convert(String input) {
 			return "cat";
 		}
+
 	}
 
 
@@ -170,9 +188,11 @@ public class GroovyControlBusTests {
 		public String convert(String input) {
 			return "cat";
 		}
+
 	}
 
 	public static class MyGroovyCustomizer implements GroovyObjectCustomizer {
+
 		private volatile boolean executed;
 
 		public void customize(GroovyObject goo) {
@@ -183,7 +203,7 @@ public class GroovyControlBusTests {
 
 	private static class MockRequestAttributes implements RequestAttributes {
 
-		private final Map<String, Object> fakeRequest = new HashMap<String, Object>();
+		private final Map<String, Object> fakeRequest = new HashMap<>();
 
 		public Object getAttribute(String name, int scope) {
 			return fakeRequest.get(name);
@@ -227,4 +247,5 @@ public class GroovyControlBusTests {
 		}
 
 	}
+
 }

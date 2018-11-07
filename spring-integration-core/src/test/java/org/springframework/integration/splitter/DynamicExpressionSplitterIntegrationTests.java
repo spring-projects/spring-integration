@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -55,13 +56,13 @@ public class DynamicExpressionSplitterIntegrationTests {
 		Message<?> two = output.receive(0);
 		Message<?> three = output.receive(0);
 		Message<?> four = output.receive(0);
-		assertEquals(new Integer(1), one.getPayload());
+		assertEquals(1, one.getPayload());
 		assertEquals("foo", one.getHeaders().get("foo"));
-		assertEquals(new Integer(2), two.getPayload());
+		assertEquals(2, two.getPayload());
 		assertEquals("foo", two.getHeaders().get("foo"));
-		assertEquals(new Integer(3), three.getPayload());
+		assertEquals(3, three.getPayload());
 		assertEquals("foo", three.getHeaders().get("foo"));
-		assertEquals(new Integer(4), four.getPayload());
+		assertEquals(4, four.getPayload());
 		assertEquals("foo", four.getHeaders().get("foo"));
 		assertNull(output.receive(0));
 	}
@@ -69,7 +70,7 @@ public class DynamicExpressionSplitterIntegrationTests {
 
 	static class TestBean {
 
-		private final List<Integer> numbers = new ArrayList<Integer>();
+		private final List<Integer> numbers = new ArrayList<>();
 
 		TestBean() {
 			for (int i = 1; i <= 10; i++) {
@@ -84,6 +85,7 @@ public class DynamicExpressionSplitterIntegrationTests {
 		public String[] split(String s) {
 			return s.split(",");
 		}
+
 	}
 
 }

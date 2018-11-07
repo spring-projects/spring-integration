@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,24 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -49,8 +52,10 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void replyChannelExplicitOverwriteTrue() {
-		MessageChannel inputChannel = context.getBean("replyChannelExplicitOverwriteTrueInput", MessageChannel.class);
-		PollableChannel replyChannel = context.getBean("replyChannelExplicitOverwriteTrueOutput", PollableChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("replyChannelExplicitOverwriteTrueInput", MessageChannel.class);
+		PollableChannel replyChannel =
+				this.context.getBean("replyChannelExplicitOverwriteTrueOutput", PollableChannel.class);
 		QueueChannel replyChannelToOverwrite = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannelToOverwrite).build();
 		inputChannel.send(message);
@@ -63,7 +68,8 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void replyChannelExplicitOverwriteFalse() {
-		MessageChannel inputChannel = context.getBean("replyChannelExplicitOverwriteFalseInput", MessageChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("replyChannelExplicitOverwriteFalseInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
@@ -75,10 +81,12 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void replyChannelExplicitOverwriteFalseButNoExistingHeader() {
-		MessageChannel inputChannel = context.getBean(
-				"replyChannelExplicitOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
-		PollableChannel replyChannel = context.getBean(
-				"replyChannelExplicitOverwriteFalseButNoExistingHeaderOutput", PollableChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean(
+						"replyChannelExplicitOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
+		PollableChannel replyChannel =
+				this.context.getBean(
+						"replyChannelExplicitOverwriteFalseButNoExistingHeaderOutput", PollableChannel.class);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
@@ -89,8 +97,10 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void replyChannelDefaultOverwriteTrue() {
-		MessageChannel inputChannel = context.getBean("replyChannelDefaultOverwriteTrueInput", MessageChannel.class);
-		PollableChannel replyChannel = context.getBean("replyChannelDefaultOverwriteTrueOutput", PollableChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("replyChannelDefaultOverwriteTrueInput", MessageChannel.class);
+		PollableChannel replyChannel =
+				this.context.getBean("replyChannelDefaultOverwriteTrueOutput", PollableChannel.class);
 		QueueChannel replyChannelToOverwrite = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannelToOverwrite).build();
 		inputChannel.send(message);
@@ -103,7 +113,8 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void replyChannelDefaultOverwriteFalse() {
-		MessageChannel inputChannel = context.getBean("replyChannelDefaultOverwriteFalseInput", MessageChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("replyChannelDefaultOverwriteFalseInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
@@ -115,7 +126,9 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void replyChannelDefaultOverwriteTrueButExplicitOverwriteFalse() {
-		MessageChannel inputChannel = context.getBean("replyChannelDefaultOverwriteTrueButExplicitOverwriteFalseInput", MessageChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("replyChannelDefaultOverwriteTrueButExplicitOverwriteFalseInput",
+						MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
@@ -127,10 +140,12 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void replyChannelDefaultOverwriteFalseButNoExistingHeader() {
-		MessageChannel inputChannel = context.getBean(
-				"replyChannelDefaultOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
-		PollableChannel replyChannel = context.getBean(
-				"replyChannelDefaultOverwriteFalseButNoExistingHeaderOutput", PollableChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean(
+						"replyChannelDefaultOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
+		PollableChannel replyChannel =
+				this.context.getBean(
+						"replyChannelDefaultOverwriteFalseButNoExistingHeaderOutput", PollableChannel.class);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		inputChannel.send(message);
 		Message<?> result = replyChannel.receive(0);
@@ -141,7 +156,7 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void priorityExplicitOverwriteTrue() {
-		MessageChannel channel = context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class);
+		MessageChannel channel = this.context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class);
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultDestination(channel);
 		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
@@ -151,7 +166,7 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void priorityExplicitOverwriteFalse() {
-		MessageChannel input = context.getBean("priorityExplicitOverwriteFalseInput", MessageChannel.class);
+		MessageChannel input = this.context.getBean("priorityExplicitOverwriteFalseInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -165,7 +180,7 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void customExplicitOverwriteTrue() {
-		MessageChannel inputChannel = context.getBean("customExplicitOverwriteTrueInput", MessageChannel.class);
+		MessageChannel inputChannel = this.context.getBean("customExplicitOverwriteTrueInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -180,7 +195,7 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void customExplicitOverwriteFalse() {
-		MessageChannel inputChannel = context.getBean("customExplicitOverwriteFalseInput", MessageChannel.class);
+		MessageChannel inputChannel = this.context.getBean("customExplicitOverwriteFalseInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -195,7 +210,8 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void customExplicitOverwriteFalseButNoExistingHeader() {
-		MessageChannel inputChannel = context.getBean("customExplicitOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("customExplicitOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -209,7 +225,8 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void expressionExplicitOverwriteTrue() {
-		MessageChannel inputChannel = context.getBean("expressionExplicitOverwriteTrueInput", MessageChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("expressionExplicitOverwriteTrueInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -224,7 +241,8 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void expressionExplicitOverwriteFalse() {
-		MessageChannel inputChannel = context.getBean("expressionExplicitOverwriteFalseInput", MessageChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("expressionExplicitOverwriteFalseInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -239,7 +257,8 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void expressionExplicitOverwriteFalseButNoExistingHeader() {
-		MessageChannel inputChannel = context.getBean("expressionExplicitOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("expressionExplicitOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -253,7 +272,7 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void beanExplicitOverwriteTrue() {
-		MessageChannel inputChannel = context.getBean("beanExplicitOverwriteTrueInput", MessageChannel.class);
+		MessageChannel inputChannel = this.context.getBean("beanExplicitOverwriteTrueInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -268,7 +287,7 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void beanExplicitOverwriteFalse() {
-		MessageChannel inputChannel = context.getBean("beanExplicitOverwriteFalseInput", MessageChannel.class);
+		MessageChannel inputChannel = this.context.getBean("beanExplicitOverwriteFalseInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -283,7 +302,8 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void beanExplicitOverwriteFalseButNoExistingHeader() {
-		MessageChannel inputChannel = context.getBean("beanExplicitOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
+		MessageChannel inputChannel =
+				this.context.getBean("beanExplicitOverwriteFalseButNoExistingHeaderInput", MessageChannel.class);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
@@ -307,6 +327,7 @@ public class HeaderEnricherOverwriteTests {
 		public String text() {
 			return this.text;
 		}
+
 	}
 
 }

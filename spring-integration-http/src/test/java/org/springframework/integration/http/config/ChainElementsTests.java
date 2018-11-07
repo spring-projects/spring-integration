@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,11 @@ import java.io.ByteArrayInputStream;
 import java.util.Properties;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
@@ -34,15 +35,16 @@ import org.springframework.core.io.InputStreamResource;
 
 /**
  * @author Gunnar Hillert
+ * @author Artem Bilan
+ *
  * @since 2.2
  */
 public class ChainElementsTests {
 
 	@Test
 	public void chainOutboundGateway() throws Exception {
-
-		try {
-			this.bootStrap("http-oubound-gateway");
+		try  {
+			bootStrap("http-outbound-gateway");
 			fail("Expected a BeanDefinitionParsingException to be thrown.");
 		}
 		catch (BeanDefinitionParsingException e) {
@@ -53,16 +55,18 @@ public class ChainElementsTests {
 			assertTrue("Error message did not start with '" + expectedMessage +
 					"' but instead returned: '" + actualMessage + "'", actualMessage.startsWith(expectedMessage));
 		}
-
 	}
 
-	private ApplicationContext bootStrap(String configProperty) throws Exception {
+	private ConfigurableApplicationContext bootStrap(String configProperty) throws Exception {
 		PropertiesFactoryBean pfb = new PropertiesFactoryBean();
-		pfb.setLocation(new ClassPathResource("org/springframework/integration/http/config/chain-elements-config.properties"));
+		pfb.setLocation(new ClassPathResource(
+				"org/springframework/integration/http/config/chain-elements-config.properties"));
 		pfb.afterPropertiesSet();
 		Properties prop = pfb.getObject();
 		StringBuffer buffer = new StringBuffer();
-		buffer.append(prop.getProperty("xmlheaders")).append(prop.getProperty(configProperty)).append(prop.getProperty("xmlfooter"));
+		buffer.append(prop.getProperty("xmlheaders"))
+				.append(prop.getProperty(configProperty))
+				.append(prop.getProperty("xmlfooter"));
 		ByteArrayInputStream stream = new ByteArrayInputStream(buffer.toString().getBytes());
 		GenericApplicationContext ac = new GenericApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);

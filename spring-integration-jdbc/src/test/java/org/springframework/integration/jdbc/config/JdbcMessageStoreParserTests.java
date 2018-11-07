@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +25,26 @@ import java.io.OutputStream;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
-import org.springframework.messaging.Message;
 import org.springframework.integration.jdbc.store.JdbcMessageStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.support.lob.LobHandler;
+import org.springframework.messaging.Message;
 import org.springframework.test.util.ReflectionTestUtils;
 
+/**
+ * @author Mark Fisher
+ * @author Dave Syer
+ * @author Gunnar Hillert
+ * @author Artem Bilan
+ */
 public class JdbcMessageStoreParserTests {
 
 	private ClassPathXmlApplicationContext context;
@@ -103,6 +110,7 @@ public class JdbcMessageStoreParserTests {
 			message = MessageBuilder.fromMessage(message).setHeader("serializer", "CUSTOM").build();
 			targetSerializer.serialize(message, outputStream);
 		}
+
 	}
 
 }

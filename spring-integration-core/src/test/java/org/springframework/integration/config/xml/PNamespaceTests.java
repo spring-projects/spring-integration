@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
@@ -28,12 +31,11 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * Validates the "p:namespace" is working for inner "bean" definition within SI components.
  *
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -62,28 +64,28 @@ public class PNamespaceTests {
 
 	@Test
 	public void testPNamespaceServiceActivator() {
-		TestBean bean =  prepare(serviceActivator);
+		TestBean bean = prepare(serviceActivator);
 		assertEquals("paris", bean.getFname());
 		assertEquals("hilton", bean.getLname());
 	}
 
 	@Test
 	public void testPNamespaceSplitter() {
-		TestBean bean =  prepare(splitter);
+		TestBean bean = prepare(splitter);
 		assertEquals("paris", bean.getFname());
 		assertEquals("hilton", bean.getLname());
 	}
 
 	@Test
 	public void testPNamespaceRouter() {
-		TestBean bean =  prepare(router);
+		TestBean bean = prepare(router);
 		assertEquals("paris", bean.getFname());
 		assertEquals("hilton", bean.getLname());
 	}
 
 	@Test
 	public void testPNamespaceTransformer() {
-		TestBean bean =  prepare(transformer);
+		TestBean bean = prepare(transformer);
 		assertEquals("paris", bean.getFname());
 		assertEquals("hilton", bean.getLname());
 	}
@@ -93,7 +95,8 @@ public class PNamespaceTests {
 		List<?> handlers = (List<?>) TestUtils.getPropertyValue(sampleChain, "handler.handlers");
 		AggregatingMessageHandler handler = (AggregatingMessageHandler) handlers.get(0);
 		SampleAggregator aggregator =
-			(SampleAggregator) TestUtils.getPropertyValue(handler, "outputProcessor.processor.delegate.targetObject");
+				(SampleAggregator) TestUtils
+						.getPropertyValue(handler, "outputProcessor.processor.delegate.targetObject");
 		assertEquals("Bill", aggregator.getName());
 	}
 
@@ -105,7 +108,9 @@ public class PNamespaceTests {
 
 
 	public interface InboundGateway {
+
 		String echo();
+
 	}
 
 
@@ -138,11 +143,16 @@ public class PNamespaceTests {
 		public String toString() {
 			return fname + lname;
 		}
+
 	}
 
 	public static class SampleAggregator {
+
 		private String name;
-		public SampleAggregator() { }
+
+		public SampleAggregator() {
+		}
+
 		public String getName() {
 			return name;
 		}
@@ -150,5 +160,7 @@ public class PNamespaceTests {
 		public void setName(String name) {
 			this.name = name;
 		}
+
 	}
+
 }

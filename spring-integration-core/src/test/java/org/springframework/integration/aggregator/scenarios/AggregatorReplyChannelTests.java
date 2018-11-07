@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artme Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -50,30 +52,30 @@ public class AggregatorReplyChannelTests {
 	@Autowired
 	private volatile PollableChannel output;
 
-	private final List<String> list = new ArrayList<String>();
+	private final List<String> list = new ArrayList<>();
 
 
 	@Before
 	public void setupList() {
-		list.add("foo");
-		list.add("bar");
+		this.list.add("foo");
+		this.list.add("bar");
 	}
 
 
 	@Test
 	public void replyChannelHeader() {
-		this.verifyReply(MessageBuilder.withPayload(list).setReplyChannel(output).build());
+		verifyReply(MessageBuilder.withPayload(list).setReplyChannel(output).build());
 	}
 
 	@Test // INT-1095
 	public void replyChannelNameHeader() {
-		this.verifyReply(MessageBuilder.withPayload(list).setReplyChannelName("output").build());
+		verifyReply(MessageBuilder.withPayload(list).setReplyChannelName("output").build());
 	}
 
 	private void verifyReply(Message<?> message) {
-		assertNull(output.receive(0));
-		input.send(message);
-		Message<?> result = output.receive(0);
+		assertNull(this.output.receive(0));
+		this.input.send(message);
+		Message<?> result = this.output.receive(0);
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof List);
 		List<?> resultList = (List<?>) result.getPayload();

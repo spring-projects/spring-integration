@@ -39,16 +39,16 @@
 
 	<beans:bean id="pojoSelectorBean" class="org.springframework.integration.config.SelectorChainParserTests$StubPojoSelector"/>
 
-	<beans:bean id="selector1" class="org.springframework.integration.config.SelectorChainParserTests$StubMessageSelector"/>
+	<beans:bean id="selector1" class="org.springframework.integration.config.StubMessageSelector"/>
 
-	<beans:bean id="selector2" class="org.springframework.integration.config.SelectorChainParserTests$StubMessageSelector"/>
+	<beans:bean id="selector2" parent="selector1"/>
 
-	<beans:bean id="selector3" class="org.springframework.integration.config.SelectorChainParserTests$StubMessageSelector"/>
+	<beans:bean id="selector3" parent="selector1"/>
 
-	<beans:bean id="selector4" class="org.springframework.integration.config.SelectorChainParserTests$StubMessageSelector"/>
+	<beans:bean id="selector4" parent="selector1"/>
 
-	<beans:bean id="selector5" class="org.springframework.integration.config.SelectorChainParserTests$StubMessageSelector"/>
+	<beans:bean id="selector5" parent="selector1"/>
 
-	<beans:bean id="selector6" class="org.springframework.integration.config.SelectorChainParserTests$StubMessageSelector"/>
+	<beans:bean id="selector6" parent="selector1"/>
 
 </beans:beans>

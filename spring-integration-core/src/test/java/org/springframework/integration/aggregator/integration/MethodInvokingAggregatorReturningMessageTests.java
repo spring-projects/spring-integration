@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,18 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.messaging.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -54,16 +56,16 @@ public class MethodInvokingAggregatorReturningMessageTests {
 	@Test // INT-1107
 	public void messageReturningPojoAggregatorResultIsNotWrappedInAnotherMessage() {
 		List<String> payload = Collections.singletonList("test");
-		pojoInput.send(MessageBuilder.withPayload(payload).build());
-		Message<?> result = pojoOutput.receive();
+		this.pojoInput.send(MessageBuilder.withPayload(payload).build());
+		Message<?> result = this.pojoOutput.receive();
 		assertFalse(Message.class.isAssignableFrom(result.getPayload().getClass()));
 	}
 
 	@Test
 	public void defaultAggregatorResultIsNotWrappedInAnotherMessage() {
 		List<String> payload = Collections.singletonList("test");
-		defaultInput.send(MessageBuilder.withPayload(payload).build());
-		Message<?> result = defaultOutput.receive();
+		this.defaultInput.send(MessageBuilder.withPayload(payload).build());
+		Message<?> result = this.defaultOutput.receive();
 		assertFalse(Message.class.isAssignableFrom(result.getPayload().getClass()));
 	}
 
@@ -75,6 +77,7 @@ public class MethodInvokingAggregatorReturningMessageTests {
 			List<String> payload = Collections.singletonList("foo");
 			return MessageBuilder.withPayload(payload).setHeader("bar", 123).build();
 		}
+
 	}
 
 }

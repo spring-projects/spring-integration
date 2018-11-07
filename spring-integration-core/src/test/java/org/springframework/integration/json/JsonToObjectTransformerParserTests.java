@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,21 +25,22 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapperAdapter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -65,10 +66,14 @@ public class JsonToObjectTransformerParserTests {
 
 	@Test
 	public void defaultObjectMapper() {
-		Object jsonToObjectTransformer = TestUtils.getPropertyValue(this.defaultJacksonMapperTransformer, "transformer");
-		assertEquals(Jackson2JsonObjectMapper.class, TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper").getClass());
+		Object jsonToObjectTransformer =
+				TestUtils.getPropertyValue(this.defaultJacksonMapperTransformer, "transformer");
+		assertEquals(Jackson2JsonObjectMapper.class,
+				TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper").getClass());
 
-		String jsonString = "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42,\"address\":{\"number\":123,\"street\":\"Main Street\"}}";
+		String jsonString =
+				"{\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42," +
+						"\"address\":{\"number\":123,\"street\":\"Main Street\"}}";
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload(jsonString).setReplyChannel(replyChannel).build();
 		this.defaultObjectMapperInput.send(message);
@@ -86,7 +91,8 @@ public class JsonToObjectTransformerParserTests {
 	@Test
 	public void testInt2831CustomJsonObjectMapper() {
 		Object jsonToObjectTransformer = TestUtils.getPropertyValue(this.customJsonMapperTransformer, "transformer");
-		assertSame(this.jsonObjectMapper, TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper", JsonObjectMapper.class));
+		assertSame(this.jsonObjectMapper,
+				TestUtils.getPropertyValue(jsonToObjectTransformer, "jsonObjectMapper", JsonObjectMapper.class));
 
 		String jsonString = "{firstName:'John', lastName:'Doe', age:42, address:{number:123, street:'Main Street'}}";
 		QueueChannel replyChannel = new QueueChannel();
@@ -104,9 +110,10 @@ public class JsonToObjectTransformerParserTests {
 	static class CustomJsonObjectMapper extends JsonObjectMapperAdapter {
 
 		@Override
-		public Object fromJson(Object json, Class valueType) throws Exception {
+		public Object fromJson(Object json, Class valueType) {
 			return new TestJsonContainer((String) json);
 		}
+
 	}
 
 	static class TestJsonContainer {
@@ -120,6 +127,7 @@ public class JsonToObjectTransformerParserTests {
 		public String getJson() {
 			return json;
 		}
+
 	}
 
 }

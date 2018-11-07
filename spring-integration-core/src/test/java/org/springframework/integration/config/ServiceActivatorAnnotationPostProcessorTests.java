@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,18 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ServiceActivatorAnnotationPostProcessorTests {
 
@@ -50,15 +51,16 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);
 		context.registerBeanDefinition("testBean", beanDefinition);
 		context.refresh();
-		SimpleServiceActivatorAnnotationTestBean testBean = (SimpleServiceActivatorAnnotationTestBean) context.getBean("testBean");
+		SimpleServiceActivatorAnnotationTestBean testBean =
+				context.getBean("testBean", SimpleServiceActivatorAnnotationTestBean.class);
 		assertEquals(1, latch.getCount());
 		assertNull(testBean.getMessageText());
 		MessageChannel testChannel = (MessageChannel) context.getBean("testChannel");
-		testChannel.send(new GenericMessage<String>("test-123"));
+		testChannel.send(new GenericMessage<>("test-123"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("test-123", testBean.getMessageText());
-		context.stop();
+		context.close();
 	}
 
 
@@ -79,6 +81,7 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		public String getMessageText() {
 			return this.messageText;
 		}
+
 	}
 
 
@@ -94,6 +97,7 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 			this.messageText = messageText;
 			this.countDown();
 		}
+
 	}
 
 }

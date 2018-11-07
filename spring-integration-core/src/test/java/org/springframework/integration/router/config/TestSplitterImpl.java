@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.springframework.integration.router.config;
 
-import org.springframework.messaging.Message;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
+import org.springframework.messaging.Message;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class TestSplitterImpl extends AbstractMessageSplitter {
-
 
 	@Override
 	protected Object splitMessage(Message<?> message) {

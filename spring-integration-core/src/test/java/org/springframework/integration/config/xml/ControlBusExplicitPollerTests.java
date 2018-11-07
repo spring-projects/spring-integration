@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,24 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
+@DirtiesContext
 public class ControlBusExplicitPollerTests {
 
 	@Autowired
@@ -46,7 +49,10 @@ public class ControlBusExplicitPollerTests {
 
 	@Test
 	public void testDefaultEvaluationContext() {
-		Message<?> message = MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo").setHeader("foo", "bar").build();
+		Message<?> message =
+				MessageBuilder.withPayload("@service.convert('aardvark')+headers.foo")
+						.setHeader("foo", "bar")
+						.build();
 		this.input.send(message);
 		assertEquals("catbar", output.receive(1000).getPayload());
 		assertNull(output.receive(0));
@@ -59,6 +65,7 @@ public class ControlBusExplicitPollerTests {
 		public String convert(String input) {
 			return "cat";
 		}
+
 	}
 
 }

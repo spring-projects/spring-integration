@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.gateway;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -29,7 +28,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
- * @since 2.0.M1
+ * @author Artem Bilan
+ *
+ * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -41,7 +42,7 @@ public class MultiMethodGatewayConfigTests {
 
 	@Test
 	public void validateGatewayMethods() {
-		TestGateway gateway = (TestGateway) applicationContext.getBean("myGateway");
+		TestGateway gateway = this.applicationContext.getBean("myGateway", TestGateway.class);
 		String parentClassName = "org.springframework.integration.gateway.MultiMethodGatewayConfigTests";
 		Assert.assertEquals(gateway.echo("oleg"),
 				parentClassName + "$TestBeanA:oleg");
@@ -53,27 +54,37 @@ public class MultiMethodGatewayConfigTests {
 
 
 	public static class TestBeanA {
+
 		public String echo(String str) {
 			return this.getClass().getName() + ":" + str;
 		}
+
 	}
 
 	public static class TestBeanB {
+
 		public String echo(String str) {
 			return this.getClass().getName() + ":" + str;
 		}
+
 	}
 
 	public static class TestBeanC {
+
 		public String echo(String str) {
 			return this.getClass().getName() + ":" + str;
 		}
+
 	}
 
 	public interface TestGateway {
+
 		String echo(String str);
+
 		String echoViaDefault(String str);
+
 		String echoUpperCase(String str);
+
 	}
 
 }

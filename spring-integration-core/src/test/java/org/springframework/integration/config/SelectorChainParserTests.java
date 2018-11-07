@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,18 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.integration.selector.MessageSelectorChain;
 import org.springframework.integration.selector.MessageSelectorChain.VotingStrategy;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -55,7 +56,7 @@ public class SelectorChainParserTests {
 		assertEquals(VotingStrategy.ALL, this.getStrategy(chain));
 		assertEquals(selector1, selectors.get(0));
 		assertEquals(selector2, selectors.get(1));
-		assertTrue(chain.accept(new GenericMessage<String>("test")));
+		assertTrue(chain.accept(new GenericMessage<>("test")));
 		assertTrue(this.context.containsBean("pojoSelector"));
 	}
 
@@ -88,10 +89,10 @@ public class SelectorChainParserTests {
 		assertEquals(VotingStrategy.MAJORITY_OR_TIE, this.getStrategy(chain4));
 		List<MessageSelector> selectorList4 = this.getSelectors(chain4);
 		assertEquals(selector6, selectorList4.get(0));
-		assertTrue(chain1.accept(new GenericMessage<String>("test1")));
-		assertTrue(chain2.accept(new GenericMessage<String>("test2")));
-		assertTrue(chain3.accept(new GenericMessage<String>("test3")));
-		assertTrue(chain4.accept(new GenericMessage<String>("test4")));
+		assertTrue(chain1.accept(new GenericMessage<>("test1")));
+		assertTrue(chain2.accept(new GenericMessage<>("test2")));
+		assertTrue(chain3.accept(new GenericMessage<>("test3")));
+		assertTrue(chain4.accept(new GenericMessage<>("test4")));
 	}
 
 
@@ -105,15 +106,12 @@ public class SelectorChainParserTests {
 		return (VotingStrategy) new DirectFieldAccessor(chain).getPropertyValue("votingStrategy");
 	}
 
-	public static class StubMessageSelector implements MessageSelector {
+	public static class StubPojoSelector {
+
 		public boolean accept(Message<?> message) {
 			return true;
 		}
+
 	}
 
-	public static class StubPojoSelector {
-		public boolean accept(Message<?> message) {
-			return true;
-		}
-	}
 }

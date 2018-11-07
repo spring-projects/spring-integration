@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2016 the original author or authors.
+ * Copyright 2012-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,12 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -37,6 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Gary Russell
  * @author Artem Bilan
  * @author Karol Dowbecki
+ *
  * @since 2.2
  *
  */
@@ -52,7 +54,7 @@ public class SyslogTransformerParserTests {
 
 	@Test
 	public void testMap() {
-		toMapChannel.send(new GenericMessage<String>("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE"));
+		toMapChannel.send(new GenericMessage<>("<157>JUL 26 22:08:35 WEBERN TESTING[70729]: TEST SYSLOG MESSAGE"));
 		Map<?, ?> map = (Map<?, ?>) out.receive(1000).getPayload();
 		assertNotNull(map);
 		assertEquals(6, map.size());

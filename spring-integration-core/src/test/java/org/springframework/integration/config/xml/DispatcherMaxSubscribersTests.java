@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,13 @@ package org.springframework.integration.config.xml;
 import static org.junit.Assert.assertEquals;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -59,7 +60,8 @@ public abstract class DispatcherMaxSubscribersTests {
 	}
 
 	protected void doTestUnicast(int val1, int val2, int val3, int val4, int val5) {
-		Integer autoCreateMax = TestUtils.getPropertyValue(autoCreateChannel, "dispatcher.maxSubscribers", Integer.class);
+		Integer autoCreateMax =
+				TestUtils.getPropertyValue(autoCreateChannel, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val1, autoCreateMax.intValue());
 		Integer defaultMax = TestUtils.getPropertyValue(defaultChannel, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val1, defaultMax.intValue());
@@ -69,7 +71,8 @@ public abstract class DispatcherMaxSubscribersTests {
 		assertEquals(val3, explicitMax.intValue());
 		Integer execMax = TestUtils.getPropertyValue(executorChannel, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val4, execMax.intValue());
-		Integer explicitExecMax = TestUtils.getPropertyValue(explicitExecutorChannel, "dispatcher.maxSubscribers", Integer.class);
+		Integer explicitExecMax =
+				TestUtils.getPropertyValue(explicitExecutorChannel, "dispatcher.maxSubscribers", Integer.class);
 		assertEquals(val5, explicitExecMax.intValue());
 	}
 
@@ -80,7 +83,9 @@ public abstract class DispatcherMaxSubscribersTests {
 		Integer explicitMax = TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(pubSubExplicitChannel, "dispatcher"), "maxSubscribers", Integer.class);
 		assertEquals(val2, explicitMax.intValue());
-		Integer explicitMin = TestUtils.getPropertyValue(pubSubExplicitChannel, "dispatcher.minSubscribers", Integer.class);
+		Integer explicitMin =
+				TestUtils.getPropertyValue(pubSubExplicitChannel, "dispatcher.minSubscribers", Integer.class);
 		assertEquals(1, explicitMin.intValue());
 	}
+
 }

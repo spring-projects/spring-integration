@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,23 @@ import static org.junit.Assert.assertNull;
 
 import java.beans.PropertyEditorSupport;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.AbstractResource;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -47,7 +48,7 @@ public class GroovyRefreshTests {
 	private MessageChannel referencedScriptInput;
 
 	@Test
-	public void referencedScript() throws Exception {
+	public void referencedScript() {
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		this.referencedScriptInput.send(MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build());
@@ -58,17 +59,21 @@ public class GroovyRefreshTests {
 	}
 
 	public static class ResourceEditor extends PropertyEditorSupport {
+
 		@Override
 		public void setAsText(String text) throws IllegalArgumentException {
 			super.setValue(new CycleResource());
 		}
+
 	}
 
 	private static class CycleResource extends AbstractResource {
 
 		private int count = -1;
-		private String[] scripts = {"\"groovy-${binding.variables['payload']}-0\"",
-				"\"groovy-${binding.variables['payload']}-1\""};
+
+		private String[] scripts =
+				{ "\"groovy-${binding.variables['payload']}-0\"",
+						"\"groovy-${binding.variables['payload']}-1\"" };
 
 		public String getDescription() {
 			return "CycleResource";
@@ -80,16 +85,17 @@ public class GroovyRefreshTests {
 		}
 
 		@Override
-		public long lastModified() throws IOException {
+		public long lastModified() {
 			return -1;
 		}
 
-		public InputStream getInputStream() throws IOException {
-			if (++count > scripts.length - 1) {
-				count = 0;
+		public InputStream getInputStream() {
+			if (++this.count > this.scripts.length - 1) {
+				this.count = 0;
 			}
-			return new ByteArrayInputStream(scripts[count].getBytes());
+			return new ByteArrayInputStream(this.scripts[count].getBytes());
 		}
 
 	}
+
 }

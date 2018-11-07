@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,19 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.messaging.support.GenericMessage;
-import org.springframework.messaging.Message;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  *
  * @author Dave Syer
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -47,25 +49,25 @@ public class NestedAggregationTests {
 	DirectChannel router;
 
 	@Test
-	public void testAggregatorWithNestedSplitter() throws Exception {
-		@SuppressWarnings("unchecked")
-		Message<?> input = new GenericMessage<List<List<String>>>(Arrays.asList(Arrays.asList("foo", "bar", "spam"),
-				Arrays.asList("bar", "foo")));
+	public void testAggregatorWithNestedSplitter() {
+		Message<?> input = new GenericMessage<>(
+				Arrays.asList(
+						Arrays.asList("foo", "bar", "spam"),
+						Arrays.asList("bar", "foo")));
 		List<String> result = sendAndReceiveMessage(splitter, 2000, input);
 		assertNotNull("Expected result and got null", result);
 		assertEquals("[[foo, bar, spam], [bar, foo]]", result.toString());
 	}
 
 	@Test
-	public void testAggregatorWithNestedRouter() throws Exception {
-		Message<?> input = new GenericMessage<List<String>>(Arrays.asList("bar", "foo"));
+	public void testAggregatorWithNestedRouter() {
+		Message<?> input = new GenericMessage<>(Arrays.asList("bar", "foo"));
 		List<String> result = sendAndReceiveMessage(router, 2000, input);
 		assertNotNull("Expected result and got null", result);
 		assertEquals("[[bar, foo], [bar, foo]]", result.toString());
 	}
 
 	private List<String> sendAndReceiveMessage(DirectChannel channel, int timeout, Message<?> input) {
-
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(timeout);
 

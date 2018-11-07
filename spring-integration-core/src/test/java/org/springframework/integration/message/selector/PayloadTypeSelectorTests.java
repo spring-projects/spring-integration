@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,33 +21,34 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.integration.selector.PayloadTypeSelector;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.integration.selector.PayloadTypeSelector;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class PayloadTypeSelectorTests {
 
 	@Test
 	public void testAcceptedTypeIsSelected() {
 		PayloadTypeSelector selector = new PayloadTypeSelector(String.class);
-		assertTrue(selector.accept(new GenericMessage<String>("test")));
+		assertTrue(selector.accept(new GenericMessage<>("test")));
 	}
 
 	@Test
 	public void testNonAcceptedTypeIsNotSelected() {
 		PayloadTypeSelector selector = new PayloadTypeSelector(Integer.class);
-		assertFalse(selector.accept(new GenericMessage<String>("test")));
+		assertFalse(selector.accept(new GenericMessage<>("test")));
 	}
 
 	@Test
 	public void testMultipleAcceptedTypes() {
 		PayloadTypeSelector selector = new PayloadTypeSelector(String.class, Integer.class);
-		assertTrue(selector.accept(new GenericMessage<String>("test1")));
-		assertTrue(selector.accept(new GenericMessage<Integer>(2)));
+		assertTrue(selector.accept(new GenericMessage<>("test1")));
+		assertTrue(selector.accept(new GenericMessage<>(2)));
 		assertFalse(selector.accept(new ErrorMessage(new RuntimeException())));
 	}
 

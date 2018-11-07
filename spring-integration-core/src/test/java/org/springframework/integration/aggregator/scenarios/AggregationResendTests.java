@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -38,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @author Iwein Fuld
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -62,8 +62,8 @@ public class AggregationResendTests {
 	 */
 	@Test
 	@Ignore // timeout is no longer supported
-	public void testAggregatorWithoutExplicitTimeoutReturnsOnlyOneMessage() throws Exception {
-		sendMessage(input_for_aggregator_with_explicit_timeout, 2000);
+	public void testAggregatorWithoutExplicitTimeoutReturnsOnlyOneMessage() {
+		sendMessage(this.input_for_aggregator_with_explicit_timeout, 2000);
 	}
 
 	/**
@@ -76,17 +76,17 @@ public class AggregationResendTests {
 	 */
 	@Test
 	@Ignore // disabling from normal testing, should be the same behavior whether explicit or default
-	public void testAggregatorWithTimeoutReturnsOnlyOneMessage() throws Exception {
-		sendMessage(input_for_aggregator_without_explicit_timeout, 62000);
+	public void testAggregatorWithTimeoutReturnsOnlyOneMessage() {
+		sendMessage(this.input_for_aggregator_without_explicit_timeout, 62000);
 	}
 
 	private void sendMessage(DirectChannel channel, int waitSeconds) {
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("foo");
 		list.add("bar");
 		list.add("baz");
 
-		reply.purge(null);
+		this.reply.purge(null);
 		channel.send(MessageBuilder.withPayload(list).setReplyChannel(reply).build());
 
 		Message<?> replyMessage;
@@ -96,8 +96,10 @@ public class AggregationResendTests {
 			if (null != replyMessage) {
 				messageCount++;
 			}
-		} while (null != replyMessage);
+		}
+		while (null != replyMessage);
 
 		Assert.assertEquals(1, messageCount);
 	}
+
 }

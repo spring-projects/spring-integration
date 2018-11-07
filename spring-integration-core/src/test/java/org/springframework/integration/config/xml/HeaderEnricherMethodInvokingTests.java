@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,17 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 @ContextConfiguration
@@ -69,11 +71,12 @@ public class HeaderEnricherMethodInvokingTests {
 		}
 
 		public Map<String, Object> enrich() {
-			Map<String, Object> headers = new HashMap<String, Object>();
+			Map<String, Object> headers = new HashMap<>();
 			headers.put("foo", 123);
 			headers.put("bar", "ABC");
 			return headers;
 		}
+
 	}
 
 }
