@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -166,7 +167,7 @@ public class RotatingServersTests extends FtpTestSupport {
 
 		private final CountDownLatch latch = new CountDownLatch(17);
 
-		List<Integer> sessionSources = new ArrayList<>();
+		final List<Integer> sessionSources = new CopyOnWriteArrayList<>();
 
 		@Bean
 		public SessionFactory<FTPFile> factory1() {
