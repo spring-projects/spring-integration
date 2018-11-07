@@ -256,7 +256,7 @@ public class JdbcMetadataStore implements ConcurrentMetadataStore, InitializingB
 	@Override
 	public Set<String> keySet() {
 		Set<String> keys = new HashSet<>();
-		keys.addAll(this.jdbcTemplate.queryForList(this.getAllKeysQuery, new Object[]{this.region}, String.class));
+		keys.addAll(this.jdbcTemplate.queryForList(this.getAllKeysQuery, String.class, this.region));
 		return Collections.unmodifiableSet(keys);
 	}
 }

@@ -16,8 +16,8 @@
 
 package org.springframework.integration.metadata;
 
+import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -39,7 +39,7 @@ public interface MetadataStore {
 	/**
 	 * Writes a key value pair to this MetadataStore.
 	 *
-	 * @param key The key.
+	 * @param key   The key.
 	 * @param value The value.
 	 */
 	void put(String key, String value);
@@ -55,17 +55,22 @@ public interface MetadataStore {
 
 	/**
 	 * Remove a value for the given key from this MetadataStore.
+	 *
 	 * @param key The key.
 	 * @return The previous value associated with <tt>key</tt>, or
-	 *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
+	 * <tt>null</tt> if there was no mapping for <tt>key</tt>.
 	 */
 	@ManagedAttribute
 	String remove(String key);
 
 	/**
 	 * Return all keys from this MetadataStore.
+	 *
 	 * @return all keys as a Set.
 	 */
-	Set<String> keySet();
+	@SuppressWarnings("unchecked")
+	default Set<String> keySet() {
+		return Collections.EMPTY_SET;
+	}
 
 }

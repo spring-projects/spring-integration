@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,11 +16,6 @@
 
 package org.springframework.integration.metadata;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.util.TimeZone;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
 
@@ -57,30 +52,10 @@ public class MetadataStoreReaper implements Runnable, SmartLifecycle {
 	private volatile boolean autoStartup = true;
 
 	/**
-	 * Remove entries from a {@link MetadataStore} based on a maximum time-to-live.
-	 * @param metadataStore the MetadataStore.
-	 * @param timeToLive the maximum time-to-live.
-	 */
-	public MetadataStoreReaper(MetadataStore metadataStore, Duration timeToLive) {
-		this(metadataStore, value -> {
-			try {
-				long timestamp = Long.valueOf(value);
-				Duration age = Duration.between(LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp),
-								TimeZone.getDefault().toZoneId()), LocalDateTime.now());
-				return age.compareTo(timeToLive) >= 0;
-			}
-			catch (NumberFormatException e) {
-				logger.warn(String.format("Cannot convert %s to a long.", value));
-			}
-			return false;
-
-		});
-	}
-
-	/**
 	 * Remove entries from a {@link MetadataStore} based on a {@link Predicate} used to determine the expiry condition.
+	 *
 	 * @param metadataStore the MetadataStore.
-	 * @param isExpired the Predicate tested against the entry's value.
+	 * @param isExpired     the Predicate tested against the entry's value.
 	 */
 	public MetadataStoreReaper(MetadataStore metadataStore, Predicate<String> isExpired) {
 		Assert.notNull(metadataStore, "'metadataStore' cannot be null");
@@ -91,8 +66,7 @@ public class MetadataStoreReaper implements Runnable, SmartLifecycle {
 
 	@Override
 	public void run() {
-		this.metadataStore.keySet().stream().forEach(k ->
-		{
+		this.metadataStore.keySet().stream().forEach(k -> {
 			if (this.isExpired.test(this.metadataStore.get(k))) {
 				if (logger.isTraceEnabled()) {
 					logger.trace(String.format("removing entry with key %s", k));
