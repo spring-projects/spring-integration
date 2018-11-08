@@ -49,7 +49,7 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 			throw new ApplicationContextException("Starting with Spring Integration 5.0, "
 					+  "the 'spring-integration-java-dsl' dependency is no longer needed; "
 					+ "the Java DSL has been merged into the core project. "
-					+ "Having it present it on the classpath causes class loading conflicts.");
+					+ "If it is present on the classpath, it will cause class loading conflicts.");
 		}
 	}
 
