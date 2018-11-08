@@ -148,7 +148,7 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String collectionName =
 				this.collectionNameExpression.getValue(this.evaluationContext, requestMessage, String.class);
-
+		// TODO: 5.2 assert not null
 		Object result;
 
 		if (this.collectionCallback != null) {
@@ -158,10 +158,10 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 			Query query = buildQuery(requestMessage);
 
 			if (this.expectSingleResult) {
-				result = this.mongoTemplate.findOne(query, this.entityClass, collectionName);
+				result = this.mongoTemplate.findOne(query, this.entityClass, collectionName); // NOSONAR
 			}
 			else {
-				result = this.mongoTemplate.find(query, this.entityClass, collectionName);
+				result = this.mongoTemplate.find(query, this.entityClass, collectionName); // NOSONAR
 			}
 		}
 
