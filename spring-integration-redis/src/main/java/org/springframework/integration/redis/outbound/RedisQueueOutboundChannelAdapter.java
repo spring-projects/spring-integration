@@ -125,11 +125,12 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 		}
 
 		String queueName = this.queueNameExpression.getValue(this.evaluationContext, message, String.class);
+		// TODO: 5.2 assert both not null
 		if (this.leftPush) {
-			this.template.boundListOps(queueName).leftPush(value);
+			this.template.boundListOps(queueName).leftPush(value); // NOSONAR
 		}
 		else {
-			this.template.boundListOps(queueName).rightPush(value);
+			this.template.boundListOps(queueName).rightPush(value); // NOSONAR
 		}
 	}
 

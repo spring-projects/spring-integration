@@ -497,7 +497,8 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		}
 		throw new MessagingException(
 				"Could not convert request: no suitable HttpMessageConverter found for expected type ["
-						+ expectedType.getName() + "] and content type [" + contentType + "]");
+						+ expectedType != null ? expectedType.getName() : "null"
+						+ "] and content type [" + contentType + "]");
 	}
 
 }

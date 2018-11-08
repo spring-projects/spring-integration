@@ -102,12 +102,13 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) {
 		String topic = this.topicExpression.getValue(this.evaluationContext, message, String.class);
 		Object value = this.messageConverter.fromMessage(message, Object.class);
+		// TODO: 5.2 assert both not null
 
 		if (value instanceof byte[]) {
-			this.template.convertAndSend(topic, value);
+			this.template.convertAndSend(topic, value); // NOSONAR
 		}
 		else {
-			this.template.convertAndSend(topic, ((RedisSerializer<Object>) this.serializer).serialize(value));
+			this.template.convertAndSend(topic, ((RedisSerializer<Object>) this.serializer).serialize(value)); // NOSONAR
 		}
 	}
 
