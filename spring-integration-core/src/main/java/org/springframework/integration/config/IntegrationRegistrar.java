@@ -22,6 +22,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedSet;
+import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor;
@@ -29,6 +30,7 @@ import org.springframework.integration.config.annotation.MessagingAnnotationPost
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 
 /**
  * {@link ImportBeanDefinitionRegistrar} implementation that configures integration infrastructure.
@@ -39,6 +41,17 @@ import org.springframework.lang.Nullable;
  * @since 4.0
  */
 public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
+
+	static {
+		if (ClassUtils.isPresent("org.springframework.integration.dsl.support.Function",
+				IntegrationRegistrar.class.getClassLoader())) {
+
+			throw new ApplicationContextException("Starting with Spring Integration 5.0, "
+					+  "the 'spring-integration-java-dsl' dependency is no longer needed; "
+					+ "the Java DSL has been merged into the core project. "
+					+ "Having it present it on the classpath causes class loading conflicts.");
+		}
+	}
 
 	/**
 	 * Invoked by the framework when an &#64;EnableIntegration annotation is encountered.
