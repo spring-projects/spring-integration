@@ -38,6 +38,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -83,6 +84,17 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar, Bean
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
+	}
+
+	static {
+		if (ClassUtils.isPresent("org.springframework.integration.dsl.support.Function",
+				IntegrationRegistrar.class.getClassLoader())) {
+
+			throw new ApplicationContextException("Starting with Spring Integration 5.0, "
+					+  "the 'spring-integration-java-dsl' dependency is no longer needed; "
+					+ "the Java DSL has been merged into the core project. "
+					+ "Having it present it on the classpath causes class loading conflicts.");
+		}
 	}
 
 	/**
