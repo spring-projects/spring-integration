@@ -27,6 +27,7 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * @author Dave Syer
@@ -42,7 +43,7 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
+	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<>();
 
 	private final MessageGroupFactory persistentMessageGroupFactory =
 			new SimpleMessageGroupFactory(SimpleMessageGroupFactory.GroupType.PERSISTENT);
@@ -72,13 +73,10 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 	/**
 	 * Convenient injection point for expiry callbacks in the message store. Each of the callbacks provided will simply
 	 * be registered with the store using {@link #registerMessageGroupExpiryCallback(MessageGroupCallback)}.
-	 *
 	 * @param expiryCallbacks the expiry callbacks to add
 	 */
 	public void setExpiryCallbacks(Collection<MessageGroupCallback> expiryCallbacks) {
-		for (MessageGroupCallback callback : expiryCallbacks) {
-			registerMessageGroupExpiryCallback(callback);
-		}
+		expiryCallbacks.forEach(this::registerMessageGroupExpiryCallback);
 	}
 
 	public boolean isTimeoutOnIdle() {
@@ -110,6 +108,16 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 
 	@Override
 	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
+		if (callback instanceof UniqueExpiryCallback) {
+			boolean uniqueExpiryCallbackPresent =
+					this.expiryCallbacks.stream()
+							.anyMatch(UniqueExpiryCallback.class::isInstance);
+
+			Assert.isTrue(!uniqueExpiryCallbackPresent,
+					"Only one instance of 'UniqueExpiryCallback' can be registered in the 'MessageGroupStore'." +
+							" Use separate 'MessageGroupStore' for each aggregator/resequencer.");
+		}
+
 		this.expiryCallbacks.add(callback);
 	}
 

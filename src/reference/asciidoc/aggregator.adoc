@@ -815,6 +815,9 @@ For more detail, see <<reaper>>.
 IMPORTANT: It is important do not use the same `MessageGroupStore` instance store in different aggregator components, when you are intended to rely on the `expireMessageGroups` functionality.
 Every `AbstractCorrelatingMessageHandler` registers its own `MessageGroupCallback` based on the `forceComplete()` callback.
 This way each group for expiration may be completed or discarded by wrong aggregator.
+Starting with version 5.0.10, a `UniqueExpiryCallback` is used from the `AbstractCorrelatingMessageHandler` for registration callback in the `MessageGroupStore`.
+The `MessageGroupStore`, in turn, checks for presence an instance of this class and fails with an `IllegalArgumentException` if one already present in the callbacks set.
+This way the Framework disallows usage of the `MessageGroupStore` instance in different aggregators/resequencers to avoid the mentioned side effect of expiration the groups not created by the particular correlation handler.
 
 You can call the `expireMessageGroups` method with a timeout value.
 Any message older than the current time minus this value is expired and has the callbacks applied.
