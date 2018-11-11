@@ -135,7 +135,7 @@ Starting with version 4.3, you can set the `ackPort` to `0`, in which case the o
 
 ==== Outbound UDP Adapters (Java Configuration)
 
-The following example shows how to configure an outbound UPD adapter with Java:
+The following example shows how to configure an outbound UDP adapter with Java:
 
 ====
 [source, java]
