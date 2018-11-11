@@ -490,12 +490,18 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 			expectedType = requestPayloadType.resolve();
 		}
 
+		/*
+		 *  TODO: resolve() can return null, which is not valid for canRead().
+		 *  Perhaps we should coerce to String/byte[] instead of attempting
+		 *  to convert. However this might be a breaking change - 5.2?
+		 *  Hence NOSONAR below.
+		 */
 		for (HttpMessageConverter<?> converter : this.messageConverters) {
 			if (converter.canRead(expectedType, contentType)) {
 				return converter.read((Class) expectedType, request);
 			}
 		}
-		throw new MessagingException(
+		throw new MessagingException( // NOSONAR might be null; see comment above.
 				"Could not convert request: no suitable HttpMessageConverter found for expected type ["
 						+ expectedType != null ? expectedType.getName() : "null"
 						+ "] and content type [" + contentType + "]");
