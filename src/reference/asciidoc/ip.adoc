@@ -135,7 +135,7 @@ Starting with version 4.3, you can set the `ackPort` to `0`, in which case the o
 
 ==== Outbound UDP Adapters (Java Configuration)
 
-The following example shows how to configure an outbound UPD adapter with Java:
+The following example shows how to configure an outbound UDP adapter with Java:
 
 ====
 [source, java]
@@ -152,7 +152,7 @@ public UnicastSendingMessageHandler handler() {
 
 ==== Outbound UDP Adapters (Java DSL Configuration)
 
-The following example shows how to configure an outbound UPD adapter with the Java DSL:
+The following example shows how to configure an outbound UDP adapter with the Java DSL:
 
 ====
 [source, java]
@@ -203,7 +203,7 @@ You can override this default behavior by setting the `lookup-host` attribute to
 
 ==== Inbound UDP Adapters (Java Configuration)
 
-The following example shows how to configure an inbound UPD adapter with Java:
+The following example shows how to configure an inbound UDP adapter with Java:
 
 [source, java]
 ----
@@ -215,7 +215,7 @@ public UnicastReceivingChannelAdapter udpIn() {
 }
 ----
 
-The following example shows how to configure an inbound UPD adapter with the Java DSL:
+The following example shows how to configure an inbound UDP adapter with the Java DSL:
 
 ==== Inbound UDP Adapters (Java DSL Configuration)
 
