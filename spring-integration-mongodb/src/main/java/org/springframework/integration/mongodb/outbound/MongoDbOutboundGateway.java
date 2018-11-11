@@ -152,7 +152,7 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 		Object result;
 
 		if (this.collectionCallback != null) {
-			result = this.mongoTemplate.execute(collectionName, this.collectionCallback);
+			result = this.mongoTemplate.execute(collectionName, this.collectionCallback); // NOSONAR
 		}
 		else {
 			Query query = buildQuery(requestMessage);
