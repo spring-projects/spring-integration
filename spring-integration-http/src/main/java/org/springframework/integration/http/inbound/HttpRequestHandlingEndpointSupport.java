@@ -501,7 +501,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 				return converter.read((Class) expectedType, request);
 			}
 		}
-		throw new MessagingException( // NOSONAR might be null; see comment above.
+		throw new MessagingException(// NOSONAR might be null; see comment above.
 				"Could not convert request: no suitable HttpMessageConverter found for expected type ["
 						+ expectedType != null ? expectedType.getName() : "null"
 						+ "] and content type [" + contentType + "]");
