@@ -10,6 +10,8 @@
 	<util:constant id="redisConnectionFactory"
 				   static-field="org.springframework.integration.redis.rules.RedisAvailableRule.connectionFactory"/>
 
+	<bean id="sms" class="org.springframework.integration.store.SimpleMessageStore" />
+
 	<int:aggregator input-channel="in" release-strategy="latching" output-channel="out"
 		message-store="sms"
 		expire-groups-upon-completion="true" lock-registry="redisLockRegistry" />
@@ -21,10 +23,11 @@
 		<constructor-arg value="aggregatorWithRedisLocksTests" />
 	</bean>
 
-	<bean id="sms" class="org.springframework.integration.store.SimpleMessageStore" />
+
+	<bean id="sms2" parent="sms"/>
 
 	<int:aggregator input-channel="in2" release-strategy="latching" output-channel="out"
-		message-store="sms"
+		message-store="sms2"
 		expire-groups-upon-completion="true" lock-registry="redisLockRegistry2" />
 
 	<bean id="redisLockRegistry2" class="org.springframework.integration.redis.util.RedisLockRegistry">

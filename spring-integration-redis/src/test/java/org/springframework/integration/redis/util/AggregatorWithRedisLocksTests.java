@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -53,6 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 4.0
  *
  */
@@ -128,17 +130,19 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	@Repeat(10)
+	@Ignore("We can't share the same MessageStore")
 	public void testDistributedAggregator() throws Exception {
 		this.releaseStrategy.reset(1);
 		Executors.newSingleThreadExecutor().execute(asyncSend("foo", 1, 1));
-		Executors.newSingleThreadExecutor().execute(() -> {
-			try {
-				in2.send(new GenericMessage<String>("bar", stubHeaders(2, 2, 1)));
-			}
-			catch (Exception e) {
-				exception = e;
-			}
-		});
+		Executors.newSingleThreadExecutor()
+				.execute(() -> {
+					try {
+						in2.send(new GenericMessage<>("bar", stubHeaders(2, 2, 1)));
+					}
+					catch (Exception e) {
+						exception = e;
+					}
+				});
 		assertTrue(this.releaseStrategy.latch2.await(10, TimeUnit.SECONDS));
 		assertEquals(1, this.template.keys("aggregatorWithRedisLocksTests:*").size());
 		this.releaseStrategy.latch1.countDown();
@@ -168,7 +172,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	}
 
 	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correlationId) {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, sequenceNumber);
 		headers.put(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, sequenceSize);
 		headers.put(IntegrationMessageHeaderAccessor.CORRELATION_ID, correlationId);
@@ -176,7 +180,7 @@ public class AggregatorWithRedisLocksTests extends RedisAvailableTests {
 	}
 
 	private RedisTemplate<String, ?> createTemplate() {
-		RedisTemplate<String, ?> template = new RedisTemplate<String, Object>();
+		RedisTemplate<String, ?> template = new RedisTemplate<>();
 		template.setConnectionFactory(this.getConnectionFactoryForTest());
 		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
