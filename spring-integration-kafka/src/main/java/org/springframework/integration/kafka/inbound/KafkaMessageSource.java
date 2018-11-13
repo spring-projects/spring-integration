@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -99,7 +100,7 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 
 	private final Object consumerMonitor = new Object();
 
-	private final Map<TopicPartition, Set<KafkaAckInfo<K, V>>> inflightRecords = new HashMap<>();
+	private final Map<TopicPartition, Set<KafkaAckInfo<K, V>>> inflightRecords = new ConcurrentHashMap<>();
 
 	private String groupId;
 
@@ -295,7 +296,8 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		}
 		KafkaAckInfo<K, V> ackInfo = new KafkaAckInfoImpl(record, topicPartition);
 		AcknowledgmentCallback ackCallback = this.ackCallbackFactory.createCallback(ackInfo);
-		this.inflightRecords.computeIfAbsent(topicPartition, tp -> new TreeSet<>()).add(ackInfo);
+		this.inflightRecords.computeIfAbsent(topicPartition, tp -> Collections.synchronizedSet(new TreeSet<>()))
+				.add(ackInfo);
 		Message<?> message = this.messageConverter.toMessage(record,
 				ackCallback instanceof Acknowledgment ? (Acknowledgment) ackCallback : null, this.consumer,
 				this.payloadType);
@@ -434,18 +436,20 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 		private void rollback(ConsumerRecord<K, V> record) {
 			this.ackInfo.getConsumer().seek(this.ackInfo.getTopicPartition(), record.offset());
 			Set<KafkaAckInfo<K, V>> inflight = this.ackInfo.getOffsets().get(this.ackInfo.getTopicPartition());
-			if (inflight.size() > 1) {
-				List<Long> rewound =
-						inflight.stream()
-								.filter(i -> i.getRecord().offset() > record.offset())
-								.map(i -> {
-									i.setRolledBack(true);
-									return i.getRecord().offset();
-								})
-								.collect(Collectors.toList());
-				if (rewound.size() > 0 && this.logger.isWarnEnabled()) {
-					this.logger.warn("Rolled back " + record + " later in-flight offsets "
-							+ rewound + " will also be re-fetched");
+			synchronized (inflight) {
+				if (inflight.size() > 1) {
+					List<Long> rewound =
+							inflight.stream()
+									.filter(i -> i.getRecord().offset() > record.offset())
+									.map(i -> {
+										i.setRolledBack(true);
+										return i.getRecord().offset();
+									})
+									.collect(Collectors.toList());
+					if (rewound.size() > 0 && this.logger.isWarnEnabled()) {
+						this.logger.warn("Rolled back " + record + " later in-flight offsets "
+								+ rewound + " will also be re-fetched");
+					}
 				}
 			}
 		}
@@ -460,41 +464,43 @@ public class KafkaMessageSource<K, V> extends AbstractMessageSource<Object>
 			else {
 				Set<KafkaAckInfo<K, V>> candidates = this.ackInfo.getOffsets().get(this.ackInfo.getTopicPartition());
 				KafkaAckInfo<K, V> ackInfo = null;
-				if (candidates.iterator().next().equals(this.ackInfo)) {
-					// see if there are any pending acks for higher offsets
-					List<KafkaAckInfo<K, V>> toCommit = new ArrayList<>();
-					for (KafkaAckInfo<K, V> info : candidates) {
-						if (info != this.ackInfo) {
-							if (info.isAckDeferred()) {
-								toCommit.add(info);
+				synchronized (candidates) {
+					if (candidates.iterator().next().equals(this.ackInfo)) {
+						// see if there are any pending acks for higher offsets
+						List<KafkaAckInfo<K, V>> toCommit = new ArrayList<>();
+						for (KafkaAckInfo<K, V> info : candidates) {
+							if (info != this.ackInfo) {
+								if (info.isAckDeferred()) {
+									toCommit.add(info);
+								}
+								else {
+									break;
+								}
 							}
-							else {
-								break;
+						}
+						if (toCommit.size() > 0) {
+							ackInfo = toCommit.get(toCommit.size() - 1);
+							if (this.logger.isDebugEnabled()) {
+								this.logger.debug("Committing pending offsets for " + record + " and all deferred to "
+										+ ackInfo.getRecord());
 							}
+							candidates.removeAll(toCommit);
+						}
+						else {
+							ackInfo = this.ackInfo;
 						}
 					}
-					if (toCommit.size() > 0) {
-						ackInfo = toCommit.get(toCommit.size() - 1);
-						if (this.logger.isDebugEnabled()) {
-							this.logger.debug("Committing pending offsets for " + record + " and all deferred to "
-									+ ackInfo.getRecord());
-						}
-						candidates.removeAll(toCommit);
+					else { // earlier offsets present
+						this.ackInfo.setAckDeferred(true);
+					}
+					if (ackInfo != null) {
+						ackInfo.getConsumer().commitSync(Collections.singletonMap(ackInfo.getTopicPartition(),
+								new OffsetAndMetadata(ackInfo.getRecord().offset() + 1)));
 					}
 					else {
-						ackInfo = this.ackInfo;
-					}
-				}
-				else { // earlier offsets present
-					this.ackInfo.setAckDeferred(true);
-				}
-				if (ackInfo != null) {
-					ackInfo.getConsumer().commitSync(Collections.singletonMap(ackInfo.getTopicPartition(),
-							new OffsetAndMetadata(ackInfo.getRecord().offset() + 1)));
-				}
-				else {
-					if (this.logger.isDebugEnabled()) {
-						this.logger.debug("Deferring commit offset; earlier messages are in flight.");
+						if (this.logger.isDebugEnabled()) {
+							this.logger.debug("Deferring commit offset; earlier messages are in flight.");
+						}
 					}
 				}
 			}
