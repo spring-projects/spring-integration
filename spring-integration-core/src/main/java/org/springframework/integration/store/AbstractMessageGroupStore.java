@@ -112,8 +112,8 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 					this.expiryCallbacks.stream()
 							.anyMatch(UniqueExpiryCallback.class::isInstance);
 
-			if (!uniqueExpiryCallbackPresent && logger.isErrorEnabled()) {
-				logger.error("Only one instance of 'UniqueExpiryCallback' can be registered in the " +
+			if (!uniqueExpiryCallbackPresent && this.logger.isErrorEnabled()) {
+				this.logger.error("Only one instance of 'UniqueExpiryCallback' can be registered in the " +
 						"'MessageGroupStore'. Use a separate 'MessageGroupStore' for each aggregator/resequencer.");
 			}
 		}
