@@ -22,14 +22,12 @@
 
 	<bean id="sms" class="org.springframework.integration.store.SimpleMessageStore"/>
 
-	<bean id="sms1" parent="sms"/>
-
 	<int:aggregator input-channel="in" release-strategy="latching" output-channel="out"
 					message-store="sms"
 					expire-groups-upon-completion="true" lock-registry="lockRegistry"/>
 
 	<int:aggregator input-channel="in2" release-strategy="latching" output-channel="out"
-					message-store="sms1"
+					message-store="sms"
 					expire-groups-upon-completion="true" lock-registry="lockRegistry2"/>
 
 	<int:channel id="out">

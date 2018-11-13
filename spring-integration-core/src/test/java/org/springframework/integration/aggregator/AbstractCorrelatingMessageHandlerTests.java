@@ -16,15 +16,11 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -71,14 +67,13 @@ public class AbstractCorrelatingMessageHandlerTests {
 		final CountDownLatch waitForSendLatch = new CountDownLatch(1);
 		final CountDownLatch waitReapStartLatch = new CountDownLatch(1);
 		final CountDownLatch waitReapCompleteLatch = new CountDownLatch(1);
-		AbstractCorrelatingMessageHandler handler =
-				new AbstractCorrelatingMessageHandler(group -> group, groupStore) {
+		AbstractCorrelatingMessageHandler handler = new AbstractCorrelatingMessageHandler(group -> group, groupStore) {
 
-					@Override
-					protected void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages) {
-					}
+			@Override
+			protected void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages) {
+			}
 
-				};
+		};
 		handler.setReleasePartialSequences(true);
 
 		/*
@@ -433,15 +428,26 @@ public class AbstractCorrelatingMessageHandlerTests {
 	public void testDontReapMessageOfOtherHandler() {
 		MessageGroupStore groupStore = new SimpleMessageStore();
 
-		new AggregatingMessageHandler(group -> group, groupStore);
-		try {
-			new AggregatingMessageHandler(group -> group, groupStore);
-			fail("IllegalArgumentException expected");
-		}
-		catch (Exception e) {
-			assertThat(e, instanceOf(IllegalArgumentException.class));
-			assertThat(e.getMessage(), startsWith("Only one instance of 'UniqueExpiryCallback' can be registered"));
-		}
+		AggregatingMessageHandler handler1 = new AggregatingMessageHandler(group -> group, groupStore);
+		AggregatingMessageHandler handler2 = new AggregatingMessageHandler(group -> group, groupStore);
+
+		QueueChannel handler1DiscardChannel = new QueueChannel();
+		handler1.setDiscardChannel(handler1DiscardChannel);
+
+		QueueChannel handler2DiscardChannel = new QueueChannel();
+		handler2.setDiscardChannel(handler2DiscardChannel);
+
+		handler1.setReleaseStrategy(group -> false);
+		handler2.setReleaseStrategy(group -> false);
+
+		handler1.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+		handler1.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("foo").build());
+		handler2.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("bar").build());
+
+		groupStore.expireMessageGroups(0);
+
+		assertEquals(2, handler1DiscardChannel.getQueueSize());
+		assertEquals(1, handler2DiscardChannel.getQueueSize());
 	}
 
 	@Test

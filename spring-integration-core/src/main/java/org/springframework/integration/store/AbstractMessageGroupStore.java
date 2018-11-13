@@ -27,7 +27,6 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * @author Dave Syer
@@ -113,9 +112,10 @@ public abstract class AbstractMessageGroupStore extends AbstractBatchingMessageG
 					this.expiryCallbacks.stream()
 							.anyMatch(UniqueExpiryCallback.class::isInstance);
 
-			Assert.isTrue(!uniqueExpiryCallbackPresent,
-					"Only one instance of 'UniqueExpiryCallback' can be registered in the 'MessageGroupStore'." +
-							" Use separate 'MessageGroupStore' for each aggregator/resequencer.");
+			if (!uniqueExpiryCallbackPresent && logger.isErrorEnabled()) {
+				logger.error("Only one instance of 'UniqueExpiryCallback' can be registered in the " +
+						"'MessageGroupStore'. Use a separate 'MessageGroupStore' for each aggregator/resequencer.");
+			}
 		}
 
 		this.expiryCallbacks.add(callback);
