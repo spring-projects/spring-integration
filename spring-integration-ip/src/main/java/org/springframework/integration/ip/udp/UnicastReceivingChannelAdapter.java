@@ -139,7 +139,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				throw new MessagingException("failed to receive DatagramPacket", e);
 			}
 		}
-		this.setListening(false);
+		setListening(false);
 	}
 
 	protected void sendAck(Message<byte[]> message) {
@@ -203,7 +203,12 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			if (message.getHeaders().containsKey(IpHeaders.ACK_ADDRESS)) {
 				sendAck(message);
 			}
-			sendMessage(message);
+			try {
+				sendMessage(message);
+			}
+			catch (Exception e) {
+				this.logger.error("Failed to send message " + message, e);
+			}
 		}
 	}
 
