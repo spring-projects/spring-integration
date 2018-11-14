@@ -99,7 +99,7 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		Object responseContent = null;
 		Message<?> responseMessage;
 
-		ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+		ServletServerHttpRequest request = prepareRequest(servletRequest);
 		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 
 		RequestEntity<Object> httpEntity = prepareRequestEntity(request);
