@@ -812,6 +812,13 @@ The callback has direct access to the store and the message group so that it can
 The `MessageGroupStore` maintains a list of these callbacks, which it applies, on demand, to all messages whose timestamps are earlier than a time supplied as a parameter (see the `registerMessageGroupExpiryCallback(..)` and `expireMessageGroups(..)` methods, described earlier).
 For more detail, see <<reaper>>.
 
+IMPORTANT: It is important not to use the same `MessageGroupStore` instance in different aggregator components, when you intend to rely on the `expireMessageGroups` functionality.
+Every `AbstractCorrelatingMessageHandler` registers its own `MessageGroupCallback` based on the `forceComplete()` callback.
+This way each group for expiration may be completed or discarded by the wrong aggregator.
+Starting with version 5.0.10, a `UniqueExpiryCallback` is used from the `AbstractCorrelatingMessageHandler` for the registration callback in the `MessageGroupStore`.
+The `MessageGroupStore`, in turn, checks for presence an instance of this class and logs an error with an appropriate message if one is already present in the callbacks set.
+This way the Framework disallows usage of the `MessageGroupStore` instance in different aggregators/resequencers to avoid the mentioned side effect of expiration the groups not created by the particular correlation handler.
+
 You can call the `expireMessageGroups` method with a timeout value.
 Any message older than the current time minus this value is expired and has the callbacks applied.
 Thus, it is the user of the store that defines what is meant by message group "`expiry`".

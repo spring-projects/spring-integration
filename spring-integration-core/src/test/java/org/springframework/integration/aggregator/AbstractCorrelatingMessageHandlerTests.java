@@ -425,6 +425,7 @@ public class AbstractCorrelatingMessageHandlerTests {
 	}
 
 	@Test
+	@Ignore("Until 5.2 with new 'owner' feature on groups")
 	public void testDontReapMessageOfOtherHandler() {
 		MessageGroupStore groupStore = new SimpleMessageStore();
 
