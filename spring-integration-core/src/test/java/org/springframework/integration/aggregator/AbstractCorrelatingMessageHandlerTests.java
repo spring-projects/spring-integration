@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -422,7 +423,8 @@ public class AbstractCorrelatingMessageHandlerTests {
 	}
 
 	@Test
-	public void testDontReapMessageOfOtherHandler() throws Exception {
+	@Ignore("Until 5.2 with new 'owner' feature on groups")
+	public void testDontReapMessageOfOtherHandler() {
 		MessageGroupStore groupStore = new SimpleMessageStore();
 
 		AggregatingMessageHandler handler1 = new AggregatingMessageHandler(group -> group, groupStore);

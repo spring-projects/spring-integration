@@ -17,12 +17,12 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -32,12 +32,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -57,11 +55,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		implements MessageStore {
 
 	public final static String DEFAULT_COLLECTION_NAME = "configurableStoreMessages";
-
-	private final Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
-
-	private volatile boolean timeoutOnIdle;
-
 
 	public ConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate) {
 		this(mongoTemplate, DEFAULT_COLLECTION_NAME);
@@ -85,33 +78,8 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	public ConfigurableMongoDbMessageStore(MongoDbFactory mongoDbFactory, MappingMongoConverter mappingMongoConverter,
 			String collectionName) {
+
 		super(mongoDbFactory, mappingMongoConverter, collectionName);
-	}
-
-	/**
-	 * Convenient injection point for expiry callbacks in the message store. Each of the callbacks provided will simply
-	 * be registered with the store using {@link #registerMessageGroupExpiryCallback(MessageGroupCallback)}.
-	 * @param expiryCallbacks the expiry callbacks to add
-	 */
-	public void setExpiryCallbacks(Collection<MessageGroupCallback> expiryCallbacks) {
-		for (MessageGroupCallback callback : expiryCallbacks) {
-			registerMessageGroupExpiryCallback(callback);
-		}
-	}
-
-	public boolean isTimeoutOnIdle() {
-		return this.timeoutOnIdle;
-	}
-
-	/**
-	 * Allows you to override the rule for the timeout calculation. Typical timeout is based from the time
-	 * the {@link MessageGroup} was created. If you want the timeout to be based on the time
-	 * the {@link MessageGroup} was idling (e.g., inactive from the last update) invoke this method with 'true'.
-	 * Default is 'false'.
-	 * @param timeoutOnIdle The boolean.
-	 */
-	public void setTimeoutOnIdle(boolean timeoutOnIdle) {
-		this.timeoutOnIdle = timeoutOnIdle;
 	}
 
 	@Override
@@ -204,7 +172,7 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messages, "'messageToRemove' must not be null");
 
-		Collection<UUID> ids = new ArrayList<UUID>();
+		Collection<UUID> ids = new ArrayList<>();
 		for (Message<?> messageToRemove : messages) {
 			ids.add(messageToRemove.getHeaders().getId());
 			if (ids.size() >= getRemoveBatchSize()) {
@@ -225,11 +193,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public void removeMessagesFromGroup(Object groupId, Message<?>... messages) {
-		removeMessagesFromGroup(groupId, Arrays.asList(messages));
-	}
-
-	@Override
 	public Message<?> pollMessageFromGroup(final Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 
@@ -246,52 +209,24 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 
 	@Override
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		this.updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.LAST_RELEASED_SEQUENCE, sequenceNumber));
+		updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.LAST_RELEASED_SEQUENCE, sequenceNumber));
 	}
 
 	@Override
 	public void completeGroup(Object groupId) {
-		this.updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.COMPLETE, true));
+		updateGroup(groupId, lastModifiedUpdate().set(MessageDocumentFields.COMPLETE, true));
 	}
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
-
 		Query query = Query.query(Criteria.where(MessageDocumentFields.GROUP_ID).exists(true));
 		Iterable<String> groupIds = mongoTemplate.getCollection(collectionName)
 				.distinct(MessageDocumentFields.GROUP_ID, query.getQueryObject(), String.class);
 
-		for (Object groupId : groupIds) {
-			messageGroups.add(getMessageGroup(groupId));
-		}
+		return StreamSupport.stream(groupIds.spliterator(), false)
+				.map(this::getMessageGroup)
+				.iterator();
 
-		return messageGroups.iterator();
-	}
-
-	@Override
-	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
-		this.expiryCallbacks.add(callback);
-	}
-
-	@Override
-	@ManagedOperation
-	public int expireMessageGroups(long timeout) {
-		int count = 0;
-		long threshold = System.currentTimeMillis() - timeout;
-		for (MessageGroup group : this) {
-
-			long timestamp = group.getTimestamp();
-			if (this.isTimeoutOnIdle() && group.getLastModified() > 0) {
-				timestamp = group.getLastModified();
-			}
-
-			if (timestamp <= threshold) {
-				count++;
-				expire(group);
-			}
-		}
-		return count;
 	}
 
 	@Override
@@ -315,11 +250,6 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 	}
 
 	@Override
-	public MessageGroupMetadata getGroupMetadata(Object groupId) {
-		throw new UnsupportedOperationException("Not yet implemented for this store");
-	}
-
-	@Override
 	public Message<?> getOneMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Query query = groupOrderQuery(groupId);
@@ -337,35 +267,11 @@ public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDb
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Query query = groupOrderQuery(groupId);
 		List<MessageDocument> documents = this.mongoTemplate.find(query, MessageDocument.class, this.collectionName);
-		List<Message<?>> messages = new ArrayList<Message<?>>();
 
-		for (MessageDocument document : documents) {
-			messages.add(document.getMessage());
-		}
-		return messages;
+		return documents.stream()
+				.map(MessageDocument::getMessage)
+				.collect(Collectors.toList());
 	}
-
-	private void expire(MessageGroup group) {
-
-		RuntimeException exception = null;
-
-		for (MessageGroupCallback callback : this.expiryCallbacks) {
-			try {
-				callback.execute(this, group);
-			}
-			catch (RuntimeException e) {
-				if (exception == null) {
-					exception = e;
-				}
-				logger.error("Exception in expiry callback", e);
-			}
-		}
-
-		if (exception != null) {
-			throw exception;
-		}
-	}
-
 
 	private void updateGroup(Object groupId, Update update) {
 		this.mongoTemplate.updateFirst(groupOrderQuery(groupId), update, this.collectionName);

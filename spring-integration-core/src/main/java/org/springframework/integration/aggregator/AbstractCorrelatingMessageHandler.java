@@ -22,7 +22,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -51,6 +50,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.store.UniqueExpiryCallback;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
@@ -99,8 +99,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	private final Comparator<Message<?>> sequenceNumberComparator = new MessageSequenceComparator();
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new ConcurrentHashMap<>();
-
-	private final Set<Object> groupIds =  ConcurrentHashMap.newKeySet();
 
 	private MessageGroupProcessor outputProcessor;
 
@@ -173,8 +171,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	public final void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
-		store.registerMessageGroupExpiryCallback(
-				(messageGroupStore, group) -> this.forceReleaseProcessor.processMessageGroup(group));
+		UniqueExpiryCallback expiryCallback =
+				(messageGroupStore, group) -> this.forceReleaseProcessor.processMessageGroup(group);
+		store.registerMessageGroupExpiryCallback(expiryCallback);
 	}
 
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
@@ -687,7 +686,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	protected void remove(MessageGroup group) {
 		Object correlationKey = group.getGroupId();
 		this.messageStore.removeMessageGroup(correlationKey);
-		this.groupIds.remove(group.getGroupId());
 	}
 
 	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence) {
@@ -696,7 +694,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	protected MessageGroup store(Object correlationKey, Message<?> message) {
-		this.groupIds.add(correlationKey);
 		return this.messageStore.addMessageToGroup(correlationKey, message);
 	}
 
@@ -866,9 +863,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 		@Override
 		public Object processMessageGroup(MessageGroup group) {
-			if (AbstractCorrelatingMessageHandler.this.groupIds.contains(group.getGroupId())) {
-				forceComplete(group);
-			}
+			forceComplete(group);
 			return null;
 		}
 
