@@ -20,9 +20,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.spy;
 
 import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -171,6 +174,54 @@ public class QueueChannelTests {
 		exec.shutdownNow();
 		latch.await(10, TimeUnit.SECONDS);
 		assertTrue(receiveInterrupted.get());
+	}
+
+	@Test
+	public void testBlockingReceiveWithTimeoutEmptyThenSend() throws Exception {
+		Queue<Message<?>> queue = spy(new ArrayDeque<>());
+		CountDownLatch pollLatch = new CountDownLatch(1);
+		AtomicBoolean first = new AtomicBoolean(true);
+		willAnswer(i -> {
+			pollLatch.countDown();
+			return first.getAndSet(false) ? null : i.callRealMethod();
+		}).given(queue).poll();
+		final QueueChannel channel = new QueueChannel(queue);
+		final CountDownLatch latch = new CountDownLatch(1);
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			Message<?> message = channel.receive(10000);
+			if (message != null) {
+				latch.countDown();
+			}
+		});
+		assertTrue(pollLatch.await(10, TimeUnit.SECONDS));
+		channel.send(new GenericMessage<String>("testing"));
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		exec.shutdownNow();
+	}
+
+	@Test
+	public void testBlockingReceiveNoTimeoutEmptyThenSend() throws Exception {
+		Queue<Message<?>> queue = spy(new ArrayDeque<>());
+		CountDownLatch pollLatch = new CountDownLatch(1);
+		AtomicBoolean first = new AtomicBoolean(true);
+		willAnswer(i -> {
+			pollLatch.countDown();
+			return first.getAndSet(false) ? null : i.callRealMethod();
+		}).given(queue).poll();
+		final QueueChannel channel = new QueueChannel(queue);
+		final CountDownLatch latch = new CountDownLatch(1);
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		exec.execute(() -> {
+			Message<?> message = channel.receive();
+			if (message != null) {
+				latch.countDown();
+			}
+		});
+		assertTrue(pollLatch.await(10, TimeUnit.SECONDS));
+		channel.send(new GenericMessage<String>("testing"));
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		exec.shutdownNow();
 	}
 
 	@Test

@@ -139,10 +139,12 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 				return ((BlockingQueue<Message<?>>) this.queue).take();
 			}
 			else {
-				while (this.queue.size() == 0) {
+				Message<?> message = this.queue.poll();
+				while (message == null) {
 					this.queueSemaphore.tryAcquire(50, TimeUnit.MILLISECONDS);
+					message = this.queue.poll();
 				}
-				return this.queue.poll();
+				return message;
 			}
 		}
 		catch (InterruptedException e) {

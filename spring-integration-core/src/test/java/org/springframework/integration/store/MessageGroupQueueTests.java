@@ -78,7 +78,7 @@ public class MessageGroupQueueTests {
 		CountDownLatch latch2 = new CountDownLatch(1);
 		exec.execute(() -> {
 			try {
-				Message<?>result = queue.poll(100, TimeUnit.MILLISECONDS);
+				Message<?> result = queue.poll(100, TimeUnit.MILLISECONDS);
 				if (result != null) {
 					latch2.countDown();
 				}
