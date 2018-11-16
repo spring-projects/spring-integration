@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	public QueueChannel(int capacity) {
 		Assert.isTrue(capacity > 0, "The capacity must be a positive integer. " +
 				"For a zero-capacity alternative, consider using a 'RendezvousChannel'.");
-		this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
+		this.queue = new LinkedBlockingQueue<>(capacity);
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 	 * unbounded queue may lead to OutOfMemoryErrors.
 	 */
 	public QueueChannel() {
-		this(new LinkedBlockingQueue<Message<?>>());
+		this(new LinkedBlockingQueue<>());
 	}
 
 	@Override
@@ -116,13 +116,19 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 					return ((BlockingQueue<Message<?>>) this.queue).poll(timeout, TimeUnit.MILLISECONDS);
 				}
 				else {
-					long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
-					long deadline = System.nanoTime() + nanos;
-					while (this.queue.size() == 0 && nanos > 0) {
-						this.queueSemaphore.tryAcquire(nanos, TimeUnit.NANOSECONDS); // NOSONAR - ok to ignore result
-						nanos = deadline - System.nanoTime();
+					Message<?> message = this.queue.poll();
+					if (message == null) {
+						long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
+						long deadline = System.nanoTime() + nanos;
+						while (message == null && nanos > 0) {
+							this.queueSemaphore.tryAcquire(nanos, TimeUnit.NANOSECONDS); // NOSONAR ok to ignore result
+							message = this.queue.poll();
+							if (message == null) {
+								nanos = deadline - System.nanoTime();
+							}
+						}
 					}
-					return this.queue.poll();
+					return message;
 				}
 			}
 			if (timeout == 0) {
@@ -133,10 +139,12 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 				return ((BlockingQueue<Message<?>>) this.queue).take();
 			}
 			else {
-				while (this.queue.size() == 0) {
+				Message<?> message = this.queue.poll();
+				while (message == null) {
 					this.queueSemaphore.tryAcquire(50, TimeUnit.MILLISECONDS);
+					message = this.queue.poll();
 				}
-				return this.queue.poll();
+				return message;
 			}
 		}
 		catch (InterruptedException e) {
@@ -147,7 +155,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 
 	@Override
 	public List<Message<?>> clear() {
-		List<Message<?>> clearedMessages = new ArrayList<Message<?>>();
+		List<Message<?>> clearedMessages = new ArrayList<>();
 		if (this.queue instanceof BlockingQueue) {
 			((BlockingQueue<Message<?>>) this.queue).drainTo(clearedMessages);
 		}
@@ -165,7 +173,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 		if (selector == null) {
 			return this.clear();
 		}
-		List<Message<?>> purgedMessages = new ArrayList<Message<?>>();
+		List<Message<?>> purgedMessages = new ArrayList<>();
 		Object[] array = this.queue.toArray();
 		for (Object o : array) {
 			Message<?> message = (Message<?>) o;

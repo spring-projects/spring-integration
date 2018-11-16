@@ -153,8 +153,8 @@ If not explicitly set, the attribute defaults to _0_.
 [[jdbc-outbound-channel-adapter]]
 === Outbound Channel Adapter
 
-The outbound Channel Adapter is the inverse of the inbound: its role is to handle a message and use it to execute a SQL query.
-The message payload and headers are available by default as input parameters to the query, for instance:
+The outbound channel adapter is the inverse of the inbound: its role is to handle a message and use it to execute a SQL query.
+By default, the message payload and headers are available as input parameters to the query, as the following example shows:
 
 [source,xml]
 ----
@@ -269,7 +269,7 @@ For example:
 [source,xml]
 ----
 <int-jdbc:outbound-gateway
-    update="insert into foos (status, name) values (0, :payload[foo])"
+    update="insert into mythings (status, name) values (0, :payload[thing])"
     request-channel="input" reply-channel="output" data-source="dataSource"
     keys-generated="true"/>
 ----
@@ -326,6 +326,12 @@ See <<jdbc-outbound-channel-adapter>> for more information about `MessagePrepare
 Spring Integration provides 2 JDBC specific Message Store implementations.
 The first one, is the `JdbcMessageStore` which is suitable to be used in conjunction with _Aggregators_ and the _Claim-Check_ pattern.
 While it can be used for backing _Message Channels_ as well, you may want to consider using the `JdbcChannelMessageStore` implementation instead, as it provides a more targeted and scalable implementation.
+
+IMPORTANT: Starting with versions 5.0.11, 5.1.2, the indexes for the `JdbcChannelMessageStore` have been optimized.
+If you have large message groups in such a store, you may wish to alter the indexes.
+Furthermore, the index for `PriorityChannel` is commented out because it is not needed unless you are using such channels backed by JDBC.
+
+NOTE: When using the `OracleChannelMessageStoreQueryProvider`, the priority channel index **must** be added because it is included in a hint in the query.
 
 ==== Initializing the Database
 
