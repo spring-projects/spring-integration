@@ -139,16 +139,13 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	@Override
 	public Object postProcess(Object bean, String beanName, Method method, List<Annotation> annotations) {
-		if (this.beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
+		Object sourceHandler = null;
+		if (beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
 			if (!this.beanFactory.containsBeanDefinition(resolveTargetBeanName(method))) {
 				this.logger.debug("Skipping endpoint creation; perhaps due to some '@Conditional' annotation.");
 				return null;
 			}
-		}
-
-		Object sourceHandler = null;
-		if (beanAnnotationAware() && AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			if (MessageHandler.class.isAssignableFrom(method.getReturnType())) {
+			else {
 				sourceHandler = resolveTargetBeanFromMethodWithBeanAnnotation(method);
 			}
 		}
@@ -170,12 +167,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (handler instanceof AbstractMessageProducingHandler || handler instanceof AbstractMessageRouter) {
 			String sendTimeout = MessagingAnnotationUtils.resolveAttribute(annotations, "sendTimeout", String.class);
 			if (sendTimeout != null) {
-				Long value = Long.valueOf(this.beanFactory.resolveEmbeddedValue(sendTimeout));
-				if (handler instanceof AbstractMessageProducingHandler) {
-					((AbstractMessageProducingHandler) handler).setSendTimeout(value);
-				}
-				else {
-					((AbstractMessageRouter) handler).setSendTimeout(value);
+				String resolvedValue = this.beanFactory.resolveEmbeddedValue(sendTimeout);
+				if (resolvedValue != null) {
+					long value = Long.parseLong(resolvedValue);
+					if (handler instanceof AbstractMessageProducingHandler) {
+						((AbstractMessageProducingHandler) handler).setSendTimeout(value);
+					}
+					else {
+						((AbstractMessageRouter) handler).setSendTimeout(value);
+					}
 				}
 			}
 		}
