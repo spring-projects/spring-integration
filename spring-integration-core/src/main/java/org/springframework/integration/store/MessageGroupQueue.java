@@ -156,11 +156,11 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		storeLock.lockInterruptibly();
 
 		try {
-			while (this.size() == 0 && timeoutInNanos > 0) {
+			message = doPoll();
+			while (message == null && timeoutInNanos > 0) {
 				timeoutInNanos = this.messageStoreNotEmpty.awaitNanos(timeoutInNanos);
+				message = doPoll();
 			}
-			message = this.doPoll();
-
 		}
 		finally {
 			storeLock.unlock();
@@ -314,7 +314,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
 	 * IllegalMonitorStateException may be thrown
 	 */
-	private Message<?> doPoll() {
+	Message<?> doPoll() {
 		Message<?> message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
 		this.messageStoreNotFull.signal();
 		return message;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,20 @@ package org.springframework.integration.store;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.spy;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletionService;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +43,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public class MessageGroupQueueTests {
@@ -50,6 +56,41 @@ public class MessageGroupQueueTests {
 		queue.put(new GenericMessage<String>("foo"));
 		Message<?> result = queue.poll(100, TimeUnit.MILLISECONDS);
 		assertNotNull(result);
+	}
+
+	@Test
+	public void testPollTimeout() throws Exception {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
+		Message<?> result = queue.poll(1, TimeUnit.MILLISECONDS);
+		assertNull(result);
+	}
+
+	@Test
+	public void testPollEmpty() throws Exception {
+		MessageGroupQueue queue = spy(new MessageGroupQueue(new SimpleMessageStore(), "FOO"));
+		CountDownLatch latch1 = new CountDownLatch(1);
+		AtomicBoolean first = new AtomicBoolean(true);
+		willAnswer(i -> {
+			latch1.countDown();
+			return first.getAndSet(false) ? null : i.callRealMethod();
+		}).given(queue).doPoll();
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		CountDownLatch latch2 = new CountDownLatch(1);
+		exec.execute(() -> {
+			try {
+				Message<?>result = queue.poll(100, TimeUnit.MILLISECONDS);
+				if (result != null) {
+					latch2.countDown();
+				}
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		});
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		queue.put(new GenericMessage<String>("foo"));
+		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		exec.shutdownNow();
 	}
 
 	@Test
