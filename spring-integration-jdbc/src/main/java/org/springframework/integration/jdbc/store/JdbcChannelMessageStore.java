@@ -476,14 +476,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @return A transformed query with replacements.
 	 */
 	protected String getQuery(Query queryName, Supplier<String> queryProvider) {
-		String query = this.queryCache.get(queryName);
-
-		if (query == null) {
-			query = StringUtils.replace(queryProvider.get(), "%PREFIX%", this.tablePrefix);
-			this.queryCache.put(queryName, query);
-		}
-
-		return query;
+		return this.queryCache.computeIfAbsent(queryName,
+				k -> StringUtils.replace(queryProvider.get(), "%PREFIX%", this.tablePrefix));
 	}
 
 	/**
