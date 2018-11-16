@@ -53,7 +53,7 @@ public class OracleChannelMessageStoreQueryProvider extends AbstractChannelMessa
 
 	@Override
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
-		return "SELECT /*+ INDEX(%PREFIX%_CHANNEL_MESSAGE INT_CHANNEL_MSG_PRIORITY_IDX) */ " +
+		return "SELECT /*+ INDEX(%PREFIX%_CHANNEL_MESSAGE %PREFIX%_CHANNEL_MSG_PRIORITY_IDX) */ " +
 				"%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
 				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
@@ -62,7 +62,7 @@ public class OracleChannelMessageStoreQueryProvider extends AbstractChannelMessa
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
-		return "SELECT /*+ INDEX(%PREFIX%_CHANNEL_MESSAGE INT_CHANNEL_MSG_PRIORITY_IDX) */ " +
+		return "SELECT /*+ INDEX(%PREFIX%_CHANNEL_MESSAGE %PREFIX%_CHANNEL_MSG_PRIORITY_IDX) */ " +
 				"%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
 				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE FOR UPDATE SKIP LOCKED";
