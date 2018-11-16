@@ -111,6 +111,7 @@ import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.handler.advice.ExpressionEvaluatingRequestHandlerAdvice;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryConfigurer;
@@ -421,11 +422,17 @@ public class EnableIntegrationTests {
 		assertEquals("FOO", message.getHeaders().get("foo"));
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate(this.controlBusChannel);
-		assertFalse(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
-		this.controlBusChannel.send(new GenericMessage<String>("@lifecycle.start()"));
-		assertTrue(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
-		this.controlBusChannel.send(new GenericMessage<String>("@lifecycle.stop()"));
-		assertFalse(messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
+		assertEquals(false, messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
+		this.controlBusChannel.send(new GenericMessage<>("@lifecycle.start()"));
+		assertEquals(true, messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
+		this.controlBusChannel.send(new GenericMessage<>("@lifecycle.stop()"));
+		assertEquals(false, messagingTemplate.convertSendAndReceive("@lifecycle.isRunning()", Boolean.class));
+
+		Map<String, ServiceActivatingHandler> beansOfType =
+				this.context.getBeansOfType(ServiceActivatingHandler.class);
+
+		assertFalse(beansOfType.keySet()
+				.contains("enableIntegrationTests.ContextConfiguration2.controlBus.serviceActivator.handler"));
 	}
 
 	@Test

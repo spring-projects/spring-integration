@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * Post-processor for the {@link BridgeFrom @BridgeFrom} annotation.
  *
  * @author Artem Bilan
+ *
  * @since 4.0
  */
 public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<BridgeFrom> {
@@ -76,6 +77,11 @@ public class BridgeFromAnnotationPostProcessor extends AbstractMethodAnnotationP
 		String outputChannelName = resolveTargetBeanName(method);
 		handler.setOutputChannelName(outputChannelName);
 		return handler;
+	}
+
+	@Override
+	protected Object resolveTargetBeanFromMethodWithBeanAnnotation(Method method) {
+		return null;
 	}
 
 }
