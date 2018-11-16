@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 2.2
  */
 public class OracleChannelMessageStoreQueryProvider extends AbstractChannelMessageStoreQueryProvider {
@@ -53,7 +55,8 @@ public class OracleChannelMessageStoreQueryProvider extends AbstractChannelMessa
 
 	@Override
 	public String getPriorityPollFromGroupExcludeIdsQuery() {
-		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
+		return "SELECT /*+ INDEX(%PREFIX%CHANNEL_MESSAGE %PREFIX%CHANNEL_MSG_PRIORITY_IDX) */ " +
+				"%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
 				"and %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID not in (:message_ids) " +
 				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE FOR UPDATE SKIP LOCKED";
@@ -61,7 +64,8 @@ public class OracleChannelMessageStoreQueryProvider extends AbstractChannelMessa
 
 	@Override
 	public String getPriorityPollFromGroupQuery() {
-		return "SELECT %PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
+		return "SELECT /*+ INDEX(%PREFIX%CHANNEL_MESSAGE %PREFIX%CHANNEL_MSG_PRIORITY_IDX) */ " +
+				"%PREFIX%CHANNEL_MESSAGE.MESSAGE_ID, %PREFIX%CHANNEL_MESSAGE.MESSAGE_BYTES from %PREFIX%CHANNEL_MESSAGE " +
 				"where %PREFIX%CHANNEL_MESSAGE.GROUP_KEY = :group_key and %PREFIX%CHANNEL_MESSAGE.REGION = :region " +
 				"order by MESSAGE_PRIORITY DESC NULLS LAST, CREATED_DATE, MESSAGE_SEQUENCE FOR UPDATE SKIP LOCKED";
 	}

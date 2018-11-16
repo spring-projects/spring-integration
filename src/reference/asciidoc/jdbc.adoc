@@ -187,7 +187,7 @@ See the particular vendor documentation for more information.
 [[jdbc-outbound-channel-adapter]]
 === Outbound Channel Adapter
 
-The outbound channel adapter is the inverse of the inbound: Its role is to handle a message and use it to execute a SQL query.
+The outbound channel adapter is the inverse of the inbound: its role is to handle a message and use it to execute a SQL query.
 By default, the message payload and headers are available as input parameters to the query, as the following example shows:
 
 ====
@@ -315,7 +315,7 @@ The following example shows the changed configuration:
 [source,xml]
 ----
 <int-jdbc:outbound-gateway
-    update="insert into mything (status, name) values (0, :payload[thing])"
+    update="insert into mythings (status, name) values (0, :payload[thing])"
     request-channel="input" reply-channel="output" data-source="dataSource"
     keys-generated="true"/>
 ----
@@ -377,6 +377,12 @@ The `JdbcMessageStore` is suitable for use with aggregators and the claim check 
 The `JdbcChannelMessageStore` implementation provides a more targeted and scalable implementation specifically for message channel.
 
 Note that you can use a `JdbcMessageStore` to back a message channel, `JdbcChannelMessageStore` is optimized for that purpose.
+
+IMPORTANT: Starting with versions 5.0.11, 5.1.2, the indexes for the `JdbcChannelMessageStore` have been optimized.
+If you have large message groups in such a store, you may wish to alter the indexes.
+Furthermore, the index for `PriorityChannel` is commented out because it is not needed unless you are using such channels backed by JDBC.
+
+NOTE: When using the `OracleChannelMessageStoreQueryProvider`, the priority channel index **must** be added because it is included in a hint in the query.
 
 ==== Initializing the Database
 

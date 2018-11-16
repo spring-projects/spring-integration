@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,20 @@ package org.springframework.integration.store;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.willAnswer;
+import static org.mockito.Mockito.spy;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletionService;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,18 +43,54 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Dave Syer
+ * @author Gary Russell
  * @since 2.0
  */
 public class MessageGroupQueueTests {
 
-	static final Log logger = LogFactory.getLog(MessageGroupQueueTests.class);
+	private static final Log logger = LogFactory.getLog(MessageGroupQueueTests.class);
 
 	@Test
 	public void testPutAndPoll() throws Exception {
 		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
-		queue.put(new GenericMessage<String>("foo"));
+		queue.put(new GenericMessage<>("foo"));
 		Message<?> result = queue.poll(100, TimeUnit.MILLISECONDS);
 		assertNotNull(result);
+	}
+
+	@Test
+	public void testPollTimeout() throws Exception {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
+		Message<?> result = queue.poll(1, TimeUnit.MILLISECONDS);
+		assertNull(result);
+	}
+
+	@Test
+	public void testPollEmpty() throws Exception {
+		MessageGroupQueue queue = spy(new MessageGroupQueue(new SimpleMessageStore(), "FOO"));
+		CountDownLatch latch1 = new CountDownLatch(1);
+		AtomicBoolean first = new AtomicBoolean(true);
+		willAnswer(i -> {
+			latch1.countDown();
+			return first.getAndSet(false) ? null : i.callRealMethod();
+		}).given(queue).doPoll();
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		CountDownLatch latch2 = new CountDownLatch(1);
+		exec.execute(() -> {
+			try {
+				Message<?> result = queue.poll(100, TimeUnit.MILLISECONDS);
+				if (result != null) {
+					latch2.countDown();
+				}
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		});
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		queue.put(new GenericMessage<>("foo"));
+		assertTrue(latch2.await(10, TimeUnit.SECONDS));
+		exec.shutdownNow();
 	}
 
 	@Test
@@ -65,9 +106,9 @@ public class MessageGroupQueueTests {
 	public void testCapacityAfterExpiry() throws Exception {
 		SimpleMessageStore messageGroupStore = new SimpleMessageStore();
 		MessageGroupQueue queue = new MessageGroupQueue(messageGroupStore, "FOO", 2);
-		queue.put(new GenericMessage<String>("foo"));
+		queue.put(new GenericMessage<>("foo"));
 		assertEquals(1, queue.remainingCapacity());
-		queue.put(new GenericMessage<String>("bar"));
+		queue.put(new GenericMessage<>("bar"));
 		assertEquals(0, queue.remainingCapacity());
 		Message<?> result = queue.poll(100, TimeUnit.MILLISECONDS);
 		assertNotNull(result);
@@ -78,21 +119,21 @@ public class MessageGroupQueueTests {
 	public void testCapacityExceeded() throws Exception {
 		SimpleMessageStore messageGroupStore = new SimpleMessageStore();
 		MessageGroupQueue queue = new MessageGroupQueue(messageGroupStore, "FOO", 1);
-		queue.put(new GenericMessage<String>("foo"));
-		assertFalse(queue.offer(new GenericMessage<String>("bar"), 100, TimeUnit.MILLISECONDS));
+		queue.put(new GenericMessage<>("foo"));
+		assertFalse(queue.offer(new GenericMessage<>("bar"), 100, TimeUnit.MILLISECONDS));
 	}
 
 	@Test
 	public void testPutAndTake() throws Exception {
 		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
-		queue.put(new GenericMessage<String>("foo"));
+		queue.put(new GenericMessage<>("foo"));
 		Message<?> result = queue.take();
 		assertNotNull(result);
 	}
 
 	@Test
 	public void testConcurrentAccess() throws Exception {
-		doTestConcurrentAccess(50, 20, new HashSet<String>());
+		doTestConcurrentAccess(50, 20, new HashSet<>());
 	}
 
 	@Test
@@ -101,11 +142,10 @@ public class MessageGroupQueueTests {
 	}
 
 	private void doTestConcurrentAccess(int concurrency, final int maxPerTask, final Set<String> set) throws Exception {
-
 		SimpleMessageStore messageGroupStore = new SimpleMessageStore();
 		final MessageGroupQueue queue = new MessageGroupQueue(messageGroupStore, "FOO");
 		ExecutorService executorService = Executors.newCachedThreadPool();
-		CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(executorService);
+		CompletionService<Boolean> completionService = new ExecutorCompletionService<>(executorService);
 
 		for (int i = 0; i < concurrency; i++) {
 
@@ -114,7 +154,7 @@ public class MessageGroupQueueTests {
 			completionService.submit(() -> {
 				boolean result = true;
 				for (int j = 0; j < maxPerTask; j++) {
-					result &= queue.add(new GenericMessage<String>("count=" + big + ":" + j));
+					result &= queue.add(new GenericMessage<>("count=" + big + ":" + j));
 					if (!result) {
 						logger.warn("Failed to add");
 					}
@@ -158,7 +198,6 @@ public class MessageGroupQueueTests {
 		assertEquals(Integer.MAX_VALUE, queue.remainingCapacity());
 
 		executorService.shutdown();
-
 	}
 
 }
