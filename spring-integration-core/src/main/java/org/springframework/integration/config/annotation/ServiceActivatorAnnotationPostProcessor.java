@@ -52,8 +52,8 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 	protected MessageHandler createHandler(Object bean, Method method, List<Annotation> annotations) {
 		AbstractReplyProducingMessageHandler serviceActivator;
 		if (AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			final Object target = this.resolveTargetBeanFromMethodWithBeanAnnotation(method);
-			serviceActivator = this.extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class);
+			final Object target = resolveTargetBeanFromMethodWithBeanAnnotation(method);
+			serviceActivator = extractTypeIfPossible(target, AbstractReplyProducingMessageHandler.class);
 			if (serviceActivator == null) {
 				if (target instanceof MessageHandler) {
 					/*

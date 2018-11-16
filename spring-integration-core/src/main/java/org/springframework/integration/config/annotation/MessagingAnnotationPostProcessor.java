@@ -72,13 +72,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	protected final Log logger = LogFactory.getLog(this.getClass()); // NOSONAR
 
-	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
-			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
+	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors = new HashMap<>();
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	private final Set<Class<?>> noAnnotationsCache =
-			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(256));
+	private final Set<Class<?>> noAnnotationsCache = Collections.newSetFromMap(new ConcurrentHashMap<>(256));
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -222,13 +220,15 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	 */
 	protected List<Annotation> getAnnotationChain(Method method, Class<? extends Annotation> annotationType) {
 		Annotation[] annotations = AnnotationUtils.getAnnotations(method);
-		List<Annotation> annotationChain = new LinkedList<Annotation>();
-		Set<Annotation> visited = new HashSet<Annotation>();
-		for (Annotation ann : annotations) {
-			recursiveFindAnnotation(annotationType, ann, annotationChain, visited);
-			if (annotationChain.size() > 0) {
-				Collections.reverse(annotationChain);
-				return annotationChain;
+		List<Annotation> annotationChain = new LinkedList<>();
+		if (annotations != null) {
+			Set<Annotation> visited = new HashSet<>();
+			for (Annotation ann : annotations) {
+				recursiveFindAnnotation(annotationType, ann, annotationChain, visited);
+				if (annotationChain.size() > 0) {
+					Collections.reverse(annotationChain);
+					return annotationChain;
+				}
 			}
 		}
 		return annotationChain;
