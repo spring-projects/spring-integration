@@ -302,7 +302,7 @@ public class IntegrationFlowTests {
 		assertTrue(this.beanFactory.containsBean("lambdasFlow.transformer#0"));
 
 		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.withPayload("World")
+		Message<?> message = MessageBuilder.withPayload("World".getBytes())
 				.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel)
 				.build();
 		this.lambdasInput.send(message);
@@ -336,7 +336,7 @@ public class IntegrationFlowTests {
 	}
 
 	@Test
-	public void testGatewayFlow() throws Exception {
+	public void testGatewayFlow() {
 		PollableChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
 
@@ -815,8 +815,8 @@ public class IntegrationFlowTests {
 		@Bean
 		public IntegrationFlow lambdasFlow() {
 			return IntegrationFlows.from("lambdasInput")
-					.filter("World"::equals)
-					.transform("Hello "::concat)
+					.filter(String.class, "World"::equals)
+					.transform(String.class, "Hello "::concat)
 					.get();
 		}
 
