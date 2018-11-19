@@ -17,15 +17,16 @@
 package org.springframework.integration.jdbc.store;
 
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
@@ -105,6 +106,18 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
+	private enum Query {
+		CREATE_MESSAGE,
+		COUNT_GROUPS,
+		GROUP_SIZE,
+		DELETE_GROUP,
+		POLL,
+		POLL_WITH_EXCLUSIONS,
+		PRIORITY,
+		PRIORITY_WITH_EXCLUSIONS,
+		DELETE_MESSAGE
+	}
+
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
 	 * optimization for the put method.
@@ -146,7 +159,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 
 	private ChannelMessageStorePreparedStatementSetter preparedStatementSetter;
 
-	private Map<String, String> queryCache = new HashMap<>();
+	private final Map<Query, String> queryCache = new ConcurrentHashMap<>();
 
 	private MessageGroupFactory messageGroupFactory = new SimpleMessageGroupFactory();
 
@@ -409,7 +422,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@Override
 	public MessageGroup addMessageToGroup(Object groupId, final Message<?> message) {
 		try {
-			this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
+			this.jdbcTemplate.update(getQuery(Query.CREATE_MESSAGE,
+						() -> this.channelMessageStoreQueryProvider.getCreateMessageQuery()),
 					ps -> this.preparedStatementSetter.setValues(ps, message, groupId, this.region,
 							this.priorityEnabled));
 		}
@@ -448,7 +462,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@ManagedAttribute
 	public int getMessageGroupCount() {
 		return this.jdbcTemplate.queryForObject(
-				getQuery("SELECT COUNT(DISTINCT GROUP_KEY) from %PREFIX%CHANNEL_MESSAGE where REGION = ?"),
+				getQuery(Query.COUNT_GROUPS,
+						() -> "SELECT COUNT(DISTINCT GROUP_KEY) from %PREFIX%CHANNEL_MESSAGE where REGION = ?"),
 				Integer.class, this.region);
 	}
 
@@ -456,18 +471,13 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * Replace patterns in the input to produce a valid SQL query. This implementation lazily initializes a
 	 * simple map-based cache, only replacing the table prefix on the first access to a named query. Further
 	 * accesses will be resolved from the cache.
-	 * @param sqlQuery The SQL query to be transformed.
+	 * @param queryName The {@link Query} to be transformed.
+	 * @param queryProvider a supplier to provide the query template.
 	 * @return A transformed query with replacements.
 	 */
-	protected String getQuery(String sqlQuery) {
-		String query = this.queryCache.get(sqlQuery);
-
-		if (query == null) {
-			query = StringUtils.replace(sqlQuery, "%PREFIX%", this.tablePrefix);
-			this.queryCache.put(sqlQuery, query);
-		}
-
-		return query;
+	protected String getQuery(Query queryName, Supplier<String> queryProvider) {
+		return this.queryCache.computeIfAbsent(queryName,
+				k -> StringUtils.replace(queryProvider.get(), "%PREFIX%", this.tablePrefix));
 	}
 
 	/**
@@ -479,13 +489,17 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
-		return this.jdbcTemplate.queryForObject(getQuery(this.channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()),
+		return this.jdbcTemplate.queryForObject(
+				getQuery(Query.GROUP_SIZE,
+						() -> this.channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()),
 				Integer.class, key, this.region);
 	}
 
 	@Override
 	public void removeMessageGroup(Object groupId) {
-		this.jdbcTemplate.update(this.getQuery(this.channelMessageStoreQueryProvider.getDeleteMessageGroupQuery()),
+		this.jdbcTemplate.update(
+				this.getQuery(Query.DELETE_GROUP,
+						() -> this.channelMessageStoreQueryProvider.getDeleteMessageGroupQuery()),
 				this.getKey(groupId), this.region);
 	}
 
@@ -531,19 +545,22 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		try {
 			if (this.usingIdCache && !this.idCache.isEmpty()) {
 				if (this.priorityEnabled) {
-					query = getQuery(this.channelMessageStoreQueryProvider.getPriorityPollFromGroupExcludeIdsQuery());
+					query = getQuery(Query.PRIORITY_WITH_EXCLUSIONS,
+							() -> this.channelMessageStoreQueryProvider.getPriorityPollFromGroupExcludeIdsQuery());
 				}
 				else {
-					query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
+					query = getQuery(Query.POLL_WITH_EXCLUSIONS,
+							() -> this.channelMessageStoreQueryProvider.getPollFromGroupExcludeIdsQuery());
 				}
 				parameters.addValue("message_ids", this.idCache);
 			}
 			else {
 				if (this.priorityEnabled) {
-					query = getQuery(this.channelMessageStoreQueryProvider.getPriorityPollFromGroupQuery());
+					query = getQuery(Query.PRIORITY,
+							() -> this.channelMessageStoreQueryProvider.getPriorityPollFromGroupQuery());
 				}
 				else {
-					query = getQuery(this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
+					query = getQuery(Query.POLL, () -> this.channelMessageStoreQueryProvider.getPollFromGroupQuery());
 				}
 			}
 			messages = namedParameterJdbcTemplate.query(query, parameters, this.messageRowMapper);
@@ -582,7 +599,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	private boolean doRemoveMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		final UUID id = messageToRemove.getHeaders().getId();
 
-		int updated = this.jdbcTemplate.update(getQuery(this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
+		int updated = this.jdbcTemplate.update(
+				getQuery(Query.DELETE_MESSAGE, () -> this.channelMessageStoreQueryProvider.getDeleteMessageQuery()),
 				new Object[] { getKey(id), getKey(groupId), this.region },
 				new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
 
