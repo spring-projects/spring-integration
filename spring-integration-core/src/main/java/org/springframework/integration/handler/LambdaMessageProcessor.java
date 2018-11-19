@@ -30,6 +30,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -104,7 +105,8 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 				}
 			}
 			else {
-				if (this.payloadType != null) {
+				if (this.payloadType != null &&
+						!ClassUtils.isAssignable(this.payloadType, message.getPayload().getClass())) {
 					if (Message.class.isAssignableFrom(this.payloadType)) {
 						args[i] = message;
 					}
