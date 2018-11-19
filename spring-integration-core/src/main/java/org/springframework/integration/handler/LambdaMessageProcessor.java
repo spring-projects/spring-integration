@@ -22,6 +22,9 @@ import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -38,10 +41,13 @@ import org.springframework.util.ReflectionUtils;
  * - functional interface implementations.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
 public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAware {
+
+	private static final Log logger = LogFactory.getLog(LambdaMessageProcessor.class);
 
 	private final Object target;
 
@@ -124,6 +130,11 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			return this.method.invoke(this.target, args);
 		}
 		catch (InvocationTargetException e) {
+			if (e.getTargetException() instanceof ClassCastException) {
+				logger.error("Could not invoke the method due to a class cast exception, if using a lambda in the DSL, "
+						+ "consider using an overloaded EIP method that takes a Class<?> argument to explicitly "
+						+ "specify the type", e.getCause());
+			}
 			throw new MessageHandlingException(message, e.getCause());
 		}
 		catch (Exception e) {
