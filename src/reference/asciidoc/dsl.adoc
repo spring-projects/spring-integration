@@ -108,6 +108,30 @@ The above example composes a sequence of `Filter -> Transformer -> Service Activ
 The flow is 'one way', that is it does not provide a a reply message but simply prints the payload to STDOUT.
 The endpoints are automatically wired together using direct channels.
 
+[[java-dsl-class-cast]]
+.Lambdas And `Message<?>` Arguments
+IMPORTANT: When using lambdas in EIP methods, the "input" argument is generally the message payload.
+If you wish to access the entire message, use one of the overloaded methods that take a `Class<?>` as the first parameter.
+For example, this won't work:
+
+====
+[source, java]
+----
+.<Message<?>, Foo>transform(m -> newFooFromMessage(m))
+----
+====
+
+This will fail at runtime with a `ClassCastException` because the lambda doesn't retain the argument type and the framework will attempt to cast the payload to a `Message<?>`.
+
+Instead, use:
+
+====
+[source, java]
+----
+.(Message.class, m -> newFooFromMessage(m))
+----
+====
+
 [[java-dsl-channels]]
 === Message Channels
 
@@ -258,6 +282,8 @@ Nevertheless, the DSL parser takes care about bean declarations for inline objec
 
 See `Transformers` Java Docs for more information and supported factory methods.
 
+Also see <<java-dsl-class-cast>>.
+
 [[java-dsl-inbound-adapters]]
 === Inbound Channel Adapters
 
@@ -360,6 +386,8 @@ public IntegrationFlow recipientListFlow() {
 
 The `.defaultOutputToParentFlow()` of the `.routeToRecipients()` allows to make the router's `defaultOutput` as a gateway to continue a process for the unmatched messages in the main flow.
 
+Also see <<java-dsl-class-cast>>.
+
 [[java-dsl-splitters]]
 === Splitters
 
@@ -382,6 +410,8 @@ public IntegrationFlow splitFlow() {
 
 This creates a splitter that splits a message containing a comma delimited String.
 Note: the `getT2()` method comes from `Tuple` `Collection` which is the result of `EndpointSpec.get()` and represents a pair of `ConsumerEndpointFactoryBean` and `DefaultMessageSplitter` for the example above.
+
+Also see <<java-dsl-class-cast>>.
 
 [[java-dsl-aggregators]]
 === Aggregators and Resequencers
@@ -457,6 +487,8 @@ public IntegrationFlow integerFlow() {
 ----
 
 Of course we register some custom `BytesToIntegerConverter` within `ConversionService` and get rid of that additional `.transform()`.
+
+Also see <<java-dsl-class-cast>>.
 
 [[java-dsl-log]]
 === Operator log()
