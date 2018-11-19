@@ -460,7 +460,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see GenericEndpointSpec
 	 */
 	public B controlBus(Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		return this.handle(new ServiceActivatingHandler(new ExpressionCommandMessageProcessor(
+		return handle(new ServiceActivatingHandler(new ExpressionCommandMessageProcessor(
 				new ControlBusMethodFilter())), endpointConfigurer);
 	}
 
@@ -537,7 +537,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}.
+	 * Populate the {@link MessageTransformingHandler} instance for the provided
+	 * {@link GenericTransformer}. Use {@link #transform(Class, GenericTransformer)} if
+	 * you need to access the entire message.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
 	 * @param <S> the source type - 'transform from'.
 	 * @param <T> the target type - 'transform to'.
@@ -599,16 +601,22 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see LambdaMessageProcessor
 	 */
 	public <P> B convert(Class<P> payloadType) {
+		Assert.isTrue(!payloadType.equals(Message.class), ".convert() does not support Message as an explicit type");
 		return transform(payloadType, p -> p);
 	}
 
 
 	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
-	 * for the specific {@code payloadType} to convert at runtime.
-	 * @param payloadType the {@link Class} for expected payload type.
+	 * Populate the {@link MessageTransformingHandler} instance for the provided
+	 * {@link GenericTransformer} for the specific {@code payloadType} to convert at
+	 * runtime.
+	 * Use {@link #transform(Class, GenericTransformer)} if you need access to the
+	 * entire message.
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the transformer.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
-	 * @param <P> the payload type - 'transform from'.
+	 * @param <P> the payload type - 'transform from' or {@code Message.class}.
 	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
@@ -619,10 +627,14 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}.
-	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
+	 * Populate the {@link MessageTransformingHandler} instance for the provided
+	 * {@link GenericTransformer}. In addition accept options for the integration endpoint
+	 * using {@link GenericEndpointSpec}. Use
+	 * {@link #transform(Class, GenericTransformer, Consumer)} if you need to access the
+	 * entire message.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
-	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
+	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint
+	 * options.
 	 * @param <S> the source type - 'transform from'.
 	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
@@ -632,7 +644,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		return this.transform(null, genericTransformer, endpointConfigurer);
+
+		return transform(null, genericTransformer, endpointConfigurer);
 	}
 
 	/**
@@ -651,6 +664,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	public <P> B convert(Class<P> payloadType,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 
+		Assert.isTrue(!payloadType.equals(Message.class), ".convert() does not support Message");
 		return transform(payloadType, p -> p, endpointConfigurer);
 	}
 
@@ -658,10 +672,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * Populate the {@link MessageTransformingHandler} instance for the provided {@link GenericTransformer}
 	 * for the specific {@code payloadType} to convert at runtime.
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
-	 * @param payloadType the {@link Class} for expected payload type.
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the transformer.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param genericTransformer the {@link GenericTransformer} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <P> the payload type - 'transform from'.
+	 * @param <P> the payload type - 'transform from', or {@code Message.class}.
 	 * @param <T> the target type - 'transform to'.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see MethodInvokingTransformer
@@ -758,6 +774,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .filter("World"::equals)
 	 * }
 	 * </pre>
+	 * Use {@link #filter(Class, GenericSelector)} if you need to access the entire
+	 * message.
 	 * @param genericSelector the {@link GenericSelector} to use.
 	 * @param <P> the source payload type.
 	 * @return the current {@link IntegrationFlowDefinition}.
@@ -813,14 +831,16 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .filter(Date.class, p -> p.after(new Date()))
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for desired {@code payload} type.
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the selector.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param genericSelector the {@link GenericSelector} to use.
-	 * @param <P> the source payload type.
+	 * @param <P> the source payload type or {@code Message.class}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
 	public <P> B filter(Class<P> payloadType, GenericSelector<P> genericSelector) {
-		return this.filter(payloadType, genericSelector, null);
+		return filter(payloadType, genericSelector, null);
 	}
 
 	/**
@@ -833,6 +853,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .filter("World"::equals, e -> e.autoStartup(false))
 	 * }
 	 * </pre>
+	 * Use {@link #filter(Class, GenericSelector, Consumer)} if you need to access the entire
+	 * message.
 	 * @param genericSelector the {@link GenericSelector} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <P> the source payload type.
@@ -853,10 +875,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .filter(Date.class, p -> p.after(new Date()), e -> e.autoStartup(false))
 	 * }
 	 * </pre>
-	 * @param payloadType the {@link Class} for desired {@code payload} type.
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the selector.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param genericSelector the {@link GenericSelector} to use.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <P> the source payload type.
+	 * @param <P> the source payload type or {@code Message.class}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 * @see FilterEndpointSpec
@@ -914,7 +938,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B handle(String beanName, String methodName) {
-		return this.handle(beanName, methodName, null);
+		return handle(beanName, methodName, null);
 	}
 
 	/**
@@ -989,6 +1013,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .<Integer>handle((p, h) -> p / 2)
 	 * }
 	 * </pre>
+	 * Use {@link #handle(Class, GenericHandler)} if you need to access the entire
+	 * message.
 	 * @param handler the handler to invoke.
 	 * @param <P> the payload type to expect.
 	 * @return the current {@link IntegrationFlowDefinition}.
@@ -1009,6 +1035,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .<Integer>handle((p, h) -> p / 2, e -> e.autoStartup(false))
 	 * }
 	 * </pre>
+	 * Use {@link #handle(Class, GenericHandler, Consumer)} if you need to access the entire
+	 * message.
 	 * @param handler the handler to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <P> the payload type to expect.
@@ -1018,7 +1046,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public <P> B handle(GenericHandler<P> handler,
 			Consumer<GenericEndpointSpec<ServiceActivatingHandler>> endpointConfigurer) {
-		return this.handle(null, handler, endpointConfigurer);
+		return handle(null, handler, endpointConfigurer);
 	}
 
 	/**
@@ -1031,15 +1059,16 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .handle(Integer.class, (p, h) -> p / 2)
 	 * }
 	 * </pre>
-	 * @param payloadType the expected payload type.
-	 * The accepted payload can be converted to this one at runtime
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the handler.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param handler the handler to invoke.
-	 * @param <P> the payload type to expect.
+	 * @param <P> the payload type to expect, or {@code Message.class}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
 	public <P> B handle(Class<P> payloadType, GenericHandler<P> handler) {
-		return this.handle(payloadType, handler, null);
+		return handle(payloadType, handler, null);
 	}
 
 	/**
@@ -1053,11 +1082,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .handle(Integer.class, (p, h) -> p / 2, e -> e.autoStartup(false))
 	 * }
 	 * </pre>
-	 * @param payloadType the expected payload type.
-	 * The accepted payload can be converted to this one at runtime
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the handler.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param handler the handler to invoke.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <P> the payload type to expect.
+	 * @param <P> the payload type to expect or {@code Message.class}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
@@ -1070,7 +1100,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 		else {
 			serviceActivatingHandler = new ServiceActivatingHandler(handler, ClassUtils.HANDLER_HANDLE_METHOD);
 		}
-		return this.handle(serviceActivatingHandler, endpointConfigurer);
+		return handle(serviceActivatingHandler, endpointConfigurer);
 	}
 
 	/**
@@ -1275,9 +1305,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Accept a {@link Map} of values to be used for the
-	 * {@link org.springframework.messaging.Message} header enrichment.
+	 * {@link Message} header enrichment.
 	 * {@code values} can apply an {@link org.springframework.expression.Expression}
-	 * to be evaluated against a request {@link org.springframework.messaging.Message}.
+	 * to be evaluated against a request {@link Message}.
 	 * @param headers the Map of headers to enrich.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
@@ -1287,9 +1317,9 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Accept a {@link Map} of values to be used for the
-	 * {@link org.springframework.messaging.Message} header enrichment.
+	 * {@link Message} header enrichment.
 	 * {@code values} can apply an {@link org.springframework.expression.Expression}
-	 * to be evaluated against a request {@link org.springframework.messaging.Message}.
+	 * to be evaluated against a request {@link Message}.
 	 * @param headers the Map of headers to enrich.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @return the current {@link IntegrationFlowDefinition}.
@@ -1330,7 +1360,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B split() {
-		return this.split((Consumer<SplitterEndpointSpec<DefaultMessageSplitter>>) null);
+		return split((Consumer<SplitterEndpointSpec<DefaultMessageSplitter>>) null);
 	}
 
 	/**
@@ -1348,7 +1378,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @see SplitterEndpointSpec
 	 */
 	public B split(Consumer<SplitterEndpointSpec<DefaultMessageSplitter>> endpointConfigurer) {
-		return this.split(new DefaultMessageSplitter(), endpointConfigurer);
+		return split(new DefaultMessageSplitter(), endpointConfigurer);
 	}
 
 	/**
@@ -1432,7 +1462,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B split(String beanName, String methodName) {
-		return this.split(beanName, methodName, null);
+		return split(beanName, methodName, null);
 	}
 
 	/**
@@ -1508,9 +1538,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *                           new Foo(rs.getInt(1), rs.getString(2)))))
 	 * }
 	 * </pre>
-	 * @param payloadType the expected payload type. Used at runtime to convert received payload type to.
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the splitter.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param splitter the splitter {@link Function}.
-	 * @param <P> the payload type.
+	 * @param <P> the payload type or {@code Message.class}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
@@ -1562,20 +1594,23 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *       , e -> e.applySequence(false))
 	 * }
 	 * </pre>
-	 * @param payloadType the expected payload type. Used at runtime to convert received payload type to.
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the splitter.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param splitter the splitter {@link Function}.
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
-	 * @param <P> the payload type.
+	 * @param <P> the payload type or {@code Message.class}.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 * @see SplitterEndpointSpec
 	 */
 	public <P> B split(Class<P> payloadType, Function<P, ?> splitter,
 			Consumer<SplitterEndpointSpec<MethodInvokingSplitter>> endpointConfigurer) {
+
 		MethodInvokingSplitter split = isLambda(splitter)
 				? new MethodInvokingSplitter(new LambdaMessageProcessor(splitter, payloadType))
 				: new MethodInvokingSplitter(splitter, ClassUtils.FUNCTION_APPLY_METHOD);
-		return this.split(split, endpointConfigurer);
+		return split(split, endpointConfigurer);
 	}
 
 	/**
@@ -1665,7 +1700,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B headerFilter(HeaderFilter headerFilter,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		return this.transform(headerFilter, endpointConfigurer);
+		return transform(headerFilter, endpointConfigurer);
 	}
 
 	/**
@@ -1689,7 +1724,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 */
 	public B claimCheckIn(MessageStore messageStore,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
-		return this.transform(new ClaimCheckInTransformer(messageStore), endpointConfigurer);
+		return transform(new ClaimCheckInTransformer(messageStore), endpointConfigurer);
 	}
 
 	/**
@@ -1730,7 +1765,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
 		ClaimCheckOutTransformer claimCheckOutTransformer = new ClaimCheckOutTransformer(messageStore);
 		claimCheckOutTransformer.setRemoveMessage(removeMessage);
-		return this.transform(claimCheckOutTransformer, endpointConfigurer);
+		return transform(claimCheckOutTransformer, endpointConfigurer);
 	}
 
 	/**
@@ -1895,6 +1930,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .route(p -> p.equals("foo") || p.equals("bar") ? new String[] {"foo", "bar"} : null)
 	 * }
 	 * </pre>
+	 * Use {@link #route(Class, Function)} if you need to access the entire message.
 	 * @param router the {@link Function} to use.
 	 * @param <S> the source payload type.
 	 * @param <T> the target result type.
@@ -1913,9 +1949,11 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *  .route(Integer.class, p -> p % 2 == 0)
 	 * }
 	 * </pre>
-	 * @param payloadType the expected payload type.
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the splitter.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param router  the {@link Function} to use.
-	 * @param <S> the source payload type.
+	 * @param <S> the source payload type or {@code Message.class}.
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
@@ -1938,6 +1976,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *                       .applySequence(false))
 	 * }
 	 * </pre>
+	 * Use {@link #route(Class, Function, Consumer)} if you need to access the entire message.
 	 * @param router the {@link Function} to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
 	 * @param <S> the source payload type.
@@ -1962,16 +2001,19 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *                       .applySequence(false))
 	 * }
 	 * </pre>
-	 * @param payloadType the expected payload type.
+	 * @param payloadType the {@link Class} for expected payload type. It can also be
+	 * {@code Message.class} if you wish to access the entire message in the splitter.
+	 * Conversion to this type will be attempted, if necessary.
 	 * @param router the {@link Function} to use.
 	 * @param routerConfigurer the {@link Consumer} to provide {@link MethodInvokingRouter} options.
-	 * @param <P> the source payload type.
+	 * @param <P> the source payload type or {@code Message.class}.
 	 * @param <T> the target result type.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
 	 */
 	public <P, T> B route(Class<P> payloadType, Function<P, T> router,
 			Consumer<RouterSpec<T, MethodInvokingRouter>> routerConfigurer) {
+
 		MethodInvokingRouter methodInvokingRouter = isLambda(router)
 				? new MethodInvokingRouter(new LambdaMessageProcessor(router, payloadType))
 				: new MethodInvokingRouter(router, ClassUtils.FUNCTION_APPLY_METHOD);

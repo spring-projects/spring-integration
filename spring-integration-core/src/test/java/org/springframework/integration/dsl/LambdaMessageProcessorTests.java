@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -70,6 +71,15 @@ public class LambdaMessageProcessorTests {
 		GenericMessage<String> testMessage = new GenericMessage<>("foo");
 		Object result = lmp.processMessage(testMessage);
 		assertSame(testMessage, result);
+	}
+
+	@Test
+	public void testMessageAsArgumentLambda() {
+		LambdaMessageProcessor lmp = new LambdaMessageProcessor(
+				(GenericTransformer<Message<?>, Message<?>>) source -> messageTransformer(source), null);
+		lmp.setBeanFactory(mock(BeanFactory.class));
+		GenericMessage<String> testMessage = new GenericMessage<>("foo");
+		assertThatThrownBy(() -> lmp.processMessage(testMessage)).hasCauseExactlyInstanceOf(ClassCastException.class);
 	}
 
 	private void handle(GenericHandler<?> h) {

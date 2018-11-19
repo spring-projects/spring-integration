@@ -113,6 +113,30 @@ The flow is "'one way'".
 That is, it does not provide a reply message but only prints the payload to STDOUT.
 The endpoints are automatically wired together by using direct channels.
 
+[[java-dsl-class-cast]]
+.Lambdas And `Message<?>` Arguments
+IMPORTANT: When using lambdas in EIP methods, the "input" argument is generally the message payload.
+If you wish to access the entire message, use one of the overloaded methods that take a `Class<?>` as the first parameter.
+For example, this won't work:
+
+====
+[source, java]
+----
+.<Message<?>, Foo>transform(m -> newFooFromMessage(m))
+----
+====
+
+This will fail at runtime with a `ClassCastException` because the lambda doesn't retain the argument type and the framework will attempt to cast the payload to a `Message<?>`.
+
+Instead, use:
+
+====
+[source, java]
+----
+.(Message.class, m -> newFooFromMessage(m))
+----
+====
+
 [[java-dsl-channels]]
 === Message Channels
 
@@ -294,6 +318,8 @@ Nevertheless, the DSL parser takes care of bean declarations for inline objects,
 
 See [https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Transformers.html] in the Javadoc for more information and supported factory methods.
 
+Also see <<java-dsl-class-cast>>.
+
 [[java-dsl-inbound-adapters]]
 === Inbound Channel Adapters
 
@@ -403,6 +429,8 @@ public IntegrationFlow recipientListFlow() {
 
 The `.defaultOutputToParentFlow()` of the `.routeToRecipients()` definition lets you set the router's `defaultOutput` as a gateway to continue a process for the unmatched messages in the main flow.
 
+Also see <<java-dsl-class-cast>>.
+
 [[java-dsl-splitters]]
 === Splitters
 
@@ -426,6 +454,8 @@ public IntegrationFlow splitFlow() {
 
 The preceding example creates a splitter that splits a message containing a comma-delimited `String`.
 Note: The `getT2()` method comes from a `Tuple` `Collection`, which is the result of `EndpointSpec.get()`, and represents a pair of `ConsumerEndpointFactoryBean` and `DefaultMessageSplitter` for the preceding example.
+
+Also see <<java-dsl-class-cast>>.
 
 [[java-dsl-aggregators]]
 === Aggregators and Resequencers
@@ -530,6 +560,8 @@ public IntegrationFlow integerFlow() {
 }
 ----
 ====
+
+Also see <<java-dsl-class-cast>>.
 
 [[java-dsl-log]]
 === Operator log()
