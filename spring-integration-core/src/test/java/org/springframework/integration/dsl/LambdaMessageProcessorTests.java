@@ -79,7 +79,6 @@ public class LambdaMessageProcessorTests {
 				(GenericTransformer<Message<?>, Message<?>>) source -> messageTransformer(source), null);
 		lmp.setBeanFactory(mock(BeanFactory.class));
 		GenericMessage<String> testMessage = new GenericMessage<>("foo");
-		lmp.processMessage(testMessage);
 		assertThatThrownBy(() -> lmp.processMessage(testMessage)).hasCauseExactlyInstanceOf(ClassCastException.class);
 	}
 
