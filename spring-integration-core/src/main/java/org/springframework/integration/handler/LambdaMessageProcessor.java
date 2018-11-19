@@ -133,7 +133,8 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 			if (e.getTargetException() instanceof ClassCastException) {
 				logger.error("Could not invoke the method due to a class cast exception, if using a lambda in the DSL, "
 						+ "consider using an overloaded EIP method that takes a Class<?> argument to explicitly "
-						+ "specify the type", e.getCause());
+						+ "specify the type. An example of when this often occurs is if the lambda is configured to "
+						+ "receive a Message<?> argument.", e.getCause());
 			}
 			throw new MessageHandlingException(message, e.getCause());
 		}
