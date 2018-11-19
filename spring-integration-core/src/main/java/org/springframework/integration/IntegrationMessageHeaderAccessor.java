@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -74,10 +73,11 @@ public class IntegrationMessageHeaderAccessor extends MessageHeaderAccessor {
 	}
 
 	/**
-	 * Specify a list of headers which should be considered as read only
-	 * and prohibited from being populated in the message.
-	 * @param readOnlyHeaders the list of headers for {@code readOnly} mode.
-	 * Defaults to {@link MessageHeaders#ID} and {@link MessageHeaders#TIMESTAMP}.
+	 * Specify a list of headers which should be considered as read only and prohibited
+	 * from being populated in the message.
+	 * @param readOnlyHeaders the list of headers for {@code readOnly} mode. Defaults to
+	 * {@link org.springframework.messaging.MessageHeaders#ID} and
+	 * {@link org.springframework.messaging.MessageHeaders#TIMESTAMP}.
 	 * @since 4.3.2
 	 * @see #isReadOnly(String)
 	 */
