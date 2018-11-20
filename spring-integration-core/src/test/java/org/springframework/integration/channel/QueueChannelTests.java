@@ -50,130 +50,109 @@ public class QueueChannelTests {
 
 	@Test
 	public void testSimpleSendAndReceive() throws Exception {
-		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final QueueChannel channel = new QueueChannel();
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			Message<?> message = channel.receive();
 			if (message != null) {
-				messageReceived.set(true);
 				latch.countDown();
 			}
 		});
-		assertFalse(messageReceived.get());
 		channel.send(new GenericMessage<String>("testing"));
-		latch.await(10000, TimeUnit.MILLISECONDS);
-		assertTrue(messageReceived.get());
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		exec.shutdownNow();
 	}
 
 	@Test
 	public void testSimpleSendAndReceiveNonBlockingQueue() throws Exception {
-		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final QueueChannel channel = new QueueChannel(new ArrayDeque<Message<?>>());
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			Message<?> message = channel.receive();
 			if (message != null) {
-				messageReceived.set(true);
 				latch.countDown();
 			}
 		});
-		assertFalse(messageReceived.get());
 		channel.send(new GenericMessage<String>("testing"));
-		latch.await(10000, TimeUnit.MILLISECONDS);
-		assertTrue(messageReceived.get());
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		exec.shutdownNow();
 	}
 
 	@Test
 	public void testSimpleSendAndReceiveNonBlockingQueueWithTimeout() throws Exception {
-		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final QueueChannel channel = new QueueChannel(new ArrayDeque<Message<?>>());
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			Message<?> message = channel.receive(1);
 			if (message != null) {
-				messageReceived.set(true);
 				latch.countDown();
 			}
 		});
-		assertFalse(messageReceived.get());
 		channel.send(new GenericMessage<String>("testing"));
-		latch.await(10000, TimeUnit.MILLISECONDS);
-		assertTrue(messageReceived.get());
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		exec.shutdownNow();
 	}
 
 	@Test
 	public void testImmediateReceive() throws Exception {
-		final AtomicBoolean messageReceived = new AtomicBoolean(false);
+		final AtomicBoolean messageNull = new AtomicBoolean(false);
 		final QueueChannel channel = new QueueChannel();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 		Runnable receiveTask1 = () -> {
 			Message<?> message = channel.receive(0);
-			if (message != null) {
-				messageReceived.set(true);
-			}
+			messageNull.set(message == null);
 			latch1.countDown();
 		};
 		Runnable sendTask = () -> channel.send(new GenericMessage<String>("testing"));
 		singleThreadExecutor.execute(receiveTask1);
-		latch1.await();
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
 		singleThreadExecutor.execute(sendTask);
-		assertFalse(messageReceived.get());
 		Runnable receiveTask2 = () -> {
 			Message<?> message = channel.receive(0);
 			if (message != null) {
-				messageReceived.set(true);
+				latch2.countDown();
 			}
-			latch2.countDown();
 		};
 		singleThreadExecutor.execute(receiveTask2);
-		latch2.await();
-		assertTrue(messageReceived.get());
+		assertTrue(latch2.await(10, TimeUnit.SECONDS));
 		singleThreadExecutor.shutdownNow();
 	}
 
 	@Test
 	public void testBlockingReceiveWithNoTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel();
-		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
+		final AtomicBoolean messageNull = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			Message<?> message = channel.receive();
-			receiveInterrupted.set(true);
-			assertTrue(message == null);
+			messageNull.set(message == null);
 			latch.countDown();
 		});
-		assertFalse(receiveInterrupted.get());
 		exec.shutdownNow();
-		latch.await(10, TimeUnit.SECONDS);
-		assertTrue(receiveInterrupted.get());
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertTrue(messageNull.get());
 	}
 
 	@Test
 	public void testBlockingReceiveWithTimeout() throws Exception {
 		final QueueChannel channel = new QueueChannel();
-		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
+		final AtomicBoolean messageNull = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			Message<?> message = channel.receive(10000);
-			receiveInterrupted.set(true);
-			assertTrue(message == null);
+			messageNull.set(message == null);
 			latch.countDown();
 		});
-		assertFalse(receiveInterrupted.get());
 		exec.shutdownNow();
-		latch.await(10, TimeUnit.SECONDS);
-		assertTrue(receiveInterrupted.get());
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertTrue(messageNull.get());
 	}
 
 	@Test
@@ -242,18 +221,14 @@ public class QueueChannelTests {
 		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
-		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			channel.send(new GenericMessage<String>("test-2"));
-			sendInterrupted.set(true);
 			latch.countDown();
 		});
-		assertFalse(sendInterrupted.get());
 		exec.shutdownNow();
-		latch.await(10, TimeUnit.SECONDS);
-		assertTrue(sendInterrupted.get());
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test
@@ -261,18 +236,14 @@ public class QueueChannelTests {
 		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
-		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		ExecutorService exec = Executors.newSingleThreadExecutor();
 		exec.execute(() -> {
 			channel.send(new GenericMessage<String>("test-2"), 10000);
-			sendInterrupted.set(true);
 			latch.countDown();
 		});
-		assertFalse(sendInterrupted.get());
 		exec.shutdownNow();
-		latch.await(10, TimeUnit.SECONDS);
-		assertTrue(sendInterrupted.get());
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
 	}
 
 	@Test

@@ -378,9 +378,11 @@ The `JdbcChannelMessageStore` implementation provides a more targeted and scalab
 
 Note that you can use a `JdbcMessageStore` to back a message channel, `JdbcChannelMessageStore` is optimized for that purpose.
 
-IMPORTANT: Starting with version 5.1.2, the indexes for the `JdbcChannelMessageStore` have been optimized.
+IMPORTANT: Starting with versions 5.0.10, 5.1.2, the indexes for the `JdbcChannelMessageStore` have been optimized.
 If you have large message groups in such a store, you may wish to alter the indexes.
 Furthermore, the index for `PriorityChannel` is commented out because it is not needed unless you are using such channels backed by JDBC.
+
+NOTE: When using the `OracleChannelMessageStoreQueryProvider`, the priority channel index **must** be added because it is included in a hint in the query.
 
 ==== Initializing the Database
 

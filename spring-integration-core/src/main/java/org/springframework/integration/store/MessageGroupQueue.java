@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,42 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	@Override
 	public Iterator<Message<?>> iterator() {
 		return getMessages().iterator();
+	}
+
+	/**
+	 * Get the store.
+	 * @return the store.
+	 * @since 5.0.10
+	 */
+	protected BasicMessageGroupStore getMessageGroupStore() {
+		return this.messageGroupStore;
+	}
+
+	/**
+	 * Get the store lock.
+	 * @return the lock.
+	 * @since 5.0.10
+	 */
+	protected Lock getStoreLock() {
+		return this.storeLock;
+	}
+
+	/**
+	 * Get the not full condition.
+	 * @return the condition.
+	 * @since 5.0.10
+	 */
+	protected Condition getMessageStoreNotFull() {
+		return this.messageStoreNotFull;
+	}
+
+	/**
+	 * Get the not empty condition.
+	 * @return the condition.
+	 * @since 5.0.10
+	 */
+	protected Condition getMessageStoreNotEmpty() {
+		return this.messageStoreNotEmpty;
 	}
 
 	@Override
@@ -297,7 +333,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			while (this.size() == 0) {
 				this.messageStoreNotEmpty.await();
 			}
-			message = this.doPoll();
+			message = doPoll();
 
 		}
 		finally {
@@ -306,7 +342,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		return message;
 	}
 
-	private Collection<Message<?>> getMessages() {
+	protected Collection<Message<?>> getMessages() {
 		return this.messageGroupStore.getMessageGroup(this.groupId).getMessages();
 	}
 
@@ -314,7 +350,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
 	 * IllegalMonitorStateException may be thrown
 	 */
-	Message<?> doPoll() {
+	protected Message<?> doPoll() {
 		Message<?> message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
 		this.messageStoreNotFull.signal();
 		return message;
@@ -323,8 +359,9 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
 	 * IllegalMonitorStateException may be thrown
+	 * @param message the message to offer.
 	 */
-	private boolean doOffer(Message<?> message) {
+	protected boolean doOffer(Message<?> message) {
 		boolean offered = false;
 		if (this.capacity == Integer.MAX_VALUE || this.size() < this.capacity) {
 			this.messageGroupStore.addMessageToGroup(this.groupId, message);
