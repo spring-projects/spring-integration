@@ -47,7 +47,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFactoryAware {
 
-	private static final Log logger = LogFactory.getLog(LambdaMessageProcessor.class);
+	private static final Log logger = LogFactory.getLog(LambdaMessageProcessor.class); // NOSONAR lower case static
 
 	private final Object target;
 
@@ -96,6 +96,26 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 
 	@Override
 	public Object processMessage(Message<?> message) {
+		Object[] args = buildArgs(message);
+
+		try {
+			return this.method.invoke(this.target, args);
+		}
+		catch (InvocationTargetException e) {
+			if (e.getTargetException() instanceof ClassCastException) {
+				logger.error("Could not invoke the method due to a class cast exception, if using a lambda in the DSL, "
+						+ "consider using an overloaded EIP method that takes a Class<?> argument to explicitly "
+						+ "specify the type. An example of when this often occurs is if the lambda is configured to "
+						+ "receive a Message<?> argument.", e.getCause());
+			}
+			throw new MessageHandlingException(message, e.getCause());
+		}
+		catch (Exception e) {
+			throw new MessageHandlingException(message, e);
+		}
+	}
+
+	private Object[] buildArgs(Message<?> message) {
 		Object[] args = new Object[this.parameterTypes.length];
 		for (int i = 0; i < this.parameterTypes.length; i++) {
 			Class<?> parameterType = this.parameterTypes[i];
@@ -125,22 +145,7 @@ public class LambdaMessageProcessor implements MessageProcessor<Object>, BeanFac
 				}
 			}
 		}
-
-		try {
-			return this.method.invoke(this.target, args);
-		}
-		catch (InvocationTargetException e) {
-			if (e.getTargetException() instanceof ClassCastException) {
-				logger.error("Could not invoke the method due to a class cast exception, if using a lambda in the DSL, "
-						+ "consider using an overloaded EIP method that takes a Class<?> argument to explicitly "
-						+ "specify the type. An example of when this often occurs is if the lambda is configured to "
-						+ "receive a Message<?> argument.", e.getCause());
-			}
-			throw new MessageHandlingException(message, e.getCause());
-		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message, e);
-		}
+		return args;
 	}
 
 }
