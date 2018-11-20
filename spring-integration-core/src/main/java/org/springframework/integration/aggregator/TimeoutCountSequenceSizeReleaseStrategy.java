@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,12 @@ import org.springframework.messaging.Message;
  * <ul>
  * <li>The sequence is complete (if there is one).</li>
  * <li>There are more messages than a threshold set by the user.</li>
- * <li>The time elapsed since the earliest message, according to their timestamps, exceeds a timeout set by the user.</li>
+ * <li>The time elapsed since the earliest message, according to their timestamps, if
+ * present, exceeds a timeout set by the user.</li>
  * </ul>
  *
  * @author Dave Syer
+ * @author Gary Russell
  *
  * @since 2.0
  */
@@ -61,6 +63,7 @@ public class TimeoutCountSequenceSizeReleaseStrategy implements ReleaseStrategy 
 		this.timeout = timeout;
 	}
 
+	@Override
 	public boolean canRelease(MessageGroup messages) {
 		long elapsedTime = System.currentTimeMillis() - findEarliestTimestamp(messages);
 		return messages.isComplete() || messages.getMessages().size() >= this.threshold || elapsedTime > this.timeout;
@@ -73,9 +76,12 @@ public class TimeoutCountSequenceSizeReleaseStrategy implements ReleaseStrategy 
 	private long findEarliestTimestamp(MessageGroup messages) {
 		long result = Long.MAX_VALUE;
 		for (Message<?> message : messages.getMessages()) {
-			long timestamp = message.getHeaders().getTimestamp();
-			if (timestamp < result) {
+			Long timestamp = message.getHeaders().getTimestamp();
+			if (timestamp != null && timestamp < result) {
 				result = timestamp;
+			}
+			else {
+				return Long.MAX_VALUE; // can't release based on time if there is no timestamp
 			}
 		}
 		return result;

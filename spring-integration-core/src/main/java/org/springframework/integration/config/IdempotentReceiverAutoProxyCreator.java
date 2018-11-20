@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,10 @@ class IdempotentReceiverAutoProxyCreator extends AbstractAutoProxyCreator {
 						NameMatchMethodPointcut pointcut = new NameMatchMethodPointcut();
 						pointcut.setMappedName("handleMessage");
 						idempotentReceiverInterceptor.setPointcut(pointcut);
-						idempotentReceiverInterceptor.setBeanFactory(getBeanFactory());
+						BeanFactory beanFactory = getBeanFactory();
+						if (beanFactory != null) {
+							idempotentReceiverInterceptor.setBeanFactory(beanFactory);
+						}
 						interceptors.add(idempotentReceiverInterceptor);
 					}
 				}

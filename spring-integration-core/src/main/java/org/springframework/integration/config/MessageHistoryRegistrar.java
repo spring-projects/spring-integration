@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.integration.history.MessageHistoryConfigurer;
  * or from {@code MessageHistoryParser}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
@@ -44,7 +45,7 @@ public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		Map<String, Object> annotationAttributes = importingClassMetadata.getAnnotationAttributes(EnableMessageHistory.class.getName());
-		Object componentNamePatterns = annotationAttributes.get("value");
+		Object componentNamePatterns = annotationAttributes.get("value"); // NOSONAR never null
 
 		if (componentNamePatterns instanceof String[]) {
 			StringBuilder componentNamePatternsString = new StringBuilder();

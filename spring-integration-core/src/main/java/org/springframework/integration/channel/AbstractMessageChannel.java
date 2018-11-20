@@ -253,6 +253,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
+	@Nullable
 	public ChannelInterceptor removeInterceptor(int index) {
 		return this.interceptors.remove(index);
 	}

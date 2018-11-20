@@ -66,7 +66,7 @@ public class MessagingGatewayRegistrar implements ImportBeanDefinitionRegistrar 
 			List<MultiValueMap<String, Object>> valuesHierarchy = captureMetaAnnotationValues(importingClassMetadata);
 			Map<String, Object> annotationAttributes =
 					importingClassMetadata.getAnnotationAttributes(MessagingGateway.class.getName());
-			replaceEmptyOverrides(valuesHierarchy, annotationAttributes);
+			replaceEmptyOverrides(valuesHierarchy, annotationAttributes); // NOSONAR never null
 			annotationAttributes.put("serviceInterface", importingClassMetadata.getClassName());
 
 			BeanDefinitionReaderUtils.registerBeanDefinition(this.parse(annotationAttributes), registry);
