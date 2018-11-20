@@ -20,6 +20,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.ErrorMessagePublisher;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.MessagingExceptionWrapper;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -71,6 +72,7 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 	 * @return the error channel.
 	 * @since 4.3
 	 */
+	@Nullable
 	public MessageChannel getDefaultErrorChannel() {
 		return getChannel();
 	}
@@ -115,6 +117,7 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 		}
 	}
 
+	@Nullable
 	private MessageChannel resolveErrorChannel(Throwable t) {
 		Throwable actualThrowable = t;
 		if (t instanceof MessagingExceptionWrapper) {
@@ -137,7 +140,12 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 		Assert.isInstanceOf(String.class, errorChannelHeader,
 				"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
 						errorChannelHeader.getClass() + "]");
-		return getChannelResolver().resolveDestination((String) errorChannelHeader);
+		if (getChannelResolver() != null) {
+			return getChannelResolver().resolveDestination((String) errorChannelHeader);
+		}
+		else {
+			return null;
+		}
 	}
 
 }

@@ -275,10 +275,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 			return object;
 		}
 		Advised advised = (Advised) object;
-		if (advised.getTargetSource() == null) {
-			return null;
-		}
 		try {
+			// TargetSource is never null
 			return extractTarget(advised.getTargetSource().getTarget());
 		}
 		catch (Exception e) {

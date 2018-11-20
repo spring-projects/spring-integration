@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.List;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.support.ChannelInterceptor;
 
 /**
@@ -28,6 +29,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
  * is an AOP Proxy.
  * *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public interface ChannelInterceptorAware {
@@ -69,6 +71,7 @@ public interface ChannelInterceptorAware {
 	 * @param index the index for the {@link org.springframework.messaging.support.ChannelInterceptor} to remove.
 	 * @return the {@code boolean} if the {@link ChannelInterceptor} has been removed.
 	 */
+	@Nullable
 	ChannelInterceptor removeInterceptor(int index);
 
 }

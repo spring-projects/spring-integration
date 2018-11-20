@@ -105,6 +105,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 		return this.messagingTemplate;
 	}
 
+	@Nullable
 	protected DestinationResolver<MessageChannel> getChannelResolver() {
 		return this.channelResolver;
 	}
