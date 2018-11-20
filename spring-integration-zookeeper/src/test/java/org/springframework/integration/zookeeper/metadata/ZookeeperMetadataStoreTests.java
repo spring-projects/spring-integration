@@ -16,6 +16,18 @@
 
 package org.springframework.integration.zookeeper.metadata;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.springframework.integration.test.matcher.EqualsResultMatcher.equalsResult;
+import static org.springframework.integration.test.matcher.EventuallyMatcher.eventually;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,21 +50,10 @@ import org.springframework.integration.metadata.MetadataStoreListenerAdapter;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.integration.zookeeper.ZookeeperTestSupport;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.springframework.integration.test.matcher.EqualsResultMatcher.equalsResult;
-import static org.springframework.integration.test.matcher.EventuallyMatcher.eventually;
-
 /**
  * @author Marius Bogoevici
  * @author Artem Bilan
+ * @author David Turanski
  * @since 4.2
  */
 public class ZookeeperMetadataStoreTests extends ZookeeperTestSupport {
