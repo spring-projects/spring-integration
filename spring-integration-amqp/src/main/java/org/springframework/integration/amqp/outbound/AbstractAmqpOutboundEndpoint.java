@@ -18,6 +18,7 @@ package org.springframework.integration.amqp.outbound;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.Connection;
@@ -53,6 +54,8 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
 		implements Lifecycle {
+
+	private static final UUID NO_ID = new UUID(0L, 0L);
 
 	private String exchangeName;
 
@@ -472,7 +475,11 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	protected CorrelationData generateCorrelationData(Message<?> requestMessage) {
 		CorrelationData correlationData = null;
 		if (this.correlationDataGenerator != null) {
-			correlationData = new CorrelationDataWrapper(requestMessage.getHeaders().getId().toString(),
+			UUID messageId = requestMessage.getHeaders().getId();
+			if (messageId == null) {
+				messageId = NO_ID;
+			}
+			correlationData = new CorrelationDataWrapper(messageId.toString(),
 					this.correlationDataGenerator.processMessage(requestMessage), requestMessage);
 		}
 		return correlationData;
