@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -238,7 +239,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Channel mockChannel = mock(Channel.class);
 
 		when(connectionFactory.createConnection()).thenReturn(mockConnection);
-		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel);
+		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel,
+				mock(ExecutorService.class));
 		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
 
 		MessageChannel requestChannel = context.getBean("toRabbitOnlyWithTemplateChannel", MessageChannel.class);
@@ -255,7 +257,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Channel mockChannel = mock(Channel.class);
 
 		when(connectionFactory.createConnection()).thenReturn(mockConnection);
-		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel);
+		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel,
+				mock(ExecutorService.class));
 		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
 
 		MessageChannel requestChannel = context.getBean("withDefaultAmqpTemplateExchangeAndRoutingKey",
@@ -272,7 +275,8 @@ public class AmqpOutboundChannelAdapterParserTests {
 		Channel mockChannel = mock(Channel.class);
 
 		when(connectionFactory.createConnection()).thenReturn(mockConnection);
-		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel);
+		PublisherCallbackChannelImpl publisherCallbackChannel = new PublisherCallbackChannelImpl(mockChannel,
+				mock(ExecutorService.class));
 		when(mockConnection.createChannel(false)).thenReturn(publisherCallbackChannel);
 
 		MessageChannel requestChannel = context.getBean("overrideTemplateAttributesToEmpty", MessageChannel.class);
