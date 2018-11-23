@@ -723,6 +723,8 @@ In this case, the connection factory must be of type `client` and must have `sin
 Two additional attributes support this mechanism. `retry-interval` specifies (in milliseconds) how often the framework attempts to reconnect after a connection failure.
 `scheduler` supplies a `TaskScheduler` to schedule the connection attempts and to test that the connection is still active.
 
+If you don't provide a scheduler, the framework's default <<namespace-taskscheduler, taskScheduler>> bean is used.
+
 For an outbound adapter, the connection is normally established when the first message is sent.
 `client-mode="true"` on an outbound adapter causes the connection to be established when the adapter is started.
 By default, adapters are automatically started.
