@@ -36,6 +36,7 @@ import org.springframework.integration.jpa.support.parametersource.BeanPropertyP
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -59,7 +60,7 @@ import org.springframework.util.CollectionUtils;
  * </ul>
  *
  * If neither entityClass nor any other query is specified then the entity-class
- * is "guessed" from the {@link Message} payload.
+ * is "guessed" from the {@link Message} payload.idExpression
  *
  * @author Gunnar Hillert
  * @author Amol Nayak
@@ -472,7 +473,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @return The object or null.
 	 */
 	public Object poll() {
-		return this.poll(null);
+		return poll(null);
 	}
 
 	/**
@@ -484,13 +485,14 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param requestMessage May be null.
 	 * @return The payload object, which may be null.
 	 */
-	public Object poll(final Message<?> requestMessage) {
+	public Object poll(@Nullable final Message<?> requestMessage) {
 		final Object payload;
 
 		if (this.idExpression != null) {
-			Object id = this.idExpression.getValue(this.evaluationContext, requestMessage);
+			Object id = this.idExpression.getValue(this.evaluationContext, requestMessage); // NOSONAR It can be null
+			Assert.state(id != null, "The 'idExpression' cannot evaluate to null.");
 			Class<?> entityClass = this.entityClass;
-			if (entityClass == null) {
+			if (entityClass == null && requestMessage != null) {
 				entityClass = requestMessage.getPayload().getClass();
 			}
 			payload = this.jpaOperations.find(entityClass, id);
@@ -504,7 +506,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			else {
 				int firstResult = 0;
 				if (this.firstResultExpression != null) {
-					firstResult = this.getFirstResult(requestMessage);
+					firstResult = getFirstResult(requestMessage);
 				}
 				ParameterSource parameterSource = determineParameterSource(requestMessage);
 				result = doPoll(parameterSource, firstResult, maxNumberOfResults);
@@ -587,10 +589,12 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		return evaluateExpressionForNumericResult(requestMessage, this.firstResultExpression);
 	}
 
-	private int evaluateExpressionForNumericResult(final Message<?> requestMessage, Expression expression) {
+	private int evaluateExpressionForNumericResult(@Nullable final Message<?> requestMessage,
+			@Nullable Expression expression) {
+
 		int evaluatedResult = 0;
 		if (expression != null) {
-			Object evaluationResult = expression.getValue(this.evaluationContext, requestMessage);
+			Object evaluationResult = expression.getValue(this.evaluationContext, requestMessage); // NOSONAR can be null
 			if (evaluationResult != null) {
 				if (evaluationResult instanceof Number) {
 					evaluatedResult = ((Number) evaluationResult).intValue();
@@ -606,8 +610,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 					}
 				}
 				else {
-					throw new IllegalArgumentException("Expected the value to be a Number" +
-							" got " + evaluationResult.getClass().getName());
+					throw new IllegalArgumentException("Expected the value to be a Number got "
+							+ evaluationResult.getClass().getName());
 				}
 			}
 		}
