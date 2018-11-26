@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,16 @@
 
 package org.springframework.integration.jpa.outbound;
 
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
 import java.util.List;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -38,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gunnar Hillert
  * @author Artem Bilan
  * @author Amol Nayak
+ *
  * @since 2.2
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -60,21 +67,21 @@ public class JpaOutboundGatewayTests {
 	@Test
 	public void getStudent() {
 		final StudentDomain student = studentService.getStudent(1001L);
-		Assert.assertNotNull(student);
+		assertNotNull(student);
 	}
 
 	@Test
 	public void getAllStudentsStartingFromGivenRecord() {
 		List<?> students = studentService.getAllStudentsFromGivenRecord(1);
-		Assert.assertNotNull(students);
-		Assert.assertEquals(2, students.size());
+		assertNotNull(students);
+		assertEquals(2, students.size());
 	}
 
 	@Test
 	public void getAllStudentsWithMaxNumberOfRecords() {
 		List<?> students = studentService.getStudents(1);
-		Assert.assertNotNull(students);
-		Assert.assertEquals(1, students.size());
+		assertNotNull(students);
+		assertEquals(1, students.size());
 	}
 
 
@@ -86,27 +93,24 @@ public class JpaOutboundGatewayTests {
 
 		try {
 			studentService.deleteStudent(student);
+			fail("IllegalArgumentException is expected");
 		}
 		catch (IllegalArgumentException e) {
-			return;
+			assertThat(e.getMessage(), startsWith("Removing a detached instance"));
 		}
 
-		Assert.fail("Was expecting a MessageHandlingException to be thrown.");
 	}
 
 	@Test
 	public void getStudentWithException() {
 		try {
 			studentService.getStudentWithException(1001L);
+			fail("MessageHandlingException is expected");
 		}
 		catch (MessagingException e) {
-			Assert.assertEquals("The Jpa operation returned more than 1 result object but expectSingleResult was 'true'.",
+			assertEquals("The Jpa operation returned more than 1 result for expectSingleResult mode.",
 					e.getMessage());
-
-			return;
 		}
-
-		Assert.fail("Was expecting a MessageHandlingException to be thrown.");
 	}
 
 	@Test
@@ -114,15 +118,15 @@ public class JpaOutboundGatewayTests {
 
 		StudentDomain student = studentService.getStudentWithParameters("First Two");
 
-		Assert.assertEquals("First Two", student.getFirstName());
-		Assert.assertEquals("Last Two", student.getLastName());
+		assertEquals("First Two", student.getFirstName());
+		assertEquals("Last Two", student.getLastName());
 	}
 
 	@Test
 	public void getAllStudents() {
 		List<StudentDomain> students = studentService.getAllStudents();
-		Assert.assertNotNull(students);
-		Assert.assertTrue(students.size() == 3);
+		assertNotNull(students);
+		assertEquals(3, students.size());
 	}
 
 	@Test
@@ -130,11 +134,11 @@ public class JpaOutboundGatewayTests {
 	public void persistStudent() {
 
 		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
-		Assert.assertNull(studentToPersist.getRollNumber());
+		assertNull(studentToPersist.getRollNumber());
 
 		final StudentDomain persistedStudent = studentService.persistStudent(studentToPersist);
-		Assert.assertNotNull(persistedStudent);
-		Assert.assertNotNull(persistedStudent.getRollNumber());
+		assertNotNull(persistedStudent);
+		assertNotNull(persistedStudent.getRollNumber());
 
 	}
 
@@ -143,18 +147,18 @@ public class JpaOutboundGatewayTests {
 	public void persistStudentUsingMerge() {
 
 		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
-		Assert.assertNull(studentToPersist.getRollNumber());
+		assertNull(studentToPersist.getRollNumber());
 
 		final StudentDomain persistedStudent = studentService.persistStudentUsingMerge(studentToPersist);
-		Assert.assertNotNull(persistedStudent);
-		Assert.assertNotNull(persistedStudent.getRollNumber());
+		assertNotNull(persistedStudent);
+		assertNotNull(persistedStudent.getRollNumber());
 
 	}
 
 	@Test
 	public void testRetrievingGatewayInsideChain() {
 		final StudentDomain student = studentService.getStudent2(1001L);
-		Assert.assertNotNull(student);
+		assertNotNull(student);
 	}
 
 	@Test
@@ -162,18 +166,18 @@ public class JpaOutboundGatewayTests {
 	public void testUpdatingGatewayInsideChain() {
 
 		final StudentDomain studentToPersist = JpaTestUtils.getTestStudent();
-		Assert.assertNull(studentToPersist.getRollNumber());
+		assertNull(studentToPersist.getRollNumber());
 
 		final StudentDomain persistedStudent = studentService.persistStudent2(studentToPersist);
-		Assert.assertNotNull(persistedStudent);
-		Assert.assertNotNull(persistedStudent.getRollNumber());
+		assertNotNull(persistedStudent);
+		assertNotNull(persistedStudent.getRollNumber());
 
 	}
 
 	@Test
 	public void testJpaRepositoryAsService() {
 		List<StudentDomain> students = this.studentService.getStudentsUsingJpaRepository("F");
-		Assert.assertEquals(2, students.size());
+		assertEquals(2, students.size());
 	}
 
 }

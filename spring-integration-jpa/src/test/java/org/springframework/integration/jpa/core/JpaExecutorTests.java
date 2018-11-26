@@ -16,9 +16,12 @@
 
 package org.springframework.integration.jpa.core;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -36,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
+import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -272,6 +276,22 @@ public class JpaExecutorTests {
 			return;
 		}
 		fail("Expected the test case to throw an exception");
+	}
+
+	@Test
+	public void testParameterSourceFactoryAndJpaParameters() {
+		JpaExecutor executor = new JpaExecutor(this.entityManager);
+		ParameterSourceFactory parameterSourceFactory = new ExpressionEvaluatingParameterSourceFactory();
+		executor.setParameterSourceFactory(parameterSourceFactory);
+		executor.setJpaParameters(Collections.singletonList(new JpaParameter("firstName", null, "#this")));
+		try {
+			executor.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalStateException.class));
+			assertThat(e.getMessage(),
+					startsWith("The 'jpaParameters' and 'parameterSourceFactory' are mutually exclusive."));
+		}
 	}
 
 }
