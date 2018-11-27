@@ -857,4 +857,4 @@ At that time, the calling thread starts waiting for the reply.
 If the flow was completely synchronous, the reply is immediately available.
 For asynchronous flows, the thread waits for up to this time.
 
-See <<java-dsl-gateway>> in the Java DSL chapter for options to define gateways through `IntegrationFlows`.
+See <<dsl>> in the Java DSL chapter for options to define gateways through `IntegrationFlows`.
