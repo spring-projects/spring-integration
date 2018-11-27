@@ -90,12 +90,13 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								<![CDATA[
-								Provides a mechanism to provide
+								Provides a mechanism to configure
 								parameters for the queries that are either based
 								on the Java Persistence Query Language (JPQL) or
 								native SQL queries.
 
 								Parameters can also be provided for Named Queries.
+								Mutually exclusive with the 'parameter-source-factory' attribute.
 								]]>
 							</xsd:documentation>
 						</xsd:annotation>
@@ -129,12 +130,12 @@
 						<xsd:union memberTypes="xsd:boolean xsd:string" />
 					</xsd:simpleType>
 				</xsd:attribute>
-				<xsd:attribute name="parameter-source-factory"
-						type="xsd:string">
+				<xsd:attribute name="parameter-source-factory"	type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
 							<xsd:documentation>
 								Reference to a ParameterSourceFactory.
+								Mutually exclusive with the 'parameter' sub-element(s).
 							</xsd:documentation>
 							<tool:annotation kind="ref">
 								<tool:expected-type type="org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory" />
@@ -188,8 +189,8 @@
 							parameters for the queries that are either based
 							on the Java Persistence Query Language (JPQL) or
 							native SQL queries.
-
 							Parameters can also be provided for Named Queries.
+							Mutually exclusive with the 'parameter-source-factory' attribute.
 							]]>
 						</xsd:documentation>
 					</xsd:annotation>
@@ -222,8 +223,8 @@
 							parameters for the queries that are either based
 							on the Java Persistence Query Language (JPQL) or
 							native SQL queries.
-
 							Parameters can also be provided for Named Queries.
+							Mutually exclusive with the 'parameter-source-factory' attribute.
 							]]>
 						</xsd:documentation>
 					</xsd:annotation>
@@ -395,8 +396,8 @@
 				</xsd:appinfo>
 				<xsd:documentation>
 					The parameter source factory that would be used for evaluating the
-					parameters of the response JPA QL that would be evaluated
-					JPA outbound gateway
+					parameters of the response JPA QL that would be evaluated JPA outbound gateway.
+					Mutually exclusive with the 'parameter' sub-element(s).
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

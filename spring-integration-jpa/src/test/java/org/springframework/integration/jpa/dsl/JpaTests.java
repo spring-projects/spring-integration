@@ -177,7 +177,7 @@ public class JpaTests {
 
 	@Test
 	public void testRetrievingGatewayFlow() {
-		this.retrievingGatewayFlowInput.send(MessageBuilder.withPayload(1002L).build());
+		this.retrievingGatewayFlowInput.send(MessageBuilder.withPayload("foo").setHeader("payloadId", 1002L).build());
 		Message<?> receive = this.retrieveResults.receive(10_000);
 		assertNotNull(receive);
 		assertThat(receive.getPayload(), instanceOf(StudentDomain.class));
@@ -252,7 +252,7 @@ public class JpaTests {
 					.handle(Jpa.retrievingGateway(entityManagerFactory)
 							.jpaQuery("from Student s where s.id = :id")
 							.expectSingleResult(true)
-							.parameterExpression("id", "payload"))
+							.parameterExpression("id", "headers[payloadId]"))
 					.channel(c -> c.queue("retrieveResults"));
 		}
 

@@ -368,7 +368,7 @@ If `false`, the `List` of entities is sent as the payload of the message.
 The value defaults to `false`.
 Optional.
 <9> An implementation of `org.springframework.integration.jpa.core.JpaOperations` used to perform the JPA operations.
-We recommend not providig an implementation of your own but using the default `org.springframework.integration.jpa.core.DefaultJpaOperations` implementation.
+We recommend not providing an implementation of your own but using the default `org.springframework.integration.jpa.core.DefaultJpaOperations` implementation.
 You can use any of the `entity-manager`, `entity-manager-factory`, or `jpa-operations` attributes.
 Optional.
 <10> The JPA QL to be executed by this adapter.
@@ -705,7 +705,7 @@ It defaults to `Ordered.LOWEST_PRECEDENCE`.
 Optional.
 <11> An instance of `o.s.i.jpa.support.parametersource.ParameterSourceFactory` used to get an instance of `o.s.i.jpa.support.parametersource.ParameterSource`, which is used to resolve the values of the parameters in the query.
 Ignored if you perform operations by using a JPA entity.
-If you use a parameter element, the factory must be of type `ExpressionEvaluatingParameterSourceFactory`, located in the `o.s.i.jpa.support.parametersource` package.
+The `parameter` sub-elements are mutually exclusive with the `parameter-source-factory` attribute and must be configured on the provided `ParameterSourceFactory`.
 Optional.
 <12> Accepts one of the following: `PERSIST`, `MERGE`, or `DELETE`.
 Indicates the operation that the adapter needs to perform.
@@ -872,8 +872,8 @@ Consequently, the following parameters is available:
 `parameter-source-factory`::
 An instance of `o.s.i.jpa.support.parametersource.ParameterSourceFactory` used to get an instance of `o.s.i.jpa.support.parametersource.ParameterSource`.
 The `ParameterSource` is used to resolve the values of the parameters provided in the query.
-If you perform operations by using a JPA entity, the `parameter-source-factory attribute` is ignored.
-If you use a `parameter` element, the factory must be of type `ExpressionEvaluatingParameterSourceFactory` (located in package `o.s.i.jpa.support.parametersource`).
+If you perform operations by using a JPA entity, the `parameter-source-factory` attribute is ignored.
+The `parameter` sub-elements are mutually exclusive with the `parameter-source-factory` and they have to be configured on the provided `ParameterSourceFactory`.
 Optional.
 
 `use-payload-as-parameter-source`::
@@ -1047,7 +1047,7 @@ The following example shows all the attributes that you can set on a retrieving 
 </int-jpa:retrieving-outbound-gateway>
 ----
 
-<1> (Since Spring Integration 4.0.) The SpEL expression that determines the `primaryKey` value for `EntityManager.find(Class entityClass, Object primaryKey)` method against the `requestMessage` as the root object of evaluation context.
+<1> (Since Spring Integration 4.0) The SpEL expression that determines the `primaryKey` value for `EntityManager.find(Class entityClass, Object primaryKey)` method against the `requestMessage` as the root object of evaluation context.
 The `entityClass` argument is determined from the `entity-class` attribute, if present.
 Otherwise, it is determined from the `payload` class.
 All other attributes are disallowed if you use `id-expression`.
@@ -1075,7 +1075,8 @@ Version 3.0 introduced this attribute.
 Optional.
 ====
 
-The remaining attributes are described earlier in this chapter. See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
+The remaining attributes are described earlier in this chapter.
+See <<jpaInboundChannelAdapterParameters>> and <<jpaOutboundChannelAdapterParameters>>.
 
 ==== Configuring with Java Configuration
 
@@ -1237,7 +1238,7 @@ The following example uses a retrieving outbound gateway and JPQL to retrieve (s
 ----
 ====
 
-Retrieving an Entity by Using `id-expression`
+===== Retrieving an Entity by Using `id-expression`
 
 The following example uses a retrieving outbound gateway with `id-expression` to retrieve (find) one and only one entity from the database:
 The `primaryKey` is the result of `id-expression` evaluation.

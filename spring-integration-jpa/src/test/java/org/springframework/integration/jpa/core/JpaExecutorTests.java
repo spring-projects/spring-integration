@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jpa.core;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -36,12 +37,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
+import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
 import org.springframework.integration.jpa.test.entity.StudentDomain;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -52,8 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @since 2.2
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 public class JpaExecutorTests {
 
 	@Autowired
@@ -70,6 +70,7 @@ public class JpaExecutorTests {
 	@Test
 	public void testExecutePollWithNoEntityClassSpecified() {
 		JpaExecutor jpaExecutor = new JpaExecutor(mock(EntityManager.class));
+		jpaExecutor.setBeanFactory(mock(BeanFactory.class));
 		jpaExecutor.afterPropertiesSet();
 		try {
 			jpaExecutor.poll();
@@ -191,6 +192,7 @@ public class JpaExecutorTests {
 		executor.setJpaQuery(query);
 		executor.setExpectSingleResult(true);
 		executor.setUsePayloadAsParameterSource(false);
+		executor.setBeanFactory(mock(BeanFactory.class));
 		executor.afterPropertiesSet();
 		return executor;
 	}
@@ -205,6 +207,7 @@ public class JpaExecutorTests {
 		executor.setJpaQuery(query);
 		executor.setExpectSingleResult(true);
 		executor.setUsePayloadAsParameterSource(true);
+		executor.setBeanFactory(mock(BeanFactory.class));
 		executor.afterPropertiesSet();
 		return executor;
 	}
@@ -272,6 +275,18 @@ public class JpaExecutorTests {
 			return;
 		}
 		fail("Expected the test case to throw an exception");
+	}
+
+	@Test
+	public void testParameterSourceFactoryAndJpaParameters() {
+		JpaExecutor executor = new JpaExecutor(this.entityManager);
+		ParameterSourceFactory parameterSourceFactory = new ExpressionEvaluatingParameterSourceFactory();
+		executor.setParameterSourceFactory(parameterSourceFactory);
+		executor.setJpaParameters(Collections.singletonList(new JpaParameter("firstName", null, "#this")));
+
+		assertThatThrownBy(executor::afterPropertiesSet)
+				.isExactlyInstanceOf(IllegalStateException.class)
+				.hasMessageStartingWith("The 'jpaParameters' and 'parameterSourceFactory' are mutually exclusive.");
 	}
 
 }

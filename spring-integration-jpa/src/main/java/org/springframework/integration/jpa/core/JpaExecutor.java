@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.jpa.support.parametersource.BeanPropertyP
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -59,11 +60,12 @@ import org.springframework.util.CollectionUtils;
  * </ul>
  *
  * If neither entityClass nor any other query is specified then the entity-class
- * is "guessed" from the {@link Message} payload.
+ * is "guessed" from the {@link Message} payload.idExpression
  *
  * @author Gunnar Hillert
  * @author Amol Nayak
  * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -71,39 +73,39 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	private final JpaOperations jpaOperations;
 
-	private volatile List<JpaParameter> jpaParameters;
+	private List<JpaParameter> jpaParameters;
 
-	private volatile Class<?> entityClass;
+	private Class<?> entityClass;
 
-	private volatile String jpaQuery;
+	private String jpaQuery;
 
-	private volatile String nativeQuery;
+	private String nativeQuery;
 
-	private volatile String namedQuery;
+	private String namedQuery;
 
-	private volatile Expression maxResultsExpression;
+	private Expression maxResultsExpression;
 
-	private volatile Expression firstResultExpression;
+	private Expression firstResultExpression;
 
-	private volatile Expression idExpression;
+	private Expression idExpression;
 
-	private volatile PersistMode persistMode = PersistMode.MERGE;
+	private PersistMode persistMode = PersistMode.MERGE;
 
-	private volatile ParameterSourceFactory parameterSourceFactory = null;
+	private ParameterSourceFactory parameterSourceFactory = null;
 
-	private volatile ParameterSource parameterSource;
+	private ParameterSource parameterSource;
 
-	private volatile boolean flush = false;
+	private boolean flush = false;
 
-	private volatile int flushSize = 0;
+	private int flushSize = 0;
 
-	private volatile boolean clearOnFlush = false;
+	private boolean clearOnFlush = false;
 
-	private volatile boolean deleteAfterPoll = false;
+	private boolean deleteAfterPoll = false;
 
-	private volatile boolean deleteInBatch = false;
+	private boolean deleteInBatch = false;
 
-	private volatile boolean expectSingleResult = false;
+	private boolean expectSingleResult = false;
 
 	/**
 	 * Indicates that whether only the payload of the passed in {@link Message}
@@ -111,11 +113,11 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * default a {@link BeanPropertyParameterSourceFactory} implementation is
 	 * used for the sqlParameterSourceFactory property.
 	 */
-	private volatile Boolean usePayloadAsParameterSource = null;
+	private Boolean usePayloadAsParameterSource = null;
 
-	private volatile BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
-	private volatile EvaluationContext evaluationContext;
+	private EvaluationContext evaluationContext;
 
 	/**
 	 * Constructor taking an {@link EntityManagerFactory} from which the
@@ -159,274 +161,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
-
-	/**
-	 * Verify and sets the parameters. E.g. initializes the to be used
-	 * {@link ParameterSourceFactory}.
-	 */
-	@Override
-	public void afterPropertiesSet() {
-
-		if (!CollectionUtils.isEmpty(this.jpaParameters)) {
-
-			if (this.parameterSourceFactory == null) {
-				ExpressionEvaluatingParameterSourceFactory expressionSourceFactory =
-						new ExpressionEvaluatingParameterSourceFactory(this.beanFactory);
-				expressionSourceFactory.setParameters(this.jpaParameters);
-				this.parameterSourceFactory = expressionSourceFactory;
-
-			}
-			else {
-
-				if (!(this.parameterSourceFactory instanceof ExpressionEvaluatingParameterSourceFactory)) {
-					throw new IllegalStateException("You are providing 'JpaParameters'. "
-							+ "Was expecting the the provided jpaParameterSourceFactory "
-							+ "to be an instance of 'ExpressionEvaluatingJpaParameterSourceFactory', "
-							+ "however the provided one is of type '" + this.parameterSourceFactory.getClass().getName() + "'");
-				}
-
-			}
-
-			if (this.usePayloadAsParameterSource == null) {
-				this.usePayloadAsParameterSource = false;
-			}
-
-		}
-		else {
-
-			if (this.parameterSourceFactory == null) {
-				this.parameterSourceFactory = new BeanPropertyParameterSourceFactory();
-			}
-
-			if (this.usePayloadAsParameterSource == null) {
-				this.usePayloadAsParameterSource = true;
-			}
-		}
-
-		if (this.flushSize > 0) {
-			this.flush = true;
-		}
-		else if (this.flush) {
-			this.flushSize = 1;
-		}
-
-		if (this.evaluationContext == null) {
-			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
-		}
-	}
-
-	/**
-	 * Execute the actual Jpa Operation. Call this method, if you need access to
-	 * process return values. This methods return a Map that contains either
-	 * the number of affected entities or the affected entity itself.
-	 *<p>Keep in mind that the number of entities effected by the operation may
-	 * not necessarily correlate with the number of rows effected in the database.
-	 * @param message The message.
-	 * @return Either the number of affected entities when using a JPQL query.
-	 * When using a merge/persist the updated/inserted itself is returned.
-	 */
-	public Object executeOutboundJpaOperation(final Message<?> message) {
-
-		final Object result;
-
-		ParameterSource parameterSource = null;
-		if (this.jpaQuery != null || this.nativeQuery != null || this.namedQuery != null) {
-			parameterSource = this.determineParameterSource(message);
-		}
-		if (this.jpaQuery != null) {
-			result = this.jpaOperations.executeUpdate(this.jpaQuery, parameterSource);
-		}
-		else if (this.nativeQuery != null) {
-			result = this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, parameterSource);
-		}
-		else if (this.namedQuery != null) {
-			result = this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, parameterSource);
-		}
-		else {
-
-			if (PersistMode.PERSIST.equals(this.persistMode)) {
-				this.jpaOperations.persist(message.getPayload(), this.flushSize, this.clearOnFlush);
-				result = message.getPayload();
-			}
-			else if (PersistMode.MERGE.equals(this.persistMode)) {
-				result = this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
-			}
-			else if (PersistMode.DELETE.equals(this.persistMode)) {
-				this.jpaOperations.delete(message.getPayload());
-				if (this.flush) {
-					this.jpaOperations.flush();
-				}
-				result = message.getPayload();
-			}
-			else {
-				throw new IllegalStateException(String.format("Unsupported PersistMode: '%s'", this.persistMode.name()));
-			}
-
-		}
-
-		return result;
-
-	}
-
-
-	/**
-	 * Execute a (typically retrieving) JPA operation. The <i>requestMessage</i>
-	 * can be used to provide additional query parameters using
-	 * {@link JpaExecutor#parameterSourceFactory}. If the
-	 * <i>requestMessage</i> parameter is null then
-	 * {@link JpaExecutor#parameterSource} is being used for providing query parameters.
-	 * @param requestMessage May be null.
-	 * @return The payload object, which may be null.
-	 */
-	@SuppressWarnings("unchecked")
-	public Object poll(final Message<?> requestMessage) {
-		final Object payload;
-
-		if (this.idExpression != null) {
-			Object id = this.idExpression.getValue(this.evaluationContext, requestMessage);
-			Class<?> entityClass = this.entityClass;
-			if (entityClass == null) {
-				entityClass = requestMessage.getPayload().getClass();
-			}
-			payload = this.jpaOperations.find(entityClass, id);
-		}
-		else {
-
-			final List<?> result;
-			int maxNumberOfResults = this.evaluateExpressionForNumericResult(requestMessage, this.maxResultsExpression);
-			if (requestMessage == null) {
-				result = this.doPoll(this.parameterSource, 0, maxNumberOfResults);
-			}
-			else {
-				int firstResult = 0;
-				if (this.firstResultExpression != null) {
-					firstResult = this.getFirstResult(requestMessage);
-				}
-				ParameterSource parameterSource = this.determineParameterSource(requestMessage);
-				result = this.doPoll(parameterSource, firstResult, maxNumberOfResults);
-			}
-
-			if (result.isEmpty()) {
-				payload = null;
-			}
-			else {
-
-				if (this.expectSingleResult) {
-					if (result.size() == 1) {
-						payload = result.iterator().next();
-					}
-					else {
-						throw new MessagingException(requestMessage,
-								"The Jpa operation returned more than 1 result object but expectSingleResult was 'true'.");
-					}
-				}
-				else {
-					payload = result;
-				}
-			}
-		}
-
-		if (payload != null && this.deleteAfterPoll) {
-			if (payload instanceof Iterable) {
-				if (this.deleteInBatch) {
-					this.jpaOperations.deleteInBatch((Iterable<Object>) payload);
-				}
-				else {
-					for (Object entity : (Iterable<?>) payload) {
-						this.jpaOperations.delete(entity);
-					}
-				}
-			}
-			else {
-				this.jpaOperations.delete(payload);
-			}
-
-			if (this.flush) {
-				this.jpaOperations.flush();
-			}
-		}
-		return payload;
-	}
-
-	private int getFirstResult(final Message<?> requestMessage) {
-		return this.evaluateExpressionForNumericResult(requestMessage, this.firstResultExpression);
-	}
-
-	private int evaluateExpressionForNumericResult(final Message<?> requestMessage, Expression expression) {
-		int evaluatedResult = 0;
-		if (expression != null) {
-			Object evaluationResult = expression.getValue(this.evaluationContext, requestMessage);
-			if (evaluationResult != null) {
-				if (evaluationResult instanceof Number) {
-					evaluatedResult = ((Number) evaluationResult).intValue();
-				}
-				else if (evaluationResult instanceof String) {
-					try {
-						evaluatedResult = Integer.parseInt((String) evaluationResult);
-					}
-					catch (NumberFormatException e) {
-						throw new IllegalArgumentException(
-								"Value " + evaluationResult + " passed as cannot be " +
-										"parsed to a number, expected to be numeric");
-					}
-				}
-				else {
-					throw new IllegalArgumentException("Expected the value to be a Number" +
-							" got " + evaluationResult.getClass().getName());
-				}
-			}
-		}
-		return evaluatedResult;
-	}
-
-	private ParameterSource determineParameterSource(final Message<?> requestMessage) {
-		ParameterSource parameterSource;
-		if (this.usePayloadAsParameterSource) {
-			parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
-		}
-		else {
-			parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage);
-		}
-		return parameterSource;
-	}
-
-	/**
-	 * Execute the JPA operation. Delegates to {@link JpaExecutor#poll(Message)}.
-	 * @return The object or null.
-	 */
-	public Object poll() {
-		return this.poll(null);
-	}
-
-	protected List<?> doPoll(ParameterSource jpaQLParameterSource, int firstResult, int maxNumberOfResults) {
-		List<?> payload = null;
-		if (this.jpaQuery != null) {
-			payload = this.jpaOperations.getResultListForQuery(this.jpaQuery, jpaQLParameterSource,
-					firstResult, maxNumberOfResults);
-		}
-		else if (this.nativeQuery != null) {
-			payload = this.jpaOperations.getResultListForNativeQuery(this.nativeQuery, this.entityClass, jpaQLParameterSource,
-					firstResult, maxNumberOfResults);
-		}
-		else if (this.namedQuery != null) {
-			payload = this.jpaOperations.getResultListForNamedQuery(this.namedQuery, jpaQLParameterSource,
-					firstResult, maxNumberOfResults);
-		}
-		else if (this.entityClass != null) {
-			payload = this.jpaOperations.getResultListForClass(this.entityClass, firstResult, maxNumberOfResults);
-		}
-		else {
-			throw new IllegalStateException("For the polling operation, one of "
-					+ "the following properties must be specified: "
-					+ "query, namedQuery or entityClass.");
-		}
-		return payload;
 	}
 
 	/**
@@ -517,7 +251,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 	/**
 	 * If set to {@code true} the {@link javax.persistence.EntityManager#clear()} will be called,
-	 * and only if the {@link javax.persistence.EntityManager#flush()} was called after performing persistence operations.
+	 * and only if the {@link javax.persistence.EntityManager#flush()} was called after performing persistence
+	 * operations.
 	 * @param clearOnFlush defaults to 'false'.
 	 * @see #setFlush(boolean)
 	 * @see #setFlushSize(int)
@@ -626,6 +361,272 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 */
 	public void setMaxNumberOfResults(int maxNumberOfResults) {
 		this.setMaxResultsExpression(new LiteralExpression("" + maxNumberOfResults));
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	/**
+	 * Verify and sets the parameters. E.g. initializes the to be used
+	 * {@link ParameterSourceFactory}.
+	 */
+	@Override
+	public void afterPropertiesSet() {
+		if (!CollectionUtils.isEmpty(this.jpaParameters)) {
+			if (this.parameterSourceFactory == null) {
+				ExpressionEvaluatingParameterSourceFactory expressionSourceFactory =
+						new ExpressionEvaluatingParameterSourceFactory(this.beanFactory);
+				expressionSourceFactory.setParameters(this.jpaParameters);
+				this.parameterSourceFactory = expressionSourceFactory;
+
+			}
+			else {
+				throw new IllegalStateException("The 'jpaParameters' and 'parameterSourceFactory' " +
+						"are mutually exclusive. Consider to configure parameters on the provided " +
+						"'parameterSourceFactory': " + this.parameterSourceFactory);
+			}
+
+			if (this.usePayloadAsParameterSource == null) {
+				this.usePayloadAsParameterSource = false;
+			}
+
+		}
+		else {
+
+			if (this.parameterSourceFactory == null) {
+				this.parameterSourceFactory = new BeanPropertyParameterSourceFactory();
+			}
+
+			if (this.usePayloadAsParameterSource == null) {
+				this.usePayloadAsParameterSource = true;
+			}
+		}
+
+		if (this.flushSize > 0) {
+			this.flush = true;
+		}
+		else if (this.flush) {
+			this.flushSize = 1;
+		}
+
+		if (this.evaluationContext == null) {
+			this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.beanFactory);
+		}
+	}
+
+	/**
+	 * Execute the actual Jpa Operation. Call this method, if you need access to
+	 * process return values. This methods return a Map that contains either
+	 * the number of affected entities or the affected entity itself.
+	 *<p>Keep in mind that the number of entities effected by the operation may
+	 * not necessarily correlate with the number of rows effected in the database.
+	 * @param message The message.
+	 * @return Either the number of affected entities when using a JPQL query.
+	 * When using a merge/persist the updated/inserted itself is returned.
+	 */
+	public Object executeOutboundJpaOperation(final Message<?> message) {
+
+		final Object result;
+
+		ParameterSource parameterSource = null;
+		if (this.jpaQuery != null || this.nativeQuery != null || this.namedQuery != null) {
+			parameterSource = this.determineParameterSource(message);
+		}
+		if (this.jpaQuery != null) {
+			result = this.jpaOperations.executeUpdate(this.jpaQuery, parameterSource);
+		}
+		else if (this.nativeQuery != null) {
+			result = this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, parameterSource);
+		}
+		else if (this.namedQuery != null) {
+			result = this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, parameterSource);
+		}
+		else {
+			switch (this.persistMode) {
+				case PERSIST:
+					this.jpaOperations.persist(message.getPayload(), this.flushSize, this.clearOnFlush);
+					result = message.getPayload();
+					break;
+				case MERGE:
+					result = this.jpaOperations.merge(message.getPayload(), this.flushSize, this.clearOnFlush);
+					break;
+				case DELETE:
+					this.jpaOperations.delete(message.getPayload());
+					if (this.flush) {
+						this.jpaOperations.flush();
+					}
+					result = message.getPayload();
+					break;
+				default:
+					throw new IllegalStateException("Unsupported PersistMode: " + this.persistMode.name());
+			}
+		}
+
+		return result;
+
+	}
+
+	/**
+	 * Execute the JPA operation. Delegates to {@link JpaExecutor#poll(Message)}.
+	 * @return The object or null.
+	 */
+	public Object poll() {
+		return poll(null);
+	}
+
+	/**
+	 * Execute a (typically retrieving) JPA operation. The <i>requestMessage</i>
+	 * can be used to provide additional query parameters using
+	 * {@link JpaExecutor#parameterSourceFactory}. If the
+	 * <i>requestMessage</i> parameter is null then
+	 * {@link JpaExecutor#parameterSource} is being used for providing query parameters.
+	 * @param requestMessage May be null.
+	 * @return The payload object, which may be null.
+	 */
+	public Object poll(@Nullable final Message<?> requestMessage) {
+		final Object payload;
+
+		if (this.idExpression != null) {
+			Object id = this.idExpression.getValue(this.evaluationContext, requestMessage); // NOSONAR It can be null
+			Assert.state(id != null, "The 'idExpression' cannot evaluate to null.");
+			Class<?> entityClass = this.entityClass;
+			if (entityClass == null && requestMessage != null) {
+				entityClass = requestMessage.getPayload().getClass();
+			}
+			payload = this.jpaOperations.find(entityClass, id);
+		}
+		else {
+			final List<?> result;
+			int maxNumberOfResults = evaluateExpressionForNumericResult(requestMessage, this.maxResultsExpression);
+			if (requestMessage == null) {
+				result = doPoll(this.parameterSource, 0, maxNumberOfResults);
+			}
+			else {
+				int firstResult = 0;
+				if (this.firstResultExpression != null) {
+					firstResult = getFirstResult(requestMessage);
+				}
+				ParameterSource parameterSource = determineParameterSource(requestMessage);
+				result = doPoll(parameterSource, firstResult, maxNumberOfResults);
+			}
+
+			if (result.isEmpty()) {
+				payload = null;
+			}
+			else {
+				if (this.expectSingleResult) {
+					if (result.size() == 1) {
+						payload = result.iterator().next();
+					}
+					else if (requestMessage != null) {
+						throw new MessagingException(requestMessage,
+								"The Jpa operation returned more than 1 result for expectSingleResult mode.");
+					}
+					else {
+						throw new MessagingException(
+								"The Jpa operation returned more than 1 result for expectSingleResult mode.");
+					}
+				}
+				else {
+					payload = result;
+				}
+			}
+		}
+
+		if (payload != null && this.deleteAfterPoll) {
+			if (payload instanceof Iterable) {
+				if (this.deleteInBatch) {
+					this.jpaOperations.deleteInBatch((Iterable<?>) payload);
+				}
+				else {
+					for (Object entity : (Iterable<?>) payload) {
+						this.jpaOperations.delete(entity);
+					}
+				}
+			}
+			else {
+				this.jpaOperations.delete(payload);
+			}
+
+			if (this.flush) {
+				this.jpaOperations.flush();
+			}
+		}
+		return payload;
+	}
+
+	protected List<?> doPoll(ParameterSource jpaQLParameterSource, int firstResult, int maxNumberOfResults) {
+		List<?> payload;
+		if (this.jpaQuery != null) {
+			payload =
+					this.jpaOperations.getResultListForQuery(this.jpaQuery, jpaQLParameterSource,
+							firstResult, maxNumberOfResults);
+		}
+		else if (this.nativeQuery != null) {
+			payload =
+					this.jpaOperations.getResultListForNativeQuery(this.nativeQuery, this.entityClass,
+							jpaQLParameterSource, firstResult, maxNumberOfResults);
+		}
+		else if (this.namedQuery != null) {
+			payload =
+					this.jpaOperations.getResultListForNamedQuery(this.namedQuery, jpaQLParameterSource,
+							firstResult, maxNumberOfResults);
+		}
+		else if (this.entityClass != null) {
+			payload = this.jpaOperations.getResultListForClass(this.entityClass, firstResult, maxNumberOfResults);
+		}
+		else {
+			throw new IllegalStateException("For the polling operation, one of "
+					+ "the following properties must be specified: "
+					+ "query, namedQuery or entityClass.");
+		}
+		return payload;
+	}
+
+	private int getFirstResult(final Message<?> requestMessage) {
+		return evaluateExpressionForNumericResult(requestMessage, this.firstResultExpression);
+	}
+
+	private int evaluateExpressionForNumericResult(@Nullable final Message<?> requestMessage,
+			@Nullable Expression expression) {
+
+		int evaluatedResult = 0;
+		if (expression != null) {
+			Object evaluationResult = expression.getValue(this.evaluationContext, requestMessage); // NOSONAR can be null
+			if (evaluationResult != null) {
+				if (evaluationResult instanceof Number) {
+					evaluatedResult = ((Number) evaluationResult).intValue();
+				}
+				else if (evaluationResult instanceof String) {
+					try {
+						evaluatedResult = Integer.parseInt((String) evaluationResult);
+					}
+					catch (NumberFormatException e) {
+						throw new IllegalArgumentException(
+								"Value " + evaluationResult + " passed as cannot be " +
+										"parsed to a number, expected to be numeric");
+					}
+				}
+				else {
+					throw new IllegalArgumentException("Expected the value to be a Number got "
+							+ evaluationResult.getClass().getName());
+				}
+			}
+		}
+		return evaluatedResult;
+	}
+
+	private ParameterSource determineParameterSource(final Message<?> requestMessage) {
+		ParameterSource parameterSource;
+		if (this.usePayloadAsParameterSource) {
+			parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
+		}
+		else {
+			parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage);
+		}
+		return parameterSource;
 	}
 
 }
