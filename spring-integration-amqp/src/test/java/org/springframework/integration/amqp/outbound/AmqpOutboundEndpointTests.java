@@ -169,7 +169,7 @@ public class AmqpOutboundEndpointTests {
 	@Test
 	public void adapterWithContentType() throws Exception {
 		RabbitTemplate template = new RabbitTemplate(this.connectionFactory);
-		template.setQueue(this.queue.getName());
+		template.setDefaultReceiveQueue(this.queue.getName());
 		while (template.receive() != null) {
 			// drain
 		}
