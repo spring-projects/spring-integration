@@ -432,7 +432,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 		ParameterSource parameterSource = null;
 		if (this.jpaQuery != null || this.nativeQuery != null || this.namedQuery != null) {
-			parameterSource = this.determineParameterSource(message);
+			parameterSource = determineParameterSource(message);
 		}
 		if (this.jpaQuery != null) {
 			result = this.jpaOperations.executeUpdate(this.jpaQuery, parameterSource);
@@ -464,7 +464,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			}
 		}
 
-		return result;
+		return result; // NOSONAR never null
 
 	}
 
