@@ -38,6 +38,8 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  *
  * @author David Turanski
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 4.3
  */
 public class SftpTestSupport extends RemoteFileTestSupport {
@@ -59,7 +61,7 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		server = SshServer.setUpDefaultServer();
 		server.setPasswordAuthenticator((username, password, session) -> true);
 		server.setPort(0);
-		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
+		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
 		server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
 		server.setFileSystemFactory(new VirtualFileSystemFactory(remoteTemporaryFolder.getRoot().toPath()));
 		server.start();
@@ -73,15 +75,15 @@ public class SftpTestSupport extends RemoteFileTestSupport {
 		factory.setUser("foo");
 		factory.setPassword("foo");
 		factory.setAllowUnknownKeys(true);
-		return new CachingSessionFactory<LsEntry>(factory);
+		return new CachingSessionFactory<>(factory);
 	}
 
 	@AfterClass
 	public static void stopServer() throws Exception {
 		server.stop();
-		File hostkey = new File("hostkey.ser");
-		if (hostkey.exists()) {
-			hostkey.delete();
+		File hostKey = new File("hostkey.ser");
+		if (hostKey.exists()) {
+			hostKey.delete();
 		}
 	}
 
