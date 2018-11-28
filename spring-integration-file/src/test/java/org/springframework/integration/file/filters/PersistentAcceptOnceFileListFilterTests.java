@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,6 +126,11 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 				new SimpleMetadataStore(), "rollback:");
 		File[] files = new File[] {new File("foo"), new File("bar"), new File("baz")};
 		List<File> passed = filter.filterFiles(files);
+		assertEquals(0, passed.size());
+		for (File file : files) {
+			file.createNewFile();
+		}
+		passed = filter.filterFiles(files);
 		assertTrue(Arrays.equals(files, passed.toArray()));
 		List<File> now = filter.filterFiles(files);
 		assertEquals(0, now.size());
@@ -137,6 +142,9 @@ public class PersistentAcceptOnceFileListFilterTests extends AcceptOnceFileListF
 		now = filter.filterFiles(files);
 		assertEquals(0, now.size());
 		filter.close();
+		for (File file : files) {
+			file.delete();
+		}
 	}
 
 	@Test

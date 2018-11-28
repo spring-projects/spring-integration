@@ -42,4 +42,15 @@ public class FileSystemPersistentAcceptOnceFileListFilter extends AbstractPersis
 		return file.getAbsolutePath();
 	}
 
+	/**
+	 * Check that the file still exists, to avoid a race condition when multi-threaded and
+	 * another thread removed the file while we were waiting for the lock.
+	 * @since 4.3.19
+	 */
+	@Override
+	protected boolean fileStillExists(File file) {
+		return file.exists();
+	}
+
+
 }
