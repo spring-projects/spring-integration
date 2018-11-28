@@ -48,6 +48,7 @@ import com.jcraft.jsch.UserInfo;
 /**
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0.2
  */
 public class SftpSessionFactoryTests {
@@ -62,7 +63,7 @@ public class SftpSessionFactoryTests {
 		try {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
-			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
 			server.start();
 
 			DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
@@ -108,7 +109,7 @@ public class SftpSessionFactoryTests {
 	}
 
 	@Test
-	public void testPasswordPassPhraseViaUserInfo() throws Exception {
+	public void testPasswordPassPhraseViaUserInfo() {
 		DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();
 		f.setUser("user");
 		f.setAllowUnknownKeys(true);
@@ -213,7 +214,7 @@ public class SftpSessionFactoryTests {
 		server.setPublickeyAuthenticator((username, key, session) -> true);
 		server.setPort(0);
 		server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
-		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
+		server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
 		server.start();
 
 		DefaultSftpSessionFactory f = new DefaultSftpSessionFactory();

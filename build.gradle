@@ -84,8 +84,8 @@ subprojects { subproject ->
 	}
 
 	ext {
-		activeMqVersion = '5.15.3'
-		apacheSshdVersion = '2.0.0'
+		activeMqVersion = '5.15.8'
+		apacheSshdVersion = '2.1.0'
 		aspectjVersion = '1.9.2'
 		assertjVersion = '3.11.1'
 		assertkVersion = '0.12'
@@ -94,38 +94,38 @@ subprojects { subproject ->
 		commonsIoVersion = '2.6'
 		commonsNetVersion = '3.6'
 		curatorVersion = '4.0.1'
-		derbyVersion = '10.13.1.1'
-		eclipseLinkVersion = '2.7.1'
+		derbyVersion = '10.14.2.0'
+		eclipseLinkVersion = '2.7.3'
 		ftpServerVersion = '1.1.1'
 		googleJsr305Version = '3.0.2'
-		groovyVersion = '2.5.3'
+		groovyVersion = '2.5.4'
 		guavaVersion = '26.0-jre'
 		hamcrestVersion = '1.3'
-		hazelcastVersion = '3.10.5'
-		hibernateVersion = '5.3.6.Final'
-		hsqldbVersion = '2.4.0'
+		hazelcastVersion = '3.11'
+		hibernateVersion = '5.3.7.Final'
+		hsqldbVersion = '2.4.1'
 		h2Version = '1.4.197'
-		jackson2Version = '2.9.6'
+		jackson2Version = '2.9.7'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.6.2'
 		jmsApiVersion = '2.0.1'
 		jpa21ApiVersion = '1.0.0.Final'
 		jpaApiVersion = '2.2.1'
-		jrubyVersion = '9.1.16.0'
-		jschVersion = '0.1.54'
+		jrubyVersion = '9.2.4.0'
+		jschVersion = '0.1.55'
 		jsonpathVersion = '2.4.0'
 		junit4Version = '4.12'
 		junitJupiterVersion = '5.3.2'
 		junitPlatformVersion = '1.3.2'
-		jythonVersion = '2.5.3'
+		jythonVersion = '2.7.0'
 		kryoShadedVersion = '3.0.3'
-		lettuceVersion = '5.1.0.RELEASE'
+		lettuceVersion = '5.1.3.RELEASE'
 		log4jVersion = '2.11.1'
 		micrometerVersion = '1.1.0'
-		mockitoVersion = '2.23.0'
-		mysqlVersion = '8.0.11'
+		mockitoVersion = '2.23.4'
+		mysqlVersion = '8.0.13'
 		pahoMqttClientVersion = '1.2.0'
-		postgresVersion = '42.0.0'
+		postgresVersion = '42.2.5'
 		reactorNettyVersion = '0.8.3.RELEASE'
 		reactorVersion = '3.2.3.RELEASE'
 		romeToolsVersion = '1.9.0'
@@ -136,13 +136,13 @@ subprojects { subproject ->
 		springDataMongoVersion = '2.1.3.RELEASE'
 		springDataRedisVersion = '2.1.3.RELEASE'
 		springGemfireVersion = '2.1.3.RELEASE'
-		springSecurityVersion = '5.1.1.RELEASE'
+		springSecurityVersion = '5.1.2.RELEASE'
 		springRetryVersion = '1.2.2.RELEASE'
 		springVersion = project.hasProperty('springVersion') ? project.springVersion : '5.1.3.RELEASE'
 		springWsVersion = '3.0.4.RELEASE'
 		tomcatVersion = "9.0.12"
 		xmlUnitVersion = '1.6'
-		xstreamVersion = '1.4.10'
+		xstreamVersion = '1.4.11.1'
 	}
 
 	eclipse {
@@ -565,7 +565,7 @@ project('spring-integration-scripting') {
 	dependencies {
 		compile project(":spring-integration-core")
 
-		testCompile("org.jruby:jruby:$jrubyVersion")
+		testCompile("org.jruby:jruby-complete:$jrubyVersion")
 		testCompile("org.codehaus.groovy:groovy:$groovyVersion")
 		testCompile("org.codehaus.groovy:groovy-jsr223:$groovyVersion")
 		testCompile("org.python:jython-standalone:$jythonVersion")

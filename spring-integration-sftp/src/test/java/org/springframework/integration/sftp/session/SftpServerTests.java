@@ -32,10 +32,8 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory;
 import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.command.Command;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 import org.junit.Test;
@@ -65,8 +63,8 @@ public class SftpServerTests {
 		try {
 			server.setPasswordAuthenticator((arg0, arg1, arg2) -> true);
 			server.setPort(0);
-			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
-			server.setSubsystemFactories(Collections.<NamedFactory<Command>>singletonList(new SftpSubsystemFactory()));
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
+			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
 			final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest" + File.separator;
 			new File(pathname).mkdirs();
 			server.setFileSystemFactory(new VirtualFileSystemFactory(Paths.get(pathname)));
@@ -103,7 +101,7 @@ public class SftpServerTests {
 		try {
 			server.setPublickeyAuthenticator((username, key, session) -> key.equals(allowedKey));
 			server.setPort(0);
-			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser")));
+			server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(new File("hostkey.ser").toPath()));
 			server.setSubsystemFactories(Collections.singletonList(new SftpSubsystemFactory()));
 			final String pathname = System.getProperty("java.io.tmpdir") + File.separator + "sftptest" + File.separator;
 			new File(pathname).mkdirs();
