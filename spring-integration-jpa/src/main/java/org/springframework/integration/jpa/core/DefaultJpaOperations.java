@@ -206,22 +206,26 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	}
 
 	@Override
+	@Nullable
 	public Object merge(Object entity) {
-		return this.merge(entity, 0, false);
+		return merge(entity, 0, false);
 	}
 
 	@Override
+	@Nullable
 	public Object merge(Object entity, int flushSize, boolean clearOnFlush) {
 		Assert.notNull(entity, "The object to merge must not be null.");
-		return this.persistOrMerge(entity, true, flushSize, clearOnFlush);
+		return persistOrMerge(entity, true, flushSize, clearOnFlush);
 	}
 
 	@Override
+	@Nullable
 	public void persist(Object entity) {
-		this.persist(entity, 0, false);
+		persist(entity, 0, false);
 	}
 
 	@Override
+	@Nullable
 	public void persist(Object entity, int flushSize, boolean clearOnFlush) {
 		Assert.notNull(entity, "The object to persist must not be null.");
 		persistOrMerge(entity, false, flushSize, clearOnFlush);
@@ -232,44 +236,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		Object result = null;
 
 		if (entity instanceof Iterable) {
-
-			@SuppressWarnings("unchecked")
-			Iterable<Object> entities = (Iterable<Object>) entity;
-
-			int savedEntities = 0;
-			int nullEntities = 0;
-
-			List<Object> mergedEntities = new ArrayList<Object>();
-
-			for (Object iteratedEntity : entities) {
-				if (iteratedEntity == null) {
-					nullEntities++;
-				}
-				else {
-					if (isMerge) {
-						mergedEntities.add(entityManager.merge(iteratedEntity));
-					}
-					else {
-						entityManager.persist(iteratedEntity);
-					}
-					savedEntities++;
-					if (flushSize > 0 && savedEntities % flushSize == 0) {
-						entityManager.flush();
-						if (clearOnFlush) {
-							entityManager.clear();
-						}
-					}
-				}
-			}
-
-			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("%s %s entities. %s NULL entities were ignored.",
-					isMerge ? "Merged" : "Persisted", savedEntities, nullEntities));
-			}
-
-			if (isMerge) {
-				result = mergedEntities;
-			}
+			result = persistOrMergeIterable(entity, isMerge, flushSize, clearOnFlush);
 		}
 		else {
 			if (isMerge) {
@@ -287,6 +254,50 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 			}
 		}
 
+		return result;
+	}
+
+	@Nullable
+	private Object persistOrMergeIterable(Object entity, boolean isMerge, int flushSize, boolean clearOnFlush) {
+		Object result = null;
+
+		@SuppressWarnings("unchecked")
+		Iterable<Object> entities = (Iterable<Object>) entity;
+
+		int savedEntities = 0;
+		int nullEntities = 0;
+
+		List<Object> mergedEntities = new ArrayList<Object>();
+
+		for (Object iteratedEntity : entities) {
+			if (iteratedEntity == null) {
+				nullEntities++;
+			}
+			else {
+				if (isMerge) {
+					mergedEntities.add(entityManager.merge(iteratedEntity));
+				}
+				else {
+					entityManager.persist(iteratedEntity);
+				}
+				savedEntities++;
+				if (flushSize > 0 && savedEntities % flushSize == 0) {
+					entityManager.flush();
+					if (clearOnFlush) {
+						entityManager.clear();
+					}
+				}
+			}
+		}
+
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("%s %s entities. %s NULL entities were ignored.",
+				isMerge ? "Merged" : "Persisted", savedEntities, nullEntities));
+		}
+
+		if (isMerge) {
+			result = mergedEntities;
+		}
 		return result;
 	}
 
