@@ -472,6 +472,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * Execute the JPA operation. Delegates to {@link JpaExecutor#poll(Message)}.
 	 * @return The object or null.
 	 */
+	@Nullable
 	public Object poll() {
 		return poll(null);
 	}
@@ -485,6 +486,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * @param requestMessage May be null.
 	 * @return The payload object, which may be null.
 	 */
+	@Nullable
 	public Object poll(@Nullable final Message<?> requestMessage) {
 		final Object payload;
 
@@ -508,8 +510,8 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 				if (this.firstResultExpression != null) {
 					firstResult = getFirstResult(requestMessage);
 				}
-				ParameterSource parameterSource = determineParameterSource(requestMessage);
-				result = doPoll(parameterSource, firstResult, maxNumberOfResults);
+				ParameterSource paramSource = determineParameterSource(requestMessage);
+				result = doPoll(paramSource, firstResult, maxNumberOfResults);
 			}
 
 			if (result.isEmpty()) {
@@ -535,6 +537,11 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 			}
 		}
 
+		checkDelete(payload);
+		return payload;
+	}
+
+	private void checkDelete(final Object payload) {
 		if (payload != null && this.deleteAfterPoll) {
 			if (payload instanceof Iterable) {
 				if (this.deleteInBatch) {
@@ -554,7 +561,6 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 				this.jpaOperations.flush();
 			}
 		}
-		return payload;
 	}
 
 	protected List<?> doPoll(ParameterSource jpaQLParameterSource, int firstResult, int maxNumberOfResults) {

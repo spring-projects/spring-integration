@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.jpa.support.JpaUtils;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.jpa.support.parametersource.PositionSupportingParameterSource;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -226,6 +227,7 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 		persistOrMerge(entity, false, flushSize, clearOnFlush);
 	}
 
+	@Nullable
 	private Object persistOrMerge(Object entity, boolean isMerge, int flushSize, boolean clearOnFlush) {
 		Object result = null;
 
