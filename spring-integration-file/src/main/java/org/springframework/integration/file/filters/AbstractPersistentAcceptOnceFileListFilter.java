@@ -77,15 +77,25 @@ public abstract class AbstractPersistentAcceptOnceFileListFilter<F> extends Abst
 			String oldValue = this.store.putIfAbsent(key, newValue);
 			if (oldValue == null) { // not in store
 				flushIfNeeded();
-				return true;
+				return fileStillExists(file);
 			}
 			// same value in store
 			if (!isEqual(file, oldValue) && this.store.replace(key, oldValue, newValue)) {
 				flushIfNeeded();
-				return true;
+				return fileStillExists(file);
 			}
 			return false;
 		}
+	}
+
+	/**
+	 * Check if the file still exists; default implementation returns true.
+	 * @param file the file.
+	 * @return true if the filter should return true.
+	 * @since 4.3.19
+	 */
+	protected boolean fileStillExists(F file) {
+		return true;
 	}
 
 	/**
