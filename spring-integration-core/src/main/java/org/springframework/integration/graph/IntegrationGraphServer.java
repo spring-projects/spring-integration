@@ -352,7 +352,9 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 
 		private MessageGatewayNode gatewayNode(String name, MessagingGatewaySupport gateway) {
 			String errorChannel = gateway.getErrorChannel() != null ? gateway.getErrorChannel().toString() : null;
-			String requestChannel = gateway.getRequestChannel() != null ? gateway.getRequestChannel().toString() : null;
+			String requestChannel = gateway.getRequestChannel() != null
+					? gateway.getRequestChannel().toString() // NOSONAR not null
+					: null;
 			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway,
 					requestChannel, errorChannel);
 		}

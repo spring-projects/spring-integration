@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.expression;
 
-import org.boon.core.Supplier;
+import java.util.function.Supplier;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.expression.EvaluationContext;
@@ -86,7 +86,8 @@ public class SupplierExpression<T> implements Expression {
 
 	@Override
 	public Object getValue(EvaluationContext context) throws EvaluationException {
-		return getValue(context.getRootObject().getValue());
+		Object root = context.getRootObject().getValue();
+		return root == null ? getValue() : getValue(root);
 	}
 
 	@Override

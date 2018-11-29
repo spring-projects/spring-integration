@@ -181,9 +181,10 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 			lastThrowable = payloadWhenNull(context);
 		}
 		else if (!(lastThrowable instanceof MessagingException)) {
-			lastThrowable = new MessagingException(
-					(Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY),
-					lastThrowable.getMessage(), lastThrowable);
+			Message<?> message = (Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY);
+			lastThrowable = message == null
+				? new MessagingException(lastThrowable.getMessage(), lastThrowable)
+				: new MessagingException(message, lastThrowable.getMessage(), lastThrowable);
 		}
 		return lastThrowable;
 	}
@@ -196,8 +197,10 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	 * @see ErrorMessageUtils
 	 */
 	protected Throwable payloadWhenNull(AttributeAccessor context) {
-		return new MessagingException((Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY),
-				"No root cause exception available");
+		Message<?> message = (Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY);
+		return message == null
+				? new MessagingException("No root cause exception available")
+				: new MessagingException(message, "No root cause exception available");
 	}
 
 	private void populateChannel() {

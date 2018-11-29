@@ -253,7 +253,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 			adapter.setApplicationEventPublisher(this.applicationEventPublisher);
 		}
 		if (getBeanFactory() != null) {
-			adapter.setBeanFactory(getBeanFactory());
+			adapter.setBeanFactory(getBeanFactory()); // NOSONAR never null
 		}
 		adapter.afterPropertiesSet();
 		this.adapter = adapter;

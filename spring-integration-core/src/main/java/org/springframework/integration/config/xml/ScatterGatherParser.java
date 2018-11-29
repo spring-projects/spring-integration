@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.xml.DomUtils;
  * Parser for the &lt;scatter-gather&gt; element.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  */
 public class ScatterGatherParser extends AbstractConsumerEndpointParser {
@@ -85,7 +86,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 			if (hasScatterer && scatterer.hasAttribute(ID_ATTRIBUTE)) {
 				scattererId = scatterer.getAttribute(ID_ATTRIBUTE);
 			}
-			parserContext.getRegistry().registerBeanDefinition(scattererId, scattererDefinition);
+			parserContext.getRegistry().registerBeanDefinition(scattererId, scattererDefinition); // NOSONAR not null
 			builder.addConstructorArgValue(new RuntimeBeanReference(scattererId));
 		}
 
@@ -108,7 +109,7 @@ public class ScatterGatherParser extends AbstractConsumerEndpointParser {
 		if (gatherer != null && gatherer.hasAttribute(ID_ATTRIBUTE)) {
 			gathererId = gatherer.getAttribute(ID_ATTRIBUTE);
 		}
-		parserContext.getRegistry().registerBeanDefinition(gathererId, gathererDefinition);
+		parserContext.getRegistry().registerBeanDefinition(gathererId, gathererDefinition); // NOSONAR not null
 		builder.addConstructorArgValue(new RuntimeBeanReference(gathererId));
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "gather-channel");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.expression;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
@@ -240,13 +242,14 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 */
 	@Override
 	public Expression getExpression(String key, Locale locale) {
-		String expressionString = this.getExpressionString(key, locale);
+		String expressionString = getExpressionString(key, locale);
 		if (expressionString != null) {
 			return this.parser.parseExpression(expressionString);
 		}
 		return null;
 	}
 
+	@Nullable
 	private String getExpressionString(String key, Locale locale) {
 		if (this.cacheMillis < 0) {
 			PropertiesHolder propHolder = getMergedProperties(locale);
@@ -476,37 +479,46 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 		InputStream is = resource.getInputStream();
 		Properties props = new Properties();
 		try {
-			if (resource.getFilename().endsWith(XML_SUFFIX)) {
+			String resourceFilename = resource.getFilename();
+			if (resourceFilename != null && resourceFilename.endsWith(XML_SUFFIX)) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Loading properties [" + resource.getFilename() + "]");
+					logger.debug("Loading properties [" + resourceFilename + "]");
 				}
 				this.propertiesPersister.loadFromXml(props, is);
 			}
 			else {
-				String encoding = null;
-				if (this.fileEncodings != null) {
-					encoding = this.fileEncodings.getProperty(filename);
-				}
-				if (encoding == null) {
-					encoding = this.defaultEncoding;
-				}
-				if (encoding != null) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Loading properties [" + resource.getFilename() + "] with encoding '" + encoding + "'");
-					}
-					this.propertiesPersister.load(props, new InputStreamReader(is, encoding));
-				}
-				else {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Loading properties [" + resource.getFilename() + "]");
-					}
-					this.propertiesPersister.load(props, is);
-				}
+				loadFromProperties(resource, filename, is, props, resourceFilename);
 			}
 			return props;
 		}
 		finally {
 			is.close();
+		}
+	}
+
+	private void loadFromProperties(Resource resource, String filename, InputStream is, Properties props,
+			String resourceFilename) throws IOException, UnsupportedEncodingException {
+		String encoding = null;
+		if (this.fileEncodings != null) {
+			encoding = this.fileEncodings.getProperty(filename);
+		}
+		if (encoding == null) {
+			encoding = this.defaultEncoding;
+		}
+		if (encoding != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Loading properties ["
+						+ (resourceFilename == null ? resource : resourceFilename)
+						+ "] with encoding '" + encoding + "'");
+			}
+			this.propertiesPersister.load(props, new InputStreamReader(is, encoding));
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Loading properties [" + (resourceFilename == null ? resource : resourceFilename)
+						+ "]");
+			}
+			this.propertiesPersister.load(props, is);
 		}
 	}
 
@@ -570,6 +582,7 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 			return this.refreshTimestamp;
 		}
 
+		@Nullable
 		public String getProperty(String code) {
 			if (this.properties == null) {
 				return null;

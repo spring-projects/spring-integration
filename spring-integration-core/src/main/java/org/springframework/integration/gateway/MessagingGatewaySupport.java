@@ -360,6 +360,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @return the channel.
 	 * @since 4.2
 	 */
+	@Nullable
 	public MessageChannel getRequestChannel() {
 		if (this.requestChannelName != null) {
 			synchronized (this) {

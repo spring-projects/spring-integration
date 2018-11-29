@@ -297,9 +297,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		}
 		if (targetObject instanceof Advised) {
 			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
-			if (targetSource == null) {
-				return null;
-			}
 			try {
 				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
 			}

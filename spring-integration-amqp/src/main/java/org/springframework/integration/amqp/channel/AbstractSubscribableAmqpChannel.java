@@ -288,14 +288,9 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 			Message<?> messageToSend = null;
 			try {
 				Object converted = this.converter.fromMessage(message);
-				if (converted != null) {
-					messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
-							: buildMessage(message, converted);
-					this.dispatcher.dispatch(messageToSend);
-				}
-				else if (this.logger.isWarnEnabled()) {
-					this.logger.warn("MessageConverter returned null, no Message to dispatch");
-				}
+				messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
+						: buildMessage(message, converted);
+				this.dispatcher.dispatch(messageToSend);
 			}
 			catch (MessageDispatchingException e) {
 				String exceptionMessage = e.getMessage() + " for amqp-channel '"

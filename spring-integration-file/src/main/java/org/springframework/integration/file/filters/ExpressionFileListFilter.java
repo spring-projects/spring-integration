@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * A SpEL expression based {@link AbstractFileListFilter} implementation.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -61,7 +62,8 @@ public class ExpressionFileListFilter<F> extends AbstractFileListFilter<F>
 
 	@Override
 	public boolean accept(F file) {
-		return this.expression.getValue(getEvaluationContext(), file, Boolean.class);
+		Boolean pass = this.expression.getValue(getEvaluationContext(), file, Boolean.class);
+		return pass == null ? false : pass;
 	}
 
 	private EvaluationContext getEvaluationContext() {
