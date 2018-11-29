@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 
 	private final Log logger = LogFactory.getLog(getClass());
 
+	@Override
 	public synchronized void onApplicationEvent(ApplicationContextEvent event) {
 		ApplicationContext context = event.getApplicationContext();
 		if (event instanceof ContextRefreshedEvent) {
@@ -75,7 +76,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 				this.logger.debug("using custom MessageHeaders.IdGenerator [" + idGeneratorBean.getClass() + "]");
 			}
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
-			ReflectionUtils.makeAccessible(idGeneratorField);
+			ReflectionUtils.makeAccessible(idGeneratorField); // NOSONAR never null
 			IdGenerator currentIdGenerator = (IdGenerator) ReflectionUtils.getField(idGeneratorField, null);
 			if (currentIdGenerator != null) {
 				if (currentIdGenerator.equals(idGeneratorBean)) {
@@ -128,7 +129,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 	private void unsetIdGenerator() {
 		try {
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
-			ReflectionUtils.makeAccessible(idGeneratorField);
+			ReflectionUtils.makeAccessible(idGeneratorField); // NOSONAR never null
 			idGeneratorField.set(null, null);
 			IdGeneratorConfigurer.theIdGenerator = null;
 		}

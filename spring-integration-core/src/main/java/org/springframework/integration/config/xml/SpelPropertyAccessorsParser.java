@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;spel-property-accessors&gt; element.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
@@ -70,7 +71,7 @@ public class SpelPropertyAccessorsParser implements BeanDefinitionParser {
 				}
 				else if (delegate.nodeNameEquals(ele, BeanDefinitionParserDelegate.REF_ELEMENT)) {
 					BeanReference propertyAccessorRef = (BeanReference) delegate.parsePropertySubElement(ele, null);
-					propertyAccessorName = propertyAccessorRef.getBeanName();
+					propertyAccessorName = propertyAccessorRef.getBeanName(); // NOSONAR not null
 					propertyAccessor = propertyAccessorRef;
 				}
 				else {

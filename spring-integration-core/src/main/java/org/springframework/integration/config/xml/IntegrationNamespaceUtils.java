@@ -318,7 +318,7 @@ public abstract class IntegrationNamespaceUtils {
 			Element beanElement = childElements.get(0);
 			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
-			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
+			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder); // NOSONAR never null
 			BeanDefinition inDef = bdHolder.getBeanDefinition();
 			innerComponentDefinition = new BeanComponentDefinition(inDef, bdHolder.getBeanName());
 		}
@@ -514,7 +514,7 @@ public abstract class IntegrationNamespaceUtils {
 					if ("bean".equals(localName)) {
 						BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
 								childElement, parentBeanDefinition);
-						parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
+						parserContext.registerBeanComponent(new BeanComponentDefinition(holder)); // NOSONAR never null
 						adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
 					}
 					else if ("ref".equals(localName)) {
@@ -636,7 +636,7 @@ public abstract class IntegrationNamespaceUtils {
 			else {
 				candidates = (ManagedMap<String, String>) argumentValue.getValue();
 			}
-			candidates.put(handlerBeanName, channelName);
+			candidates.put(handlerBeanName, channelName); // NOSONAR never null
 		}
 	}
 

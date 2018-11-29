@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.support.management.QueueChannelManagement;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -116,19 +117,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 					return ((BlockingQueue<Message<?>>) this.queue).poll(timeout, TimeUnit.MILLISECONDS);
 				}
 				else {
-					Message<?> message = this.queue.poll();
-					if (message == null) {
-						long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
-						long deadline = System.nanoTime() + nanos;
-						while (message == null && nanos > 0) {
-							this.queueSemaphore.tryAcquire(nanos, TimeUnit.NANOSECONDS); // NOSONAR ok to ignore result
-							message = this.queue.poll();
-							if (message == null) {
-								nanos = deadline - System.nanoTime();
-							}
-						}
-					}
-					return message;
+					return pollNonBlockingQueue(timeout);
 				}
 			}
 			if (timeout == 0) {
@@ -141,7 +130,7 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 			else {
 				Message<?> message = this.queue.poll();
 				while (message == null) {
-					this.queueSemaphore.tryAcquire(50, TimeUnit.MILLISECONDS);
+					this.queueSemaphore.tryAcquire(50, TimeUnit.MILLISECONDS); // NOSONAR ok to ignore result
 					message = this.queue.poll();
 				}
 				return message;
@@ -151,6 +140,23 @@ public class QueueChannel extends AbstractPollableChannel implements QueueChanne
 			Thread.currentThread().interrupt();
 			return null;
 		}
+	}
+
+	@Nullable
+	private Message<?> pollNonBlockingQueue(long timeout) throws InterruptedException {
+		Message<?> message = this.queue.poll();
+		if (message == null) {
+			long nanos = TimeUnit.MILLISECONDS.toNanos(timeout);
+			long deadline = System.nanoTime() + nanos;
+			while (message == null && nanos > 0) {
+				this.queueSemaphore.tryAcquire(nanos, TimeUnit.NANOSECONDS); // NOSONAR ok to ignore result
+				message = this.queue.poll();
+				if (message == null) {
+					nanos = deadline - System.nanoTime();
+				}
+			}
+		}
+		return message;
 	}
 
 	@Override

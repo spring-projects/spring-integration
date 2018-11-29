@@ -58,7 +58,7 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 		this.gatewayAttributes = gatewayAttributes;
 
 		String id = gatewayAttributes.getString("name");
-		if (!StringUtils.hasText(id)) {
+		if (StringUtils.hasText(id)) {
 			setBeanName(id);
 		}
 	}
@@ -88,11 +88,15 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 		String defaultRequestChannel =
 				beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("defaultRequestChannel"));
-		setDefaultRequestChannelName(defaultRequestChannel);
+		if (StringUtils.hasText(defaultRequestChannel)) {
+			setDefaultRequestChannelName(defaultRequestChannel);
+		}
 
 		String defaultReplyChannel =
 				beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("defaultReplyChannel"));
-		setDefaultReplyChannelName(defaultReplyChannel);
+		if (StringUtils.hasText(defaultReplyChannel)) {
+			setDefaultReplyChannelName(defaultReplyChannel);
+		}
 
 		String errorChannel = beanFactory.resolveEmbeddedValue(this.gatewayAttributes.getString("errorChannel"));
 		setErrorChannelName(errorChannel);

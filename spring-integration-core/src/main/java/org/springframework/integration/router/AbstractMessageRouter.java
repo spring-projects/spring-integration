@@ -137,14 +137,12 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	}
 
 	protected ConversionService getRequiredConversionService() {
-		if (this.getConversionService() == null) {
-			synchronized (this) {
-				if (getConversionService() == null) {
-					setConversionService(DefaultConversionService.getSharedInstance());
-				}
-			}
+		ConversionService conversionService = getConversionService();
+		if (conversionService == null) {
+			conversionService = DefaultConversionService.getSharedInstance();
+			setConversionService(conversionService);
 		}
-		return getConversionService();
+		return conversionService;
 	}
 
 	@Override

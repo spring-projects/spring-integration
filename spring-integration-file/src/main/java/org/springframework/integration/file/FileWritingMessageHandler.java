@@ -448,9 +448,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 
 		if (this.destinationDirectoryExpression instanceof LiteralExpression) {
-			final File directory =
-					new File(this.destinationDirectoryExpression.getValue(this.evaluationContext, String.class));
-
+			final File directory = ExpressionUtils.expressionToFile(this.destinationDirectoryExpression,
+						this.evaluationContext, null, "destinationDirectoryExpression");
 			validateDestinationDirectory(directory, this.autoCreateDirectory);
 		}
 

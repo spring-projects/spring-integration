@@ -79,8 +79,8 @@ public class IdempotentReceiverAutoProxyCreatorInitializer implements Integratio
 				if (beanDefinition.getSource() instanceof MethodMetadata) {
 					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
 					String annotationType = IdempotentReceiver.class.getName();
-					if (beanMethod.isAnnotated(annotationType)) {
-						Object value = beanMethod.getAnnotationAttributes(annotationType).get("value");
+					if (beanMethod.isAnnotated(annotationType)) { // NOSONAR never null
+						Object value = beanMethod.getAnnotationAttributes(annotationType).get("value"); // NOSONAR
 						if (value != null) {
 
 							Class<?> returnType;

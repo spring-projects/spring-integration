@@ -160,7 +160,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 			else {
 				nullChannelDefinition =
 						((BeanDefinitionRegistry) this.beanFactory.getParentBeanFactory())
-								.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+								.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME); // NOSONAR not null
 			}
 			if (!NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {
 				throw new IllegalStateException("The bean name '" + IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME

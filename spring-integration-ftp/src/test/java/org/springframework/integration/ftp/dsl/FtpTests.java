@@ -217,7 +217,7 @@ public class FtpTests extends FtpTestSupport {
 		assertNotNull(result);
 		List<File> localFiles = (List<File>) result.getPayload();
 		// should have filtered ftpSource2.txt
-		assertEquals(2, localFiles.size());
+		assertEquals("unexpected local files " + localFiles, 2, localFiles.size());
 
 		for (File file : localFiles) {
 			assertThat(file.getPath().replaceAll(Matcher.quoteReplacement(File.separator), "/"),

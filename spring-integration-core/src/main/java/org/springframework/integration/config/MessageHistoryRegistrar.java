@@ -73,7 +73,7 @@ public class MessageHistoryRegistrar implements ImportBeanDefinitionRegistrar {
 			if (propertyValue != null) {
 				@SuppressWarnings("unchecked")
 				Set<Object> currentComponentNamePatternsSet = (Set<Object>) propertyValue.getValue();
-				currentComponentNamePatternsSet.add(componentNamePatterns);
+				currentComponentNamePatternsSet.add(componentNamePatterns); // NOSONAR never null
 			}
 			else {
 				Set<Object> componentNamePatternsSet = new ManagedSet<Object>();

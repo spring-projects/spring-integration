@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -61,6 +62,7 @@ import org.springframework.util.Assert;
  * </p>
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 3.0
  */
@@ -192,6 +194,7 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 	@FunctionalInterface
 	public interface EvaluationCallback {
 
+		@Nullable
 		Object evaluate(Expression expression);
 
 	}

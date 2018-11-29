@@ -66,6 +66,7 @@ import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.MessagingAnnotationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
@@ -195,7 +196,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 		if (AnnotatedElementUtils.isAnnotated(method, IdempotentReceiver.class.getName())
 				&& !AnnotatedElementUtils.isAnnotated(method, Bean.class.getName())) {
-			String[] interceptors = AnnotationUtils.getAnnotation(method, IdempotentReceiver.class).value();
+			String[] interceptors = AnnotationUtils.getAnnotation(method, IdempotentReceiver.class).value(); // NOSONAR never null
 			for (String interceptor : interceptors) {
 				DefaultBeanFactoryPointcutAdvisor advisor = new DefaultBeanFactoryPointcutAdvisor();
 				advisor.setAdviceBeanName(interceptor);
@@ -469,7 +470,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected String resolveTargetBeanName(Method method) {
 		String id = method.getName();
-		String[] names = AnnotationUtils.getAnnotation(method, Bean.class).name();
+		String[] names = AnnotationUtils.getAnnotation(method, Bean.class).name(); // NOSONAR never null
 		if (!ObjectUtils.isEmpty(names)) {
 			id = names[0];
 		}
@@ -477,7 +478,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <H> H extractTypeIfPossible(Object targetObject, Class<H> expectedType) {
+	protected <H> H extractTypeIfPossible(@Nullable Object targetObject, Class<H> expectedType) {
 		if (targetObject == null) {
 			return null;
 		}
@@ -486,9 +487,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		}
 		if (targetObject instanceof Advised) {
 			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
-			if (targetSource == null) {
-				return null;
-			}
 			try {
 				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
 			}

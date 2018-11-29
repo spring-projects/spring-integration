@@ -333,7 +333,9 @@ public final class IntegrationFlows {
 		GatewayProxyFactoryBean gatewayProxyFactoryBean = new AnnotationGatewayProxyFactoryBean(serviceInterface);
 
 		gatewayProxyFactoryBean.setDefaultRequestChannel(gatewayRequestChannel);
-		gatewayProxyFactoryBean.setBeanName(beanName);
+		if (beanName != null) {
+			gatewayProxyFactoryBean.setBeanName(beanName);
+		}
 
 		return from(gatewayRequestChannel)
 				.addComponent(gatewayProxyFactoryBean);
@@ -353,6 +355,7 @@ public final class IntegrationFlows {
 
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
 			IntegrationFlowBuilder integrationFlowBuilder) {
+
 		MessageChannel outputChannel = inboundGateway.getRequestChannel();
 		if (outputChannel == null) {
 			outputChannel = new DirectChannel();

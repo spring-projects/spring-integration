@@ -351,8 +351,8 @@ public class IntegrationFlowBeanPostProcessor
 			if (bean instanceof BeanNameAware) {
 				((BeanNameAware) bean).setBeanName(beanName);
 			}
-			if (bean instanceof BeanClassLoaderAware) {
-				((BeanClassLoaderAware) bean).setBeanClassLoader(this.beanFactory.getBeanClassLoader());
+			if (bean instanceof BeanClassLoaderAware && this.beanFactory.getBeanClassLoader() != null) {
+				((BeanClassLoaderAware) bean).setBeanClassLoader(this.beanFactory.getBeanClassLoader()); // NOSONAR
 			}
 			if (bean instanceof BeanFactoryAware) {
 				((BeanFactoryAware) bean).setBeanFactory(this.beanFactory);

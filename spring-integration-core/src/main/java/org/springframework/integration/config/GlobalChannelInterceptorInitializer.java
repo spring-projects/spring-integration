@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.CollectionUtils;
  * {@link org.springframework.context.annotation.Bean} methods are also processed.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class GlobalChannelInterceptorInitializer implements IntegrationConfigurationInitializer {
@@ -50,14 +51,18 @@ public class GlobalChannelInterceptorInitializer implements IntegrationConfigura
 			BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
 			if (beanDefinition instanceof AnnotatedBeanDefinition) {
 				AnnotationMetadata metadata = ((AnnotatedBeanDefinition) beanDefinition).getMetadata();
-				Map<String, Object> annotationAttributes = metadata.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
-				if (CollectionUtils.isEmpty(annotationAttributes) && beanDefinition.getSource() instanceof MethodMetadata) {
+				Map<String, Object> annotationAttributes = metadata
+						.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
+				if (CollectionUtils.isEmpty(annotationAttributes)
+						&& beanDefinition.getSource() instanceof MethodMetadata) {
 					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
-					annotationAttributes = beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName());
+					annotationAttributes =
+						beanMethod.getAnnotationAttributes(GlobalChannelInterceptor.class.getName()); // NOSONAR not null
 				}
 
 				if (!CollectionUtils.isEmpty(annotationAttributes)) {
-					BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(GlobalChannelInterceptorWrapper.class)
+					BeanDefinitionBuilder builder = BeanDefinitionBuilder
+							.genericBeanDefinition(GlobalChannelInterceptorWrapper.class)
 							.addConstructorArgReference(beanName)
 							.addPropertyValue("patterns", annotationAttributes.get("patterns"))
 							.addPropertyValue("order", annotationAttributes.get("order"));

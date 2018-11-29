@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.beans.factory.xml.ParserContext;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class ChannelInterceptorParser {
 
@@ -60,7 +61,7 @@ public class ChannelInterceptorParser {
 				if ("bean".equals(localName)) {
 					BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 					BeanDefinitionHolder holder = delegate.parseBeanDefinitionElement(childElement);
-					holder = delegate.decorateBeanDefinitionIfRequired(childElement, holder);
+					holder = delegate.decorateBeanDefinitionIfRequired(childElement, holder); // NOSONAR never null
 					parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 					interceptors.add(new RuntimeBeanReference(holder.getBeanName()));
 				}

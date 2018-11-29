@@ -36,6 +36,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -163,10 +164,12 @@ public final class ExpressionUtils {
 	 * @return the File.
 	 * @since 5.0
 	 */
-	public static File expressionToFile(Expression expression, EvaluationContext evaluationContext, Message<?> message,
-			String name) {
+	public static File expressionToFile(Expression expression, EvaluationContext evaluationContext,
+			@Nullable Message<?> message, String name) {
 		File file;
-		Object value = expression.getValue(evaluationContext, message);
+		Object value = message == null
+				? expression.getValue(evaluationContext)
+				: expression.getValue(evaluationContext, message);
 		if (value == null) {
 			throw new IllegalStateException(String.format("The provided %s expression (%s) must not evaluate to null.",
 					name, expression.getExpressionString()));

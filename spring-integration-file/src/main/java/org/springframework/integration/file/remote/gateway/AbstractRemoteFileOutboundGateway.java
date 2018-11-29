@@ -536,7 +536,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				|| Command.MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectoryExpression, "localDirectory must not be null");
 			if (this.localDirectoryExpression instanceof ValueExpression) {
-				File localDirectory = this.localDirectoryExpression.getValue(File.class);
+				File localDirectory = ExpressionUtils.expressionToFile(this.localDirectoryExpression,
+						ExpressionUtils.createStandardEvaluationContext(getBeanFactory()), null,
+						"localDirectoryExpression");
 				try {
 					if (!localDirectory.exists()) {
 						if (this.autoCreateLocalDirectory) {

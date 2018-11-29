@@ -54,7 +54,7 @@ public class IntegrationConverterInitializer implements IntegrationConfiguration
 
 				if (!hasIntegrationConverter && beanDefinition.getSource() instanceof MethodMetadata) {
 					MethodMetadata beanMethod = (MethodMetadata) beanDefinition.getSource();
-					hasIntegrationConverter = beanMethod.isAnnotated(IntegrationConverter.class.getName());
+					hasIntegrationConverter = beanMethod.isAnnotated(IntegrationConverter.class.getName()); // NOSONAR never null
 				}
 
 				if (hasIntegrationConverter) {
