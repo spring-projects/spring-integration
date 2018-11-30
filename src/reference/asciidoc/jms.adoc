@@ -126,6 +126,17 @@ If you have a custom listener container implementation (usually a subclass of `D
 In that case, the attributes on the adapter are transferred to an instance of your custom container.
 =====
 
+[NOTE]
+=====
+You can't use Spring JMS namespace `<jms:listener-container/>` to configure a container reference for the `<int-jms:message-driven-channel-adapter>` since that one is just a convenience.
+Each `<jms:listener/>` sub-element gets its own `DefaultMessageListenerContainer` (with shared attributes defined on the parent `<jms:listener-container/>` element).
+You can give each listener sub-element an `id`, and use that to inject into the channel adapter, however, the `<jms:/>` namespace requires a real listener.
+Since, for Spring Integration, the adapter itself needs to configure the listener, the configured listener will be overwritten.
+If you go this route, you will see a warning for each adapter.
+
+It is recommended to configure regular `<bean>` for the `DefaultMessageListenerContainer` and use it as a reference in the channel adapter.
+=====
+
 IMPORTANT: Starting with version 4.2, the default `acknowledge` mode is `transacted`, unless you provide an external
 container.
 In that case, you should configure the container as needed.
@@ -254,7 +265,7 @@ You can use the error-channel attribute to configure such a channel, as the foll
 [source,xml]
 ----
 <int-jms:inbound-gateway request-destination="requestQueue"
-          request-channel="jmsinputchannel"
+          request-channel="jmsInputChannel"
           error-channel="errorTransformationChannel"/>
 
 <int:transformer input-channel="exceptionTransformationChannel"
@@ -598,13 +609,11 @@ Note that, if the service is never expected to return a reply, it would be bette
 With the latter, the sending thread is blocked, waiting for a reply for the `receive-timeout` period.
 <25> When you use a `<reply-listener />`, its lifecycle (start and stop) matches that of the gateway by default.
 When this value is greater than `0`, the container is started on demand (when a request is sent).
-The container continues to run until at least this time elapses with no requests being received (and until no replies
-are outstanding).
+The container continues to run until at least this time elapses with no requests being received (and until no replies are outstanding).
 The container is started again on the next request.
 The stop time is a minimum and may actually be up to 1.5x this value.
 <26> See <<jms-async-gateway>>.
-<27> When this element is included, replies are received by an asynchronous `MessageListenerContainer` rather than
-creating a consumer for each reply.
+<27> When this element is included, replies are received by an asynchronous `MessageListenerContainer` rather than creating a consumer for each reply.
 This can be more efficient in many cases.
 ====
 
