@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler implements Lifecycle {
 
 	private static final MessageProcessor<String> DEFAULT_TOPIC_PROCESSOR =
-			m -> (String) m.getHeaders().get(MqttHeaders.TOPIC);
+			m -> m.getHeaders().get(MqttHeaders.TOPIC, String.class);
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
@@ -265,7 +265,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 			throw new MessageHandlingException(message,
 					"No topic could be determined from the message and no default topic defined");
 		}
-		this.publish(topic == null ? this.defaultTopic : topic, mqttMessage, message);
+		publish(topic == null ? this.defaultTopic : topic, mqttMessage, message);
 	}
 
 	protected abstract void publish(String topic, Object mqttMessage, Message<?> message) throws Exception;

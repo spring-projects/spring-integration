@@ -540,6 +540,8 @@ project('spring-integration-mqtt') {
 	dependencies {
 		compile project(":spring-integration-core")
 		compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:$pahoMqttClientVersion"
+
+		testCompile project(":spring-integration-jmx")
 	}
 }
 

@@ -80,7 +80,7 @@ The following listing shows the available attributes:
 <1> The client ID.
 <2> The broker URL.
 <3> A comma-separated list of topics from which this adapter receives messages.
-<4> A commap-separated list of QoS values.
+<4> A comma-separated list of QoS values.
 It can be a single value that is applied to all topics or a value for each topic (in which case, the lists must be the same length).
 <5> An `MqttMessageConverter` (optional).
 By default, the default `DefaultPahoMessageConverter` produces a message with a `String` payload with the following headers:
@@ -102,13 +102,11 @@ NOTE: Starting with version 4.1, you can omit the URL.
 Instead, you can provide the server URIs in the `serverURIs` property of the `DefaultMqttPahoClientFactory`.
 Doing so enables, for example, connection to a highly available (HA) cluster.
 
-Starting with version 4.2.2, an `MqttSubscribedEvent` is published when the adapter successfully subscribes to the
-topics.
+Starting with version 4.2.2, an `MqttSubscribedEvent` is published when the adapter successfully subscribes to the topics.
 `MqttConnectionFailedEvent` events are published when the connection or subscription fails.
 These events can be received by a bean that implements `ApplicationListener`.
 
-Also, a new property called `recoveryInterval` controls the interval at which the adapter attempts to reconnect after
-a failure.
+Also, a new property called `recoveryInterval` controls the interval at which the adapter attempts to reconnect after a failure.
 It defaults to `10000ms` (ten seconds).
 
 [NOTE]
@@ -190,6 +188,35 @@ public class MqttJavaApplication {
             }
 
         };
+    }
+
+}
+----
+====
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the inbound adapter with the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class MqttJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(MqttJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+    @Bean
+    public IntegrationFlow mqttInbound() {
+        return IntegrationFlows.from(
+                         new MqttPahoMessageDrivenChannelAdapter("tcp://localhost:1883",
+                                        "testClient", "topic1", "topic2");)
+                .handle(m -> System.out.println(m.getPayload()))
+                .get();
     }
 
 }
@@ -310,6 +337,31 @@ public class MqttJavaApplication {
 
         void sendToMqtt(String data);
 
+    }
+
+}
+----
+====
+
+==== Configuring with the Java DSL
+
+The following Spring Boot application provides an example of configuring the outbound adapter with the Java DSL:
+
+====
+[source, java]
+----
+@SpringBootApplication
+public class MqttJavaApplication {
+
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(MqttJavaApplication.class)
+            .web(false)
+            .run(args);
+    }
+
+   	@Bean
+   	public IntegrationFlow mqttOutboundFlow() {
+   	    return f -> f.handle(new MqttPahoMessageHandler("tcp://host1:1883", "someMqttClient"));
     }
 
 }
