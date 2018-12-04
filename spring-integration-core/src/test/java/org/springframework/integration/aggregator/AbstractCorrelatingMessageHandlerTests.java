@@ -349,6 +349,8 @@ public class AbstractCorrelatingMessageHandlerTests {
 			}
 		};
 		handler.setMessageStore(messageStore);
+		// test UniqueExpiryCallback error message
+		// new AggregatingMessageHandler(new DefaultAggregatingMessageGroupProcessor()).setMessageStore(messageStore);
 		handler.handleMessage(MessageBuilder.withPayload("foo")
 				.setCorrelationId(1)
 				.setSequenceNumber(1)
