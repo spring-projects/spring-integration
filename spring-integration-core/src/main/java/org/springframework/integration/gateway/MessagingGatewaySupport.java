@@ -396,6 +396,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @return the channel or null.
 	 * @since 4.3
 	 */
+	@Nullable
 	public MessageChannel getErrorChannel() {
 		if (this.errorChannelName != null) {
 			synchronized (this) {
@@ -431,6 +432,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 	}
 
+	@Nullable
 	protected Object receive() {
 		this.initializeIfNecessary();
 		MessageChannel replyChannel = getReplyChannel();
@@ -439,6 +441,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.messagingTemplate.receiveAndConvert(replyChannel, Object.class);
 	}
 
+	@Nullable
 	protected Message<?> receiveMessage() {
 		initializeIfNecessary();
 		MessageChannel replyChannel = getReplyChannel();
@@ -447,6 +450,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.messagingTemplate.receive(replyChannel);
 	}
 
+	@Nullable
 	protected Object receive(long timeout) {
 		this.initializeIfNecessary();
 		MessageChannel replyChannel = getReplyChannel();
@@ -455,6 +459,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.messagingTemplate.receiveAndConvert(replyChannel, timeout);
 	}
 
+	@Nullable
 	protected Message<?> receiveMessage(long timeout) {
 		initializeIfNecessary();
 		MessageChannel replyChannel = getReplyChannel();
@@ -463,10 +468,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		return this.messagingTemplate.receive(replyChannel, timeout);
 	}
 
+	@Nullable
 	protected Object sendAndReceive(Object object) {
 		return this.doSendAndReceive(object, true);
 	}
 
+	@Nullable
 	protected Message<?> sendAndReceiveMessage(Object object) {
 		return (Message<?>) this.doSendAndReceive(object, false);
 	}
@@ -716,7 +723,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * @return the attributes.
 	 * @since 4.3.10
 	 */
-	protected AttributeAccessor getErrorMessageAttributes(Message<?> message) {
+	protected AttributeAccessor getErrorMessageAttributes(@Nullable Message<?> message) {
 		return ErrorMessageUtils.getAttributeAccessor(message, null);
 	}
 
