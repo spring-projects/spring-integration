@@ -61,12 +61,14 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRegistrar,
 		ResourceLoaderAware, EnvironmentAware {
 
-	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars = new HashMap<TypeFilter, ImportBeanDefinitionRegistrar>();
+	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars =
+			new HashMap<TypeFilter, ImportBeanDefinitionRegistrar>();
 
 	private ResourceLoader resourceLoader;
 
@@ -98,14 +100,16 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 			basePackages = Collections.singleton(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
 		}
 
-		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false) {
+		ClassPathScanningCandidateComponentProvider scanner =
+				new ClassPathScanningCandidateComponentProvider(false, this.environment) {
 
-			@Override
-			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
-				return beanDefinition.getMetadata().isIndependent()
-						&& !beanDefinition.getMetadata().isAnnotation();
-			}
-		};
+					@Override
+					protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+						return beanDefinition.getMetadata().isIndependent()
+								&& !beanDefinition.getMetadata().isAnnotation();
+					}
+
+				};
 
 		if ((boolean) componentScan.get("useDefaultFilters")) { // NOSONAR - never null
 			for (TypeFilter typeFilter : this.componentRegistrars.keySet()) {
