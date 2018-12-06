@@ -41,6 +41,7 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.retry.support.RetryTemplate;
@@ -292,10 +293,10 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				}
 			}
 			catch (RuntimeException e) {
-				if (getErrorChannel() != null) {
+				MessageChannel errorChannel = getErrorChannel();
+				if (errorChannel != null) {
 					setAttributesIfNecessary(message, null);
-					AmqpInboundGateway.this.messagingTemplate.send(getErrorChannel(), // NOSONAR not null
-							buildErrorMessage(null,
+					AmqpInboundGateway.this.messagingTemplate.send(errorChannel, buildErrorMessage(null,
 									new ListenerExecutionFailedException("Message conversion failed", e, message)));
 				}
 				else {
