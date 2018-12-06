@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.mail;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
 
@@ -63,13 +63,15 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	private final IdleCanceler idleCanceler = new IdleCanceler();
 
-	private volatile boolean shouldMarkMessagesAsRead = true;
+	private boolean shouldMarkMessagesAsRead = true;
 
-	private volatile SearchTermStrategy searchTermStrategy = new DefaultSearchTermStrategy();
+	private SearchTermStrategy searchTermStrategy = new DefaultSearchTermStrategy();
 
-	private volatile long cancelIdleInterval = DEFAULT_CANCEL_IDLE_INTERVAL;
+	private long cancelIdleInterval = DEFAULT_CANCEL_IDLE_INTERVAL;
 
-	private volatile TaskScheduler scheduler;
+	private TaskScheduler scheduler;
+
+	private boolean isInternalScheduler;
 
 	private volatile ScheduledFuture<?> pingTask;
 
@@ -92,7 +94,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	/**
 	 * Check if messages should be marked as read.
-	 *
 	 * @return true if messages should be marked as read.
 	 */
 	public Boolean isShouldMarkMessagesAsRead() {
@@ -102,7 +103,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	/**
 	 * Provides a way to set custom {@link SearchTermStrategy} to compile a {@link SearchTerm}
 	 * to be applied when retrieving mail
-	 *
 	 * @param searchTermStrategy The search term strategy implementation.
 	 */
 	public void setSearchTermStrategy(SearchTermStrategy searchTermStrategy) {
@@ -112,7 +112,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	/**
 	 * Specify if messages should be marked as read.
-	 *
 	 * @param shouldMarkMessagesAsRead true if messages should be marked as read.
 	 */
 	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
@@ -138,6 +137,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 			scheduler.initialize();
 			this.scheduler = scheduler;
+			this.isInternalScheduler = true;
 		}
 		Properties javaMailProperties = getJavaMailProperties();
 		for (String name : new String[]{"imap", "imaps"}) {
@@ -148,10 +148,17 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 	}
 
+	@Override
+	public void destroy() throws Exception {
+		super.destroy();
+		if (this.isInternalScheduler) {
+			((ThreadPoolTaskScheduler) this.scheduler).shutdown();
+		}
+	}
+
 	/**
 	 * This method is unique to the IMAP receiver and only works if IMAP IDLE
 	 * is supported (see RFC 2177 for more detail).
-	 *
 	 * @throws MessagingException Any MessagingException.
 	 */
 	public void waitForNewMessages() throws MessagingException {
@@ -189,7 +196,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 * {@link javax.mail.Flags.Flag#ANSWERED ANSWERED}, and not
 	 * {@link javax.mail.Flags.Flag#DELETED DELETED}. The search term is used
 	 * to {@link Folder#search(SearchTerm) search} for new messages.
-	 *
 	 * @return the new messages
 	 * @throws MessagingException in case of JavaMail errors
 	 */
@@ -204,7 +210,6 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		throw new MessagingException("Folder is closed");
 	}
 
-	// INT-3859
 	private Message[] nullSafeMessages(Message[] messageArray) {
 		boolean hasNulls = false;
 		for (Message message : messageArray) {
@@ -217,13 +222,9 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			return messageArray;
 		}
 		else {
-			List<Message> messages = new ArrayList<Message>();
-			for (Message message : messageArray) {
-				if (message != null) {
-					messages.add(message);
-				}
-			}
-			return messages.toArray(new Message[messages.size()]);
+			return Arrays.stream(messageArray)
+					.filter(Objects::nonNull)
+					.toArray(Message[]::new);
 		}
 	}
 
@@ -276,6 +277,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 				messages[0].getFolder().isOpen();
 			}
 		}
+
 	}
 
 	private class DefaultSearchTermStrategy implements SearchTermStrategy {
