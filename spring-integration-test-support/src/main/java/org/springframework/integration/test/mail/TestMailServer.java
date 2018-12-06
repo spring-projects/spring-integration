@@ -237,6 +237,11 @@ public class TestMailServer {
 
 		class ImapHandler extends MailHandler {
 
+			/**
+			 * Time to wait while IDLE before returning a result.
+			 */
+			private static final int IDLE_WAIT_TIME = 1000;
+
 			ImapHandler(Socket socket) {
 				super(socket);
 			}
@@ -348,7 +353,7 @@ public class TestMailServer {
 							idleTag = tag;
 							if (!idled) {
 								try {
-									Thread.sleep(1000);
+									Thread.sleep(IDLE_WAIT_TIME);
 									write("* 2 EXISTS");
 									seen = false;
 								}
@@ -392,9 +397,9 @@ public class TestMailServer {
 
 		private final ExecutorService exec = Executors.newCachedThreadPool();
 
-		protected final Set<String> assertions = new HashSet<>();
+		protected final Set<String> assertions = new HashSet<>(); // NOSONAR protected
 
-		protected final List<String> messages = new ArrayList<>();
+		protected final List<String> messages = new ArrayList<>(); // NOSONAR protected
 
 		private volatile boolean listening;
 
@@ -461,13 +466,13 @@ public class TestMailServer {
 					+ "Subject: Test Email\r\n"
 					+ "\r\n" + BODY;
 
-			protected final Socket socket;
+			protected final Socket socket; // NOSONAR protected
 
 			private BufferedWriter writer;
 
-			StringBuilder sb = new StringBuilder();
+			protected StringBuilder sb = new StringBuilder(); // NOSONAR protected
 
-			protected BufferedReader reader;
+			protected BufferedReader reader; // NOSONAR protected
 
 			MailHandler(Socket socket) {
 				this.socket = socket;

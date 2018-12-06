@@ -149,7 +149,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		super.destroy();
 		if (this.isInternalScheduler) {
 			((ThreadPoolTaskScheduler) this.scheduler).shutdown();
