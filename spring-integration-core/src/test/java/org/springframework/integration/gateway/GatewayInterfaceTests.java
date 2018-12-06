@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -59,6 +60,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -77,6 +79,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.handler.DelayHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.lang.Nullable;
@@ -93,6 +96,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -107,6 +111,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 @ContextConfiguration(classes = GatewayInterfaceTests.TestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
+@ActiveProfiles("gatewayTest")
 public class GatewayInterfaceTests {
 
 	private static final String IGNORE_HEADER = "ignoreHeader";
@@ -153,19 +158,23 @@ public class GatewayInterfaceTests {
 	@Autowired
 	private IgnoredHeaderGateway ignoredHeaderGateway;
 
+	@Autowired(required = false)
+	private NotActivatedByProfileGateway notActivatedByProfileGateway;
+
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethod() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		final Method fooMethod = Foo.class.getMethod("foo", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
 		MessageHandler handler = message -> {
-			assertThat((String) message.getHeaders().get("name"), equalTo("foo"));
-			assertThat(
-					(String) message.getHeaders().get("string"),
-					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
-			assertThat((Method) message.getHeaders().get("object"), equalTo(fooMethod));
-			assertThat((String) message.getPayload(), equalTo("hello"));
+			assertThat(message.getHeaders().get("name"), equalTo("foo"));
+			assertThat(message.getHeaders().get("string"),
+					equalTo("public abstract void org.springframework.integration.gateway." +
+							"GatewayInterfaceTests$Foo.foo(java.lang.String)"));
+			assertThat(message.getHeaders().get("object"), equalTo(fooMethod));
+			assertThat(message.getPayload(), equalTo("hello"));
 			assertThat(new MessageHeaderAccessor(message).getErrorChannel(), equalTo("errorChannel"));
 			called.set(true);
 		};
@@ -180,17 +189,18 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethodOverridePE() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests2-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests2-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		final Method fooMethod = Foo.class.getMethod("foo", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
 		MessageHandler handler = message -> {
-			assertThat((String) message.getHeaders().get("name"), equalTo("foo"));
-			assertThat(
-					(String) message.getHeaders().get("string"),
-					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
-			assertThat((Method) message.getHeaders().get("object"), equalTo(fooMethod));
-			assertThat((String) message.getPayload(), equalTo("foo"));
+			assertThat(message.getHeaders().get("name"), equalTo("foo"));
+			assertThat(message.getHeaders().get("string"),
+					equalTo("public abstract void org.springframework.integration.gateway." +
+							"GatewayInterfaceTests$Foo.foo(java.lang.String)"));
+			assertThat(message.getHeaders().get("object"), equalTo(fooMethod));
+			assertThat(message.getPayload(), equalTo("foo"));
 			called.set(true);
 		};
 		channel.subscribe(handler);
@@ -202,7 +212,8 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceAnnotatedMethod() {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBar", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -214,7 +225,8 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceSuperclassUnAnnotatedMethod() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final Method bazMethod = Foo.class.getMethod("baz", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
@@ -222,7 +234,8 @@ public class GatewayInterfaceTests {
 			assertThat((String) message.getHeaders().get("name"), equalTo("overrideGlobal"));
 			assertThat(
 					(String) message.getHeaders().get("string"),
-					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.baz(java.lang.String)"));
+					equalTo("public abstract void org.springframework.integration.gateway." +
+							"GatewayInterfaceTests$Foo.baz(java.lang.String)"));
 			assertThat((Method) message.getHeaders().get("object"), equalTo(bazMethod));
 			assertThat((String) message.getPayload(), equalTo("hello"));
 			called.set(true);
@@ -236,7 +249,8 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceUnAnnotatedMethodGlobalHeaderDoesntOverride() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final Method quxMethod = Bar.class.getMethod("qux", String.class, String.class);
 		final AtomicBoolean called = new AtomicBoolean();
@@ -244,7 +258,8 @@ public class GatewayInterfaceTests {
 			assertThat((String) message.getHeaders().get("name"), equalTo("arg1"));
 			assertThat(
 					(String) message.getHeaders().get("string"),
-					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Bar.qux(java.lang.String,java.lang.String)"));
+					equalTo("public abstract void org.springframework.integration.gateway." +
+							"GatewayInterfaceTests$Bar.qux(java.lang.String,java.lang.String)"));
 			assertThat((Method) message.getHeaders().get("object"), equalTo(quxMethod));
 			assertThat((String) message.getPayload(), equalTo("hello"));
 			called.set(true);
@@ -258,7 +273,8 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceCastAsSuperclassAnnotatedMethod() {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -270,7 +286,8 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceCastAsSuperclassUnAnnotatedMethod() {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -281,8 +298,9 @@ public class GatewayInterfaceTests {
 	}
 
 	@Test
-	public void testWithServiceHashcode() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+	public void testWithServiceHashcode() {
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -294,7 +312,8 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceToString() {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -306,12 +325,13 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceEquals() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
-		assertTrue(bar.equals(ac.getBean(Bar.class)));
+		assertSame(bar, ac.getBean(Bar.class));
 		GatewayProxyFactoryBean fb = new GatewayProxyFactoryBean(Bar.class);
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton("requestChannelBar", channel);
@@ -319,14 +339,15 @@ public class GatewayInterfaceTests {
 		bf.registerSingleton("requestChannelFoo", channel);
 		fb.setBeanFactory(bf);
 		fb.afterPropertiesSet();
-		assertFalse(bar.equals(fb.getObject()));
+		assertNotSame(bar, fb.getObject());
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
 		ac.close();
 	}
 
 	@Test
 	public void testWithServiceGetClass() {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -343,11 +364,12 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithCustomMapper() {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		final AtomicBoolean called = new AtomicBoolean();
 		MessageHandler handler = message -> {
-			assertThat((String) message.getPayload(), equalTo("fizbuz"));
+			assertThat(message.getPayload(), equalTo("fizbuz"));
 			called.set(true);
 		};
 		channel.subscribe(handler);
@@ -359,8 +381,13 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testLateReply() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml",
-				this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
+
+		DelayHandler delayHandler = ac.getBean(DelayHandler.class);
+		delayHandler.setMaxAttempts(2);
+		delayHandler.setRetryDelay(10);
+
 		Bar baz = ac.getBean(Bar.class);
 		String reply = baz.lateReply("hello", 1000, 0);
 		assertNull(reply);
@@ -438,14 +465,15 @@ public class GatewayInterfaceTests {
 	@SuppressWarnings("rawtypes")
 	public void testAnnotationGatewayProxyFactoryBean() {
 		assertNotNull(this.gatewayByAnnotationGPFB);
+		assertNull(this.notActivatedByProfileGateway);
 
 		assertSame(this.exec, this.annotationGatewayProxyFactoryBean.getAsyncExecutor());
-		assertEquals(1111L, TestUtils
-				.getPropertyValue(this.annotationGatewayProxyFactoryBean, "defaultRequestTimeout", Expression.class)
-				.getValue());
-		assertEquals(222L, TestUtils
-				.getPropertyValue(this.annotationGatewayProxyFactoryBean, "defaultReplyTimeout", Expression.class)
-				.getValue());
+		assertEquals(1111L,
+				TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean,
+						"defaultRequestTimeout", Expression.class).getValue());
+		assertEquals(222L,
+				TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean,
+						"defaultReplyTimeout", Expression.class).getValue());
 
 		Collection<MessagingGatewaySupport> messagingGateways =
 				this.annotationGatewayProxyFactoryBean.getGateways().values();
@@ -549,7 +577,7 @@ public class GatewayInterfaceTests {
 	public static class BazMapper implements MethodArgsMessageMapper {
 
 		@Override
-		public Message<?> toMessage(MethodArgsHolder object, @Nullable Map<String, Object> headers) throws Exception {
+		public Message<?> toMessage(MethodArgsHolder object, @Nullable Map<String, Object> headers) {
 			return MessageBuilder.withPayload("fizbuz")
 					.copyHeadersIfAbsent(headers)
 					.build();
@@ -637,6 +665,7 @@ public class GatewayInterfaceTests {
 
 	@MessagingGateway
 	@TestMessagingGateway
+	@Profile("gatewayTest")
 	public interface Int2634Gateway {
 
 		@Gateway(requestChannel = "gatewayChannel", payloadExpression = "#args[0]")
@@ -647,6 +676,15 @@ public class GatewayInterfaceTests {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
 		Future<Thread> test3(Thread caller);
+
+	}
+
+	@MessagingGateway(defaultRequestChannel = "errorChannel")
+	@TestMessagingGateway
+	@Profile("notActiveProfile")
+	public interface NotActivatedByProfileGateway {
+
+		void send(String payload);
 
 	}
 
