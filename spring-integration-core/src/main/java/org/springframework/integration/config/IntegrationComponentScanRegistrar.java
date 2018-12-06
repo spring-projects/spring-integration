@@ -24,9 +24,11 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -40,14 +42,18 @@ import org.springframework.util.StringUtils;
  *
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 4.0
  */
 public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRegistrar,
-		ResourceLoaderAware {
+		ResourceLoaderAware, EnvironmentAware {
 
-	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars = new HashMap<TypeFilter, ImportBeanDefinitionRegistrar>();
+	private final Map<TypeFilter, ImportBeanDefinitionRegistrar> componentRegistrars =
+			new HashMap<TypeFilter, ImportBeanDefinitionRegistrar>();
 
 	private ResourceLoader resourceLoader;
+
+	private Environment environment;
 
 	public IntegrationComponentScanRegistrar() {
 		this.componentRegistrars.put(new AnnotationTypeFilter(MessagingGateway.class, true), new MessagingGatewayRegistrar());
@@ -56,6 +62,11 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 		this.resourceLoader = resourceLoader;
+	}
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
 	}
 
 	@Override
@@ -82,14 +93,16 @@ public class IntegrationComponentScanRegistrar implements ImportBeanDefinitionRe
 			basePackages.add(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
 		}
 
-		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false) {
+		ClassPathScanningCandidateComponentProvider scanner =
+				new ClassPathScanningCandidateComponentProvider(false, this.environment) {
 
-			@Override
-			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
-				return beanDefinition.getMetadata().isIndependent()
-						&& !beanDefinition.getMetadata().isAnnotation();
-			}
-		};
+					@Override
+					protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+						return beanDefinition.getMetadata().isIndependent()
+								&& !beanDefinition.getMetadata().isAnnotation();
+					}
+
+				};
 
 		for (TypeFilter typeFilter : this.componentRegistrars.keySet()) {
 			scanner.addIncludeFilter(typeFilter);
