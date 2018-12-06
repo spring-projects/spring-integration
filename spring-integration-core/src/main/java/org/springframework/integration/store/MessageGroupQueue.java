@@ -348,7 +348,8 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
-	 * IllegalMonitorStateException may be thrown
+	 * IllegalMonitorStateException may be thrown.
+	 * @return a message or null
 	 */
 	protected Message<?> doPoll() {
 		Message<?> message = this.messageGroupStore.pollMessageFromGroup(this.groupId);
@@ -358,8 +359,9 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	/**
 	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
-	 * IllegalMonitorStateException may be thrown
+	 * IllegalMonitorStateException may be thrown.
 	 * @param message the message to offer.
+	 * @return true or false if message has been added to the message group.
 	 */
 	protected boolean doOffer(Message<?> message) {
 		boolean offered = false;
