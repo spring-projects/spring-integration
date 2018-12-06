@@ -380,7 +380,7 @@ public class GatewayInterfaceTests {
 	@Test
 	public void testLateReply() {
 		ConfigurableApplicationContext ac =
-				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml",getClass());
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 
 		DelayHandler delayHandler = ac.getBean(DelayHandler.class);
 		delayHandler.setMaxAttempts(2);
@@ -468,12 +468,10 @@ public class GatewayInterfaceTests {
 		assertSame(this.exec, this.annotationGatewayProxyFactoryBean.getAsyncExecutor());
 		assertEquals(1111L,
 				TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean,
-						"defaultRequestTimeout", Expression.class)
-				.getValue());
+						"defaultRequestTimeout", Expression.class).getValue());
 		assertEquals(222L,
 				TestUtils.getPropertyValue(this.annotationGatewayProxyFactoryBean,
-						"defaultReplyTimeout", Expression.class)
-				.getValue());
+						"defaultReplyTimeout", Expression.class).getValue());
 
 		Collection<MessagingGatewaySupport> messagingGateways =
 				this.annotationGatewayProxyFactoryBean.getGateways().values();
