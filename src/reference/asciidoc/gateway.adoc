@@ -313,7 +313,7 @@ The standard `@ComponentScan` infrastructure does not deal with interfaces.
 Consequently, we introduced the custom `@IntegrationComponentScan` logic  to fine the `@MessagingGateway` annotation on the interfaces and register `GatewayProxyFactoryBean` instances for them.
 See also <<annotations>>.
 
-Alongside with the `@MessagingGateway` annotation you can mark a service interface with the `@Profile` annotation to avoid the bean creation, if such a profile is not active.
+Along with the `@MessagingGateway` annotation you can mark a service interface with the `@Profile` annotation to avoid the bean creation, if such a profile is not active.
 
 NOTE: If you have no XML configuration, the `@EnableIntegration` annotation is required on at least one `@Configuration` class.
 See <<configuration-enable-integration>> for more information.

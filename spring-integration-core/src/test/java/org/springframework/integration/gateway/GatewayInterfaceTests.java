@@ -158,17 +158,21 @@ public class GatewayInterfaceTests {
 	@Autowired
 	private IgnoredHeaderGateway ignoredHeaderGateway;
 
+	@Autowired(required = false)
+	private NotActivatedByProfileGateway notActivatedByProfileGateway;
+
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethod() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this
-				.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		final Method fooMethod = Foo.class.getMethod("foo", String.class);
 		final AtomicBoolean called = new AtomicBoolean();
 		MessageHandler handler = message -> {
 			assertThat(message.getHeaders().get("name"), equalTo("foo"));
 			assertThat(message.getHeaders().get("string"),
-					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
+					equalTo("public abstract void org.springframework.integration.gateway." +
+							"GatewayInterfaceTests$Foo.foo(java.lang.String)"));
 			assertThat(message.getHeaders().get("object"), equalTo(fooMethod));
 			assertThat(message.getPayload(), equalTo("hello"));
 			assertThat(new MessageHeaderAccessor(message).getErrorChannel(), equalTo("errorChannel"));
@@ -193,7 +197,8 @@ public class GatewayInterfaceTests {
 		MessageHandler handler = message -> {
 			assertThat(message.getHeaders().get("name"), equalTo("foo"));
 			assertThat(message.getHeaders().get("string"),
-					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.foo(java.lang.String)"));
+					equalTo("public abstract void org.springframework.integration.gateway." +
+							"GatewayInterfaceTests$Foo.foo(java.lang.String)"));
 			assertThat(message.getHeaders().get("object"), equalTo(fooMethod));
 			assertThat(message.getPayload(), equalTo("foo"));
 			called.set(true);
@@ -228,7 +233,8 @@ public class GatewayInterfaceTests {
 		MessageHandler handler = message -> {
 			assertThat(message.getHeaders().get("name"), equalTo("overrideGlobal"));
 			assertThat(message.getHeaders().get("string"),
-					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Foo.baz(java.lang.String)"));
+					equalTo("public abstract void org.springframework.integration.gateway." +
+							"GatewayInterfaceTests$Foo.baz(java.lang.String)"));
 			assertThat(message.getHeaders().get("object"), equalTo(bazMethod));
 			assertThat(message.getPayload(), equalTo("hello"));
 			called.set(true);
@@ -250,7 +256,8 @@ public class GatewayInterfaceTests {
 		MessageHandler handler = message -> {
 			assertThat(message.getHeaders().get("name"), equalTo("arg1"));
 			assertThat(message.getHeaders().get("string"),
-					equalTo("public abstract void org.springframework.integration.gateway.GatewayInterfaceTests$Bar.qux(java.lang.String,java.lang.String)"));
+					equalTo("public abstract void org.springframework.integration.gateway." +
+							"GatewayInterfaceTests$Bar.qux(java.lang.String,java.lang.String)"));
 			assertThat(message.getHeaders().get("object"), equalTo(quxMethod));
 			assertThat(message.getPayload(), equalTo("hello"));
 			called.set(true);
@@ -372,8 +379,8 @@ public class GatewayInterfaceTests {
 
 	@Test
 	public void testLateReply() {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml",
-				this.getClass());
+		ConfigurableApplicationContext ac =
+				new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml",getClass());
 
 		DelayHandler delayHandler = ac.getBean(DelayHandler.class);
 		delayHandler.setMaxAttempts(2);
@@ -456,6 +463,7 @@ public class GatewayInterfaceTests {
 	@SuppressWarnings("rawtypes")
 	public void testAnnotationGatewayProxyFactoryBean() {
 		assertNotNull(this.gatewayByAnnotationGPFB);
+		assertNull(this.notActivatedByProfileGateway);
 
 		assertSame(this.exec, this.annotationGatewayProxyFactoryBean.getAsyncExecutor());
 		assertEquals(1111L,
@@ -673,6 +681,15 @@ public class GatewayInterfaceTests {
 
 		@Gateway(requestChannel = "gatewayThreadChannel")
 		Future<Thread> test3(Thread caller);
+
+	}
+
+	@MessagingGateway(defaultRequestChannel = "errorChannel")
+	@TestMessagingGateway
+	@Profile("notActiveProfile")
+	public interface NotActivatedByProfileGateway {
+
+		void send(String payload);
 
 	}
 
