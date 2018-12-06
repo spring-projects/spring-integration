@@ -256,9 +256,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 				}
 			}
 			catch (Exception e) { //run again after a delay
-				logger.warn("Failed to execute IDLE task. Will attempt to resubmit in " + ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.", e);
+				if (logger.isWarnEnabled()) {
+					logger.warn("Failed to execute IDLE task. Will attempt to resubmit in "
+							+ ImapIdleChannelAdapter.this.reconnectDelay + " milliseconds.", e);
+				}
 				ImapIdleChannelAdapter.this.receivingTaskTrigger.delayNextExecution();
-				ImapIdleChannelAdapter.this.publishException(e);
+				publishException(e);
 			}
 		}
 	}
@@ -312,6 +315,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 				}
 			}
 		}
+
 	}
 
 	private class ExceptionAwarePeriodicTrigger implements Trigger {
@@ -334,18 +338,20 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			}
 		}
 
-		public void delayNextExecution() {
+		void delayNextExecution() {
 			this.delayNextExecution = true;
 		}
+
 	}
 
 	public class ImapIdleExceptionEvent extends MailIntegrationEvent {
 
 		private static final long serialVersionUID = -5875388810251967741L;
 
-		public ImapIdleExceptionEvent(Exception e) {
+		ImapIdleExceptionEvent(Exception e) {
 			super(ImapIdleChannelAdapter.this, e);
 		}
 
 	}
+
 }

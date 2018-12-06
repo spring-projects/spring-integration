@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.util.Base64Utils;
  * the pertinent data so it can be verified by a test case.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0
  *
@@ -76,7 +77,7 @@ public class TestMailServer {
 
 	public static class SmtpServer extends MailServer {
 
-		public SmtpServer(int port) throws IOException {
+		SmtpServer(int port) throws IOException {
 			super(port);
 		}
 
@@ -85,9 +86,9 @@ public class TestMailServer {
 			return new SmtpHandler(socket);
 		}
 
-		public class SmtpHandler extends MailHandler {
+		class SmtpHandler extends MailHandler {
 
-			public SmtpHandler(Socket socket) {
+			SmtpHandler(Socket socket) {
 				super(socket);
 			}
 
@@ -154,7 +155,7 @@ public class TestMailServer {
 
 	public static class Pop3Server extends MailServer {
 
-		public Pop3Server(int port) throws IOException {
+		Pop3Server(int port) throws IOException {
 			super(port);
 		}
 
@@ -163,9 +164,9 @@ public class TestMailServer {
 			return new Pop3Handler(socket);
 		}
 
-		public class Pop3Handler extends MailHandler {
+		class Pop3Handler extends MailHandler {
 
-			public Pop3Handler(Socket socket) {
+			Pop3Handler(Socket socket) {
 				super(socket);
 			}
 
@@ -218,7 +219,7 @@ public class TestMailServer {
 
 		private boolean idled;
 
-		public ImapServer(int port) throws IOException {
+		ImapServer(int port) throws IOException {
 			super(port);
 		}
 
@@ -234,9 +235,9 @@ public class TestMailServer {
 			return new ImapHandler(socket);
 		}
 
-		public class ImapHandler extends MailHandler {
+		class ImapHandler extends MailHandler {
 
-			public ImapHandler(Socket socket) {
+			ImapHandler(Socket socket) {
 				super(socket);
 			}
 
@@ -347,7 +348,7 @@ public class TestMailServer {
 							idleTag = tag;
 							if (!idled) {
 								try {
-									Thread.sleep(3000);
+									Thread.sleep(1000);
 									write("* 2 EXISTS");
 									seen = false;
 								}
@@ -371,7 +372,7 @@ public class TestMailServer {
 				}
 			}
 
-			public void searchReply(String tag) throws IOException {
+			void searchReply(String tag) throws IOException {
 				if (seen) {
 					write("* SEARCH");
 				}
@@ -391,13 +392,13 @@ public class TestMailServer {
 
 		private final ExecutorService exec = Executors.newCachedThreadPool();
 
-		protected final Set<String> assertions = new HashSet<String>();
+		protected final Set<String> assertions = new HashSet<>();
 
-		protected final List<String> messages = new ArrayList<String>();
+		protected final List<String> messages = new ArrayList<>();
 
 		private volatile boolean listening;
 
-		public MailServer(int port) throws IOException {
+		MailServer(int port) throws IOException {
 			this.socket = ServerSocketFactory.getDefault().createServerSocket(port);
 			this.listening = true;
 			exec.execute(this);
@@ -464,11 +465,11 @@ public class TestMailServer {
 
 			private BufferedWriter writer;
 
-			protected StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new StringBuilder();
 
 			protected BufferedReader reader;
 
-			public MailHandler(Socket socket) {
+			MailHandler(Socket socket) {
 				this.socket = socket;
 			}
 
