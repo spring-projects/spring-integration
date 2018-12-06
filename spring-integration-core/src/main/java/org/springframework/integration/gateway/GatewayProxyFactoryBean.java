@@ -434,6 +434,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@Override
+	@Nullable
 	public Object invoke(final MethodInvocation invocation) throws Throwable {
 		final Class<?> returnType = invocation.getMethod().getReturnType();
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
@@ -458,16 +459,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (Mono.class.isAssignableFrom(returnType)) {
 			return Mono.fromSupplier(new Invoker(invocation));
 		}
-		return this.doInvoke(invocation, true);
+		return doInvoke(invocation, true);
 	}
 
+	@Nullable
 	protected Object doInvoke(MethodInvocation invocation, boolean runningOnCallerThread) throws Throwable {
 		Method method = invocation.getMethod();
 		if (AopUtils.isToStringMethod(method)) {
 			return "gateway proxy for service interface [" + this.serviceInterface + "]";
 		}
 		try {
-			return this.invokeGatewayMethod(invocation, runningOnCallerThread);
+			return invokeGatewayMethod(invocation, runningOnCallerThread);
 		}
 		catch (Throwable e) { //NOSONAR - ok to catch, rethrown below
 			this.rethrowExceptionCauseIfPossible(e, invocation.getMethod());
@@ -709,7 +711,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			gateway.setRequestTimeout(-1);
 		}
 		else if (requestTimeout instanceof ValueExpression) {
-			gateway.setRequestTimeout(requestTimeout.getValue(Long.class));
+			Long timeout = requestTimeout.getValue(Long.class);
+			if (timeout != null) {
+				gateway.setRequestTimeout(timeout);
+			}
 		}
 		else {
 			messageMapper.setSendTimeoutExpression(requestTimeout);
@@ -718,7 +723,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			gateway.setReplyTimeout(-1);
 		}
 		else if (replyTimeout instanceof ValueExpression) {
-			gateway.setReplyTimeout(replyTimeout.getValue(Long.class));
+			Long timeout = replyTimeout.getValue(Long.class);
+			if (timeout != null) {
+				gateway.setReplyTimeout(timeout);
+			}
 		}
 		else {
 			messageMapper.setReplyTimeoutExpression(replyTimeout);
@@ -751,6 +759,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 	}
 
 	@SuppressWarnings("unchecked")
+	@Nullable
 	private <T> T convert(Object source, Class<T> expectedReturnType) {
 		if (Future.class.isAssignableFrom(expectedReturnType)) {
 			return (T) source;

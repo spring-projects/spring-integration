@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.groovy;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
@@ -28,6 +29,7 @@ import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import groovy.lang.Binding;
 import groovy.lang.GString;
@@ -38,6 +40,7 @@ import groovy.lang.GString;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Stefan Reuter
+ * @author Gary Russell
  * @since 2.0
  */
 public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
@@ -133,7 +136,9 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 
 	protected String generateScriptName(Message<?> message) {
 		// Don't use the same script (class) name for all invocations by default
-		return getClass().getSimpleName() + message.getHeaders().getId().toString().replaceAll("-", "");
+		UUID id = message.getHeaders().getId();
+		return getClass().getSimpleName()
+				+ (id != null ? id.toString().replaceAll("-", "") : ObjectUtils.getIdentityHexString(message));
 	}
 
 }

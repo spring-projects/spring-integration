@@ -351,10 +351,10 @@ public class IntegrationGraphServer implements ApplicationContextAware, Applicat
 		}
 
 		private MessageGatewayNode gatewayNode(String name, MessagingGatewaySupport gateway) {
-			String errorChannel = gateway.getErrorChannel() != null ? gateway.getErrorChannel().toString() : null;
-			String requestChannel = gateway.getRequestChannel() != null
-					? gateway.getRequestChannel().toString() // NOSONAR not null
-					: null;
+			MessageChannel gwErrorChannel = gateway.getErrorChannel();
+			String errorChannel = gwErrorChannel != null ? gwErrorChannel.toString() : null;
+			MessageChannel gwRequestChannel = gateway.getRequestChannel();
+			String requestChannel = gwRequestChannel != null ? gwRequestChannel.toString() : null;
 			return new MessageGatewayNode(this.nodeId.incrementAndGet(), name, gateway,
 					requestChannel, errorChannel);
 		}

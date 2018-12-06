@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,6 +188,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return mapArgumentsToMessage(arguments, headers);
 	}
 
+	@Nullable
 	private Message<?> mapArgumentsToMessage(Object[] arguments, Map<String, Object> headers) {
 		try {
 			return this.argsMapper.toMessage(new MethodArgsHolder(this.method, arguments), headers);
@@ -220,6 +221,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return context;
 	}
 
+	@Nullable
 	private Object evaluatePayloadExpression(String expressionString, Object argumentValue) {
 		Expression expression =
 				this.parameterPayloadExpressions.computeIfAbsent(expressionString, PARSER::parseExpression);
@@ -317,7 +319,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 					}
 					else if (annotation.annotationType().equals(Header.class)) {
 						String headerName = determineHeaderName(annotation, methodParameter);
-						if ((Boolean) AnnotationUtils.getValue(annotation, "required") && argumentValue == null) {
+						if ((Boolean) AnnotationUtils.getValue(annotation, "required") // NOSONAR never null
+								&& argumentValue == null) {
 							throw new IllegalArgumentException("Received null argument value for required header: '"
 									+ headerName + "'");
 						}
