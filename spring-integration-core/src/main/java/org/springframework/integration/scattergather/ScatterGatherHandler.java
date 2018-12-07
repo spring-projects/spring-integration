@@ -178,7 +178,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 
 	private void checkClass(Class<?> gathererClass, String className, String type) throws LinkageError {
 		try {
-			Class<?> clazz = ClassUtils.forName(className, getApplicationContext().getClassLoader());
+			Class<?> clazz = ClassUtils.forName(className, ClassUtils.getDefaultClassLoader());
 			Assert.isAssignable(clazz, gathererClass, "the '" + type + "' must be an " + className + " instance");
 		}
 		catch (ClassNotFoundException e) {
