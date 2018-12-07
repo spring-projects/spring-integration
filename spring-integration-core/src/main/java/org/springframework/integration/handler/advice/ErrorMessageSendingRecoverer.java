@@ -86,17 +86,24 @@ public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implemen
 
 	@Override
 	protected Throwable payloadWhenNull(AttributeAccessor context) {
-		return new RetryExceptionNotAvailableException(
-				(Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY),
-				"No retry exception available; " +
-						"this can occur, for example, if the RetryPolicy allowed zero attempts " +
-						"to execute the handler; " +
-						"RetryContext: " + context.toString());
+		Message<?> message = (Message<?>) context.getAttribute(ErrorMessageUtils.FAILED_MESSAGE_CONTEXT_KEY);
+		String description = "No retry exception available; " +
+				"this can occur, for example, if the RetryPolicy allowed zero attempts " +
+				"to execute the handler; " +
+				"RetryContext: " + context.toString();
+		return message == null
+				? new RetryExceptionNotAvailableException(description)
+				: new RetryExceptionNotAvailableException(message, description);
 	}
 
 	public static class RetryExceptionNotAvailableException extends MessagingException {
 
 		private static final long serialVersionUID = 1L;
+
+
+		RetryExceptionNotAvailableException(String description) {
+			super(description);
+		}
 
 		public RetryExceptionNotAvailableException(Message<?> message, String description) {
 			super(message, description);

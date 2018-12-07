@@ -325,7 +325,7 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 				Object responseBody = httpResponse.getBody();
 				replyBuilder = (responseBody instanceof Message<?>)
 						? messageBuilderFactory.fromMessage((Message<?>) responseBody)
-						: messageBuilderFactory.withPayload(responseBody);
+						: messageBuilderFactory.withPayload(responseBody); // NOSONAR - hasBody()
 
 			}
 			else {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  * as a SpEL expression against {@code message} and converting result to expected parameter type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  *
@@ -53,7 +54,7 @@ public class PayloadExpressionArgumentResolver extends AbstractExpressionEvaluat
 		Expression expression = this.expressionCache.get(parameter);
 		if (expression == null) {
 			Payload ann = parameter.getParameterAnnotation(Payload.class);
-			expression = EXPRESSION_PARSER.parseExpression(ann.expression());
+			expression = EXPRESSION_PARSER.parseExpression(ann.expression()); // NOSONAR never null - supportsParameter()
 			this.expressionCache.put(parameter, expression);
 		}
 		return evaluateExpression(expression, message.getPayload(), parameter.getParameterType());

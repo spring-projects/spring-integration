@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http.config;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,6 +56,9 @@ class IntegrationGraphControllerRegistrar implements ImportBeanDefinitionRegistr
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		Map<String, Object> annotationAttributes =
 				importingClassMetadata.getAnnotationAttributes(EnableIntegrationGraphController.class.getName());
+		if (annotationAttributes == null) {
+			annotationAttributes = Collections.emptyMap(); // To satisfy sonar for subsequent references
+		}
 
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME)) {
 			registry.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_GRAPH_SERVER_BEAN_NAME,

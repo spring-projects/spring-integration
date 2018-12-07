@@ -26,9 +26,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -76,6 +78,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * them during the {@link BaseHttpInboundEndpoint} destruction.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 3.0
  *
@@ -100,10 +103,12 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
 		if (isHandler(bean.getClass())) {
-			unregisterMapping(getMappingForEndpoint((BaseHttpInboundEndpoint) bean));
+			RequestMappingInfo mapping = getMappingForEndpoint((BaseHttpInboundEndpoint) bean);
+			if (mapping != null) {
+				unregisterMapping(mapping);
+			}
 		}
 	}
 
@@ -141,11 +146,19 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	}
 
 	@Override
-	protected void detectHandlerMethods(Object handler) {
+	protected void detectHandlerMethods(Object handlerArg) {
+		Object handler = handlerArg;
 		if (handler instanceof String) {
-			handler = this.getApplicationContext().getBean((String) handler);
+			ApplicationContext applicationContext = getApplicationContext();
+			if (applicationContext != null) {
+				handler = applicationContext.getBean((String) handler);
+			}
+			else {
+				throw new IllegalStateException("No application context available to lookup bean '"
+						+ handler + "'");
+			}
 		}
-		RequestMappingInfo mapping = this.getMappingForEndpoint((BaseHttpInboundEndpoint) handler);
+		RequestMappingInfo mapping = getMappingForEndpoint((BaseHttpInboundEndpoint) handler);
 		if (mapping != null) {
 			registerMapping(mapping, handler, HANDLE_REQUEST_METHOD);
 		}
@@ -196,6 +209,7 @@ public final class IntegrationRequestMappingHandlerMapping extends RequestMappin
 	 * 'Spring Integration HTTP Inbound Endpoint' {@link RequestMapping}.
 	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
+	@Nullable
 	private RequestMappingInfo getMappingForEndpoint(BaseHttpInboundEndpoint endpoint) {
 		final RequestMapping requestMapping = endpoint.getRequestMapping();
 
