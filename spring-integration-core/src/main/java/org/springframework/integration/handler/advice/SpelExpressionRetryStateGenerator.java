@@ -61,6 +61,7 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 		}
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(beanFactory);
 	}
@@ -69,11 +70,13 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 		this.classifier = classifier;
 	}
 
+	@Override
 	public RetryState determineRetryState(Message<?> message) {
+		Boolean forceRefresh = this.forceRefreshExpression == null
+				? Boolean.FALSE
+				: this.forceRefreshExpression.getValue(this.evaluationContext, message, Boolean.class);
 		return new DefaultRetryState(this.keyExpression.getValue(this.evaluationContext, message),
-				this.forceRefreshExpression == null
-						? false
-						: this.forceRefreshExpression.getValue(this.evaluationContext, message, Boolean.class),
+				forceRefresh == null ? false : forceRefresh,
 				this.classifier);
 	}
 

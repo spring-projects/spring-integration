@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 		Collection<Message<?>> messages = (Collection<Message<?>>) payload;
 
 		if (!this.expressionCache.containsKey(parameter)) {
-			Payloads payloads = parameter.getParameterAnnotation(Payloads.class);
+			Payloads payloads = parameter.getParameterAnnotation(Payloads.class); // NOSONAR never null - supportsParameter()
 			String expression = payloads.value();
 			if (StringUtils.hasText(expression)) {
 				this.expressionCache.put(parameter, EXPRESSION_PARSER.parseExpression("![payload." + expression + "]"));

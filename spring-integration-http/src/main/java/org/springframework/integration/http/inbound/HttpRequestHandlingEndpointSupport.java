@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -339,14 +340,19 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 						.copyHeadersIfAbsent(headers);
 			}
 			else {
+				Assert.state(payload != null, "payload cannot be null");
 				messageBuilder = this.getMessageBuilderFactory().withPayload(payload).copyHeaders(headers);
+			}
+
+			HttpMethod method = httpEntity.getMethod();
+			if (method != null) {
+				messageBuilder.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
+						method.toString());
 			}
 
 			Message<?> message = messageBuilder
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL,
 							httpEntity.getUrl().toString())
-					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
-							httpEntity.getMethod().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL,
 							servletRequest.getUserPrincipal())
 					.build();

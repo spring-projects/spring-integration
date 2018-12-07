@@ -52,13 +52,15 @@ import org.springframework.util.CollectionUtils;
  */
 public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements OrderlyShutdownCapable {
 
-	protected static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
-			BaseHttpInboundEndpoint.class.getClassLoader());
+	protected static final boolean jaxb2Present = // NOSONAR lower case static
+			ClassUtils.isPresent("javax.xml.bind.Binder",
+					BaseHttpInboundEndpoint.class.getClassLoader());
 
-	protected static final boolean romeToolsPresent = ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
-			BaseHttpInboundEndpoint.class.getClassLoader());
+	protected static final boolean romeToolsPresent = // NOSONAR lower case static
+			ClassUtils.isPresent("com.rometools.rome.feed.atom.Feed",
+					BaseHttpInboundEndpoint.class.getClassLoader());
 
-	protected static final List<HttpMethod> nonReadableBodyHttpMethods =
+	protected static final List<HttpMethod> nonReadableBodyHttpMethods = // NOSONAR lower case static
 			Arrays.asList(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS);
 
 	protected final boolean expectReply;
@@ -327,6 +329,8 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	 * @return true or false if HTTP request can contain the body
 	 */
 	protected boolean isReadable(HttpRequest request) {
-		return !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, request.getMethod()));
+		HttpMethod method = request.getMethod();
+		return method == null ? false : !(CollectionUtils.containsInstance(nonReadableBodyHttpMethods, method));
 	}
+
 }

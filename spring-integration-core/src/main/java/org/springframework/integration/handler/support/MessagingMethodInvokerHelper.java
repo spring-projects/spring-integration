@@ -84,6 +84,7 @@ import org.springframework.integration.util.ClassUtils;
 import org.springframework.integration.util.FixedMethodFilter;
 import org.springframework.integration.util.MessagingAnnotationUtils;
 import org.springframework.integration.util.UniqueMethodFilter;
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
@@ -155,7 +156,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private static final Collection<Message<?>> dummyMessages = Collections.emptyList();
 
 	private static final TypeDescriptor messageListTypeDescriptor =
-			new TypeDescriptor(ReflectionUtils.findField(MessagingMethodInvokerHelper.class, "dummyMessages"));
+			new TypeDescriptor(ReflectionUtils.findField(MessagingMethodInvokerHelper.class, // NOSONAR never null
+					"dummyMessages"));
 
 	private static final TypeDescriptor messageArrayTypeDescriptor = TypeDescriptor.valueOf(Message[].class);
 
@@ -291,7 +293,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
+	public void setBeanFactory(@NonNull BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		this.messageHandlerMethodFactory.setBeanFactory(beanFactory);
 		if (beanFactory instanceof ConfigurableListableBeanFactory) {

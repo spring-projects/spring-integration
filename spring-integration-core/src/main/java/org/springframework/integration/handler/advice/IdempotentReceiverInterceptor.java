@@ -171,10 +171,6 @@ public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 	private MessageChannel obtainDiscardChannel() {
 		if (this.discardChannel == null) {
 			if (this.discardChannelName != null) {
-				if (getChannelResolver() == null) {
-					throw new IllegalStateException("No channel resolver available to resolve the discard channel '"
-							+ this.discardChannelName + "'");
-				}
 				this.discardChannel = getChannelResolver()
 						.resolveDestination(this.discardChannelName);
 			}
