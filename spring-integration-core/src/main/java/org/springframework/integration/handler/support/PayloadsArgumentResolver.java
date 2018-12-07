@@ -62,8 +62,8 @@ public class PayloadsArgumentResolver extends AbstractExpressionEvaluator
 		Collection<Message<?>> messages = (Collection<Message<?>>) payload;
 
 		if (!this.expressionCache.containsKey(parameter)) {
-			Payloads payloads = parameter.getParameterAnnotation(Payloads.class); // NOSONAR never null - supportsParameter()
-			String expression = payloads.value();
+			Payloads payloads = parameter.getParameterAnnotation(Payloads.class);
+			String expression = payloads.value(); // NOSONAR never null - supportsParameter()
 			if (StringUtils.hasText(expression)) {
 				this.expressionCache.put(parameter, EXPRESSION_PARSER.parseExpression("![payload." + expression + "]"));
 			}
