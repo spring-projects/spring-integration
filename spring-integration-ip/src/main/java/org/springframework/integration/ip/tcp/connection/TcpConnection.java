@@ -61,6 +61,7 @@ public interface TcpConnection extends Runnable {
 	 * @return The payload.
 	 * @throws Exception Any Exception.
 	 */
+	@Nullable
 	Object getPayload() throws Exception;
 
 	/**
@@ -104,6 +105,7 @@ public interface TcpConnection extends Runnable {
 	/**
 	 * @return this connection's listener
 	 */
+	@Nullable
 	TcpListener getListener();
 
 	/**

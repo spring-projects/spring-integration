@@ -35,6 +35,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.SchedulingAwareRunnable;
+import org.springframework.util.Assert;
 
 /**
  * A TcpConnection that uses and underlying {@link Socket}.
@@ -103,10 +104,11 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 			this.socketOutputStream = new BufferedOutputStream(this.socket.getOutputStream(),
 					writeBufferSize > 0 ? writeBufferSize : 8192);
 		}
-		Object object = this.getMapper().fromMessage(message);
+		Object object = getMapper().fromMessage(message);
+		Assert.state(object != null, "Mapper mapped the message to 'null.");
 		this.lastSend = System.currentTimeMillis();
 		try {
-			((Serializer<Object>) this.getSerializer()).serialize(object, this.socketOutputStream);
+			((Serializer<Object>) getSerializer()).serialize(object, this.socketOutputStream);
 			this.socketOutputStream.flush();
 		}
 		catch (Exception e) {

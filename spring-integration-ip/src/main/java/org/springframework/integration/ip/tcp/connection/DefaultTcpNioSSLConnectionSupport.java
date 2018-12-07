@@ -81,9 +81,6 @@ public class DefaultTcpNioSSLConnectionSupport extends AbstractTcpConnectionSupp
 		postProcessSSLEngine(sslEngine);
 		if (this.sslVerifyHost) {
 			SSLParameters sslParameters = sslEngine.getSSLParameters();
-			if (sslParameters == null) {
-				sslParameters = new SSLParameters();
-			}
 			// HTTPS works for any TCP connection.
 			// It checks SAN (Subject Alternative Name) as well as CN.
 			sslParameters.setEndpointIdentificationAlgorithm("HTTPS");

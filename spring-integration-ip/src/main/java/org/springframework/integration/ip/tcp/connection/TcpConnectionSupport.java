@@ -165,11 +165,15 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 			close();
 		}
 		else {
-			TcpConnectionInterceptor outerInterceptor = (TcpConnectionInterceptor) listener;
-			while (outerInterceptor.getListener() instanceof TcpConnectionInterceptor) {
-				outerInterceptor = (TcpConnectionInterceptor) outerInterceptor.getListener();
+			TcpConnectionInterceptor outerListener = (TcpConnectionInterceptor) listener;
+			while (outerListener.getListener() instanceof TcpConnectionInterceptor) {
+				TcpConnectionInterceptor nextListener = (TcpConnectionInterceptor) outerListener.getListener();
+				if (nextListener == null) {
+					break;
+				}
+				outerListener = nextListener;
 			}
-			outerInterceptor.close();
+			outerListener.close();
 			if (isException) {
 				// ensure physical close in case the interceptor did not close
 				this.close();
@@ -235,7 +239,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * Set the listener that will receive incoming Messages.
 	 * @param listener The listener.
 	 */
-	public void registerListener(TcpListener listener) {
+	public void registerListener(@Nullable TcpListener listener) {
 		this.listener = listener;
 		this.listenerRegisteredLatch.countDown();
 	}
@@ -257,7 +261,7 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * to.
 	 * @param sender the sender.
 	 */
-	public void registerSender(TcpSender sender) {
+	public void registerSender(@Nullable TcpSender sender) {
 		this.sender = sender;
 		if (sender != null) {
 			sender.addNewConnection(this);
@@ -342,11 +346,12 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	}
 
 	protected final void sendExceptionToListener(Exception e) {
-		if (!this.exceptionSent.getAndSet(true) && this.getListener() != null) {
+		TcpListener listenerForException = getListener();
+		if (!this.exceptionSent.getAndSet(true) && listenerForException != null) {
 			Map<String, Object> headers = Collections.singletonMap(IpHeaders.CONNECTION_ID,
 					(Object) this.getConnectionId());
 			ErrorMessage errorMessage = new ErrorMessage(e, headers);
-			this.getListener().onMessage(errorMessage);
+			listenerForException.onMessage(errorMessage);
 		}
 	}
 

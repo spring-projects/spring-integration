@@ -27,6 +27,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -37,6 +38,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandlingException;
@@ -258,7 +260,11 @@ public class UnicastSendingMessageHandler extends
 			startAckThread();
 		}
 		CountDownLatch countdownLatch = null;
-		String messageId = message.getHeaders().getId().toString();
+		UUID id = message.getHeaders().getId();
+		if (id == null) {
+			id = UUID.randomUUID();
+		}
+		String messageId = id.toString();
 		try {
 			boolean waitForAck = this.waitForAck;
 			if (waitForAck) {
@@ -345,10 +351,17 @@ public class UnicastSendingMessageHandler extends
 			destinationAddress = getDestinationAddress();
 		}
 		DatagramPacket packet = this.mapper.fromMessage(message);
-		packet.setSocketAddress(destinationAddress);
-		socket.send(packet);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Sent packet for message " + message + " to " + packet.getSocketAddress());
+		if (packet != null) {
+			packet.setSocketAddress(destinationAddress);
+			socket.send(packet);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Sent packet for message " + message + " to " + packet.getSocketAddress());
+			}
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Mapper created no packet for message " + message);
+			}
 		}
 	}
 
@@ -356,6 +369,7 @@ public class UnicastSendingMessageHandler extends
 		this.socket = socket;
 	}
 
+	@Nullable
 	protected DatagramSocket getTheSocket() {
 		return this.socket;
 	}

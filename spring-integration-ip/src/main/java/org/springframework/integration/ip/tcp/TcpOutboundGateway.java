@@ -62,6 +62,8 @@ import org.springframework.util.Assert;
 public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		implements TcpSender, TcpListener, Lifecycle {
 
+	private static final long DEFAULT_REMOTE_TIMEOUT = 10_000L;
+
 	private static final int DEFAULT_SECOND_CHANCE_DELAY = 2;
 
 	private final Map<String, AsyncReply> pendingReplies = new ConcurrentHashMap<>();
@@ -72,10 +74,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private boolean isSingleUse;
 
-	private Expression remoteTimeoutExpression = new LiteralExpression("10000");
+	private Expression remoteTimeoutExpression = new LiteralExpression(String.valueOf(DEFAULT_REMOTE_TIMEOUT));
 
 	private long requestTimeout = 10000;
-
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	private boolean evaluationContextSet;
@@ -148,8 +149,15 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				}
 			}
 			connection = this.connectionFactory.getConnection();
-			AsyncReply reply = new AsyncReply(this.remoteTimeoutExpression.getValue(this.evaluationContext,
-					requestMessage, Long.class));
+			Long remoteTimeout = this.remoteTimeoutExpression.getValue(this.evaluationContext, requestMessage,
+					Long.class);
+			if (remoteTimeout == null) {
+				remoteTimeout = DEFAULT_REMOTE_TIMEOUT;
+				if (logger.isWarnEnabled()) {
+					logger.warn("remoteTimeoutExpression evaluated to null; falling back to default");
+				}
+			}
+			AsyncReply reply = new AsyncReply(remoteTimeout);
 			connectionId = connection.getConnectionId();
 			this.pendingReplies.put(connectionId, reply);
 			if (logger.isDebugEnabled()) {
