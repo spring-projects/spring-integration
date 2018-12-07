@@ -177,13 +177,13 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 	}
 
 	private void checkClass(Class<?> gathererClass, String className, String type) throws LinkageError {
-		Class<?> clazz = null;
 		try {
-			clazz = ClassUtils.forName(className, getClass().getClassLoader());
+			Class<?> clazz = ClassUtils.forName(className, getApplicationContext().getClassLoader());
+			Assert.isAssignable(clazz, gathererClass, "the '" + type + "' must be an " + className + " instance");
 		}
-		catch (Exception e) {
+		catch (ClassNotFoundException e) {
+			throw new IllegalStateException("The class for '" + className + "' cannot be loaded", e);
 		}
-		Assert.isAssignable(clazz, gathererClass, "the '" + type + "' must be an " + className + " instance");
 	}
 
 }

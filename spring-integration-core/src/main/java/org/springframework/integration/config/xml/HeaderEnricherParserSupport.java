@@ -39,7 +39,6 @@ import org.springframework.integration.transformer.support.ExpressionEvaluatingH
 import org.springframework.integration.transformer.support.MessageProcessingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.RoutingSlipHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -50,15 +49,16 @@ import org.springframework.util.xml.DomUtils;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ *
  * @since 2.0
  */
 public abstract class HeaderEnricherParserSupport extends AbstractTransformerParser {
 
-	private final Map<String, String> elementToNameMap = new HashMap<String, String>();
+	private final static Map<String, String[][]> cannedHeaderElementExpressions = new HashMap<>();
 
-	private final Map<String, Class<?>> elementToTypeMap = new HashMap<String, Class<?>>();
+	private final Map<String, String> elementToNameMap = new HashMap<>();
 
-	private final static Map<String, String[][]> cannedHeaderElementExpressions = new HashMap<String, String[][]>();
+	private final Map<String, String> elementToTypeMap = new HashMap<>();
 
 	static {
 		cannedHeaderElementExpressions.put("header-channels-to-string", new String[][] {
@@ -75,10 +75,10 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	}
 
 	protected final void addElementToHeaderMapping(String elementName, String headerName) {
-		this.addElementToHeaderMapping(elementName, headerName, null);
+		addElementToHeaderMapping(elementName, headerName, null);
 	}
 
-	protected final void addElementToHeaderMapping(String elementName, String headerName, Class<?> headerType) {
+	protected final void addElementToHeaderMapping(String elementName, String headerName, String headerType) {
 		this.elementToNameMap.put(elementName, headerName);
 		if (headerType != null) {
 			this.elementToTypeMap.put(elementName, headerType);
@@ -104,7 +104,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				String headerName = null;
 				Element headerElement = (Element) node;
 				String elementName = node.getLocalName();
-				Class<?> headerType = null;
+				String headerType = null;
 				String expression = null;
 				String overwrite = headerElement.getAttribute("overwrite");
 				if ("header".equals(elementName)) {
@@ -116,24 +116,11 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					if (headerType != null && StringUtils.hasText(headerElement.getAttribute("type"))) {
 						parserContext.getReaderContext().error("The " + elementName
 								+ " header does not accept a 'type' attribute. The required type is ["
-								+ headerType.getName() + "]", element);
+								+ headerType + "]", element);
 					}
 				}
 				if (headerType == null) {
-					String headerTypeName = headerElement.getAttribute("type");
-					if (StringUtils.hasText(headerTypeName)) {
-						ClassLoader classLoader = parserContext.getReaderContext().getBeanClassLoader();
-						if (classLoader == null) {
-							classLoader = getClass().getClassLoader();
-						}
-						try {
-							headerType = ClassUtils.forName(headerTypeName, classLoader);
-						}
-						catch (Exception e) {
-							parserContext.getReaderContext().error("unable to resolve type [" +
-									headerTypeName + "] for header '" + headerName + "'", element, e);
-						}
-					}
+					headerType = headerElement.getAttribute("type");
 				}
 				if (headerName == null) {
 					String ttlExpression = headerElement.getAttribute("time-to-live-expression");
@@ -148,21 +135,20 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 								expression = expression.replace(", ####", "");
 							}
 							overwrite = "true";
-							this.addHeader(element, headers, parserContext, headerName, headerElement, headerType,
+							addHeader(element, headers, parserContext, headerName, headerElement, headerType,
 									expression, overwrite);
 						}
 					}
 				}
 				else {
-					this.addHeader(element, headers, parserContext, headerName, headerElement, headerType, null,
-							overwrite);
+					addHeader(element, headers, parserContext, headerName, headerElement, headerType, null, overwrite);
 				}
 			}
 		}
 	}
 
 	private void addHeader(Element element, ManagedMap<String, Object> headers, ParserContext parserContext,
-			String headerName, Element headerElement, Class<?> headerType, String expression, String overwrite) {
+			String headerName, Element headerElement, String headerType, String expression, String overwrite) {
 
 		String value = headerElement.getAttribute("value");
 		String ref = headerElement.getAttribute(REF_ATTRIBUTE);
@@ -233,15 +219,20 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						"The 'method' attribute cannot be used with the 'value' attribute.", element);
 			}
 			if (IntegrationMessageHeaderAccessor.ROUTING_SLIP.equals(headerName)) {
-				List<String> routingSlipPath = new ManagedList<String>();
+				List<String> routingSlipPath = new ManagedList<>();
 				routingSlipPath.addAll(Arrays.asList(StringUtils.tokenizeToStringArray(value, ";")));
 				valueProcessorBuilder =
 						BeanDefinitionBuilder.genericBeanDefinition(RoutingSlipHeaderValueMessageProcessor.class)
 								.addConstructorArgValue(routingSlipPath);
 			}
 			else {
-				Object headerValue = (headerType != null) ?
-						new TypedStringValue(value, headerType) : value;
+				Object headerValue = value;
+
+				if (StringUtils.hasText(headerType)) {
+					TypedStringValue typedStringValue = new TypedStringValue(value);
+					typedStringValue.setTargetTypeName(headerType);
+					headerValue = typedStringValue;
+				}
 				valueProcessorBuilder =
 						BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
 						.addConstructorArgValue(headerValue);
@@ -280,8 +271,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				}
 			}
 			else {
-				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class);
-				valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
+				valueProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+								.addConstructorArgValue(innerComponentDefinition);
 			}
 		}
 		else {
@@ -296,8 +288,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 								.addConstructorArgValue(method);
 			}
 			else {
-				valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
-						.addConstructorArgReference(ref);
+				valueProcessorBuilder =
+						BeanDefinitionBuilder.genericBeanDefinition(StaticHeaderValueMessageProcessor.class)
+								.addConstructorArgReference(ref);
 			}
 		}
 		if (StringUtils.hasText(overwrite)) {
@@ -312,7 +305,8 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	 * @param element The element.
 	 * @param parserContext The parser context.
 	 */
-	protected void postProcessHeaderEnricher(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+	protected void postProcessHeaderEnricher(BeanDefinitionBuilder builder, Element element,
+			ParserContext parserContext) {
 	}
 
 }
