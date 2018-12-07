@@ -204,7 +204,9 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	 * @return The Server Socket.
 	 * @throws IOException Any IOException.
 	 */
-	protected ServerSocket createServerSocket(int port, int backlog, InetAddress whichNic) throws IOException {
+	protected ServerSocket createServerSocket(int port, int backlog, @Nullable InetAddress whichNic)
+			throws IOException {
+
 		ServerSocketFactory serverSocketFactory = this.tcpSocketFactorySupport.getServerSocketFactory();
 		if (whichNic == null) {
 			return serverSocketFactory.createServerSocket(port, Math.abs(backlog));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.util.SimplePool;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
@@ -392,7 +393,7 @@ public class CachingClientConnectionFactory extends AbstractClientConnectionFact
 
 		private final AtomicBoolean released = new AtomicBoolean();
 
-		private CachedConnection(TcpConnectionSupport connection, TcpListener tcpListener) {
+		private CachedConnection(TcpConnectionSupport connection, @Nullable TcpListener tcpListener) {
 			super.setTheConnection(connection);
 			registerListener(tcpListener);
 		}

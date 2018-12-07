@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @author Artem Bilan
  * @author Glenn Renfro
+ * @author Gary Russell
  *
  * @since 4.3
  */
@@ -169,8 +170,8 @@ public class DefaultLockRepository implements LockRepository, InitializingBean {
 	@Override
 	public boolean isAcquired(String lock) {
 		deleteExpired(lock);
-		return this.template.queryForObject(this.countQuery, Integer.class, this.region, lock, this.id,
-				new Date(System.currentTimeMillis() - this.ttl)) == 1;
+		return this.template.queryForObject(this.countQuery, Integer.class, // NOSONAR query never returns null
+				this.region, lock, this.id, new Date(System.currentTimeMillis() - this.ttl)) == 1;
 	}
 
 	private void deleteExpired(String lock) {

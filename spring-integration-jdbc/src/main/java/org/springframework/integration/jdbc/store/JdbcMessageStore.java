@@ -293,7 +293,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	@ManagedAttribute
 	public long getMessageCount() {
-		return this.jdbcTemplate.queryForObject(getQuery(Query.GET_MESSAGE_COUNT), Long.class, this.region);
+		return this.jdbcTemplate.queryForObject(getQuery(Query.GET_MESSAGE_COUNT), // NOSONAR query never returns null
+				Long.class, this.region);
 	}
 
 	@Override
@@ -355,7 +356,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	public void addMessagesToGroup(Object groupId, Message<?>... messages) {
 		final String groupKey = getKey(groupId);
-		boolean groupNotExist = this.jdbcTemplate.queryForObject(this.getQuery(Query.GROUP_EXISTS),
+		boolean groupNotExist = this.jdbcTemplate.queryForObject(this.getQuery(Query.GROUP_EXISTS), // NOSONAR query never returns null
 				Integer.class, groupKey, this.region) < 1;
 
 		final Timestamp updatedDate = new Timestamp(System.currentTimeMillis());
@@ -399,13 +400,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_GROUPS), Integer.class, this.region);
+		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_GROUPS), // NOSONAR query never returns null
+				Integer.class, this.region);
 	}
 
 	@Override
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
-		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS),
+		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUPS), // NOSONAR query never returns null
 				Integer.class, this.region);
 	}
 
@@ -413,7 +415,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		String key = getKey(groupId);
-		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP),
+		return this.jdbcTemplate.queryForObject(getQuery(Query.COUNT_ALL_MESSAGES_IN_GROUP), // NOSONAR query never returns null
 				Integer.class, key, this.region);
 	}
 
@@ -670,15 +672,18 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	/**
 	 * Convenience class to be used to unpack a message from a result set row. Uses column named in the result set to
 	 * extract the required data, so that select clause ordering is unimportant.
-	 *
-	 * @author Dave Syer
 	 */
 	private class MessageMapper implements RowMapper<Message<?>> {
 
 		@Override
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 			byte[] messageBytes = JdbcMessageStore.this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES");
-			return (Message<?>) JdbcMessageStore.this.deserializer.convert(messageBytes);
+			if (messageBytes == null) {
+				return null;
+			}
+			else {
+				return (Message<?>) JdbcMessageStore.this.deserializer.convert(messageBytes);
+			}
 		}
 
 	}
