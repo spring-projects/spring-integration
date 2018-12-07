@@ -31,6 +31,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.expression.ExpressionUtils;
+import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -74,7 +75,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private boolean isSingleUse;
 
-	private Expression remoteTimeoutExpression = new LiteralExpression(String.valueOf(DEFAULT_REMOTE_TIMEOUT));
+	private Expression remoteTimeoutExpression = new ValueExpression<>(DEFAULT_REMOTE_TIMEOUT);
 
 	private long requestTimeout = 10000;
 	private EvaluationContext evaluationContext = new StandardEvaluationContext();
@@ -154,7 +155,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			if (remoteTimeout == null) {
 				remoteTimeout = DEFAULT_REMOTE_TIMEOUT;
 				if (logger.isWarnEnabled()) {
-					logger.warn("remoteTimeoutExpression evaluated to null; falling back to default");
+					logger.warn("remoteTimeoutExpression evaluated to null; falling back to default for message "
+							+ requestMessage);
 				}
 			}
 			AsyncReply reply = new AsyncReply(remoteTimeout);
