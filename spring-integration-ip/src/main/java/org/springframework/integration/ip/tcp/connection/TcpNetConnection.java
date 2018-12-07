@@ -105,7 +105,7 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 					writeBufferSize > 0 ? writeBufferSize : 8192);
 		}
 		Object object = getMapper().fromMessage(message);
-		Assert.state(object != null, "Mapper mapped the message to 'null.");
+		Assert.state(object != null, "Mapper mapped the message to 'null'.");
 		this.lastSend = System.currentTimeMillis();
 		try {
 			((Serializer<Object>) getSerializer()).serialize(object, this.socketOutputStream);
