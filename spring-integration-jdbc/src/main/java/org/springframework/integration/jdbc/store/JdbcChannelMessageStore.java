@@ -461,7 +461,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 */
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		return this.jdbcTemplate.queryForObject(
+		return this.jdbcTemplate.queryForObject(// NOSONAR query never returns null
 				getQuery(Query.COUNT_GROUPS,
 						() -> "SELECT COUNT(DISTINCT GROUP_KEY) from %PREFIX%CHANNEL_MESSAGE where REGION = ?"),
 				Integer.class, this.region);
@@ -489,7 +489,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
 		final String key = getKey(groupId);
-		return this.jdbcTemplate.queryForObject(
+		return this.jdbcTemplate.queryForObject(// NOSONAR query never returns null
 				getQuery(Query.GROUP_SIZE,
 						() -> this.channelMessageStoreQueryProvider.getCountAllMessagesInGroupQuery()),
 				Integer.class, key, this.region);
@@ -575,7 +575,9 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 		if (messages.size() > 0) {
 
 			final Message<?> message = messages.get(0);
-			final String messageId = message.getHeaders().getId().toString();
+			UUID id = message.getHeaders().getId();
+			Assert.state(id != null, "Messages must have an id header to be stored");
+			final String messageId = id.toString();
 
 			if (this.usingIdCache) {
 				this.idCacheWriteLock.lock();

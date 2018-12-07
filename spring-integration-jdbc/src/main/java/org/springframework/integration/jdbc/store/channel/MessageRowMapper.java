@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,13 @@ public class MessageRowMapper implements RowMapper<Message<?>> {
 
 	@Override
 	public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return (Message<?>) this.deserializer.convert(this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
+		byte[] blobAsBytes = this.lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES");
+		if (blobAsBytes == null) {
+			return null;
+		}
+		else {
+			return (Message<?>) this.deserializer.convert(blobAsBytes);
+		}
 	}
 
 }
