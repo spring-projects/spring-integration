@@ -363,7 +363,16 @@ public class FailoverClientConnectionFactory extends AbstractClientConnectionFac
 					messageBuilder.setHeader(IpHeaders.ACTUAL_CONNECTION_ID,
 							message.getHeaders().get(IpHeaders.CONNECTION_ID));
 				}
-				return this.getListener().onMessage(messageBuilder.build());
+				TcpListener listener = getListener();
+				if (listener == null) {
+					if (this.logger.isDebugEnabled()) {
+						logger.debug("No listener for " + message);
+					}
+					return false;
+				}
+				else {
+					return listener.onMessage(messageBuilder.build());
+				}
 			}
 			else {
 				if (logger.isDebugEnabled()) {

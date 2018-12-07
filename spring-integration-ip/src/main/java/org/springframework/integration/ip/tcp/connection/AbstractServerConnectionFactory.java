@@ -154,6 +154,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 *
 	 * @return the localAddress
 	 */
+	@Nullable
 	public String getLocalAddress() {
 		return this.localAddress;
 	}

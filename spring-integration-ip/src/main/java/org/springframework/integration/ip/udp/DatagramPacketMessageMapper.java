@@ -163,10 +163,13 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 		buffer.put((byte) '=');
 		buffer.put(this.ackAddress.getBytes(this.charset));
 		buffer.put((byte) ';');
-		buffer.put(MessageHeaders.ID.getBytes(this.charset));
-		buffer.put((byte) '=');
-		buffer.put(message.getHeaders().getId().toString().getBytes(this.charset));
-		buffer.put((byte) ';');
+		UUID id = message.getHeaders().getId();
+		if (id != null) {
+			buffer.put(MessageHeaders.ID.getBytes(this.charset));
+			buffer.put((byte) '=');
+			buffer.put(id.toString().getBytes(this.charset));
+			buffer.put((byte) ';');
+		}
 		int headersLength = buffer.position() - 4;
 		buffer.put(bytes);
 		if (this.lengthCheck) {
@@ -199,6 +202,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	}
 
 	@Override
+	@Nullable
 	public Message<byte[]> toMessage(DatagramPacket object) throws Exception {
 		return toMessage(object, null);
 	}

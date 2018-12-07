@@ -152,6 +152,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 						writeBufferSize > 0 ? writeBufferSize : 8192);
 			}
 			Object object = this.getMapper().fromMessage(message);
+			Assert.state(object != null, "Mapper mapped the message to 'null'.");
 			this.lastSend = System.currentTimeMillis();
 			try {
 				((Serializer<Object>) this.getSerializer()).serialize(object, this.bufferedOutputStream);

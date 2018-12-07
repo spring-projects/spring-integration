@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -145,8 +146,12 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	protected void sendAck(Message<byte[]> message) {
 		MessageHeaders headers = message.getHeaders();
 		Object id = headers.get(IpHeaders.ACK_ID);
+		if (id == null) {
+			logger.error("No " + IpHeaders.ACK_ID + " header; cannot send ack");
+			return;
+		}
 		byte[] ack = id.toString().getBytes();
-		String ackAddress = ((String) headers.get(IpHeaders.ACK_ADDRESS)).trim();
+		String ackAddress = (headers.get(IpHeaders.ACK_ADDRESS, String.class)).trim(); // NOSONAR caller checks header
 		Matcher mat = addressPattern.matcher(ackAddress);
 		if (!mat.matches()) {
 			throw new MessagingException(message,
@@ -227,6 +232,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		this.socket = socket;
 	}
 
+	@Nullable
 	protected DatagramSocket getTheSocket() {
 		return this.socket;
 	}
