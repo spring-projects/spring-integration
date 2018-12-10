@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
+import org.springframework.xml.DocumentBuilderFactoryUtils;
 import org.springframework.xml.transform.StringResult;
 
 /**
@@ -35,6 +37,7 @@ import org.springframework.xml.transform.StringResult;
  * {@link DOMResult} and {@link StringResult} implementations.
  *
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class ResultToDocumentTransformer implements ResultTransformer {
 
@@ -42,18 +45,19 @@ public class ResultToDocumentTransformer implements ResultTransformer {
 	private final DocumentBuilderFactory documentBuilderFactory;
 
 
-	public ResultToDocumentTransformer(DocumentBuilderFactory documentBuilderFactory) {
-		this.documentBuilderFactory = documentBuilderFactory;
+	public ResultToDocumentTransformer() {
+		this(DocumentBuilderFactoryUtils.newInstance());
+		this.documentBuilderFactory.setNamespaceAware(true);
 	}
 
-	public ResultToDocumentTransformer() {
-		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
-		this.documentBuilderFactory.setNamespaceAware(true);
+	public ResultToDocumentTransformer(DocumentBuilderFactory documentBuilderFactory) {
+		Assert.notNull(documentBuilderFactory, "'documentBuilderFactory' must not be null.");
+		this.documentBuilderFactory = documentBuilderFactory;
 	}
 
 
 	public Object transformResult(Result result) {
-		Document document = null;
+		Document document;
 		if (DOMResult.class.isAssignableFrom(result.getClass())) {
 			document = createDocumentFromDomResult((DOMResult) result);
 		}

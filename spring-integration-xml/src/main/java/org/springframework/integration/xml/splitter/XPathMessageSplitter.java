@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.util.Assert;
+import org.springframework.xml.DocumentBuilderFactoryUtils;
 import org.springframework.xml.namespace.SimpleNamespaceContext;
 import org.springframework.xml.transform.StringResult;
+import org.springframework.xml.transform.TransformerFactoryUtils;
 import org.springframework.xml.xpath.XPathException;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
@@ -69,7 +71,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  */
 public class XPathMessageSplitter extends AbstractMessageSplitter {
 
-	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	private final TransformerFactory transformerFactory;
 
 	private final Object documentBuilderFactoryMonitor = new Object();
 
@@ -77,22 +79,49 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private javax.xml.xpath.XPathExpression jaxpExpression;
 
-	private volatile boolean createDocuments;
+	private boolean createDocuments;
 
-	private volatile DocumentBuilderFactory documentBuilderFactory;
+	private DocumentBuilderFactory documentBuilderFactory;
 
-	private volatile XmlPayloadConverter xmlPayloadConverter = new DefaultXmlPayloadConverter();
+	private XmlPayloadConverter xmlPayloadConverter = new DefaultXmlPayloadConverter();
 
-	private volatile Properties outputProperties;
+	private Properties outputProperties;
 
-	private volatile boolean iterator = true;
+	private boolean iterator = true;
 
 	public XPathMessageSplitter(String expression) {
-		this(expression, new HashMap<String, String>());
+		this(expression, new HashMap<>());
+	}
+
+	/**
+	 * Construct an instance based on the provided xpath expression and
+	 * {@link TransformerFactory}.
+	 * @param expression the xpath expression for splitting.
+	 * @param transformerFactory the {@link TransformerFactory}
+	 * for parsing and building documents.
+	 * @since 4.3.19
+	 */
+	public XPathMessageSplitter(String expression, TransformerFactory transformerFactory) {
+		this(expression, new HashMap<>(), transformerFactory);
 	}
 
 	public XPathMessageSplitter(String expression, Map<String, String> namespaces) {
-		this(XPathExpressionFactory.createXPathExpression(expression, namespaces));
+		this(expression, namespaces, TransformerFactoryUtils.newInstance());
+	}
+
+	/**
+	 * Construct an instance based on the provided xpath expression, namespaces and
+	 * {@link TransformerFactory}.
+	 * @param expression the xpath expression for splitting.
+	 * @param namespaces the XML namespace for parsing.
+	 * @param transformerFactory the {@link TransformerFactory}
+	 * for parsing and building documents.
+	 * @since 4.3.19
+	 */
+	public XPathMessageSplitter(String expression, Map<String, String> namespaces,
+			TransformerFactory transformerFactory) {
+
+		this(XPathExpressionFactory.createXPathExpression(expression, namespaces), transformerFactory);
 
 		XPath xpath = XPathFactory.newInstance().newXPath();
 		SimpleNamespaceContext namespaceContext = new SimpleNamespaceContext();
@@ -108,12 +137,25 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	}
 
 	public XPathMessageSplitter(XPathExpression xpathExpression) {
-		Assert.notNull(xpathExpression, "'xpathExpression' must not be null.");
-		this.xpathExpression = xpathExpression;
-		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
-		this.documentBuilderFactory.setNamespaceAware(true);
+		this(xpathExpression, TransformerFactoryUtils.newInstance());
 	}
 
+	/**
+	 * Construct an instance based on the provided xpath expression and
+	 * {@link TransformerFactory}.
+	 * @param xpathExpression the xpath expression for splitting.
+	 * @param transformerFactory the {@link TransformerFactory}
+	 * for parsing and building documents.
+	 * @since 4.3.19
+	 */
+	public XPathMessageSplitter(XPathExpression xpathExpression, TransformerFactory transformerFactory) {
+		Assert.notNull(xpathExpression, "'xpathExpression' must not be null.");
+		Assert.notNull(transformerFactory, "'transformerFactory' must not be null.");
+		this.xpathExpression = xpathExpression;
+		this.transformerFactory = transformerFactory;
+		this.documentBuilderFactory = DocumentBuilderFactoryUtils.newInstance();
+		this.documentBuilderFactory.setNamespaceAware(true);
+	}
 
 	public void setCreateDocuments(boolean createDocuments) {
 		this.createDocuments = createDocuments;
@@ -216,7 +258,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 		if (nodes instanceof List) {
 			List<Node> items = (List<Node>) nodes;
-			List<String> splitStrings = new ArrayList<String>(items.size());
+			List<String> splitStrings = new ArrayList<>(items.size());
 			for (Node nodeFromList : items) {
 				StringResult result = new StringResult();
 				transformer.transform(new DOMSource(nodeFromList), result);
@@ -329,6 +371,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 		TransformFunctionIterator(Iterator<Node> delegate,
 				Function<? super Node, ? extends String> function) {
+
 			super(null, delegate, function);
 			this.delegate = delegate;
 		}
