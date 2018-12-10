@@ -53,8 +53,14 @@
 		<header name="foo" xpath-expression="/person/@name" overwrite="true" />
 	</xpath-header-enricher>
 
-	<xpath-header-enricher id="customHeaderEnricher" input-channel="customInput" default-overwrite="true" should-skip-nulls="false">
+	<xpath-header-enricher id="customHeaderEnricher"
+						   input-channel="customInput"
+						   default-overwrite="true"
+						   should-skip-nulls="false"
+						   converter="xmlPayloadConverter">
 		<header name="foo" xpath-expression="/person/@name" overwrite="false" />
 	</xpath-header-enricher>
+
+	<beans:bean id="xmlPayloadConverter" class="org.springframework.integration.xml.DefaultXmlPayloadConverter"/>
 
 </beans:beans>

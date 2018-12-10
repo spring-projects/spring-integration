@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
@@ -35,7 +36,10 @@ import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Document;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.VfsResource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
@@ -48,8 +52,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
+import org.springframework.xml.transform.TransformerFactoryUtils;
 
 /**
  * Thread safe XSLT transformer implementation which returns a transformed
@@ -83,9 +89,9 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	private final ResultTransformer resultTransformer;
 
-	private volatile Resource xslResource;
+	private final Resource xslResource;
 
-	private volatile Templates templates;
+	private Templates templates;
 
 	private String transformerFactoryClassName;
 
@@ -93,21 +99,28 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	private Map<String, Expression> xslParameterMappings;
 
-	private volatile SourceFactory sourceFactory = new DomSourceFactory();
+	private SourceFactory sourceFactory = new DomSourceFactory();
 
-	private volatile boolean resultFactoryExplicitlySet;
+	private boolean resultFactoryExplicitlySet;
 
-	private volatile boolean alwaysUseSourceFactory = false;
+	private boolean alwaysUseSourceFactory = false;
 
-	private volatile boolean alwaysUseResultFactory = false;
+	private boolean alwaysUseResultFactory = false;
 
-	private volatile String[] xsltParamHeaders;
+	private String[] xsltParamHeaders;
 
 	private ClassLoader classLoader;
 
 
 	public XsltPayloadTransformer(Templates templates) {
 		this(templates, null);
+	}
+
+	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) {
+		Assert.notNull(templates, "'templates' must not be null.");
+		this.templates = templates;
+		this.resultTransformer = resultTransformer;
+		this.xslResource = null;
 	}
 
 	public XsltPayloadTransformer(Resource xslResource) {
@@ -119,29 +132,25 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 	}
 
 	public XsltPayloadTransformer(Resource xslResource, String transformerFactoryClassName) {
-		Assert.notNull(xslResource, "'xslResource' must not be null.");
-		Assert.hasText(transformerFactoryClassName, "'transformerFactoryClassName' must not be empty String.");
-		this.xslResource = xslResource;
-		this.transformerFactoryClassName = transformerFactoryClassName;
-		this.resultTransformer = null;
+		this(xslResource, null, transformerFactoryClassName);
 	}
 
-	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer, String transformerFactoryClassName) {
+	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer,
+			String transformerFactoryClassName) {
+
 		Assert.notNull(xslResource, "'xslResource' must not be null.");
+		Assert.isTrue(xslResource instanceof ClassPathResource || xslResource instanceof FileSystemResource ||
+						xslResource instanceof ServletContextResource || xslResource instanceof VfsResource,
+				"Only 'ClassPathResource', 'FileSystemResource', 'ServletContextResource' or 'VfsResource'" +
+						" are supported directly in this transformer. For any other 'Resource' implementations" +
+						" consider to use a 'Templates'-based constructor instantiation.");
 		this.xslResource = xslResource;
 		this.resultTransformer = resultTransformer;
 		this.transformerFactoryClassName = transformerFactoryClassName;
-	}
-
-	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) {
-		Assert.notNull(templates, "'templates' must not be null.");
-		this.templates = templates;
-		this.resultTransformer = resultTransformer;
 	}
 
 	/**
 	 * Sets the SourceFactory.
-	 *
 	 * @param sourceFactory The source factory.
 	 */
 	public void setSourceFactory(SourceFactory sourceFactory) {
@@ -151,7 +160,6 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	/**
 	 * Sets the ResultFactory.
-	 *
 	 * @param resultFactory The result factory.
 	 */
 	@Override
@@ -162,7 +170,6 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	/**
 	 * Specify whether to always use source factory even for directly supported payload types.
-	 *
 	 * @param alwaysUseSourceFactory true to always use the source factory.
 	 */
 	public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
@@ -171,7 +178,6 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 
 	/**
 	 * Specify whether to always use result factory even for directly supported payload types
-	 *
 	 * @param alwaysUseResultFactory true to always use the result factory.
 	 */
 	public void setAlwaysUseResultFactory(boolean alwaysUseResultFactory) {
@@ -182,7 +188,8 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		this.xslParameterMappings = xslParameterMappings;
 	}
 
-	public void setXsltParamHeaders(String[] xsltParamHeaders) {
+	public void setXsltParamHeaders(String... xsltParamHeaders) {
+		Assert.notNull(xsltParamHeaders, "'xsltParamHeaders' must not be null.");
 		this.xsltParamHeaders = Arrays.copyOf(xsltParamHeaders, xsltParamHeaders.length);
 	}
 
@@ -216,15 +223,17 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 	@Override
 	protected void onInit() {
 		super.onInit();
-		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
+		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
 		if (this.templates == null) {
 			TransformerFactory transformerFactory;
 			if (this.transformerFactoryClassName != null) {
 				transformerFactory = TransformerFactory.newInstance(this.transformerFactoryClassName, this.classLoader);
 			}
 			else {
-				transformerFactory = TransformerFactory.newInstance();
+				transformerFactory = TransformerFactoryUtils.newInstance();
 			}
+			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+			transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "file,jar:file");
 			try {
 				this.templates = transformerFactory.newTemplates(createStreamSourceOnResource(this.xslResource));
 			}
@@ -284,13 +293,16 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		return transformSource(source, payload, transformer);
 	}
 
-	private Object transformSource(Source source, Object payload, Transformer transformer) throws TransformerException {
+	private Object transformSource(Source source, Object payload, Transformer transformer)
+			throws TransformerException {
+
 		Result result;
-		if (!this.resultFactoryExplicitlySet && "text".equals(transformer.getOutputProperties().getProperty("method"))) {
+		if (!this.resultFactoryExplicitlySet &&
+				"text".equals(transformer.getOutputProperties().getProperty("method"))) {
 			result = new StringResult();
 		}
 		else {
-			result = this.getResultFactory().createResult(payload);
+			result = getResultFactory().createResult(payload);
 		}
 		transformer.transform(source, result);
 		if (this.resultTransformer != null) {
@@ -320,7 +332,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 		else {
 			source = new DOMSource(documentPayload);
 		}
-		Result result = this.getResultFactory().createResult(documentPayload);
+		Result result = getResultFactory().createResult(documentPayload);
 		if (!DOMResult.class.isAssignableFrom(result.getClass())) {
 			throw new MessagingException(
 					"Document to Document conversion requires a DOMResult-producing ResultFactory implementation.");

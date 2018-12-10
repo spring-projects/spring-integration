@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,23 +23,26 @@ import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
+import org.springframework.xml.DocumentBuilderFactoryUtils;
 
 /**
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class DomResultFactory implements ResultFactory {
 
 	private final DocumentBuilderFactory documentBuilderFactory;
 
 
-	public DomResultFactory(DocumentBuilderFactory documentBuilderFactory) {
-		this.documentBuilderFactory = documentBuilderFactory;
+	public DomResultFactory() {
+		this(DocumentBuilderFactoryUtils.newInstance());
+		this.documentBuilderFactory.setNamespaceAware(true);
 	}
 
-	public DomResultFactory() {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(true);
-		this.documentBuilderFactory = factory;
+	public DomResultFactory(DocumentBuilderFactory documentBuilderFactory) {
+		Assert.notNull(documentBuilderFactory, "'documentBuilderFactory' must not be null.");
+		this.documentBuilderFactory = documentBuilderFactory;
 	}
 
 

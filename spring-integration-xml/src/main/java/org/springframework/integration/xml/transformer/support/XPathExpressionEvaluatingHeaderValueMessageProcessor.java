@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,31 +38,55 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
 */
 public class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor<Object>,
 		BeanFactoryAware {
 
-	private static final XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
-
 	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 
 	private final XPathExpression expression;
 
-	private volatile XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
+	private final XmlPayloadConverter converter;
 
-	private volatile TypeDescriptor headerTypeDescriptor;
+	private XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
 
-	private volatile Boolean overwrite = null;
+	private TypeDescriptor headerTypeDescriptor;
+
+	private Boolean overwrite;
 
 	public XPathExpressionEvaluatingHeaderValueMessageProcessor(String expression) {
-		Assert.hasText(expression, "expression must have text");
-		this.expression = XPathExpressionFactory.createXPathExpression(expression);
+		this(expression, new DefaultXmlPayloadConverter());
+	}
+
+	/**
+	 * Construct an instance based on the provided xpath expression and {@link XmlPayloadConverter}.
+	 * @param expression the xpath expression to evaluate.
+	 * @param converter the {@link XmlPayloadConverter} to use for document conversion.
+	 * @since 4.3.19
+	 */
+	public XPathExpressionEvaluatingHeaderValueMessageProcessor(String expression, XmlPayloadConverter converter) {
+		this(XPathExpressionFactory.createXPathExpression(expression), converter);
 	}
 
 	public XPathExpressionEvaluatingHeaderValueMessageProcessor(XPathExpression expression) {
-		Assert.notNull(expression, "expression must not be null");
+		this(expression, new DefaultXmlPayloadConverter());
+	}
+
+	/**
+	 * Construct an instance based on the provided xpath expression and {@link XmlPayloadConverter}.
+	 * @param expression the xpath expression to evaluate.
+	 * @param converter the {@link XmlPayloadConverter} to use for document conversion.
+	 * @since 4.3.19
+	 */
+	public XPathExpressionEvaluatingHeaderValueMessageProcessor(XPathExpression expression,
+			XmlPayloadConverter converter) {
+
+		Assert.notNull(expression, "'expression' must not be null.");
+		Assert.notNull(converter, "'converter' must not be null.");
 		this.expression = expression;
+		this.converter = converter;
 	}
 
 	public void setEvaluationType(XPathEvaluationType evaluationType) {
@@ -94,7 +118,7 @@ public class XPathExpressionEvaluatingHeaderValueMessageProcessor implements Hea
 
 	@Override
 	public Object processMessage(Message<?> message) {
-		Node node = converter.convertToNode(message.getPayload());
+		Node node = this.converter.convertToNode(message.getPayload());
 		Object result = this.evaluationType.evaluateXPath(this.expression, node);
 		if (result instanceof String && ((String) result).length() == 0) {
 			result = null;
@@ -106,4 +130,5 @@ public class XPathExpressionEvaluatingHeaderValueMessageProcessor implements Hea
 			return result;
 		}
 	}
+
 }

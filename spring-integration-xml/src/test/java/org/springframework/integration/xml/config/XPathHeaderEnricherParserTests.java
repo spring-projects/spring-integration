@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,16 @@
 package org.springframework.integration.xml.config;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,12 +41,13 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.SmartLifecycleRoleController;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transformer.support.HeaderValueMessageProcessor;
+import org.springframework.integration.xml.transformer.support.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.MultiValueMap;
 
 /**
@@ -52,8 +57,7 @@ import org.springframework.util.MultiValueMap;
  *
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class XPathHeaderEnricherParserTests {
 
@@ -66,11 +70,12 @@ public class XPathHeaderEnricherParserTests {
 	@Autowired
 	private ApplicationContext context;
 
-	private final Message<?> message = MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
+	private final Message<?> message =
+			MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();
 
 
 	@Test
-	public void testParse() throws Exception {
+	public void testParse() {
 		EventDrivenConsumer consumer = (EventDrivenConsumer) context.getBean("parseOnly");
 		assertEquals(2, TestUtils.getPropertyValue(consumer, "handler.order"));
 		assertEquals(123L, TestUtils.getPropertyValue(consumer, "handler.messagingTemplate.sendTimeout"));
@@ -115,35 +120,36 @@ public class XPathHeaderEnricherParserTests {
 	public void nodeListResult() {
 		Message<?> result = this.getResultMessage();
 		Object header = result.getHeaders().get("node-list-test");
-		assertTrue(List.class.isAssignableFrom(header.getClass()));
+		assertThat(header, instanceOf(List.class));
 		List<Node> nodeList = (List<Node>) header;
+		assertNotNull(nodeList);
 		assertEquals(3, nodeList.size());
 	}
 
 	@Test
 	public void expressionRef() {
-		Message<?> result = this.getResultMessage();
-		assertEquals(new Double(84), result.getHeaders().get("ref-test"));
+		Message<?> result = getResultMessage();
+		assertEquals(84d, result.getHeaders().get("ref-test"));
 	}
 
 	@Test
-	public void defaultOverwrite() {
-		assertEquals(false, this.getEnricherProperty("defaultHeaderEnricher", "defaultOverwrite"));
+	public void testDefaultHeaderEnricher() {
+		assertFalse(getEnricherProperty("defaultHeaderEnricher", "defaultOverwrite"));
+		assertTrue(getEnricherProperty("defaultHeaderEnricher", "shouldSkipNulls"));
 	}
 
 	@Test
-	public void defaultShouldSkipNulls() {
-		assertEquals(true, this.getEnricherProperty("defaultHeaderEnricher", "shouldSkipNulls"));
-	}
-
-	@Test
-	public void customOverwrite() {
-		assertEquals(true, this.getEnricherProperty("customHeaderEnricher", "defaultOverwrite"));
-	}
-
-	@Test
-	public void customShouldSkipNulls() {
-		assertEquals(false, this.getEnricherProperty("customHeaderEnricher", "shouldSkipNulls"));
+	@SuppressWarnings("unchecked")
+	public void testCustomHeaderEnricher() {
+		assertTrue(getEnricherProperty("customHeaderEnricher", "defaultOverwrite"));
+		assertFalse(getEnricherProperty("customHeaderEnricher", "shouldSkipNulls"));
+		Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd =
+				TestUtils.getPropertyValue(this.context.getBean("customHeaderEnricher"),
+						"handler.transformer.headersToAdd", Map.class);
+		HeaderValueMessageProcessor<?> headerValueMessageProcessor = headersToAdd.get("foo");
+		assertThat(headerValueMessageProcessor, instanceOf(XPathExpressionEvaluatingHeaderValueMessageProcessor.class));
+		assertSame(this.context.getBean("xmlPayloadConverter"),
+				TestUtils.getPropertyValue(headerValueMessageProcessor, "converter"));
 	}
 
 	@Test
@@ -155,6 +161,7 @@ public class XPathHeaderEnricherParserTests {
 				.build();
 		this.context.getBean("defaultInput", MessageChannel.class).send(request);
 		Message<?> reply = replyChannel.receive();
+		assertNotNull(reply);
 		assertEquals("John Doe", reply.getHeaders().get("foo"));
 	}
 
@@ -167,6 +174,7 @@ public class XPathHeaderEnricherParserTests {
 				.build();
 		this.context.getBean("customInput", MessageChannel.class).send(request);
 		Message<?> reply = replyChannel.receive();
+		assertNotNull(reply);
 		assertEquals("bar", reply.getHeaders().get("foo"));
 	}
 
@@ -180,7 +188,7 @@ public class XPathHeaderEnricherParserTests {
 		Object endpoint = this.context.getBean(beanName);
 		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		Object enricher = new DirectFieldAccessor(handler).getPropertyValue("transformer");
-		return ((Boolean) new DirectFieldAccessor(enricher).getPropertyValue(propertyName)).booleanValue();
+		return (boolean) new DirectFieldAccessor(enricher).getPropertyValue(propertyName);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
+import org.springframework.xml.DocumentBuilderFactoryUtils;
 
 /**
  * {@link SourceFactory} implementation which supports creation of a {@link DOMSource}
@@ -36,6 +38,7 @@ import org.springframework.messaging.MessagingException;
  *
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class DomSourceFactory implements SourceFactory {
 
@@ -43,12 +46,12 @@ public class DomSourceFactory implements SourceFactory {
 
 
 	public DomSourceFactory() {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setNamespaceAware(true);
-		this.documentBuilderFactory = factory;
+		this(DocumentBuilderFactoryUtils.newInstance());
+		this.documentBuilderFactory.setNamespaceAware(true);
 	}
 
 	public DomSourceFactory(DocumentBuilderFactory documentBuilderFactory) {
+		Assert.notNull(documentBuilderFactory, "'documentBuilderFactory' must not be null.");
 		this.documentBuilderFactory = documentBuilderFactory;
 	}
 
@@ -87,7 +90,7 @@ public class DomSourceFactory implements SourceFactory {
 
 	private DOMSource createDomSourceForFile(File file) {
 		try {
-			Document document = this.getNewDocumentBuilder().parse(file);
+			Document document = getNewDocumentBuilder().parse(file);
 			return new DOMSource(document.getDocumentElement());
 		}
 		catch (Exception e) {

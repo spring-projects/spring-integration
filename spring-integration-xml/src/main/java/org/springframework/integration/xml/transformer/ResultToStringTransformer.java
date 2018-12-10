@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,9 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
 import org.springframework.xml.transform.StringResult;
+import org.springframework.xml.transform.TransformerFactoryUtils;
 
 /**
  * Converts the passed {@link Result} to an instance of {@link String}.
@@ -35,16 +37,27 @@ import org.springframework.xml.transform.StringResult;
  *
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ResultToStringTransformer implements ResultTransformer {
 
-	private volatile Properties outputProperties;
-
 	private final TransformerFactory transformerFactory;
+
+	private Properties outputProperties;
 
 
 	public ResultToStringTransformer() {
-		this.transformerFactory = TransformerFactory.newInstance();
+		this.transformerFactory = TransformerFactoryUtils.newInstance();
+	}
+
+	/**
+	 * Construct an instance based on the provided {@link TransformerFactory}.
+	 * @param transformerFactory the {@link TransformerFactory} to use.
+	 * @since 4.3.19
+	 */
+	public ResultToStringTransformer(TransformerFactory transformerFactory) {
+		Assert.notNull(transformerFactory, "'transformerFactory' must not be null.");
+		this.transformerFactory = transformerFactory;
 	}
 
 
@@ -55,12 +68,12 @@ public class ResultToStringTransformer implements ResultTransformer {
 	public Object transformResult(Result result) {
 		String returnString = null;
 		if (result instanceof StringResult) {
-			returnString = ((StringResult) result).toString();
+			returnString = result.toString();
 		}
 		else if (result instanceof DOMResult) {
 			try {
 				StringResult stringResult = new StringResult();
-				this.getNewTransformer().transform(
+				getNewTransformer().transform(
 						new DOMSource(((DOMResult) result).getNode()), stringResult);
 				returnString = stringResult.toString();
 			}
@@ -76,7 +89,7 @@ public class ResultToStringTransformer implements ResultTransformer {
 	}
 
 	private Transformer getNewTransformer() throws TransformerConfigurationException {
-		Transformer transformer = null;
+		Transformer transformer;
 		synchronized (this.transformerFactory) {
 			transformer = this.transformerFactory.newTransformer();
 		}

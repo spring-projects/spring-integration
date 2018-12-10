@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,11 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
+import org.springframework.xml.transform.TransformerFactoryUtils;
 
 /**
  * {@link SourceFactory} implementation which supports creation of a {@link StringSource}
@@ -37,6 +39,7 @@ import org.springframework.xml.transform.StringSource;
  *
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class StringSourceFactory implements SourceFactory {
 
@@ -44,10 +47,11 @@ public class StringSourceFactory implements SourceFactory {
 
 
 	public StringSourceFactory() {
-		this(TransformerFactory.newInstance());
+		this(TransformerFactoryUtils.newInstance());
 	}
 
 	public StringSourceFactory(TransformerFactory transformerFactory) {
+		Assert.notNull(transformerFactory, "'transformerFactory' must not be null.");
 		this.transformerFactory = transformerFactory;
 	}
 
