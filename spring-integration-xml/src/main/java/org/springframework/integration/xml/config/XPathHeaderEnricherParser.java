@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class XPathHeaderEnricherParser extends AbstractTransformerParser {
@@ -46,7 +47,7 @@ public class XPathHeaderEnricherParser extends AbstractTransformerParser {
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		ManagedMap<String, Object> headers = new ManagedMap<String, Object>();
-		this.processHeaders(element, headers, parserContext);
+		processHeaders(element, headers, parserContext);
 		builder.addConstructorArgValue(headers);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-overwrite");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "should-skip-nulls");
@@ -54,6 +55,7 @@ public class XPathHeaderEnricherParser extends AbstractTransformerParser {
 
 	protected void processHeaders(Element element, ManagedMap<String, Object> headers, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
+		String converter = element.getAttribute("converter");
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node node = childNodes.item(i);
@@ -62,20 +64,25 @@ public class XPathHeaderEnricherParser extends AbstractTransformerParser {
 				String elementName = node.getLocalName();
 				if ("header".equals(elementName)) {
 					BeanDefinitionBuilder builder =
-							BeanDefinitionBuilder.genericBeanDefinition(XPathExpressionEvaluatingHeaderValueMessageProcessor.class);
+							BeanDefinitionBuilder.genericBeanDefinition(
+									XPathExpressionEvaluatingHeaderValueMessageProcessor.class);
 					String expressionString = headerElement.getAttribute("xpath-expression");
 					String expressionRef = headerElement.getAttribute("xpath-expression-ref");
 					boolean isExpressionString = StringUtils.hasText(expressionString);
 					boolean isExpressionRef = StringUtils.hasText(expressionRef);
-					if (!(isExpressionString ^ isExpressionRef)) {
+					if (isExpressionString == isExpressionRef) {
 						parserContext.getReaderContext().error(
-								"Exactly one of the 'xpath-expression' or 'xpath-expression-ref' attributes is required.", source);
+								"Exactly one of the 'xpath-expression' " +
+										"or 'xpath-expression-ref' attributes is required.", source);
 					}
 					if (isExpressionString) {
 						builder.addConstructorArgValue(expressionString);
 					}
 					else {
 						builder.addConstructorArgReference(expressionRef);
+					}
+					if (StringUtils.hasText(converter)) {
+						builder.addConstructorArgReference(converter);
 					}
 					IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, headerElement, "evaluation-type");
 					IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, headerElement, "overwrite");

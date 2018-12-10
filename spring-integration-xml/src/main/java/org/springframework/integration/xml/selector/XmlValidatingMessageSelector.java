@@ -21,7 +21,6 @@ import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.xml.sax.SAXParseException;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessageRejectedException;
@@ -41,6 +40,8 @@ import org.springframework.xml.validation.XmlValidatorFactory;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Liujiong
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class XmlValidatingMessageSelector implements MessageSelector {
@@ -63,19 +64,13 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	}
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private final XmlValidator xmlValidator;
 
-	private volatile boolean throwExceptionOnRejection;
+	private boolean throwExceptionOnRejection;
 
-	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
-
-
-	public XmlValidatingMessageSelector(XmlValidator xmlValidator) {
-		Assert.notNull(xmlValidator, "XmlValidator must not be null");
-		this.xmlValidator = xmlValidator;
-	}
+	private XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
 
 	/**
@@ -83,23 +78,28 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 	 * the provided 'schema' location {@link Resource} and 'schemaType'. The valid options for schema
 	 * type are {@link XmlValidatorFactory#SCHEMA_W3C_XML} or {@link XmlValidatorFactory#SCHEMA_RELAX_NG}.
 	 * If no 'schemaType' is provided it will default to {@link XmlValidatorFactory#SCHEMA_W3C_XML};
-	 *
 	 * @param schema The schema.
 	 * @param schemaType The schema type.
-	 *
 	 * @throws IOException if the XmlValidatorFactory fails to create a validator
 	 */
 	public XmlValidatingMessageSelector(Resource schema, SchemaType schemaType) throws IOException {
-		Assert.notNull(schema, "You must provide XML schema location to perform validation");
-		if (schemaType == null) {
-			schemaType = SchemaType.XML_SCHEMA;
-		}
-		this.xmlValidator = XmlValidatorFactory.createValidator(schema, schemaType.getUrl());
+		this(XmlValidatorFactory.createValidator(schema,
+				schemaType == null
+						? SchemaType.XML_SCHEMA.getUrl()
+						: schemaType.getUrl()));
 	}
 
+	public XmlValidatingMessageSelector(XmlValidator xmlValidator) {
+		Assert.notNull(xmlValidator, "XmlValidator must not be null");
+		this.xmlValidator = xmlValidator;
+	}
+
+
 	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
-		this(schema, StringUtils.isEmpty(schemaType) ? null :
-				SchemaType.valueOf(schemaType.toUpperCase().replaceFirst("-", "_")));
+		this(schema,
+				StringUtils.isEmpty(schemaType)
+						? null
+						: SchemaType.valueOf(schemaType.toUpperCase().replaceFirst("-", "_")));
 	}
 
 
@@ -119,7 +119,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 
 	@Override
 	public boolean accept(Message<?> message) {
-		SAXParseException[] validationExceptions = null;
+		Throwable[] validationExceptions = null;
 		try {
 			validationExceptions = this.xmlValidator.validate(this.converter.convertToSource(message.getPayload()));
 		}
@@ -130,10 +130,12 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		if (!validationSuccess) {
 			if (this.throwExceptionOnRejection) {
 				throw new MessageRejectedException(message, "Message was rejected due to XML Validation errors",
-						new AggregatedXmlMessageValidationException(
-								Arrays.<Throwable>asList(validationExceptions)));
+						new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)));
 			}
-			this.logger.debug("Message was rejected due to XML Validation errors");
+			else if (this.logger.isInfoEnabled()) {
+				this.logger.info("Message was rejected due to XML Validation errors",
+						new AggregatedXmlMessageValidationException(Arrays.asList(validationExceptions)));
+			}
 		}
 		return validationSuccess;
 	}

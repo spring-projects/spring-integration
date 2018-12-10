@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import org.w3c.dom.Node;
 
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.xml.DocumentBuilderFactoryUtils;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathException;
 import org.springframework.xml.xpath.XPathExpression;
@@ -41,6 +41,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * Utility class for 'xpath' support.
  *
  * @author Artem Bilan
+ *
  * @since 3.0
  */
 public final class XPathUtils {
@@ -57,31 +58,36 @@ public final class XPathUtils {
 
 	public static final String DOCUMENT_LIST = "document_list";
 
-	private static List<String> RESULT_TYPES = Arrays.asList(STRING, BOOLEAN, NUMBER, NODE, NODE_LIST, DOCUMENT_LIST);
+	private static final List<String> RESULT_TYPES =
+			Arrays.asList(STRING, BOOLEAN, NUMBER, NODE, NODE_LIST, DOCUMENT_LIST);
 
-	private static XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
+	private static final XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
-	private static DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	private static final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactoryUtils.newInstance();
+
+	static {
+		documentBuilderFactory.setNamespaceAware(true);
+	}
 
 	/**
 	 * Utility method to evaluate an xpath on the provided object.
 	 * Delegates evaluation to an {@link XPathExpression}.
 	 * Note this method provides the {@code #xpath()} SpEL function.
-	 *
-	 *
-	 * @param o         the xml Object for evaluaton.
-	 * @param xpath     an 'xpath' expression String.
+	 * @param object the xml Object for evaluation.
+	 * @param xpath an 'xpath' expression String.
 	 * @param resultArg an optional parameter to represent the result type of the xpath evaluation.
-	 *                  Only one argument is allowed, which can be an instance of {@link org.springframework.xml.xpath.NodeMapper} or
-	 *                  one of these String constants: "string", "boolean", "number", "node" or "node_list".
-	 * @param <T>       The required return type.
+	 * Only one argument is allowed, which can be an instance of
+	 * {@link org.springframework.xml.xpath.NodeMapper} or
+	 * one of these String constants: "string", "boolean", "number", "node" or "node_list".
+	 * @param <T> The required return type.
 	 * @return the result of the xpath expression evaluation.
 	 * @throws IllegalArgumentException - if the provided arguments aren't appropriate types or values;
-	 * @throws MessagingException - if the provided object can't be converted to a {@link Node};
+	 * @throws org.springframework.messaging.MessagingException - if the provided
+	 * object can't be converted to a {@link Node};
 	 * @throws XPathException - if the xpath expression can't be evaluated.
 	 */
-	@SuppressWarnings({"unchecked"})
-	public static <T> T evaluate(Object o, String xpath, Object... resultArg) {
+	@SuppressWarnings({ "unchecked" })
+	public static <T> T evaluate(Object object, String xpath, Object... resultArg) {
 		Object resultType = null;
 		if (resultArg != null && resultArg.length > 0) {
 			Assert.isTrue(resultArg.length == 1, "'resultArg' can contains only one element.");
@@ -90,7 +96,7 @@ public final class XPathUtils {
 		}
 
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression(xpath);
-		Node node = converter.convertToNode(o);
+		Node node = converter.convertToNode(object);
 
 		if (resultType == null) {
 			return (T) expression.evaluateAsString(node);
@@ -101,7 +107,8 @@ public final class XPathUtils {
 		else if (resultType instanceof String && RESULT_TYPES.contains(resultType)) {
 			String resType = (String) resultType;
 			if (DOCUMENT_LIST.equals(resType)) {
-				List<Node> nodeList = (List<Node>) XPathEvaluationType.NODE_LIST_RESULT.evaluateXPath(expression, node);
+				List<Node> nodeList = (List<Node>) XPathEvaluationType.NODE_LIST_RESULT.evaluateXPath(expression,
+						node);
 				try {
 					DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 					List<Node> documents = new ArrayList<Node>(nodeList.size());

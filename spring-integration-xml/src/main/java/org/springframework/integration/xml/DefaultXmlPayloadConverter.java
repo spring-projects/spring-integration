@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import org.springframework.messaging.MessagingException;
+import org.springframework.util.Assert;
+import org.springframework.xml.DocumentBuilderFactoryUtils;
 import org.springframework.xml.transform.StringSource;
 
 /**
@@ -49,11 +51,12 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
 
 	public DefaultXmlPayloadConverter() {
-		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		this(DocumentBuilderFactoryUtils.newInstance());
 		this.documentBuilderFactory.setNamespaceAware(true);
 	}
 
 	public DefaultXmlPayloadConverter(DocumentBuilderFactory documentBuilderFactory) {
+		Assert.notNull(documentBuilderFactory, "'documentBuilderFactory' must not be null.");
 		this.documentBuilderFactory = documentBuilderFactory;
 	}
 
@@ -116,7 +119,7 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
 	@Override
 	public Node convertToNode(Object object) {
-		Node node = null;
+		Node node;
 		if (object instanceof Node) {
 			node = (Node) object;
 		}
@@ -131,7 +134,7 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
 	@Override
 	public Source convertToSource(Object object) {
-		Source source = null;
+		Source source;
 		if (object instanceof Source) {
 			source = (Source) object;
 		}
