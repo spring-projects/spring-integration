@@ -144,7 +144,7 @@ public class TcpOutboundGatewayTests {
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
 		// check the default remote timeout
-		assertEquals("10000", TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.literalValue"));
+		assertEquals(10000L, TestUtils.getPropertyValue(gateway, "remoteTimeoutExpression.value"));
 		gateway.setSendTimeout(123);
 		gateway.setRemoteTimeout(60000);
 		gateway.setSendTimeout(61000);
