@@ -60,6 +60,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean {
 
@@ -69,43 +70,41 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	public final static String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR safe to use final
 
 	private final URLName url;
 
 	private final Object folderMonitor = new Object();
 
-	private volatile String protocol;
+	private String protocol;
 
-	private volatile int maxFetchSize = -1;
+	private int maxFetchSize = -1;
 
-	private volatile Session session;
+	private Session session;
+
+	private boolean shouldDeleteMessages;
+
+	private int folderOpenMode = Folder.READ_ONLY;
+
+	private Properties javaMailProperties = new Properties();
+
+	private Authenticator javaMailAuthenticator;
+
+	private StandardEvaluationContext evaluationContext;
+
+	private Expression selectorExpression;
+
+	private HeaderMapper<MimeMessage> headerMapper;
+
+	private String userFlag = DEFAULT_SI_USER_FLAG;
+
+	private boolean embeddedPartsAsBytes = true;
+
+	private boolean simpleContent;
 
 	private volatile Store store;
 
 	private volatile Folder folder;
-
-	private volatile boolean shouldDeleteMessages;
-
-	protected volatile int folderOpenMode = Folder.READ_ONLY;
-
-	private volatile Properties javaMailProperties = new Properties();
-
-	private volatile Authenticator javaMailAuthenticator;
-
-	private volatile StandardEvaluationContext evaluationContext;
-
-	private volatile Expression selectorExpression;
-
-	private volatile HeaderMapper<MimeMessage> headerMapper;
-
-	protected volatile boolean initialized;
-
-	private volatile String userFlag = DEFAULT_SI_USER_FLAG;
-
-	private volatile boolean embeddedPartsAsBytes = true;
-
-	private volatile boolean simpleContent;
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -283,6 +282,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		return this.folder;
 	}
 
+	protected int getFolderOpenMode() {
+		return this.folderOpenMode;
+	}
+
 	/**
 	 * Subclasses must implement this method to return new mail messages.
 	 *
@@ -291,7 +294,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	protected abstract Message[] searchForNewMessages() throws MessagingException;
 
-	private void openSession() throws MessagingException {
+	private void openSession() {
 		if (this.session == null) {
 			if (this.javaMailAuthenticator != null) {
 				this.session = Session.getInstance(this.javaMailProperties, this.javaMailAuthenticator);
@@ -316,7 +319,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 		if (!this.store.isConnected()) {
 			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("connecting to store [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
+				this.logger.debug("connecting to store [" + this.store.getURLName() + "]");
 			}
 			this.store.connect();
 		}
@@ -338,7 +341,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			return;
 		}
 		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("opening folder [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
+			this.logger.debug("opening folder [" + this.folder.getURLName() + "]");
 		}
 		this.folder.open(this.folderOpenMode);
 	}
@@ -353,7 +356,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			try {
 				this.openFolder();
 				if (this.logger.isInfoEnabled()) {
-					this.logger.info("attempting to receive mail from folder [" + this.getFolder().getFullName() + "]");
+					this.logger.info("attempting to receive mail from folder [" + getFolder().getFullName() + "]");
 				}
 				Message[] messages = searchForNewMessages();
 				if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
@@ -496,17 +499,18 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * will be filtered out and remain on the server as never touched.
 	 */
 	private MimeMessage[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
-		List<MimeMessage> filteredMessages = new LinkedList<MimeMessage>();
+		List<MimeMessage> filteredMessages = new LinkedList<>();
 		for (int i = 0; i < messages.length; i++) {
 			MimeMessage message = (MimeMessage) messages[i];
 			if (this.selectorExpression != null) {
-				if (this.selectorExpression.getValue(this.evaluationContext, message, Boolean.class)) {
+				if (Boolean.TRUE.equals(
+						this.selectorExpression.getValue(this.evaluationContext, message, Boolean.class))) {
 					filteredMessages.add(message);
 				}
 				else {
 					if (this.logger.isDebugEnabled()) {
-						this.logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
-										" and will not be flagged as SEEN.");
+						this.logger.debug("Fetched email with subject '" + message.getSubject()
+								+ "' will be discarded by the matching filter and will not be flagged as SEEN.");
 					}
 				}
 			}
@@ -514,7 +518,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				filteredMessages.add(message);
 			}
 		}
-		return filteredMessages.toArray(new MimeMessage[filteredMessages.size()]);
+		return filteredMessages.toArray(new MimeMessage[0]);
 	}
 
 	/**
@@ -562,7 +566,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			MailTransportUtils.closeService(this.store);
 			this.folder = null;
 			this.store = null;
-			this.initialized = false;
 		}
 	}
 
@@ -571,7 +574,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		super.onInit();
 		this.folderOpenMode = Folder.READ_WRITE;
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-		this.initialized = true;
 	}
 
 	@Override

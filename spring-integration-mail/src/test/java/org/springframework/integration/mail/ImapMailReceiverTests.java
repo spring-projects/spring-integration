@@ -64,7 +64,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.search.AndTerm;
 import javax.mail.search.FlagTerm;
 import javax.mail.search.FromTerm;
-import javax.mail.search.SearchTerm;
 
 import org.apache.commons.logging.Log;
 import org.junit.AfterClass;
@@ -254,6 +253,8 @@ public class ImapMailReceiverTests {
 		assertNotNull(channel.receive(10000)); // new message after idle
 		assertNull(channel.receive(100)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
+
+		adapter.stop();
 		taskScheduler.shutdown();
 		assertTrue(imapIdleServer.assertReceived("storeUserFlag"));
 	}
@@ -470,6 +471,7 @@ public class ImapMailReceiverTests {
 	@Ignore
 	public void testMessageHistory() throws Exception {
 		ImapIdleChannelAdapter adapter = this.context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
+		adapter.setReconnectDelay(1);
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
@@ -526,6 +528,7 @@ public class ImapMailReceiverTests {
 		adapter.setOutputChannel(channel);
 		QueueChannel errorChannel = new QueueChannel();
 		adapter.setErrorChannel(errorChannel);
+		adapter.setReconnectDelay(1);
 
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
@@ -568,6 +571,7 @@ public class ImapMailReceiverTests {
 
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
+		adapter.setReconnectDelay(1);
 
 		ImapMailReceiver receiver = new ImapMailReceiver("imap:foo");
 		receiver = spy(receiver);
@@ -706,10 +710,14 @@ public class ImapMailReceiverTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
+		adapter.setReconnectDelay(1);
 		adapter.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		assertThat(theEvent.get().toString(),
 				endsWith("cause=java.lang.IllegalStateException: Failure in 'idle' task. Will resubmit.]"));
+
+		adapter.stop();
+		taskScheduler.destroy();
 	}
 
 	@Test // see INT-1801
@@ -777,9 +785,9 @@ public class ImapMailReceiverTests {
 		org.springframework.messaging.Message<?> received = messages[0];
 		Object content = received.getPayload();
 		assertThat(content, instanceOf(byte[].class));
-		assertThat((String) received.getHeaders().get(MailHeaders.CONTENT_TYPE),
+		assertThat(received.getHeaders().get(MailHeaders.CONTENT_TYPE),
 				equalTo("multipart/mixed;\r\n boundary=\"------------040903000701040401040200\""));
-		assertThat((String) received.getHeaders().get(MessageHeaders.CONTENT_TYPE),
+		assertThat(received.getHeaders().get(MessageHeaders.CONTENT_TYPE),
 				equalTo("application/octet-stream"));
 	}
 
@@ -789,8 +797,8 @@ public class ImapMailReceiverTests {
 		receiver.setHeaderMapper(new DefaultMailHeaderMapper());
 		receiver.setEmbeddedPartsAsBytes(false);
 		testAttachmentsGuts(receiver);
-		org.springframework.messaging.Message<?>[] messages = (org.springframework.messaging.Message<?>[]) receiver
-				.receive();
+		org.springframework.messaging.Message<?>[] messages =
+				(org.springframework.messaging.Message<?>[]) receiver.receive();
 		Object content = messages[0].getPayload();
 		assertThat(content, instanceOf(Multipart.class));
 		assertEquals("bar", ((Multipart) content).getBodyPart(0).getContent().toString().trim());
@@ -804,7 +812,7 @@ public class ImapMailReceiverTests {
 		given(folder.isOpen()).willReturn(true);
 
 		Message message = new MimeMessage(null, new ClassPathResource("test.mail").getInputStream());
-		given(folder.search((SearchTerm) Mockito.any())).willReturn(new Message[] { message });
+		given(folder.search(Mockito.any())).willReturn(new Message[] { message });
 		given(store.getFolder(Mockito.any(URLName.class))).willReturn(folder);
 		given(folder.getPermanentFlags()).willReturn(new Flags(Flags.Flag.USER));
 		DirectFieldAccessor df = new DirectFieldAccessor(receiver);
@@ -821,6 +829,7 @@ public class ImapMailReceiverTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
+		adapter.setReconnectDelay(1);
 		adapter.start();
 		ExecutorService exec = TestUtils.getPropertyValue(adapter, "sendingTaskExecutor", ExecutorService.class);
 		adapter.stop();
@@ -908,7 +917,7 @@ public class ImapMailReceiverTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
-		adapter.setReconnectDelay(50);
+		adapter.setReconnectDelay(1);
 		adapter.afterPropertiesSet();
 		final CountDownLatch latch = new CountDownLatch(3);
 		adapter.setApplicationEventPublisher(e -> {
@@ -917,6 +926,8 @@ public class ImapMailReceiverTests {
 		adapter.start();
 		assertTrue(latch.await(60, TimeUnit.SECONDS));
 		verify(store, atLeast(3)).connect();
+
+		adapter.stop();
 		taskScheduler.shutdown();
 	}
 
