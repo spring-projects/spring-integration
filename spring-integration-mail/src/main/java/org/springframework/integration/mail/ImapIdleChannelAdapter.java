@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
+import javax.mail.Folder;
 import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -64,29 +65,29 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	private static final int DEFAULT_RECONNECT_DELAY = 10000;
 
+	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
+
 	private final IdleTask idleTask = new IdleTask();
-
-	private volatile Executor sendingTaskExecutor;
-
-	private volatile boolean sendingTaskExecutorSet;
-
-	private volatile boolean shouldReconnectAutomatically = true;
-
-	private volatile ClassLoader classLoader;
-
-	private volatile List<Advice> adviceChain;
 
 	private final ImapMailReceiver mailReceiver;
 
-	private volatile long reconnectDelay = DEFAULT_RECONNECT_DELAY; // milliseconds
+	private TransactionSynchronizationFactory transactionSynchronizationFactory;
+
+	private ClassLoader classLoader;
+
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	private boolean shouldReconnectAutomatically = true;
+
+	private Executor sendingTaskExecutor;
+
+	private boolean sendingTaskExecutorSet;
+
+	private List<Advice> adviceChain;
+
+	private long reconnectDelay = DEFAULT_RECONNECT_DELAY; // milliseconds
 
 	private volatile ScheduledFuture<?> receivingTask;
-
-	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
-
-	private volatile TransactionSynchronizationFactory transactionSynchronizationFactory;
-
-	private volatile ApplicationEventPublisher applicationEventPublisher;
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
 		Assert.notNull(mailReceiver, "'mailReceiver' must not be null");
@@ -187,7 +188,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			@SuppressWarnings("unchecked")
 			org.springframework.messaging.Message<?> message =
 					mailMessage instanceof Message
-							? ImapIdleChannelAdapter.this.getMessageBuilderFactory().withPayload(mailMessage).build()
+							? getMessageBuilderFactory().withPayload(mailMessage).build()
 							: (org.springframework.messaging.Message<Object>) mailMessage;
 
 			if (TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -251,9 +252,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 		public void run() {
 			try {
 				ImapIdleChannelAdapter.this.idleTask.run();
-				if (logger.isDebugEnabled()) {
-					logger.debug("Task completed successfully. Re-scheduling it again right away.");
-				}
+				logger.debug("Task completed successfully. Re-scheduling it again right away.");
 			}
 			catch (Exception e) { //run again after a delay
 				if (logger.isWarnEnabled()) {
@@ -281,33 +280,28 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 			 * The following shouldn't be necessary because doStart() will have ensured we have
 			 * one. But, just in case...
 			 */
-			Assert.state(ImapIdleChannelAdapter.this.sendingTaskExecutor != null, "'sendingTaskExecutor' must not be null");
+			Assert.state(ImapIdleChannelAdapter.this.sendingTaskExecutor != null,
+					"'sendingTaskExecutor' must not be null");
 
 			try {
-				if (logger.isDebugEnabled()) {
-					logger.debug("waiting for mail");
-				}
+				logger.debug("waiting for mail");
 				ImapIdleChannelAdapter.this.mailReceiver.waitForNewMessages();
-				if (ImapIdleChannelAdapter.this.mailReceiver.getFolder().isOpen()) {
+				Folder folder = ImapIdleChannelAdapter.this.mailReceiver.getFolder();
+				if (folder != null && folder.isOpen()) {
 					Object[] mailMessages = ImapIdleChannelAdapter.this.mailReceiver.receive();
 					if (logger.isDebugEnabled()) {
 						logger.debug("received " + mailMessages.length + " mail messages");
 					}
-					for (final Object mailMessage : mailMessages) {
-
+					for (Object mailMessage : mailMessages) {
 						Runnable messageSendingTask = createMessageSendingTask(mailMessage);
-
 						ImapIdleChannelAdapter.this.sendingTaskExecutor.execute(messageSendingTask);
 					}
 				}
 			}
 			catch (MessagingException e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("error occurred in idle task", e);
-				}
+				logger.warn("error occurred in idle task", e);
 				if (ImapIdleChannelAdapter.this.shouldReconnectAutomatically) {
-					throw new IllegalStateException(
-							"Failure in 'idle' task. Will resubmit.", e);
+					throw new IllegalStateException("Failure in 'idle' task. Will resubmit.", e);
 				}
 				else {
 					throw new org.springframework.messaging.MessagingException(
