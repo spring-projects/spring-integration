@@ -845,7 +845,7 @@ task docsZip(type: Zip, dependsOn: reference) {
 			into 'api'
 		}
 
-		from ('src/reference/build/docs') {
+		from ('build/docs') {
 			into 'reference'
 		}
 }
