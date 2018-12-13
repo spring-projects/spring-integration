@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,16 +36,18 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 
 	public StandardHeaderEnricherParser() {
-		this.addElementToHeaderMapping("reply-channel", MessageHeaders.REPLY_CHANNEL);
-		this.addElementToHeaderMapping("error-channel", MessageHeaders.ERROR_CHANNEL);
-		this.addElementToHeaderMapping("correlation-id", IntegrationMessageHeaderAccessor.CORRELATION_ID);
-		this.addElementToHeaderMapping("expiration-date", IntegrationMessageHeaderAccessor.EXPIRATION_DATE, Long.class);
-		this.addElementToHeaderMapping("priority", IntegrationMessageHeaderAccessor.PRIORITY, Integer.class);
-		this.addElementToHeaderMapping("routing-slip", IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
+		addElementToHeaderMapping("reply-channel", MessageHeaders.REPLY_CHANNEL);
+		addElementToHeaderMapping("error-channel", MessageHeaders.ERROR_CHANNEL);
+		addElementToHeaderMapping("correlation-id", IntegrationMessageHeaderAccessor.CORRELATION_ID);
+		addElementToHeaderMapping("expiration-date", IntegrationMessageHeaderAccessor.EXPIRATION_DATE,
+				Long.class.getName());
+		addElementToHeaderMapping("priority", IntegrationMessageHeaderAccessor.PRIORITY, Integer.class.getName());
+		addElementToHeaderMapping("routing-slip", IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class.getName());
 	}
 
 	@Override

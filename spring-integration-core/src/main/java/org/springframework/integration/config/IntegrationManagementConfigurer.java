@@ -225,9 +225,8 @@ public class IntegrationManagementConfigurer
 		Assert.state(this.applicationContext != null, "'applicationContext' must not be null");
 		Assert.state(MANAGEMENT_CONFIGURER_NAME.equals(this.beanName), getClass().getSimpleName()
 				+ " bean name must be " + MANAGEMENT_CONFIGURER_NAME);
-		ClassLoader classLoader = IntegrationManagementConfigurer.class.getClassLoader();
 		if (ClassUtils.isPresent("io.micrometer.core.instrument.MeterRegistry",
-				classLoader)) {
+				this.applicationContext.getClassLoader())) {
 			this.metricsCaptor = MicrometerMetricsCaptor.loadCaptor(this.applicationContext);
 		}
 		if (this.metricsCaptor != null) {
