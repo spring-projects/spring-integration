@@ -26,6 +26,7 @@ import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.lang.Nullable;
 
 /**
  * A {@link MessageChannelSpec} for an {@link AbstractJmsChannel}.
@@ -33,6 +34,7 @@ import org.springframework.jms.support.destination.DestinationResolver;
  * @param <S> the target {@link JmsPollableMessageChannelSpec} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -53,8 +55,10 @@ public class JmsPollableMessageChannelSpec<S extends JmsPollableMessageChannelSp
 	}
 
 	@Override
-	protected S id(String id) {
-		this.jmsChannelFactoryBean.setBeanName(id);
+	protected S id(@Nullable String id) {
+		if (id != null) {
+			this.jmsChannelFactoryBean.setBeanName(id);
+		}
 		return super.id(id);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,7 +222,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Map<String, Object> resolveParameters(Message<?> message) {
-		Map<String, Object> map = null;
+		Map<String, Object> map;
 		if (message.getPayload() instanceof Map) {
 			map = (Map<String, Object>) message.getPayload();
 		}
@@ -233,11 +233,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 			map = this.createParameterMapFromList(
 					Arrays.asList(ObjectUtils.toObjectArray(message.getPayload())));
 		}
-		else if (message.getPayload() != null) {
-			map = this.createParameterMapFromList(Collections.singletonList(message.getPayload()));
-		}
 		else {
-			map = Collections.EMPTY_MAP;
+			map = this.createParameterMapFromList(Collections.singletonList(message.getPayload()));
 		}
 		return map;
 	}

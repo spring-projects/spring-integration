@@ -67,7 +67,7 @@ public class JpaParameter {
 
 		this.name = name;
 		this.value = value;
-		this.setExpression(expression);
+		setExpression(expression);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class JpaParameter {
 	 */
 	public JpaParameter(@Nullable Object value, @Nullable String expression) {
 		this.value = value;
-		this.setExpression(expression);
+		setExpression(expression);
 	}
 
 	public String getName() {
@@ -90,6 +90,7 @@ public class JpaParameter {
 		this.name = name;
 	}
 
+	@Nullable
 	public Object getValue() {
 		return this.value;
 	}
@@ -98,22 +99,27 @@ public class JpaParameter {
 		this.value = value;
 	}
 
+	@Nullable
 	public String getExpression() {
 		return this.expression;
 	}
 
+	@Nullable
 	public Expression getSpelExpression() {
 		return this.spelExpression;
 	}
 
+	@Nullable
 	public Expression getProjectionExpression() {
 		return this.projectionExpression;
 	}
 
-	public final void setExpression(String expression) {
-		this.expression = expression;
-		this.spelExpression = PARSER.parseExpression(expression);
-		this.projectionExpression = PARSER.parseExpression("#root.![" + expression + "]");
+	public final void setExpression(@Nullable String expression) {
+		if (expression != null) {
+			this.expression = expression;
+			this.spelExpression = PARSER.parseExpression(expression);
+			this.projectionExpression = PARSER.parseExpression("#root.![" + expression + "]");
+		}
 	}
 
 	@Override

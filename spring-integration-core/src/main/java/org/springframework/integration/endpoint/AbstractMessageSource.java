@@ -31,6 +31,7 @@ import org.springframework.integration.support.management.MessageSourceMetrics;
 import org.springframework.integration.support.management.metrics.CounterFacade;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.CollectionUtils;
@@ -231,6 +232,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	 * also can be {@link AbstractIntegrationMessageBuilder} which is used for additional headers population.
 	 * @return The value returned.
 	 */
+	@Nullable
 	protected abstract Object doReceive();
 
 	@Override
