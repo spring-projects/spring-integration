@@ -306,7 +306,8 @@ public final class RedisLockRegistry implements ExpirableLockRegistry, Disposabl
 			}
 			try {
 				if (!isAcquiredInThisProcess()) {
-					throw new IllegalStateException("Lock was released in the store due to expiration.");
+					throw new IllegalStateException("Lock was released in the store due to expiration. " +
+							"The integrity of data protected by this lock may have been compromised.");
 				}
 
 				if (Thread.currentThread().isInterrupted()) {

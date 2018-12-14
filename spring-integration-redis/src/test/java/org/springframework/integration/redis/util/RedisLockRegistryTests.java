@@ -341,19 +341,29 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testExpireTwoRegistries() throws Exception {
-		RedisLockRegistry registry1 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
-		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
+		RedisLockRegistry registry1 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
+		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
 		Lock lock1 = registry1.obtain("foo");
 		Lock lock2 = registry2.obtain("foo");
 		assertTrue(lock1.tryLock());
 		assertFalse(lock2.tryLock());
+		waitForExpire("foo");
+		assertTrue(lock2.tryLock());
+		assertFalse(lock1.tryLock());
+	}
+
+	@Test
+	@RedisAvailable
+	public void testExceptionOnExpire() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
+		Lock lock1 = registry.obtain("foo");
+		assertTrue(lock1.tryLock());
 		this.thrown.expect(IllegalStateException.class);
 		this.thrown.expectMessage("Lock was released in the store due to expiration.");
 		waitForExpire("foo");
 		lock1.unlock();
-		assertTrue(lock2.tryLock());
-		assertFalse(lock1.tryLock());
 	}
+
 
 	@Test
 	@RedisAvailable
