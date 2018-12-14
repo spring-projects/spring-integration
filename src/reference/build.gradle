@@ -6,7 +6,6 @@ buildscript {
 }
 
 plugins {
-  id 'de.undercouch.download' version '3.4.3'
   id 'org.asciidoctor.convert' version '1.5.3'
 }
 
@@ -42,22 +41,39 @@ task prepareAsciidocBuild(type: Sync) {
 	from 'asciidoc'
   exclude 'stylesheets'
 	// to a build directory of your choice
-	into 'build/working'
+	into '../../build/working'
 }
 
 asciidoctor {
   dependsOn 'prepareAsciidocBuild'
-  sourceDir = file('build/working')
+  sourceDir = file('../../build/working')
   outputDir = file('../../build/docs')
   sources {
 		include 'index.adoc'
 	}
 	resources {
 		from(sourceDir) {
-			include 'images/*', 'css/**', 'js/**'
+			include 'images/*', 'css/*', 'js/**'
 		}
 	}
-  backends = ['html5', 'pdf', 'epub3']
   logDocuments = true
+  backends = ['html5', 'pdf']
+  options doctype: 'book', eruby: 'erubis'
+  attributes  'icons': 'font',
+      'idprefix': '',
+      'idseparator': '-',
+      docinfo: 'shared',
+      revnumber: project.version,
+      sectanchors: '',
+      sectnums: '',
+      stylesdir: 'css/',
+      stylesheet: 'spring.css',
+      'linkcss': true,
+      'source-highlighter=highlight.js',
+      'highlightjsdir=js/highlight',
+      'highlightjs-theme=atom-one-dark-reasonable',
+      'spring-version': project.version,
+      'allow-uri-read': ''
+
   separateOutputDirs = false
 }

@@ -1,18 +1,14 @@
 [[spring-integration-reference]]
 = Spring Integration Reference Manual
 Mark Fisher; Marius Bogoevici; Iwein Fuld; Jonas Partner; Oleg Zhurakousky; Gary Russell; Dave Syer; Josh Long; David Turanski; Gunnar Hillert; Artem Bilan; Amol Nayak; Jay Bryant
-:revnumber: {project-version}
-:revdate: {localdate}
-:linkcss:
 :doctype: book
-:docinfo: shared
-:stylesheet: ./css/spring.css
 :toc: left
 :toclevels: 4
-:icons: font
-:source-highlighter: prettify
-:sectanchors:
 ifdef::backend-epub3[:front-cover-image: image:images/epub-cover.png[Front Cover,1050,1600]]
+
+(C) 2009-2018 Pivotal Software, Inc. All rights reserved.
+
+NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
 include::./preface.adoc[]
 [[whats-new-part]]
