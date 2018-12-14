@@ -341,8 +341,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testExpireTwoRegistries() throws Exception {
-		RedisLockRegistry registry1 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
-		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
+		RedisLockRegistry registry1 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
+		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
 		Lock lock1 = registry1.obtain("foo");
 		Lock lock2 = registry2.obtain("foo");
 		assertTrue(lock1.tryLock());
