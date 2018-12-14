@@ -78,13 +78,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	}
 
 	private StringRedisTemplate createTemplate() {
-		return new StringRedisTemplate(this.getConnectionFactoryForTest());
+		return new StringRedisTemplate(getConnectionFactoryForTest());
 	}
 
 	@Test
 	@RedisAvailable
-	public void testLock() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
+	public void testLock() {
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
 			lock.lock();
@@ -102,7 +102,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testLockInterruptibly() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
 		for (int i = 0; i < 10; i++) {
 			Lock lock = registry.obtain("foo");
 			lock.lockInterruptibly();
@@ -119,8 +119,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testReentrantLock() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
+	public void testReentrantLock() {
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = registry.obtain("foo");
 			lock1.lock();
@@ -146,7 +146,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testReentrantLockInterruptibly() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = registry.obtain("foo");
 			lock1.lockInterruptibly();
@@ -172,7 +172,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testTwoLocks() throws Exception {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
 		for (int i = 0; i < 10; i++) {
 			Lock lock1 = registry.obtain("foo");
 			lock1.lockInterruptibly();
@@ -198,7 +198,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testTwoThreadsSecondFailsToGetLock() throws Exception {
-		final RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
+		final RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
 		final Lock lock1 = registry.obtain("foo");
 		lock1.lockInterruptibly();
 		final AtomicBoolean locked = new AtomicBoolean();
@@ -228,12 +228,12 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testTwoThreads() throws Exception {
-		final RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
-		final Lock lock1 = registry.obtain("foo");
-		final AtomicBoolean locked = new AtomicBoolean();
-		final CountDownLatch latch1 = new CountDownLatch(1);
-		final CountDownLatch latch2 = new CountDownLatch(1);
-		final CountDownLatch latch3 = new CountDownLatch(1);
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+		Lock lock1 = registry.obtain("foo");
+		AtomicBoolean locked = new AtomicBoolean();
+		CountDownLatch latch1 = new CountDownLatch(1);
+		CountDownLatch latch2 = new CountDownLatch(1);
+		CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
 		assertEquals(1, TestUtils.getPropertyValue(registry, "locks", Map.class).size());
 		Executors.newSingleThreadExecutor().execute(() -> {
@@ -266,13 +266,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testTwoThreadsDifferentRegistries() throws Exception {
-		final RedisLockRegistry registry1 = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
-		final RedisLockRegistry registry2 = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
-		final Lock lock1 = registry1.obtain("foo");
-		final AtomicBoolean locked = new AtomicBoolean();
-		final CountDownLatch latch1 = new CountDownLatch(1);
-		final CountDownLatch latch2 = new CountDownLatch(1);
-		final CountDownLatch latch3 = new CountDownLatch(1);
+		RedisLockRegistry registry1 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+		Lock lock1 = registry1.obtain("foo");
+		AtomicBoolean locked = new AtomicBoolean();
+		CountDownLatch latch1 = new CountDownLatch(1);
+		CountDownLatch latch2 = new CountDownLatch(1);
+		CountDownLatch latch3 = new CountDownLatch(1);
 		lock1.lockInterruptibly();
 		assertEquals(1, TestUtils.getPropertyValue(registry1, "locks", Map.class).size());
 		Executors.newSingleThreadExecutor().execute(() -> {
@@ -313,11 +313,11 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testTwoThreadsWrongOneUnlocks() throws Exception {
-		final RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey);
-		final Lock lock = registry.obtain("foo");
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey);
+		Lock lock = registry.obtain("foo");
 		lock.lockInterruptibly();
-		final AtomicBoolean locked = new AtomicBoolean();
-		final CountDownLatch latch = new CountDownLatch(1);
+		AtomicBoolean locked = new AtomicBoolean();
+		CountDownLatch latch = new CountDownLatch(1);
 		Future<Object> result = Executors.newSingleThreadExecutor().submit(() -> {
 			try {
 				lock.unlock();
@@ -341,8 +341,8 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testExpireTwoRegistries() throws Exception {
-		RedisLockRegistry registry1 = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey, 100);
-		RedisLockRegistry registry2 = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey, 100);
+		RedisLockRegistry registry1 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
+		RedisLockRegistry registry2 = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
 		Lock lock1 = registry1.obtain("foo");
 		Lock lock2 = registry2.obtain("foo");
 		assertTrue(lock1.tryLock());
@@ -354,8 +354,21 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 
 	@Test
 	@RedisAvailable
-	public void testEquals() throws Exception {
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
+	public void testExceptionOnExpire() throws Exception {
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 1);
+		Lock lock1 = registry.obtain("foo");
+		assertTrue(lock1.tryLock());
+		this.thrown.expect(IllegalStateException.class);
+		this.thrown.expectMessage("Lock was released in the store due to expiration.");
+		waitForExpire("foo");
+		lock1.unlock();
+	}
+
+
+	@Test
+	@RedisAvailable
+	public void testEquals() {
+		RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
 		RedisLockRegistry registry1 = new RedisLockRegistry(connectionFactory, this.registryKey);
 		RedisLockRegistry registry2 = new RedisLockRegistry(connectionFactory, this.registryKey);
 		RedisLockRegistry registry3 = new RedisLockRegistry(connectionFactory, this.registryKey2);
@@ -388,7 +401,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testThreadLocalListLeaks() {
-		RedisLockRegistry registry = new RedisLockRegistry(this.getConnectionFactoryForTest(), this.registryKey, 100);
+		RedisLockRegistry registry = new RedisLockRegistry(getConnectionFactoryForTest(), this.registryKey, 100);
 
 		for (int i = 0; i < 10; i++) {
 			registry.obtain("foo" + i);
@@ -411,7 +424,7 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	@Test
 	@RedisAvailable
 	public void testExpireNotChanged() throws Exception {
-		RedisConnectionFactory connectionFactory = this.getConnectionFactoryForTest();
+		RedisConnectionFactory connectionFactory = getConnectionFactoryForTest();
 		final RedisLockRegistry registry = new RedisLockRegistry(connectionFactory, this.registryKey, 10000);
 		Lock lock = registry.obtain("foo");
 		lock.lock();
@@ -429,13 +442,13 @@ public class RedisLockRegistryTests extends RedisAvailableTests {
 	}
 
 	private Long getExpire(RedisLockRegistry registry, String lockKey) {
-		StringRedisTemplate template = this.createTemplate();
+		StringRedisTemplate template = createTemplate();
 		String registryKey = TestUtils.getPropertyValue(registry, "registryKey", String.class);
 		return template.getExpire(registryKey + ":" + lockKey);
 	}
 
 	private void waitForExpire(String key) throws Exception {
-		StringRedisTemplate template = this.createTemplate();
+		StringRedisTemplate template = createTemplate();
 		int n = 0;
 		while (n++ < 100 && template.keys(this.registryKey + ":" + key).size() > 0) {
 			Thread.sleep(100);
