@@ -54,7 +54,7 @@ import org.springframework.util.xml.DomUtils;
  */
 public abstract class HeaderEnricherParserSupport extends AbstractTransformerParser {
 
-	private final static Map<String, String[][]> cannedHeaderElementExpressions = new HashMap<>();
+	private static final Map<String, String[][]> cannedHeaderElementExpressions = new HashMap<>(); // NOSONAR lower case
 
 	private final Map<String, String> elementToNameMap = new HashMap<>();
 
