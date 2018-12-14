@@ -24,6 +24,7 @@ import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 import javax.jms.Session;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -392,8 +393,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			this.channel.setInterceptors(this.interceptors);
 		}
 		this.channel.setBeanName(this.beanName);
-		if (this.getBeanFactory() != null) {
-			this.channel.setBeanFactory(this.getBeanFactory());
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (beanFactory != null) {
+			this.channel.setBeanFactory(beanFactory);
 		}
 		this.channel.afterPropertiesSet();
 		return this.channel;

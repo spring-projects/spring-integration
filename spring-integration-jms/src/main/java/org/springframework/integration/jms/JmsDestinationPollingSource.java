@@ -24,6 +24,7 @@ import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.jms.util.JmsAdapterUtils;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
@@ -131,7 +132,10 @@ public class JmsDestinationPollingSource extends AbstractMessageSource<Object> {
 			Map<String, Object> mappedHeaders = this.headerMapper.toHeaders(jmsMessage);
 			Object object = jmsMessage;
 			if (this.extractPayload) {
-				object = this.jmsTemplate.getMessageConverter().fromMessage(jmsMessage);
+				MessageConverter converter = this.jmsTemplate.getMessageConverter();
+				if (converter != null) {
+					object = converter.fromMessage(jmsMessage);
+				}
 			}
 			AbstractIntegrationMessageBuilder<?> builder =
 					(object instanceof Message)

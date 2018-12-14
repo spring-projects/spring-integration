@@ -16,6 +16,7 @@
 
 package org.springframework.integration.core;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -31,6 +32,7 @@ public interface MessageSource<T> {
 	 * Returns <code>null</code> if no message is available.
 	 * @return The message or null.
 	 */
+	@Nullable
 	Message<T> receive();
 
 }
