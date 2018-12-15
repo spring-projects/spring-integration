@@ -250,7 +250,7 @@ public class ImapMailReceiverTests {
 				assertThat(received.getPayload(), equalTo(TestMailServer.MailServer.MailHandler.MESSAGE + "\r\n"));
 			}
 		}
-		assertNotNull(channel.receive(10000)); // new message after idle
+		assertNotNull(channel.receive(20000)); // new message after idle
 		assertNull(channel.receive(100)); // no new message after second and third idle
 		verify(logger).debug("Canceling IDLE");
 

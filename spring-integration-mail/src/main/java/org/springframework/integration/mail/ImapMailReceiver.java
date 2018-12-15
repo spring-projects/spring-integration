@@ -179,7 +179,9 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		try {
 			this.pingTask = this.scheduler.schedule(this.idleCanceler,
 					new Date(System.currentTimeMillis() + this.cancelIdleInterval));
-			imapFolder.idle();
+			if (imapFolder.isOpen()) {
+				imapFolder.idle();
+			}
 		}
 		finally {
 			imapFolder.removeMessageCountListener(this.messageCountListener);
