@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dsl.context;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -34,10 +33,12 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionOverrideException;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -163,7 +164,7 @@ public class IntegrationFlowBeanPostProcessor
 					id = flowNamePrefix + id;
 				}
 
-				if (noBeanPresentForComponent(messageHandler)) {
+				if (noBeanPresentForComponent(messageHandler, flowBeanName)) {
 					String handlerBeanName = generateBeanName(messageHandler, flowNamePrefix);
 
 					registerComponent(messageHandler, handlerBeanName, flowBeanName);
@@ -174,7 +175,7 @@ public class IntegrationFlowBeanPostProcessor
 				targetIntegrationComponents.put(endpoint, id);
 			}
 			else {
-				if (noBeanPresentForComponent(component)) {
+				if (noBeanPresentForComponent(component, flowBeanName)) {
 					if (component instanceof AbstractMessageChannel) {
 						String channelBeanName = ((AbstractMessageChannel) component).getComponentName();
 						if (channelBeanName == null) {
@@ -211,7 +212,7 @@ public class IntegrationFlowBeanPostProcessor
 						if (!CollectionUtils.isEmpty(componentsToRegister)) {
 							componentsToRegister.entrySet()
 									.stream()
-									.filter(o -> noBeanPresentForComponent(o.getKey()))
+									.filter(o -> noBeanPresentForComponent(o.getKey(), flowBeanName))
 									.forEach(o ->
 											registerComponent(o.getKey(),
 													generateBeanName(o.getKey(), flowNamePrefix, o.getValue(),
@@ -231,7 +232,7 @@ public class IntegrationFlowBeanPostProcessor
 						targetIntegrationComponents.put(pollingChannelAdapterFactoryBean, id);
 
 						MessageSource<?> messageSource = spec.get().getT2();
-						if (noBeanPresentForComponent(messageSource)) {
+						if (noBeanPresentForComponent(messageSource, flowBeanName)) {
 							String messageSourceId = id + ".source";
 							if (messageSource instanceof NamedComponent
 									&& ((NamedComponent) messageSource).getComponentName() != null) {
@@ -337,7 +338,7 @@ public class IntegrationFlowBeanPostProcessor
 
 				componentsToRegister.entrySet()
 						.stream()
-						.filter(component -> noBeanPresentForComponent(component.getKey()))
+						.filter(component -> noBeanPresentForComponent(component.getKey(), beanName))
 						.forEach(component ->
 								registerComponent(component.getKey(),
 										generateBeanName(component.getKey(), component.getValue())));
@@ -378,17 +379,36 @@ public class IntegrationFlowBeanPostProcessor
 		}
 	}
 
-	private boolean noBeanPresentForComponent(Object instance) {
+	@SuppressWarnings("unchecked")
+	private boolean noBeanPresentForComponent(Object instance, String parentBeanName) {
 		if (instance instanceof NamedComponent) {
 			String beanName = ((NamedComponent) instance).getComponentName();
 			if (beanName != null) {
-				return !this.beanFactory.containsBean(beanName);
+				if (this.beanFactory.containsBean(beanName)) {
+					BeanDefinition existingBeanDefinition = this.beanFactory.getBeanDefinition(beanName);
+					if (!ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())
+							&& instance != this.beanFactory.getBean(beanName)) {
+
+						AbstractBeanDefinition beanDefinition =
+								BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) instance.getClass(),
+										() -> instance)
+										.getBeanDefinition();
+						beanDefinition.setResourceDescription("the '" + parentBeanName + "' bean definition");
+						throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingBeanDefinition);
+					}
+					else {
+						return false;
+					}
+				}
+				else {
+					return false;
+				}
 			}
 		}
 
-		Collection<?> beans = this.beanFactory.getBeansOfType(instance.getClass(), false, false).values();
-
-		return !beans.contains(instance);
+		return !this.beanFactory.getBeansOfType(instance.getClass(), false, false)
+				.values()
+				.contains(instance);
 	}
 
 	private void registerComponent(Object component, String beanName) {

@@ -115,26 +115,35 @@ The endpoints are automatically wired together by using direct channels.
 
 [[java-dsl-class-cast]]
 .Lambdas And `Message<?>` Arguments
-IMPORTANT: When using lambdas in EIP methods, the "input" argument is generally the message payload.
+[IMPORTANT]
+====
+When using lambdas in EIP methods, the "input" argument is generally the message payload.
 If you wish to access the entire message, use one of the overloaded methods that take a `Class<?>` as the first parameter.
 For example, this won't work:
 
-====
 [source, java]
 ----
 .<Message<?>, Foo>transform(m -> newFooFromMessage(m))
 ----
-====
 
 This will fail at runtime with a `ClassCastException` because the lambda doesn't retain the argument type and the framework will attempt to cast the payload to a `Message<?>`.
 
 Instead, use:
 
-====
 [source, java]
 ----
 .(Message.class, m -> newFooFromMessage(m))
 ----
+====
+
+[[java-dsl-class-cast]]
+.Bean Definitions override
+[IMPORTANT]
+====
+The Java DSL can register beans for the object defined in-line in the flow definition, as well as can reuse existing, injected beans.
+In case of the same bean name defined for in-line object and existing bean definition, a `BeanDefinitionOverrideException` is thrown indicating that such a configuration is wrong.
+However when you deal with `prototype` beans, there is no way to detect from the integration flow processor an existing bean definition because every time we call a `prototype` bean from the `BeanFactory` we get a new instance.
+This way a provided instance is used in the `IntegrationFlow` as is without any bean registration and any possible check against existing `prototype` bean definition.
 ====
 
 [[java-dsl-channels]]
@@ -794,10 +803,9 @@ The `oddFlow()` reference in the preceding example is not wrapped to the `.gatew
 Therefore, we do not expect a reply from this routing branch.
 Otherwise, you end up with an exception similar to the following:
 
-[source]
-----
+....
 Caused by: org.springframework.beans.factory.BeanCreationException: The 'currentComponent' (org.springframework.integration.router.MethodInvokingRouter@7965a51c) is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'. This is the end of the integration flow.
-----
+....
 
 When you configure a sub-flow as a lambda, the framework handles the request-reply interaction with the sub-flow and a gateway is not needed.
 ====
