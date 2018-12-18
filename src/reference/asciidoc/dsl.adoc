@@ -136,7 +136,7 @@ Instead, use:
 ----
 ====
 
-[[java-dsl-class-cast]]
+[[bean-definitions-override]]
 .Bean Definitions override
 [IMPORTANT]
 ====
@@ -144,6 +144,7 @@ The Java DSL can register beans for the object defined in-line in the flow defin
 In case of the same bean name defined for in-line object and existing bean definition, a `BeanDefinitionOverrideException` is thrown indicating that such a configuration is wrong.
 However when you deal with `prototype` beans, there is no way to detect from the integration flow processor an existing bean definition because every time we call a `prototype` bean from the `BeanFactory` we get a new instance.
 This way a provided instance is used in the `IntegrationFlow` as is without any bean registration and any possible check against existing `prototype` bean definition.
+However `BeanFactory.initializeBean()` is called for this object if it has an explicit `id` and bean definition for this name is in `prototype` scope.
 ====
 
 [[java-dsl-channels]]
@@ -325,7 +326,7 @@ It avoids inconvenient coding using setters and makes the flow definition more s
 Note that you can use `Transformers` to declare target `Transformer` instances as `@Bean` instances and, again, use them from `IntegrationFlow` definition as bean methods.
 Nevertheless, the DSL parser takes care of bean declarations for inline objects, if they are not yet defined as beans.
 
-See [https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Transformers.html] in the Javadoc for more information and supported factory methods.
+See https://docs.spring.io/spring-integration/api/org/springframework/integration/dsl/Transformers.html[Transformers] in the Javadoc for more information and supported factory methods.
 
 Also see <<java-dsl-class-cast>>.
 
@@ -798,13 +799,17 @@ public IntegrationFlow evenFlow() {
 }
 ----
 
+{empty} +
 In this case, when you need to receive a reply from such a sub-flow and continue the main flow, this `IntegrationFlow` bean reference (or its input channel) has to be wrapped with a `.gateway()` as shown in the preceding example.
 The `oddFlow()` reference in the preceding example is not wrapped to the `.gateway()`.
 Therefore, we do not expect a reply from this routing branch.
 Otherwise, you end up with an exception similar to the following:
 
 ....
-Caused by: org.springframework.beans.factory.BeanCreationException: The 'currentComponent' (org.springframework.integration.router.MethodInvokingRouter@7965a51c) is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'. This is the end of the integration flow.
+Caused by: org.springframework.beans.factory.BeanCreationException:
+    The 'currentComponent' (org.springframework.integration.router.MethodInvokingRouter@7965a51c)
+    is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'.
+    This is the end of the integration flow.
 ....
 
 When you configure a sub-flow as a lambda, the framework handles the request-reply interaction with the sub-flow and a gateway is not needed.

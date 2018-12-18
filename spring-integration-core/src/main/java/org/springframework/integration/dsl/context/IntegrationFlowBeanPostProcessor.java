@@ -278,7 +278,14 @@ public class IntegrationFlowBeanPostProcessor
 					}
 				}
 				else {
-					targetIntegrationComponents.put(entry.getKey(), entry.getValue());
+					Object componentToUse = entry.getKey();
+					String beanNameToUse = entry.getValue();
+					if (StringUtils.hasText(beanNameToUse) &&
+							ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(
+									this.beanFactory.getBeanDefinition(beanNameToUse).getScope())) {
+						this.beanFactory.initializeBean(componentToUse, beanNameToUse);
+					}
+					targetIntegrationComponents.put(component, beanNameToUse);
 				}
 			}
 		}
@@ -387,7 +394,7 @@ public class IntegrationFlowBeanPostProcessor
 				if (this.beanFactory.containsBean(beanName)) {
 					BeanDefinition existingBeanDefinition = this.beanFactory.getBeanDefinition(beanName);
 					if (!ConfigurableBeanFactory.SCOPE_PROTOTYPE.equals(existingBeanDefinition.getScope())
-							&& instance != this.beanFactory.getBean(beanName)) {
+							&& !instance.equals(this.beanFactory.getBean(beanName))) {
 
 						AbstractBeanDefinition beanDefinition =
 								BeanDefinitionBuilder.genericBeanDefinition((Class<Object>) instance.getClass(),
