@@ -26,6 +26,7 @@ import org.springframework.messaging.Message;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @FunctionalInterface
 public interface InboundMessageMapper<T> {
@@ -36,7 +37,8 @@ public interface InboundMessageMapper<T> {
 	 * @return the message as a result of mapping
 	 * @throws Exception the exception thrown by the underlying mapper implementation
 	 */
-	default Message<?> toMessage(T object) throws Exception {
+	@Nullable
+	default Message<?> toMessage(T object) throws Exception { // NOSONAR - TODO remove Exception in 5.2
 		return toMessage(object, null);
 	}
 
@@ -50,6 +52,6 @@ public interface InboundMessageMapper<T> {
 	 * @since 5.0
 	 */
 	@Nullable
-	Message<?> toMessage(T object, @Nullable Map<String, Object> headers) throws Exception;
+	Message<?> toMessage(T object, @Nullable Map<String, Object> headers) throws Exception; // NOSONAR
 
 }

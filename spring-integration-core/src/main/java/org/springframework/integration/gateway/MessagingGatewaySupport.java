@@ -507,6 +507,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			else {
 				requestMessage = (object instanceof Message<?>)
 						? (Message<?>) object : this.requestMapper.toMessage(object);
+				Assert.state(requestMessage != null, () -> "request mapper resulted in no message for " + object);
 				requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
 				reply = this.messagingTemplate.sendAndReceive(requestChannel, requestMessage);
 				if (reply instanceof ErrorMessage) {

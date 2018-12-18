@@ -473,7 +473,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				new Update().inc(SEQUENCE, 1),
 				FindAndModifyOptions.options().returnNew(true).upsert(true),
 				Map.class,
-				this.collectionName).get(SEQUENCE);
+				this.collectionName).get(SEQUENCE); // NOSONAR - never returns null
 	}
 
 	@SuppressWarnings("unchecked")
@@ -481,8 +481,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		Map<String, Object> innerMap =
 				(Map<String, Object>) new DirectFieldAccessor(messageHeaders).getPropertyValue("headers");
 		// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-		innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
-		innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+		Object idHeader = headers.get(MessageHeaders.ID);
+		if (idHeader != null) {
+			innerMap.put(MessageHeaders.ID, idHeader);
+		}
+		Object tsHeader = headers.get(MessageHeaders.TIMESTAMP);
+		if (tsHeader != null) {
+			innerMap.put(MessageHeaders.TIMESTAMP, tsHeader);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -760,7 +766,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 					MongoDbMessageStore.this.converter.normalizeHeaders((Map<String, Object>) source.get("headers"));
 
 			Object payload = this.deserializingConverter.convert(((Binary) source.get("payload")).getData());
-			ErrorMessage message = new ErrorMessage((Throwable) payload, headers);
+			ErrorMessage message = new ErrorMessage((Throwable) payload, headers); // NOSONAR not null
 			enhanceHeaders(message.getHeaders(), headers);
 
 			return message;
