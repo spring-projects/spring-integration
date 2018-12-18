@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,24 +24,42 @@ import org.springframework.util.Assert;
  * Converter&lt;Object, Object&gt;. A reference to the delegate must be provided.
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class PayloadTypeConvertingTransformer<T, U> extends AbstractPayloadTransformer<T, U> {
 
-	protected Converter<T, U> converter;
+	private Converter<T, U> converter;
 
 	/**
 	 * Specify the converter to use.
-	 *
 	 * @param converter The Converter.
 	 */
 	public void setConverter(Converter<T, U> converter) {
+		doSetConverter(converter);
+	}
+
+	protected final void doSetConverter(Converter<T, U> converter) {
+		Assert.notNull(converter, "'converter' must not be null");
 		this.converter = converter;
+	}
+	/**
+	 * Get the configured {@link Converter}.
+	 * @return the converter.
+	 */
+	protected Converter<T, U> getConverter() {
+		return this.converter;
 	}
 
 	@Override
-	protected U transformPayload(T payload) throws Exception {
-		Assert.notNull(this.converter, this.getClass().getName() + " requires a Converter<Object, Object>");
+	protected void onInit() throws Exception {
+		super.onInit();
+		Assert.notNull(this.converter, () -> getClass().getName() + " requires a Converter<Object, Object>");
+	}
+
+	@Override
+	protected U transformPayload(T payload) {
 		return this.converter.convert(payload);
 	}
 

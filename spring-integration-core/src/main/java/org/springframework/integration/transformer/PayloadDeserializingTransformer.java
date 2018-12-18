@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
 import org.springframework.util.Assert;
@@ -31,17 +30,18 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0.1
  */
 public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransformer<byte[], Object> {
 
-
+	/**
+	 * Instantiate based on the {@link WhiteListDeserializingConverter} with the
+	 * {@link org.springframework.core.serializer.DefaultDeserializer}.
+	 */
 	public PayloadDeserializingTransformer() {
 		doSetConverter(new WhiteListDeserializingConverter());
-	}
-
-	private void doSetConverter(Converter<byte[], Object> converter) {
-		this.converter = converter;
 	}
 
 	public void setDeserializer(Deserializer<Object> deserializer) {
@@ -58,14 +58,9 @@ public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransf
 	 * @since 4.2.13
 	 */
 	public void setWhiteListPatterns(String... patterns) {
-		Assert.isTrue(this.converter instanceof WhiteListDeserializingConverter,
+		Assert.isTrue(getConverter() instanceof WhiteListDeserializingConverter,
 				"Patterns can only be provided when using a 'WhiteListDeserializingConverter'");
-		((WhiteListDeserializingConverter) this.converter).setWhiteListPatterns(patterns);
-	}
-
-	@Override
-	protected Object transformPayload(byte[] payload) throws Exception {
-		return this.converter.convert(payload);
+		((WhiteListDeserializingConverter) getConverter()).setWhiteListPatterns(patterns);
 	}
 
 }
