@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,10 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 		List<String> list = sortedKeys((String) groupId);
 		int count = 0;
 		for (String key : list) {
-			count += this.getRedisTemplate().boundListOps(key).size();
+			Long size = getRedisTemplate().boundListOps(key).size();
+			if (size != null) {
+				count += size;
+			}
 		}
 		return count;
 	}
@@ -77,7 +80,9 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 		List<String> list = sortedKeys((String) groupId);
 		for (String key : list) {
 			List<Message<?>> messages = this.getRedisTemplate().boundListOps(key).range(0, -1);
-			allMessages.addAll(messages);
+			if (messages != null) {
+				allMessages.addAll(messages);
+			}
 		}
 		return getMessageGroupFactory().create(allMessages, groupId);
 	}
@@ -110,12 +115,14 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 
 	private List<String> sortedKeys(String groupId) {
 		Set<Object> keys = this.getRedisTemplate().keys(groupId == null ? (this.getBeanName() + ":*") : (groupId + "*"));
-		List<String> list = new LinkedList<String>();
-		for (Object key : keys) {
-			Assert.isInstanceOf(String.class, key);
-			list.add((String) key);
+		List<String> list = new LinkedList<>();
+		if (keys != null) {
+			for (Object key : keys) {
+				Assert.isInstanceOf(String.class, key);
+				list.add((String) key);
+			}
+			Collections.sort(list, this.keysComparator);
 		}
-		Collections.sort(list, this.keysComparator);
 		return list;
 	}
 
@@ -129,16 +136,18 @@ public class RedisChannelPriorityMessageStore extends RedisChannelMessageStore
 
 	private Set<Object> narrowedKeys() {
 		Set<Object> keys = this.getRedisTemplate().keys(this.getBeanName() + ":*");
-		Set<Object> narrowedKeys = new HashSet<Object>();
-		for (Object key : keys) {
-			Assert.isInstanceOf(String.class, key);
-			String keyString = (String) key;
-			int lastIndexOfColon = keyString.lastIndexOf(":");
-			if (keyString.indexOf(":") != lastIndexOfColon) {
-				narrowedKeys.add(keyString.substring(0, lastIndexOfColon));
-			}
-			else {
-				narrowedKeys.add(key);
+		Set<Object> narrowedKeys = new HashSet<>();
+		if (keys != null) {
+			for (Object key : keys) {
+				Assert.isInstanceOf(String.class, key);
+				String keyString = (String) key;
+				int lastIndexOfColon = keyString.lastIndexOf(":");
+				if (keyString.indexOf(":") != lastIndexOfColon) {
+					narrowedKeys.add(keyString.substring(0, lastIndexOfColon));
+				}
+				else {
+					narrowedKeys.add(key);
+				}
 			}
 		}
 		return narrowedKeys;

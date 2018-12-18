@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,8 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 	@Override
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
-		return (int) this.redisTemplate.boundListOps(groupId).size().longValue();
+		Long size = this.redisTemplate.boundListOps(groupId).size();
+		return size == null ? 0 : (int) size.longValue();
 	}
 
 	@Override
@@ -129,6 +130,7 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 		return null;
 	}
 
+	@Override
 	public void removeMessageGroup(Object groupId) {
 		this.redisTemplate.boundListOps(groupId).trim(1, 0);
 	}
@@ -141,6 +143,9 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {
 		Set<?> keys = this.redisTemplate.keys(this.beanName + ":*");
+		if (keys == null) {
+			return 0;
+		}
 		int count = 0;
 		for (Object key : keys) {
 			count += this.messageGroupSize(key);
@@ -150,7 +155,8 @@ public class RedisChannelMessageStore implements ChannelMessageStore, BeanNameAw
 
 	@ManagedAttribute
 	public int getMessageGroupCount() {
-		return this.redisTemplate.keys(this.beanName + ":*").size();
+		Set<Object> keys = this.redisTemplate.keys(this.beanName + ":*");
+		return keys == null ? 0 : keys.size();
 	}
 
 }

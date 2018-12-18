@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2017 the original author or authors.
+ * Copyright 2007-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -416,15 +416,17 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	private void processInPipeline(PipelineCallback callback) {
+		RedisConnectionFactory connectionFactoryForPipeline = this.redisTemplate.getConnectionFactory();
+		Assert.state(connectionFactoryForPipeline != null, "RedisTemplate returned no connection factory");
 		RedisConnection connection =
-				RedisConnectionUtils.bindConnection(this.redisTemplate.getConnectionFactory());
+				RedisConnectionUtils.bindConnection(connectionFactoryForPipeline);
 		try {
 			connection.openPipeline();
 			callback.process();
 		}
 		finally {
 			connection.closePipeline();
-			RedisConnectionUtils.unbindConnection(this.redisTemplate.getConnectionFactory());
+			RedisConnectionUtils.unbindConnection(connectionFactoryForPipeline);
 		}
 	}
 

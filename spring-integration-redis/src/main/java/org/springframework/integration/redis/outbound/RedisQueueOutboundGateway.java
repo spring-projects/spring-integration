@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
@@ -33,6 +34,7 @@ import org.springframework.util.IdGenerator;
 /**
  * @author David Liu
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 4.1
  */
@@ -90,12 +92,14 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	@Override
 	@SuppressWarnings("unchecked")
+	@Nullable
 	protected Object handleRequestMessage(Message<?> message) {
 		Object value = message;
 
 		if (this.extractPayload) {
 			value = message.getPayload();
 		}
+		Object beforeSerialization = value;
 		if (!(value instanceof byte[])) {
 			if (value instanceof String && !this.serializerExplicitlySet) {
 				value = stringSerializer.serialize((String) value);
@@ -103,6 +107,12 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 			else {
 				value = ((RedisSerializer<Object>) this.serializer).serialize(value);
 			}
+		}
+		if (value == null) {
+			if (this.logger.isDebugEnabled()) {
+				this.logger.debug("Serializer produced null for " + beforeSerialization);
+			}
+			return null;
 		}
 		String uuid = defaultIdGenerator.generateId().toString();
 
@@ -113,19 +123,24 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 		BoundListOperations<String, Object> boundListOperations = this.template.boundListOps(uuid + QUEUE_NAME_SUFFIX);
 		byte[] reply = (byte[]) boundListOperations.rightPop(this.receiveTimeout, TimeUnit.MILLISECONDS);
 		if (reply != null && reply.length > 0) {
-			Object replyMessage = this.serializer.deserialize(reply);
-			if (replyMessage == null) {
-				return null;
-			}
-			if (this.extractPayload) {
-				return getMessageBuilderFactory()
-						.withPayload(replyMessage);
-			}
-			else {
-				return replyMessage;
-			}
+			return createReply(reply);
 		}
 		return null;
+	}
+
+	@Nullable
+	private Object createReply(byte[] reply) {
+		Object replyMessage = this.serializer.deserialize(reply);
+		if (replyMessage == null) {
+			return null;
+		}
+		if (this.extractPayload) {
+			return getMessageBuilderFactory()
+					.withPayload(replyMessage);
+		}
+		else {
+			return replyMessage;
+		}
 	}
 
 }

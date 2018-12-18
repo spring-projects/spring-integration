@@ -218,10 +218,12 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 						StringUtils.hasText(SubscribableRedisChannel.this.topicName)
 								? SubscribableRedisChannel.this.topicName
 								: "unknown";
-				throw new MessageDeliveryException(siMessage, e.getMessage()
+				String exceptionMessage = e.getMessage();
+				throw new MessageDeliveryException(siMessage,
+						(exceptionMessage == null ? e.getClass().getSimpleName() : exceptionMessage)
 						+ " for redis-channel '"
 						+ topicName
-						+ "' (" + SubscribableRedisChannel.this.getFullChannelName() + ").", e);
+						+ "' (" + getFullChannelName() + ").", e); // NOSONAR false - never null
 			}
 		}
 

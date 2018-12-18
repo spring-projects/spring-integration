@@ -17,10 +17,12 @@
 package org.springframework.integration.router;
 
 import java.util.Collection;
+import java.util.UUID;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -171,24 +173,20 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 			int sequenceSize = results.size();
 			int sequenceNumber = 1;
 			for (MessageChannel channel : results) {
-				final Message<?> messageToSend =
-						!this.applySequence ? message : (this.getMessageBuilderFactory()
+				final Message<?> messageToSend;
+				if (!this.applySequence) {
+					messageToSend = message;
+				}
+				else {
+					UUID id = message.getHeaders().getId();
+					messageToSend = getMessageBuilderFactory()
 								.fromMessage(message)
-								.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize)
-								.build());
+								.pushSequenceDetails(id == null ? IntegrationObjectSupport.generateId() : id,
+										sequenceNumber++, sequenceSize)
+								.build();
+				}
 				if (channel != null) {
-					try {
-						this.messagingTemplate.send(channel, messageToSend);
-						sent = true;
-					}
-					catch (MessagingException e) {
-						if (!this.ignoreSendFailures) {
-							throw e;
-						}
-						else if (this.logger.isDebugEnabled()) {
-							this.logger.debug(e);
-						}
-					}
+					sent |= doSend(channel, messageToSend);
 				}
 			}
 		}
@@ -201,6 +199,22 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 				throw new MessageDeliveryException(message, "No channel resolved by router '" + this.getComponentName()
 						+ "' and no 'defaultOutputChannel' defined.");
 			}
+		}
+	}
+
+	private boolean doSend(MessageChannel channel, final Message<?> messageToSend) {
+		try {
+			this.messagingTemplate.send(channel, messageToSend);
+			return true;
+		}
+		catch (MessagingException e) {
+			if (!this.ignoreSendFailures) {
+				throw e;
+			}
+			else if (this.logger.isDebugEnabled()) {
+				this.logger.debug(e);
+			}
+			return false;
 		}
 	}
 
