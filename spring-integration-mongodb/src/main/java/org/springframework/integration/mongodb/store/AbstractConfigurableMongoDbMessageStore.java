@@ -201,7 +201,7 @@ public abstract class AbstractConfigurableMongoDbMessageStore extends AbstractMe
 				new Update().inc(MessageDocumentFields.SEQUENCE, 1),
 				FindAndModifyOptions.options().returnNew(true).upsert(true),
 				Map.class, this.collectionName)
-				.get(MessageDocumentFields.SEQUENCE);
+					.get(MessageDocumentFields.SEQUENCE); // NOSONAR - never returns null
 	}
 
 	protected void addMessageDocument(final MessageDocument document) {

@@ -846,9 +846,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			return bean;
 		}
 		Advised advised = (Advised) bean;
-		if (advised.getTargetSource() == null) {
-			return null;
-		}
 		try {
 			return extractTarget(advised.getTargetSource().getTarget());
 		}
@@ -1075,7 +1072,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements Applicati
 			if (target instanceof MessagingGatewaySupport) {
 				outputChannel = ((MessagingGatewaySupport) target).getRequestChannel();
 			}
-			else {
+			else if (target instanceof SourcePollingChannelAdapter) {
 				outputChannel = ((SourcePollingChannelAdapter) target).getOutputChannel();
 			}
 

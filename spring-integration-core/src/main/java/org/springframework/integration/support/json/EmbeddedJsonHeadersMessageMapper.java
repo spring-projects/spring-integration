@@ -16,6 +16,7 @@
 
 package org.springframework.integration.support.json;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -229,11 +230,12 @@ public class EmbeddedJsonHeadersMessageMapper implements BytesMessageMapper {
 			return message;
 		}
 		else {
-			return new GenericMessage<>(bytes, headers);
+			return headers == null ? new GenericMessage<>(bytes) : new GenericMessage<>(bytes, headers);
 		}
 	}
 
-	private Message<?> decodeNativeFormat(byte[] bytes, Map<String, Object> headersToAdd) throws Exception {
+	@Nullable
+	private Message<?> decodeNativeFormat(byte[] bytes, @Nullable Map<String, Object> headersToAdd) throws IOException {
 		ByteBuffer buffer = ByteBuffer.wrap(bytes);
 		if (buffer.remaining() > 4) {
 			int headersLen = buffer.getInt();

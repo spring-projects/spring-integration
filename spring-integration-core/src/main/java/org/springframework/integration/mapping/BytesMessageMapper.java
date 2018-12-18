@@ -16,6 +16,12 @@
 
 package org.springframework.integration.mapping;
 
+import java.util.Map;
+
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.messaging.Message;
+
 /**
  * An {@link OutboundMessageMapper} and {@link InboundMessageMapper} that
  * maps to/from {@code byte[]}.
@@ -25,5 +31,15 @@ package org.springframework.integration.mapping;
  *
  */
 public interface BytesMessageMapper extends InboundMessageMapper<byte[]>, OutboundMessageMapper<byte[]> {
+
+	@Override
+	@NonNull // override
+	default Message<?> toMessage(byte[] object) {
+		return toMessage(object, null);
+	}
+
+	@Override
+	@NonNull // override
+	Message<?> toMessage(byte[] bytes, @Nullable Map<String, Object> headers);
 
 }

@@ -59,6 +59,9 @@ public class MongoDbMessageBytesConverter implements GenericConverter {
 
 	@Override
 	public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		if (source == null) {
+			return null;
+		}
 		if (Message.class.isAssignableFrom(sourceType.getObjectType())) {
 			return new Binary(this.serializingConverter.convert(source));
 		}
