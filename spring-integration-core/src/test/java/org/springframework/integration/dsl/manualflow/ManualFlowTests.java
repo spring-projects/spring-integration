@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dsl.manualflow;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.lessThan;
@@ -46,6 +47,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -53,11 +55,13 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionOverrideException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.config.EnableIntegrationManagement;
@@ -241,7 +245,8 @@ public class ManualFlowTests {
 			assertThat(e.getMessage(), containsString("The 'receive()/receiveAndConvert()' isn't supported"));
 		}
 
-		assertThat(this.beanFactory.getBeanNamesForType(MessageTransformingHandler.class)[0], startsWith(flowId + "."));
+		assertThat(this.beanFactory.getBeanNamesForType(MessageTransformingHandler.class)[0],
+				startsWith(flowId + "."));
 
 		flowRegistration.destroy();
 
@@ -516,6 +521,18 @@ public class ManualFlowTests {
 		flowRegistrations.forEach(IntegrationFlowRegistration::destroy);
 	}
 
+
+	@Test
+	public void testDisabledBeansOverride() {
+		assertThatThrownBy(
+				() -> this.integrationFlowContext
+						.registration(f -> f.channel(c -> c.direct("doNotOverrideChannel")))
+						.register())
+				.isExactlyInstanceOf(BeanCreationException.class)
+				.hasCauseExactlyInstanceOf(BeanDefinitionOverrideException.class)
+				.hasMessageContaining("Invalid bean definition with name 'doNotOverrideChannel'");
+	}
+
 	@Configuration
 	@EnableIntegration
 	@EnableMessageHistory
@@ -531,6 +548,12 @@ public class ManualFlowTests {
 		@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 		public Date foo() {
 			return new Date();
+		}
+
+
+		@Bean
+		public MessageChannel doNotOverrideChannel() {
+			return new DirectChannel();
 		}
 
 	}
@@ -582,7 +605,7 @@ public class ManualFlowTests {
 		}
 
 		@Override
-		public void destroy() throws Exception {
+		public void destroy() {
 			this.destroyed = true;
 		}
 
