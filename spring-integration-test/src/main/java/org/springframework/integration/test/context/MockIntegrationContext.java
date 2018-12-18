@@ -148,8 +148,10 @@ public class MockIntegrationContext implements BeanFactoryAware {
 		}
 		DirectFieldAccessor directFieldAccessor = new DirectFieldAccessor(endpoint);
 		Object targetMessageHandler = directFieldAccessor.getPropertyValue("handler");
+		Assert.notNull(targetMessageHandler, () -> "'handler' must not be null in the: " + endpoint);
 		if (endpoint instanceof ReactiveStreamsConsumer) {
 			Object targetSubscriber = directFieldAccessor.getPropertyValue("subscriber");
+			Assert.notNull(targetSubscriber, () -> "'subscriber' must not be null in the: " + endpoint);
 			this.beans.put(consumerEndpointId, Tuples.of(targetMessageHandler, targetSubscriber));
 		}
 		else {
