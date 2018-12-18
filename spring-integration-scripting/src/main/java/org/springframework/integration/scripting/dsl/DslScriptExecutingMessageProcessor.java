@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.scripting.dsl;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -44,7 +45,7 @@ import org.springframework.util.StringUtils;
  * @since 5.0
  */
 class DslScriptExecutingMessageProcessor
-		implements MessageProcessor<Object>, InitializingBean, ApplicationContextAware {
+		implements MessageProcessor<Object>, InitializingBean, ApplicationContextAware, BeanClassLoaderAware {
 
 	private Resource script;
 
@@ -59,6 +60,8 @@ class DslScriptExecutingMessageProcessor
 	private ApplicationContext applicationContext;
 
 	private AbstractScriptExecutingMessageProcessor<?> delegate;
+
+	private ClassLoader classLoader;
 
 	DslScriptExecutingMessageProcessor(Resource script) {
 		this.script = script;
@@ -86,7 +89,12 @@ class DslScriptExecutingMessageProcessor
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.classLoader = classLoader;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
 		if (StringUtils.hasText(this.location)) {
 			this.script = this.applicationContext.getResource(this.location);
 		}
@@ -95,10 +103,13 @@ class DslScriptExecutingMessageProcessor
 
 		if (!StringUtils.hasText(this.lang)) {
 			String filename = this.script.getFilename();
-			int index = filename.lastIndexOf(".") + 1;
+			int index =
+					filename != null
+							? filename.lastIndexOf(".") + 1
+							: -1;
 			if (index < 1) {
-				throw new BeanCreationException("'lang' isn't provided and there is 'file extension' for script " +
-						"resource: " + this.script);
+				throw new BeanCreationException(
+						"'lang' isn't provided and there is no 'file extension' for script resource: " + this.script);
 			}
 			this.lang = filename.substring(index);
 		}
@@ -115,7 +126,7 @@ class DslScriptExecutingMessageProcessor
 		}
 
 		this.delegate.setBeanFactory(this.applicationContext);
-		this.delegate.setBeanClassLoader(this.applicationContext.getClassLoader());
+		this.delegate.setBeanClassLoader(this.classLoader);
 	}
 
 	@Override

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.syslog.config;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -173,12 +174,13 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public Class<?> getObjectType() {
-		return this.adapter == null ? SyslogReceivingChannelAdapterSupport.class :
-				this.adapter.getClass();
+		return this.adapter == null
+				? SyslogReceivingChannelAdapterSupport.class
+				: this.adapter.getClass();
 	}
 
 	@Override
-	protected SyslogReceivingChannelAdapterSupport createInstance() throws Exception {
+	protected SyslogReceivingChannelAdapterSupport createInstance() {
 		SyslogReceivingChannelAdapterSupport adapter;
 		if (this.protocol == Protocol.tcp) {
 			adapter = new TcpSyslogReceivingChannelAdapter();
@@ -187,7 +189,8 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 				((TcpSyslogReceivingChannelAdapter) adapter).setConnectionFactory(this.connectionFactory);
 			}
 			else if (this.applicationEventPublisher != null) {
-				((TcpSyslogReceivingChannelAdapter) adapter).setApplicationEventPublisher(this.applicationEventPublisher);
+				((TcpSyslogReceivingChannelAdapter) adapter)
+						.setApplicationEventPublisher(this.applicationEventPublisher);
 			}
 			Assert.isNull(this.udpAdapter, "Cannot specify 'udp-attributes' when the protocol is 'tcp'");
 		}
@@ -222,12 +225,13 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 		if (this.beanName != null) {
 			adapter.setBeanName(this.beanName);
 		}
-		if (this.getBeanFactory() != null) {
-			adapter.setBeanFactory(this.getBeanFactory());
+		BeanFactory beanFactory = getBeanFactory();
+		if (beanFactory != null) {
+			adapter.setBeanFactory(beanFactory);
 		}
 		adapter.afterPropertiesSet();
 		this.adapter = adapter;
-		return adapter;
+		return this.adapter;
 	}
 
 }
