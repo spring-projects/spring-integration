@@ -524,12 +524,13 @@ public class ManualFlowTests {
 
 	@Test
 	public void testDisabledBeansOverride() {
-		assertThatThrownBy(() -> this.integrationFlowContext
-				.registration(f -> f.channel(c -> c.direct("doNotOverrideChannel")))
-				.register())
-		.isExactlyInstanceOf(BeanCreationException.class)
-		.hasCauseExactlyInstanceOf(BeanDefinitionOverrideException.class)
-		.hasMessageContaining("Invalid bean definition with name 'doNotOverrideChannel'");
+		assertThatThrownBy(
+				() -> this.integrationFlowContext
+						.registration(f -> f.channel(c -> c.direct("doNotOverrideChannel")))
+						.register())
+				.isExactlyInstanceOf(BeanCreationException.class)
+				.hasCauseExactlyInstanceOf(BeanDefinitionOverrideException.class)
+				.hasMessageContaining("Invalid bean definition with name 'doNotOverrideChannel'");
 	}
 
 	@Configuration
