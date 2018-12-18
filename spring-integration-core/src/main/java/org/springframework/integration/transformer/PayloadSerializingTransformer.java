@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,20 +28,22 @@ import org.springframework.core.serializer.support.SerializingConverter;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 1.0.1
  */
 public class PayloadSerializingTransformer extends PayloadTypeConvertingTransformer<Object, byte[]> {
 
-	public void setSerializer(Serializer<Object> serializer) {
-		this.setConverter(new SerializingConverter(serializer));
+	/**
+	 * Instantiate based on the {@link SerializingConverter} with the
+	 * {@link org.springframework.core.serializer.DefaultSerializer}.
+	 */
+	public PayloadSerializingTransformer() {
+		doSetConverter(new SerializingConverter());
 	}
 
-	@Override
-	protected byte[] transformPayload(Object payload) throws Exception {
-		if (this.converter == null) {
-			this.setConverter(new SerializingConverter());
-		}
-		return this.converter.convert(payload);
+	public void setSerializer(Serializer<Object> serializer) {
+		setConverter(new SerializingConverter(serializer));
 	}
 
 }
