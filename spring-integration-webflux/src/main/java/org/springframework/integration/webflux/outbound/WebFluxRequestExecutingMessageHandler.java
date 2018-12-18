@@ -159,7 +159,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 						.headers(headers -> headers.putAll(httpRequest.getHeaders()));
 
 		if (httpRequest.hasBody()) {
-			requestSpec.body(BodyInserters.fromObject(httpRequest.getBody()));
+			requestSpec.body(BodyInserters.fromObject(httpRequest.getBody())); // NOSONAR protected with hasBody()
 		}
 
 		Mono<ClientResponse> responseMono =

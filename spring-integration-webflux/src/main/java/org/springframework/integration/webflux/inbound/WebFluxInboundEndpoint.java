@@ -80,6 +80,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 	private static final MediaType MEDIA_TYPE_APPLICATION_ALL = new MediaType("application");
 
+	private static final String UNCHECKED = "unchecked";
+
 	private static final List<HttpMethod> SAFE_METHODS = Arrays.asList(HttpMethod.GET, HttpMethod.HEAD);
 
 	private ServerCodecConfigurer codecConfigurer = ServerCodecConfigurer.create();
@@ -131,11 +133,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-	}
-
-	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		return Mono.defer(() -> {
 			if (isRunning()) {
@@ -147,7 +144,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		});
 	}
 
-	@SuppressWarnings("unchecked")
 	private Mono<Void> doHandle(ServerWebExchange exchange) {
 		return extractRequestBody(exchange)
 				.doOnSubscribe(s -> this.activeCount.incrementAndGet())
@@ -170,7 +166,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private <T> Mono<T> extractRequestBody(ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 		ServerHttpResponse response = exchange.getResponse();
@@ -201,7 +197,8 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 				Class<?> resolvedType = bodyType.resolve();
 
-				ReactiveAdapter adapter = (resolvedType != null ? this.adapterRegistry.getAdapter(resolvedType) : null);
+				ReactiveAdapter adapter = (resolvedType != null ? this.adapterRegistry.getAdapter(resolvedType) :
+						null);
 				ResolvableType elementType = (adapter != null ? bodyType.getGeneric() : bodyType);
 
 				HttpMessageReader<?> httpMessageReader = this.codecConfigurer
@@ -237,40 +234,14 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private Mono<Tuple2<Message<Object>, RequestEntity<?>>> buildMessage(RequestEntity<?> httpEntity,
 			ServerWebExchange exchange) {
 
 		ServerHttpRequest request = exchange.getRequest();
-		HttpHeaders requestHeaders = request.getHeaders();
-		Map<String, Object> exchangeAttributes = exchange.getAttributes();
-
-		StandardEvaluationContext evaluationContext = createEvaluationContext();
-
-		evaluationContext.setVariable("requestAttributes", exchangeAttributes);
 		MultiValueMap<String, String> requestParams = request.getQueryParams();
-		evaluationContext.setVariable("requestParams", requestParams);
-		evaluationContext.setVariable("requestHeaders", requestHeaders);
-		if (!CollectionUtils.isEmpty(request.getCookies())) {
-			evaluationContext.setVariable("cookies", request.getCookies());
-		}
 
-		Map<String, String> pathVariables =
-				(Map<String, String>) exchangeAttributes.get(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-
-		if (!CollectionUtils.isEmpty(pathVariables)) {
-			evaluationContext.setVariable("pathVariables", pathVariables);
-		}
-
-		Map<String, MultiValueMap<String, String>> matrixVariables =
-				(Map<String, MultiValueMap<String, String>>) exchangeAttributes
-						.get(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
-
-		if (!CollectionUtils.isEmpty(matrixVariables)) {
-			evaluationContext.setVariable("matrixVariables", matrixVariables);
-		}
-
-		evaluationContext.setRootObject(httpEntity);
+		StandardEvaluationContext evaluationContext = buildEvaluationContext(httpEntity, exchange);
 		Object payload;
 		if (getPayloadExpression() != null) {
 			payload = getPayloadExpression().getValue(evaluationContext);
@@ -310,10 +281,13 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 							.copyHeaders(headers);
 		}
 
-		messageBuilder
-				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
-				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
-						request.getMethod().toString());
+		messageBuilder.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL,
+				request.getURI().toString());
+		HttpMethod httpMethod = request.getMethod();
+		if (httpMethod != null) {
+			messageBuilder.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
+					httpMethod.toString());
+		}
 
 		return exchange.getPrincipal()
 				.map(principal ->
@@ -322,6 +296,41 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 				.defaultIfEmpty(messageBuilder)
 				.map(AbstractIntegrationMessageBuilder::build)
 				.zipWith(Mono.just(httpEntity));
+	}
+
+	@SuppressWarnings(UNCHECKED)
+	private StandardEvaluationContext buildEvaluationContext(RequestEntity<?> httpEntity, ServerWebExchange exchange) {
+		ServerHttpRequest request = exchange.getRequest();
+		HttpHeaders requestHeaders = request.getHeaders();
+		MultiValueMap<String, String> requestParams = request.getQueryParams();
+		Map<String, Object> exchangeAttributes = exchange.getAttributes();
+
+		StandardEvaluationContext evaluationContext = createEvaluationContext();
+
+		evaluationContext.setVariable("requestAttributes", exchangeAttributes);
+		evaluationContext.setVariable("requestParams", requestParams);
+		evaluationContext.setVariable("requestHeaders", requestHeaders);
+		if (!CollectionUtils.isEmpty(request.getCookies())) {
+			evaluationContext.setVariable("cookies", request.getCookies());
+		}
+
+		Map<String, String> pathVariables =
+				(Map<String, String>) exchangeAttributes.get(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+
+		if (!CollectionUtils.isEmpty(pathVariables)) {
+			evaluationContext.setVariable("pathVariables", pathVariables);
+		}
+
+		Map<String, MultiValueMap<String, String>> matrixVariables =
+				(Map<String, MultiValueMap<String, String>>) exchangeAttributes
+						.get(HandlerMapping.MATRIX_VARIABLES_ATTRIBUTE);
+
+		if (!CollectionUtils.isEmpty(matrixVariables)) {
+			evaluationContext.setVariable("matrixVariables", matrixVariables);
+		}
+
+		evaluationContext.setRootObject(httpEntity);
+		return evaluationContext;
 	}
 
 	private Mono<Void> populateResponse(ServerWebExchange exchange, Message<?> replyMessage) {
@@ -379,7 +388,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private Mono<Void> writeResponseBody(ServerWebExchange exchange, Object body) {
 		ResolvableType bodyType = ResolvableType.forInstance(body);
 		ReactiveAdapter adapter = this.adapterRegistry.getAdapter(bodyType.resolve(), body);
@@ -473,7 +482,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		return (mediaTypes.isEmpty() ? Collections.singletonList(MediaType.ALL) : mediaTypes);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	private List<MediaType> getProducibleTypes(ServerWebExchange exchange,
 			Supplier<List<MediaType>> producibleTypesSupplier) {
 
@@ -482,9 +491,9 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	private MediaType selectMoreSpecificMediaType(MediaType acceptable, MediaType producible) {
-		producible = producible.copyQualityValue(acceptable);
+		MediaType producibleToUse = producible.copyQualityValue(acceptable);
 		Comparator<MediaType> comparator = MediaType.SPECIFICITY_COMPARATOR;
-		return (comparator.compare(acceptable, producible) <= 0 ? acceptable : producible);
+		return (comparator.compare(acceptable, producibleToUse) <= 0 ? acceptable : producibleToUse);
 	}
 
 

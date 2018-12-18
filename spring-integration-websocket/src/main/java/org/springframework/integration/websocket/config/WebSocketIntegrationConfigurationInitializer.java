@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package org.springframework.integration.websocket.config;
 
-import java.util.Collection;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -50,10 +49,12 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
  */
 public class WebSocketIntegrationConfigurationInitializer implements IntegrationConfigurationInitializer {
 
-	private static final Log logger = LogFactory.getLog(WebSocketIntegrationConfigurationInitializer.class);
+	private static final Log logger = // NOSONAR lower case
+			LogFactory.getLog(WebSocketIntegrationConfigurationInitializer.class);
 
-	private static final boolean servletPresent = ClassUtils.isPresent("javax.servlet.Servlet",
-			WebSocketIntegrationConfigurationInitializer.class.getClassLoader());
+	private static final boolean servletPresent = // NOSONAR lower case
+			ClassUtils.isPresent("javax.servlet.Servlet",
+					WebSocketIntegrationConfigurationInitializer.class.getClassLoader());
 
 	private static final String WEB_SOCKET_HANDLER_MAPPING_BEAN_NAME = "integrationWebSocketHandlerMapping";
 
@@ -130,11 +131,13 @@ public class WebSocketIntegrationConfigurationInitializer implements Integration
 		}
 
 		@Override
-		protected HandlerMapping createInstance() throws Exception {
-			Collection<WebSocketConfigurer> webSocketConfigurers =
-					((ListableBeanFactory) getBeanFactory()).getBeansOfType(WebSocketConfigurer.class).values();
-			for (WebSocketConfigurer configurer : webSocketConfigurers) {
-				configurer.registerWebSocketHandlers(this.registry);
+		protected HandlerMapping createInstance() {
+			BeanFactory beanFactory = getBeanFactory();
+			if (beanFactory != null) {
+				((ListableBeanFactory) beanFactory)
+						.getBeansOfType(WebSocketConfigurer.class)
+						.values()
+						.forEach(configurer -> configurer.registerWebSocketHandlers(this.registry));
 			}
 			if (this.registry.requiresTaskScheduler()) {
 				this.registry.setTaskScheduler(this.sockJsTaskScheduler);

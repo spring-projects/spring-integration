@@ -105,7 +105,7 @@ class DslScriptExecutingMessageProcessor
 			String filename = this.script.getFilename();
 			int index =
 					filename != null
-							? filename.lastIndexOf(".") + 1
+							? filename.lastIndexOf('.') + 1
 							: -1;
 			if (index < 1) {
 				throw new BeanCreationException(

@@ -119,11 +119,11 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 	@Override
 	protected void detectHandlerMethods(Object handler) {
 		if (handler instanceof String) {
-			handler = getApplicationContext().getBean((String) handler);
+			handler = getApplicationContext().getBean((String) handler); // NOSONAR never null
 		}
 		RequestMappingInfo mapping = getMappingForEndpoint((WebFluxInboundEndpoint) handler);
 		if (mapping != null) {
-			registerMapping(mapping, handler, HANDLER_METHOD);
+			registerMapping(mapping, handler, HANDLER_METHOD); // NOSONAR never null
 		}
 	}
 
