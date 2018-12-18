@@ -401,7 +401,7 @@ public class IntegrationFlowBeanPostProcessor
 					}
 				}
 				else {
-					return false;
+					return true;
 				}
 			}
 		}
