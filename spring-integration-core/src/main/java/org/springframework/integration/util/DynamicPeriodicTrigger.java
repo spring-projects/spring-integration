@@ -217,13 +217,14 @@ public class DynamicPeriodicTrigger implements Trigger {
 	 */
 	@Override
 	public Date nextExecutionTime(TriggerContext triggerContext) {
-		if (triggerContext.lastScheduledExecutionTime() == null) {
+		Date lastScheduled = triggerContext.lastScheduledExecutionTime();
+		if (lastScheduled == null) {
 			return new Date(System.currentTimeMillis() + this.initialDuration.toMillis());
 		}
 		else if (this.fixedRate) {
-			return new Date(triggerContext.lastScheduledExecutionTime().getTime() + this.duration.toMillis());
+			return new Date(lastScheduled.getTime() + this.duration.toMillis());
 		}
-		return new Date(triggerContext.lastCompletionTime().getTime() + this.duration.toMillis());
+		return new Date(triggerContext.lastCompletionTime().getTime() + this.duration.toMillis()); // NOSONAR never null here
 	}
 
 	@Override

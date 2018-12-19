@@ -375,7 +375,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		else {
 			final Object requestMessagePayload =
 					this.requestPayloadExpression.getValue(this.sourceEvaluationContext, requestMessage);
-			actualRequestMessage = this.getMessageBuilderFactory().withPayload(requestMessagePayload)
+			Assert.state(requestMessagePayload != null,
+					() -> "Request payload expression produced null for " + requestMessage);
+			actualRequestMessage = getMessageBuilderFactory().withPayload(requestMessagePayload)
 					.copyHeaders(requestMessage.getHeaders()).build();
 		}
 		final Message<?> replyMessage;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.transformer;
+
+import java.util.UUID;
 
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
@@ -51,10 +53,10 @@ public class ClaimCheckInTransformer extends AbstractTransformer {
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
 		Assert.notNull(message, "message must not be null");
-		Object payload = message.getPayload();
-		Assert.notNull(payload, "payload must not be null");
-		Message<?> storedMessage = this.messageStore.addMessage(message);
-		AbstractIntegrationMessageBuilder<?> responseBuilder = this.getMessageBuilderFactory().withPayload(storedMessage.getHeaders().getId());
+		UUID id = message.getHeaders().getId();
+		Assert.notNull(id, "ID header must not be null");
+		this.messageStore.addMessage(message);
+		AbstractIntegrationMessageBuilder<?> responseBuilder = getMessageBuilderFactory().withPayload(id);
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());
 		return responseBuilder.build();

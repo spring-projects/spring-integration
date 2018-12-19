@@ -327,6 +327,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(final Message<T> message) {
 		UUID id = message.getHeaders().getId();
+		Assert.notNull(id, "Cannot store messages without an ID header");
 		final String messageId = getKey(id);
 		final byte[] messageBytes = this.serializer.convert(message);
 
