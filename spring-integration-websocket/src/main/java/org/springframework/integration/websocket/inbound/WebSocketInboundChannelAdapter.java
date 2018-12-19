@@ -220,7 +220,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	@Override
-	public void afterSessionStarted(WebSocketSession session) throws Exception {
+	public void afterSessionStarted(WebSocketSession session) throws Exception { // NOSONAR Thrown from the delegate
 		if (isActive()) {
 			SubProtocolHandler protocolHandler = this.subProtocolHandlerRegistry.findProtocolHandler(session);
 			protocolHandler.afterSessionStarted(session, this.subProtocolHandlerChannel);
@@ -237,7 +237,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	@Override
-	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus)
+			throws Exception { // NOSONAR Thrown from the delegate
 		if (isActive()) {
 			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.afterSessionEnded(session, closeStatus, this.subProtocolHandlerChannel);
@@ -245,7 +246,8 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	@Override
-	public void onMessage(WebSocketSession session, WebSocketMessage<?> webSocketMessage) throws Exception {
+	public void onMessage(WebSocketSession session, WebSocketMessage<?> webSocketMessage)
+			throws Exception { // NOSONAR Thrown from the delegate
 		if (isActive()) {
 			this.subProtocolHandlerRegistry.findProtocolHandler(session)
 					.handleMessageFromClient(session, webSocketMessage, this.subProtocolHandlerChannel);
@@ -281,23 +283,13 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 	}
 
 	@SuppressWarnings("unchecked")
-	private void handleMessageAndSend(Message<?> message) throws Exception {
+	private void handleMessageAndSend(final Message<?> message) {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(message);
 		StompCommand stompCommand = (StompCommand) headerAccessor.getHeader("stompCommand");
 		SimpMessageType messageType = headerAccessor.getMessageType();
-		if ((messageType == null || SimpMessageType.MESSAGE.equals(messageType)
-				|| (SimpMessageType.CONNECT.equals(messageType) && !this.useBroker)
-				|| StompCommand.CONNECTED.equals(stompCommand)
-				|| StompCommand.RECEIPT.equals(stompCommand))
-				&& !checkDestinationPrefix(headerAccessor.getDestination())) {
+		if (isProcessingTypeOrCommand(headerAccessor, stompCommand, messageType)) {
 			if (SimpMessageType.CONNECT.equals(messageType)) {
-				String sessionId = headerAccessor.getSessionId();
-				SimpMessageHeaderAccessor connectAck = SimpMessageHeaderAccessor.create(SimpMessageType.CONNECT_ACK);
-				connectAck.setSessionId(sessionId);
-				connectAck.setHeader(SimpMessageHeaderAccessor.CONNECT_MESSAGE_HEADER, message);
-				Message<byte[]> ackMessage = MessageBuilder.createMessage(EMPTY_PAYLOAD, connectAck.getMessageHeaders());
-				WebSocketSession session = this.webSocketContainer.getSession(sessionId);
-				this.subProtocolHandlerRegistry.findProtocolHandler(session).handleMessageToClient(session, ackMessage);
+				produceConnectAckMessage(message, headerAccessor);
 			}
 			else if (StompCommand.CONNECTED.equals(stompCommand)) {
 				this.eventPublisher.publishEvent(new SessionConnectedEvent(this, (Message<byte[]>) message));
@@ -306,9 +298,7 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 				this.eventPublisher.publishEvent(new ReceiptEvent(this, (Message<byte[]>) message));
 			}
 			else {
-				headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
-				Object payload = this.messageConverter.fromMessage(message, this.payloadType.get());
-				sendMessage(getMessageBuilderFactory().withPayload(payload).copyHeaders(headerAccessor.toMap()).build());
+				produceMessage(message, headerAccessor);
 			}
 		}
 		else {
@@ -324,19 +314,56 @@ public class WebSocketInboundChannelAdapter extends MessageProducerSupport
 		}
 	}
 
+	private boolean isProcessingTypeOrCommand(SimpMessageHeaderAccessor headerAccessor, StompCommand stompCommand,
+			SimpMessageType messageType) {
+
+		return (messageType == null // NOSONAR pretty simple logic
+				|| SimpMessageType.MESSAGE.equals(messageType)
+				|| (SimpMessageType.CONNECT.equals(messageType) && !this.useBroker)
+				|| StompCommand.CONNECTED.equals(stompCommand)
+				|| StompCommand.RECEIPT.equals(stompCommand))
+				&& !checkDestinationPrefix(headerAccessor.getDestination());
+	}
+
 	private boolean checkDestinationPrefix(String destination) {
 		if (this.useBroker) {
 			Collection<String> destinationPrefixes = this.brokerHandler.getDestinationPrefixes();
 			if ((destination == null) || CollectionUtils.isEmpty(destinationPrefixes)) {
 				return false;
 			}
-			for (String prefix : destinationPrefixes) {
-				if (destination.startsWith(prefix)) {
-					return true;
-				}
-			}
+			return destinationPrefixes.stream().anyMatch(destination::startsWith);
 		}
 		return false;
+	}
+
+	private void produceConnectAckMessage(Message<?> message, SimpMessageHeaderAccessor headerAccessor) {
+		String sessionId = headerAccessor.getSessionId();
+		SimpMessageHeaderAccessor connectAck = SimpMessageHeaderAccessor.create(SimpMessageType.CONNECT_ACK);
+		connectAck.setSessionId(sessionId);
+		connectAck.setHeader(SimpMessageHeaderAccessor.CONNECT_MESSAGE_HEADER, message);
+		Message<byte[]> ackMessage = MessageBuilder.createMessage(EMPTY_PAYLOAD, connectAck.getMessageHeaders());
+		WebSocketSession session = this.webSocketContainer.getSession(sessionId);
+		try {
+			this.subProtocolHandlerRegistry.findProtocolHandler(session).handleMessageToClient(session, ackMessage);
+		}
+		catch (Exception e) {
+			throw new MessageHandlingException(message, "Error sending connect ack message", e);
+		}
+	}
+
+	private void produceMessage(Message<?> message, SimpMessageHeaderAccessor headerAccessor) {
+		headerAccessor.removeHeader(SimpMessageHeaderAccessor.NATIVE_HEADERS);
+		Object payload = this.messageConverter.fromMessage(message, this.payloadType.get());
+		Assert.state(payload != null,
+				() -> "The message converter '" + this.messageConverter +
+						"' produced no payload for message '" + message +
+						"' and expected payload type: " + this.payloadType.get());
+		Message<Object> messageToSend =
+				getMessageBuilderFactory()
+						.withPayload(payload)
+						.copyHeaders(headerAccessor.toMap())
+						.build();
+		sendMessage(messageToSend);
 	}
 
 }

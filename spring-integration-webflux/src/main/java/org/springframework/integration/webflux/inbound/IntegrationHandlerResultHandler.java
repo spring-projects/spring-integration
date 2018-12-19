@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ public class IntegrationHandlerResultHandler implements HandlerResultHandler, Or
 	@Override
 	@SuppressWarnings("unchecked")
 	public Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
-		return (Mono<Void>) result.getReturnValue();
+		Object returnValue = result.getReturnValue();
+		return returnValue == null ? Mono.empty() : (Mono<Void>) returnValue;
 	}
 
 	@Override

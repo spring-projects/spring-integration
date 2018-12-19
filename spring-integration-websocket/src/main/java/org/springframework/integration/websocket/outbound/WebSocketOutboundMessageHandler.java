@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,12 @@ import org.springframework.web.socket.handler.SessionLimitExceededException;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 
-	private final List<MessageConverter> defaultConverters = new ArrayList<MessageConverter>(3);
+	private final List<MessageConverter> defaultConverters = new ArrayList<>(3);
 
 	{
 		this.defaultConverters.add(new StringMessageConverter());
@@ -79,13 +80,14 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 
 	public WebSocketOutboundMessageHandler(IntegrationWebSocketContainer webSocketContainer,
 			SubProtocolHandlerRegistry protocolHandlerRegistry) {
+
 		Assert.notNull(webSocketContainer, "'webSocketContainer' must not be null");
 		Assert.notNull(protocolHandlerRegistry, "'protocolHandlerRegistry' must not be null");
 		this.webSocketContainer = webSocketContainer;
 		this.client = webSocketContainer instanceof ClientWebSocketContainer;
 		this.subProtocolHandlerRegistry = protocolHandlerRegistry;
 		List<String> subProtocols = protocolHandlerRegistry.getSubProtocols();
-		this.webSocketContainer.addSupportedProtocols(subProtocols.toArray(new String[subProtocols.size()]));
+		this.webSocketContainer.addSupportedProtocols(subProtocols.toArray(new String[0]));
 	}
 
 	/**
@@ -95,7 +97,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 	 */
 	public void setMessageConverters(List<MessageConverter> messageConverters) {
 		Assert.noNullElements(messageConverters.toArray(), "'messageConverters' must not contain null entries");
-		this.messageConverters = new ArrayList<MessageConverter>(messageConverters);
+		this.messageConverters = new ArrayList<>(messageConverters);
 	}
 
 
@@ -147,7 +149,12 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 			SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(message);
 			headers.setLeaveMutable(true);
 			headers.setMessageTypeIfNotSet(SimpMessageType.MESSAGE);
-			Message<?> messageToSend = this.messageConverter.toMessage(message.getPayload(), headers.getMessageHeaders());
+			Object payload = message.getPayload();
+			Message<?> messageToSend =
+					this.messageConverter.toMessage(payload, headers.getMessageHeaders());
+			Assert.state(messageToSend != null,
+					() -> "The message converter '" + this.messageConverter +
+							"' produced no message to send based on the request message: '" + message + "'");
 			this.subProtocolHandlerRegistry.findProtocolHandler(session).handleMessageToClient(session, messageToSend);
 		}
 		catch (SessionLimitExceededException ex) {
