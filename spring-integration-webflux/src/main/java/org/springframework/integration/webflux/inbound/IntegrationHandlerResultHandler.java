@@ -17,7 +17,6 @@
 package org.springframework.integration.webflux.inbound;
 
 import org.springframework.core.Ordered;
-import org.springframework.util.Assert;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.reactive.HandlerResult;
 import org.springframework.web.reactive.HandlerResultHandler;
@@ -40,7 +39,6 @@ public class IntegrationHandlerResultHandler implements HandlerResultHandler, Or
 
 	@Override
 	public boolean supports(HandlerResult result) {
-		Assert.notNull(result, "'result' must not be null");
 		Object handler = result.getHandler();
 		return handler instanceof HandlerMethod
 				&& WebFluxInboundEndpoint.class.isAssignableFrom(((HandlerMethod) handler).getBeanType());
@@ -49,8 +47,8 @@ public class IntegrationHandlerResultHandler implements HandlerResultHandler, Or
 	@Override
 	@SuppressWarnings("unchecked")
 	public Mono<Void> handleResult(ServerWebExchange exchange, HandlerResult result) {
-		Assert.notNull(result, "'result' must not be null");
-		return (Mono<Void>) result.getReturnValue();
+		Object returnValue = result.getReturnValue();
+		return returnValue == null ? Mono.empty() : (Mono<Void>) returnValue;
 	}
 
 	@Override
