@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@ import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
 import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.integration.security.channel.ChannelAccessPolicy;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.ChannelSecurityMetadataSource;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -53,6 +55,7 @@ public class ChannelSecurityInterceptorBeanPostProcessor extends AbstractAutoPro
 
 	public ChannelSecurityInterceptorBeanPostProcessor(Map<String, Set<Pattern>> securityInterceptorMappings,
 			Map<String, Map<Pattern, ChannelAccessPolicy>> accessPolicyMapping) {
+
 		this.securityInterceptorMappings = securityInterceptorMappings; //NOSONAR (inconsistent sync)
 		this.accessPolicyMapping = accessPolicyMapping; //NOSONAR (inconsistent sync)
 	}
@@ -73,19 +76,24 @@ public class ChannelSecurityInterceptorBeanPostProcessor extends AbstractAutoPro
 	}
 
 	@Override
+	@Nullable
 	protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName,
-			TargetSource customTargetSource) throws BeansException {
+			@Nullable TargetSource customTargetSource) throws BeansException {
+
 		if (MessageChannel.class.isAssignableFrom(beanClass)) {
-			List<Advisor> interceptors = new ArrayList<Advisor>();
+			List<Advisor> interceptors = new ArrayList<>();
 			for (Map.Entry<String, Set<Pattern>> entry : this.securityInterceptorMappings.entrySet()) {
 				if (isMatch(beanName, entry.getValue())) {
-						DefaultBeanFactoryPointcutAdvisor channelSecurityInterceptor
-								= new DefaultBeanFactoryPointcutAdvisor();
-						channelSecurityInterceptor.setAdviceBeanName(entry.getKey());
-						channelSecurityInterceptor.setBeanFactory(getBeanFactory());
-						interceptors.add(channelSecurityInterceptor);
+					DefaultBeanFactoryPointcutAdvisor channelSecurityInterceptor =
+							new DefaultBeanFactoryPointcutAdvisor();
+					channelSecurityInterceptor.setAdviceBeanName(entry.getKey());
+					BeanFactory beanFactory = getBeanFactory();
+					if (beanFactory != null) {
+						channelSecurityInterceptor.setBeanFactory(beanFactory);
 					}
+					interceptors.add(channelSecurityInterceptor);
 				}
+			}
 			if (!interceptors.isEmpty()) {
 				return interceptors.toArray();
 			}
