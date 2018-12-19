@@ -17,6 +17,7 @@
 package org.springframework.integration.context;
 
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,7 +45,9 @@ import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
+import org.springframework.util.IdGenerator;
 import org.springframework.util.StringUtils;
 
 /**
@@ -68,10 +71,12 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	protected static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
+	private static final IdGenerator idGenerator = new AlternativeJdkIdGenerator(); // NOSONAR lower case
+
 	/**
 	 * Logger that is available to subclasses
 	 */
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR protected
 
 	private final ConversionService defaultConversionService = DefaultConversionService.getSharedInstance();
 
@@ -310,6 +315,10 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	@Override
 	public String toString() {
 		return (this.beanName != null) ? this.beanName : super.toString();
+	}
+
+	public static UUID generateId() {
+		return idGenerator.generateId();
 	}
 
 }
