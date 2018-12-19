@@ -154,7 +154,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 					this.messageConverter.toMessage(payload, headers.getMessageHeaders());
 			Assert.state(messageToSend != null,
 					() -> "The message converter '" + this.messageConverter +
-							"' produced no message to send based on the request message: '" + message +"'");
+							"' produced no message to send based on the request message: '" + message + "'");
 			this.subProtocolHandlerRegistry.findProtocolHandler(session).handleMessageToClient(session, messageToSend);
 		}
 		catch (SessionLimitExceededException ex) {

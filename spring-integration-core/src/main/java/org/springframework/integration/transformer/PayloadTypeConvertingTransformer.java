@@ -53,7 +53,7 @@ public class PayloadTypeConvertingTransformer<T, U> extends AbstractPayloadTrans
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() throws Exception { // NOSONAR thrown by super class
 		super.onInit();
 		Assert.notNull(this.converter, () -> getClass().getName() + " requires a Converter<Object, Object>");
 	}
