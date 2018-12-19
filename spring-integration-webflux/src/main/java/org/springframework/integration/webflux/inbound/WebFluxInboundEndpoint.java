@@ -33,6 +33,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.core.ReactiveAdapter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.ResolvableType;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.HttpHeaders;
@@ -147,6 +148,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	private Mono<Void> doHandle(ServerWebExchange exchange) {
 		return extractRequestBody(exchange)
 				.doOnSubscribe(s -> this.activeCount.incrementAndGet())
+				.cast(Object.class)
 				.switchIfEmpty(Mono.just(exchange.getRequest().getQueryParams()))
 				.map(body ->
 						new RequestEntity<>(body, exchange.getRequest().getHeaders(),
@@ -166,71 +168,77 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 
 	}
 
-	@SuppressWarnings(UNCHECKED)
-	private <T> Mono<T> extractRequestBody(ServerWebExchange exchange) {
-		ServerHttpRequest request = exchange.getRequest();
-		ServerHttpResponse response = exchange.getResponse();
-
-		if (isReadable(request)) {
-			MediaType contentType;
-			if (request.getHeaders().getContentType() == null) {
-				contentType = MediaType.APPLICATION_OCTET_STREAM;
-			}
-			else {
-				contentType = request.getHeaders().getContentType();
-			}
-
-			if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)) {
-				return (Mono<T>) exchange.getFormData();
-			}
-			else if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(contentType)) {
-				return (Mono<T>) exchange.getMultipartData();
-			}
-			else {
-				ResolvableType bodyType = getRequestPayloadType();
-				if (bodyType == null) {
-					bodyType =
-							"text".equals(contentType.getType())
-									? ResolvableType.forClass(String.class)
-									: ResolvableType.forClass(byte[].class);
-				}
-
-				Class<?> resolvedType = bodyType.resolve();
-
-				ReactiveAdapter adapter = (resolvedType != null ? this.adapterRegistry.getAdapter(resolvedType) :
-						null);
-				ResolvableType elementType = (adapter != null ? bodyType.getGeneric() : bodyType);
-
-				HttpMessageReader<?> httpMessageReader = this.codecConfigurer
-						.getReaders()
-						.stream()
-						.filter(reader -> reader.canRead(elementType, contentType))
-						.findFirst()
-						.orElseThrow(() -> new UnsupportedMediaTypeStatusException(
-								"Could not convert request: no suitable HttpMessageReader found for expected type ["
-										+ elementType + "] and content type [" + contentType + "]"));
-
-
-				Map<String, Object> readHints = Collections.emptyMap();
-				if (adapter != null && adapter.isMultiValue()) {
-					Flux<?> flux = httpMessageReader.read(bodyType, elementType, request, response, readHints);
-
-					return (Mono<T>) Mono.just(adapter.fromPublisher(flux));
-				}
-				else {
-					Mono<?> mono = httpMessageReader.readMono(bodyType, elementType, request, response, readHints);
-
-					if (adapter != null) {
-						return (Mono<T>) Mono.just(adapter.fromPublisher(mono));
-					}
-					else {
-						return (Mono<T>) mono;
-					}
-				}
-			}
+	private Mono<?> extractRequestBody(ServerWebExchange exchange) {
+		if (isReadable(exchange.getRequest())) {
+			return extractReadableRequestBody(exchange);
 		}
 		else {
-			return (Mono<T>) Mono.just(exchange.getRequest().getQueryParams());
+			return Mono.just(exchange.getRequest().getQueryParams());
+		}
+	}
+
+	private Mono<?> extractReadableRequestBody(ServerWebExchange exchange) {
+		MediaType contentType =
+				exchange.getRequest()
+						.getHeaders()
+						.getContentType();
+		if (contentType == null) {
+			contentType = MediaType.APPLICATION_OCTET_STREAM;
+		}
+
+		if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)) {
+			return exchange.getFormData();
+		}
+		else if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(contentType)) {
+			return exchange.getMultipartData();
+		}
+		else {
+			return readRequestBody(exchange, contentType);
+		}
+	}
+
+	private Mono<?> readRequestBody(ServerWebExchange exchange, MediaType contentType) {
+		ServerHttpRequest request = exchange.getRequest();
+		ServerHttpResponse response = exchange.getResponse();
+		ResolvableType bodyType = getRequestPayloadType();
+		if (bodyType == null) {
+			bodyType =
+					"text".equals(contentType.getType())
+							? ResolvableType.forClass(String.class)
+							: ResolvableType.forClass(byte[].class);
+		}
+
+		Class<?> resolvedType = bodyType.resolve();
+
+		ReactiveAdapter adapter =
+				resolvedType != null
+						? this.adapterRegistry.getAdapter(resolvedType)
+						: null;
+		ResolvableType elementType = (adapter != null ? bodyType.getGeneric() : bodyType);
+
+		HttpMessageReader<?> httpMessageReader = this.codecConfigurer
+				.getReaders()
+				.stream()
+				.filter(reader -> reader.canRead(elementType, contentType))
+				.findFirst()
+				.orElseThrow(() -> new UnsupportedMediaTypeStatusException(
+						"Could not convert request: no suitable HttpMessageReader found for expected type ["
+								+ elementType + "] and content type [" + contentType + "]"));
+
+
+		Map<String, Object> readHints = Collections.emptyMap();
+		if (adapter != null && adapter.isMultiValue()) {
+			Flux<?> flux = httpMessageReader.read(bodyType, elementType, request, response, readHints);
+			return Mono.just(adapter.fromPublisher(flux));
+		}
+		else {
+			Mono<?> mono = httpMessageReader.readMono(bodyType, elementType, request, response, readHints);
+			if (adapter != null) {
+				return Mono.just(adapter.fromPublisher(mono));
+			}
+			else {
+				return mono;
+			}
 		}
 	}
 
@@ -241,7 +249,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		ServerHttpRequest request = exchange.getRequest();
 		MultiValueMap<String, String> requestParams = request.getQueryParams();
 
-		StandardEvaluationContext evaluationContext = buildEvaluationContext(httpEntity, exchange);
+		EvaluationContext evaluationContext = buildEvaluationContext(httpEntity, exchange);
 		Object payload;
 		if (getPayloadExpression() != null) {
 			payload = getPayloadExpression().getValue(evaluationContext);
@@ -299,7 +307,7 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 	}
 
 	@SuppressWarnings(UNCHECKED)
-	private StandardEvaluationContext buildEvaluationContext(RequestEntity<?> httpEntity, ServerWebExchange exchange) {
+	private EvaluationContext buildEvaluationContext(RequestEntity<?> httpEntity, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 		HttpHeaders requestHeaders = request.getHeaders();
 		MultiValueMap<String, String> requestParams = request.getQueryParams();
@@ -482,7 +490,6 @@ public class WebFluxInboundEndpoint extends BaseHttpInboundEndpoint implements W
 		return (mediaTypes.isEmpty() ? Collections.singletonList(MediaType.ALL) : mediaTypes);
 	}
 
-	@SuppressWarnings(UNCHECKED)
 	private List<MediaType> getProducibleTypes(ServerWebExchange exchange,
 			Supplier<List<MediaType>> producibleTypesSupplier) {
 

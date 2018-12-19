@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,9 @@ import org.springframework.util.StringUtils;
  * The STOMP {@link HeaderMapper} implementation.
  *
  * @author Artem Bilan
+ *
  * @since 4.2
+ *
  * @see StompHeaders
  */
 public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
@@ -51,32 +53,32 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 
 	public static final String STOMP_OUTBOUND_HEADER_NAME_PATTERN = "STOMP_OUTBOUND_HEADERS";
 
-	private static final String[] STOMP_INBOUND_HEADER_NAMES = new String[] {
-			StompHeaders.CONTENT_LENGTH,
-			StompHeaders.CONTENT_TYPE,
-			StompHeaders.MESSAGE_ID,
-			StompHeaders.RECEIPT_ID,
-			StompHeaders.SUBSCRIPTION,
-	};
+	private static final String[] STOMP_INBOUND_HEADER_NAMES =
+			new String[] {
+					StompHeaders.CONTENT_LENGTH,
+					StompHeaders.CONTENT_TYPE,
+					StompHeaders.MESSAGE_ID,
+					StompHeaders.RECEIPT_ID,
+					StompHeaders.SUBSCRIPTION,
+			};
 
-	private final static List<String> STOMP_INBOUND_HEADER_NAMES_LIST =
-			Arrays.<String>asList(STOMP_INBOUND_HEADER_NAMES);
+	private static final List<String> STOMP_INBOUND_HEADER_NAMES_LIST = Arrays.asList(STOMP_INBOUND_HEADER_NAMES);
 
-	private static final String[] STOMP_OUTBOUND_HEADER_NAMES = new String[] {
-			StompHeaders.CONTENT_LENGTH,
-			StompHeaders.CONTENT_TYPE,
-			StompHeaders.DESTINATION,
-			StompHeaders.RECEIPT,
-			IntegrationStompHeaders.DESTINATION,
-			IntegrationStompHeaders.RECEIPT
-	};
+	private static final String[] STOMP_OUTBOUND_HEADER_NAMES =
+			new String[] {
+					StompHeaders.CONTENT_LENGTH,
+					StompHeaders.CONTENT_TYPE,
+					StompHeaders.DESTINATION,
+					StompHeaders.RECEIPT,
+					IntegrationStompHeaders.DESTINATION,
+					IntegrationStompHeaders.RECEIPT
+			};
 
-	private final static List<String> STOMP_OUTBOUND_HEADER_NAMES_LIST =
-			Arrays.<String>asList(STOMP_OUTBOUND_HEADER_NAMES);
+	private static final List<String> STOMP_OUTBOUND_HEADER_NAMES_LIST = Arrays.asList(STOMP_OUTBOUND_HEADER_NAMES);
 
-	private volatile String[] inboundHeaderNames = STOMP_INBOUND_HEADER_NAMES;
+	private String[] inboundHeaderNames = STOMP_INBOUND_HEADER_NAMES;
 
-	private volatile String[] outboundHeaderNames = STOMP_OUTBOUND_HEADER_NAMES;
+	private String[] outboundHeaderNames = STOMP_OUTBOUND_HEADER_NAMES;
 
 	public void setInboundHeaderNames(String[] inboundHeaderNames) { //NOSONAR - false positive
 		Assert.notNull(inboundHeaderNames, "'inboundHeaderNames' must not be null.");
@@ -110,12 +112,14 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 			else if (StompHeaderAccessor.NATIVE_HEADERS.equals(name)) {
 				MultiValueMap<String, String> multiValueMap =
 						headers.get(StompHeaderAccessor.NATIVE_HEADERS, MultiValueMap.class);
-				for (Map.Entry<String, List<String>> entry1 : multiValueMap.entrySet()) {
-					name = entry1.getKey();
-					if (shouldMapHeader(name, this.outboundHeaderNames)) {
-						String value = entry1.getValue().get(0);
-						if (StringUtils.hasText(value)) {
-							setStompHeader(target, name, value);
+				if (multiValueMap != null) {
+					for (Map.Entry<String, List<String>> entry1 : multiValueMap.entrySet()) {
+						name = entry1.getKey();
+						if (shouldMapHeader(name, this.outboundHeaderNames)) {
+							String value = entry1.getValue().get(0);
+							if (StringUtils.hasText(value)) {
+								setStompHeader(target, name, value);
+							}
 						}
 					}
 				}
@@ -149,7 +153,8 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 				else {
 					Class<?> clazz = (value != null) ? value.getClass() : null;
 					throw new IllegalArgumentException(
-							"Expected MediaType or String value for 'content-type' header value, but received: " + clazz);
+							"Expected MediaType or String value for 'content-type' header value, but received: "
+									+ clazz);
 				}
 			}
 		}
@@ -187,7 +192,7 @@ public class StompHeaderMapper implements HeaderMapper<StompHeaders> {
 
 	@Override
 	public Map<String, Object> toHeaders(StompHeaders source) {
-		Map<String, Object> target = new HashMap<String, Object>();
+		Map<String, Object> target = new HashMap<>();
 		for (String name : source.keySet()) {
 			if (shouldMapHeader(name, this.inboundHeaderNames)) {
 				if (StompHeaders.CONTENT_TYPE.equals(name)) {

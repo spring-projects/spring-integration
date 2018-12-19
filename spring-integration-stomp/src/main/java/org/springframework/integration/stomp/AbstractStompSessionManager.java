@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,14 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.stomp.event.StompConnectionFailedEvent;
 import org.springframework.integration.stomp.event.StompSessionConnectedEvent;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.simp.stomp.StompClientSupport;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -73,11 +75,11 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	protected final StompClientSupport stompClient;
+
 	private final CompositeStompSessionHandler compositeStompSessionHandler = new CompositeStompSessionHandler();
 
 	private final Object lifecycleMonitor = new Object();
-
-	protected final StompClientSupport stompClient;
 
 	private final AtomicInteger epoch = new AtomicInteger();
 
@@ -176,9 +178,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private synchronized void connect() {
 		if (this.connecting || this.connected) {
-			if (this.logger.isDebugEnabled()) {
-				this.logger.debug("Aborting connect; another thread is connecting.");
-			}
+			this.logger.debug("Aborting connect; another thread is connecting.");
 			return;
 		}
 		final int epoch = this.epoch.get();
@@ -201,12 +201,12 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		final CountDownLatch connectLatch = new CountDownLatch(1);
 		this.stompSessionListenableFuture.addCallback(
 				stompSession -> {
-					if (AbstractStompSessionManager.this.logger.isDebugEnabled()) {
-						AbstractStompSessionManager.this.logger.debug("onSuccess");
-					}
+					AbstractStompSessionManager.this.logger.debug("onSuccess");
 					AbstractStompSessionManager.this.connected = true;
 					AbstractStompSessionManager.this.connecting = false;
-					stompSession.setAutoReceipt(isAutoReceiptEnabled());
+					if (stompSession != null) {
+						stompSession.setAutoReceipt(isAutoReceiptEnabled());
+					}
 					if (AbstractStompSessionManager.this.applicationEventPublisher != null) {
 						AbstractStompSessionManager.this.applicationEventPublisher.publishEvent(
 								new StompSessionConnectedEvent(this));
@@ -216,9 +216,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 				},
 				e -> {
-					if (AbstractStompSessionManager.this.logger.isDebugEnabled()) {
-						AbstractStompSessionManager.this.logger.debug("onFailure", e);
-					}
+					AbstractStompSessionManager.this.logger.debug("onFailure", e);
 					connectLatch.countDown();
 					if (epoch == AbstractStompSessionManager.this.epoch.get()) {
 						scheduleReconnect(e);
@@ -255,12 +253,14 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			this.reconnectFuture = null;
 		}
 
-		if (this.stompClient.getTaskScheduler() != null) {
-			this.reconnectFuture = this.stompClient.getTaskScheduler()
-					.schedule(this::connect, new Date(System.currentTimeMillis() + this.recoveryInterval));
+		TaskScheduler taskScheduler = this.stompClient.getTaskScheduler();
+		if (taskScheduler != null) {
+			this.reconnectFuture =
+					taskScheduler.schedule(this::connect,
+							new Date(System.currentTimeMillis() + this.recoveryInterval));
 		}
 		else {
-			this.logger.info("For automatic reconnection the 'stompClient' should be configured with a TaskScheduler.");
+			this.logger.info("For automatic reconnection the stompClient should be configured with a TaskScheduler.");
 		}
 	}
 
@@ -271,20 +271,23 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 				this.reconnectFuture.cancel(false);
 				this.reconnectFuture = null;
 			}
-			this.stompSessionListenableFuture.addCallback(new ListenableFutureCallback<StompSession>() {
+			this.stompSessionListenableFuture.addCallback(
+					new ListenableFutureCallback<StompSession>() {
 
-				@Override
-				public void onFailure(Throwable ex) {
-					AbstractStompSessionManager.this.connected = false;
-				}
+						@Override
+						public void onFailure(Throwable ex) {
+							AbstractStompSessionManager.this.connected = false;
+						}
 
-				@Override
-				public void onSuccess(StompSession session) {
-					session.disconnect();
-					AbstractStompSessionManager.this.connected = false;
-				}
+						@Override
+						public void onSuccess(StompSession session) {
+							if (session != null) {
+								session.disconnect();
+							}
+							AbstractStompSessionManager.this.connected = false;
+						}
 
-			});
+					});
 			this.stompSessionListenableFuture = null;
 		}
 	}
@@ -294,7 +297,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		synchronized (this.lifecycleMonitor) {
 			if (!isRunning()) {
 				if (this.logger.isInfoEnabled()) {
-					this.logger.info("Starting " + getClass().getSimpleName());
+					this.logger.info("Starting " + this);
 				}
 				connect();
 				this.running = true;
@@ -318,7 +321,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			if (isRunning()) {
 				this.running = false;
 				if (this.logger.isInfoEnabled()) {
-					this.logger.info("Stopping " + getClass().getSimpleName());
+					this.logger.info("Stopping " + this);
 				}
 				destroy();
 			}
@@ -360,8 +363,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 
 	private class CompositeStompSessionHandler extends StompSessionHandlerAdapter {
 
-		private final List<StompSessionHandler> delegates =
-				Collections.synchronizedList(new ArrayList<StompSessionHandler>());
+		private final List<StompSessionHandler> delegates = Collections.synchronizedList(new ArrayList<>());
 
 		private volatile StompSession session;
 
@@ -393,8 +395,9 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		}
 
 		@Override
-		public void handleException(StompSession session, StompCommand command, StompHeaders headers, byte[] payload,
-				Throwable exception) {
+		public void handleException(StompSession session, @Nullable StompCommand command, StompHeaders headers,
+				byte[] payload, Throwable exception) {
+
 			synchronized (this.delegates) {
 				for (StompSessionHandler delegate : this.delegates) {
 					delegate.handleException(session, command, headers, payload, exception);

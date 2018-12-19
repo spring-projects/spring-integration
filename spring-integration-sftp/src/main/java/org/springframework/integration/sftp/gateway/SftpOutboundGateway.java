@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.integration.sftp.gateway;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.ClientCallbackWithoutResult;
@@ -42,6 +42,7 @@ import com.jcraft.jsch.SftpException;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEntry> {
@@ -49,8 +50,10 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	private static final Method LS_ENTRY_SET_FILENAME_METHOD;
 
 	static {
-			LS_ENTRY_SET_FILENAME_METHOD = ReflectionUtils.findMethod(LsEntry.class, "setFilename", String.class);
-			LS_ENTRY_SET_FILENAME_METHOD.setAccessible(true);
+		LS_ENTRY_SET_FILENAME_METHOD = ReflectionUtils.findMethod(LsEntry.class, "setFilename", String.class);
+		if (LS_ENTRY_SET_FILENAME_METHOD != null) {
+			ReflectionUtils.makeAccessible(LS_ENTRY_SET_FILENAME_METHOD);
+		}
 	}
 
 	/**
@@ -61,6 +64,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 */
 	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory,
 			MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+
 		this(new SftpRemoteFileTemplate(sessionFactory), messageSessionCallback);
 	}
 
@@ -72,6 +76,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 */
 	public SftpOutboundGateway(RemoteFileTemplate<LsEntry> remoteFileTemplate,
 			MessageSessionCallback<LsEntry, ?> messageSessionCallback) {
+
 		super(remoteFileTemplate, messageSessionCallback);
 	}
 
@@ -119,11 +124,9 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 
 	@Override
 	protected List<AbstractFileInfo<LsEntry>> asFileInfoList(Collection<LsEntry> files) {
-		List<AbstractFileInfo<LsEntry>> canonicalFiles = new ArrayList<AbstractFileInfo<LsEntry>>();
-		for (LsEntry file : files) {
-			canonicalFiles.add(new SftpFileInfo(file));
-		}
-		return canonicalFiles;
+		return files.stream()
+				.map(SftpFileInfo::new)
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -149,14 +152,15 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 
 	@Override
 	protected void doChmod(RemoteFileOperations<LsEntry> remoteFileOperations, final String path, final int chmod) {
-		remoteFileOperations.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
-				try {
-					client.chmod(chmod, path);
-				}
-				catch (SftpException e) {
-					throw new GeneralSftpException("Failed to execute chmod", e);
-				}
-		});
+		remoteFileOperations
+				.executeWithClient((ClientCallbackWithoutResult<ChannelSftp>) client -> {
+					try {
+						client.chmod(chmod, path);
+					}
+					catch (SftpException e) {
+						throw new GeneralSftpException("Failed to execute chmod", e);
+					}
+				});
 	}
 
 }
