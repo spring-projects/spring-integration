@@ -22,7 +22,6 @@ import java.util.UUID;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -181,7 +180,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 					UUID id = message.getHeaders().getId();
 					messageToSend = getMessageBuilderFactory()
 								.fromMessage(message)
-								.pushSequenceDetails(id == null ? IntegrationObjectSupport.generateId() : id,
+								.pushSequenceDetails(id == null ? generateId() : id,
 										sequenceNumber++, sequenceSize)
 								.build();
 				}
@@ -211,9 +210,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 			if (!this.ignoreSendFailures) {
 				throw e;
 			}
-			else if (this.logger.isDebugEnabled()) {
-				this.logger.debug(e);
-			}
+			this.logger.debug("Send failure ignored", e);
 			return false;
 		}
 	}
