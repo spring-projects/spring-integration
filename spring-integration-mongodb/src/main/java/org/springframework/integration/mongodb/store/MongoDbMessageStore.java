@@ -212,6 +212,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 
 	private void addMessageDocument(MessageWrapper document) {
 		UUID messageId = (UUID) document.headers.get(MessageHeaders.ID);
+		Assert.notNull(messageId, "ID header must not be null");
 		Query query = whereMessageIdIsAndGroupIdIs(messageId, document.get_GroupId());
 		if (!this.template.exists(query, MessageWrapper.class, this.collectionName)) {
 			if (document.get_Group_timestamp() == 0) {

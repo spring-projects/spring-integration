@@ -146,6 +146,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	protected void doAddMessage(Message<?> message) {
 		Assert.notNull(message, "'message' must not be null");
 		UUID messageId = message.getHeaders().getId();
+		Assert.notNull(messageId, "Cannot store messages without an ID header");
 		doStoreIfAbsent(this.messagePrefix + messageId, new MessageHolder(message));
 	}
 

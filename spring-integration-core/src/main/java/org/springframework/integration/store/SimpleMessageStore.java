@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,7 +182,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 					+ this.individualCapacity
 					+ "), try constructing it with a larger capacity.");
 		}
-		this.idToMessage.put(message.getHeaders().getId(), message);
+		UUID id = message.getHeaders().getId();
+		Assert.notNull(id, "ID header must not be null");
+		this.idToMessage.put(id, message);
 		return message;
 	}
 

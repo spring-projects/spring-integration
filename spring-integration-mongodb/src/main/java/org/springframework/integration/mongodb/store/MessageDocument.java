@@ -77,6 +77,7 @@ public class MessageDocument {
 	@PersistenceConstructor
 	MessageDocument(Message<?> message, UUID messageId) {
 		Assert.notNull(message, "'message' must not be null");
+		Assert.notNull(messageId, "'message' ID header must not be null");
 		this.message = message;
 		this.messageId = messageId;
 	}
