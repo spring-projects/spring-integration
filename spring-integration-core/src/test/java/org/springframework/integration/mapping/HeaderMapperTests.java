@@ -34,6 +34,7 @@ import org.springframework.integration.mapping.AbstractHeaderMapper.HeaderMatche
 import org.springframework.integration.mapping.AbstractHeaderMapper.PatternBasedHeaderMatcher;
 import org.springframework.integration.mapping.AbstractHeaderMapper.PrefixBasedMatcher;
 import org.springframework.integration.mapping.AbstractHeaderMapper.SinglePatternBasedHeaderMatcher;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -468,8 +469,12 @@ public class HeaderMapperTests {
 			if (StringUtils.hasText(source.getAppId())) {
 				result.put(GenericTestHeaders.APP_ID, source.getAppId());
 			}
-			result.put(GenericTestHeaders.TRANSACTION_SIZE, source.getTransactionSize());
-			result.put(GenericTestHeaders.REDELIVERED, source.getRedelivered());
+			if (source.getTransactionSize() != null) {
+				result.put(GenericTestHeaders.TRANSACTION_SIZE, source.getTransactionSize());
+			}
+			if (source.getRedelivered() != null) {
+				result.put(GenericTestHeaders.REDELIVERED, source.getRedelivered());
+			}
 			if (StringUtils.hasText(source.getRequestOnly())) {
 				result.put(GenericTestHeaders.REQUEST_ONLY, source.getRequestOnly());
 			}
@@ -543,6 +548,7 @@ public class HeaderMapperTests {
 			this.appId = appId;
 		}
 
+		@Nullable
 		public Integer getTransactionSize() {
 			return transactionSize;
 		}
@@ -551,6 +557,7 @@ public class HeaderMapperTests {
 			this.transactionSize = transactionSize;
 		}
 
+		@Nullable
 		public Boolean getRedelivered() {
 			return redelivered;
 		}
