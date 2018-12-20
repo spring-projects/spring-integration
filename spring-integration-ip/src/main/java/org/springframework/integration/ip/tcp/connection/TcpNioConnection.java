@@ -103,13 +103,10 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 */
 	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher,
-			String connectionFactoryName) throws Exception {
+			@Nullable String connectionFactoryName) {
+
 		super(socketChannel.socket(), server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socketChannel = socketChannel;
-		int receiveBufferSize = socketChannel.socket().getReceiveBufferSize();
-		if (receiveBufferSize <= 0) {
-			receiveBufferSize = this.maxMessageSize;
-		}
 		this.channelOutputStream = new ChannelOutputStream();
 	}
 

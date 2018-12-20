@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,23 +32,27 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ConverterParser extends AbstractBeanDefinitionParser {
 
-	private final static IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER = new IntegrationConverterInitializer();
+	private static final IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER =
+			new IntegrationConverterInitializer();
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionRegistry registry = parserContext.getRegistry();
-		BeanComponentDefinition converterDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		BeanComponentDefinition converterDefinition =
+				IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		if (converterDefinition != null) {
 			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(registry, converterDefinition);
 		}
 		else {
 			String beanName = element.getAttribute("ref");
 			Assert.isTrue(StringUtils.hasText(beanName),
-					"Either a 'ref' attribute pointing to a Converter or a <bean> sub-element defining a Converter is required.");
+					"Either a 'ref' attribute pointing to a Converter " +
+							"or a <bean> sub-element defining a Converter is required.");
 			INTEGRATION_CONVERTER_INITIALIZER.registerConverter(registry, new RuntimeBeanReference(beanName));
 		}
 		return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.feed.dsl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -56,7 +57,7 @@ import com.rometools.rome.feed.synd.SyndEntry;
 public class FeedDslTests {
 
 	@ClassRule
-	public final static TemporaryFolder tempFolder = new TemporaryFolder();
+	public static final TemporaryFolder tempFolder = new TemporaryFolder();
 
 	@Autowired
 	private PollableChannel entries;
@@ -70,6 +71,9 @@ public class FeedDslTests {
 		Message<SyndEntry> message1 = (Message<SyndEntry>) this.entries.receive(10000);
 		Message<SyndEntry> message2 = (Message<SyndEntry>) this.entries.receive(10000);
 		Message<SyndEntry> message3 = (Message<SyndEntry>) this.entries.receive(10000);
+		assertThat(message1).isNotNull();
+		assertThat(message2).isNotNull();
+		assertThat(message3).isNotNull();
 		long time1 = message1.getPayload().getPublishedDate().getTime();
 		long time2 = message2.getPayload().getPublishedDate().getTime();
 		long time3 = message3.getPayload().getPublishedDate().getTime();

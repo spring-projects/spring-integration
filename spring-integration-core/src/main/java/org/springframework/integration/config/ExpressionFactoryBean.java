@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,26 +27,27 @@ import org.springframework.util.Assert;
  * FactoryBean for creating Expression instances.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class ExpressionFactoryBean extends AbstractFactoryBean<Expression> {
 
-	private final static ExpressionParser DEFAULT_PARSER = new SpelExpressionParser();
-
+	private static final ExpressionParser DEFAULT_PARSER = new SpelExpressionParser();
 
 	private final String expressionString;
 
-	private volatile ExpressionParser parser = DEFAULT_PARSER;
+	private ExpressionParser parser = DEFAULT_PARSER;
 
 
 	public ExpressionFactoryBean(String expressionString) {
-		Assert.hasText(expressionString, "expressionString must not be empty or null");
+		Assert.hasText(expressionString, "'expressionString' must not be empty or null");
 		this.expressionString = expressionString;
 	}
 
 
 	public void setParserConfiguration(SpelParserConfiguration parserConfiguration) {
-		Assert.notNull(parserConfiguration, "parserConfiguration must not be null");
+		Assert.notNull(parserConfiguration, "'parserConfiguration' must not be null");
 		this.parser = new SpelExpressionParser(parserConfiguration);
 	}
 
@@ -57,7 +58,7 @@ public class ExpressionFactoryBean extends AbstractFactoryBean<Expression> {
 	}
 
 	@Override
-	protected Expression createInstance() throws Exception {
+	protected Expression createInstance() {
 		return this.parser.parseExpression(this.expressionString);
 	}
 

@@ -17,12 +17,8 @@
 package org.springframework.integration.jdbc;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionException;
@@ -31,6 +27,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.util.Assert;
 
 /**
  * An implementation of {@link SqlParameterSourceFactory} which creates
@@ -48,15 +45,13 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator
 		implements SqlParameterSourceFactory {
 
-	private final static Log logger = LogFactory.getLog(ExpressionEvaluatingSqlParameterSourceFactory.class);
-
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final Object ERROR = new Object();
 
-	private volatile Map<String, ?> staticParameters;
+	private final Map<String, Object> staticParameters = new HashMap<>();
 
-	private volatile Map<String, Integer> sqlParametersTypes;
+	private final Map<String, Integer> sqlParametersTypes = new HashMap<>();
 
 	/**
 	 * The {@link Map} of parameters with expressions.
@@ -64,11 +59,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * first element - direct {@link Expression},  second - collection projection {@link Expression}.
 	 * Used in case of root object of evaluation is {@link Collection}.
 	 */
-	private volatile Map<String, Expression[]> parameterExpressions;
+	private final Map<String, Expression[]> parameterExpressions = new HashMap<>();
 
 	public ExpressionEvaluatingSqlParameterSourceFactory() {
-		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());
-		this.parameterExpressions = new HashMap<>();
 	}
 
 	/**
@@ -77,16 +70,19 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * first, and then from the expressions.
 	 * @param staticParameters the static parameters to set
 	 */
-	public void setStaticParameters(Map<String, ?> staticParameters) {
-		this.staticParameters = staticParameters;
+	public void setStaticParameters(Map<String, Object> staticParameters) {
+		Assert.notNull(staticParameters, "'staticParameters' must not be null");
+		this.staticParameters.putAll(staticParameters);
 	}
 
 	/**
 	 * Optionally maps parameter names to explicit expressions. The named parameter support in Spring is limited to
-	 * simple parameter names with no special characters, so this feature allows you to specify a simple name in the SQL
+	 * simple parameter names with no special characters, so this feature allows you to specify a simple name in the
+	 * SQL
 	 * query and then have it translated into an expression at runtime. The target of the expression depends on the
 	 * context: generally in an outbound setting it is a Message, and in an inbound setting it is a result set row (a
-	 * Map or a domain object if a RowMapper has been provided). The {@link #setStaticParameters(Map) static parameters}
+	 * Map or a domain object if a RowMapper has been provided). The {@link #setStaticParameters(Map) static
+	 * parameters}
 	 * can be referred to in an expression using the variable <code>#staticParameters</code>, for example:
 	 * <p>&nbsp;
 	 * <table>
@@ -115,6 +111,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * @param parameterExpressions the parameter expressions to set
 	 */
 	public void setParameterExpressions(Map<String, String> parameterExpressions) {
+		Assert.notNull(parameterExpressions, "'parameterExpressions' must not be null");
 		Map<String, Expression[]> paramExpressions = new HashMap<>(parameterExpressions.size());
 		for (Map.Entry<String, String> entry : parameterExpressions.entrySet()) {
 			String key = entry.getKey();
@@ -125,7 +122,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			};
 			paramExpressions.put(key, expressions);
 		}
-		this.parameterExpressions = paramExpressions;
+		this.parameterExpressions.putAll(paramExpressions);
 	}
 
 	/**
@@ -136,7 +133,8 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 	 * @see java.sql.Types
 	 */
 	public void setSqlParameterTypes(Map<String, Integer> sqlParametersTypes) {
-		this.sqlParametersTypes = sqlParametersTypes;
+		Assert.notNull(sqlParametersTypes, "'sqlParametersTypes' must not be null");
+		this.sqlParametersTypes.putAll(sqlParametersTypes);
 	}
 
 	@Override
@@ -166,7 +164,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 		private final Object input;
 
-		private final Map<String, Object> values = new HashMap<String, Object>();
+		private final Map<String, Object> values = new HashMap<>();
 
 		private final Map<String, Expression[]> parameterExpressions;
 

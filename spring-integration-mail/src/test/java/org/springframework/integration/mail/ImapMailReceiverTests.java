@@ -112,12 +112,12 @@ import com.sun.mail.imap.IMAPFolder;
 @DirtiesContext
 public class ImapMailReceiverTests {
 
+	private static final ImapServer imapIdleServer = TestMailServer.imap(0);
+
 	@Rule
 	public final LongRunningIntegrationTest longRunningIntegrationTest = new LongRunningIntegrationTest();
 
 	private final AtomicInteger failed = new AtomicInteger(0);
-
-	private final static ImapServer imapIdleServer = TestMailServer.imap(0);
 
 
 	@Autowired

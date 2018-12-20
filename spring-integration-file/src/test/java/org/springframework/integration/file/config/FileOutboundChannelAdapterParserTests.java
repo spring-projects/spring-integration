@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.config;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -120,7 +121,7 @@ public class FileOutboundChannelAdapterParserTests {
 	@Autowired
 	MessageFlushPredicate predicate;
 
-	private volatile static int adviceCalled;
+	private static volatile int adviceCalled;
 
 	@Test
 	public void simpleAdapter() {
@@ -237,10 +238,10 @@ public class FileOutboundChannelAdapterParserTests {
 		if (testFile.exists()) {
 			testFile.delete();
 		}
-		usageChannel.send(new GenericMessage<String>("Initial File Content:"));
-		usageChannel.send(new GenericMessage<String>("String content:"));
-		usageChannel.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
-		usageChannel.send(new GenericMessage<File>(new File("test/input.txt")));
+		usageChannel.send(new GenericMessage<>("Initial File Content:"));
+		usageChannel.send(new GenericMessage<>("String content:"));
+		usageChannel.send(new GenericMessage<>("byte[] content:".getBytes()));
+		usageChannel.send(new GenericMessage<>(new File("test/input.txt")));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
@@ -259,10 +260,10 @@ public class FileOutboundChannelAdapterParserTests {
 		if (testFile.exists()) {
 			testFile.delete();
 		}
-		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<String>("Initial File Content:"));
-		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<String>("String content:"));
-		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
-		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<File>(new File("test/input.txt")));
+		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<>("Initial File Content:"));
+		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<>("String content:"));
+		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<>("byte[] content:".getBytes()));
+		adapterUsageWithAppendAndAppendNewLineTrue.send(new GenericMessage<>(new File("test/input.txt")));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
@@ -277,10 +278,10 @@ public class FileOutboundChannelAdapterParserTests {
 		if (testFile.exists()) {
 			testFile.delete();
 		}
-		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<String>("Initial File Content:"));
-		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<String>("String content:"));
-		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<byte[]>("byte[] content:".getBytes()));
-		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<File>(new File("test/input.txt")));
+		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<>("Initial File Content:"));
+		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<>("String content:"));
+		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<>("byte[] content:".getBytes()));
+		adapterUsageWithAppendAndAppendNewLineFalse.send(new GenericMessage<>(new File("test/input.txt")));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
@@ -288,20 +289,20 @@ public class FileOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void adapterUsageWithFailMode() throws Exception {
+	public void adapterUsageWithFailMode() {
 
 		File testFile = new File("test/fileToFail.txt");
 		if (testFile.exists()) {
 			testFile.delete();
 		}
 
-		usageChannelWithFailMode.send(new GenericMessage<String>("Initial File Content:"));
+		usageChannelWithFailMode.send(new GenericMessage<>("Initial File Content:"));
 
 		try {
-			usageChannelWithFailMode.send(new GenericMessage<String>("String content:"));
+			usageChannelWithFailMode.send(new GenericMessage<>("String content:"));
 		}
 		catch (MessagingException e) {
-			assertTrue(e.getMessage().contains("The destination file already exists at"));
+			assertThat(e.getMessage(), containsString("The destination file already exists at"));
 			testFile.delete();
 			return;
 		}
@@ -320,8 +321,8 @@ public class FileOutboundChannelAdapterParserTests {
 			testFile.delete();
 		}
 
-		usageChannelWithIgnoreMode.send(new GenericMessage<String>("Initial File Content:"));
-		usageChannelWithIgnoreMode.send(new GenericMessage<String>("String content:"));
+		usageChannelWithIgnoreMode.send(new GenericMessage<>("Initial File Content:"));
+		usageChannelWithIgnoreMode.send(new GenericMessage<>("String content:"));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
@@ -347,8 +348,8 @@ public class FileOutboundChannelAdapterParserTests {
 		String bString = bBuffer.toString();
 
 		for (int i = 0; i < 1; i++) {
-			usageChannelConcurrent.send(new GenericMessage<String>(aString));
-			usageChannelConcurrent.send(new GenericMessage<String>(bString));
+			usageChannelConcurrent.send(new GenericMessage<>(aString));
+			usageChannelConcurrent.send(new GenericMessage<>(bString));
 		}
 
 		assertTrue(this.fileWriteLatch.await(10, TimeUnit.SECONDS));

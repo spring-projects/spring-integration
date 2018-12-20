@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.ws.soap.SoapMessage;
 /**
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ *
  * @since 2.1
  */
 public abstract class AbstractWebServiceInboundGateway extends MessagingGatewaySupport
@@ -42,7 +43,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 
 	private final AtomicInteger activeCount = new AtomicInteger();
 
-	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
+	protected SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
 	@Override
 	public String getComponentType() {
@@ -111,6 +112,6 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		return this.activeCount.get();
 	}
 
-	abstract protected void doInvoke(MessageContext messageContext) throws Exception;
+	protected abstract void doInvoke(MessageContext messageContext) throws Exception;
 
 }

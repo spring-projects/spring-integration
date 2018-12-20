@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,15 @@ import org.springframework.util.Assert;
  * {@code priorityEnabled = true} option.
  *
  * @author Artem Bilan
+ *
  * @since 4.0
  */
 public class MongoDbChannelMessageStore extends AbstractConfigurableMongoDbMessageStore
 		implements PriorityCapableChannelMessageStore {
 
-	public final static String DEFAULT_COLLECTION_NAME = "channelMessages";
+	public static final String DEFAULT_COLLECTION_NAME = "channelMessages";
 
-	private volatile boolean priorityEnabled;
+	private boolean priorityEnabled;
 
 	public MongoDbChannelMessageStore(MongoTemplate mongoTemplate) {
 		this(mongoTemplate, DEFAULT_COLLECTION_NAME);

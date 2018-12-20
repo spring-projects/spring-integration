@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -48,7 +49,10 @@ import org.springframework.util.Assert;
  * Also, it may be deemed necessary to re-perform handshaking.<p>
  * This class supports the management of handshaking as necessary, both from the
  * initiating and receiving peers.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -77,8 +81,9 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 	private SSLHandshakeException sslFatal;
 
 	public TcpNioSSLConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-			ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
+			ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
 			SSLEngine sslEngine) throws Exception {
+
 		super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.sslEngine = sslEngine;
 	}

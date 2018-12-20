@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package org.springframework.integration.file.config;
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -84,11 +86,10 @@ public class FileOutboundGatewayParserTests {
 	@Autowired
 	EventDrivenConsumer gatewayWithAppendNewLine;
 
-	private volatile static int adviceCalled;
+	private static volatile int adviceCalled;
 
 	@Test
-	public void checkOrderedGateway() throws Exception {
-
+	public void checkOrderedGateway() {
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(ordered);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				gatewayAccessor.getPropertyValue("handler");
@@ -109,13 +110,13 @@ public class FileOutboundGatewayParserTests {
 	}
 
 	@Test
-	public void testOutboundGatewayWithDirectoryExpression() throws Exception {
+	public void testOutboundGatewayWithDirectoryExpression() {
 		FileWritingMessageHandler handler =
 				TestUtils.getPropertyValue(gatewayWithDirectoryExpression, "handler", FileWritingMessageHandler.class);
 		assertEquals("'build/foo'",
 				TestUtils.getPropertyValue(handler, "destinationDirectoryExpression", Expression.class)
 						.getExpressionString());
-		handler.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<>("foo"));
 		assertEquals(1, adviceCalled);
 	}
 
@@ -130,7 +131,6 @@ public class FileOutboundGatewayParserTests {
 	 */
 	@Test
 	public void gatewayWithIgnoreMode() throws Exception {
-
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithIgnoreModeChannel);
 
@@ -141,9 +141,9 @@ public class FileOutboundGatewayParserTests {
 			testFile.delete();
 		}
 
-		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
+		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
-		Message<?> replyMessage = messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+		Message<?> replyMessage = messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
@@ -166,7 +166,6 @@ public class FileOutboundGatewayParserTests {
 	 */
 	@Test
 	public void gatewayWithFailMode() throws Exception {
-
 		final MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setDefaultDestination(this.gatewayWithFailModeChannel);
 
@@ -178,18 +177,18 @@ public class FileOutboundGatewayParserTests {
 			testFile.delete();
 		}
 
-		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
+		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
 		final String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
 
 		try {
 
-			messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+			messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
 
 		}
 		catch (MessageHandlingException e) {
-			assertTrue(e.getMessage().startsWith("The destination file already exists at '"));
+			assertThat(e.getMessage(), startsWith("The destination file already exists at '"));
 			return;
 		}
 
@@ -219,18 +218,18 @@ public class FileOutboundGatewayParserTests {
 			testFile.delete();
 		}
 
-		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
+		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
 
 		final String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
 
 		try {
 
-			messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+			messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
 
 		}
 		catch (MessageHandlingException e) {
-			assertTrue(e.getMessage().startsWith("The destination file already exists at '"));
+			assertThat(e.getMessage(), startsWith("The destination file already exists at '"));
 			return;
 		}
 
@@ -262,8 +261,8 @@ public class FileOutboundGatewayParserTests {
 			testFile.delete();
 		}
 
-		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
-		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
+		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
@@ -301,8 +300,8 @@ public class FileOutboundGatewayParserTests {
 			testFile.delete();
 		}
 
-		messagingTemplate.sendAndReceive(new GenericMessage<String>("Initial File Content:"));
-		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<String>("String content:"));
+		messagingTemplate.sendAndReceive(new GenericMessage<>("Initial File Content:"));
+		Message<?> m = messagingTemplate.sendAndReceive(new GenericMessage<>("String content:"));
 
 		String actualFileContent = new String(FileCopyUtils.copyToByteArray(testFile));
 		assertEquals(expectedFileContent, actualFileContent);
@@ -327,7 +326,7 @@ public class FileOutboundGatewayParserTests {
 	public static class FooAdvice extends AbstractRequestHandlerAdvice {
 
 		@Override
-		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) throws Exception {
+		protected Object doInvoke(ExecutionCallback callback, Object target, Message<?> message) {
 			adviceCalled++;
 			return null;
 		}

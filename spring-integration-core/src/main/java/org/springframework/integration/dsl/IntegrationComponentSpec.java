@@ -37,7 +37,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpec<S, T>, T>
 		implements FactoryBean<T>, InitializingBean, DisposableBean {
 
-	protected final static SpelExpressionParser PARSER = new SpelExpressionParser();
+	protected static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR
 

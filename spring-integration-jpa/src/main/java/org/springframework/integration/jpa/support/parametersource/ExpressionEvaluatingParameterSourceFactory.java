@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,20 +44,19 @@ import org.springframework.util.Assert;
  */
 public class ExpressionEvaluatingParameterSourceFactory implements ParameterSourceFactory {
 
-	private final static Log logger = LogFactory.getLog(ExpressionEvaluatingParameterSourceFactory.class);
+	private static final Log logger = LogFactory.getLog(ExpressionEvaluatingParameterSourceFactory.class);
 
 	private static final Object ERROR = new Object();
 
-	private volatile List<JpaParameter> parameters;
-
 	private final ParameterExpressionEvaluator expressionEvaluator = new ParameterExpressionEvaluator();
+
+	private final List<JpaParameter> parameters = new ArrayList<>();
 
 	public ExpressionEvaluatingParameterSourceFactory() {
 		this(null);
 	}
 
 	public ExpressionEvaluatingParameterSourceFactory(@Nullable BeanFactory beanFactory) {
-		this.parameters = new ArrayList<>();
 		this.expressionEvaluator.setBeanFactory(beanFactory);
 	}
 
@@ -66,14 +65,13 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 	 * @param parameters the parameters to be set
 	 */
 	public void setParameters(List<JpaParameter> parameters) {
-
 		Assert.notEmpty(parameters, "parameters must not be null or empty.");
 
 		for (JpaParameter parameter : parameters) {
 			Assert.notNull(parameter, "The provided list (parameters) cannot contain null values.");
 		}
 
-		this.parameters = parameters;
+		this.parameters.addAll(parameters);
 		this.expressionEvaluator.getEvaluationContext().setVariable("staticParameters",
 				ExpressionEvaluatingParameterSourceUtils.convertStaticParameters(parameters));
 
@@ -89,7 +87,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 
 		private final Object input;
 
-		private volatile Map<String, Object> values = new HashMap<>();
+		private final Map<String, Object> values = new HashMap<>();
 
 		private final List<JpaParameter> parameters;
 

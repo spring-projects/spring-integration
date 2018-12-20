@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,16 @@
 
 package org.springframework.integration.xml.config;
 
+/**
+ * @author Jonas Partner
+ * @author Mark Fisher
+ * @author Chris Beams
+ * @author Gary Russell
+ * @author Artem Bilan
+ */
 public class TestXmlApplicationContextHelper {
 
-	private TestXmlApplicationContextHelper() {
-		super();
-	}
-
-	public static TestXmlApplicationContext getTestAppContext(String xmlFragment) {
-		String xml = header + xmlFragment + footer;
-		TestXmlApplicationContext ctx = new TestXmlApplicationContext(xml);
-		return ctx;
-	}
-
-	private final static String header = "<?xml version='1.0' encoding='UTF-8'?>"
+	private static final String header = "<?xml version='1.0' encoding='UTF-8'?>"
 			+ "<beans xmlns='http://www.springframework.org/schema/beans' "
 			+ "xmlns:si-xml='http://www.springframework.org/schema/integration/xml' "
 			+ "xmlns:si='http://www.springframework.org/schema/integration' "
@@ -46,6 +43,14 @@ public class TestXmlApplicationContextHelper {
 			"http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd' >" +
 			"<context:annotation-config/>";
 
-	private final static String footer = "</beans>";
+	private static final String footer = "</beans>";
+
+	private TestXmlApplicationContextHelper() {
+		super();
+	}
+
+	public static TestXmlApplicationContext getTestAppContext(String xmlFragment) {
+		return new TestXmlApplicationContext(header + xmlFragment + footer);
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,13 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Ivan Krizsan
+ * @author Artem Bilan
  */
 public class DefaultMessageChannelMetricsTests {
 
-	protected final static int MESSAGE_COUNT = 10;
+	protected static final int MESSAGE_COUNT = 10;
 
-	protected final static long SEND_TIMEOUT = 1;
+	protected static final long SEND_TIMEOUT = 1;
 
 	@Test
 	public void errorCountWithCountsEnabledOnlySuccessTest() {

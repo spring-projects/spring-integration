@@ -46,9 +46,9 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 
 	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
 
-	private final static RedisSerializer<String> stringSerializer = new StringRedisSerializer();
+	private  static final RedisSerializer<String> stringSerializer = new StringRedisSerializer();
 
-	private final RedisTemplate<String, Object> template;
+	private final RedisTemplate<String, Object> template = new RedisTemplate<>();
 
 	private final BoundListOperations<String, Object> boundListOps;
 
@@ -63,7 +63,6 @@ public class RedisQueueOutboundGateway extends AbstractReplyProducingMessageHand
 	public RedisQueueOutboundGateway(String queueName, RedisConnectionFactory connectionFactory) {
 		Assert.hasText(queueName, "'queueName' is required");
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
-		this.template = new RedisTemplate<String, Object>();
 		this.template.setConnectionFactory(connectionFactory);
 		this.template.setEnableDefaultSerializer(false);
 		this.template.setKeySerializer(new StringRedisSerializer());

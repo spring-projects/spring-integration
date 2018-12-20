@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,13 @@ import org.junit.runners.model.Statement;
  *
  * @author Gary Russell
  * @author Artem Bilan
+ *
  * @since 3.0
  *
  */
 public class LongRunningIntegrationTest extends TestWatcher {
 
-	private final static Log logger = LogFactory.getLog(LongRunningIntegrationTest.class);
+	private static final Log logger = LogFactory.getLog(LongRunningIntegrationTest.class);
 
 	private static final String RUN_LONG_PROP = "RUN_LONG_INTEGRATION_TESTS";
 
@@ -56,7 +57,7 @@ public class LongRunningIntegrationTest extends TestWatcher {
 			return new Statement() {
 
 				@Override
-				public void evaluate() throws Throwable {
+				public void evaluate() {
 					Assume.assumeTrue(false);
 				}
 			};

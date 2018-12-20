@@ -37,6 +37,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ReversibleFileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.support.FileUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -56,7 +57,7 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	private final RemoteFileTemplate<F> remoteFileTemplate;
 
-	private final BlockingQueue<AbstractFileInfo<F>> toBeReceived = new LinkedBlockingQueue<AbstractFileInfo<F>>();
+	private final BlockingQueue<AbstractFileInfo<F>> toBeReceived = new LinkedBlockingQueue<>();
 
 	private final Comparator<F> comparator;
 
@@ -65,24 +66,25 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	/**
 	 * the path on the remote server.
 	 */
-	private volatile Expression remoteDirectoryExpression;
+	private Expression remoteDirectoryExpression;
 
-	private volatile String remoteFileSeparator = "/";
+	private String remoteFileSeparator = "/";
 
 	/**
 	 * An {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
-	private volatile FileListFilter<F> filter;
+	private FileListFilter<F> filter;
 
 	protected AbstractRemoteFileStreamingMessageSource(RemoteFileTemplate<F> template,
-			Comparator<F> comparator) {
+			@Nullable Comparator<F> comparator) {
+
+		Assert.notNull(template, "'template' must not be null");
 		this.remoteFileTemplate = template;
 		this.comparator = comparator;
 	}
 
 	/**
 	 * Specify the full path to the remote directory.
-	 *
 	 * @param remoteDirectory The remote directory.
 	 */
 	public void setRemoteDirectory(String remoteDirectory) {
@@ -91,7 +93,6 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 
 	/**
 	 * Specify an expression that evaluates to the full path to the remote directory.
-	 *
 	 * @param remoteDirectoryExpression The remote directory expression.
 	 */
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
@@ -183,10 +184,9 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 	}
 
 	protected String remotePath(AbstractFileInfo<F> file) {
-		String remotePath = file.getRemoteDirectory().endsWith(this.remoteFileSeparator)
+		return file.getRemoteDirectory().endsWith(this.remoteFileSeparator)
 				? file.getRemoteDirectory() + file.getFilename()
 				: file.getRemoteDirectory() + this.remoteFileSeparator + file.getFilename();
-		return remotePath;
 	}
 
 	private void listFiles() {
@@ -219,8 +219,8 @@ public abstract class AbstractRemoteFileStreamingMessageSource<F>
 		}
 	}
 
-	abstract protected List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
+	protected abstract List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
 
-	abstract protected boolean isDirectory(F file);
+	protected abstract boolean isDirectory(F file);
 
 }

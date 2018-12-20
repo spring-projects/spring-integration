@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(IntegrationGraphController.REQUEST_MAPPING_PATH_VARIABLE)
 public class IntegrationGraphController {
 
-	final static String REQUEST_MAPPING_PATH_VARIABLE =
+	static final String REQUEST_MAPPING_PATH_VARIABLE =
 			"${" + HttpContextUtils.GRAPH_CONTROLLER_PATH_PROPERTY +  ":" +
 					HttpContextUtils.GRAPH_CONTROLLER_DEFAULT_PATH + "}";
 

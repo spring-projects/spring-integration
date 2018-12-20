@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ import com.rometools.rome.io.SyndFeedInput;
 public class FeedInboundChannelAdapterParserTests {
 
 	@ClassRule
-	public final static TemporaryFolder tempFolder = new TemporaryFolder();
+	public static final TemporaryFolder tempFolder = new TemporaryFolder();
 
 
 	private static CountDownLatch latch;
@@ -144,7 +144,7 @@ public class FeedInboundChannelAdapterParserTests {
 
 		public void receiveFeedEntry(Message<?> message) {
 			MessageHistory history = MessageHistory.read(message);
-			assertTrue(history.size() == 3);
+			assertEquals(3, history.size());
 			Properties historyItem = history.get(0);
 			assertEquals("feedAdapterUsage", historyItem.get("name"));
 			assertEquals("feed:inbound-channel-adapter", historyItem.get("type"));

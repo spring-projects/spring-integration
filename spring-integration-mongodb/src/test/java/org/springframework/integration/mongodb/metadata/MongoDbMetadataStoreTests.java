@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,13 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 /**
  * @author Senthil Arumugam, Samiraj Panneer Selvam
  * @author Artem Bilan
+ *
  * @since 4.2
  *
  */
 public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
-	private final static String DEFAULT_COLLECTION_NAME = "metadataStore";
+	private static final String DEFAULT_COLLECTION_NAME = "metadataStore";
 
 	private final String file1 = "/remotepath/filesTodownload/file-1.txt";
 
@@ -47,14 +48,14 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 	private MongoDbMetadataStore store = null;
 
 	@Before
-	public void configure() throws Exception {
+	public void configure() {
 		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
 		this.store = new MongoDbMetadataStore(mongoDbFactory);
 	}
 
 	@MongoDbAvailable
 	@Test
-	public void testConfigureCustomCollection() throws Exception {
+	public void testConfigureCustomCollection() {
 		final String collectionName = "testMetadataStore";
 		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
 		final MongoTemplate template = new MongoTemplate(mongoDbFactory);
@@ -64,7 +65,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
 	@MongoDbAvailable
 	@Test
-	public void testConfigureFactory() throws Exception {
+	public void testConfigureFactory() {
 		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(DEFAULT_COLLECTION_NAME);
 		store = new MongoDbMetadataStore(mongoDbFactory);
 		testBasics();
@@ -72,7 +73,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
 	@MongoDbAvailable
 	@Test
-	public void testConfigureFactorCustomCollection() throws Exception {
+	public void testConfigureFactorCustomCollection() {
 		final String collectionName = "testMetadataStore";
 		final MongoDbFactory mongoDbFactory = this.prepareMongoFactory(collectionName);
 		store = new MongoDbMetadataStore(mongoDbFactory, collectionName);
@@ -98,7 +99,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testPutIfAbsent() throws Exception {
+	public void testPutIfAbsent() {
 		String fileID = store.get(file1);
 		assertNull("Get First time, Value must not exist", fileID);
 
@@ -115,7 +116,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testRemove() throws Exception {
+	public void testRemove() {
 		String fileID = store.remove(file1);
 		assertNull(fileID);
 
@@ -132,7 +133,7 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testReplace() throws Exception {
+	public void testReplace() {
 		boolean removedValue = store.replace(file1, file1Id, "4567");
 		assertFalse(removedValue);
 		String fileID = store.get(file1);
@@ -147,7 +148,6 @@ public class MongoDbMetadataStoreTests extends MongoDbAvailableTests {
 		fileID = store.get(file1);
 		assertNotNull(fileID);
 		assertEquals("4567", fileID);
-
 	}
 
 }

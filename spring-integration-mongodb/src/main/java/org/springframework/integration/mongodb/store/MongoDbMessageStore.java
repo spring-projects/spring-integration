@@ -100,9 +100,9 @@ import com.mongodb.DBObject;
 public class MongoDbMessageStore extends AbstractMessageGroupStore
 		implements MessageStore, BeanClassLoaderAware, ApplicationContextAware, InitializingBean {
 
-	private final static String DEFAULT_COLLECTION_NAME = "messages";
+	public static final String SEQUENCE_NAME = "messagesSequence";
 
-	public final static String SEQUENCE_NAME = "messagesSequence";
+	private static final String DEFAULT_COLLECTION_NAME = "messages";
 
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
@@ -119,17 +119,17 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 	@Deprecated
 	public static final String CREATED_DATE_KEY = ConfigurableMongoDbMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
-	private final static String GROUP_ID_KEY = "_groupId";
+	private static final String GROUP_ID_KEY = "_groupId";
 
-	private final static String GROUP_COMPLETE_KEY = "_group_complete";
+	private static final String GROUP_COMPLETE_KEY = "_group_complete";
 
-	private final static String LAST_RELEASED_SEQUENCE_NUMBER = "_last_released_sequence";
+	private static final String LAST_RELEASED_SEQUENCE_NUMBER = "_last_released_sequence";
 
-	private final static String GROUP_TIMESTAMP_KEY = "_group_timestamp";
+	private static final String GROUP_TIMESTAMP_KEY = "_group_timestamp";
 
-	private final static String GROUP_UPDATE_TIMESTAMP_KEY = "_group_update_timestamp";
+	private static final String GROUP_UPDATE_TIMESTAMP_KEY = "_group_update_timestamp";
 
-	private final static String CREATED_DATE = "_createdDate";
+	private static final String CREATED_DATE = "_createdDate";
 
 	private static final String SEQUENCE = "sequence";
 
@@ -595,7 +595,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 		}
 
 		private Map<String, Object> normalizeHeaders(Map<String, Object> headers) {
-			Map<String, Object> normalizedHeaders = new HashMap<String, Object>();
+			Map<String, Object> normalizedHeaders = new HashMap<>();
 			for (Entry<String, Object> entry : headers.entrySet()) {
 				String headerName = entry.getKey();
 				Object headerValue = entry.getValue();
@@ -634,7 +634,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore
 				Bson payloadObject = (Bson) payload;
 				Object payloadType = asMap(payloadObject).get("_class");
 				try {
-					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), MongoDbMessageStore.this.classLoader);
+					Class<?> payloadClass =
+							ClassUtils.forName(payloadType.toString(), MongoDbMessageStore.this.classLoader);
 					payload = read(payloadClass, payloadObject);
 				}
 				catch (Exception e) {

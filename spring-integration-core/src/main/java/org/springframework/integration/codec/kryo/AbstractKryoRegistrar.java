@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,13 @@ import com.esotericsoftware.kryo.Registration;
  * Base class for {@link KryoRegistrar} implementations.
  *
  * @author David Turanski
+ * @author Artem Bilan
+ *
  * @since 4.2
  */
 public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 
-	protected final static Kryo kryo = new Kryo();
+	protected static final Kryo kryo = new Kryo();
 
 	protected final Log log = LogFactory.getLog(this.getClass());
 
@@ -55,7 +57,7 @@ public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 		Registration existing = kryo.getRegistration(id);
 
 		if (existing != null) {
-			throw new RuntimeException((String.format("registration already exists %s", existing)));
+			throw new RuntimeException("registration already exists " + existing);
 		}
 
 		if (this.log.isInfoEnabled()) {
