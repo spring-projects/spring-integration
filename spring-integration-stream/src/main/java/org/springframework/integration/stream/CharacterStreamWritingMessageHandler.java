@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -41,10 +38,9 @@ import org.springframework.util.Assert;
  * {@link #setShouldAppendNewLine(boolean) shouldAppendNewLine} flag to 'true'. It is 'false' by default.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final BufferedWriter writer;
 
@@ -136,12 +132,6 @@ public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
-		if (payload == null) {
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("target received null payload");
-			}
-			return;
-		}
 		try {
 			if (payload instanceof String) {
 				this.writer.write((String) payload);

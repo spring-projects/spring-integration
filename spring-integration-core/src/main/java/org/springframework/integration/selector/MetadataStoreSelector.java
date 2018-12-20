@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ import org.springframework.util.Assert;
  * or {@link org.springframework.integration.handler.advice.IdempotentReceiverInterceptor}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
+ *
  * @since 4.1
  */
 public class MetadataStoreSelector implements MessageSelector {
@@ -81,9 +83,10 @@ public class MetadataStoreSelector implements MessageSelector {
 	@Override
 	public boolean accept(Message<?> message) {
 		String key = this.keyStrategy.processMessage(message);
+		Long timestamp = message.getHeaders().getTimestamp();
 		String value = (this.valueStrategy != null)
 				? this.valueStrategy.processMessage(message)
-				: Long.toString(message.getHeaders().getTimestamp());
+				: (timestamp == null ? "0" : Long.toString(timestamp));
 
 		return this.metadataStore.putIfAbsent(key, value) == null;
 	}

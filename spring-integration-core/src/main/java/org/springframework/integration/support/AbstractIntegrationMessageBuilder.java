@@ -163,6 +163,7 @@ public abstract class AbstractIntegrationMessageBuilder<T> {
 		return copyHeadersIfAbsent(headers);
 	}
 
+	@Nullable
 	protected abstract List<List<Object>> getSequenceDetails();
 
 	protected abstract Object getCorrelationId();
