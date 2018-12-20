@@ -18,6 +18,7 @@ package org.springframework.integration.support;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.lang.Nullable;
@@ -112,7 +113,9 @@ public class MutableMessage<T> implements Message<T>, Serializable {
 		}
 		if (obj != null && obj instanceof MutableMessage<?>) {
 			MutableMessage<?> other = (MutableMessage<?>) obj;
-			return (this.headers.getId().equals(other.headers.getId()) &&
+			UUID thisId = this.headers.getId();
+			UUID otherId = other.headers.getId();
+			return (ObjectUtils.nullSafeEquals(thisId, otherId) &&
 					this.headers.equals(other.headers) && this.payload.equals(other.payload));
 		}
 		return false;

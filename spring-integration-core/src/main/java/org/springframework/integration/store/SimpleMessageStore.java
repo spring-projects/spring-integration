@@ -198,7 +198,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore
 		Message<?> message = getMessage(id);
 		if (message != null) {
 			MessageMetadata messageMetadata = new MessageMetadata(id);
-			messageMetadata.setTimestamp(message.getHeaders().getTimestamp());
+			Long timestamp = message.getHeaders().getTimestamp();
+			messageMetadata.setTimestamp(timestamp == null ? 0L : timestamp);
 			return messageMetadata;
 		}
 		else {

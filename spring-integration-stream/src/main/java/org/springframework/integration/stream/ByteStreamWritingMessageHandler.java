@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -32,10 +29,9 @@ import org.springframework.messaging.MessagingException;
  * A {@link MessageHandler} that writes a byte array to an {@link OutputStream}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ByteStreamWritingMessageHandler extends AbstractMessageHandler {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final BufferedOutputStream stream;
 
@@ -61,12 +57,6 @@ public class ByteStreamWritingMessageHandler extends AbstractMessageHandler {
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
-		if (payload == null) {
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn(this.getClass().getSimpleName() + " received null object");
-			}
-			return;
-		}
 		try {
 			if (payload instanceof String) {
 				this.stream.write(((String) payload).getBytes());

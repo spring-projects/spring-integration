@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ public class WhiteListDeserializingConverter implements Converter<byte[], Object
 				return this.deserializer.deserialize(byteStream);
 			}
 		}
-		catch (Throwable ex) {
+		catch (Exception ex) {
 			throw new SerializationFailedException("Failed to deserialize payload. " +
 					"Is the byte array a result of corresponding serialization for " +
 					this.deserializer.getClass().getSimpleName() + "?", ex);

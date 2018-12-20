@@ -208,7 +208,10 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 			if (value != null) {
 				if (!this.active) {
 					this.template.boundListOps(uuid).rightPush(value);
-					this.boundListOperations.rightPush(stringSerializer.serialize(uuid));
+					byte[] serialized = stringSerializer.serialize(uuid);
+					if (serialized != null) {
+						this.boundListOperations.rightPush(serialized);
+					}
 					return;
 				}
 				if (this.extractPayload) {
