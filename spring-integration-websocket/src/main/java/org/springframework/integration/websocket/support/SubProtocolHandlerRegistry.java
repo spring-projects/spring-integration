@@ -46,7 +46,7 @@ import org.springframework.web.socket.messaging.SubProtocolHandler;
  */
 public final class SubProtocolHandlerRegistry {
 
-	private static final Log logger = LogFactory.getLog(SubProtocolHandlerRegistry.class);
+	private static final Log LOGGER = LogFactory.getLog(SubProtocolHandlerRegistry.class);
 
 	private final Map<String, SubProtocolHandler> protocolHandlers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
@@ -69,8 +69,8 @@ public final class SubProtocolHandlerRegistry {
 			for (SubProtocolHandler handler : protocolHandlers) {
 				List<String> protocols = handler.getSupportedProtocols();
 				if (CollectionUtils.isEmpty(protocols)) {
-					if (logger.isWarnEnabled()) {
-						logger.warn("No sub-protocols, ignoring handler " + handler);
+					if (LOGGER.isWarnEnabled()) {
+						LOGGER.warn("No sub-protocols, ignoring handler " + handler);
 					}
 					continue;
 				}
@@ -153,7 +153,7 @@ public final class SubProtocolHandlerRegistry {
 	 * @return The the {@link List} of supported sub-protocols.
 	 */
 	public List<String> getSubProtocols() {
-		return new ArrayList<String>(this.protocolHandlers.keySet());
+		return new ArrayList<>(this.protocolHandlers.keySet());
 	}
 
 }

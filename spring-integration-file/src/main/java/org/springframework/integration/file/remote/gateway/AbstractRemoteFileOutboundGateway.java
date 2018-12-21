@@ -743,13 +743,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		catch (Exception e) {
 			if (replies.size() > 0) {
 				throw new PartialSuccessException(requestMessage,
-						"Partially successful 'mput' operation" + (subDirectory == null ? "" : (" on " + subDirectory)),
-						e, replies, filteredFiles);
+						"Partially successful 'mput' operation" +
+								(subDirectory == null ? "" : (" on " + subDirectory)), e, replies, filteredFiles);
 			}
 			else if (e instanceof PartialSuccessException) {
 				throw new PartialSuccessException(requestMessage,
-						"Partially successful 'mput' operation" + (subDirectory == null ? "" : (" on " + subDirectory)),
-						e, replies, filteredFiles);
+						"Partially successful 'mput' operation" +
+								(subDirectory == null ? "" : (" on " + subDirectory)), e, replies, filteredFiles);
 			}
 			else {
 				throw e;
@@ -801,17 +801,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private List<F> listFilesInRemoteDir(Session<F> session, String directory, String subDirectory)
 			throws IOException {
 
-		List<F> lsFiles = new ArrayList<F>();
+		List<F> lsFiles = new ArrayList<>();
 		String remoteDirectory = buildRemotePath(directory, subDirectory);
 
 		F[] files = session.list(remoteDirectory);
 		boolean recursion = this.options.contains(Option.RECURSIVE);
 		if (!ObjectUtils.isEmpty(files)) {
-			Collection<F> filteredFiles = this.filterFiles(files);
-			for (F file : filteredFiles) {
-				String fileName = this.getFilename(file);
+			for (F file : filterFiles(files)) {
 				if (file != null) {
-					if (this.options.contains(Option.SUBDIRS) || !this.isDirectory(file)) {
+					if (this.options.contains(Option.SUBDIRS) || !isDirectory(file)) {
 						if (recursion && StringUtils.hasText(subDirectory)) {
 							lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
 						}
@@ -819,9 +817,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 							lsFiles.add(file);
 						}
 					}
-					if (recursion && this.isDirectory(file) && !(".".equals(fileName)) && !("..".equals(fileName))) {
-						lsFiles.addAll(listFilesInRemoteDir(session, directory, subDirectory + fileName
-								+ this.remoteFileTemplate.getRemoteFileSeparator()));
+					String fileName = getFilename(file);
+					if (recursion && isDirectory(file) && !(".".equals(fileName)) && !("..".equals(fileName))) {
+						lsFiles.addAll(listFilesInRemoteDir(session, directory,
+								subDirectory + fileName + this.remoteFileTemplate.getRemoteFileSeparator()));
 					}
 				}
 			}

@@ -29,20 +29,20 @@ import com.jcraft.jsch.Logger;
  */
 class JschLogger implements Logger {
 
-	private static final Log logger = LogFactory.getLog("com.jcraft.jsch");
+	private static final Log LOGGER = LogFactory.getLog("com.jcraft.jsch");
 
 	public boolean isEnabled(int level) {
 		switch (level) {
 			case Logger.INFO:
-				return logger.isInfoEnabled();
+				return LOGGER.isInfoEnabled();
 			case Logger.WARN:
-				return logger.isWarnEnabled();
+				return LOGGER.isWarnEnabled();
 			case Logger.DEBUG:
-				return logger.isDebugEnabled();
+				return LOGGER.isDebugEnabled();
 			case Logger.ERROR:
-				return logger.isErrorEnabled();
+				return LOGGER.isErrorEnabled();
 			case Logger.FATAL:
-				return logger.isFatalEnabled();
+				return LOGGER.isFatalEnabled();
 			default:
 				return false;
 		}
@@ -51,19 +51,19 @@ class JschLogger implements Logger {
 	public void log(int level, String message) {
 		switch (level) {
 			case Logger.INFO:
-				logger.info(message);
+				LOGGER.info(message);
 				break;
 			case Logger.WARN:
-				logger.warn(message);
+				LOGGER.warn(message);
 				break;
 			case Logger.DEBUG:
-				logger.debug(message);
+				LOGGER.debug(message);
 				break;
 			case Logger.ERROR:
-				logger.error(message);
+				LOGGER.error(message);
 				break;
 			case Logger.FATAL:
-				logger.fatal(message);
+				LOGGER.fatal(message);
 				break;
 			default:
 				break;

@@ -43,7 +43,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 
 	private final AtomicInteger activeCount = new AtomicInteger();
 
-	protected SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
+	private SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
 	@Override
 	public String getComponentType() {
@@ -53,6 +53,10 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	public void setHeaderMapper(SoapHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
+	}
+
+	protected SoapHeaderMapper getHeaderMapper() {
+		return headerMapper;
 	}
 
 	public void invoke(MessageContext messageContext) throws Exception {
@@ -112,6 +116,6 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		return this.activeCount.get();
 	}
 
-	protected abstract void doInvoke(MessageContext messageContext) throws Exception;
+	protected abstract void doInvoke(MessageContext messageContext) throws Exception; // NOSONAR any exception
 
 }
