@@ -23,13 +23,14 @@ import org.junit.Rule;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
+import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
+import org.springframework.messaging.Message;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
@@ -64,7 +65,7 @@ public abstract class MongoDbAvailableTests {
 		}
 	}
 
-	public Person createPerson() {
+	protected Person createPerson() {
 		Address address = new Address();
 		address.setCity("Philadelphia");
 		address.setStreet("2121 Rawn street");
@@ -76,7 +77,7 @@ public abstract class MongoDbAvailableTests {
 		return person;
 	}
 
-	public Person createPerson(String name) {
+	protected Person createPerson(String name) {
 		Address address = new Address();
 		address.setCity("Philadelphia");
 		address.setStreet("2121 Rawn street");
@@ -166,10 +167,12 @@ public abstract class MongoDbAvailableTests {
 
 	}
 
-	public static class TestCollectionCallback implements CollectionCallback<Long> {
+	public static class TestCollectionCallback implements MessageCollectionCallback<Long> {
 
 		@Override
-		public Long doInCollection(MongoCollection<Document> collection) throws MongoException, DataAccessException {
+		public Long doInCollection(MongoCollection<Document> collection, Message<?> message)
+				throws MongoException, DataAccessException {
+
 			return collection.count();
 		}
 

@@ -187,12 +187,14 @@ The _MongoDb Inbound Channel Adapter_ is a polling consumer that reads data from
 
 As you can see from the configuration above, you configure a _MongoDb Inbound Channel Adapter_ using the `inbound-channel-adapter` element, providing values for various attributes such as:
 
-* `query` - a JSON query (see http://www.mongodb.org/display/DOCS/Querying[MongoDb Querying])
-* `query-expression` - A SpEL expression that is evaluated to a JSON query String (as the `query` attribute above), or to an instance of `o.s.data.mongodb.core.query.Query`. Mutually exclusive with `query` attribute.
-* `entity-class` - the type of the payload object; if not supplied, a `com.mongodb.DBObject` will be returned.
-* `collection-name` or `collection-name-expression` - Identifies the name of the MongoDb collection to use.
-* `mongodb-factory` - reference to an instance of `o.s.data.mongodb.MongoDbFactory`
-* `mongo-template` - reference to an instance of `o.s.data.mongodb.core.MongoTemplate`
+* `query`: A JSON query (see http://www.mongodb.org/display/DOCS/Querying[MongoDB Querying])
+* `query-expression`: A SpEL expression that is evaluated to a JSON query string (as the `query` attribute above) or to an instance of `o.s.data.mongodb.core.query.Query`.
+Mutually exclusive with the `query` attribute.
+* `entity-class`: The type of the payload object. If not supplied, a `com.mongodb.DBObject` is returned.
+* `collection-name` or `collection-name-expression`: Identifies the name of the MongoDB collection to use.
+* `mongodb-factory`: Reference to an instance of `o.s.data.mongodb.MongoDbFactory`
+* `mongo-template`: Reference to an instance of `o.s.data.mongodb.core.MongoTemplate`
+* Other attributes that are common across all other inbound adapters (such as 'channel').
 
 
 
@@ -321,6 +323,20 @@ Please refer to http://www.mongodb.org/display/DOCS/Querying[MongoDB documentati
 * `collection-callback` - reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`
 (NOTE: you can not have both collection-callback and any of the query attributes).
 
+* `collection-name` or `collection-name-expression`: Identifies the name of the MongoDB collection to use.
+* `mongo-converter`: Reference to an instance of `o.s.data.mongodb.core.convert.MongoConverter` that assists with converting a raw Java object to a JSON document representation.
+* `mongodb-factory`: Reference to an instance of `o.s.data.mongodb.MongoDbFactory`.
+* `mongo-template`: Reference to an instance of `o.s.data.mongodb.core.MongoTemplate`.
+NOTE: you can not set both `mongo-template` and `mongodb-factory`.
+* `entity-class`: The fully qualified name of the entity class to be passed to the `find(..)` and `findOne(..)` methods in MongoTemplate.
+If this attribute is not provided, the default value is `org.bson.Document`.
+* `query` or `query-expression`: Specifies the MongoDB query.
+See the http://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
+* `collection-callback`: Reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`.
+Preferable an instance of `org.springframework.integration.mongodb.outbound.MessageCollectionCallback` since 5.0.11 with the request message context.
+See its Javadocs for more information.
+NOTE: You can not have both `collection-callback` and any of the query attributes.
+
 ==== Configuring with Java Configuration
 
 The following Spring Boot application provides an example of configuring the outbound gateway using Java configuration:
@@ -399,15 +415,14 @@ public class MongoDbJavaApplication {
 }
 ----
 
-Alternatively to the `query` and `query-expression` properties, you can specify other database operations through
-the `collectionCallback` property.
+As an alternate to the `query` and `query-expression` properties, you can specify other database operations by using the `collectionCallback` property as a reference to the `MessageCollectionCallback` functional interface implementation.
 The following example specifies a count operation:
 
 [source, java]
 ----
 private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway() {
     return MongoDb.outboundGateway(this.mongoDbFactory, this.mongoConverter)
-            .collectionCallback(MongoCollection::count)
+            .collectionCallback((collection, requestMessage) -> collection.count())
             .collectionName("foo");
     }
 ----

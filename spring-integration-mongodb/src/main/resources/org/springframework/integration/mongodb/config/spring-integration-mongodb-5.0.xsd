@@ -239,7 +239,10 @@
 							<xsd:appinfo>
 								<xsd:documentation>
 									Reference to an instance of
-									org.springframework.data.mongodb.core.CollectionCallback
+									org.springframework.data.mongodb.core.CollectionCallback, preferable an
+									instance of
+									org.springframework.integration.mongodb.outbound.MessageCollectionCallback
+									with the request message context.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type

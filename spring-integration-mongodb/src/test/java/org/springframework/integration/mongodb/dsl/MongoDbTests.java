@@ -33,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
-import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
@@ -45,6 +44,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.handler.ReplyRequiredException;
+import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
@@ -55,10 +55,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
 
 /**
  * @author Xavier Padró
+ * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
 @RunWith(SpringRunner.class)
@@ -313,7 +315,8 @@ public class MongoDbTests extends MongoDbAvailableTests {
 		@Bean
 		public IntegrationFlow gatewayCollectionCallbackFlow() {
 			return f -> f
-					.handle(collectionCallbackOutboundGateway(MongoCollection::count))
+					.handle(collectionCallbackOutboundGateway(
+							(collection, requestMessage) -> collection.count()))
 					.channel(getResultChannel());
 		}
 
@@ -387,7 +390,9 @@ public class MongoDbTests extends MongoDbAvailableTests {
 					.entityClass(Person.class);
 		}
 
-		private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway(CollectionCallback<?> collectionCallback) {
+		private MongoDbOutboundGatewaySpec collectionCallbackOutboundGateway(
+				MessageCollectionCallback<?> collectionCallback) {
+
 			return MongoDb.outboundGateway(mongoDbFactory(), mongoConverter())
 					.collectionCallback(collectionCallback)
 					.collectionName(COLLECTION_NAME)

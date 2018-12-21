@@ -31,10 +31,10 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.integration.mongodb.outbound.MongoDbOutboundGateway;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -128,7 +128,7 @@ public class MongoDbOutboundGatewayParserTests {
 				instanceOf(LiteralExpression.class));
 		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
 		assertThat(TestUtils.getPropertyValue(gateway, "collectionCallback"),
-				instanceOf(CollectionCallback.class));
+				instanceOf(MessageCollectionCallback.class));
 	}
 
 	@Test(expected = BeanDefinitionParsingException.class)
