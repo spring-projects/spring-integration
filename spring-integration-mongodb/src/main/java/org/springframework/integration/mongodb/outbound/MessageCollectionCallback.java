@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.outbound;
 import org.bson.Document;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.mongodb.core.CollectionCallback;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
@@ -29,7 +30,7 @@ import com.mongodb.client.MongoCollection;
  * The callback to be used with the {@link MongoDbOutboundGateway}
  * as an alternative to other query options on the gateway.
  * <p>
- * Plays the same role as standard {@link org.springframework.data.mongodb.core.CollectionCallback},
+ * Plays the same role as standard {@link CollectionCallback},
  * but with {@code Message<?> requestMessage} context during {@code handleMessage()}
  * process in the {@link MongoDbOutboundGateway}.
  *
@@ -37,10 +38,10 @@ import com.mongodb.client.MongoCollection;
  *
  * @since 5.0.11
  *
- * @see org.springframework.data.mongodb.core.CollectionCallback
+ * @see CollectionCallback
  */
 @FunctionalInterface
-public interface MessageCollectionCallback<T> {
+public interface MessageCollectionCallback<T> extends CollectionCallback<T> {
 
 	/**
 	 * Perform a Mongo operation in the collection using request message as a context.
@@ -53,5 +54,11 @@ public interface MessageCollectionCallback<T> {
 	@Nullable
 	T doInCollection(MongoCollection<Document> collection, Message<?> requestMessage)
 			throws MongoException, DataAccessException;
+
+	@Override
+	default T doInCollection(MongoCollection<Document> collection) throws MongoException, DataAccessException {
+		throw new UnsupportedOperationException("The 'doInCollection(MongoCollection<Document>, Message<?>)' " +
+				"must be implemented instead.");
+	}
 
 }

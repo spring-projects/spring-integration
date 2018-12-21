@@ -142,7 +142,7 @@ public class MongoDbOutboundGatewayParserTests {
 		assertThat(TestUtils.getPropertyValue(gateway, "collectionNameExpression"),
 				instanceOf(LiteralExpression.class));
 		assertEquals("foo", TestUtils.getPropertyValue(gateway, "collectionNameExpression.literalValue"));
-		assertThat(TestUtils.getPropertyValue(gateway, "messageCollectionCallback"),
+		assertThat(TestUtils.getPropertyValue(gateway, "collectionCallback"),
 				instanceOf(MessageCollectionCallback.class));
 	}
 

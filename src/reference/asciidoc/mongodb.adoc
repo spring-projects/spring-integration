@@ -365,10 +365,9 @@ If this attribute is not provided, the default value is `org.bson.Document`.
 * `query` or `query-expression`: Specifies the MongoDB query.
 See the http://www.mongodb.org/display/DOCS/Querying[MongoDB documentation] for more query samples.
 * `collection-callback`: Reference to an instance of `org.springframework.data.mongodb.core.CollectionCallback`.
-Deprecated since 5.0.11 in favor of `message-collection-callback`.
-* `message-collection-callback`: Reference to an instance of `org.springframework.integration.mongodb.outbound.MessageCollectionCallback`.
+Preferable an instance of `org.springframework.integration.mongodb.outbound.MessageCollectionCallback` since 5.0.11 with the request message context.
 See its Javadocs for more information.
-NOTE: You can not have both `message-collection-callback` and any of the query attributes.
+NOTE: You can not have both `collection-callback` and any of the query attributes.
 
 ==== Configuring with Java Configuration
 
@@ -452,7 +451,7 @@ public class MongoDbJavaApplication {
 ----
 ====
 
-As an alternate to the `query` and `query-expression` properties, you can specify other database operations by using the `messageCollectionCallback` property as a reference to the `MessageCollectionCallback` functional interface implementation.
+As an alternate to the `query` and `query-expression` properties, you can specify other database operations by using the `collectionCallback` property as a reference to the `MessageCollectionCallback` functional interface implementation.
 The following example specifies a count operation:
 
 ====

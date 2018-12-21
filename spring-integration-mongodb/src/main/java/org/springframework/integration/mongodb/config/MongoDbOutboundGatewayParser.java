@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import org.springframework.util.StringUtils;
  * Parser for MongoDb outbound gateways
  *
  * @author Xavier Padró
- * @author Artem Bilan
- *
  * @since 5.0
  */
 public class MongoDbOutboundGatewayParser extends AbstractConsumerEndpointParser {
@@ -47,32 +45,16 @@ public class MongoDbOutboundGatewayParser extends AbstractConsumerEndpointParser
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		String collectionCallback = element.getAttribute("collection-callback");
-		String messageCollectionCallback = element.getAttribute("message-collection-callback");
 
 		if (StringUtils.hasText(collectionCallback)) {
 			if (StringUtils.hasText(element.getAttribute("query")) ||
 							StringUtils.hasText(element.getAttribute("query-expression"))) {
 
-				parserContext.getReaderContext()
-						.error("'collection-callback' is not allowed with 'query' or 'query-expression'", element);
+				parserContext.getReaderContext().error("'collection-callback' is not allowed with " +
+						"'query' or 'query-expression'", element);
 			}
-
-			parserContext.getReaderContext()
-					.warning("The 'collection-callback' is deprecated in favor of 'message-collection-callback'",
-							element);
 
 			builder.addPropertyReference("collectionCallback", collectionCallback);
-		}
-		else if (StringUtils.hasText(messageCollectionCallback)) {
-			if (StringUtils.hasText(element.getAttribute("query")) ||
-					StringUtils.hasText(element.getAttribute("query-expression"))) {
-
-				parserContext.getReaderContext()
-						.error("'message-collection-callback' is not allowed with 'query' or 'query-expression'",
-								element);
-			}
-
-			builder.addPropertyReference("messageCollectionCallback", messageCollectionCallback);
 		}
 		else {
 			BeanDefinition queryExpressionDef =

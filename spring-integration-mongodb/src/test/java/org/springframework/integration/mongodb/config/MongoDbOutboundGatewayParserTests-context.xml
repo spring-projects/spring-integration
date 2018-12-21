@@ -52,13 +52,13 @@
 	<int-mongodb:outbound-gateway id="fullConfigWithMongoDbCollectionCallback"
 			mongo-template="mongoDbTemplate"
 			collection-name="foo"
-			message-collection-callback="mockCollectionCallback"
+			collection-callback="mockCollectionCallback"
 			request-channel="in"
 			reply-channel="out"/>
 
 
 	<bean id="mockCollectionCallback" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.mongodb.outbound.MessageCollectionCallback"/>
+		<constructor-arg value="org.springframework.data.mongodb.core.CollectionCallback"/>
 	</bean>
 
 	<bean id="mongoDbFactory" class="org.mockito.Mockito" factory-method="mock">

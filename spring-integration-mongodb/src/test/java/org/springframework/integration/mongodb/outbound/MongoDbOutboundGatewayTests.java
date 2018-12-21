@@ -308,7 +308,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		gateway.setEntityClass(Person.class);
 		gateway.setCollectionNameExpression(new LiteralExpression("data"));
 
-		gateway.setMessageCollectionCallback((collection, requestMessage) -> collection.countDocuments());
+		gateway.setCollectionCallback((collection, requestMessage) -> collection.countDocuments());
 		gateway.afterPropertiesSet();
 
 		long result = (long) gateway.handleRequestMessage(message);
@@ -325,7 +325,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		gateway.setCollectionNameExpression(new LiteralExpression("data"));
 		gateway.setRequiresReply(false);
 
-		gateway.setMessageCollectionCallback((collection, requestMessage) -> {
+		gateway.setCollectionCallback((collection, requestMessage) -> {
 			collection.insertOne(new Document("name", requestMessage.getPayload()));
 			return null;
 		});
