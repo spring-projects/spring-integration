@@ -138,7 +138,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		AmqpTemplate amqpTemplate = getAmqpTemplate();
 		if (this.queue == null) {
 			if (getAdmin() == null && amqpTemplate instanceof RabbitTemplate) {

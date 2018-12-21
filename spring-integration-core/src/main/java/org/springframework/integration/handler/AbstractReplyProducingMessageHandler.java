@@ -88,7 +88,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 
 	@Override
-	protected final void onInit() throws Exception {
+	protected final void onInit() {
 		super.onInit();
 		initAdvisedRequestHandlerIfAny();
 		doInit();

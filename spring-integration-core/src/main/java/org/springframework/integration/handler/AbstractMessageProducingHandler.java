@@ -192,7 +192,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		Assert.state(!(this.outputChannelName != null && this.outputChannel != null), //NOSONAR (inconsistent sync)
 				"'outputChannelName' and 'outputChannel' are mutually exclusive.");

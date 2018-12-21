@@ -141,7 +141,7 @@ public class RedisQueueInboundGateway extends MessagingGatewaySupport implements
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		if (!this.extractPayload) {
 			Assert.notNull(this.serializer, "'serializer' has to be provided where 'extractPayload == false'.");

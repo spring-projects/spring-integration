@@ -121,7 +121,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		if (this.errorHandler == null) {
 			Assert.notNull(getBeanFactory(), "BeanFactory is required");
@@ -138,11 +138,13 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 			private final Subscriber<Message<?>> delegate = ReactiveStreamsConsumer.this.subscriber;
 
+			@Override
 			public void hookOnSubscribe(Subscription s) {
 				this.delegate.onSubscribe(s);
 				ReactiveStreamsConsumer.this.subscription = s;
 			}
 
+			@Override
 			public void hookOnNext(Message<?> message) {
 				try {
 					this.delegate.onNext(message);
@@ -153,10 +155,12 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 				}
 			}
 
+			@Override
 			public void hookOnError(Throwable t) {
 				this.delegate.onError(t);
 			}
 
+			@Override
 			public void hookOnComplete() {
 				this.delegate.onComplete();
 			}
@@ -182,7 +186,7 @@ public class ReactiveStreamsConsumer extends AbstractEndpoint implements Integra
 
 		private Subscription subscription;
 
-		private MessageHandler messageHandler;
+		private final MessageHandler messageHandler;
 
 		MessageHandlerSubscriber(MessageHandler messageHandler) {
 			Assert.notNull(messageHandler, "'messageHandler' must not be null");

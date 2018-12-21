@@ -120,7 +120,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 
 		if (this.evaluationContext == null) {

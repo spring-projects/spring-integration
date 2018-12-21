@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.1
  */
@@ -207,7 +208,7 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		if (!this.initialized && this.rabbitTemplate != null) {
 			if (this.connectionFactory != null) {

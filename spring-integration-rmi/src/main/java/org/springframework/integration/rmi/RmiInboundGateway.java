@@ -16,6 +16,7 @@
 
 package org.springframework.integration.rmi;
 
+import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -35,6 +36,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class RmiInboundGateway extends MessagingGatewaySupport
 		implements RequestReplyExchanger, InitializingBean {
@@ -102,7 +104,7 @@ public class RmiInboundGateway extends MessagingGatewaySupport
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 
 		if (this.registryHost != null) {
@@ -115,7 +117,12 @@ public class RmiInboundGateway extends MessagingGatewaySupport
 		this.exporter.setService(this);
 		this.exporter.setServiceInterface(RequestReplyExchanger.class);
 		this.exporter.setServiceName(SERVICE_NAME_PREFIX + this.requestChannelName);
-		this.exporter.afterPropertiesSet();
+		try {
+			this.exporter.afterPropertiesSet();
+		}
+		catch (RemoteException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override

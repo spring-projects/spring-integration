@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		Assert.notNull(this.marshaller, "This implementation requires Marshaller");
 		Assert.notNull(this.unmarshaller, "This implementation requires Unmarshaller");

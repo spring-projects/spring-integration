@@ -256,7 +256,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 
 		validateSupportedMethods();

@@ -105,7 +105,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRoute
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		populateClassNameMapping(this.channelMappings.keySet());
 		this.initialized = true;

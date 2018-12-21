@@ -133,7 +133,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		if (this.statsEnabled) {
 			this.handlerMetrics.setFullStatsEnabled(true);
 		}

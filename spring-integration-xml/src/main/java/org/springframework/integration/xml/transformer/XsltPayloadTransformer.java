@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
@@ -213,7 +214,7 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		if (this.templates == null) {
@@ -224,7 +225,12 @@ public class XsltPayloadTransformer extends AbstractXmlTransformer implements Be
 			else {
 				transformerFactory = TransformerFactory.newInstance();
 			}
-			this.templates = transformerFactory.newTemplates(createStreamSourceOnResource(this.xslResource));
+			try {
+				this.templates = transformerFactory.newTemplates(createStreamSourceOnResource(this.xslResource));
+			}
+			catch (TransformerConfigurationException | IOException e) {
+				throw new IllegalStateException(e);
+			}
 		}
 	}
 

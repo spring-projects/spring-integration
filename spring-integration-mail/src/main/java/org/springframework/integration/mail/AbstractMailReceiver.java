@@ -565,7 +565,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		this.folderOpenMode = Folder.READ_WRITE;
 		this.evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());

@@ -194,9 +194,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	/**
 	 * Subclasses may implement this for initialization logic.
-	 * @throws Exception Any exception.
 	 */
-	protected void onInit() throws Exception {
+	protected void onInit() {
 	}
 
 	/**

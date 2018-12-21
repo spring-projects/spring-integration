@@ -141,7 +141,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		this.evaluationContext = this.createEvaluationContext();
 	}

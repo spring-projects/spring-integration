@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	}
 
 	@Override
-	public final void onInit() throws Exception {
+	public final void onInit() {
 		Assert.isTrue(this.getBeanFactory() instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
 		Map<String, MBeanExporter> exporters = BeanFactoryUtils.beansOfTypeIncludingAncestors(
 				(ListableBeanFactory) this.getBeanFactory(), MBeanExporter.class);

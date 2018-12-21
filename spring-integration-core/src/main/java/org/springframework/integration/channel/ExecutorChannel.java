@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 	}
 
 	@Override
-	public final void onInit() throws Exception {
+	public final void onInit() {
 		Assert.state(getDispatcher().getHandlerCount() == 0, "You cannot subscribe() until the channel "
 				+ "bean is fully initialized by the framework. Do not subscribe in a @Bean definition");
 		super.onInit();

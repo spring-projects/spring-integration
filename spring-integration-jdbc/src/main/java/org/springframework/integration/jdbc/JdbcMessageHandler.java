@@ -156,7 +156,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		Assert.state(!(this.sqlParameterSourceFactory != null && this.preparedStatementSetter != null),
 				"'sqlParameterSourceFactory' and 'preparedStatementSetter' are mutually exclusive.");

@@ -133,7 +133,7 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		Assert.state(getConverter() instanceof MqttMessageConverter,
 				"MessageConverter must be an MqttMessageConverter");
