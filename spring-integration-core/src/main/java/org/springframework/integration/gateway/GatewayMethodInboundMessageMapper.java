@@ -195,7 +195,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		try {
 			return this.argsMapper.toMessage(new MethodArgsHolder(this.method, arguments), headers);
 		}
-		catch (MessagingException e) {
+		catch (MessagingException e) { // NOSONAR fto avoid if..else
 			throw e;
 		}
 		catch (Exception e) {

@@ -56,7 +56,7 @@ public abstract class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	}
 
 	protected SoapHeaderMapper getHeaderMapper() {
-		return headerMapper;
+		return this.headerMapper;
 	}
 
 	public void invoke(MessageContext messageContext) throws Exception {
