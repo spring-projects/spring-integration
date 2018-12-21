@@ -40,6 +40,7 @@ import io.micrometer.core.instrument.Timer;
  * The Micrometer implementation of {@link MetricsCaptor}.
  *
  * @author Gary Russell
+ * @author Artem Bilan
  *
  * @since 5.0.4
  *
@@ -148,7 +149,7 @@ public class MicrometerMetricsCaptor implements MetricsCaptor {
 
 	}
 
-	protected static abstract class AbstractMeter<M extends Meter> implements MeterFacade {
+	protected abstract static class AbstractMeter<M extends Meter> implements MeterFacade {
 
 		protected final MeterRegistry meterRegistry; // NOSONAR
 

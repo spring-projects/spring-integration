@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,22 @@ import java.util.logging.Logger;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  *
  */
 class TimeBasedUUIDGenerator {
 
+	static final Object lock = new Object();
+
 	private static final Logger logger = Logger.getLogger(TimeBasedUUIDGenerator.class.getName());
 
-	public static final Object lock = new Object();
+	private static final long macAddress = getMac();
 
 	private static boolean canNotDetermineMac = true;
+
 	private static long lastTime;
+
 	private static long clockSequence = 0;
-	private static final long macAddress = getMac();
 
 	private TimeBasedUUIDGenerator() {
 		super();
@@ -45,11 +49,11 @@ class TimeBasedUUIDGenerator {
 	 * Will generate unique time based UUID where the next UUID is
 	 * always greater then the previous.
 	 */
-	public final static UUID generateId() {
+	static UUID generateId() {
 		return generateIdFromTimestamp(System.currentTimeMillis());
 	}
 
-	public final static UUID generateIdFromTimestamp(long currentTimeMillis) {
+	static UUID generateIdFromTimestamp(long currentTimeMillis) {
 		long time;
 
 		synchronized (lock) {
@@ -78,11 +82,12 @@ class TimeBasedUUIDGenerator {
 
 		clock_seq_hi_and_reserved <<= 48;
 
-		long cls = 0 | clock_seq_hi_and_reserved;
+		long cls = clock_seq_hi_and_reserved;
 
 		long lsb = cls | macAddress;
 		if (canNotDetermineMac) {
-			logger.warning("UUID generation process was not able to determine your MAC address. Returning random UUID (non version 1 UUID)");
+			logger.warning("UUID generation process was not able to determine your MAC address. " +
+					"Returning random UUID (non version 1 UUID)");
 			return UUID.randomUUID();
 		}
 		else {
@@ -98,11 +103,9 @@ class TimeBasedUUIDGenerator {
 				//byte[] mac = ni.getHardwareAddress(); // availabe since Java 1.6
 				byte[] mac = "01:23:45:67:89:ab".getBytes();
 				//Converts array of unsigned bytes to an long
-				if (mac != null) {
-					for (int i = 0; i < mac.length; i++) {
-						macAddressAsLong <<= 8;
-						macAddressAsLong ^= (long) mac[i] & 0xFF;
-					}
+				for (byte aMac : mac) {
+					macAddressAsLong <<= 8;
+					macAddressAsLong ^= (long) aMac & 0xFF;
 				}
 			}
 			canNotDetermineMac = false;
@@ -112,4 +115,5 @@ class TimeBasedUUIDGenerator {
 		}
 		return macAddressAsLong;
 	}
+
 }

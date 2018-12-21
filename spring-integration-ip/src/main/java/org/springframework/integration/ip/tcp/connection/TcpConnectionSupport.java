@@ -45,6 +45,8 @@ import org.springframework.util.Assert;
  * (incoming).
  *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  *
  */
@@ -114,7 +116,8 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 */
 	public TcpConnectionSupport(Socket socket, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher,
-			String connectionFactoryName) {
+			@Nullable String connectionFactoryName) {
+
 		this.socketInfo = new SocketInfo(socket);
 		this.server = server;
 		InetAddress inetAddress = socket.getInetAddress();

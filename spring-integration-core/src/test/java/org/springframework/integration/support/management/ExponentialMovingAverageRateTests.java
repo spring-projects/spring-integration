@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.support.management;
 
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -37,11 +36,12 @@ import org.springframework.util.StopWatch;
  * @author Dave Syer
  * @author Gary Russell
  * @author Steven Swor
+ * @author Artem Bilan
  */
 @Ignore("Very sensitive to the time. Don't forget to test after some changes.")
 public class ExponentialMovingAverageRateTests {
 
-	private final static Log logger = LogFactory.getLog(ExponentialMovingAverageRateTests.class);
+	private static final Log logger = LogFactory.getLog(ExponentialMovingAverageRateTests.class);
 
 	private final ExponentialMovingAverageRate history = new ExponentialMovingAverageRate(1., 10., 10, true);
 
@@ -54,7 +54,7 @@ public class ExponentialMovingAverageRateTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testGetTimeSinceLastMeasurement() throws Exception {
+	public void testGetTimeSinceLastMeasurement() {
 		long sleepTime = 20L;
 
 		// fill history with the same value.
@@ -67,7 +67,7 @@ public class ExponentialMovingAverageRateTests {
 		assertEquals(Long.valueOf(now), times.peekLast());
 
 		//increment just so we'll have a different value between first and last
-		history.increment(System.nanoTime()  - sleepTime * 1000000);
+		history.increment(System.nanoTime() - sleepTime * 1000000);
 		assertNotEquals(times.peekFirst(), times.peekLast());
 
 		/*
@@ -76,7 +76,7 @@ public class ExponentialMovingAverageRateTests {
 		 * the queue, then we should be closer to the sleep time than we are to
 		 * 2 x sleepTime, but we should definitely be greater than the sleep
 		 * time.
-		*/
+		 */
 		double timeSinceLastMeasurement = history.getTimeSinceLastMeasurement();
 		assertTrue(timeSinceLastMeasurement > sleepTime);
 		assertTrue(timeSinceLastMeasurement <= (1.5 * sleepTime));
@@ -126,7 +126,6 @@ public class ExponentialMovingAverageRateTests {
 	}
 
 	@Test
-	@Ignore
 	public void testGetStandardDeviation() throws Exception {
 		assertEquals(0, history.getStandardDeviation(), 0.01);
 		Thread.sleep(20L);
@@ -138,13 +137,12 @@ public class ExponentialMovingAverageRateTests {
 	}
 
 	@Test
-	@Ignore
 	public void testReset() throws Exception {
 		assertEquals(0, history.getStandardDeviation(), 0.01);
 		history.increment();
 		Thread.sleep(30L);
 		history.increment();
-		assertFalse(0 == history.getStandardDeviation());
+		assertNotEquals(0, history.getStandardDeviation(), 0.0);
 		history.reset();
 		assertEquals(0, history.getStandardDeviation(), 0.01);
 		assertEquals(0, history.getCount());
@@ -155,7 +153,6 @@ public class ExponentialMovingAverageRateTests {
 	}
 
 	@Test
-	@Ignore // tolerance needed is too dependent on hardware
 	public void testRate() {
 		ExponentialMovingAverageRate rate = new ExponentialMovingAverageRate(1, 60, 10);
 		int count = 1000000;
@@ -170,7 +167,6 @@ public class ExponentialMovingAverageRateTests {
 	}
 
 	@Test
-	@Ignore
 	public void testPerf() {
 		ExponentialMovingAverageRate rate = new ExponentialMovingAverageRate(1, 60, 10);
 		for (int i = 0; i < 1000000; i++) {

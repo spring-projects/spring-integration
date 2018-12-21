@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,11 +53,12 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 /**
  * @author Artem Bilan
+ *
  * @since 4.1
  */
 public class ClientWebSocketContainerTests {
 
-	private final static TomcatWebSocketTestServer server = new TomcatWebSocketTestServer(TestServerConfig.class);
+	private static final TomcatWebSocketTestServer server = new TomcatWebSocketTestServer(TestServerConfig.class);
 
 	@BeforeClass
 	public static void setup() throws Exception {
@@ -71,8 +72,7 @@ public class ClientWebSocketContainerTests {
 
 	@Test
 	public void testClientWebSocketContainer() throws Exception {
-
-		final AtomicBoolean failure = new AtomicBoolean();
+		AtomicBoolean failure = new AtomicBoolean();
 
 		StandardWebSocketClient webSocketClient = new StandardWebSocketClient() {
 
@@ -93,9 +93,8 @@ public class ClientWebSocketContainerTests {
 
 		};
 
-		Map<String, Object> userProperties = new HashMap<String, Object>();
-		userProperties.put(Constants.IO_TIMEOUT_MS_PROPERTY,
-				"" + (Constants.IO_TIMEOUT_MS_DEFAULT * 6));
+		Map<String, Object> userProperties = new HashMap<>();
+		userProperties.put(Constants.IO_TIMEOUT_MS_PROPERTY, "" + (Constants.IO_TIMEOUT_MS_DEFAULT * 6));
 		webSocketClient.setUserProperties(userProperties);
 
 		ClientWebSocketContainer container =
@@ -123,7 +122,8 @@ public class ClientWebSocketContainerTests {
 		}
 		catch (Exception e) {
 			assertThat(e, instanceOf(IllegalStateException.class));
-			assertEquals(e.getMessage(), "'clientSession' has not been established. Consider to 'start' this container.");
+			assertEquals(e.getMessage(),
+					"'clientSession' has not been established. Consider to 'start' this container.");
 		}
 
 		assertTrue(messageListener.sessionEndedLatch.await(10, TimeUnit.SECONDS));
@@ -164,18 +164,18 @@ public class ClientWebSocketContainerTests {
 		public final CountDownLatch sessionEndedLatch = new CountDownLatch(1);
 
 		@Override
-		public void onMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+		public void onMessage(WebSocketSession session, WebSocketMessage<?> message) {
 			this.message = message;
 			this.messageLatch.countDown();
 		}
 
 		@Override
-		public void afterSessionStarted(WebSocketSession session) throws Exception {
+		public void afterSessionStarted(WebSocketSession session) {
 			this.started = true;
 		}
 
 		@Override
-		public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+		public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus) {
 			sessionEndedLatch.countDown();
 		}
 

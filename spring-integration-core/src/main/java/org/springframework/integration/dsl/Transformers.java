@@ -42,8 +42,8 @@ import org.springframework.integration.transformer.PayloadSerializingTransformer
 import org.springframework.integration.transformer.PayloadTypeConvertingTransformer;
 import org.springframework.integration.transformer.StreamTransformer;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -58,14 +58,16 @@ import reactor.core.publisher.Mono;
  */
 public abstract class Transformers {
 
-	private final static SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	public static ObjectToStringTransformer objectToString() {
 		return objectToString(null);
 	}
 
-	public static ObjectToStringTransformer objectToString(String charset) {
-		return charset != null ? new ObjectToStringTransformer(charset) : new ObjectToStringTransformer();
+	public static ObjectToStringTransformer objectToString(@Nullable String charset) {
+		return charset != null
+				? new ObjectToStringTransformer(charset)
+				: new ObjectToStringTransformer();
 	}
 
 	public static ObjectToMapTransformer toMap() {
@@ -100,20 +102,21 @@ public abstract class Transformers {
 		return toJson(null, null, null);
 	}
 
-	public static ObjectToJsonTransformer toJson(JsonObjectMapper<?, ?> jsonObjectMapper) {
+	public static ObjectToJsonTransformer toJson(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
 		return toJson(jsonObjectMapper, null, null);
 	}
 
-	public static ObjectToJsonTransformer toJson(JsonObjectMapper<?, ?> jsonObjectMapper,
-			ObjectToJsonTransformer.ResultType resultType) {
+	public static ObjectToJsonTransformer toJson(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper,
+			@Nullable ObjectToJsonTransformer.ResultType resultType) {
 		return toJson(jsonObjectMapper, resultType, null);
 	}
 
-	public static ObjectToJsonTransformer toJson(String contentType) {
+	public static ObjectToJsonTransformer toJson(@Nullable String contentType) {
 		return toJson(null, null, contentType);
 	}
 
-	public static ObjectToJsonTransformer toJson(JsonObjectMapper<?, ?> jsonObjectMapper, String contentType) {
+	public static ObjectToJsonTransformer toJson(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper,
+			@Nullable String contentType) {
 		return toJson(jsonObjectMapper, null, contentType);
 	}
 
@@ -124,16 +127,18 @@ public abstract class Transformers {
 	 * @return the ObjectToJsonTransformer
 	 * @since 5.0.9
 	 */
-	public static ObjectToJsonTransformer toJson(ObjectToJsonTransformer.ResultType resultType) {
+	public static ObjectToJsonTransformer toJson(@Nullable ObjectToJsonTransformer.ResultType resultType) {
 		return toJson(null, resultType, null);
 	}
 
-	public static ObjectToJsonTransformer toJson(ObjectToJsonTransformer.ResultType resultType, String contentType) {
+	public static ObjectToJsonTransformer toJson(@Nullable ObjectToJsonTransformer.ResultType resultType,
+			@Nullable String contentType) {
 		return toJson(null, resultType, contentType);
 	}
 
-	public static ObjectToJsonTransformer toJson(JsonObjectMapper<?, ?> jsonObjectMapper,
-			ObjectToJsonTransformer.ResultType resultType, String contentType) {
+	public static ObjectToJsonTransformer toJson(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper,
+			@Nullable ObjectToJsonTransformer.ResultType resultType, @Nullable String contentType) {
+
 		ObjectToJsonTransformer transformer;
 		if (jsonObjectMapper != null) {
 			if (resultType != null) {
@@ -159,15 +164,17 @@ public abstract class Transformers {
 		return fromJson(null, null);
 	}
 
-	public static JsonToObjectTransformer fromJson(Class<?> targetClass) {
+	public static JsonToObjectTransformer fromJson(@Nullable Class<?> targetClass) {
 		return fromJson(targetClass, null);
 	}
 
-	public static JsonToObjectTransformer fromJson(JsonObjectMapper<?, ?> jsonObjectMapper) {
+	public static JsonToObjectTransformer fromJson(@Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
 		return fromJson(null, jsonObjectMapper);
 	}
 
-	public static JsonToObjectTransformer fromJson(Class<?> targetClass, JsonObjectMapper<?, ?> jsonObjectMapper) {
+	public static JsonToObjectTransformer fromJson(@Nullable Class<?> targetClass,
+			@Nullable JsonObjectMapper<?, ?> jsonObjectMapper) {
+
 		return new JsonToObjectTransformer(targetClass, jsonObjectMapper);
 	}
 
@@ -175,7 +182,7 @@ public abstract class Transformers {
 		return serializer(null);
 	}
 
-	public static PayloadSerializingTransformer serializer(Serializer<Object> serializer) {
+	public static PayloadSerializingTransformer serializer(@Nullable Serializer<Object> serializer) {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
 		if (serializer != null) {
 			transformer.setSerializer(serializer);
@@ -187,7 +194,7 @@ public abstract class Transformers {
 		return deserializer(null, whiteListPatterns);
 	}
 
-	public static PayloadDeserializingTransformer deserializer(Deserializer<Object> deserializer,
+	public static PayloadDeserializingTransformer deserializer(@Nullable Deserializer<Object> deserializer,
 			String... whiteListPatterns) {
 		PayloadDeserializingTransformer transformer = new PayloadDeserializingTransformer();
 		transformer.setWhiteListPatterns(whiteListPatterns);
@@ -198,7 +205,6 @@ public abstract class Transformers {
 	}
 
 	public static <T, U> PayloadTypeConvertingTransformer<T, U> converter(Converter<T, U> converter) {
-		Assert.notNull(converter, "The Converter<?, ?> is required for the PayloadTypeConvertingTransformer");
 		PayloadTypeConvertingTransformer<T, U> transformer = new PayloadTypeConvertingTransformer<>();
 		transformer.setConverter(converter);
 		return transformer;
@@ -276,7 +282,7 @@ public abstract class Transformers {
 	 * @param charset the charset.
 	 * @return the {@link StreamTransformer} instance.
 	 */
-	public static StreamTransformer fromStream(String charset) {
+	public static StreamTransformer fromStream(@Nullable String charset) {
 		return new StreamTransformer(charset);
 	}
 

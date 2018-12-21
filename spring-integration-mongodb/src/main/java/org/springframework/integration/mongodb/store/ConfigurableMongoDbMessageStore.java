@@ -55,7 +55,7 @@ import org.springframework.util.Assert;
 public class ConfigurableMongoDbMessageStore extends AbstractConfigurableMongoDbMessageStore
 		implements MessageStore {
 
-	public final static String DEFAULT_COLLECTION_NAME = "configurableStoreMessages";
+	public static final String DEFAULT_COLLECTION_NAME = "configurableStoreMessages";
 
 
 	public ConfigurableMongoDbMessageStore(MongoTemplate mongoTemplate) {

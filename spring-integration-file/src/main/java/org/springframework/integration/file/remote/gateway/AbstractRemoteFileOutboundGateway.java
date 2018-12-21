@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,6 +52,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.support.MutableMessage;
 import org.springframework.integration.support.PartialSuccessException;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
@@ -70,185 +70,42 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReplyProducingMessageHandler {
 
-	protected final RemoteFileTemplate<F> remoteFileTemplate;
 
-	protected final Command command;
+	protected final RemoteFileTemplate<F> remoteFileTemplate; // NOSONAR
 
-	/**
-	 * Enumeration of commands supported by the gateways.
-	 */
-	public enum Command {
+	protected final Command command; // NOSONAR
 
-		/**
-		 * (ls) List remote files.
-		 */
-		LS("ls"),
-
-		/**
-		 * (nlst) List remote file names.
-		 */
-		NLST("nlst"),
-
-		/**
-		 * (get) Retrieve a remote file.
-		 */
-		GET("get"),
-
-		/**
-		 * (rm) Remove a remote file (path - including wildcards).
-		 */
-		RM("rm"),
-
-		/**
-		 * (mget) Retrieve multiple files matching a wildcard path.
-		 */
-		MGET("mget"),
-
-		/**
-		 * (mv) Move (rename) a remote file.
-		 */
-		MV("mv"),
-
-		/**
-		 * (put) Put a local file to the remote system.
-		 */
-		PUT("put"),
-
-		/**
-		 * (mput) Put multiple local files to the remote system.
-		 */
-		MPUT("mput");
-
-		private String command;
-
-		Command(String command) {
-			this.command = command;
-		}
-
-		public String getCommand() {
-			return this.command;
-		}
-
-		public static Command toCommand(String cmd) {
-			for (Command command : values()) {
-				if (command.getCommand().equals(cmd)) {
-					return command;
-				}
-			}
-			throw new IllegalArgumentException("No Command with value '" + cmd + "'");
-		}
-
-	}
-
-	/**
-	 * Enumeration of options supported by various commands.
-	 *
-	 */
-	public enum Option {
-
-		/**
-		 * (-1) Don't return full file information; just the name (ls).
-		 */
-		NAME_ONLY("-1"),
-
-		/**
-		 * (-a) Include files beginning with {@code .}, including directories {@code .}
-		 * and {@code ..} in the results (ls).
-		 */
-		ALL("-a"),
-
-		/**
-		 * (-f) Do not sort the results (ls with NAME_ONLY).
-		 */
-		NOSORT("-f"),
-
-		/**
-		 * (-dirs) Include directories in the results (ls).
-		 */
-		SUBDIRS("-dirs"),
-
-		/**
-		 * (-links) Include links in the results (ls).
-		 */
-		LINKS("-links"),
-
-		/**
-		 * (-P) Preserve the server timestamp (get, mget).
-		 */
-		PRESERVE_TIMESTAMP("-P"),
-
-		/**
-		 * (-x) Throw an exception if no files returned (mget).
-		 */
-		EXCEPTION_WHEN_EMPTY("-x"),
-
-		/**
-		 * (-R) Recursive (ls, mget)
-		 */
-		RECURSIVE("-R"),
-
-		/**
-		 * (-stream) Streaming 'get' (returns InputStream); user must call {@link Session#close()}.
-		 */
-		STREAM("-stream"),
-
-		/**
-		 * (-D) Delete the remote file after successful transfer (get, mget).
-		 */
-		DELETE("-D");
-
-		private String option;
-
-		Option(String option) {
-			this.option = option;
-		}
-
-		public String getOption() {
-			return this.option;
-		}
-
-		public static Option toOption(String opt) {
-			for (Option option : values()) {
-				if (option.getOption().equals(opt)) {
-					return option;
-				}
-			}
-			throw new IllegalArgumentException("No option with value '" + opt + "'");
-		}
-
-	}
+	protected final Set<Option> options = new HashSet<>();
 
 	private final ExpressionEvaluatingMessageProcessor<String> fileNameProcessor;
 
 	private final MessageSessionCallback<F, ?> messageSessionCallback;
 
-	protected final Set<Option> options = new HashSet<>();
-
-	private volatile ExpressionEvaluatingMessageProcessor<String> renameProcessor =
+	private ExpressionEvaluatingMessageProcessor<String> renameProcessor =
 			new ExpressionEvaluatingMessageProcessor<>(
 					new FunctionExpression<Message<?>>(m ->
 							m.getHeaders().get(FileHeaders.RENAME_TO)));
 
-	private volatile Expression localDirectoryExpression;
+	private Expression localDirectoryExpression;
 
-	private volatile boolean autoCreateLocalDirectory = true;
+	private boolean autoCreateLocalDirectory = true;
 
 	/**
 	 * A {@link FileListFilter} that runs against the <em>remote</em> file system view.
 	 */
-	private volatile FileListFilter<F> filter;
+	private FileListFilter<F> filter;
 
 	/**
 	 * A {@link FileListFilter} that runs against the <em>local</em> file system view when
 	 * using MPUT.
 	 */
-	private volatile FileListFilter<File> mputFilter;
+	private FileListFilter<File> mputFilter;
 
-	private volatile Expression localFilenameGeneratorExpression;
+	private Expression localFilenameGeneratorExpression;
 
-	private volatile FileExistsMode fileExistsMode;
+	private FileExistsMode fileExistsMode;
 
-	private volatile Integer chmod;
+	private Integer chmod;
 
 	/**
 	 * Construct an instance using the provided session factory and callback for
@@ -258,6 +115,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory,
 			MessageSessionCallback<F, ?> messageSessionCallback) {
+
 		this(new RemoteFileTemplate<F>(sessionFactory), messageSessionCallback);
 	}
 
@@ -269,6 +127,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate,
 			MessageSessionCallback<F, ?> messageSessionCallback) {
+
 		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
 		Assert.notNull(messageSessionCallback, "'messageSessionCallback' cannot be null");
 		this.remoteFileTemplate = remoteFileTemplate;
@@ -285,7 +144,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param expression the filename expression.
 	 */
 	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command,
-			String expression) {
+			@Nullable String expression) {
+
 		this(sessionFactory, Command.toCommand(command), expression);
 	}
 
@@ -296,7 +156,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param command the command.
 	 * @param expression the filename expression.
 	 */
-	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, Command command, String expression) {
+	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, Command command,
+			@Nullable String expression) {
+
 		this(new RemoteFileTemplate<F>(sessionFactory), command, expression);
 	}
 
@@ -308,7 +170,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param expression the filename expression.
 	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, String command,
-			String expression) {
+			@Nullable String expression) {
+
 		this(remoteFileTemplate, Command.toCommand(command), expression);
 	}
 
@@ -320,7 +183,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param expression the filename expression.
 	 */
 	public AbstractRemoteFileOutboundGateway(RemoteFileTemplate<F> remoteFileTemplate, Command command,
-			String expression) {
+			@Nullable String expression) {
+
 		Assert.notNull(remoteFileTemplate, "'remoteFileTemplate' cannot be null");
 		this.remoteFileTemplate = remoteFileTemplate;
 		this.command = command;
@@ -913,7 +777,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			purgeDots(lsFiles);
 		}
 		if (this.options.contains(Option.NAME_ONLY)) {
-			List<String> results = new ArrayList<String>();
+			List<String> results = new ArrayList<>();
 			for (F file : lsFiles) {
 				results.add(getFilename(file));
 			}
@@ -934,7 +798,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 	}
 
-	private List<F> listFilesInRemoteDir(Session<F> session, String directory, String subDirectory) throws IOException {
+	private List<F> listFilesInRemoteDir(Session<F> session, String directory, String subDirectory)
+			throws IOException {
+
 		List<F> lsFiles = new ArrayList<F>();
 		String remoteDirectory = buildRemotePath(directory, subDirectory);
 
@@ -986,21 +852,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	}
 
 	protected void purgeLinks(List<F> lsFiles) {
-		Iterator<F> iterator = lsFiles.iterator();
-		while (iterator.hasNext()) {
-			if (this.isLink(iterator.next())) {
-				iterator.remove();
-			}
-		}
+		lsFiles.removeIf(this::isLink);
 	}
 
 	protected void purgeDots(List<F> lsFiles) {
-		Iterator<F> iterator = lsFiles.iterator();
-		while (iterator.hasNext()) {
-			if (getFilename(iterator.next()).startsWith(".")) {
-				iterator.remove();
-			}
-		}
+		lsFiles.removeIf(f -> getFilename(f).startsWith("."));
 	}
 
 	/**
@@ -1119,9 +975,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if (logger.isWarnEnabled() && !("*".equals(remoteFilename))) {
 				logger.warn("File name pattern must be '*' when using recursion");
 			}
-			if (this.options.contains(Option.NAME_ONLY)) {
-				this.options.remove(Option.NAME_ONLY);
-			}
+			this.options.remove(Option.NAME_ONLY);
 			return mGetWithRecursion(message, session, remoteDirectory, remoteFilename);
 		}
 		else {
@@ -1131,7 +985,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private List<File> mGetWithoutRecursion(Message<?> message, Session<F> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
-		List<File> files = new ArrayList<File>();
+
+		List<File> files = new ArrayList<>();
 		String remotePath = buildRemotePath(remoteDirectory, remoteFilename);
 		@SuppressWarnings("unchecked")
 		List<AbstractFileInfo<F>> remoteFiles = (List<AbstractFileInfo<F>>) ls(message, session, remotePath);
@@ -1179,7 +1034,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	private List<File> mGetWithRecursion(Message<?> message, Session<F> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
-		List<File> files = new ArrayList<File>();
+		List<File> files = new ArrayList<>();
 		@SuppressWarnings("unchecked")
 		List<AbstractFileInfo<F>> fileNames = (List<AbstractFileInfo<F>>) ls(message, session, remoteDirectory);
 		if (fileNames.size() == 0 && this.options.contains(Option.EXCEPTION_WHEN_EMPTY)) {
@@ -1268,18 +1123,162 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return remoteFileName;
 	}
 
-	abstract protected boolean isDirectory(F file);
+	protected abstract boolean isDirectory(F file);
 
-	abstract protected boolean isLink(F file);
+	protected abstract boolean isLink(F file);
 
-	abstract protected String getFilename(F file);
+	protected abstract String getFilename(F file);
 
-	abstract protected String getFilename(AbstractFileInfo<F> file);
+	protected abstract String getFilename(AbstractFileInfo<F> file);
 
-	abstract protected long getModified(F file);
+	protected abstract long getModified(F file);
 
-	abstract protected List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
+	protected abstract List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
 
-	abstract protected F enhanceNameWithSubDirectory(F file, String directory);
+	protected abstract F enhanceNameWithSubDirectory(F file, String directory);
+
+	/**
+	 * Enumeration of commands supported by the gateways.
+	 */
+	public enum Command {
+
+		/**
+		 * (ls) List remote files.
+		 */
+		LS("ls"),
+
+		/**
+		 * (nlst) List remote file names.
+		 */
+		NLST("nlst"),
+
+		/**
+		 * (get) Retrieve a remote file.
+		 */
+		GET("get"),
+
+		/**
+		 * (rm) Remove a remote file (path - including wildcards).
+		 */
+		RM("rm"),
+
+		/**
+		 * (mget) Retrieve multiple files matching a wildcard path.
+		 */
+		MGET("mget"),
+
+		/**
+		 * (mv) Move (rename) a remote file.
+		 */
+		MV("mv"),
+
+		/**
+		 * (put) Put a local file to the remote system.
+		 */
+		PUT("put"),
+
+		/**
+		 * (mput) Put multiple local files to the remote system.
+		 */
+		MPUT("mput");
+
+		private final String command;
+
+		Command(String command) {
+			this.command = command;
+		}
+
+		public String getCommand() {
+			return this.command;
+		}
+
+		public static Command toCommand(String cmd) {
+			for (Command command : values()) {
+				if (command.getCommand().equals(cmd)) {
+					return command;
+				}
+			}
+			throw new IllegalArgumentException("No Command with value '" + cmd + "'");
+		}
+
+	}
+
+	/**
+	 * Enumeration of options supported by various commands.
+	 *
+	 */
+	public enum Option {
+
+		/**
+		 * (-1) Don't return full file information; just the name (ls).
+		 */
+		NAME_ONLY("-1"),
+
+		/**
+		 * (-a) Include files beginning with {@code .}, including directories {@code .}
+		 * and {@code ..} in the results (ls).
+		 */
+		ALL("-a"),
+
+		/**
+		 * (-f) Do not sort the results (ls with NAME_ONLY).
+		 */
+		NOSORT("-f"),
+
+		/**
+		 * (-dirs) Include directories in the results (ls).
+		 */
+		SUBDIRS("-dirs"),
+
+		/**
+		 * (-links) Include links in the results (ls).
+		 */
+		LINKS("-links"),
+
+		/**
+		 * (-P) Preserve the server timestamp (get, mget).
+		 */
+		PRESERVE_TIMESTAMP("-P"),
+
+		/**
+		 * (-x) Throw an exception if no files returned (mget).
+		 */
+		EXCEPTION_WHEN_EMPTY("-x"),
+
+		/**
+		 * (-R) Recursive (ls, mget)
+		 */
+		RECURSIVE("-R"),
+
+		/**
+		 * (-stream) Streaming 'get' (returns InputStream); user must call {@link Session#close()}.
+		 */
+		STREAM("-stream"),
+
+		/**
+		 * (-D) Delete the remote file after successful transfer (get, mget).
+		 */
+		DELETE("-D");
+
+		private final String option;
+
+		Option(String option) {
+			this.option = option;
+		}
+
+		public String getOption() {
+			return this.option;
+		}
+
+		public static Option toOption(String opt) {
+			for (Option option : values()) {
+				if (option.getOption().equals(opt)) {
+					return option;
+				}
+			}
+			throw new IllegalArgumentException("No option with value '" + opt + "'");
+		}
+
+	}
 
 }

@@ -89,7 +89,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 
 	private static final Log logger = LogFactory.getLog(DefaultConfiguringBeanFactoryPostProcessor.class);
 
-	private final static IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER =
+	private static final IntegrationConverterInitializer INTEGRATION_CONVERTER_INITIALIZER =
 			new IntegrationConverterInitializer();
 
 	private static final Set<Integer> registriesProcessed = new HashSet<>();
@@ -152,17 +152,22 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	 */
 	private void registerNullChannel() {
 		if (this.beanFactory.containsBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
-			BeanDefinition nullChannelDefinition;
+			BeanDefinition nullChannelDefinition = null;
 			if (this.beanFactory.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
 				nullChannelDefinition =
 						this.beanFactory.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 			}
 			else {
-				nullChannelDefinition =
-						((BeanDefinitionRegistry) this.beanFactory.getParentBeanFactory())
-								.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME); // NOSONAR not null
+				BeanDefinitionRegistry parentBeanFactory =
+						(BeanDefinitionRegistry) this.beanFactory.getParentBeanFactory();
+				if (parentBeanFactory != null) {
+					nullChannelDefinition =
+							parentBeanFactory.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+				}
 			}
-			if (!NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {
+
+			if (nullChannelDefinition != null &&
+					!NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {
 				throw new IllegalStateException("The bean name '" + IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME
 						+ "' is reserved.");
 			}

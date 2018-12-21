@@ -84,9 +84,11 @@ import org.springframework.util.StringUtils;
  */
 class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]>, BeanFactoryAware {
 
-	private final static Log logger = LogFactory.getLog(GatewayMethodInboundMessageMapper.class);
+	private static final Log logger = LogFactory.getLog(GatewayMethodInboundMessageMapper.class);
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<>();
 
 	private final Method method;
 
@@ -102,13 +104,11 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private final MessageBuilderFactory messageBuilderFactory;
 
-	private volatile Expression payloadExpression;
+	private Expression payloadExpression;
 
-	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<String, Expression>();
+	private EvaluationContext payloadExpressionEvaluationContext;
 
-	private volatile StandardEvaluationContext payloadExpressionEvaluationContext;
-
-	private volatile BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
 	private Expression sendTimeoutExpression;
 
@@ -127,6 +127,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			@Nullable Map<String, Expression> globalHeaderExpressions,
 			@Nullable MethodArgsMessageMapper mapper,
 			@Nullable MessageBuilderFactory messageBuilderFactory) {
+
 		this(method, headerExpressions, globalHeaderExpressions, null, mapper, messageBuilderFactory);
 	}
 
@@ -189,7 +190,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	@Nullable
-	private Message<?> mapArgumentsToMessage(Object[] arguments, Map<String, Object> headers) {
+	private Message<?> mapArgumentsToMessage(Object[] arguments, @Nullable Map<String, Object> headers) {
 		try {
 			return this.argsMapper.toMessage(new MethodArgsHolder(this.method, arguments), headers);
 		}
@@ -205,6 +206,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private Map<String, Object> evaluateHeaders(EvaluationContext methodInvocationEvaluationContext,
 			Map<String, Expression> headerExpressions) {
+
 		Map<String, Object> evaluatedHeaders = new HashMap<>();
 		for (Map.Entry<String, Expression> entry : headerExpressions.entrySet()) {
 			Object value = entry.getValue().getValue(methodInvocationEvaluationContext);
@@ -277,7 +279,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			String expressionString = (String) AnnotationUtils.getValue(payload);
 			Assert.hasText(expressionString,
 					"@Payload at method-level on a Gateway must provide a non-empty Expression.");
-			expression = PARSER.parseExpression(expressionString);
+			expression = PARSER.parseExpression(expressionString); // NOSONAR protected with hasText()
 		}
 		return expression;
 	}
@@ -285,7 +287,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	public class DefaultMethodArgsMessageMapper implements MethodArgsMessageMapper {
 
 		@Override
-		public Message<?> toMessage(MethodArgsHolder holder, @Nullable Map<String, Object> headers) throws Exception {
+		public Message<?> toMessage(MethodArgsHolder holder, @Nullable Map<String, Object> headers) {
 			Object messageOrPayload = null;
 			boolean foundPayloadAnnotation = false;
 			Object[] arguments = holder.getArgs();
@@ -296,13 +298,15 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 							: new HashMap<>();
 			if (GatewayMethodInboundMessageMapper.this.payloadExpression != null) {
 				messageOrPayload =
-						GatewayMethodInboundMessageMapper.this.payloadExpression.getValue(methodInvocationEvaluationContext);
+						GatewayMethodInboundMessageMapper.this.payloadExpression.getValue(
+								methodInvocationEvaluationContext);
 			}
 			for (int i = 0; i < GatewayMethodInboundMessageMapper.this.parameterList.size(); i++) {
 				Object argumentValue = arguments[i];
 				MethodParameter methodParameter = GatewayMethodInboundMessageMapper.this.parameterList.get(i);
 				Annotation annotation =
-						MessagingAnnotationUtils.findMessagePartAnnotation(methodParameter.getParameterAnnotations(), false);
+						MessagingAnnotationUtils.findMessagePartAnnotation(methodParameter.getParameterAnnotations(),
+								false);
 				if (annotation != null) {
 					if (annotation.annotationType().equals(Payload.class)) {
 						if (messageOrPayload != null) {
@@ -329,7 +333,8 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 					else if (annotation.annotationType().equals(Headers.class)) {
 						if (argumentValue != null) {
 							if (!(argumentValue instanceof Map)) {
-								throw new IllegalArgumentException("@Headers annotation is only valid for Map-typed parameters");
+								throw new IllegalArgumentException(
+										"@Headers annotation is only valid for Map-typed parameters");
 							}
 							for (Object key : ((Map<?, ?>) argumentValue).keySet()) {
 								Assert.isInstanceOf(String.class, key, "Invalid header name [" + key +
@@ -369,10 +374,11 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 						v -> GatewayMethodInboundMessageMapper.this.replyTimeoutExpression
 								.getValue(methodInvocationEvaluationContext, Long.class));
 			}
+			MessageBuilderFactory messageBuilderFactory = GatewayMethodInboundMessageMapper.this.messageBuilderFactory;
 			AbstractIntegrationMessageBuilder<?> builder =
 					(messageOrPayload instanceof Message)
-							? GatewayMethodInboundMessageMapper.this.messageBuilderFactory.fromMessage((Message<?>) messageOrPayload)
-							: GatewayMethodInboundMessageMapper.this.messageBuilderFactory.withPayload(messageOrPayload);
+							? messageBuilderFactory.fromMessage((Message<?>) messageOrPayload)
+							: messageBuilderFactory.withPayload(messageOrPayload);
 			builder.copyHeadersIfAbsent(headers);
 			// Explicit headers in XML override any @Header annotations...
 			if (!CollectionUtils.isEmpty(GatewayMethodInboundMessageMapper.this.headerExpressions)) {

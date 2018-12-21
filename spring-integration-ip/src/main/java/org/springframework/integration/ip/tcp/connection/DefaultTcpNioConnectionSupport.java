@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,16 @@ import java.io.PushbackInputStream;
 import java.nio.channels.SocketChannel;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 
 
 /**
  * Implementation of {@link TcpNioConnectionSupport} for non-SSL
  * NIO connections.
+ *
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.2
  *
  */
@@ -56,8 +60,9 @@ public class DefaultTcpNioConnectionSupport extends AbstractTcpConnectionSupport
 		private volatile InputStream wrapped;
 
 		PushBackTcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
-				ApplicationEventPublisher applicationEventPublisher, String connectionFactoryName,
+				ApplicationEventPublisher applicationEventPublisher, @Nullable String connectionFactoryName,
 				int bufferSize) throws Exception {
+
 			super(socketChannel, server, lookupHost, applicationEventPublisher, connectionFactoryName);
 			this.pushbackBufferSize = bufferSize;
 			this.connectionId = "pushback:" + super.getConnectionId();

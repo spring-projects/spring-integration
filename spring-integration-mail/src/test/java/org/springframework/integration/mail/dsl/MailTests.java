@@ -79,13 +79,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @DirtiesContext
 public class MailTests {
 
-	private final static SmtpServer smtpServer = TestMailServer.smtp(0);
+	private static final SmtpServer smtpServer = TestMailServer.smtp(0);
 
-	private final static Pop3Server pop3Server = TestMailServer.pop3(0);
+	private static final Pop3Server pop3Server = TestMailServer.pop3(0);
 
-	private final static ImapServer imapServer = TestMailServer.imap(0);
+	private static final ImapServer imapServer = TestMailServer.imap(0);
 
-	private final static ImapServer imapIdleServer = TestMailServer.imap(0);
+	private static final ImapServer imapIdleServer = TestMailServer.imap(0);
 
 
 	@BeforeClass
@@ -173,7 +173,7 @@ public class MailTests {
 	}
 
 	@Test
-	public void testImapIdle() throws Exception {
+	public void testImapIdle() {
 		Message<?> message = this.imapIdleChannel.receive(10000);
 		assertNotNull(message);
 		MessageHeaders headers = message.getHeaders();

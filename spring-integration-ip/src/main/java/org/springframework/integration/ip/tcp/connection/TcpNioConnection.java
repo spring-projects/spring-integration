@@ -67,9 +67,13 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private final ChannelInputStream channelInputStream = new ChannelInputStream();
 
-	private volatile OutputStream bufferedOutputStream;
+	private final AtomicInteger executionControl = new AtomicInteger();
 
-	private volatile boolean usingDirectBuffers;
+	private boolean usingDirectBuffers;
+
+	private long pipeTimeout = DEFAULT_PIPE_TIMEOUT;
+
+	private volatile OutputStream bufferedOutputStream;
 
 	private volatile CompositeExecutor taskExecutor;
 
@@ -81,13 +85,9 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 	private volatile long lastSend;
 
-	private final AtomicInteger executionControl = new AtomicInteger();
-
 	private volatile boolean writingToPipe;
 
 	private volatile CountDownLatch writingLatch;
-
-	private volatile long pipeTimeout = DEFAULT_PIPE_TIMEOUT;
 
 	private volatile boolean timedOut;
 
@@ -99,17 +99,13 @@ public class TcpNioConnection extends TcpConnectionSupport {
 	 * @param lookupHost true to perform reverse lookups.
 	 * @param applicationEventPublisher The event publisher.
 	 * @param connectionFactoryName The name of the connection factory creating this connection.
-	 * @throws Exception Any Exception.
 	 */
 	public TcpNioConnection(SocketChannel socketChannel, boolean server, boolean lookupHost,
 			ApplicationEventPublisher applicationEventPublisher,
-			String connectionFactoryName) throws Exception {
+			@Nullable String connectionFactoryName) {
+
 		super(socketChannel.socket(), server, lookupHost, applicationEventPublisher, connectionFactoryName);
 		this.socketChannel = socketChannel;
-		int receiveBufferSize = socketChannel.socket().getReceiveBufferSize();
-		if (receiveBufferSize <= 0) {
-			receiveBufferSize = this.maxMessageSize;
-		}
 		this.channelOutputStream = new ChannelOutputStream();
 	}
 
@@ -735,9 +731,8 @@ public class TcpNioConnection extends TcpConnectionSupport {
 
 		/**
 		 * Blocks if the blocking queue already contains 5 buffers.
-		 * @param array
-		 * @param bytesToWrite
-		 * @throws IOException
+		 * @param byteBuffer to write
+		 * @throws IOException writing to the buffer exception
 		 */
 		public void write(ByteBuffer byteBuffer) throws IOException {
 			int bytesToWrite = byteBuffer.limit() - byteBuffer.position();
@@ -774,7 +769,7 @@ public class TcpNioConnection extends TcpConnectionSupport {
 		}
 
 		@Override
-		public int available() throws IOException {
+		public int available() {
 			return this.available.get();
 		}
 

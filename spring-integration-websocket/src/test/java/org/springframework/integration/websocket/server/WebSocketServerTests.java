@@ -93,7 +93,6 @@ import org.springframework.web.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.socket.server.standard.TomcatRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
-import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 /**
@@ -106,7 +105,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 @DirtiesContext
 public class WebSocketServerTests {
 
-	private final static SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	@Autowired
 	@Qualifier("webSocketOutputChannel")
@@ -126,7 +125,7 @@ public class WebSocketServerTests {
 	private Lifecycle requestUpgradeStrategy;
 
 	@Test
-	public void testWebSocketOutboundMessageHandler() throws Exception {
+	public void testWebSocketOutboundMessageHandler() {
 		StompHeaderAccessor headers = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
 		headers.setSubscriptionId("subs1");
 		headers.setDestination("/queue/foo");
@@ -166,7 +165,7 @@ public class WebSocketServerTests {
 	}
 
 	@Test
-	public void testBrokerIsNotPresented() throws Exception {
+	public void testBrokerIsNotPresented() {
 		WebSocketInboundChannelAdapter webSocketInboundChannelAdapter =
 				new WebSocketInboundChannelAdapter(Mockito.mock(ServerWebSocketContainer.class));
 		webSocketInboundChannelAdapter.setOutputChannel(new DirectChannel());
@@ -195,7 +194,7 @@ public class WebSocketServerTests {
 
 		@Bean
 		public WebSocketClient webSocketClient() {
-			return new SockJsClient(Collections.<Transport>singletonList(new WebSocketTransport(new StandardWebSocketClient())));
+			return new SockJsClient(Collections.singletonList(new WebSocketTransport(new StandardWebSocketClient())));
 		}
 
 		@Bean

@@ -158,6 +158,7 @@
 
 		<!-- Modifiers -->
 		<module name="RedundantModifier" />
+		<module name="ModifierOrderCheck"/>
 
 		<!-- Regexp -->
   		<module name="RegexpSinglelineJava">

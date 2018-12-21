@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,7 +141,7 @@ public class SubscriberOrderTests {
 	}
 
 
-	static abstract class AbstractTestBean {
+	abstract static class AbstractTestBean {
 
 		@Order(4)
 		abstract void fourth(Message<?> message);
@@ -157,7 +157,7 @@ public class SubscriberOrderTests {
 
 		private final int maxCallsPerMethod;
 
-		private volatile List<Integer> calls = new ArrayList<Integer>();
+		private final List<Integer> calls = new ArrayList<>();
 
 
 		TestBean(int maxCallsPerMethod) {
@@ -166,7 +166,7 @@ public class SubscriberOrderTests {
 
 
 		void reset() {
-			this.calls = new ArrayList<Integer>();
+			this.calls.clear();
 		}
 
 		@Order(3)
@@ -211,6 +211,7 @@ public class SubscriberOrderTests {
 			}
 			this.calls.add(methodNumber);
 		}
+
 	}
 
 }

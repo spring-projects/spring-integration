@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,14 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @param <V> The Map value type.
  *
  * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class MapBuilder<B extends MapBuilder<B, K, V>, K, V> {
 
-	protected final static SpelExpressionParser PARSER = new SpelExpressionParser();
+	protected static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	private final Map<K, V> map = new HashMap<K, V>();
+	private final Map<K, V> map = new HashMap<>();
 
 	public B put(K key, V value) {
 		this.map.put(key, value);

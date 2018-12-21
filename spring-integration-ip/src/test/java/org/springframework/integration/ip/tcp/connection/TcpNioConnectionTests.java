@@ -105,7 +105,7 @@ import org.springframework.util.StopWatch;
  */
 public class TcpNioConnectionTests {
 
-	private final static Log logger = LogFactory.getLog(TcpNioConnectionTests.class);
+	private static final Log logger = LogFactory.getLog(TcpNioConnectionTests.class);
 
 	@Rule
 	public Log4j2LevelAdjuster adjuster =
@@ -268,7 +268,7 @@ public class TcpNioConnectionTests {
 		connections.put(chan1, conn1);
 		connections.put(chan2, conn2);
 		connections.put(chan3, conn3);
-		final List<Field> fields = new ArrayList<Field>();
+		final List<Field> fields = new ArrayList<>();
 		ReflectionUtils.doWithFields(SocketChannel.class, field -> {
 			field.setAccessible(true);
 			fields.add(field);
@@ -279,7 +279,7 @@ public class TcpNioConnectionTests {
 		ReflectionUtils.setField(field, chan2, true);
 		ReflectionUtils.setField(field, chan3, true);
 		Selector selector = mock(Selector.class);
-		HashSet<SelectionKey> keys = new HashSet<SelectionKey>();
+		HashSet<SelectionKey> keys = new HashSet<>();
 		when(selector.selectedKeys()).thenReturn(keys);
 		factory.processNioSelections(1, selector, null, connections);
 		assertEquals(3, connections.size()); // all open

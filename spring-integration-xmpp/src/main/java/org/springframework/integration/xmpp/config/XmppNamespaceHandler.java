@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 
-	public final static String XMPP_CONNECTION_BEAN_NAME = "xmppConnection";
+	public static final String XMPP_CONNECTION_BEAN_NAME = "xmppConnection";
 
 	@Override
 	public void init() {

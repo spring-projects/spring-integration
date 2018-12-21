@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,16 +36,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * in the containers Threads for channels like
  * {@link org.springframework.integration.channel.ExecutorChannel}
  * and {@link org.springframework.integration.channel.QueueChannel}.
+ *
  * @author Artem Bilan
- * @see ThreadStatePropagationChannelInterceptor
+ *
  * @since 4.2
+ *
+ * @see ThreadStatePropagationChannelInterceptor
  */
 public class SecurityContextPropagationChannelInterceptor
 		extends ThreadStatePropagationChannelInterceptor<Authentication> {
 
-	private final static SecurityContext EMPTY_CONTEXT = SecurityContextHolder.createEmptyContext();
+	private static final SecurityContext EMPTY_CONTEXT = SecurityContextHolder.createEmptyContext();
 
-	private final static ThreadLocal<SecurityContext> ORIGINAL_CONTEXT = new ThreadLocal<SecurityContext>();
+	private static final ThreadLocal<SecurityContext> ORIGINAL_CONTEXT = new ThreadLocal<>();
 
 	@Override
 	public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler, Exception ex) {

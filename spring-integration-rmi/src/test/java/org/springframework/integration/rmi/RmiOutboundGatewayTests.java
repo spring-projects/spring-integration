@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,11 @@ import org.springframework.util.SocketUtils;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class RmiOutboundGatewayTests {
 
-	private final static int port = SocketUtils.findAvailableTcpPort();
+	private static final int port = SocketUtils.findAvailableTcpPort();
 
 	private final RmiOutboundGateway gateway =
 			new RmiOutboundGateway("rmi://localhost:" + port + "/testRemoteHandler");
@@ -69,16 +70,16 @@ public class RmiOutboundGatewayTests {
 
 
 	@Test
-	public void serializablePayload() throws RemoteException {
-		gateway.handleMessage(new GenericMessage<String>("test"));
+	public void serializablePayload() {
+		gateway.handleMessage(new GenericMessage<>("test"));
 		Message<?> replyMessage = output.receive(0);
 		assertNotNull(replyMessage);
 		assertEquals("TEST", replyMessage.getPayload());
 	}
 
 	@Test
-	public void failedMessage() throws RemoteException {
-		GenericMessage<String> message = new GenericMessage<String>("fail");
+	public void failedMessage() {
+		GenericMessage<String> message = new GenericMessage<>("fail");
 		try {
 			gateway.handleMessage(message);
 			fail("Exception expected");
@@ -90,7 +91,7 @@ public class RmiOutboundGatewayTests {
 	}
 
 	@Test
-	public void serializableAttribute() throws RemoteException {
+	public void serializableAttribute() {
 		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", "foo").build();
 		gateway.handleMessage(requestMessage);
@@ -100,14 +101,14 @@ public class RmiOutboundGatewayTests {
 	}
 
 	@Test(expected = MessageHandlingException.class)
-	public void nonSerializablePayload() throws RemoteException {
+	public void nonSerializablePayload() {
 		NonSerializableTestObject payload = new NonSerializableTestObject();
-		Message<?> requestMessage = new GenericMessage<NonSerializableTestObject>(payload);
+		Message<?> requestMessage = new GenericMessage<>(payload);
 		gateway.handleMessage(requestMessage);
 	}
 
 	@Test
-	public void nonSerializableAttribute() throws RemoteException {
+	public void nonSerializableAttribute() {
 		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", new NonSerializableTestObject()).build();
 		gateway.handleMessage(requestMessage);
@@ -117,11 +118,11 @@ public class RmiOutboundGatewayTests {
 	}
 
 	@Test
-	public void invalidServiceName() throws RemoteException {
+	public void invalidServiceName() {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/noSuchService");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handleMessage(new GenericMessage<String>("test"));
+			gateway.handleMessage(new GenericMessage<>("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -135,7 +136,7 @@ public class RmiOutboundGatewayTests {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://noSuchHost:1099/testRemoteHandler");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handleMessage(new GenericMessage<String>("test"));
+			gateway.handleMessage(new GenericMessage<>("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -145,11 +146,11 @@ public class RmiOutboundGatewayTests {
 	}
 
 	@Test
-	public void invalidUrl() throws RemoteException {
+	public void invalidUrl() {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("invalid");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handleMessage(new GenericMessage<String>("test"));
+			gateway.handleMessage(new GenericMessage<>("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -174,9 +175,9 @@ public class RmiOutboundGatewayTests {
 					protected Object handleRequestMessage(Message<?> requestMessage) {
 						throw new RuntimeException("foo");
 					}
-				}.handleMessage(new GenericMessage<String>("bar"));
+				}.handleMessage(new GenericMessage<>("bar"));
 			}
-			return new GenericMessage<String>(message.getPayload().toString().toUpperCase(), message.getHeaders());
+			return new GenericMessage<>(message.getPayload().toString().toUpperCase(), message.getHeaders());
 		}
 	}
 

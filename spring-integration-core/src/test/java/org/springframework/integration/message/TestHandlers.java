@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.messaging.Message;
  * Factory for handler beans that are useful for testing.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @SuppressWarnings("unused")
 public abstract class TestHandlers {
@@ -32,8 +33,9 @@ public abstract class TestHandlers {
 	/**
 	 * Create a handler that always returns null.
 	 */
-	public final static Object nullHandler() {
+	public static final Object nullHandler() {
 		return new Object() {
+
 			public Message<?> handle(Message<?> message) {
 				return null;
 			}
@@ -43,8 +45,9 @@ public abstract class TestHandlers {
 	/**
 	 * Create a handler that simply returns the {@link Message} it receives.
 	 */
-	public final static Object echoHandler() {
+	public static final Object echoHandler() {
 		return new Object() {
+
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -54,8 +57,9 @@ public abstract class TestHandlers {
 	/**
 	 * Create a handler that increments the provided counter.
 	 */
-	public final static Object countingHandler(final AtomicInteger counter) {
+	public static final Object countingHandler(final AtomicInteger counter) {
 		return new Object() {
+
 			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
 				return null;
@@ -66,8 +70,9 @@ public abstract class TestHandlers {
 	/**
 	 * Create a handler that counts down on the provided latch.
 	 */
-	public final static Object countDownHandler(final CountDownLatch latch) {
+	public static final Object countDownHandler(final CountDownLatch latch) {
 		return new Object() {
+
 			public Message<?> handle(Message<?> message) {
 				latch.countDown();
 				return null;
@@ -79,8 +84,9 @@ public abstract class TestHandlers {
 	 * Create a handler that counts down on the provided latch
 	 * and also increments the provided counter.
 	 */
-	public final static Object countingCountDownHandler(final AtomicInteger counter, final CountDownLatch latch) {
+	public static final Object countingCountDownHandler(final AtomicInteger counter, final CountDownLatch latch) {
 		return new Object() {
+
 			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
 				latch.countDown();

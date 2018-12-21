@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,21 +33,23 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakusky
  * @author Gary Russell
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public class JmsChannelParser extends AbstractChannelParser {
 
-	private final static String CONTAINER_TYPE_ATTRIBUTE = "container-type";
+	private static final String CONTAINER_TYPE_ATTRIBUTE = "container-type";
 
-	private final static String CONTAINER_CLASS_ATTRIBUTE = "container-class";
+	private static final String CONTAINER_CLASS_ATTRIBUTE = "container-class";
 
-	private final static String ACKNOWLEDGE_ATTRIBUTE = "acknowledge";
+	private static final String ACKNOWLEDGE_ATTRIBUTE = "acknowledge";
 
 
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				JmsChannelFactoryBean.class);
+		BeanDefinitionBuilder builder =
+				BeanDefinitionBuilder.genericBeanDefinition(JmsChannelFactoryBean.class);
 		String messageDriven = element.getAttribute("message-driven");
 		if (StringUtils.hasText(messageDriven)) {
 			builder.addConstructorArgValue(messageDriven);
@@ -129,13 +131,15 @@ public class JmsChannelParser extends AbstractChannelParser {
 		return builder;
 	}
 
-	private void parseDestination(Element element, ParserContext parserContext, BeanDefinitionBuilder builder, String type) {
+	private void parseDestination(Element element, ParserContext parserContext, BeanDefinitionBuilder builder,
+			String type) {
+
 		boolean isPubSub = "topic".equals(type);
 		String ref = element.getAttribute(type);
 		String name = element.getAttribute(type + "-name");
 		boolean isReference = StringUtils.hasText(ref);
 		boolean isName = StringUtils.hasText(name);
-		if (!(isReference ^ isName)) {
+		if (isReference == isName) {
 			parserContext.getReaderContext().error("Exactly one of the '" + type +
 					"' or '" + type + "-name' attributes is required.", element);
 		}
@@ -152,7 +156,8 @@ public class JmsChannelParser extends AbstractChannelParser {
 		}
 		if (isPubSub) {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "durable", "subscriptionDurable");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription", "durableSubscriptionName");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription",
+					"durableSubscriptionName");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription-shared");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
 		}
@@ -181,4 +186,5 @@ public class JmsChannelParser extends AbstractChannelParser {
 			return null;
 		}
 	}
+
 }

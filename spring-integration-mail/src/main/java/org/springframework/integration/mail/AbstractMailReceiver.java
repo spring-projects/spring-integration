@@ -38,9 +38,6 @@ import javax.mail.Store;
 import javax.mail.URLName;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -68,9 +65,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * Default user flag for marking messages as seen by this receiver:
 	 * {@value #DEFAULT_SI_USER_FLAG}.
 	 */
-	public final static String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
-
-	protected final Log logger = LogFactory.getLog(getClass()); // NOSONAR safe to use final
+	public static final String DEFAULT_SI_USER_FLAG = "spring-integration-mail-adapter";
 
 	private final URLName url;
 
@@ -500,8 +495,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	private MimeMessage[] filterMessagesThruSelector(Message[] messages) throws MessagingException {
 		List<MimeMessage> filteredMessages = new LinkedList<>();
-		for (int i = 0; i < messages.length; i++) {
-			MimeMessage message = (MimeMessage) messages[i];
+		for (Message message1 : messages) {
+			MimeMessage message = (MimeMessage) message1;
 			if (this.selectorExpression != null) {
 				if (Boolean.TRUE.equals(
 						this.selectorExpression.getValue(this.evaluationContext, message, Boolean.class))) {
@@ -544,8 +539,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 * @throws MessagingException in case of JavaMail errors
 	 */
 	protected void deleteMessages(Message[] messages) throws MessagingException {
-		for (int i = 0; i < messages.length; i++) {
-			messages[i].setFlag(Flags.Flag.DELETED, true);
+		for (Message message : messages) {
+			message.setFlag(Flags.Flag.DELETED, true);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,11 +34,14 @@ import org.springframework.integration.mapping.AbstractHeaderMapper.HeaderMatche
 import org.springframework.integration.mapping.AbstractHeaderMapper.PatternBasedHeaderMatcher;
 import org.springframework.integration.mapping.AbstractHeaderMapper.PrefixBasedMatcher;
 import org.springframework.integration.mapping.AbstractHeaderMapper.SinglePatternBasedHeaderMatcher;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Stephane Nicoll
+ * @author Artem Bilan
+ *
  * @since 4.1
  */
 public class HeaderMapperTests {
@@ -75,8 +78,8 @@ public class HeaderMapperTests {
 		GenericTestProperties properties = createSimpleGenericTestProperties();
 
 		Map<String, Object> attributes = this.mapper.toHeadersFromRequest(properties);
-		assertEquals(null, attributes.get(GenericTestHeaders.APP_ID));
-		assertEquals(null, attributes.get(GenericTestHeaders.REQUEST_ONLY));
+		assertNull(attributes.get(GenericTestHeaders.APP_ID));
+		assertNull(attributes.get(GenericTestHeaders.REQUEST_ONLY));
 		assertEquals("reply-123", attributes.get(GenericTestHeaders.REPLY_ONLY));
 		assertEquals("bar", attributes.get("foo"));
 		assertEquals("Wrong number of mapped header(s)", 2, attributes.size());
@@ -310,7 +313,7 @@ public class HeaderMapperTests {
 	}
 
 	public MessageHeaders createSimpleMessageHeaders() {
-		Map<String, Object> headers = new HashMap<String, Object>();
+		Map<String, Object> headers = new HashMap<>();
 		headers.put(GenericTestHeaders.APP_ID, "myAppId");
 		headers.put(GenericTestHeaders.REDELIVERED, true);
 		headers.put(GenericTestHeaders.REQUEST_ONLY, "request-456");
@@ -324,7 +327,6 @@ public class HeaderMapperTests {
 
 	@Test
 	public void prefixHeaderPatternMatching() {
-		@SuppressWarnings("deprecation")
 		PatternBasedHeaderMatcher strategy =
 				new PatternBasedHeaderMatcher(Collections.singleton("fOo*"));
 
@@ -338,7 +340,6 @@ public class HeaderMapperTests {
 
 	@Test
 	public void suffixHeaderPatternMatching() {
-		@SuppressWarnings("deprecation")
 		PatternBasedHeaderMatcher strategy =
 				new PatternBasedHeaderMatcher(Collections.singleton("*fOo"));
 
@@ -435,7 +436,7 @@ public class HeaderMapperTests {
 	}
 
 
-	private static abstract class GenericTestHeaders {
+	private abstract static class GenericTestHeaders {
 
 		public static final String PREFIX = "generic_";
 
@@ -464,7 +465,7 @@ public class HeaderMapperTests {
 
 		@Override
 		protected Map<String, Object> extractStandardHeaders(GenericTestProperties source) {
-			Map<String, Object> result = new HashMap<String, Object>();
+			Map<String, Object> result = new HashMap<>();
 			if (StringUtils.hasText(source.getAppId())) {
 				result.put(GenericTestHeaders.APP_ID, source.getAppId());
 			}
@@ -547,6 +548,7 @@ public class HeaderMapperTests {
 			this.appId = appId;
 		}
 
+		@Nullable
 		public Integer getTransactionSize() {
 			return transactionSize;
 		}
@@ -555,6 +557,7 @@ public class HeaderMapperTests {
 			this.transactionSize = transactionSize;
 		}
 
+		@Nullable
 		public Boolean getRedelivered() {
 			return redelivered;
 		}
