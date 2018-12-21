@@ -95,7 +95,7 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	/**
 	 * Specify a {@link CollectionCallback} to perform against MongoDB collection.
 	 * @param collectionCallback the callback to perform against MongoDB collection.
-	 * @deprecated in favor of {{@link #setCollectionCallback(MessageCollectionCallback)}}.
+	 * @deprecated in favor of {@link #setMessageCollectionCallback(MessageCollectionCallback)}.
 	 * Will be removed in 5.2
 	 */
 	@Deprecated
@@ -113,7 +113,7 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	 * @param collectionCallback the callback to perform against MongoDB collection.
 	 * @since 5.0.11
 	 */
-	public void setCollectionCallback(MessageCollectionCallback<?> collectionCallback) {
+	public void setMessageCollectionCallback(MessageCollectionCallback<?> collectionCallback) {
 		Assert.notNull(collectionCallback, "'collectionCallback' must not be null.");
 		this.collectionCallback = collectionCallback;
 	}

@@ -170,7 +170,7 @@ public class MongoDbOutboundGatewaySpec
 	 * @since 5.0.11
 	 */
 	public <P> MongoDbOutboundGatewaySpec collectionCallback(MessageCollectionCallback<P> collectionCallback) {
-		this.target.setCollectionCallback(collectionCallback);
+		this.target.setMessageCollectionCallback(collectionCallback);
 		return this;
 	}
 
