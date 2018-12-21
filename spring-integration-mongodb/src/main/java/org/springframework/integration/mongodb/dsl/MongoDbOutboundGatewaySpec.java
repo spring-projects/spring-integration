@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.mongodb.outbound.MessageCollectionCallback;
 import org.springframework.integration.mongodb.outbound.MongoDbOutboundGateway;
 import org.springframework.messaging.Message;
 
@@ -33,6 +34,8 @@ import org.springframework.messaging.Message;
  * A {@link MessageHandlerSpec} extension for the MongoDb Outbound endpoint {@link MongoDbOutboundGateway}
  *
  * @author Xavier Padró
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class MongoDbOutboundGatewaySpec
@@ -149,9 +152,25 @@ public class MongoDbOutboundGatewaySpec
 	 * @param collectionCallback the {@link CollectionCallback} instance
 	 * @param <P> the type of the message payload.
 	 * @return the spec
+	 * @deprecated in favor of {@link #collectionCallback(MessageCollectionCallback)}
 	 */
+	@Deprecated
 	public <P> MongoDbOutboundGatewaySpec collectionCallback(CollectionCallback<P> collectionCallback) {
 		this.target.setCollectionCallback(collectionCallback);
+		return this;
+	}
+
+	/**
+	 * Reference to an instance of {@link MessageCollectionCallback}
+	 * which specifies the database operation to execute in the request message context.
+	 * This property is mutually exclusive with {@link #query} and {@link #queryExpression} properties.
+	 * @param collectionCallback the {@link MessageCollectionCallback} instance
+	 * @param <P> the type of the message payload.
+	 * @return the spec
+	 * @since 5.0.11
+	 */
+	public <P> MongoDbOutboundGatewaySpec collectionCallback(MessageCollectionCallback<P> collectionCallback) {
+		this.target.setMessageCollectionCallback(collectionCallback);
 		return this;
 	}
 

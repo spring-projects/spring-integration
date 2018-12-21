@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Query;
@@ -49,18 +50,16 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.mongodb.client.MongoCollection;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author Xavier Padró
- * @author Gary Russell
+ * @author Gary Rssell
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @DirtiesContext
 public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
@@ -96,14 +95,12 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		mongoTemplate.dropCollection(COLLECTION_NAME);
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	@MongoDbAvailable
 	public void testNoFactorySpecified() {
-		MongoDbFactory nullFactory = null;
 
 		try {
-			new MongoDbOutboundGateway(nullFactory);
+			new MongoDbOutboundGateway((MongoDbFactory) null);
 			Assert.fail("Expected the test case to throw an IllegalArgumentException");
 		}
 		catch (IllegalArgumentException e) {
@@ -111,14 +108,11 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 		}
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Test
 	@MongoDbAvailable
 	public void testNoTemplateSpecified() {
-		MongoOperations mongoTemplate = null;
-
 		try {
-			new MongoDbOutboundGateway(mongoTemplate);
+			new MongoDbOutboundGateway((MongoTemplate) null);
 			Assert.fail("Expected the test case to throw an IllegalArgumentException");
 		}
 		catch (IllegalArgumentException e) {
@@ -194,7 +188,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testListOfResultsWithQueryExpression() throws Exception {
+	public void testListOfResultsWithQueryExpression() {
 		Message<String> message = MessageBuilder.withPayload("{}").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
@@ -209,7 +203,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testListOfResultsWithQueryExpressionReturningOneResult() throws Exception {
+	public void testListOfResultsWithQueryExpressionReturningOneResult() {
 		Message<String> message = MessageBuilder.withPayload("{name : 'Xavi'}").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
@@ -225,7 +219,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testSingleResultWithQueryExpressionAsString() throws Exception {
+	public void testSingleResultWithQueryExpressionAsString() {
 		Message<String> message = MessageBuilder.withPayload("{name : 'Artem'}").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(PARSER.parseExpression("payload"));
@@ -241,7 +235,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testSingleResultWithQueryExpressionAsQuery() throws Exception {
+	public void testSingleResultWithQueryExpressionAsQuery() {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(PARSER.parseExpression("new BasicQuery('{''name'' : ''Gary''}')"));
@@ -272,7 +266,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testWithNullCollectionNameExpression() throws Exception {
+	public void testWithNullCollectionNameExpression() {
 		MongoDbOutboundGateway gateway = new MongoDbOutboundGateway(mongoDbFactory);
 		gateway.setBeanFactory(beanFactory);
 		gateway.setQueryExpression(new LiteralExpression("{name : 'Xavi'}"));
@@ -289,7 +283,7 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testWithCollectionNameExpressionSpecified() throws Exception {
+	public void testWithCollectionNameExpressionSpecified() {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setQueryExpression(new LiteralExpression("{name : 'Xavi'}"));
@@ -308,13 +302,13 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testWithCollectionCallbackCount() throws Exception {
+	public void testWithCollectionCallbackCount() {
 		Message<String> message = MessageBuilder.withPayload("").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
 		gateway.setCollectionNameExpression(new LiteralExpression("data"));
 
-		gateway.setCollectionCallback(MongoCollection::countDocuments);
+		gateway.setMessageCollectionCallback((collection, requestMessage) -> collection.countDocuments());
 		gateway.afterPropertiesSet();
 
 		long result = (long) gateway.handleRequestMessage(message);
@@ -324,15 +318,15 @@ public class MongoDbOutboundGatewayTests extends MongoDbAvailableTests {
 
 	@Test
 	@MongoDbAvailable
-	public void testWithCollectionCallbackFindOne() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("").build();
+	public void testWithCollectionCallbackFindOne() {
+		Message<String> message = MessageBuilder.withPayload("Mike").build();
 		MongoDbOutboundGateway gateway = createGateway();
 		gateway.setEntityClass(Person.class);
 		gateway.setCollectionNameExpression(new LiteralExpression("data"));
 		gateway.setRequiresReply(false);
 
-		gateway.setCollectionCallback(collection -> {
-			collection.insertOne(new Document("name", "Mike"));
+		gateway.setMessageCollectionCallback((collection, requestMessage) -> {
+			collection.insertOne(new Document("name", requestMessage.getPayload()));
 			return null;
 		});
 		gateway.afterPropertiesSet();
