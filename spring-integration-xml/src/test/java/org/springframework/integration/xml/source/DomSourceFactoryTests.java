@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.xml.source;
 
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.StringReader;
 
@@ -28,59 +27,55 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.MessagingException;
-import org.springframework.xml.transform.StringResult;
 
 /**
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class DomSourceFactoryTests {
 
-	Document doc;
+	private static final String docContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root>testValue</root>";
 
-	DomSourceFactory sourceFactory;
+	private static final DomSourceFactory sourceFactory = new DomSourceFactory();
 
-	String docContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root>testValue</root>";
+	private static Document doc;
 
-	@Before
-	public void setUp() throws Exception {
+	private static Transformer transformer;
+
+	@BeforeClass
+	public static void setUp() throws Exception {
 		StringReader reader = new StringReader(docContent);
 		doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(reader));
-		sourceFactory = new DomSourceFactory();
+		transformer = TransformerFactory.newInstance().newTransformer();
 	}
 
 	@Test
 	public void testWithDocumentPayload() throws Exception {
 		Source source = sourceFactory.createSource(doc);
-		assertNotNull("Returned source was null", source);
-		assertEquals("Expected DOMSource", DOMSource.class, source.getClass());
-		assertXMLEqual("Wrong content in source ", docContent, getAsString(source));
+		assertThat(source).isNotNull();
+		assertThat(source).isInstanceOf(DOMSource.class);
+		assertThat(XmlTestUtil.sourceToString(source)).isXmlEqualTo(docContent);
 	}
 
 	@Test
 	public void testWithStringPayload() throws Exception {
 		Source source = sourceFactory.createSource(docContent);
-		assertNotNull("Returned source was null", source);
-		assertEquals("Expected DOMSource", DOMSource.class, source.getClass());
-		assertXMLEqual("Wrong content in source ", docContent, getAsString(source));
+		assertThat(source).isNotNull();
+		assertThat(source).isInstanceOf(DOMSource.class);
+		assertThat(XmlTestUtil.sourceToString(source)).isXmlEqualTo(docContent);
 	}
 
-	@Test(expected = MessagingException.class)
-	public void testWithUnsupportedPayload() throws Exception {
-		sourceFactory.createSource(new Integer(12));
-	}
-
-
-	private String getAsString(Source source) throws Exception {
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		StringResult res = new StringResult();
-		transformer.transform(source, res);
-		return res.toString();
+	@Test
+	public void testWithUnsupportedPayload() {
+		assertThatThrownBy(() -> sourceFactory.createSource(12))
+				.isExactlyInstanceOf(MessagingException.class);
 	}
 
 }

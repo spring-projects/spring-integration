@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.integration.xml.source;
 
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.BufferedReader;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
@@ -28,14 +28,15 @@ import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.MessagingException;
 import org.springframework.xml.transform.StringSource;
 
+/**
+ * @author Jonas Partner
+ * @author Mark Fisher
+ * @author Gary Russell
+ * @author Artem Bilan
+ */
 public class StringSourceTests {
 
-	StringSourceFactory sourceFactory;
-
-	@Before
-	public void setUp() throws Exception {
-		sourceFactory = new StringSourceFactory();
-	}
+	private static final StringSourceFactory sourceFactory = new StringSourceFactory();
 
 	@Test
 	public void testWithDocument() throws Exception {
@@ -44,7 +45,8 @@ public class StringSourceTests {
 		StringSource source = (StringSource) sourceFactory.createSource(doc);
 		BufferedReader reader = new BufferedReader(source.getReader());
 		String docAsString = reader.readLine();
-		assertXMLEqual("Wrong content in StringSource", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
+
+		assertThat(docAsString).isXmlEqualTo(docString);
 	}
 
 
@@ -54,18 +56,17 @@ public class StringSourceTests {
 		StringSource source = (StringSource) sourceFactory.createSource(docString);
 		BufferedReader reader = new BufferedReader(source.getReader());
 		String docAsString = reader.readLine();
-		assertXMLEqual("Wrong content in StringSource", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
+
+		assertThat(docAsString).isXmlEqualTo(docString);
 	}
 
 
-	@Test(expected = MessagingException.class)
-	public void testWithUnsupportedPayload() throws Exception {
+	@Test
+	public void testWithUnsupportedPayload() {
 		String docString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>";
 		StringBuffer buffer = new StringBuffer(docString);
-		StringSource source = (StringSource) sourceFactory.createSource(buffer);
-		BufferedReader reader = new BufferedReader(source.getReader());
-		String docAsString = reader.readLine();
-		assertXMLEqual("Wrong content in StringSource", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><item>one</item>", docAsString);
+		assertThatThrownBy(() -> sourceFactory.createSource(buffer))
+				.isExactlyInstanceOf(MessagingException.class);
 	}
 
 }
