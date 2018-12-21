@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,9 +30,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 
-import org.custommonkey.xmlunit.XMLAssert;
-import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -40,6 +38,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.MessagingException;
 
 /**
@@ -50,80 +49,83 @@ import org.springframework.messaging.MessagingException;
  */
 public class DefaultXmlPayloadConverterTests {
 
-	private static final String TEST_DOCUMENT_AS_STRING = "<test>hello</test>";
+	private static final String TEST_DOCUMENT_AS_STRING =
+			"<?xml version=\"1.0\" encoding=\"UTF-8\"?><test>hello</test>";
 
-	private DefaultXmlPayloadConverter converter;
+	private static final DefaultXmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
-	private Document testDocument;
+	private static Document testDocument;
 
-	@Before
-	public void setUp() throws Exception {
-		converter = new DefaultXmlPayloadConverter();
-		testDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-				new InputSource(new StringReader(TEST_DOCUMENT_AS_STRING)));
+	@BeforeClass
+	public static void setUp() throws Exception {
+		testDocument =
+				DocumentBuilderFactory.newInstance()
+						.newDocumentBuilder()
+						.parse(new InputSource(new StringReader(TEST_DOCUMENT_AS_STRING)));
 	}
 
 	@Test
-	public void testGetDocumentWithString() {
-		Document doc = converter.convertToDocument("<test>hello</test>");
-		XMLAssert.assertXMLEqual(testDocument, doc);
+	public void testGetDocumentWithString() throws Exception {
+		Document doc = converter.convertToDocument(TEST_DOCUMENT_AS_STRING);
+		assertThat(XmlTestUtil.docToString(doc)).isXmlEqualTo(TEST_DOCUMENT_AS_STRING);
 	}
 
 	@Test
 	public void testGetDocumentWithDocument() {
 		Document doc = converter.convertToDocument(testDocument);
-		Assert.assertTrue(doc == testDocument);
+		assertThat(doc).isSameAs(testDocument);
 	}
 
 	@Test
 	public void testGetNodePassingNode() {
 		Node element = testDocument.getElementsByTagName("test").item(0);
 		Node n = converter.convertToNode(element);
-		assertTrue("Wrong node returned", element == n);
+		assertThat(n).isSameAs(element);
 	}
 
 	@Test
-	public void testGetNodePassingString() {
-		Node n = converter.convertToNode("<test>hello</test>");
-		XMLAssert.assertXMLEqual(testDocument, (Document) n);
+	public void testGetNodePassingString() throws Exception {
+		Node n = converter.convertToNode(TEST_DOCUMENT_AS_STRING);
+		assertThat(XmlTestUtil.docToString((Document) n)).isXmlEqualTo(TEST_DOCUMENT_AS_STRING);
 	}
 
 	@Test
-	public void testGetNodePassingDocument() {
+	public void testGetNodePassingDocument() throws Exception {
 		Node n = converter.convertToNode(testDocument);
-		XMLAssert.assertXMLEqual(testDocument, (Document) n);
+		assertThat(XmlTestUtil.docToString((Document) n)).isXmlEqualTo(TEST_DOCUMENT_AS_STRING);
 	}
 
 
 	@Test
-	public void testGetSourcePassingDocument() throws Exception {
+	public void testGetSourcePassingDocument() {
 		Source source = converter.convertToSource(testDocument);
-		assertEquals(DOMSource.class, source.getClass());
+		assertThat(source).isInstanceOf(DOMSource.class);
 	}
 
 	@Test
-	public void testGetSourcePassingString() throws Exception {
+	public void testGetSourcePassingString() {
 		Source source = converter.convertToSource(TEST_DOCUMENT_AS_STRING);
-		assertEquals(DOMSource.class, source.getClass());
+		assertThat(source).isInstanceOf(DOMSource.class);
 	}
 
 	@Test
-	public void testGetSourcePassingSource() throws Exception {
+	public void testGetSourcePassingSource() {
 		SAXSource passedInSource = new SAXSource();
 		Source source = converter.convertToSource(passedInSource);
-		assertEquals(source, passedInSource);
+		assertThat(source).isEqualTo(passedInSource);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
 	public void testInvalidPayload() {
-		converter.convertToSource(12);
+		assertThatThrownBy(() -> converter.convertToSource(12))
+				.isExactlyInstanceOf(MessagingException.class);
 	}
 
 	@Test
 	public void testGetNodePassingDOMSource() {
 		Node element = testDocument.getElementsByTagName("test").item(0);
 		Node n = converter.convertToNode(new DOMSource(element));
-		assertTrue("Wrong node returned", element == n);
+		assertThat(n).isSameAs(element);
 	}
 
 	@Test
@@ -131,33 +133,33 @@ public class DefaultXmlPayloadConverterTests {
 		Node element = testDocument.getElementsByTagName("test").item(0);
 		Document doc = converter.convertToDocument(element);
 		NodeList childNodes = doc.getChildNodes();
-		assertEquals(1, childNodes.getLength());
-		assertEquals("test", childNodes.item(0).getNodeName());
-		assertEquals("hello", childNodes.item(0).getTextContent());
+		assertThat(childNodes.getLength()).isEqualTo(1);
+		assertThat(childNodes.item(0).getNodeName()).isEqualTo("test");
+		assertThat(childNodes.item(0).getTextContent()).isEqualTo("hello");
 	}
 
 	@Test
-	public void testConvertSourceToDocument() throws Exception {
+	public void testConvertSourceToDocument() {
 		Node element = testDocument.getElementsByTagName("test").item(0);
 		DOMSource domSource = new DOMSource(element);
 		Document doc = converter.convertToDocument(domSource);
 		NodeList childNodes = doc.getChildNodes();
-		assertEquals(1, childNodes.getLength());
-		assertEquals("test", childNodes.item(0).getNodeName());
-		assertEquals("hello", childNodes.item(0).getTextContent());
+		assertThat(childNodes.getLength()).isEqualTo(1);
+		assertThat(childNodes.item(0).getNodeName()).isEqualTo("test");
+		assertThat(childNodes.item(0).getTextContent()).isEqualTo("hello");
 	}
 
 	@Test
 	public void testConvertBytesToDocument() throws Exception {
-		Document doc = converter.convertToDocument("<test>hello</test>".getBytes());
-		XMLAssert.assertXMLEqual(testDocument, doc);
+		Document doc = converter.convertToDocument(TEST_DOCUMENT_AS_STRING.getBytes());
+		assertThat(XmlTestUtil.docToString(doc)).isXmlEqualTo(TEST_DOCUMENT_AS_STRING);
 	}
 
 	@Test
 	public void testConvertFileToDocument() throws Exception {
 		File file = new ClassPathResource("org/springframework/integration/xml/customSource.data").getFile();
 		Document doc = converter.convertToDocument(file);
-		XMLAssert.assertXMLEqual(testDocument, doc);
+		assertThat(XmlTestUtil.docToString(doc)).isXmlEqualTo(TEST_DOCUMENT_AS_STRING);
 	}
 
 	@Test
@@ -165,7 +167,7 @@ public class DefaultXmlPayloadConverterTests {
 		InputStream inputStream = new ClassPathResource("org/springframework/integration/xml/customSource.data")
 				.getInputStream();
 		Document doc = converter.convertToDocument(inputStream);
-		XMLAssert.assertXMLEqual(testDocument, doc);
+		assertThat(XmlTestUtil.docToString(doc)).isXmlEqualTo(TEST_DOCUMENT_AS_STRING);
 	}
 
 	@Test
@@ -173,13 +175,13 @@ public class DefaultXmlPayloadConverterTests {
 		ClassPathResource resource = new ClassPathResource("org/springframework/integration/xml/customSource.data");
 		StreamSource source = new StreamSource(resource.getInputStream());
 		Document doc = converter.convertToDocument(source);
-		XMLAssert.assertXMLEqual(testDocument, doc);
+		assertThat(XmlTestUtil.docToString(doc)).isXmlEqualTo(TEST_DOCUMENT_AS_STRING);
 	}
 
 	@Test
 	public void testConvertCustomSourceToDocument() throws Exception {
 		Document doc = converter.convertToDocument(new MySource());
-		XMLAssert.assertXMLEqual(testDocument, doc);
+		assertThat(XmlTestUtil.docToString(doc)).isXmlEqualTo(TEST_DOCUMENT_AS_STRING);
 	}
 
 	private static class MySource implements Source {

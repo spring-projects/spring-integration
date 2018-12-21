@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.TransformerException;
@@ -34,11 +35,12 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 
@@ -48,183 +50,200 @@ import org.springframework.xml.transform.StringSource;
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
  * @author Mike Bazos
+ * @author Artem Bilan
  */
 public class XsltPayloadTransformerTests {
 
 	private XsltPayloadTransformer transformer;
 
-	private final String docAsString = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private final String docAsString =
+			"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 
-	private final String outputAsString = "<bob>test</bob>";
+	private final String outputAsString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><bob>test</bob>";
 
 	@Before
-	public void setUp() throws Exception {
-		transformer = new XsltPayloadTransformer(getXslResource());
-		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
-		transformer.afterPropertiesSet();
+	public void setUp() {
+		this.transformer = new XsltPayloadTransformer(getXslResource());
+		this.transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
+		this.transformer.setAlwaysUseResultFactory(false);
+		this.transformer.afterPropertiesSet();
 	}
 
 	@Test
 	public void testDocumentAsPayload() throws Exception {
-		Object transformed = transformer.doTransform(buildMessage(XmlTestUtil
-				.getDocumentForString(docAsString)));
-		assertTrue("Wrong return type for document payload", Document.class
-				.isAssignableFrom(transformed.getClass()));
+		Message<?> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
+		Object transformed = this.transformer.doTransform(message);
+		assertThat(transformed)
+				.as("Wrong return type for document payload")
+				.isInstanceOf(Document.class);
 		Document transformedDocument = (Document) transformed;
-		assertXMLEqual(outputAsString, XmlTestUtil
-				.docToString(transformedDocument));
+		assertThat(XmlTestUtil.docToString(transformedDocument)).isXmlEqualTo(this.outputAsString);
 	}
 
 	@Test
 	public void testSourceAsPayload() throws Exception {
-		Object transformed = transformer
-				.doTransform(buildMessage(new StringSource(docAsString)));
-		assertEquals("Wrong return type for source payload", DOMResult.class,
-				transformed.getClass());
+		GenericMessage<?> message = new GenericMessage<>(new StringSource(this.docAsString));
+		Object transformed = transformer.doTransform(message);
+
+		assertThat(transformed)
+				.as("Wrong return type for document payload")
+				.isInstanceOf(DOMResult.class);
+
 		DOMResult result = (DOMResult) transformed;
-		assertXMLEqual("Document incorrect after transformation", XmlTestUtil
-				.getDocumentForString(outputAsString), (Document) result
-				.getNode());
+		assertThat(XmlTestUtil.docToString((Document) result.getNode()))
+				.as("Document incorrect after transformation")
+				.isXmlEqualTo(this.outputAsString);
 	}
 
 	@Test
 	public void testStringAsPayload() throws Exception {
-		Object transformed = transformer.doTransform(buildMessage(docAsString));
-		assertEquals("Wrong return type for string payload", String.class,
-				transformed.getClass());
+		Object transformed = this.transformer.doTransform(new GenericMessage<>(this.docAsString));
+
+		assertThat(transformed)
+				.as("Wrong return type for document payload")
+				.isInstanceOf(String.class);
+
 		String transformedString = (String) transformed;
-		assertXMLEqual("String incorrect after transform", outputAsString,
-				transformedString);
+		assertThat(transformedString)
+				.as("String incorrect after transform")
+				.isXmlEqualTo(this.outputAsString);
 	}
 
 	@Test
 	public void testStringAsPayloadUseResultFactoryTrue() throws Exception {
-		transformer.setAlwaysUseResultFactory(true);
-		Object transformed = transformer.doTransform(buildMessage(docAsString));
-		assertEquals("Wrong return type for useFactories true",
-				DOMResult.class, transformed.getClass());
+		this.transformer.setAlwaysUseResultFactory(true);
+		Object transformed = transformer.doTransform(new GenericMessage<>(this.docAsString));
+
+		assertThat(transformed)
+				.as("Wrong return type for useFactories true")
+				.isInstanceOf(DOMResult.class);
+
 		DOMResult result = (DOMResult) transformed;
-		assertXMLEqual("Document incorrect after transformation", XmlTestUtil
-				.getDocumentForString(outputAsString), (Document) result
-				.getNode());
+		assertThat(XmlTestUtil.docToString((Document) result.getNode()))
+				.as("Document incorrect after transformation")
+				.isXmlEqualTo(this.outputAsString);
 	}
 
 	@Test
 	public void testSourceWithResultTransformer() throws Exception {
-		Integer returnValue = new Integer(13);
-		transformer = new XsltPayloadTransformer(getXslResource(),
+		Integer returnValue = 13;
+		XsltPayloadTransformer transformer = new XsltPayloadTransformer(getXslResource(),
 				new StubResultTransformer(returnValue));
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
 		Object transformed = transformer
-				.doTransform(buildMessage(new StringSource(docAsString)));
-		assertEquals("Wrong value from result conversion", returnValue,
-				transformed);
+				.doTransform(new GenericMessage<>(new StringSource(docAsString)));
+		assertThat(transformed).isEqualTo(returnValue);
 	}
 
 	@Test
 	public void testXsltPayloadWithTransformerFactoryClassname() throws Exception {
-		Integer returnValue = new Integer(13);
-		transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
-				"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+		Integer returnValue = 13;
+		XsltPayloadTransformer transformer =
+				new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue),
+						"com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
-		Object transformed = transformer
-				.doTransform(buildMessage(new StringSource(docAsString)));
-		assertEquals("Wrong value from result conversion", returnValue,
-				transformed);
+		Object transformed = transformer.doTransform(new GenericMessage<>(new StringSource(this.docAsString)));
+		assertThat(transformed)
+				.as("Wrong value from result conversion")
+				.isEqualTo(returnValue);
 	}
 
-	@Test(expected = TransformerFactoryConfigurationError.class)
-	public void testXsltPayloadWithBadTransformerFactoryClassname() throws Exception {
-		transformer = new XsltPayloadTransformer(getXslResource(), "foo.bar.Baz");
+	@Test
+	public void testXsltPayloadWithBadTransformerFactoryClassname() {
+		XsltPayloadTransformer transformer = new XsltPayloadTransformer(getXslResource(), "foo.bar.Baz");
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
-		transformer.afterPropertiesSet();
-		transformer.doTransform(buildMessage(new StringSource(docAsString)));
+		assertThatThrownBy(transformer::afterPropertiesSet)
+				.isExactlyInstanceOf(TransformerFactoryConfigurationError.class);
 	}
 
-	@Test(expected = TransformerException.class)
-	public void testNonXmlString() throws Exception {
-		transformer.doTransform(buildMessage("test"));
+	@Test
+	public void testNonXmlString() {
+		assertThatThrownBy(() -> this.transformer.doTransform(new GenericMessage<>("test")))
+				.isExactlyInstanceOf(TransformerException.class);
 	}
 
-	@Test(expected = MessagingException.class)
-	public void testUnsupportedPayloadType() throws Exception {
-		transformer.doTransform(buildMessage(new Long(12)));
+	@Test
+	public void testUnsupportedPayloadType() {
+		assertThatThrownBy(() -> this.transformer.doTransform(new GenericMessage<>(12)))
+				.isExactlyInstanceOf(MessagingException.class);
 	}
 
 	@Test
 	public void testXsltWithImports() throws Exception {
-		Resource resource = new ClassPathResource("transform-with-import.xsl",
-				this.getClass());
-		transformer = new XsltPayloadTransformer(resource);
+		Resource resource = new ClassPathResource("transform-with-import.xsl", getClass());
+		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
-		assertEquals(transformer.doTransform(buildMessage(docAsString)),
-				outputAsString);
+		Object transformed = transformer.doTransform(new GenericMessage<>(this.docAsString));
+		assertThat(transformed).isEqualTo(this.outputAsString);
 	}
 
 
 	@Test
 	public void documentInStringResultOut() throws Exception {
-		Resource resource = new ClassPathResource("transform-with-import.xsl",
-				this.getClass());
-		transformer = new XsltPayloadTransformer(resource);
+		Resource resource = new ClassPathResource("transform-with-import.xsl", getClass());
+		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
-		Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
-		assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
+		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
+		Object transformed = transformer.doTransform(message);
+		assertThat(transformed)
+				.as("Wrong type of return")
+				.isInstanceOf(StringResult.class);
 	}
 
 
 	@Test
 	public void stringInDomResultOut() throws Exception {
-		Resource resource = new ClassPathResource("transform-with-import.xsl",
-				this.getClass());
-		transformer = new XsltPayloadTransformer(resource);
-		transformer.setResultFactory(new StringResultFactory());
+		Resource resource = new ClassPathResource("transform-with-import.xsl", getClass());
+		XsltPayloadTransformer transformer = new XsltPayloadTransformer(resource);
+		transformer.setResultFactory(new DomResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
-		Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
-		assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
+		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
+		Object transformed = transformer.doTransform(message);
+		assertThat(transformed)
+				.as("Wrong type of return")
+				.isInstanceOf(DOMResult.class);
 	}
 
 	@Test
 	public void docInStringOut() throws Exception {
-		transformer = new XsltPayloadTransformer(getXslResourceThatOutputsText());
+		XsltPayloadTransformer transformer = new XsltPayloadTransformer(getXslResourceThatOutputsText());
 		transformer.setResultFactory(new StringResultFactory());
 		transformer.setAlwaysUseResultFactory(true);
 		transformer.setBeanFactory(Mockito.mock(BeanFactory.class));
 		transformer.afterPropertiesSet();
-		Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
-		assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
-		assertEquals("Wrong content in string", "hello world", returned.toString());
+		GenericMessage<Document> message = new GenericMessage<>(XmlTestUtil.getDocumentForString(this.docAsString));
+		Object transformed = transformer.doTransform(message);
+		assertThat(transformed)
+				.as("Wrong type of return")
+				.isInstanceOf(StringResult.class);
+		assertThat(transformed.toString()).isEqualTo("hello world");
 	}
 
-	protected Message<?> buildMessage(Object payload) {
-		return MessageBuilder.withPayload(payload).build();
-	}
-
-	private Resource getXslResource() throws Exception {
+	private Resource getXslResource() {
 		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
 				"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
 				"   <xsl:template match=\"order\">" +
 				"     <bob>test</bob>" +
 				"   </xsl:template>" +
 				"</xsl:stylesheet>";
-		return new ByteArrayResource(xsl.getBytes("UTF-8"));
+		return new ByteArrayResource(xsl.getBytes(StandardCharsets.UTF_8));
 	}
 
-	private Resource getXslResourceThatOutputsText() throws Exception {
+	private Resource getXslResourceThatOutputsText() {
 		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
 				"<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">" +
 				"   <xsl:output method=\"text\" encoding=\"UTF-8\" />" +
 				"   <xsl:template match=\"order\">hello world</xsl:template>" +
 				"</xsl:stylesheet>";
-		return new ByteArrayResource(xsl.getBytes("UTF-8"));
+		return new ByteArrayResource(xsl.getBytes(StandardCharsets.UTF_8));
 	}
 
 	public static class StubResultTransformer implements ResultTransformer {
@@ -238,6 +257,7 @@ public class XsltPayloadTransformerTests {
 		public Object transformResult(Result result) {
 			return objectToReturn;
 		}
+
 	}
 
 }

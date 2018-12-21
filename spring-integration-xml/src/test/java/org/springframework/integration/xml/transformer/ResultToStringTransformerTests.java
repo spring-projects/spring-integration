@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Properties;
 
@@ -37,12 +36,13 @@ import org.springframework.xml.transform.StringResult;
  * @author Jonas Partner
  * @author Dave Turanski
  * @author Gunnar Hillert
+ * @author Artem Bilan
  */
 public class ResultToStringTransformerTests {
 
 	private ResultToStringTransformer transformer;
 
-	private String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private String doc = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><order><orderItem>test</orderItem></order>";
 
 
 	@Before
@@ -52,11 +52,11 @@ public class ResultToStringTransformerTests {
 
 	@Test
 	public void testWithDomResult() throws Exception {
-		DOMResult result = XmlTestUtil.getDomResultForString(doc);
+		DOMResult result = XmlTestUtil.getDomResultForString(this.doc);
 		Object transformed = transformer.transformResult(result);
-		assertTrue("Wrong transformed type expected String", transformed instanceof String);
+		assertThat(transformed).isInstanceOf(String.class);
 		String transformedString = (String) transformed;
-		assertXMLEqual("Wrong content", doc, transformedString);
+		assertThat(transformedString).isXmlEqualTo(this.doc);
 	}
 
 	@Test
@@ -67,24 +67,24 @@ public class ResultToStringTransformerTests {
 		outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 		transformer.setOutputProperties(outputProperties);
 		Object transformed = transformer.transformResult(domResult);
-		assertTrue("Wrong transformed type expected String", transformed instanceof String);
+		assertThat(transformed).isInstanceOf(String.class);
 		String transformedString = (String) transformed;
-		assertEquals("Wrong content", formattedDoc, transformedString);
+		assertThat(transformedString).isEqualTo(formattedDoc);
 	}
 
 	@Test
 	public void testWithStringResult() throws Exception {
 		StringResult result = XmlTestUtil.getStringResultForString(doc);
 		Object transformed = transformer.transformResult(result);
-		assertTrue("Wrong transformed type expected String", transformed instanceof String);
+		assertThat(transformed).isInstanceOf(String.class);
 		String transformedString = (String) transformed;
-		assertXMLEqual("Wrong content", doc, transformedString);
+		assertThat(transformedString).isXmlEqualTo(this.doc);
 	}
 
-	@Test(expected = MessagingException.class)
-	public void testWithUnsupportedSaxResult() throws Exception {
-		SAXResult result = new SAXResult();
-		transformer.transformResult(result);
+	@Test
+	public void testWithUnsupportedSaxResult() {
+		assertThatThrownBy(() -> this.transformer.transformResult(new SAXResult()))
+				.isExactlyInstanceOf(MessagingException.class);
 	}
 
 }

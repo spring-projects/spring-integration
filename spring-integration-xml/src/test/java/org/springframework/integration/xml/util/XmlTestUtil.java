@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,11 @@ import org.springframework.xml.transform.StringResult;
  * Utility class for XML related testing
  *
  * @author Jonas Partner
+ * @author Artem Bilan
  */
 public class XmlTestUtil {
+
+	private static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
 
 	private XmlTestUtil() {
 		super();
@@ -74,9 +77,13 @@ public class XmlTestUtil {
 		return stringResult.toString();
 	}
 
-
 	public static void transform(Source source, Result res) throws Exception {
-		TransformerFactory.newInstance().newTransformer().transform(source, res);
+		TRANSFORMER_FACTORY.newTransformer().transform(source, res);
 	}
 
+	public static String sourceToString(Source source) throws Exception {
+		StringResult res = new StringResult();
+		transform(source, res);
+		return res.toString();
+	}
 }
