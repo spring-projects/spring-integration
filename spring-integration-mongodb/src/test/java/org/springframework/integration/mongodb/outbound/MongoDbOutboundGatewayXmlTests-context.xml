@@ -67,7 +67,7 @@
 	<int-mongodb:outbound-gateway id="gatewayCollectionCallback"
 		mongodb-factory="mongoDbFactory"
 		mongo-converter="mongoConverter"
-		collection-callback="countCollectionCallback"
+		message-collection-callback="countCollectionCallback"
 		collection-name-expression="headers.collectionName"
 		request-channel="in"
 		reply-channel="out"

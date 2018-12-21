@@ -14,7 +14,7 @@
 	<int-mongodb:outbound-gateway id="gatewayWithCollectionCallbackAndQuery"
 		mongo-template="mongoDbTemplate"
 		collection-name="foo"
-		collection-callback="mockCollectionCallback"
+		message-collection-callback="mockCollectionCallback"
 		query="{'name' : 'foo'}"
 		request-channel="in"
 		reply-channel="out"/>
@@ -28,7 +28,7 @@
 	</bean>
 
 	<bean id="mockCollectionCallback" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.data.mongodb.core.CollectionCallback"/>
+		<constructor-arg value="org.springframework.integration.mongodb.outbound.MessageCollectionCallback"/>
 	</bean>
 
 </beans>

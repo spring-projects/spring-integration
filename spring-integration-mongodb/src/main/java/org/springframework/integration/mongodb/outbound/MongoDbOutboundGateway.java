@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ import org.springframework.util.Assert;
  * Makes outbound operations to query a MongoDb database using a {@link MongoOperations}
  *
  * @author Xavier Padró
+ * @author Artem Bilan
+ *
  * @since 5.0
  */
 public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler {
@@ -55,7 +57,10 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 	private Expression queryExpression;
 
+	@Deprecated
 	private CollectionCallback<?> collectionCallback;
+
+	private MessageCollectionCallback<?> messageCollectionCallback;
 
 	private boolean expectSingleResult = false;
 
@@ -90,9 +95,27 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 		this.queryExpression = EXPRESSION_PARSER.parseExpression(queryExpressionString);
 	}
 
+	/**
+	 * Specify a {@link CollectionCallback} to perform against MongoDB collection.
+	 * @param collectionCallback the callback to perform against MongoDB collection.
+	 * @deprecated in favor of {{@link #setMessageCollectionCallback(MessageCollectionCallback)}}.
+	 * Will be removed in 5.2
+	 */
+	@Deprecated
 	public void setCollectionCallback(CollectionCallback<?> collectionCallback) {
-		Assert.notNull(collectionCallback, "collectionCallback must not be null.");
+		Assert.notNull(collectionCallback, "'collectionCallback' must not be null.");
 		this.collectionCallback = collectionCallback;
+	}
+
+	/**
+	 * Specify a {@link MessageCollectionCallback} to perform against MongoDB collection
+	 * in the request message context.
+	 * @param messageCollectionCallback the callback to perform against MongoDB collection.
+	 * @since 5.0.11
+	 */
+	public void setMessageCollectionCallback(MessageCollectionCallback<?> messageCollectionCallback) {
+		Assert.notNull(messageCollectionCallback, "'messageCollectionCallback' must not be null.");
+		this.messageCollectionCallback = messageCollectionCallback;
 	}
 
 	public void setExpectSingleResult(boolean expectSingleResult) {
@@ -122,11 +145,15 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected void doInit() {
-		Assert.state(this.queryExpression != null || this.collectionCallback != null,
+		Assert.state(this.queryExpression != null ||
+						this.collectionCallback != null ||
+						this.messageCollectionCallback != null,
 				"no query or collectionCallback is specified");
 		Assert.state(this.collectionNameExpression != null, "no collection name specified");
-		if (this.queryExpression != null && this.collectionCallback != null) {
+		if (this.queryExpression != null &&
+				(this.collectionCallback != null || this.messageCollectionCallback != null)) {
 			throw new IllegalStateException("query and collectionCallback are mutually exclusive");
 		}
 
@@ -145,6 +172,7 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String collectionName =
 				this.collectionNameExpression.getValue(this.evaluationContext, requestMessage, String.class);
@@ -153,6 +181,10 @@ public class MongoDbOutboundGateway extends AbstractReplyProducingMessageHandler
 
 		if (this.collectionCallback != null) {
 			result = this.mongoTemplate.execute(collectionName, this.collectionCallback); // NOSONAR
+		}
+		else if (this.messageCollectionCallback != null) {
+			result = this.mongoTemplate.execute(collectionName, // NOSONAR
+					collection -> this.messageCollectionCallback.doInCollection(collection, requestMessage));
 		}
 		else {
 			Query query = buildQuery(requestMessage);
