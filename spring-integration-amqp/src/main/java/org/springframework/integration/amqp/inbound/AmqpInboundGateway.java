@@ -182,7 +182,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		if (this.retryTemplate != null) {
 			Assert.state(getErrorChannel() == null, "Cannot have an 'errorChannel' property when a 'RetryTemplate' is "
 					+ "provided; use an 'ErrorMessageSendingRecoverer' in the 'recoveryCallback' property to "

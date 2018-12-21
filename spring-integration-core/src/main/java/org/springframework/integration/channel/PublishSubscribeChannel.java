@@ -126,10 +126,9 @@ public class PublishSubscribeChannel extends AbstractExecutorChannel {
 
 	/**
 	 * Callback method for initialization.
-	 * @throws Exception the exception.
 	 */
 	@Override
-	public final void onInit() throws Exception {
+	public final void onInit() {
 		super.onInit();
 		if (this.executor != null) {
 			Assert.state(getDispatcher().getHandlerCount() == 0,

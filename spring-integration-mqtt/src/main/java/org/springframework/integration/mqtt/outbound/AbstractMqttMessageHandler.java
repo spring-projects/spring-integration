@@ -213,7 +213,7 @@ public abstract class AbstractMqttMessageHandler extends AbstractMessageHandler 
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		if (this.topicProcessor instanceof BeanFactoryAware && getBeanFactory() != null) {
 			((BeanFactoryAware) this.topicProcessor).setBeanFactory(getBeanFactory());

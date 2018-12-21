@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,21 +107,24 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		if (this.evaluationContext == null) {
 			this.evaluationContext = createEvaluationContext();
 		}
 	}
 
+	@Override
 	public void processBeforeCommit(IntegrationResourceHolder holder) {
 		doProcess(holder, this.beforeCommitExpression, this.beforeCommitChannel, "beforeCommit");
 	}
 
+	@Override
 	public void processAfterCommit(IntegrationResourceHolder holder) {
 		doProcess(holder, this.afterCommitExpression, this.afterCommitChannel, "afterCommit");
 	}
 
+	@Override
 	public void processAfterRollback(IntegrationResourceHolder holder) {
 		doProcess(holder, this.afterRollbackExpression, this.afterRollbackChannel, "afterRollback");
 	}

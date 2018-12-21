@@ -95,7 +95,7 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 
 		if (!this.autoStartupSetExplicitly) {

@@ -352,7 +352,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		if (this.messageConverter == null) {
 			if (getBeanFactory() != null) {

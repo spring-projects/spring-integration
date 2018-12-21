@@ -218,7 +218,7 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 	 * was called with true after the converters were set.
 	 */
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		BeanFactory beanFactory = getBeanFactory();
 		if (this.multipartResolver == null && beanFactory != null) {

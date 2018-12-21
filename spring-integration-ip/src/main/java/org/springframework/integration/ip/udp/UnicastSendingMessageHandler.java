@@ -480,7 +480,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		this.mapper.setBeanFactory(getBeanFactory());
 		this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());

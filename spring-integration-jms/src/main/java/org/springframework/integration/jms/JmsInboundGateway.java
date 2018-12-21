@@ -80,7 +80,7 @@ public class JmsInboundGateway extends MessagingGatewaySupport implements Dispos
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		this.endpoint.afterPropertiesSet();
 	}
 

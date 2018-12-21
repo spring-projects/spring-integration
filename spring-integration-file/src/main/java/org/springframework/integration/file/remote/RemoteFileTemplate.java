@@ -238,7 +238,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		BeanFactory beanFactory = this.beanFactory;
 		if (beanFactory != null) {
 			if (this.directoryExpressionProcessor != null) {

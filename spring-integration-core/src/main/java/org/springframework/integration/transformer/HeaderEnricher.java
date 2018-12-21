@@ -160,7 +160,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 	}
 
 	@Override
-	public void onInit() throws Exception {
+	public void onInit() {
 		boolean shouldOverwrite = this.defaultOverwrite;
 		boolean checkReadOnlyHeaders = getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory;
 

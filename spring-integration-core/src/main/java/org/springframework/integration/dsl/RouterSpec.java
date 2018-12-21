@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @param <R> the {@link AbstractMappingMessageRouter} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -198,7 +199,7 @@ public final class RouterSpec<K, R extends AbstractMappingMessageRouter>
 		}
 
 		@Override
-		protected void onInit() throws Exception {
+		protected void onInit() {
 			super.onInit();
 			ConversionService conversionService = getConversionService();
 			if (conversionService == null) {

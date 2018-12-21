@@ -89,7 +89,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel
 	}
 
 	@Override
-	public void onInit() throws Exception {
+	public void onInit() {
 		if (this.initialized) {
 			return;
 		}

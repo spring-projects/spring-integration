@@ -131,7 +131,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 	}
 
 	@Override
-	public void onInit() throws Exception {
+	public void onInit() {
 		if (this.initialized) {
 			return;
 		}

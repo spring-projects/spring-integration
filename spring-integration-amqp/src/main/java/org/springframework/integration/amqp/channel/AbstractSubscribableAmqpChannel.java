@@ -160,7 +160,7 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel
 	}
 
 	@Override
-	public void onInit() throws Exception {
+	public void onInit() {
 		super.onInit();
 		this.dispatcher = this.createDispatcher();
 		if (this.maxSubscribers == null) {

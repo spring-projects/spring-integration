@@ -240,7 +240,7 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		this.evaluationContext =
 				ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		Assert.state(!this.mapKeyExpressionExplicitlySet ||

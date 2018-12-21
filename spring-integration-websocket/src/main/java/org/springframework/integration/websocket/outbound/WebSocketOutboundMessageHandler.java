@@ -116,7 +116,7 @@ public class WebSocketOutboundMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		if (!CollectionUtils.isEmpty(this.messageConverters)) {
 			List<MessageConverter> converters = this.messageConverter.getConverters();

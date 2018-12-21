@@ -311,7 +311,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		Assert.state(!(this.discardChannelName != null && this.discardChannel != null),
 				"'discardChannelName' and 'discardChannel' are mutually exclusive.");

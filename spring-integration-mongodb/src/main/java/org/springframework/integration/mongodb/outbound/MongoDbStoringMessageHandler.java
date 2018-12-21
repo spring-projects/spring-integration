@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2016 the original author or authors.
+ * Copyright 2007-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Amol Nayak
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -104,7 +105,7 @@ public class MongoDbStoringMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		this.evaluationContext =
 					ExpressionUtils.createStandardEvaluationContext(this.getBeanFactory());
 		if (this.mongoTemplate == null) {

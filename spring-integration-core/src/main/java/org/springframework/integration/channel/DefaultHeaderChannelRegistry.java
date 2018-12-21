@@ -118,7 +118,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		Assert.notNull(getTaskScheduler(), "a task scheduler is required");
 	}

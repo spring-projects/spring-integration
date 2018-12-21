@@ -330,7 +330,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		Assert.state(!(this.requestChannelName != null && this.requestChannel != null),
 				"'requestChannelName' and 'requestChannel' are mutually exclusive.");
 		Assert.state(!(this.replyChannelName != null && this.replyChannel != null),

@@ -499,7 +499,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		if (!this.mapperSet) {
 			this.mapper.setBeanFactory(this.getBeanFactory());
