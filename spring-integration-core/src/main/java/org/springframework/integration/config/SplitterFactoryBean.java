@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
@@ -37,9 +38,9 @@ import org.springframework.util.StringUtils;
  */
 public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
-	private volatile Boolean applySequence;
+	private Boolean applySequence;
 
-	private volatile String delimiters;
+	private String delimiters;
 
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
@@ -52,17 +53,18 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	@Override
 	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
-		AbstractMessageSplitter splitter = this.extractTypeIfPossible(targetObject, AbstractMessageSplitter.class);
+		AbstractMessageSplitter splitter =
+				IntegrationObjectSupport.extractTypeIfPossible(targetObject, AbstractMessageSplitter.class);
 		if (splitter == null) {
-			this.checkForIllegalTarget(targetObject, targetMethodName);
-			splitter = this.createMethodInvokingSplitter(targetObject, targetMethodName);
-			this.configureSplitter(splitter);
+			checkForIllegalTarget(targetObject, targetMethodName);
+			splitter = createMethodInvokingSplitter(targetObject, targetMethodName);
+			configureSplitter(splitter);
 		}
 		else {
 			Assert.isTrue(!StringUtils.hasText(targetMethodName),
 					"target method should not be provided when the target "
 							+ "object is an implementation of AbstractMessageSplitter");
-			this.configureSplitter(splitter);
+			configureSplitter(splitter);
 			if (targetObject instanceof MessageHandler) {
 				return (MessageHandler) targetObject;
 			}
@@ -78,16 +80,16 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 
 	@Override
 	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
-		return this.configureSplitter(new ExpressionEvaluatingSplitter(expression));
+		return configureSplitter(new ExpressionEvaluatingSplitter(expression));
 	}
 
 	@Override
 	protected MessageHandler createDefaultHandler() {
-		return this.configureSplitter(new DefaultMessageSplitter());
+		return configureSplitter(new DefaultMessageSplitter());
 	}
 
 	protected AbstractMessageSplitter configureSplitter(AbstractMessageSplitter splitter) {
-		this.postProcessReplyProducer(splitter);
+		postProcessReplyProducer(splitter);
 		return splitter;
 	}
 

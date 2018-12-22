@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import java.util.Map;
 
 import org.springframework.expression.Expression;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
@@ -42,17 +43,17 @@ import org.springframework.util.StringUtils;
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
-	private volatile Map<String, String> channelMappings;
+	private Map<String, String> channelMappings;
 
-	private volatile MessageChannel defaultOutputChannel;
+	private MessageChannel defaultOutputChannel;
 
-	private volatile String defaultOutputChannelName;
+	private String defaultOutputChannelName;
 
-	private volatile Boolean resolutionRequired;
+	private Boolean resolutionRequired;
 
-	private volatile Boolean applySequence;
+	private Boolean applySequence;
 
-	private volatile Boolean ignoreSendFailures;
+	private Boolean ignoreSendFailures;
 
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
@@ -81,19 +82,21 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	@Override
 	protected MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
-		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
+		AbstractMessageRouter router =
+				IntegrationObjectSupport.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
 			if (targetObject instanceof MessageHandler && this.noRouterAttributesProvided()
 					&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
 				return (MessageHandler) targetObject;
 			}
-			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
-			this.configureRouter(router);
+			router = createMethodInvokingRouter(targetObject, targetMethodName);
+			configureRouter(router);
 		}
 		else {
-			Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
-					+ "object is an implementation of AbstractMessageRouter");
-			this.configureRouter(router);
+			Assert.isTrue(!StringUtils.hasText(targetMethodName),
+					"target method should not be provided when the target "
+							+ "object is an implementation of AbstractMessageRouter");
+			configureRouter(router);
 			if (targetObject instanceof MessageHandler) {
 				return (MessageHandler) targetObject;
 			}
