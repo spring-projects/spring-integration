@@ -19,12 +19,11 @@ package org.springframework.integration.config;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.aop.TargetSource;
-import org.springframework.aop.framework.Advised;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageProcessor;
@@ -121,13 +120,15 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 		if (this.targetObject != null) {
 			Assert.state(this.expression == null,
 					"The 'targetObject' and 'expression' properties are mutually exclusive.");
-			AbstractMessageProducingHandler actualHandler = this.extractTypeIfPossible(this.targetObject,
-					AbstractMessageProducingHandler.class);
-			boolean targetIsDirectReplyProducingHandler = actualHandler != null
-					&& canBeUsedDirect(actualHandler) // give subclasses a say
-					&& methodIsHandleMessageOrEmpty(this.targetMethodName);
+			AbstractMessageProducingHandler actualHandler =
+					IntegrationObjectSupport.extractTypeIfPossible(this.targetObject,
+							AbstractMessageProducingHandler.class);
+			boolean targetIsDirectReplyProducingHandler =
+					actualHandler != null
+							&& canBeUsedDirect(actualHandler) // give subclasses a say
+							&& methodIsHandleMessageOrEmpty(this.targetMethodName);
 			if (this.targetObject instanceof MessageProcessor<?>) {
-				handler = this.createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
+				handler = createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
 			}
 			else if (targetIsDirectReplyProducingHandler) {
 				if (logger.isDebugEnabled()) {
@@ -138,21 +139,21 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 				handler = (MessageHandler) this.targetObject;
 			}
 			else {
-				handler = this.createMethodInvokingHandler(this.targetObject, this.targetMethodName);
+				handler = createMethodInvokingHandler(this.targetObject, this.targetMethodName);
 			}
 		}
 		else if (this.expression != null) {
-			handler = this.createExpressionEvaluatingHandler(this.expression);
+			handler = createExpressionEvaluatingHandler(this.expression);
 		}
 		else {
-			handler = this.createDefaultHandler();
+			handler = createDefaultHandler();
 		}
 		return handler;
 	}
 
 	protected void checkForIllegalTarget(Object targetObject, String targetMethodName) {
 		if (targetObject instanceof AbstractReplyProducingMessageHandler
-				&& this.methodIsHandleMessageOrEmpty(targetMethodName)) {
+				&& methodIsHandleMessageOrEmpty(targetMethodName)) {
 			/*
 			 * If we allow an ARPMH to be the target of another ARPMH, the reply would
 			 * be attempted to be sent by the inner (no output channel) and a reply would
@@ -180,35 +181,15 @@ public abstract class AbstractStandardMessageHandlerFactoryBean
 	protected abstract MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName);
 
 	protected MessageHandler createExpressionEvaluatingHandler(Expression expression) {
-		throw new UnsupportedOperationException(this.getClass().getName() + " does not support expressions.");
+		throw new UnsupportedOperationException(getClass().getName() + " does not support expressions.");
 	}
 
 	protected <T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
-		return this.createMethodInvokingHandler(processor, null);
+		return createMethodInvokingHandler(processor, null);
 	}
 
 	protected MessageHandler createDefaultHandler() {
 		throw new IllegalArgumentException("Exactly one of the 'targetObject' or 'expression' property is required.");
-	}
-
-	@SuppressWarnings("unchecked")
-	protected <T> T extractTypeIfPossible(Object targetObject, Class<T> expectedType) {
-		if (targetObject == null) {
-			return null;
-		}
-		if (expectedType.isAssignableFrom(targetObject.getClass())) {
-			return (T) targetObject;
-		}
-		if (targetObject instanceof Advised) {
-			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
-			try {
-				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
-			}
-			catch (Exception e) {
-				throw new IllegalStateException(e);
-			}
-		}
-		return null;
 	}
 
 	protected boolean methodIsHandleMessageOrEmpty(String targetMethodName) {

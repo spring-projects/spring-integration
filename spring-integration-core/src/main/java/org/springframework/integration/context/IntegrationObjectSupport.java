@@ -22,12 +22,10 @@ import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.aop.TargetSource;
-import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -42,6 +40,7 @@ import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.scheduling.TaskScheduler;
@@ -171,24 +170,15 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	@Override
 	public final void afterPropertiesSet() {
 		this.integrationProperties = IntegrationContextUtils.getIntegrationProperties(this.beanFactory);
-		try {
-			if (this.messageBuilderFactory == null) {
-				if (this.beanFactory != null) {
-					this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
-				}
-				else {
-					this.messageBuilderFactory = new DefaultMessageBuilderFactory();
-				}
+		if (this.messageBuilderFactory == null) {
+			if (this.beanFactory != null) {
+				this.messageBuilderFactory = IntegrationUtils.getMessageBuilderFactory(this.beanFactory);
 			}
-			this.onInit();
-		}
-		catch (Exception e) {
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
+			else {
+				this.messageBuilderFactory = new DefaultMessageBuilderFactory();
 			}
-			throw new BeanInitializationException("failed to initialize", e);
 		}
-
+		onInit();
 		this.initialized = true;
 	}
 
@@ -291,29 +281,23 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		return this.defaultConversionService.convert(this.integrationProperties.getProperty(key), tClass);
 	}
 
+	@Override
+	public String toString() {
+		return (this.beanName != null) ? this.beanName : super.toString();
+	}
+
 	@SuppressWarnings("unchecked")
-	protected <T> T extractTypeIfPossible(Object targetObject, Class<T> expectedType) {
+	@Nullable
+	public static <T> T extractTypeIfPossible(@Nullable Object targetObject, Class<T> expectedType) {
 		if (targetObject == null) {
 			return null;
 		}
 		if (expectedType.isAssignableFrom(targetObject.getClass())) {
 			return (T) targetObject;
 		}
-		if (targetObject instanceof Advised) {
-			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
-			try {
-				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
-			}
-			catch (Exception e) {
-				throw new IllegalStateException(e);
-			}
+		else {
+			return extractTypeIfPossible(AopProxyUtils.getSingletonTarget(targetObject), expectedType);
 		}
-		return null;
-	}
-
-	@Override
-	public String toString() {
-		return (this.beanName != null) ? this.beanName : super.toString();
 	}
 
 	public static UUID generateId() {
