@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -59,23 +60,21 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		implements FactoryBean<MessageHandler>, ApplicationContextAware, BeanFactoryAware, BeanNameAware,
 		ApplicationEventPublisherAware {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile H handler;
-
-	private volatile MessageChannel outputChannel;
-
-	private volatile Integer order;
-
-	private BeanFactory beanFactory;
-
-	private volatile boolean initialized;
+	protected final Log logger = LogFactory.getLog(getClass()); //NOSONAR protected with final
 
 	private final Object initializationMonitor = new Object();
 
-	private volatile List<Advice> adviceChain;
+	private BeanFactory beanFactory;
 
-	private volatile String componentName;
+	private H handler;
+
+	private MessageChannel outputChannel;
+
+	private Integer order;
+
+	private List<Advice> adviceChain;
+
+	private String componentName;
 
 	private ApplicationContext applicationContext;
 
@@ -86,6 +85,8 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	private DestinationResolver<MessageChannel> channelResolver;
 
 	private Boolean async;
+
+	private boolean initialized;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -168,9 +169,9 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 	}
 
 	@Override
-	public H getObject() throws Exception {
+	public H getObject() {
 		if (this.handler == null) {
-			this.handler = this.createHandlerInternal();
+			this.handler = createHandlerInternal();
 			Assert.notNull(this.handler, "failed to create MessageHandler");
 		}
 		return this.handler;
@@ -221,7 +222,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 						name = ((NamedComponent) actualHandler).getComponentName();
 					}
 					this.logger.debug("adviceChain can only be set on an AbstractReplyProducingMessageHandler"
-						+ (name == null ? "" : (", " + name)) + ".");
+							+ (name == null ? "" : (", " + name)) + ".");
 				}
 			}
 			if (this.async != null) {
@@ -270,18 +271,12 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean<H extends MessageH
 		return true;
 	}
 
-	private Object extractTarget(Object object) {
+	private static Object extractTarget(Object object) {
 		if (!(object instanceof Advised)) {
 			return object;
 		}
-		Advised advised = (Advised) object;
-		try {
-			// TargetSource is never null
-			return extractTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
-			this.logger.error("Could not extract target", e);
-			return null;
+		else {
+			return extractTarget(AopProxyUtils.getSingletonTarget(object));
 		}
 	}
 

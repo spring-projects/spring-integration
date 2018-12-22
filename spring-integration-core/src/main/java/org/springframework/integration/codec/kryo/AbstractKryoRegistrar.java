@@ -34,7 +34,7 @@ public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 
 	protected static final Kryo kryo = new Kryo(); // NOSONAR TODO uppercase in 5.2
 
-	protected final Log log = LogFactory.getLog(getClass());
+	protected final Log log = LogFactory.getLog(getClass()); // NOSONAR property ias final
 
 	@Override
 	public void registerTypes(Kryo kryo) {
