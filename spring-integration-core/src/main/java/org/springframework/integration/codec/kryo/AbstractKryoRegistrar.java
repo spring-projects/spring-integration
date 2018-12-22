@@ -16,8 +16,6 @@
 
 package org.springframework.integration.codec.kryo;
 
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -34,9 +32,9 @@ import com.esotericsoftware.kryo.Registration;
  */
 public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 
-	protected static final Kryo kryo = new Kryo();
+	protected static final Kryo kryo = new Kryo(); // NOSONAR TODO uppercase in 5.2
 
-	protected final Log log = LogFactory.getLog(this.getClass());
+	protected final Log log = LogFactory.getLog(getClass());
 
 	@Override
 	public void registerTypes(Kryo kryo) {
@@ -45,19 +43,13 @@ public abstract class AbstractKryoRegistrar implements KryoRegistrar {
 		}
 	}
 
-	/**
-	 * Subclasses implement this to get provided registrations.
-	 * @return a list of {@link Registration}
-	 */
-	public abstract List<Registration> getRegistrations();
-
 	private void register(Kryo kryo, Registration registration) {
 		int id = registration.getId();
 
 		Registration existing = kryo.getRegistration(id);
 
 		if (existing != null) {
-			throw new RuntimeException("registration already exists " + existing);
+			throw new IllegalStateException("registration already exists " + existing);
 		}
 
 		if (this.log.isInfoEnabled()) {

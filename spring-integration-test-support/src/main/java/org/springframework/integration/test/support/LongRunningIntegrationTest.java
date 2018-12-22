@@ -35,7 +35,7 @@ import org.junit.runners.model.Statement;
  */
 public class LongRunningIntegrationTest extends TestWatcher {
 
-	private static final Log logger = LogFactory.getLog(LongRunningIntegrationTest.class);
+	private static final Log LOGGER = LogFactory.getLog(LongRunningIntegrationTest.class);
 
 	private static final String RUN_LONG_PROP = "RUN_LONG_INTEGRATION_TESTS";
 
@@ -53,7 +53,7 @@ public class LongRunningIntegrationTest extends TestWatcher {
 	@Override
 	public Statement apply(Statement base, Description description) {
 		if (!this.shouldRun) {
-			logger.info("Skipping long running test " + description.getDisplayName());
+			LOGGER.info("Skipping long running test " + description.getDisplayName());
 			return new Statement() {
 
 				@Override

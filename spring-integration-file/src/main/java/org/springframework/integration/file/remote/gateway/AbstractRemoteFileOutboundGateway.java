@@ -743,13 +743,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		catch (Exception e) {
 			if (replies.size() > 0) {
 				throw new PartialSuccessException(requestMessage,
-						"Partially successful 'mput' operation" + (subDirectory == null ? "" : (" on " + subDirectory)),
-						e, replies, filteredFiles);
+						"Partially successful 'mput' operation" +
+								(subDirectory == null ? "" : (" on " + subDirectory)), e, replies, filteredFiles);
 			}
 			else if (e instanceof PartialSuccessException) {
 				throw new PartialSuccessException(requestMessage,
-						"Partially successful 'mput' operation" + (subDirectory == null ? "" : (" on " + subDirectory)),
-						e, replies, filteredFiles);
+						"Partially successful 'mput' operation" +
+								(subDirectory == null ? "" : (" on " + subDirectory)), e, replies, filteredFiles);
 			}
 			else {
 				throw e;
@@ -801,28 +801,15 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private List<F> listFilesInRemoteDir(Session<F> session, String directory, String subDirectory)
 			throws IOException {
 
-		List<F> lsFiles = new ArrayList<F>();
+		List<F> lsFiles = new ArrayList<>();
 		String remoteDirectory = buildRemotePath(directory, subDirectory);
 
 		F[] files = session.list(remoteDirectory);
 		boolean recursion = this.options.contains(Option.RECURSIVE);
 		if (!ObjectUtils.isEmpty(files)) {
-			Collection<F> filteredFiles = this.filterFiles(files);
-			for (F file : filteredFiles) {
-				String fileName = this.getFilename(file);
+			for (F file : filterFiles(files)) {
 				if (file != null) {
-					if (this.options.contains(Option.SUBDIRS) || !this.isDirectory(file)) {
-						if (recursion && StringUtils.hasText(subDirectory)) {
-							lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
-						}
-						else {
-							lsFiles.add(file);
-						}
-					}
-					if (recursion && this.isDirectory(file) && !(".".equals(fileName)) && !("..".equals(fileName))) {
-						lsFiles.addAll(listFilesInRemoteDir(session, directory, subDirectory + fileName
-								+ this.remoteFileTemplate.getRemoteFileSeparator()));
-					}
+					processFile(session, directory, subDirectory, lsFiles, recursion, file);
 				}
 			}
 		}
@@ -842,6 +829,24 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected final List<F> filterFiles(F[] files) {
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
+	}
+
+	private void processFile(Session<F> session, String directory, String subDirectory, List<F> lsFiles,
+			boolean recursion, F file) throws IOException {
+
+		if (this.options.contains(Option.SUBDIRS) || !isDirectory(file)) {
+			if (recursion && StringUtils.hasText(subDirectory)) {
+				lsFiles.add(enhanceNameWithSubDirectory(file, subDirectory));
+			}
+			else {
+				lsFiles.add(file);
+			}
+		}
+		String fileName = getFilename(file);
+		if (recursion && isDirectory(file) && !(".".equals(fileName)) && !("..".equals(fileName))) {
+			lsFiles.addAll(listFilesInRemoteDir(session, directory,
+					subDirectory + fileName + this.remoteFileTemplate.getRemoteFileSeparator()));
+		}
 	}
 
 	protected final List<File> filterMputFiles(File[] files) {
@@ -1009,7 +1014,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				 */
 				String fileName = this.getRemoteFilename(fullFileName);
 				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
-				File file = get(message, session, actualRemoteDirectory, fullFileName, fileName, lsEntry.getFileInfo());
+				File file = get(message, session, actualRemoteDirectory, fullFileName, fileName,
+						lsEntry.getFileInfo());
 				if (file != null) {
 					files.add(file);
 				}
@@ -1044,16 +1050,18 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		try {
 			for (AbstractFileInfo<F> lsEntry : fileNames) {
-				String fullFileName = remoteDirectory != null
-						? remoteDirectory + getFilename(lsEntry)
-						: getFilename(lsEntry);
+				String fullFileName =
+						remoteDirectory != null
+								? remoteDirectory + getFilename(lsEntry)
+								: getFilename(lsEntry);
 				/*
 				 * With recursion, the filename might contain subdirectory information
 				 * normalize each file separately.
 				 */
 				String fileName = this.getRemoteFilename(fullFileName);
 				String actualRemoteDirectory = this.getRemoteDirectory(fullFileName, fileName);
-				File file = get(message, session, actualRemoteDirectory, fullFileName, fileName, lsEntry.getFileInfo());
+				File file = get(message, session, actualRemoteDirectory, fullFileName, fileName,
+						lsEntry.getFileInfo());
 				if (file != null) {
 					files.add(file);
 				}
