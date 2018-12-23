@@ -41,17 +41,12 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStorePreparedStatementSetter;
 import org.springframework.integration.jdbc.store.channel.ChannelMessageStoreQueryProvider;
 import org.springframework.integration.jdbc.store.channel.MessageRowMapper;
-import org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupFactory;
-import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.PriorityCapableChannelMessageStore;
 import org.springframework.integration.store.SimpleMessageGroupFactory;
 import org.springframework.integration.support.converter.WhiteListDeserializingConverter;
-import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.integration.util.UUIDConverter;
-import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -66,7 +61,8 @@ import org.springframework.util.StringUtils;
 
 /**
  * <p>
- * Channel-specific implementation of {@link MessageGroupStore} using a relational
+ * Channel-specific implementation of
+ * {@link org.springframework.integration.store.MessageGroupStore} using a relational
  * database via JDBC.
  *
  * This message store shall be used for message channels only.
@@ -176,14 +172,14 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * Create a {@link MessageStore} with all mandatory properties. The passed-in
+	 * Create a {@link org.springframework.integration.store.MessageStore}
+	 * with all mandatory properties. The passed-in
 	 * {@link DataSource} is used to instantiate a {@link JdbcTemplate}
 	 * with {@link JdbcTemplate#setFetchSize(int)} set to <code>1</code>
 	 * and with {@link JdbcTemplate#setMaxRows(int)} set to <code>1</code>.
 	 * @param dataSource a {@link DataSource}
 	 */
 	public JdbcChannelMessageStore(DataSource dataSource) {
-		this();
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);
@@ -223,12 +219,13 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	}
 
 	/**
-	 * The {@link JdbcOperations} to use when interacting with the database. Either
+	 * The {@link org.springframework.jdbc.core.JdbcOperations}
+	 *  to use when interacting with the database. Either
 	 * this property can be set or the {@link #setDataSource(DataSource) dataSource}.
 	 * Please consider passing in a {@link JdbcTemplate} with a fetchSize property
 	 * of 1. This is particularly important for Oracle to ensure First In, First Out (FIFO)
 	 * message retrieval characteristics.
-	 * @param jdbcTemplate a {@link JdbcOperations}
+	 * @param jdbcTemplate a {@link org.springframework.jdbc.core.JdbcOperations}
 	 */
 	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
 		Assert.notNull(jdbcTemplate, "The provided jdbcTemplate must not be null.");
@@ -320,14 +317,16 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * oldest entry for a giving channel (groupKey) and region ({@link #setRegion(String)}).
 	 * If you do that with multiple threads and you are using transactions, other
 	 * threads may be waiting for that same locked row.</p>
-	 * <p>If using the provided {@link OracleChannelMessageStoreQueryProvider}, don't set {@link #usingIdCache}
+	 * <p>If using the provided
+	 * {@link org.springframework.integration.jdbc.store.channel.OracleChannelMessageStoreQueryProvider},
+	 * don't set {@link #usingIdCache}
 	 * to true, as the Oracle query will ignore locked rows.</p>
 	 * <p>Using the id cache, the {@link JdbcChannelMessageStore} will store each
 	 * message id in an in-memory collection for the duration of processing. With
 	 * that, any polling threads will explicitly exclude those messages from
 	 * being polled.</p>
 	 * <p>For this to work, you must setup the corresponding
-	 * {@link TransactionSynchronizationFactory}:</p>
+	 * {@link org.springframework.integration.transaction.TransactionSynchronizationFactory}:</p>
 	 * <pre class="code">
 	 * {@code
 	 * <int:transaction-synchronization-factory id="syncFactory">
@@ -336,7 +335,8 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * </int:transaction-synchronization-factory>
 	 * }
 	 * </pre>
-	 * This {@link TransactionSynchronizationFactory} is then referenced in the
+	 * This {@link org.springframework.integration.transaction.TransactionSynchronizationFactory}
+	 * is then referenced in the
 	 * transaction configuration of the poller:
 	 * <pre class="code">
 	 * {@code

@@ -18,7 +18,6 @@ package org.springframework.integration.jpa.inbound;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.jpa.core.JpaExecutor;
-import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -44,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Amol Nayak
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.2
  *
@@ -74,7 +74,8 @@ public class JpaPollingChannelAdapter extends AbstractMessageSource<Object> {
 	/**
 	 * Use {@link JpaExecutor#poll()} to executes the JPA operation.
 	 * If {@link JpaExecutor#poll()} returns null, this method will return
-	 * <code>null</code>. Otherwise, a new {@link Message} is constructed and returned.
+	 * <code>null</code>. Otherwise, a new {@link org.springframework.messaging.Message}
+	 * is constructed and returned.
 	 */
 	@Override
 	protected Object doReceive() {

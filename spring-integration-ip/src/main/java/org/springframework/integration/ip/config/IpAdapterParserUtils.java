@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.ip.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -198,7 +197,8 @@ public abstract class IpAdapterParserUtils {
 	 * @param element The element.
 	 * @param parserContext The parser context.
 	 * @return The value of the attribute.
-	 * @throws BeanCreationException if attribute is not provided.
+	 * @throws org.springframework.beans.factory.BeanCreationException if attribute is not
+	 * provided.
 	 */
 	static String getPort(Element element, ParserContext parserContext) {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);

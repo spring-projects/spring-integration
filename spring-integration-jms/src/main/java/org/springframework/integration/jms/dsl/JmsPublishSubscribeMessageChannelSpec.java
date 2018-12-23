@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 package org.springframework.integration.jms.dsl;
 
 import javax.jms.ConnectionFactory;
-
-import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 /**
  * A {@link JmsMessageChannelSpec} for a {@link org.springframework.integration.jms.SubscribableJmsChannel}
@@ -66,7 +64,8 @@ public class JmsPublishSubscribeMessageChannelSpec
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}
+	 * Only applies if the {@link #containerType(Class)} is a
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}
 	 * or a {@link org.springframework.jms.listener.SimpleMessageListenerContainer}.
 	 * @param pubSubNoLocal the pubSubNoLocal.
 	 * @return the current {@link JmsPublishSubscribeMessageChannelSpec}.

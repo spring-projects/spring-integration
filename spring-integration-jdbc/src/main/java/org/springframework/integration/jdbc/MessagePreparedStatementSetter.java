@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,21 @@ package org.springframework.integration.jdbc;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.messaging.Message;
 
 /**
  * The callback to be used with the {@link JdbcMessageHandler}
  * as an alternative to the {@link SqlParameterSourceFactory}.
  * <p>
- * Plays the same role as standard {@link PreparedStatementSetter},
+ * Plays the same role as standard
+ * {@link org.springframework.jdbc.core.PreparedStatementSetter},
  * but with {@code Message<?> requestMessage} context during {@code handleMessage}
  * process in the {@link JdbcMessageHandler}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.2
- * @see PreparedStatementSetter
+ * @see org.springframework.jdbc.core.PreparedStatementSetter
  */
 @FunctionalInterface
 public interface MessagePreparedStatementSetter {

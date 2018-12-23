@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,24 +28,24 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
 import org.springframework.util.Assert;
 
 /**
  *
- * A {@link LockRegistry} using a shared database to co-ordinate the locks. Provides the
- * same semantics as the {@link DefaultLockRegistry}, but the locks taken will be global,
- * as long as the underlying database supports the "serializable" isolation level in its
- * transactions.
+ * An {@link ExpirableLockRegistry} using a shared database to co-ordinate the locks.
+ * Provides the same semantics as the
+ * {@link org.springframework.integration.support.locks.DefaultLockRegistry}, but the
+ * locks taken will be global, as long as the underlying database supports the
+ * "serializable" isolation level in its transactions.
  *
  * @author Dave Syer
  * @author Artem Bilan
  * @author Vedran Pavic
  * @author Kai Zimmermann
  * @author Bartosz Rempuszewski
+ * @author Gary Russell
  *
  * @since 4.3
  */

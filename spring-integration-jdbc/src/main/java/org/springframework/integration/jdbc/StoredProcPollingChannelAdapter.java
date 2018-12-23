@@ -16,11 +16,9 @@
 
 package org.springframework.integration.jdbc;
 
-import java.sql.CallableStatement;
 import java.util.Map;
 
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
@@ -32,6 +30,7 @@ import org.springframework.util.Assert;
  *
  * @author Gunnar Hillert
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.1
  */
@@ -57,9 +56,11 @@ public class StoredProcPollingChannelAdapter extends AbstractMessageSource<Objec
 	 * only 1 element, will have that 1 element extracted and returned as payload.
 	 * If the resultMap contains more than 1 element and expectSingleResult is true,
 	 * then a {@link MessagingException} is thrown.
-	 * Otherwise the complete resultMap is returned as the {@link Message} payload.
+	 * Otherwise the complete resultMap is returned as the
+	 * {@link org.springframework.messaging.Message} payload.
 	 * Important Note: Several databases such as H2 are not fully supported.
-	 * The H2 database, for example, does not fully support the {@link CallableStatement}
+	 * The H2 database, for example, does not fully support the
+	 * {@link java.sql.CallableStatement}
 	 * semantics and when executing function calls against H2, a result list is
 	 * returned rather than a single value.
 	 * Therefore, even if you set expectSingleResult = true, you may end up with

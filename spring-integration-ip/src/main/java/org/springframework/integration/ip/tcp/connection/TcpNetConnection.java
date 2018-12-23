@@ -28,7 +28,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 import org.springframework.lang.Nullable;
@@ -164,11 +163,10 @@ public class TcpNetConnection extends TcpConnectionSupport implements Scheduling
 	}
 
 	/**
-	 * If there is no listener,
-	 * this method exits. When there is a listener, the method runs in a
-	 * loop reading input from the connection's stream, data is converted
-	 * to an object using the {@link Deserializer} and the listener's
-	 * {@link TcpListener#onMessage(Message)} method is called.
+	 * If there is no listener, this method exits. When there is a listener, the method
+	 * runs in a loop reading input from the connection's stream, data is converted to an
+	 * object using the {@link org.springframework.core.serializer.Deserializer} and the
+	 * listener's {@link TcpListener#onMessage(Message)} method is called.
 	 */
 	@Override
 	public void run() {

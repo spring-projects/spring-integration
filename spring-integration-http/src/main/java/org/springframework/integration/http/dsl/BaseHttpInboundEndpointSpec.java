@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,18 @@ package org.springframework.integration.http.dsl;
 import java.util.Arrays;
 
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.integration.dsl.MessagingGatewaySpec;
 import org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport;
 import org.springframework.web.multipart.MultipartResolver;
 
 /**
- * A base {@link MessagingGatewaySpec} for the {@link HttpRequestHandlingEndpointSupport} implementations.
+ * A base {@link org.springframework.integration.dsl.MessagingGatewaySpec} for the
+ * {@link HttpRequestHandlingEndpointSupport} implementations.
  *
  * @param <S> the target {@link BaseHttpInboundEndpointSpec} implementation type.
  * @param <E> the target {@link HttpRequestHandlingEndpointSupport} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */

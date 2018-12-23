@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.messaging.Message;
@@ -38,9 +37,11 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
  * <p>
  * If {@link MethodParameter} is of {@link Properties} type and {@link Message#getPayload()}
  * is a {@link String} containing {@code =} symbol, the {@link MapArgumentResolver} uses
- * {@link ConversionService} trying to convert that {@link String} to the {@link Properties} object.
+ * the {@link org.springframework.core.convert.ConversionService} trying to convert that
+ * {@link String} to a {@link Properties} object.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */

@@ -21,21 +21,17 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
-import java.net.SocketAddress;
-import java.net.URI;
 
 import org.springframework.expression.Expression;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 
 /**
- * A {@link MessageHandler} implementation that maps a Message into
- * a UDP datagram packet and sends that to the specified multicast address
+ * A {@link org.springframework.messaging.MessageHandler} implementation that maps a
+ * Message into a UDP datagram packet and sends that to the specified multicast address
  * (224.0.0.0 to 239.255.255.255) and port.
  *
- * The only difference between this and its super class is the
- * ability to specify how many acknowledgments are required to
- * determine success.
+ * The only difference between this and its super class is the ability to specify how many
+ * acknowledgments are required to determine success.
  *
  * @author Gary Russell
  * @since 2.0
@@ -106,7 +102,8 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 * Construct MulticastSendingMessageHandler based on the destination SpEL expression to
 	 * determine the target destination at runtime against requestMessage.
 	 * @param destinationExpression the SpEL expression to evaluate the target destination
-	 * at runtime. Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
+	 * at runtime. Must evaluate to {@link String}, {@link java.net.URI} or
+	 * {@link java.net.SocketAddress}.
 	 * @since 5.0
 	 */
 	public MulticastSendingMessageHandler(Expression destinationExpression) {
@@ -117,7 +114,8 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 * Construct MulticastSendingMessageHandler based on the destination SpEL expression to
 	 * determine the target destination at runtime against requestMessage.
 	 * @param destinationExpression the SpEL expression to evaluate the target destination
-	 * at runtime. Must evaluate to {@link String}, {@link URI} or {@link SocketAddress}.
+	 * at runtime. Must evaluate to {@link String}, {@link java.net.URI} or
+	 * {@link java.net.SocketAddress}.
 	 * @since 5.0
 	 */
 	public MulticastSendingMessageHandler(String destinationExpression) {

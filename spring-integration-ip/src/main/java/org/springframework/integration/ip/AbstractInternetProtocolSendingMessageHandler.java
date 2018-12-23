@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.integration.ip;
 
-import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.SocketAddress;
 
 import org.springframework.context.Lifecycle;
@@ -26,7 +24,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * Base class for all TCP/UDP MessageHandlers.
+ * Base class for UDP MessageHandlers.
  *
  * @author Gary Russell
  * @since 2.0
@@ -55,8 +53,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 
 
 	/**
-	 * @see Socket#setSoTimeout(int)
-	 * @see DatagramSocket#setSoTimeout(int)
+	 * @see java.net.DatagramSocket#setSoTimeout(int)
 	 * @param timeout The timeout.
 	 */
 	@Override
@@ -65,8 +62,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	}
 
 	/**
-	 * @see Socket#setReceiveBufferSize(int)
-	 * @see DatagramSocket#setReceiveBufferSize(int)
+	 * @see java.net.DatagramSocket#setReceiveBufferSize(int)
 	 * @param size The receive buffer size.
 	 */
 	@Override
@@ -74,8 +70,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	}
 
 	/**
-	 * @see Socket#setSendBufferSize(int)
-	 * @see DatagramSocket#setSendBufferSize(int)
+	 * @see java.net.DatagramSocket#setSendBufferSize(int)
 	 * @param size The send buffer size.
 	 */
 	@Override

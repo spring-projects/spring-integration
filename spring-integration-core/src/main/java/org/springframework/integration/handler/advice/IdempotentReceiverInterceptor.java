@@ -16,7 +16,6 @@
 
 package org.springframework.integration.handler.advice;
 
-import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -25,15 +24,15 @@ import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * The {@link MethodInterceptor} implementation for the
+ * The {@link org.aopalliance.intercept.MethodInterceptor} implementation for the
  * <a href="http://www.eaipatterns.com/IdempotentReceiver.html">Idempotent Receiver</a>
  * E.I. Pattern.
  * <p>
- * This {@link MethodInterceptor} works like a {@code MessageFilter} if {@link #discardChannel}
+ * This {@link org.aopalliance.intercept.MethodInterceptor} works like a
+ * {@code MessageFilter} if {@link #discardChannel}
  * is provided or {@link #throwExceptionOnRejection} is set to {@code true}.
  * However if those properties aren't provided, this interceptor will create an new {@link Message}
  * with a {@link IntegrationMessageHeaderAccessor#DUPLICATE_MESSAGE} header when the
@@ -41,7 +40,8 @@ import org.springframework.util.Assert;
  * <p>
  * The {@code idempotent filtering} logic depends on the provided {@link MessageSelector}.
  * <p>
- * This class is designed to be used only for the {@link MessageHandler#handleMessage},
+ * This class is designed to be used only for the
+ * {@link org.springframework.messaging.MessageHandler#handleMessage},
  * method.
  *
  * @author Artem Bilan
