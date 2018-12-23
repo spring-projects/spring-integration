@@ -28,12 +28,12 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorWrapper;
-import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.CollectionUtils;
 
 /**
  * The {@link IntegrationConfigurationInitializer} to populate {@link GlobalChannelInterceptorWrapper}
- * for {@link ChannelInterceptor}s marked with {@link GlobalChannelInterceptor} annotation.
+ * for {@link org.springframework.messaging.support.ChannelInterceptor}s marked with
+ * {@link GlobalChannelInterceptor} annotation.
  * <p>
  * {@link org.springframework.context.annotation.Bean} methods are also processed.
  *

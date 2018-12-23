@@ -28,7 +28,6 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
 
 /**
  * The base {@link MessageHandlerSpec} for {@link AbstractAmqpOutboundEndpoint}s.
@@ -37,6 +36,7 @@ import org.springframework.messaging.MessageHeaders;
  * @param <E> the target {@link AbstractAmqpOutboundEndpoint} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -201,7 +201,8 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 	}
 
 	/**
-	 * Provide the header names that should be mapped from a request to a {@link MessageHeaders}.
+	 * Provide the header names that should be mapped from a request to a
+	 * {@link org.springframework.messaging.MessageHeaders}.
 	 * @param headers The request header names.
 	 * @return the spec
 	 */
@@ -212,7 +213,7 @@ AmqpBaseOutboundEndpointSpec<S extends AmqpBaseOutboundEndpointSpec<S, E>, E ext
 
 	/**
 	 * Provide the header names that should be mapped to a response
-	 * from a {@link MessageHeaders}.
+	 * from a {@link org.springframework.messaging.MessageHeaders}.
 	 * @param headers The reply header names.
 	 *  @return the spec
 	 */

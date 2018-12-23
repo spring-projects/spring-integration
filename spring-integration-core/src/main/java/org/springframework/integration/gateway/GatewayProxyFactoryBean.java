@@ -45,7 +45,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.MethodParameter;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -62,7 +61,6 @@ import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.management.TrackableComponent;
-import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -85,8 +83,11 @@ import reactor.core.publisher.Mono;
  * Generates a proxy for the provided service interface to enable interaction
  * with messaging components without application code being aware of them allowing
  * for POJO-style interaction.
- * This component is also aware of the {@link ConversionService} set on the enclosing {@link BeanFactory}
- * under the name {@link IntegrationUtils#INTEGRATION_CONVERSION_SERVICE_BEAN_NAME} to
+ * This component is also aware of the
+ * {@link org.springframework.core.convert.ConversionService} set on the enclosing {@link BeanFactory}
+ * under the name
+ * {@link org.springframework.integration.support.utils.IntegrationUtils#INTEGRATION_CONVERSION_SERVICE_BEAN_NAME}
+ * to
  * perform type conversions when necessary (thanks to Jon Schneider's contribution and suggestion in INT-1230).
  *
  * @author Mark Fisher

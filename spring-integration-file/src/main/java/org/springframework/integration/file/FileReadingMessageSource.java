@@ -42,10 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.DiscardAwareFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.ResettableFileListFilter;
@@ -54,17 +51,21 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * {@link MessageSource} that creates messages from a file system directory.
+ * {@link org.springframework.integration.core.MessageSource} that creates messages
+ * from a file system directory.
  * To prevent messages for certain files, you may supply a {@link FileListFilter}.
- * By default, an {@link AcceptOnceFileListFilter} is used.
+ * By default, when configuring with XML or the DSL,
+ * an {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter} is used.
  * It ensures files are picked up only once from the directory.
  * <p>
  * A common problem with reading files is that a file may be detected before it
- * is ready. The default {@link AcceptOnceFileListFilter}
+ * is ready. The default
+ * {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter}
  * does not prevent this. In most cases, this can be prevented if the
  * file-writing process renames each file as soon as it is ready for reading. A
  * pattern-matching filter that accepts only files that are ready (e.g. based on
- * a known suffix), composed with the default {@link AcceptOnceFileListFilter}
+ * a known suffix), composed with the default
+ * {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter}
  * would allow for this.
  * <p>
  * If a external {@link DirectoryScanner} is used, then the {@link FileLocker}
@@ -74,7 +75,8 @@ import org.springframework.util.Assert;
  * <p>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in
  * a {@link PriorityBlockingQueue}. This does not provide the same guarantees as
- * a {@link ResequencingMessageGroupProcessor}, but in cases where writing files
+ * a {@link org.springframework.integration.aggregator.ResequencingMessageGroupProcessor},
+ * but in cases where writing files
  * and failure downstream are rare it might be sufficient.
  * <p>
  * FileReadingMessageSource is fully thread-safe under concurrent

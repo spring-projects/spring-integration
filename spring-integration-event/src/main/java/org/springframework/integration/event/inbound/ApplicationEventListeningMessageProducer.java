@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.ContextClosedEvent;
@@ -34,7 +33,7 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * An inbound Channel Adapter that implements {@link ApplicationListener} and
+ * An inbound Channel Adapter that implements {@link GenericApplicationListener} and
  * passes Spring {@link ApplicationEvent ApplicationEvents} within messages.
  * If a {@link #setPayloadExpression payloadExpression} is provided, it will be evaluated against
  * the ApplicationEvent instance to create the Message payload. Otherwise, the event itself will be the payload.
@@ -64,7 +63,7 @@ public class ApplicationEventListeningMessageProducer extends ExpressionMessageP
 	 * Set the list of event types (classes that extend ApplicationEvent) that
 	 * this adapter should send to the message channel. By default, all event
 	 * types will be sent.
-	 * In addition, this method re-registers the current instance as a {@link ApplicationListener}
+	 * In addition, this method re-registers the current instance as a {@link GenericApplicationListener}
 	 * with the {@link ApplicationEventMulticaster} which clears the listener cache. The cache will be
 	 * refreshed on the next appropriate {@link ApplicationEvent}.
 	 *

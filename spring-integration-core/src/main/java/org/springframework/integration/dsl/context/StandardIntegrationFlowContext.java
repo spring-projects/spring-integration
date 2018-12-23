@@ -34,7 +34,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -192,7 +191,8 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	 * Obtain a {@link MessagingTemplate} with its default destination set to the input channel
 	 * of the {@link IntegrationFlow} for provided {@code flowId}.
 	 * <p> Any {@link IntegrationFlow} bean (not only manually registered) can be used for this method.
-	 * <p> If {@link IntegrationFlow} doesn't start with the {@link MessageChannel}, the
+	 * <p> If {@link IntegrationFlow} doesn't start with the
+	 * {@link org.springframework.messaging.MessageChannel}, the
 	 * {@link IllegalStateException} is thrown.
 	 * @param flowId the bean name to obtain the input channel from
 	 * @return the {@link MessagingTemplate} instance

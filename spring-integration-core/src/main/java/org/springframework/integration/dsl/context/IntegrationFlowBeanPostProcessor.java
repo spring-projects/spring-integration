@@ -25,7 +25,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.Aware;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
@@ -76,9 +75,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 
 /**
- * A {@link BeanPostProcessor} to parse {@link IntegrationFlow} beans and
- * register their components as beans in the provided {@link BeanFactory},
- * if necessary.
+ * A {@link BeanPostProcessor} to parse {@link IntegrationFlow} beans and register their
+ * components as beans in the provided
+ * {@link org.springframework.beans.factory.BeanFactory}, if necessary.
  *
  * @author Artem Bilan
  * @author Gary Russell

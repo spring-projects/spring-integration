@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +26,19 @@ import org.apache.geode.cache.Region;
 import org.apache.geode.cache.Scope;
 import org.apache.geode.cache.util.CacheListenerAdapter;
 
-import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.ListenableMetadataStore;
 import org.springframework.integration.metadata.MetadataStoreListener;
 import org.springframework.util.Assert;
 
 /**
- * Gemfire implementation of {@link ConcurrentMetadataStore}.
+ * Gemfire implementation of {@link ListenableMetadataStore}.
  * Use this {@link org.springframework.integration.metadata.MetadataStore}
  * to achieve meta-data persistence shared across application instances and
  * restarts.
  *
  * @author Artem Bilan
  * @author Venil Noronha
+ * @author Gary Russell
  *
  * @since 4.0
  */

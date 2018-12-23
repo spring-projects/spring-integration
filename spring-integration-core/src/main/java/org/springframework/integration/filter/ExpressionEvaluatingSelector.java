@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,16 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 
 /**
- * A {@link MessageSelector} implementation that evaluates a SpEL expression.
- * The evaluation result of the expression must be a boolean value.
+ * A {@link org.springframework.integration.core.MessageSelector} implementation that
+ * evaluates a SpEL expression. The evaluation result of the expression must be a boolean
+ * value.
  *
  * @author Mark Fisher
  * @author Liujiong
+ * @author Gary Russell
  * @since 2.0
  */
 public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelector {

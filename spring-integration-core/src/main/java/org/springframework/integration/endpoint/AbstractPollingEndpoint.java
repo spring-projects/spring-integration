@@ -35,7 +35,6 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.MessagingExceptionWrapper;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
 import org.springframework.integration.transaction.IntegrationResourceHolderSynchronization;
 import org.springframework.integration.transaction.PassThroughTransactionSynchronizationFactory;
@@ -441,7 +440,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	/**
 	 * Return the key under which the resource will be made available as an
 	 * attribute on the {@link IntegrationResourceHolder}. The default
-	 * {@link ExpressionEvaluatingTransactionSynchronizationProcessor}
+	 * {@link org.springframework.integration.transaction.ExpressionEvaluatingTransactionSynchronizationProcessor}
 	 * makes this attribute available as a variable in SpEL expressions.
 	 * @return The key, or null (default) if the resource shouldn't be
 	 * made available as a attribute.

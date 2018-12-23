@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,16 @@ import java.util.Map;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.dsl.ComponentsRegistration;
-import org.springframework.integration.dsl.MessageProducerSpec;
 
 /**
- * A {@link MessageProducerSpec} for {@link AmqpInboundChannelAdapter}s.
+ * A {@link org.springframework.integration.dsl.MessageProducerSpec} for
+ * {@link AmqpInboundChannelAdapter}s.
  *
  * @param <S> the spec type.
  * @param <C> the container type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */

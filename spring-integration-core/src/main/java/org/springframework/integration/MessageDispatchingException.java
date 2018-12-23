@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration;
 
-import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
 
 /**
- * Exception that indicates an internal error occurred within
- * a {@link MessageDispatcher} preventing message delivery.
+ * Exception that indicates an internal error occurred within a
+ * {@link org.springframework.integration.dispatcher.MessageDispatcher}
+ * preventing message delivery.
  *
  * @author Gary Russell
  * @since 2.1

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -42,6 +41,7 @@ import org.springframework.messaging.Message;
  * @param <S> the target {@link RemoteFileOutboundGatewaySpec} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -181,7 +181,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * Configure the {@link ExpressionFileListFilter}.
 	 * @param expression the SpEL expression for files filtering.
 	 * @return the spec.
-	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see AbstractRemoteFileOutboundGateway#setFilter(FileListFilter)
 	 * @see ExpressionFileListFilter
 	 */
 	public S filterExpression(String expression) {
@@ -193,7 +193,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * Configure the {@link ExpressionFileListFilter}.
 	 * @param filterFunction the {@link Function} for files filtering.
 	 * @return the spec.
-	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see AbstractRemoteFileOutboundGateway#setFilter(FileListFilter)
 	 * @see ExpressionFileListFilter
 	 */
 	public S filterFunction(Function<F, Boolean> filterFunction) {
@@ -248,7 +248,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * Configure the {@link ExpressionFileListFilter}.
 	 * @param expression the SpEL expression for files filtering.
 	 * @return the spec.
-	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see AbstractRemoteFileOutboundGateway#setFilter(FileListFilter)
 	 * @see ExpressionFileListFilter
 	 */
 	public S mputFilterExpression(String expression) {
@@ -260,7 +260,7 @@ public abstract class RemoteFileOutboundGatewaySpec<F, S extends RemoteFileOutbo
 	 * Configure the {@link ExpressionFileListFilter}.
 	 * @param filterFunction the {@link Function} for files filtering.
 	 * @return the spec.
-	 * @see FileReadingMessageSource#setFilter(FileListFilter)
+	 * @see AbstractRemoteFileOutboundGateway#setFilter(FileListFilter)
 	 * @see ExpressionFileListFilter
 	 */
 	public S mputFilterFunction(Function<File, Boolean> filterFunction) {

@@ -35,7 +35,6 @@ import org.springframework.beans.factory.config.DestructionAwareBeanPostProcesso
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
-import org.springframework.integration.aggregator.BarrierMessageHandler;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
@@ -65,7 +64,6 @@ import org.springframework.integration.handler.LambdaMessageProcessor;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MessageTriggerAction;
-import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ErrorMessageExceptionTypeRouter;
@@ -81,7 +79,6 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MapBuilder;
 import org.springframework.integration.transformer.ClaimCheckInTransformer;
 import org.springframework.integration.transformer.ClaimCheckOutTransformer;
-import org.springframework.integration.transformer.ContentEnricher;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.integration.transformer.HeaderFilter;
@@ -959,7 +956,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the
-	 * {@link MethodInvokingMessageProcessor}
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the discovered {@code method} for provided {@code service} at runtime.
 	 * @param service the service object to use.
 	 * @return the current {@link IntegrationFlowDefinition}.
@@ -970,7 +967,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the
-	 * {@link MethodInvokingMessageProcessor}
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the {@code method} for provided {@code bean} at runtime.
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param service the service object to use.
@@ -983,7 +980,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	/**
 	 * Populate a {@link ServiceActivatingHandler} for the
-	 * {@link MethodInvokingMessageProcessor}
+	 * {@link org.springframework.integration.handler.MethodInvokingMessageProcessor}
 	 * to invoke the {@code method} for provided {@code bean} at runtime.
 	 * In addition accept options for the integration endpoint using {@link GenericEndpointSpec}.
 	 * @param service the service object to use.
@@ -1238,7 +1235,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate a {@link ContentEnricher} to the current integration flow position
+	 * Populate a {@link org.springframework.integration.transformer.ContentEnricher}
+	 * to the current integration flow position
 	 * with provided options.
 	 * Typically used with a Java 8 Lambda expression:
 	 * <pre class="code">
@@ -1250,7 +1248,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 *                  .<Map<String, String>>headerFunction("foo", m -> m.getPayload().get("name")))
 	 * }
 	 * </pre>
-	 * @param enricherConfigurer the {@link Consumer} to provide {@link ContentEnricher} options.
+	 * @param enricherConfigurer the {@link Consumer} to provide
+	 * {@link org.springframework.integration.transformer.ContentEnricher} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see EnricherSpec
 	 */
@@ -2882,7 +2881,8 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate a {@link BarrierMessageHandler} instance for provided timeout.
+	 * Populate a {@link org.springframework.integration.aggregator.BarrierMessageHandler}
+	 * instance for provided timeout.
 	 * @param timeout the timeout in milliseconds.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
@@ -2891,10 +2891,12 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	}
 
 	/**
-	 * Populate a {@link BarrierMessageHandler} instance for provided timeout
-	 * and options from {@link BarrierSpec} and endpoint options from {@link GenericEndpointSpec}.
+	 * Populate a {@link org.springframework.integration.aggregator.BarrierMessageHandler}
+	 * instance for provided timeout and options from {@link BarrierSpec} and endpoint
+	 * options from {@link GenericEndpointSpec}.
 	 * @param timeout the timeout in milliseconds.
-	 * @param barrierConfigurer the {@link Consumer} to provide {@link BarrierMessageHandler} options.
+	 * @param barrierConfigurer the {@link Consumer} to provide
+	 * {@link org.springframework.integration.aggregator.BarrierMessageHandler} options.
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 */
 	public B barrier(long timeout, Consumer<BarrierSpec> barrierConfigurer) {

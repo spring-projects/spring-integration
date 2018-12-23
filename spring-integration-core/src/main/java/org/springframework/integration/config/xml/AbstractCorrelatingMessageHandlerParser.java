@@ -22,11 +22,11 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.util.xml.DomUtils;
 
 /**
- * Base class for parsers that create an instance of {@link AbstractCorrelatingMessageHandler}
+ * Base class for parsers that create an instance of
+ * {@link org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler}.
  *
  * @author Oleg Zhurakousky
  * @author Stefan Ferstl

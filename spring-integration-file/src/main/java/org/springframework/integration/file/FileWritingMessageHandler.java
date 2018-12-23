@@ -61,7 +61,6 @@ import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.PassThruLockRegistry;
 import org.springframework.integration.util.WhileLockedProcessor;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -69,7 +68,8 @@ import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * A {@link MessageHandler} implementation that writes the Message payload to a
+ * A {@link org.springframework.messaging.MessageHandler} implementation
+ * that writes the Message payload to a
  * file. If the payload is a File object, it will copy the File to the specified
  * destination directory. If the payload is a byte array, a String or an
  * InputStream it will be written directly. Otherwise, the payload type is

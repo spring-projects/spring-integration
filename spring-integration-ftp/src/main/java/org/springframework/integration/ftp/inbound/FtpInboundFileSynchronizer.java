@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.ftp.inbound;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.ftp.filters.FtpPersistentAcceptOnceFileListFilter;
@@ -32,12 +31,14 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
  * @author Josh Long
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<FTPFile> {
 
 	/**
-	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
+	 * Create a synchronizer with the {@link SessionFactory} used to acquire
+	 * {@link org.springframework.integration.file.remote.session.Session} instances.
 	 * @param sessionFactory The session factory.
 	 */
 	public FtpInboundFileSynchronizer(SessionFactory<FTPFile> sessionFactory) {

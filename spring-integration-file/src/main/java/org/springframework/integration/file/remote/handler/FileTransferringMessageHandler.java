@@ -17,7 +17,6 @@
 package org.springframework.integration.file.remote.handler;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -138,8 +137,9 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Set the file name generator used to generate the remote filename to be used when transferring
-	 * files to the remote system. Default {@link DefaultFileNameGenerator}.
+	 * Set the file name generator used to generate the remote filename to be used when
+	 * transferring files to the remote system. Default
+	 * {@link org.springframework.integration.file.DefaultFileNameGenerator}.
 	 * @param fileNameGenerator the file name generator.
 	 * @see RemoteFileTemplate#setFileNameGenerator(FileNameGenerator)
 	 */

@@ -47,12 +47,10 @@ import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.handler.DiscardingMessageHandler;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.store.UniqueExpiryCallback;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.util.UUIDConverter;
@@ -65,7 +63,8 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
- * {@link MessageStore}. This class takes care of correlated groups of messages
+ * {@link org.springframework.integration.store.MessageStore}.
+ * This class takes care of correlated groups of messages
  * that can be completed in batches. It is useful for custom implementation of
  * MessageHandlers that require correlation and is used as a base class for Aggregator -
  * {@link AggregatingMessageHandler} and Resequencer - {@link ResequencingMessageHandler},
@@ -79,7 +78,8 @@ import org.springframework.util.CollectionUtils;
  * {@link HeaderAttributeCorrelationStrategy} and the {@link ReleaseStrategy} will be a
  * {@link SequenceSizeReleaseStrategy}.
  * <p>
- * Use proper {@link CorrelationStrategy} for cases when same {@link MessageStore} is used
+ * Use proper {@link CorrelationStrategy} for cases when same
+ * {@link org.springframework.integration.store.MessageStore} is used
  * for multiple handlers to ensure uniqueness of message groups across handlers.
  *
  * @author Iwein Fuld
@@ -274,10 +274,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 	}
 
 	/**
-	 * Perform a {@link MessageBuilder#popSequenceDetails()} for output message or not.
-	 * Default to true.
-	 * This option removes the sequence information added by the nearest upstream component with
-	 * {@code applySequence=true} (for example splitter).
+	 * Perform a
+	 * {@link org.springframework.integration.support.MessageBuilder#popSequenceDetails()}
+	 * for output message or not. Default to true. This option removes the sequence
+	 * information added by the nearest upstream component with {@code applySequence=true}
+	 * (for example splitter).
 	 * @param popSequence the boolean flag to use.
 	 * @since 5.1
 	 */

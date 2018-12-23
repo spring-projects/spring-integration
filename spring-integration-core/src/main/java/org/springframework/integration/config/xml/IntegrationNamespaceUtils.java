@@ -46,7 +46,6 @@ import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.FixedSubscriberChannelBeanFactoryPostProcessor;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.transaction.TransactionHandleMessageAdvice;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
@@ -398,7 +397,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * For example, this advisor will be applied on the Polling Task proxy.
 	 * @param txElement The transactional element.
 	 * @return The bean definition.
-	 * @see AbstractPollingEndpoint
+	 * @see org.springframework.integration.endpoint.AbstractPollingEndpoint
 	 */
 	public static BeanDefinition configureTransactionAttributes(Element txElement) {
 		return configureTransactionAttributes(txElement, false);
@@ -413,7 +412,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param handleMessageAdvice flag if to use {@link TransactionHandleMessageAdvice}
 	 * or regular {@link TransactionInterceptor}
 	 * @return The bean definition.
-	 * @see AbstractPollingEndpoint
+	 * @see org.springframework.integration.endpoint.AbstractPollingEndpoint
 	 */
 	public static BeanDefinition configureTransactionAttributes(Element txElement, boolean handleMessageAdvice) {
 		BeanDefinition txDefinition = configureTransactionDefinition(txElement);

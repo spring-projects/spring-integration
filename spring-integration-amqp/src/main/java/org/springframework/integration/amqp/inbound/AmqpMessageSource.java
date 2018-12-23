@@ -32,7 +32,6 @@ import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.rabbit.support.RabbitExceptionTranslator;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.context.MessageSource;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.acks.AcknowledgmentCallback;
 import org.springframework.integration.acks.AcknowledgmentCallbackFactory;
@@ -47,7 +46,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.GetResponse;
 
 /**
- * A pollable {@link MessageSource} for RabbitMQ.
+ * A pollable {@link org.springframework.integration.core.MessageSource} for RabbitMQ.
  *
  * @author Gary Russell
  *

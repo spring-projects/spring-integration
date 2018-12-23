@@ -20,20 +20,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.scheduling.support.PeriodicTrigger;
-
 /**
- * Provides the {@link PollerMetadata} options for the Messaging annotations for
- * polled endpoints.
- * It is an analogue of the XML {@code <poller/>} element, but provides only simple attributes.
- * If the {@link org.springframework.integration.scheduling.PollerMetadata} requires more options
- * (e.g. Transactional and other Advices) or {@code initialDelay, receiveTimeout} etc,
- * the {@link org.springframework.integration.scheduling.PollerMetadata} should be configured as
- * a generic bean and its bean name can be specified as the {@code value} attribute of this annotation.
- * In that case, the other attributes are not allowed.
+ * Provides the {@link org.springframework.integration.scheduling.PollerMetadata} options
+ * for the Messaging annotations for polled endpoints. It is an analogue of the XML
+ * {@code <poller/>} element, but provides only simple attributes. If the
+ * {@link org.springframework.integration.scheduling.PollerMetadata} requires more options
+ * (e.g. Transactional and other Advices) or {@code initialDelay, receiveTimeout} etc, the
+ * {@link org.springframework.integration.scheduling.PollerMetadata} should be configured
+ * as a generic bean and its bean name can be specified as the {@code value} attribute of
+ * this annotation. In that case, the other attributes are not allowed.
  * <p>
  * Non-reference attributes support Property Placeholder resolutions.
  *
@@ -47,12 +42,13 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 public @interface Poller {
 
 	/**
-	 * @return The {@link PollerMetadata} bean name.
+	 * @return The {@link org.springframework.integration.scheduling.PollerMetadata} bean
+	 * name.
 	 */
 	String value() default "";
 
 	/**
-	 * @return The {@link Trigger} bean name.
+	 * @return The {@link org.springframework.scheduling.Trigger} bean name.
 	 */
 	String trigger() default "";
 
@@ -69,20 +65,24 @@ public @interface Poller {
 	String maxMessagesPerPoll() default "";
 
 	/**
-	 * @return The fixed delay in milliseconds to create the {@link PeriodicTrigger}.
-	 * Can be specified as 'property placeholder', e.g. {@code ${poller.fixedDelay}}.
+	 * @return The fixed delay in milliseconds to create the
+	 * {@link org.springframework.scheduling.support.PeriodicTrigger}. Can be specified as
+	 * 'property placeholder', e.g. {@code ${poller.fixedDelay}}.
 	 */
 	String fixedDelay() default "";
 
 	/**
-	 * @return The fixed rate in milliseconds to create the {@link PeriodicTrigger} with {@code fixedRate}.
-	 * Can be specified as 'property placeholder', e.g. {@code ${poller.fixedRate}}.
+	 * @return The fixed rate in milliseconds to create the
+	 * {@link org.springframework.scheduling.support.PeriodicTrigger} with
+	 * {@code fixedRate}. Can be specified as 'property placeholder', e.g.
+	 * {@code ${poller.fixedRate}}.
 	 */
 	String fixedRate() default "";
 
 	/**
-	 * @return The cron expression to create the {@link CronTrigger}.
-	 * Can be specified as 'property placeholder', e.g. {@code ${poller.cron}}.
+	 * @return The cron expression to create the
+	 * {@link org.springframework.scheduling.support.CronTrigger}. Can be specified as
+	 * 'property placeholder', e.g. {@code ${poller.cron}}.
 	 */
 	String cron() default "";
 

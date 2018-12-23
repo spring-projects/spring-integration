@@ -25,7 +25,6 @@ import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationProperties;
@@ -134,7 +133,9 @@ public class IntegrationRegistrar implements ImportBeanDefinitionRegistrar {
 	}
 
 	/**
-	 * Register {@link MessagingAnnotationPostProcessor} and {@link PublisherAnnotationBeanPostProcessor}, if necessary.
+	 * Register {@link MessagingAnnotationPostProcessor} and
+	 * {@link org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor},
+	 * if necessary.
 	 * Inject {@code defaultPublishedChannel} from provided {@link AnnotationMetadata}, if any.
 	 * @param meta The {@link AnnotationMetadata} to get additional properties for {@link BeanDefinition}s.
 	 * @param registry The {@link BeanDefinitionRegistry} to register additional {@link BeanDefinition}s.

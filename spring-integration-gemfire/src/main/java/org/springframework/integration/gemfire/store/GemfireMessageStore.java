@@ -23,19 +23,19 @@ import java.util.List;
 import org.apache.geode.cache.Region;
 
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
-import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 
 /**
- * Gemfire implementation of the key/value style {@link MessageStore} and
- * {@link MessageGroupStore}
+ * Gemfire implementation of the key/value style
+ * {@link org.springframework.integration.store.MessageStore} and
+ * {@link org.springframework.integration.store.MessageGroupStore}
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author David Turanski
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.1
  */

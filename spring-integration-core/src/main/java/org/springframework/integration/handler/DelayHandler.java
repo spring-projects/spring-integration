@@ -36,7 +36,6 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
@@ -51,7 +50,6 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -126,9 +124,10 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	 * Create a DelayHandler with the given 'messageGroupId' that is used as 'key' for
 	 * {@link MessageGroup} to store delayed Messages in the {@link MessageGroupStore}.
 	 * The sending of Messages after the delay will be handled by registered in the
-	 * ApplicationContext default {@link ThreadPoolTaskScheduler}.
+	 * ApplicationContext default
+	 * {@link org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler}.
 	 * @param messageGroupId The message group identifier.
-	 * @see IntegrationObjectSupport#getTaskScheduler()
+	 * @see #getTaskScheduler()
 	 */
 	public DelayHandler(String messageGroupId) {
 		Assert.notNull(messageGroupId, "'messageGroupId' must not be null");

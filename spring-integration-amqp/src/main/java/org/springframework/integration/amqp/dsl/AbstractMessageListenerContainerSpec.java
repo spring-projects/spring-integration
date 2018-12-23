@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,9 @@ import java.util.concurrent.Executor;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.amqp.core.AcknowledgeMode;
-import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.ListenerContainerIdleEvent;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.ConditionalExceptionLogger;
 import org.springframework.amqp.support.ConsumerTagStrategy;
@@ -203,7 +201,8 @@ public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMes
 
 	/**
 	 * Set {@link MessagePostProcessor}s that will be applied after message reception, before
-	 * invoking the {@link MessageListener}. Often used to decompress data.  Processors are invoked in order,
+	 * invoking the {@link org.springframework.amqp.core.MessageListener}.
+	 * Often used to decompress data.  Processors are invoked in order,
 	 * depending on {@code PriorityOrder}, {@code Order} and finally unordered.
 	 * @param afterReceivePostProcessors the post processor.
 	 * @return the spec.
@@ -249,7 +248,9 @@ public abstract class AbstractMessageListenerContainerSpec<S extends AbstractMes
 	}
 
 	/**
-	 * How often to emit {@link ListenerContainerIdleEvent}s in milliseconds.
+	 * How often to emit
+	 * {@link org.springframework.amqp.rabbit.listener.ListenerContainerIdleEvent}s
+	 * in milliseconds.
 	 * @param idleEventInterval the interval.
 	 * @return the spec.
 	 * @see AbstractMessageListenerContainer#setIdleEventInterval(long)

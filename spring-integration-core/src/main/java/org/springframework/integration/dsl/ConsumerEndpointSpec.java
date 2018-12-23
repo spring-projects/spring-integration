@@ -32,7 +32,6 @@ import org.springframework.integration.transaction.TransactionInterceptorBuilder
 import org.springframework.messaging.MessageHandler;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
@@ -110,7 +109,8 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * {@code PlatformTransactionManager} and default
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the {@link MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
@@ -121,7 +121,8 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * {@code PlatformTransactionManager} and default
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the {@link MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
@@ -148,7 +149,9 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
-	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
+	 * {@code PlatformTransactionManager} and
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
+	 * for the
 	 * {@link MessageHandler}.
 	 * @return the spec.
 	 */
@@ -158,8 +161,9 @@ public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>,
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
-	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
-	 * {@link MessageHandler}.
+	 * {@code PlatformTransactionManager} and
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
+	 * for the {@link MessageHandler}.
 	 * @param handleMessageAdvice the flag to indicate the target {@link Advice} type:
 	 * {@code false} - regular {@link TransactionInterceptor}; {@code true} -
 	 * {@link org.springframework.integration.transaction.TransactionHandleMessageAdvice}

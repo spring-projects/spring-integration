@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
-import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.messaging.Message;
 import org.springframework.scripting.ScriptSource;
@@ -51,7 +50,8 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 
 
 	/**
-	 * Creates a {@link GroovyCommandMessageProcessor} that will use the {@link DefaultScriptVariableGenerator}.
+	 * Creates a {@link GroovyCommandMessageProcessor} that will use the
+	 * {@link org.springframework.integration.scripting.DefaultScriptVariableGenerator}.
 	 */
 	public GroovyCommandMessageProcessor() {
 		super();
@@ -67,7 +67,8 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 	}
 
 	/**
-	 * Creates a {@link GroovyCommandMessageProcessor} that will use the {@link DefaultScriptVariableGenerator}
+	 * Creates a {@link GroovyCommandMessageProcessor} that will use the
+	 * {@link org.springframework.integration.scripting.DefaultScriptVariableGenerator}
 	 * and provided {@link Binding}.
 	 * Provided 'binding' will be used in the {@link BindingOverwriteGroovyObjectCustomizerDecorator} to overwrite
 	 * original Groovy Script 'binding'.

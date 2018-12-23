@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.channel.FixedSubscriberChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * Used to post process candidates for {@link FixedSubscriberChannel} {@link MessageHandler}s.
+ * Used to post process candidates for {@link FixedSubscriberChannel}
+ * {@link org.springframework.messaging.MessageHandler}s.
  * @author Gary Russell
  * @since 4.0
  *

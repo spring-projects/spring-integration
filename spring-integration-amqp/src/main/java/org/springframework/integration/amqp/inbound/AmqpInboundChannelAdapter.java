@@ -36,7 +36,6 @@ import org.springframework.integration.amqp.support.AmqpMessageHeaderErrorMessag
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.context.OrderlyShutdownCapable;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.support.RetrySynchronizationManager;
@@ -160,7 +159,8 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport implements
 	 * If there's a retry template, it will set the attributes holder via the listener. If
 	 * there's no retry template, but there's an error channel, we create a new attributes
 	 * holder here. If an attributes holder exists (by either method), we set the
-	 * attributes for use by the {@link ErrorMessageStrategy}.
+	 * attributes for use by the
+	 * {@link org.springframework.integration.support.ErrorMessageStrategy}.
 	 * @param amqpMessage the AMQP message to use.
 	 * @param message the Spring Messaging message to use.
 	 * @since 4.3.10

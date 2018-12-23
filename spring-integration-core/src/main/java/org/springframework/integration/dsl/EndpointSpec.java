@@ -21,13 +21,10 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 import reactor.util.function.Tuple2;
@@ -38,9 +35,11 @@ import reactor.util.function.Tuples;
  *
  * @param <S> the target {@link ConsumerEndpointSpec} implementation type.
  * @param <F> the target {@link BeanNameAware} implementation type.
- * @param <H> the target {@link MessageHandler} implementation type.
+ * @param <H> the target {@link org.springframework.messaging.MessageHandler}
+ * implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -75,7 +74,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	/**
 	 * @param pollers the pollers
 	 * @return the endpoint spec.
-	 * @see AbstractPollingEndpoint
+	 * @see org.springframework.integration.endpoint.AbstractPollingEndpoint
 	 * @see PollerFactory
 	 */
 	public S poller(Function<PollerFactory, PollerSpec> pollers) {
@@ -85,7 +84,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	/**
 	 * @param pollerMetadataSpec the pollerMetadataSpec
 	 * @return the endpoint spec.
-	 * @see AbstractPollingEndpoint
+	 * @see org.springframework.integration.endpoint.AbstractPollingEndpoint
 	 * @see PollerSpec
 	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
@@ -99,21 +98,21 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	/**
 	 * @param pollerMetadata the pollerMetadata
 	 * @return the endpoint spec.
-	 * @see AbstractPollingEndpoint
+	 * @see org.springframework.integration.endpoint.AbstractPollingEndpoint
 	 */
 	public abstract S poller(PollerMetadata pollerMetadata);
 
 	/**
 	 * @param phase the phase.
 	 * @return the endpoint spec.
-	 * @see SmartLifecycle
+	 * @see org.springframework.context.SmartLifecycle
 	 */
 	public abstract S phase(int phase);
 
 	/**
 	 * @param autoStartup the autoStartup.
 	 * @return the endpoint spec
-	 * @see SmartLifecycle
+	 * @see org.springframework.context.SmartLifecycle
 	 */
 	public abstract S autoStartup(boolean autoStartup);
 
@@ -122,7 +121,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 * Such endpoints can be started/stopped as a group.
 	 * @param role the role for this endpoint.
 	 * @return the endpoint spec
-	 * @see SmartLifecycle
+	 * @see org.springframework.context.SmartLifecycle
 	 * @see org.springframework.integration.support.SmartLifecycleRoleController
 	 */
 	public abstract S role(String role);

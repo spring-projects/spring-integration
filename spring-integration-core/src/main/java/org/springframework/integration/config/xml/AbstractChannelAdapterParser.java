@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,13 +32,16 @@ import org.springframework.util.StringUtils;
  * <p>
  * Includes logic to determine {@link org.springframework.messaging.MessageChannel}:
  * if 'channel' attribute is defined - uses its value as 'channelName';
- * if 'id' attribute is defined - creates {@link DirectChannel} at runtime and uses id's value as 'channelName';
+ * if 'id' attribute is defined - creates
+ * {@link org.springframework.integration.channel.DirectChannel}
+ * at runtime and uses id's value as 'channelName';
  * if current component is defined as nested element inside any other components e.g. &lt;chain&gt;
  * 'id' and 'channel' attributes will be ignored and this component will not be parsed as
  * {@link org.springframework.integration.endpoint.AbstractEndpoint}.
  *
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitionParser {
 

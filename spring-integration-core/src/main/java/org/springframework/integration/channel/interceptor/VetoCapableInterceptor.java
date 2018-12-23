@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package org.springframework.integration.channel.interceptor;
 
 import org.springframework.integration.channel.ChannelInterceptorAware;
-import org.springframework.messaging.support.ChannelInterceptor;
 
 /**
- * {@link ChannelInterceptor}s implementing this interface can veto
+ * {@link org.springframework.messaging.support.ChannelInterceptor}s implementing this
+ * interface can veto
  * global interception of a particular channel. Could be used, for example,
  * when an interceptor itself writes to an output channel (which should
  * not be intercepted with this interceptor).

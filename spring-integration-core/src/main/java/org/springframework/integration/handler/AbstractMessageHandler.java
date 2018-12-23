@@ -39,7 +39,6 @@ import org.springframework.integration.support.management.metrics.TimerFacade;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 import reactor.core.CoreSubscriber;
@@ -48,7 +47,7 @@ import reactor.core.CoreSubscriber;
  * Base class for MessageHandler implementations that provides basic validation
  * and error handling capabilities. Asserts that the incoming Message is not
  * null and that it does not contain a null payload. Converts checked exceptions
- * into runtime {@link MessagingException}s.
+ * into runtime {@link org.springframework.messaging.MessagingException}s.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
