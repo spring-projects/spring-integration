@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.hamcrest.Matcher;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 
 import org.springframework.messaging.Message;
@@ -49,7 +48,7 @@ import org.springframework.messaging.Message;
  * }
  * </pre>
  * <p>
- * With {@link Mockito#when(Object)}:
+ * With {@link org.mockito.Mockito#when(Object)}:
  * </p>
  *
  * <pre class="code">
