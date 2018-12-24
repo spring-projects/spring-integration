@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
 
 import org.springframework.messaging.Message;
 
@@ -29,7 +28,7 @@ import org.springframework.messaging.Message;
  * Is the payload of a {@link Message} equal to a given value or is matching
  * a given matcher?
  * <p>
- * A Junit example using {@link Assert#assertThat(Object, Matcher)} could look
+ * A Junit example using {@link org.junit.Assert#assertThat(Object, Matcher)} could look
  * like this to test a payload value:
  *
  * <pre class="code">
@@ -41,7 +40,7 @@ import org.springframework.messaging.Message;
  * </pre>
  *
  * <p>
- * An example using {@link Assert#assertThat(Object, Matcher)} delegating to
+ * An example using {@link org.junit.Assert#assertThat(Object, Matcher)} delegating to
  * another {@link Matcher}.
  *
  * <pre class="code">
@@ -56,6 +55,7 @@ import org.springframework.messaging.Message;
  * @author Alex Peters
  * @author Iwein Fuld
  * @author Artem Bilan
+ * @author Gary Russell
  *
  */
 public class PayloadMatcher<T> extends TypeSafeMatcher<Message<?>> {

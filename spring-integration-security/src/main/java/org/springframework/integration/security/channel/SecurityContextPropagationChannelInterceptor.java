@@ -22,13 +22,13 @@ import org.springframework.integration.channel.interceptor.ThreadStatePropagatio
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * The {@link ExecutorChannelInterceptor} implementation responsible for
+ * The {@link org.springframework.messaging.support.ExecutorChannelInterceptor}
+ * implementation responsible for
  * the {@link SecurityContext} propagation from one message flow's thread to another
  * through the {@link MessageChannel}s involved in the flow.
  * <p>
@@ -38,6 +38,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * and {@link org.springframework.integration.channel.QueueChannel}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 4.2
  *

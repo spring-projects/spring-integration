@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@ import java.util.List;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.NotReadablePropertyException;
-import org.springframework.beans.PropertyAccessor;
 import org.springframework.beans.PropertyAccessorFactory;
 
 /**
  *
  * @author Gunnar Hillert
+ * @author Gary Russell
+ *
  * @since 2.2
  *
  */
@@ -47,10 +48,12 @@ public class BeanPropertyParameterSource implements ParameterSource {
 	}
 
 
+	@Override
 	public boolean hasValue(String paramName) {
 		return this.beanWrapper.isReadableProperty(paramName);
 	}
 
+	@Override
 	public Object getValue(String paramName) {
 		try {
 			return this.beanWrapper.getPropertyValue(paramName);
@@ -62,7 +65,8 @@ public class BeanPropertyParameterSource implements ParameterSource {
 
 	/**
 	 * Provide access to the property names of the wrapped bean.
-	 * Uses support provided in the {@link PropertyAccessor} interface.
+	 * Uses support provided in the {@link org.springframework.beans.PropertyAccessor}
+	 * interface.
 	 * @return an array containing all the known property names
 	 */
 	public String[] getReadablePropertyNames() {

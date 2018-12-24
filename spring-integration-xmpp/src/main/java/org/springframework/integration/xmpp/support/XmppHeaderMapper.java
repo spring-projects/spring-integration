@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package org.springframework.integration.xmpp.support;
 
 import org.jivesoftware.smack.packet.Message;
 
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.mapping.RequestReplyHeaderMapper;
 
 /**
- * A convenience interface that extends {@link HeaderMapper}
+ * A convenience interface that extends {@link RequestReplyHeaderMapper}
  * but parameterized with the Smack API {@link Message}.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public interface XmppHeaderMapper extends RequestReplyHeaderMapper<Message> {

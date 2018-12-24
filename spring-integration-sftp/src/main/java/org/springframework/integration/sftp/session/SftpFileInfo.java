@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@
 package org.springframework.integration.sftp.session;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
-import org.springframework.integration.file.remote.FileInfo;
 import org.springframework.util.Assert;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpATTRS;
 
 /**
- * A {@link FileInfo} implementation for SFTP.
+ * A {@link org.springframework.integration.file.remote.FileInfo} implementation for SFTP.
  *
  * @author Gary Russell
  * @since 2.1

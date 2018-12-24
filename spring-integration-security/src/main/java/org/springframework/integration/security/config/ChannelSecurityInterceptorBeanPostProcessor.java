@@ -28,7 +28,6 @@ import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
 import org.springframework.aop.support.DefaultBeanFactoryPointcutAdvisor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.integration.security.channel.ChannelAccessPolicy;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.security.channel.ChannelSecurityMetadataSource;
@@ -36,11 +35,13 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
 
 /**
- * A {@link BeanPostProcessor} that proxies {@link MessageChannel}s to apply a {@link ChannelSecurityInterceptor}.
+ * A {@link org.springframework.beans.factory.config.BeanPostProcessor} that proxies
+ * {@link MessageChannel}s to apply a {@link ChannelSecurityInterceptor}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 @SuppressWarnings("serial")
 public class ChannelSecurityInterceptorBeanPostProcessor extends AbstractAutoProxyCreator {

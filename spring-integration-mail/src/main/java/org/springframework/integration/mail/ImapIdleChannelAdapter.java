@@ -24,7 +24,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.mail.Folder;
-import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 
@@ -117,7 +116,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Be
 
 	/**
 	 * Specify whether the IDLE task should reconnect automatically after
-	 * catching a {@link FolderClosedException} while waiting for messages. The
+	 * catching a {@link javax.mail.FolderClosedException} while waiting for messages. The
 	 * default value is <code>true</code>.
 	 * @param shouldReconnectAutomatically true to reconnect.
 	 */

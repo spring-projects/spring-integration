@@ -180,6 +180,7 @@ public class JdbcChannelMessageStore implements PriorityCapableChannelMessageSto
 	 * @param dataSource a {@link DataSource}
 	 */
 	public JdbcChannelMessageStore(DataSource dataSource) {
+		this();
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 		this.jdbcTemplate.setFetchSize(1);
 		this.jdbcTemplate.setMaxRows(1);

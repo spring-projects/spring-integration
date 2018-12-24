@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@ package org.springframework.integration.scripting.jsr223;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
-import org.springframework.integration.scripting.ScriptExecutor;
-
 /**
- * Default implementation of the {@link ScriptExecutor}
+ * Default implementation of the
+ * {@link org.springframework.integration.scripting.ScriptExecutor}
  *
  * @author David Turanski
  * @author Mark Fisher

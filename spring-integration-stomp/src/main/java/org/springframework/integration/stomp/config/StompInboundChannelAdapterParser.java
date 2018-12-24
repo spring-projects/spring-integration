@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,17 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.stomp.inbound.StompInboundChannelAdapter;
 
 /**
- * The {@link AbstractSingleBeanDefinitionParser} implementation for
+ * The {@link AbstractChannelAdapterParser} implementation for
  * the {@code <stomp:inbound-channel-adapter/>} element.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.2
  */
 public class StompInboundChannelAdapterParser extends AbstractChannelAdapterParser {

@@ -23,17 +23,18 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * A reply-producing {@link MessageHandler} that delegates to a
+ * A reply-producing {@link org.springframework.messaging.MessageHandler}
+ * that delegates to a
  * {@link Transformer} instance to modify the received {@link Message}
  * and sends the result to its output channel.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 

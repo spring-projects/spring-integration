@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.w3c.dom.Node;
 
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathException;
@@ -41,6 +40,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * Utility class for 'xpath' support.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 3.0
  */
 public final class XPathUtils {
@@ -77,7 +77,7 @@ public final class XPathUtils {
 	 * @param <T>       The required return type.
 	 * @return the result of the xpath expression evaluation.
 	 * @throws IllegalArgumentException - if the provided arguments aren't appropriate types or values;
-	 * @throws MessagingException - if the provided object can't be converted to a {@link Node};
+	 * @throws org.springframework.messaging.MessagingException - if the provided object can't be converted to a {@link Node};
 	 * @throws XPathException - if the xpath expression can't be evaluated.
 	 */
 	@SuppressWarnings({"unchecked"})

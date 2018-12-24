@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.Assert;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -33,7 +32,7 @@ import org.springframework.messaging.MessageHeaders;
  * Are the {@link MessageHeaders} of a {@link Message} containing any entry
  * or multiple that match?
  * <p>
- * For example using {@link Assert#assertThat(Object, Matcher)} for a single
+ * For example using {@link org.junit.Assert#assertThat(Object, Matcher)} for a single
  * entry:
  *
  * <pre class="code">
@@ -69,6 +68,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Alex Peters
  * @author Iwein Fuld
  * @author Artem Bilan
+ * @author Gary Russell
  *
  */
 public class HeaderMatcher<T> extends TypeSafeMatcher<Message<T>> {

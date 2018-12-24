@@ -22,7 +22,6 @@ import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.integration.endpoint.AbstractMessageSource;
@@ -33,8 +32,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Implementation of {@link MessageSource} based on {@link ResourcePatternResolver} which will
- * attempt to resolve {@link Resource}s based on the pattern specified.
+ * Implementation of {@link org.springframework.integration.core.MessageSource} based on
+ * {@link ResourcePatternResolver} which will attempt to resolve {@link Resource}s based
+ * on the pattern specified.
  *
  * @author Oleg Zhurakousky
  * @author Mark Fisher

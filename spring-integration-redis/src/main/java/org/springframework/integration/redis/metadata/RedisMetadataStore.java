@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.RedisProperties;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.util.Assert;
 
 /**
- * Redis implementation of {@link MetadataStore}. Use this {@link MetadataStore} to
- * achieve meta-data persistence across application restarts.
+ * Redis implementation of {@link ConcurrentMetadataStore}. Use this
+ * {@link ConcurrentMetadataStore} to achieve meta-data persistence across application
+ * restarts.
  * <p>
  * This implementation is based on the {@link RedisProperties} and its
  * {@link #replace(String, String, String)}; it can't currently be used with a Redis
@@ -45,7 +45,7 @@ public class RedisMetadataStore implements ConcurrentMetadataStore {
 	private final RedisProperties properties;
 
 	/**
-	 * Specifies the {@link RedisProperties} backend for this {@link MetadataStore}.
+	 * Specifies the {@link RedisProperties} backend for this {@link ConcurrentMetadataStore}.
 	 *
 	 * @param properties The properties.
 	 */

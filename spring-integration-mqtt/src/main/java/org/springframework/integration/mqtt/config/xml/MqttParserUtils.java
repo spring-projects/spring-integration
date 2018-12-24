@@ -18,7 +18,6 @@ package org.springframework.integration.mqtt.config.xml;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -30,7 +29,7 @@ import org.springframework.util.StringUtils;
 /**
  * Contains various utility methods for parsing Mqtt Adapter
  * specific namespace elements as well as for the generation of the the
- * respective {@link BeanDefinition}s.
+ * respective {@link org.springframework.beans.factory.config.BeanDefinition}s.
  *
  * @author Gary Russell
  * @author Artem Bilan

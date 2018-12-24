@@ -22,13 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
-import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
 
 /**
  * This is a dynamically changeable {@link Trigger}. It is based on the
- * {@link PeriodicTrigger} implementations. However, the fields of this dynamic
+ * {@link org.springframework.scheduling.support.PeriodicTrigger}
+ * implementations. However, the fields of this dynamic
  * trigger are not final and the properties can be inspected and set via
  * explicit getters and setters. Changes to the trigger take effect after the
  * next execution.

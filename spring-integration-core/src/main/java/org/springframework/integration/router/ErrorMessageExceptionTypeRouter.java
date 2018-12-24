@@ -26,12 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
- * A Message Router that resolves the target {@link MessageChannel} for
+ * A Message Router that resolves the target
+ * {@link org.springframework.messaging.MessageChannel} for
  * messages whose payload is a {@link Throwable}.
  * The channel resolution is based upon the most specific cause
  * of the error for which a channel-mapping exists.

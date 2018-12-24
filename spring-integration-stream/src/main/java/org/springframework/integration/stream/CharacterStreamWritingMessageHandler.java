@@ -26,12 +26,12 @@ import java.io.Writer;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageHandler} that writes characters to a {@link Writer}.
+ * A {@link org.springframework.messaging.MessageHandler}
+ * that writes characters to a {@link Writer}.
  * String, character array, and byte array payloads will be written directly,
  * but for other payload types, the result of the object's {@link #toString()}
  * method will be written. To append a new-line after each write, set the

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.xml.splitter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,7 +56,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
  * Message Splitter that uses an {@link XPathExpression} to split a
- * {@link Document}, {@link File} or {@link String} payload into a {@link NodeList}.
+ * {@link Document}, {@link java.io.File} or {@link String} payload into a {@link NodeList}.
  * The return value will be either Strings or {@link Node}s depending on the
  * received payload type. Additionally, node types will be converted to
  * Documents if the 'createDocuments' property is set to <code>true</code>.

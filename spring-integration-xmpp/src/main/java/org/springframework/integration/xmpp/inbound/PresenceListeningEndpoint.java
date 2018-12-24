@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,11 @@ import org.jivesoftware.smack.roster.RosterListener;
 import org.jxmpp.jid.Jid;
 
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
-import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * An inbound endpoint that is able to login and then emit {@link Message}s when a
+ * An inbound endpoint that is able to login and then emit
  * particular Presence event occurs within the logged-in user's {@link Roster}.
  * (e.g., logged in/out, changed status etc.)
  *
@@ -40,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 2.0
  */
 public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {

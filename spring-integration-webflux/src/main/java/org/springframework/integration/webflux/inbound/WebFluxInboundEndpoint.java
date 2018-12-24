@@ -47,7 +47,6 @@ import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
@@ -67,10 +66,11 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 /**
- * A {@link MessagingGatewaySupport} implementation for Spring WebFlux
- * HTTP requests execution.
+ * A {@link org.springframework.integration.gateway.MessagingGatewaySupport}
+ * implementation for Spring WebFlux HTTP requests execution.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  *
