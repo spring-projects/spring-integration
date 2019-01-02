@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.core.DestinationResolutionException;
-import org.springframework.messaging.core.DestinationResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -79,7 +78,8 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	/**
 	 * Provide mappings from channel keys to channel names.
-	 * Channel names will be resolved by the {@link DestinationResolver}.
+	 * Channel names will be resolved by the
+	 * {@link org.springframework.messaging.core.DestinationResolver}.
 	 * @param channelMappings The channel mappings.
 	 */
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,19 @@ import java.util.concurrent.Executor;
 
 import javax.jms.ConnectionFactory;
 
-import org.springframework.integration.jms.AbstractJmsChannel;
-import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
-import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.ErrorHandler;
 
 /**
- * A {@link JmsMessageChannelSpec} for subscribable {@link AbstractJmsChannel}s.
+ * A {@link JmsMessageChannelSpec} for subscribable
+ * {@link org.springframework.integration.jms.AbstractJmsChannel}s.
  *
  * @param <S> the target {@link JmsMessageChannelSpec} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 5.0
  */
 public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends JmsPollableMessageChannelSpec<S> {
@@ -45,7 +44,7 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	/**
 	 * Configure the type of the container.
 	 * {@link AbstractMessageListenerContainer}. Defaults to
-	 * {@link DefaultMessageListenerContainer}.
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}.
 	 * @param containerType the containerType.
 	 * @return the current {@link JmsMessageChannelSpec}.
 	 */
@@ -55,11 +54,12 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}
+	 * Only applies if the {@link #containerType(Class)} is a
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}
 	 * or a {@link org.springframework.jms.listener.SimpleMessageListenerContainer}.
 	 * @param concurrentConsumers the concurrentConsumers.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see DefaultMessageListenerContainer#setConcurrentConsumers(int)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setConcurrentConsumers(int)
 	 * @see org.springframework.jms.listener.SimpleMessageListenerContainer#setConcurrentConsumers(int)
 	 */
 	public S concurrentConsumers(int concurrentConsumers) {
@@ -70,7 +70,7 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	/**
 	 * @param maxSubscribers the maxSubscribers.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see SubscribableJmsChannel#setMaxSubscribers(int)
+	 * @see org.springframework.integration.jms.SubscribableJmsChannel#setMaxSubscribers(int)
 	 */
 	public S maxSubscribers(int maxSubscribers) {
 		this.jmsChannelFactoryBean.setMaxSubscribers(maxSubscribers);
@@ -128,10 +128,11 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}.
+	 * Only applies if the {@link #containerType(Class)} is a
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}.
 	 * @param idleTaskExecutionLimit the idleTaskExecutionLimit.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see DefaultMessageListenerContainer#setIdleTaskExecutionLimit(int)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setIdleTaskExecutionLimit(int)
 	 */
 	public S idleTaskExecutionLimit(int idleTaskExecutionLimit) {
 		this.jmsChannelFactoryBean.setIdleTaskExecutionLimit(idleTaskExecutionLimit);
@@ -139,10 +140,11 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}.
+	 * Only applies if the {@link #containerType(Class)} is a
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}.
 	 * @param maxMessagesPerTask the maxMessagesPerTask.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see DefaultMessageListenerContainer#setMaxMessagesPerTask(int)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setMaxMessagesPerTask(int)
 	 */
 	public S maxMessagesPerTask(int maxMessagesPerTask) {
 		this.jmsChannelFactoryBean.setMaxMessagesPerTask(maxMessagesPerTask);
@@ -150,10 +152,10 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}.
+	 * Only applies if the {@link #containerType(Class)} is a {@link org.springframework.jms.listener.DefaultMessageListenerContainer}.
 	 * @param recoveryInterval the recoveryInterval.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see DefaultMessageListenerContainer#setRecoveryInterval(long)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setRecoveryInterval(long)
 	 */
 	public S recoveryInterval(long recoveryInterval) {
 		this.jmsChannelFactoryBean.setRecoveryInterval(recoveryInterval);
@@ -161,11 +163,12 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}
+	 * Only applies if the {@link #containerType(Class)} is a
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}
 	 * or a {@link org.springframework.jms.listener.SimpleMessageListenerContainer}.
 	 * @param taskExecutor the taskExecutor.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see DefaultMessageListenerContainer#setTaskExecutor(Executor)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setTaskExecutor(Executor)
 	 * @see org.springframework.jms.listener.SimpleMessageListenerContainer#setTaskExecutor(Executor)
 	 */
 	public S taskExecutor(Executor taskExecutor) {
@@ -174,10 +177,11 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}.
+	 * Only applies if the {@link #containerType(Class)} is a
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}.
 	 * @param transactionManager the transactionManager.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see DefaultMessageListenerContainer#setTransactionManager(PlatformTransactionManager)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setTransactionManager(PlatformTransactionManager)
 	 */
 	public S transactionManager(PlatformTransactionManager transactionManager) {
 		this.jmsChannelFactoryBean.setTransactionManager(transactionManager);
@@ -185,10 +189,11 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}.
+	 * Only applies if the {@link #containerType(Class)} is a
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}.
 	 * @param transactionName the transactionName.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see DefaultMessageListenerContainer#setTransactionName(String)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setTransactionName(String)
 	 */
 	public S transactionName(String transactionName) {
 		this.jmsChannelFactoryBean.setTransactionName(transactionName);
@@ -196,10 +201,11 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 	}
 
 	/**
-	 * Only applies if the {@link #containerType(Class)} is a {@link DefaultMessageListenerContainer}.
+	 * Only applies if the {@link #containerType(Class)} is a
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}.
 	 * @param transactionTimeout the transactionTimeout.
 	 * @return the current {@link JmsMessageChannelSpec}.
-	 * @see DefaultMessageListenerContainer#setTransactionTimeout(int)
+	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setTransactionTimeout(int)
 	 */
 	public S transactionTimeout(int transactionTimeout) {
 		this.jmsChannelFactoryBean.setTransactionTimeout(transactionTimeout);
@@ -208,8 +214,9 @@ public class JmsMessageChannelSpec<S extends JmsMessageChannelSpec<S>> extends J
 
 	/**
 	 * Only applies if the {@link #containerType(Class)} is a
-	 * {@link DefaultMessageListenerContainer}.
-	 * @param cacheLevel the value for {@code DefaultMessageListenerContainer.cacheLevel}
+	 * {@link org.springframework.jms.listener.DefaultMessageListenerContainer}.
+	 * @param cacheLevel the value for
+	 * {@code org.springframework.jms.listener.DefaultMessageListenerContainer.cacheLevel}
 	 * @return the current {@link JmsMessageChannelSpec}.
 	 * @see org.springframework.jms.listener.DefaultMessageListenerContainer#setCacheLevel(int)
 	 */

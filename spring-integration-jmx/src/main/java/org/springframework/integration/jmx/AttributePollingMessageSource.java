@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,14 @@ import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageSource} implementation that retrieves the current
- * value of a JMX attribute each time {@link #receive()} is invoked.
+ * A {@link org.springframework.integration.core.MessageSource} implementation that
+ * retrieves the current value of a JMX attribute each time {@link #receive()} is invoked.
  *
  * @author Mark Fisher
  * @author Gary Russell

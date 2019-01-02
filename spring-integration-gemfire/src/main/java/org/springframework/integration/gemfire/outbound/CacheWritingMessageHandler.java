@@ -33,17 +33,17 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageHandler} implementation that writes to a GemFire Region. The
- * Message's payload must be an instance of {@link Map} or {@link #cacheEntryExpressions}
- * must be provided.
+ * A {@link org.springframework.messaging.MessageHandler} implementation that writes to a
+ * GemFire Region. The Message's payload must be an instance of {@link Map} or
+ * {@link #cacheEntryExpressions} must be provided.
  *
  * @author Mark Fisher
  * @author David Turanski
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.1
  */

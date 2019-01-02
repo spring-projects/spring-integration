@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,18 @@ package org.springframework.integration.config;
 import java.util.List;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 
 /**
- * {@link BeanFactoryPostProcessor} to apply external Integration infrastructure configurations
- * via loading {@link IntegrationConfigurationInitializer} implementations using {@link SpringFactoriesLoader}.
+ * {@link BeanDefinitionRegistryPostProcessor} to apply external Integration
+ * infrastructure configurations via loading {@link IntegrationConfigurationInitializer}
+ * implementations using {@link SpringFactoriesLoader}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class IntegrationConfigurationBeanFactoryPostProcessor implements BeanDefinitionRegistryPostProcessor {

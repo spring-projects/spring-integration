@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,11 @@
 package org.springframework.integration.amqp.support;
 
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.mapping.RequestReplyHeaderMapper;
 
 /**
- * A convenience interface that extends {@link HeaderMapper}
- * but parameterized with {@link MessageProperties}.
+ * A convenience interface that extends {@link RequestReplyHeaderMapper},
+ * parameterized with {@link MessageProperties}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky

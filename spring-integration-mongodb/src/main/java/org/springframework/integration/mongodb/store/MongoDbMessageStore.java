@@ -64,7 +64,6 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageMetadata;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
@@ -85,7 +84,8 @@ import com.mongodb.DBObject;
 
 
 /**
- * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
+ * An implementation of both the {@link MessageStore} and
+ * {@link org.springframework.integration.store.MessageGroupStore}
  * strategies that relies upon MongoDB for persistence.
  *
  * @author Mark Fisher

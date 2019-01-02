@@ -32,7 +32,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -40,7 +39,8 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * An alternate MongoDB {@link MessageStore} and {@link MessageGroupStore} which allows the user to
+ * An alternate MongoDB {@link MessageStore} and
+ * {@link org.springframework.integration.store.MessageGroupStore} which allows the user to
  * configure the instance of {@link MongoTemplate}. The mechanism of storing the messages/group of messages
  * in the store is and is different from {@link MongoDbMessageStore}. Since the store uses serialization of the
  * messages by default, all the headers, and the payload of the Message must implement {@link java.io.Serializable}

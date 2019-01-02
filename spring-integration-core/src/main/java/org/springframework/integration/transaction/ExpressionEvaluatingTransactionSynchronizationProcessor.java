@@ -26,13 +26,13 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.util.Assert;
 
 /**
  * This implementation of {@link TransactionSynchronizationFactory}
  * allows you to configure SpEL expressions, with their execution being coordinated
- * (synchronized) with a transaction - see {@link TransactionSynchronization}.
+ * (synchronized) with a transaction - see
+ * {@link org.springframework.transaction.support.TransactionSynchronization}.
  * Expressions for {@code before-commit}, {@code after-commit}, and {@code after-rollback}
  * are supported, together with a {@code channel} for each where the evaluation result
  * (if any) will be sent.

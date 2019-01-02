@@ -34,7 +34,6 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
@@ -47,6 +46,7 @@ import org.springframework.util.Assert;
  * @param <H> the {@link AbstractCorrelatingMessageHandler} implementation type.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -316,7 +316,9 @@ public abstract class CorrelationHandlerSpec<S extends CorrelationHandlerSpec<S,
 	}
 
 	/**
-	 * Perform a {@link MessageBuilder#popSequenceDetails()} for output message or not.
+	 * Perform a
+	 * {@link org.springframework.integration.support.MessageBuilder#popSequenceDetails()}
+	 * for output message or not.
 	 * @param popSequence the boolean flag to use.
 	 * @return the endpoint spec.
 	 * @since 5.1

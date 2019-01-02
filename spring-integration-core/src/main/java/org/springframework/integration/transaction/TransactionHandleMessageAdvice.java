@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@ package org.springframework.integration.transaction;
 
 import java.util.Properties;
 
-import org.aopalliance.aop.Advice;
-
 import org.springframework.integration.handler.advice.HandleMessageAdvice;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
@@ -29,8 +26,9 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 /**
  * A {@link TransactionInterceptor} extension with {@link HandleMessageAdvice} marker.
  * <p>
- * When this {@link Advice} is used from the {@code request-handler-advice-chain}, it is applied
- * to the {@link MessageHandler#handleMessage}
+ * When this {@link org.aopalliance.aop.Advice}
+ * is used from the {@code request-handler-advice-chain}, it is applied
+ * to the {@link org.springframework.messaging.MessageHandler#handleMessage}
  * (not to the
  * {@link org.springframework.integration.handler.AbstractReplyProducingMessageHandler.RequestHandler#handleRequestMessage}),
  * therefore the entire downstream process is wrapped to the transaction.
@@ -38,6 +36,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * In any other cases it is operated as a regular {@link TransactionInterceptor}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */

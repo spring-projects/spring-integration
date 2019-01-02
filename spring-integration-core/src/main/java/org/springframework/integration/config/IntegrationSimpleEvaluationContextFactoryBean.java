@@ -22,20 +22,19 @@ import java.util.Map.Entry;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.expression.MapAccessor;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.PropertyAccessor;
-import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.support.DataBindingPropertyAccessor;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
 
 /**
  * <p>
  * {@link FactoryBean} to populate {@link SimpleEvaluationContext} instances enhanced with:
  * <ul>
  * <li>
- * a {@link TypeConverter} based on the {@link ConversionService} from the application context.
+ * a {@link org.springframework.expression.TypeConverter} based on the
+ * {@link org.springframework.core.convert.ConversionService}
+ * from the application context.
  * </li>
  * <li>
  * a set of provided {@link PropertyAccessor}s including a default {@link MapAccessor}.
@@ -46,7 +45,9 @@ import org.springframework.integration.expression.SpelPropertyAccessorRegistrar;
  * </ul>
  * <p>
  * After initialization this factory populates functions and property accessors from
- * {@link SpelFunctionFactoryBean}s and {@link SpelPropertyAccessorRegistrar}, respectively.
+ * {@link SpelFunctionFactoryBean}s and
+ * {@link org.springframework.integration.expression.SpelPropertyAccessorRegistrar},
+ * respectively.
  * Functions and property accessors are also inherited from any parent context.
  * </p>
  * <p>

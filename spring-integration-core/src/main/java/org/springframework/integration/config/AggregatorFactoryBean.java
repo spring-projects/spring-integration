@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.aopalliance.aop.Advice;
 
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.expression.Expression;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
@@ -37,7 +36,8 @@ import org.springframework.util.StringUtils;
 
 
 /**
- * {@link FactoryBean} to create an {@link AggregatingMessageHandler}.
+ * {@link org.springframework.beans.factory.FactoryBean} to create an
+ * {@link AggregatingMessageHandler}.
  *
  * @author Gary Russell
  * @author Artem Bilan

@@ -27,7 +27,6 @@ import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Document;
 
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
-import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.messaging.MessagingException;
@@ -37,7 +36,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.xml.transform.StringSource;
 
 /**
- * An implementation of {@link Transformer} that delegates to an OXM
+ * An implementation of {@link org.springframework.integration.transformer.Transformer}
+ * that delegates to an OXM
  * {@link Unmarshaller}. Expects the payload to be of type {@link Document},
  * {@link String}, {@link File}, {@link Source} or to have an instance of
  * {@link SourceFactory} that can convert to a {@link Source}. If
@@ -53,6 +53,7 @@ import org.springframework.xml.transform.StringSource;
  *
  * @author Jonas Partner
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.channel.QueueChannel;
-
 /**
  * A marker interface that indicates this message store has optimizations for
- * use in a {@link QueueChannel}.
+ * use in a {@link org.springframework.integration.channel.QueueChannel}.
  *
  * @author Gary Russell
  * @since 4.0

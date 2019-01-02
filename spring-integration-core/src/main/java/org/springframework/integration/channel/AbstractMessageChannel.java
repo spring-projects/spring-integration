@@ -32,7 +32,6 @@ import org.springframework.core.OrderComparator;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.management.AbstractMessageChannelMetrics;
 import org.springframework.integration.support.management.ConfigurableMetricsAware;
 import org.springframework.integration.support.management.DefaultMessageChannelMetrics;
@@ -232,7 +231,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * expected that the converter will have fully populated the headers; no
 	 * further action is performed by the channel. If {@code null} is returned,
 	 * conversion to the next datatype (if any) will be attempted.
-	 * Defaults to a {@link DefaultDatatypeChannelMessageConverter}.
+	 * Defaults to a
+	 * {@link org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter}.
 	 * @param messageConverter The message converter.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {

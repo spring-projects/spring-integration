@@ -28,7 +28,6 @@ import org.springframework.integration.dsl.support.FixedSubscriberChannelPrototy
 import org.springframework.integration.dsl.support.MessageChannelReference;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.gateway.AnnotationGatewayProxyFactoryBean;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
@@ -163,7 +162,8 @@ public final class IntegrationFlows {
 
 	/**
 	 * Provides {@link Supplier} as source of messages to the integration flow.
-	 * which will be triggered by a <b>provided</b> {@link SourcePollingChannelAdapter}.
+	 * which will be triggered by a <b>provided</b>
+	 * {@link org.springframework.integration.endpoint.SourcePollingChannelAdapter}.
 	 * @param messageSource the {@link Supplier} to populate.
 	 * @param endpointConfigurer the {@link Consumer} to provide more options for the
 	 * {@link org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean}.

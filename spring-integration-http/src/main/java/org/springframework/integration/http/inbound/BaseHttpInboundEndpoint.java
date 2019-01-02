@@ -35,7 +35,6 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -241,7 +240,7 @@ public class BaseHttpInboundEndpoint extends MessagingGatewaySupport implements 
 	 * {@link #BaseHttpInboundEndpoint(boolean) expectReply} is true) resolves
 	 * an {@link HttpStatus} from the
 	 * {@link org.springframework.integration.http.HttpHeaders#STATUS_CODE} reply
-	 * {@link Message} header.
+	 * {@link org.springframework.messaging.Message} header.
 	 * @param statusCodeExpression The status code Expression.
 	 * @since 4.1
 	 * @see #setReplyTimeout(long)

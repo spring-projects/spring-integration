@@ -21,22 +21,22 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
-import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
- * Implementation of {@link MetadataStore} using a relational database via JDBC.
+ * Implementation of {@link ConcurrentMetadataStore} using a relational database via JDBC.
  * SQL scripts to create the necessary tables are packaged as
  * <code>org/springframework/integration/jdbc/schema-*.sql</code>,
  * where <code>*</code> is the target database type.
  * <p>
- * The transaction management is required to use this {@link MetadataStore}.
+ * The transaction management is required to use this {@link ConcurrentMetadataStore}.
  *
  * @author Bojan Vukasovic
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */

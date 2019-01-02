@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.support.management.SubscribableChannelManagement;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
- * Base implementation of {@link MessageChannel} that invokes the subscribed
- * {@link MessageHandler handler(s)} by delegating to a {@link MessageDispatcher}.
+ * Base implementation of {@link org.springframework.messaging.MessageChannel} that
+ * invokes the subscribed {@link MessageHandler handler(s)} by delegating to a
+ * {@link MessageDispatcher}.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky

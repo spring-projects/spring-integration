@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.FileCopyUtils;
 
 /**
- * An {@link HttpMessageConverter} implementation for {@link Serializable} instances.
+ * An {@link org.springframework.http.converter.HttpMessageConverter} implementation for
+ * {@link Serializable} instances.
  *
  * @author Mark Fisher
  * @author Gary Russell

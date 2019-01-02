@@ -29,7 +29,6 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
 import org.springframework.integration.mapping.AbstractHeaderMapper;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.StringUtils;
 import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapHeaderElement;
@@ -39,7 +38,8 @@ import org.springframework.xml.namespace.QNameUtils;
 import org.springframework.xml.transform.TransformerHelper;
 
 /**
- * A {@link HeaderMapper} implementation for mapping to and from a SoapHeader.
+ * A {@link org.springframework.integration.mapping.HeaderMapper} implementation for
+ * mapping to and from a SoapHeader.
  * The {@link #setRequestHeaderNames(String[])} and {@link #setReplyHeaderNames(String[])}
  * accept exact name Strings or simple patterns (e.g. "start*", "*end", or "*").
  * By default all inbound headers will be accepted, but any outbound header that should
@@ -52,6 +52,7 @@ import org.springframework.xml.transform.TransformerHelper;
  * @author Stephane Nicoll
  * @author Mauro Molinari
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.0
  */

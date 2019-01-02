@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -33,7 +32,8 @@ import org.springframework.util.Assert;
  * Procedure.
  *
  * This may be sufficient for basic use cases. For more sophisticated options
- * consider passing in one or more {@link ProcedureParameter}.
+ * consider passing in one or more
+ * {@link org.springframework.integration.jdbc.storedproc.ProcedureParameter}.
  *
  * If you need to handle the return parameters of the called stored procedure
  * explicitly, please consider using a {@link StoredProcOutboundGateway} instead.

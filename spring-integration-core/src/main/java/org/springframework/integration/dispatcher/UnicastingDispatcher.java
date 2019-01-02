@@ -24,7 +24,6 @@ import java.util.concurrent.Executor;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.support.MessageHandlingRunnable;
 import org.springframework.util.Assert;
@@ -36,7 +35,7 @@ import org.springframework.util.Assert;
  * soon as <em>one</em> of the handlers accepts the Message, the dispatcher will
  * return <code>true</code> and ignore the rest of its handlers.
  * <p>
- * If the dispatcher has no handlers, a {@link MessageDeliveryException} will be
+ * If the dispatcher has no handlers, a {@link MessageDispatchingException} will be
  * thrown. If all handlers throw Exceptions, the dispatcher will throw an
  * {@link AggregateMessageDeliveryException}.
  * <p>

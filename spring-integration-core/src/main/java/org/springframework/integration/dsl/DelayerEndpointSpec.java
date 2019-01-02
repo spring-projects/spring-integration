@@ -30,10 +30,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
@@ -106,7 +103,8 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 	}
 
 	/**
-	 * Set a message channel to which an {@link ErrorMessage} will be sent if sending the
+	 * Set a message channel to which an
+	 * {@link org.springframework.messaging.support.ErrorMessage} will be sent if sending the
 	 * released message fails. If the error flow returns normally, the release is complete.
 	 * If the error flow throws an exception, the release will be re-attempted.
 	 * If there is a transaction advice on the release task, the error flow is called
@@ -123,7 +121,8 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 	}
 
 	/**
-	 * Set a message channel name to which an {@link ErrorMessage} will be sent if sending
+	 * Set a message channel name to which an
+	 * {@link org.springframework.messaging.support.ErrorMessage} will be sent if sending
 	 * the released message fails. If the error flow returns normally, the release is
 	 * complete. If the error flow throws an exception, the release will be re-attempted.
 	 * If there is a transaction advice on the release task, the error flow is called
@@ -167,8 +166,10 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
-	 * {@link PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
-	 * {@link MessageHandler}.
+	 * {@link PlatformTransactionManager} and
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute} for
+	 * the
+	 * {@link org.springframework.messaging.MessageHandler}.
 	 * @return the spec.
 	 * @since 5.0.8
 	 */
@@ -179,7 +180,8 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 	}
 
 	/**
-	 * Specify a {@link TransactionInterceptor} {@link Advice} for the {@link MessageHandler}.
+	 * Specify a {@link TransactionInterceptor} {@link Advice} for the
+	 * {@link org.springframework.messaging.MessageHandler}.
 	 * @param transactionInterceptor the {@link TransactionInterceptor} to use.
 	 * @return the spec.
 	 * @see TransactionInterceptorBuilder
@@ -191,8 +193,9 @@ public final class DelayerEndpointSpec extends ConsumerEndpointSpec<DelayerEndpo
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
-	 * for the {@link MessageHandler}.
+	 * {@code PlatformTransactionManager} and default
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
+	 * for the {@link org.springframework.messaging.MessageHandler}.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
 	 * @since 5.0.8

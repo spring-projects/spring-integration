@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,20 @@ import java.nio.channels.FileLock;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.messaging.MessagingException;
 
 /**
  * File locking strategy that uses java.nio. The locks taken by FileChannel are shared with all the threads in a single
  * JVM, so this locking strategy <b>does not</b> prevent files being picked up multiple times within the same JVM.
- * {@link FileReadingMessageSource}s sharing a Locker will not pick up the same files.
+ * {@link org.springframework.integration.file.FileReadingMessageSource}s sharing a
+ * Locker will not pick up the same files.
  * <p>
  * This implementation will acquire or create a {@link FileLock} for the given file. Caching locks might be expensive,
  * so this locking strategy is not recommended for scenarios where many files are accessed in parallel.
  *
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class NioFileLocker extends AbstractFileLockerFilter {

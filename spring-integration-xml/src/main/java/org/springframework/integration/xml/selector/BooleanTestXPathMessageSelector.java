@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,25 @@ package org.springframework.integration.xml.selector;
 
 import java.util.Map;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.Message;
 import org.springframework.xml.xpath.XPathExpression;
 
 /**
- * Boolean XPath testing {@link MessageSelector}. Requires an XPathExpression
+ * Boolean XPath testing {@link org.springframework.integration.core.MessageSelector}.
+ * Requires an XPathExpression
  * which can be evaluated using {@link XPathExpression#evaluateAsBoolean(Node)}.
- * Supports payloads of type {@link Document} or {@link String}.
+ * Supports payloads of type {@link org.w3c.dom.Document} or {@link String}.
  *
  * @author Jonas Partner
+ * @author Gary Russell
  */
 public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelector {
 
 	/**
-	 * Create a boolean testing XPath {@link MessageSelector} supporting
-	 * multiple namespaces.
+	 * Create a boolean testing XPath {@link org.springframework.integration.core.MessageSelector}
+	 * supporting multiple namespaces.
 	 *
 	 * @param expression XPath expression as a String
 	 * @param namespaces Map of namespaces where the keys are namespace prefixes
@@ -46,7 +46,9 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	}
 
 	/**
-	 * Create a boolean testing XPath {@link MessageSelector} supporting a single namespace.
+	 * Create a boolean testing XPath
+	 * {@link org.springframework.integration.core.MessageSelector} supporting a single
+	 * namespace.
 	 *
 	 * @param expression XPath expression as a String
 	 * @param prefix namespace prefix
@@ -57,7 +59,9 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	}
 
 	/**
-	 * Create a boolean testing XPath {@link MessageSelector} with no namespace support.
+	 * Create a boolean testing XPath
+	 * {@link org.springframework.integration.core.MessageSelector} with no namespace
+	 * support.
 	 *
 	 * @param expression XPath expression as a String
 	 */
@@ -66,8 +70,9 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	}
 
 	/**
-	 * Create a boolean testing XPath {@link MessageSelector} using the
-	 * provided {@link XPathExpression}.
+	 * Create a boolean testing XPath
+	 * {@link org.springframework.integration.core.MessageSelector} using the provided
+	 * {@link XPathExpression}.
 	 *
 	 * @param expression XPath expression
 	 */
@@ -79,6 +84,7 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	/**
 	 * Return true if the {@link XPathExpression} evaluates to <code>true</code>
 	 */
+	@Override
 	public boolean accept(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
 		return getXPathExpresion().evaluateAsBoolean(node);

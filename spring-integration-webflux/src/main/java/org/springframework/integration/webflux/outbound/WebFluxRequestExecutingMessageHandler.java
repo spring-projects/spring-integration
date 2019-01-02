@@ -20,7 +20,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -35,7 +34,6 @@ import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.outbound.AbstractHttpRequestExecutingMessageHandler;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.web.reactive.function.BodyExtractor;
@@ -49,11 +47,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * A {@link MessageHandler} implementation that executes HTTP requests by delegating
- * to a Reactive {@link WebClient} instance.
+ * A {@link org.springframework.messaging.MessageHandler} implementation that executes
+ * HTTP requests by delegating to a Reactive {@link WebClient} instance.
  *
  * @author Shiliang Li
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  *
@@ -109,7 +108,7 @@ public class WebFluxRequestExecutingMessageHandler extends AbstractHttpRequestEx
 	/**
 	 * Create a handler that will send requests to the provided URI using a provided WebClient.
 	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
-	 * {@link BeanFactory}.
+	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param webClient The WebClient to use.
 	 */
 	public WebFluxRequestExecutingMessageHandler(Expression uriExpression, WebClient webClient) {

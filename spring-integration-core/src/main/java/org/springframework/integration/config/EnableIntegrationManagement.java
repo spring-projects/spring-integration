@@ -23,7 +23,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
-import org.springframework.integration.support.management.IntegrationManagement;
 
 /**
  * Enables default configuring of management in Spring Integration components in an existing application.
@@ -100,11 +99,12 @@ public @interface EnableIntegrationManagement {
 	 * time.
 	 * <p>
 	 * Set this to false to disable logging by default in all framework components that implement
-	 * {@link IntegrationManagement} (channels, message handlers etc). This turns off logging such as
+	 * {@link org.springframework.integration.support.management.IntegrationManagement}
+	 * (channels, message handlers etc). This turns off logging such as
 	 * "PreSend on channel", "Received message" etc.
 	 * <p>
 	 * After the context is initialized, individual components can have their setting changed by invoking
-	 * {@link IntegrationManagement#setLoggingEnabled(boolean)}.
+	 * {@link org.springframework.integration.support.management.IntegrationManagement#setLoggingEnabled(boolean)}.
 	 * @return the value; true by default.
 	 */
 	String defaultLoggingEnabled() default "true";

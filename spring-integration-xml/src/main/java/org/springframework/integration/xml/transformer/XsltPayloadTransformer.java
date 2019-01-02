@@ -39,7 +39,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
-import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
@@ -62,7 +61,8 @@ import org.springframework.xml.transform.StringSource;
  * {@link Document} payload in results in {@link Document} payload out
  * <p>
  * {@link Source} payload in results in {@link Result} payload out, type will be
- * determined by the {@link ResultFactory}, {@link DomResultFactory} by default.
+ * determined by the {@link ResultFactory},
+ * {@link org.springframework.integration.xml.result.DomResultFactory} by default.
  * If an instance of {@link ResultTransformer} is registered this will be used
  * to convert the result.
  * <p>

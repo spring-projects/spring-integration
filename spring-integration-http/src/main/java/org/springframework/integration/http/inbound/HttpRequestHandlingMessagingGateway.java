@@ -31,11 +31,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpRequestHandler;
 
 /**
@@ -47,11 +45,14 @@ import org.springframework.web.HttpRequestHandler;
  * <p>
  * The default supported request methods are GET and POST, but the list of values can be configured with the
  * {@link RequestMapping#methods} property. The payload generated from a GET request (or HEAD or OPTIONS if supported) will
- * be a {@link MultiValueMap} containing the parameter values. For a request containing a body (e.g. a POST), the type
+ * be a {@link org.springframework.util.MultiValueMap} containing the parameter values. For a request containing a body
+ * (e.g. a POST), the type
  * of the payload is determined by the {@link #setRequestPayloadTypeClass(Class)} request payload type}.
  * <p>
  * If the HTTP request is a multipart and a "multipartResolver" bean has been defined in the context, then it will be
- * converted by the {@link MultipartAwareFormHttpMessageConverter} as long as the default message converters have not
+ * converted by the
+ * {@link org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter} as long as the default
+ * message converters have not
  * been overwritten (although providing a customized instance of the Multipart-aware converter is also an option).
  * <p>
  * By default a number of {@link HttpMessageConverter}s are already configured. The list can be overridden by calling
@@ -60,6 +61,7 @@ import org.springframework.web.HttpRequestHandler;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.0
  */
@@ -93,6 +95,7 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received. That
 	 * response will be written by the {@link HttpMessageConverter}s.
 	 */
+	@Override
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws IOException {
 

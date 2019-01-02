@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2014 the original author or authors.
+ * Copyright 2001-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.ip;
 
-import java.net.DatagramSocket;
-import java.net.Socket;
-
 /**
  * @author Gary Russell
  * @since 2.0
@@ -26,24 +23,24 @@ import java.net.Socket;
 public interface CommonSocketOptions {
 
 	/**
-	 * @see Socket#setSoTimeout(int)
-	 * @see DatagramSocket#setSoTimeout(int)
+	 * @see java.net.Socket#setSoTimeout(int)
+	 * @see java.net.DatagramSocket#setSoTimeout(int)
 	 *
 	 * @param soTimeout The timeout.
 	 */
 	void setSoTimeout(int soTimeout);
 
 	/**
-	 * @see Socket#setReceiveBufferSize(int)
-	 * @see DatagramSocket#setReceiveBufferSize(int)
+	 * @see java.net.Socket#setReceiveBufferSize(int)
+	 * @see java.net.DatagramSocket#setReceiveBufferSize(int)
 	 *
 	 * @param soReceiveBufferSize The receive buffer size.
 	 */
 	void setSoReceiveBufferSize(int soReceiveBufferSize);
 
 	/**
-	 * @see Socket#setSendBufferSize(int)
-	 * @see DatagramSocket#setSendBufferSize(int)
+	 * @see java.net.Socket#setSendBufferSize(int)
+	 * @see java.net.DatagramSocket#setSendBufferSize(int)
 	 *
 	 * @param soSendBufferSize The send buffer size.
 	 */

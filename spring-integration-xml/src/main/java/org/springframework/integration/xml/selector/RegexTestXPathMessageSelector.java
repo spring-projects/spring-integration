@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,17 @@ import java.util.Map;
 
 import org.w3c.dom.Node;
 
-import org.springframework.integration.core.MessageSelector;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xml.xpath.XPathExpression;
 
 /**
- * XPath {@link MessageSelector} that tests if a provided String value
- * matches a given Regular Expression.
+ * XPath {@link org.springframework.integration.core.MessageSelector} that tests if a
+ * provided String value matches a given Regular Expression.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector {
@@ -95,6 +95,7 @@ public class RegexTestXPathMessageSelector extends AbstractXPathMessageSelector 
 	 * Evaluate the payload and return true if the value returned by the
 	 * {@link XPathExpression} matches the <code>regex</code>.
 	 */
+	@Override
 	public boolean accept(Message<?> message) {
 		Node nodeToTest = getConverter().convertToNode(message.getPayload());
 		String xPathResult = getXPathExpresion().evaluateAsString(nodeToTest);

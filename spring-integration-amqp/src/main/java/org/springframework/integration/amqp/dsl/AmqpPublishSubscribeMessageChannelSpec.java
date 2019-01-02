@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ package org.springframework.integration.amqp.dsl;
 
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
-import org.springframework.integration.amqp.config.AmqpChannelFactoryBean;
 
 /**
- * A {@link AmqpMessageChannelSpec} for {@link PublishSubscribeAmqpChannel}s.
+ * A {@link AmqpMessageChannelSpec} for
+ * {@link org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel}s.
  *
  * @author Artem Bilan
  * @since 5.0
@@ -38,7 +37,7 @@ public class AmqpPublishSubscribeMessageChannelSpec
 	/**
 	 * @param exchange the exchange.
 	 * @return the spec.
-	 * @see AmqpChannelFactoryBean#setExchange(FanoutExchange)
+	 * @see org.springframework.integration.amqp.config.AmqpChannelFactoryBean#setExchange(FanoutExchange)
 	 */
 	public AmqpPublishSubscribeMessageChannelSpec exchange(FanoutExchange exchange) {
 		this.amqpChannelFactoryBean.setExchange(exchange);

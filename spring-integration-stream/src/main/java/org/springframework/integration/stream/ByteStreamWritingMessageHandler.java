@@ -22,11 +22,11 @@ import java.io.OutputStream;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
 /**
- * A {@link MessageHandler} that writes a byte array to an {@link OutputStream}.
+ * A {@link org.springframework.messaging.MessageHandler} that writes a byte array to an
+ * {@link OutputStream}.
  *
  * @author Mark Fisher
  * @author Gary Russell

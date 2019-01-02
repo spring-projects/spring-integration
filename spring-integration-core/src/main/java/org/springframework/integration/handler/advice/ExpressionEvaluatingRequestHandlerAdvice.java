@@ -25,12 +25,11 @@ import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.message.AdviceMessage;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.ErrorMessage;
 
 /**
- * Used to advise {@link MessageHandler}s.
+ * Used to advise {@link org.springframework.messaging.MessageHandler}s.
  * Two expressions 'onSuccessExpression' and 'onFailureExpression' are evaluated when
  * appropriate. If the evaluation returns a result, a message is sent to the onSuccessChannel
  * or onFailureChannel as appropriate; the message is an {@link AdviceMessage}

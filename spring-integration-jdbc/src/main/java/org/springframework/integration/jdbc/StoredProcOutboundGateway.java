@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 package org.springframework.integration.jdbc;
 
-import java.sql.CallableStatement;
 import java.util.Map;
 
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -62,10 +60,11 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 * the Stored Procedure/Function Call. If set to {@code true}, a {@code resultMap} that contains
 	 * only 1 element, will have that 1 element extracted and returned as payload.
 	 * <p> If the {@code resultMap} contains more than 1 element and {@code expectSingleResult == true},
-	 * then a {@link MessagingException} is thrown.
+	 * then a {@link org.springframework.messaging.MessagingException} is thrown.
 	 * <p> Otherwise the complete {@code resultMap} is returned as the {@link Message} payload.
 	 * <p> Important Note: Several databases such as H2 are not fully supported.
-	 * The H2 database, for example, does not fully support the {@link CallableStatement}
+	 * The H2 database, for example, does not fully support the
+	 * {@link java.sql.CallableStatement}
 	 * semantics and when executing function calls against H2, a result list is
 	 * returned rather than a single value.
 	 * <p> Therefore, even if you set {@code expectSingleResult = true}, you may end up with

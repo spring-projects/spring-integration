@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.springframework.integration.dsl.ComponentsRegistration;
 import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
-import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.support.FileExistsMode;
@@ -136,11 +135,11 @@ public class FileWritingMessageHandlerSpec
 	}
 
 	/**
-	 * Specify whether to delete source Files after writing to the destination
-	 * directory. The default is <em>false</em>. When set to <em>true</em>, it
-	 * will only have an effect if the inbound Message has a File payload or
-	 * a {@link FileHeaders#ORIGINAL_FILE} header value containing either a
-	 * File instance or a String representing the original file path.
+	 * Specify whether to delete source Files after writing to the destination directory.
+	 * The default is <em>false</em>. When set to <em>true</em>, it will only have an
+	 * effect if the inbound Message has a File payload or a
+	 * {@link org.springframework.integration.file.FileHeaders#ORIGINAL_FILE} header value
+	 * containing either a File instance or a String representing the original file path.
 	 * @param deleteSourceFiles true to delete the source files.
 	 * @return the current Spec
 	 */

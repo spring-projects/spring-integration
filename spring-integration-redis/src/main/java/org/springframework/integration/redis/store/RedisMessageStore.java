@@ -28,12 +28,12 @@ import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.redis.util.RedisUtils;
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
-import org.springframework.integration.store.MessageGroupStore;
-import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 
 /**
- * Redis implementation of the key/value style {@link MessageStore} and {@link MessageGroupStore}
+ * Redis implementation of the key/value style
+ * {@link org.springframework.integration.store.MessageStore} and
+ * {@link org.springframework.integration.store.MessageGroupStore}
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell

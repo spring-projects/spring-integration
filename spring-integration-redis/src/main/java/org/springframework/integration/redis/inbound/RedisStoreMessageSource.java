@@ -21,7 +21,6 @@ import java.util.Collection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
 import org.springframework.data.redis.support.collections.RedisStore;
@@ -77,7 +76,8 @@ public class RedisStoreMessageSource extends AbstractMessageSource<RedisStore> {
 	 * Creates an instance with the provided {@link RedisConnectionFactory} and SpEL expression
 	 * which should resolve to a 'key' name of the collection to be used.
 	 * It will create and initialize an instance of {@link StringRedisTemplate} that uses
-	 * {@link StringRedisSerializer} for all serialization.
+	 * {@link org.springframework.data.redis.serializer.StringRedisSerializer} for all
+	 * serialization.
 	 * The 'keyExpression' will be evaluated on every call to the {@link #receive()} method.
 	 * @param connectionFactory The connection factory.
 	 * @param keyExpression The key expression.

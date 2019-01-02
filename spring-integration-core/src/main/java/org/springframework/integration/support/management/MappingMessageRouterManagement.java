@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.Properties;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.messaging.core.DestinationResolver;
 
 /**
  * Exposes channel mapping operations when the router is proxied.
@@ -68,7 +67,8 @@ public interface MappingMessageRouterManagement {
 
 	/**
 	 * Provide mappings from channel keys to channel names.
-	 * Channel names will be resolved by the {@link DestinationResolver}.
+	 * Channel names will be resolved by the
+	 * {@link org.springframework.messaging.core.DestinationResolver}.
 	 * @param channelMappings The channel mappings.
 	 * @since 4.0
 	 */

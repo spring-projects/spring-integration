@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
@@ -43,8 +42,9 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
 /**
- * This implementation of {@link MessageSource} will produce individual
- * {@link SyndEntry}s for a feed identified with the 'feedUrl' attribute.
+ * This implementation of {@link org.springframework.integration.core.MessageSource} will
+ * produce individual {@link SyndEntry}s for a feed identified with the 'feedUrl'
+ * attribute.
  *
  * @author Josh Long
  * @author Mario Gray

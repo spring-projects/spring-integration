@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
@@ -32,13 +29,14 @@ public interface TcpSocketFactorySupport {
 
 	/**
 	 * Supplies the {@link ServerSocketFactory} to be used to create new
-	 * {@link ServerSocket}s.
+	 * {@link java.net.ServerSocket}s.
 	 * @return the ServerSocketFactory
 	 */
 	ServerSocketFactory getServerSocketFactory();
 
 	/**
-	 * Supplies the {@link SocketFactory} to be used to create new {@link Socket}s.
+	 * Supplies the {@link SocketFactory} to be used to create new
+	 * {@link java.net.Socket}s.
 	 * @return the SocketFactory
 	 */
 	SocketFactory getSocketFactory();

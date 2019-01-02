@@ -29,7 +29,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
@@ -37,7 +36,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * A {@link MessageHandler} implementation for sending mail.
+ * A {@link org.springframework.messaging.MessageHandler} implementation for sending mail.
  *
  * <p>If the Message is an instance of {@link MailMessage}, it will be passed
  * as-is. If the Message payload is a byte array, it will be passed as an

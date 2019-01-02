@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.Lifecycle;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -53,7 +52,7 @@ import org.springframework.util.Assert;
  * (or times out). Asynchronous requests/responses over the same connection are not
  * supported - use a pair of outbound/inbound adapters for that use case.
  * <p>
- * {@link SmartLifecycle} methods delegate to the underlying {@link AbstractConnectionFactory}
+ * {@link Lifecycle} methods delegate to the underlying {@link AbstractConnectionFactory}
  *
  *
  * @author Gary Russell

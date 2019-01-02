@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file.remote;
 
-import org.springframework.integration.file.remote.session.Session;
-
 /**
  * {@code RemoteFileTemplate} callback with the underlying client instance providing
  * access to lower level methods.
@@ -33,10 +31,11 @@ import org.springframework.integration.file.remote.session.Session;
 public interface ClientCallback<C, T> {
 
 	/**
-	 * Called within the context of a {@link Session}.
-	 * Perform some operation(s) on the client instance underlying the session. The caller will take
-	 * care of closing the session after this method exits. However, the implementation
-	 * is required to perform any clean up required by the client after performing
+	 * Called within the context of a
+	 * {@link org.springframework.integration.file.remote.session.Session}. Perform some
+	 * operation(s) on the client instance underlying the session. The caller will take
+	 * care of closing the session after this method exits. However, the implementation is
+	 * required to perform any clean up required by the client after performing
 	 * operations.
 	 * @param client The client instance.
 	 * @return The return value.

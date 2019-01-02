@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,19 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 
-import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.oxm.Marshaller;
 import org.springframework.util.Assert;
 
 /**
- * An implementation of {@link AbstractTransformer} that delegates to an OXM {@link Marshaller}.
+ * An implementation of
+ * {@link org.springframework.integration.transformer.AbstractTransformer} that delegates
+ * to an OXM {@link Marshaller}.
  *
  * @author Mark Fisher
  * @author Jonas Partner
+ * @author Gary Russell
  */
 public class MarshallingTransformer extends AbstractXmlTransformer {
 

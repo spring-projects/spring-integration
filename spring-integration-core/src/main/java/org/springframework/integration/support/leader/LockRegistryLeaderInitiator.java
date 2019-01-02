@@ -35,8 +35,6 @@ import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.DefaultCandidate;
 import org.springframework.integration.leader.event.DefaultLeaderEventPublisher;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
-import org.springframework.integration.leader.event.OnGrantedEvent;
-import org.springframework.integration.leader.event.OnRevokedEvent;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
@@ -80,8 +78,9 @@ public class LockRegistryLeaderInitiator implements SmartLifecycle, DisposableBe
 
 	/**
 	 * Candidate for leader election. User injects this to receive callbacks on leadership
-	 * events. Alternatively applications can listen for the {@link OnGrantedEvent} and
-	 * {@link OnRevokedEvent}, as long as the
+	 * events. Alternatively applications can listen for the
+	 * {@link org.springframework.integration.leader.event.OnGrantedEvent} and
+	 * {@link org.springframework.integration.leader.event.OnRevokedEvent}, as long as the
 	 * {@link #setLeaderEventPublisher(LeaderEventPublisher) leaderEventPublisher} is set.
 	 */
 	private final Candidate candidate;

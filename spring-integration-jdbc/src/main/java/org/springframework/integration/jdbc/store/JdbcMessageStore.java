@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -62,7 +61,8 @@ import org.springframework.util.StringUtils;
  * tables are packaged as <code>org/springframework/integration/jdbc/schema-*.sql</code>, where <code>*</code> is the
  * target database type.
  * <p>
- * If you intend backing a {@link MessageChannel} using a JDBC-based Message Store,
+ * If you intend backing a {@link org.springframework.messaging.MessageChannel}
+ * using a JDBC-based Message Store,
  * please consider using the channel-specific {@link JdbcChannelMessageStore} instead.
  * This implementation is intended for correlation components (e.g. {@code <aggregator>}),
  * {@code <delayer>} and similar.

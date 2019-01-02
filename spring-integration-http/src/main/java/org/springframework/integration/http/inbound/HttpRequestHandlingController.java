@@ -23,7 +23,6 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.context.MessageSource;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -33,7 +32,6 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.Errors;
 import org.springframework.validation.MapBindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
@@ -112,8 +110,8 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	}
 
 	/**
-	 * The key used to expose {@link Errors} in the core, in the case that message handling fails. Defaults to
-	 * "errors".
+	 * The key used to expose {@link org.springframework.validation.Errors} in the core,
+	 * in the case that message handling fails. Defaults to "errors".
 	 * @param errorsKey The key value to set.
 	 */
 	public void setErrorsKey(String errorsKey) {
@@ -122,7 +120,8 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 
 	/**
 	 * The error code to use to signal an error in the message handling. In the case of an error this code will be
-	 * provided in an object error to be optionally translated in the standard MVC way using a {@link MessageSource}.
+	 * provided in an object error to be optionally translated in the standard MVC way using a
+	 * {@link org.springframework.context.MessageSource}.
 	 * The default value is <code>spring.integration.http.handler.error</code>. Three arguments are provided: the
 	 * exception, its message and its stack trace as a String.
 	 * @param errorCode The error code to set.

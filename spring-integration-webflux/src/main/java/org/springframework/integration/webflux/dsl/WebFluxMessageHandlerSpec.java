@@ -27,15 +27,13 @@ import org.springframework.integration.webflux.outbound.WebFluxRequestExecutingM
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 /**
  * The {@link BaseHttpMessageHandlerSpec} implementation for the {@link WebFluxRequestExecutingMessageHandler}.
  *
  * @author Shiliang Li
  * @author Artem Bilan
  * @author Abhijit Sarkar
+ * @author Gary Russell
  *
  * @since 5.0
  *
@@ -60,11 +58,15 @@ public class WebFluxMessageHandlerSpec
 	}
 
 	/**
-	 * The boolean flag to identify if the reply payload should be as a {@link Flux} from the response body
-	 * or as resolved value from the {@link Mono} of the response body.
+	 * The boolean flag to identify if the reply payload should be as a
+	 * {@link reactor.core.publisher.Flux} from the response body
+	 * or as resolved value from the {@link reactor.core.publisher.Mono}
+	 * of the response body.
 	 * Defaults to {@code false} - simple value is pushed downstream.
 	 * Makes sense when {@code expectedResponseType} is configured.
-	 * @param replyPayloadToFlux represent reply payload as a {@link Flux} or as a value from the {@link Mono}.
+	 * @param replyPayloadToFlux represent reply payload as a
+	 * {@link reactor.core.publisher.Flux} or as a value from the
+	 * {@link reactor.core.publisher.Mono}.
 	 * @return the spec
 	 * @since 5.0.1
 	 * @see WebFluxRequestExecutingMessageHandler#setReplyPayloadToFlux(boolean)

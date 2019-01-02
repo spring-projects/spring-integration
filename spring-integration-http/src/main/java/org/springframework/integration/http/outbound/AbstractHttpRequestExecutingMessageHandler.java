@@ -56,7 +56,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -115,10 +114,10 @@ public abstract class AbstractHttpRequestExecutingMessageHandler extends Abstrac
 
 	/**
 	 * Specify whether the real URI should be encoded after <code>uriVariables</code>
-	 * expanding and before send request via {@link RestTemplate}. The default value is <code>true</code>.
-	 *
+	 * expanding and before send request via
+	 * {@link org.springframework.web.client.RestTemplate}. The default value is
+	 * <code>true</code>.
 	 * @param encodeUri true if the URI should be encoded.
-	 *
 	 * @see UriComponentsBuilder
 	 */
 	public void setEncodeUri(boolean encodeUri) {

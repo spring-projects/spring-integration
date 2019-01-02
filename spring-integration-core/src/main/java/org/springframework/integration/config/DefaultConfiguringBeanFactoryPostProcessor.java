@@ -68,7 +68,6 @@ import org.springframework.integration.support.converter.ConfigurableCompositeMe
 import org.springframework.integration.support.converter.DefaultDatatypeChannelMessageConverter;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.integration.support.utils.IntegrationUtils;
-import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
 
@@ -467,8 +466,8 @@ class DefaultConfiguringBeanFactoryPostProcessor
 	}
 
 	/**
-	 * Register the default {@link CompositeMessageConverter} for argument resolvers
-	 * during handler method invocation.
+	 * Register the default {@link ConfigurableCompositeMessageConverter} for argument
+	 * resolvers during handler method invocation.
 	 */
 	private void registerArgumentResolverMessageConverter() {
 		if (!this.beanFactory.containsBean(IntegrationContextUtils.ARGUMENT_RESOLVER_MESSAGE_CONVERTER_BEAN_NAME)) {

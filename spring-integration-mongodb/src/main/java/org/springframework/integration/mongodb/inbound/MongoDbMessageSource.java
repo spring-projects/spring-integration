@@ -29,13 +29,11 @@ import org.springframework.expression.TypeLocator;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeLocator;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.mongodb.support.MongoHeaders;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.transaction.IntegrationResourceHolder;
-import org.springframework.messaging.Message;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -43,14 +41,15 @@ import org.springframework.util.CollectionUtils;
 import com.mongodb.DBObject;
 
 /**
- * An instance of {@link MessageSource} which returns a {@link Message} with a payload
- * which is the result of execution of a {@link Query}. When expectSingleResult is false
- * (default),
- * the MongoDb {@link Query} is executed using {@link MongoOperations#find(Query, Class)}
- * method which returns a {@link List}. The returned {@link List} will be used as
- * the payoad of the {@link Message} returned by the {{@link #receive()} method.
- * An empty {@link List} is treated as null, thus resulting in no {@link Message} returned
- * by the {{@link #receive()} method.
+ * An instance of {@link org.springframework.integration.core.MessageSource} which returns
+ * a {@link org.springframework.messaging.Message} with a payload which is the result of
+ * execution of a {@link Query}. When expectSingleResult is false (default), the MongoDb
+ * {@link Query} is executed using {@link MongoOperations#find(Query, Class)} method which
+ * returns a {@link List}. The returned {@link List} will be used as the payoad of the
+ * {@link org.springframework.messaging.Message} returned by the {{@link #receive()}
+ * method. An empty {@link List} is treated as null, thus resulting in no
+ * {@link org.springframework.messaging.Message} returned by the {{@link #receive()}
+ * method.
  * <p>
  * When expectSingleResult is true, the {@link MongoOperations#findOne(Query, Class)} is
  * used instead, and the message payload will be the single object returned from the
@@ -60,6 +59,7 @@ import com.mongodb.DBObject;
  * @author Oleg Zhurakousky
  * @author Yaron Yamin
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.2
  */
@@ -133,7 +133,8 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	 * Default is 'false', which means the {@link #receive()} method will use
 	 * the {@link MongoTemplate#find(Query, Class)} method. If set to 'true',
 	 * {@link #receive()} will use {@link MongoTemplate#findOne(Query, Class)},
-	 * and the payload of the returned {@link Message} will be the returned target Object of type
+	 * and the payload of the returned {@link org.springframework.messaging.Message}
+	 * will be the returned target Object of type
 	 * identified by {{@link #entityClass} instead of a List.
 	 * @param expectSingleResult true if a single result is expected.
 	 */
@@ -189,7 +190,8 @@ public class MongoDbMessageSource extends AbstractMessageSource<Object> {
 	 * The payload can be either {@link List} of elements of objects of type
 	 * identified by {{@link #entityClass}, or a single element of type identified by {{@link #entityClass}
 	 * based on the value of {{@link #expectSingleResult} attribute which defaults to 'false' resulting
-	 * {@link Message} with payload of type {@link List}. The collection name used in the
+	 * {@link org.springframework.messaging.Message} with payload of type
+	 * {@link List}. The collection name used in the
 	 * query will be provided in the {@link MongoHeaders#COLLECTION_NAME} header.
 	 */
 	@Override

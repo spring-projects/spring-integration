@@ -30,13 +30,8 @@ import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileLocker;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.config.FileListFilterFactoryBean;
-import org.springframework.integration.file.filters.AcceptAllFileListFilter;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.ExpressionFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.filters.IgnoreHiddenFileListFilter;
-import org.springframework.integration.file.filters.RegexPatternFileListFilter;
-import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.integration.file.locking.NioFileLocker;
 import org.springframework.util.Assert;
 
@@ -144,9 +139,12 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
-	 * Configure an {@link AcceptOnceFileListFilter} if {@code preventDuplicates == true},
-	 * otherwise - {@link AcceptAllFileListFilter}.
-	 * @param preventDuplicates true to configure an {@link AcceptOnceFileListFilter}.
+	 * Configure an
+	 * {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter} if
+	 * {@code preventDuplicates == true}, otherwise -
+	 * {@link org.springframework.integration.file.filters.AcceptAllFileListFilter}.
+	 * @param preventDuplicates true to configure an
+	 * {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter}.
 	 * @return the spec.
 	 */
 	public FileInboundChannelAdapterSpec preventDuplicates(boolean preventDuplicates) {
@@ -156,9 +154,11 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
-	 /**
-	 * Configure an {@link IgnoreHiddenFileListFilter} if {@code ignoreHidden == true}.
-	 * @param ignoreHidden true to configure an {@link IgnoreHiddenFileListFilter}.
+	 * Configure an
+	 * {@link org.springframework.integration.file.filters.IgnoreHiddenFileListFilter} if
+	 * {@code ignoreHidden == true}.
+	 * @param ignoreHidden true to configure an
+	 * {@link org.springframework.integration.file.filters.IgnoreHiddenFileListFilter}.
 	 * @return the spec.
 	 */
 	public FileInboundChannelAdapterSpec ignoreHidden(boolean ignoreHidden) {
@@ -168,7 +168,8 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
-	 * Configure a {@link SimplePatternFileListFilter}.
+	 * Configure a
+	 * {@link org.springframework.integration.file.filters.SimplePatternFileListFilter}.
 	 * @param pattern The pattern.
 	 * @return the spec.
 	 * @see FileReadingMessageSource#setFilter(FileListFilter)
@@ -181,7 +182,8 @@ public class FileInboundChannelAdapterSpec
 	}
 
 	/**
-	 * Configure a {@link RegexPatternFileListFilter}.
+	 * Configure a
+	 * {@link org.springframework.integration.file.filters.RegexPatternFileListFilter}.
 	 * @param regex The regex.
 	 * @return the spec.
 	 * @see FileReadingMessageSource#setFilter(FileListFilter)

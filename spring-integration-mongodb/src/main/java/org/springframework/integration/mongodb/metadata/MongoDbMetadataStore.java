@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 the original author or authors.
+ * Copyright 2015-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.util.Assert;
 
-import com.mongodb.DBCollection;
-
 /**
  * MongoDbMetadataStore implementation of {@link ConcurrentMetadataStore}.
  * Use this {@link org.springframework.integration.metadata.MetadataStore} to
@@ -40,6 +38,7 @@ import com.mongodb.DBCollection;
  *
  * @author Senthil Arumugam, Samiraj Panneer Selvam
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.2
  *
  */
@@ -104,7 +103,7 @@ public class MongoDbMetadataStore implements ConcurrentMetadataStore {
 	 * @param key the metadata entry key
 	 * @param value the metadata entry value
 	 * @see MongoTemplate#execute(String, org.springframework.data.mongodb.core.CollectionCallback)
-	 * @see DBCollection#save
+	 * @see com.mongodb.DBCollection#save
 	 */
 	@Override
 	public void put(String key, String value) {

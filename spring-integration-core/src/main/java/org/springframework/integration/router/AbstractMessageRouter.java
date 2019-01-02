@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -63,7 +62,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler imple
 	 * resolution fails to return any channels, the router will throw an
 	 * {@link MessageDeliveryException}.
 	 * <p>
-	 * If messages shall be ignored (dropped) instead, please provide a {@link NullChannel}.
+	 * If messages shall be ignored (dropped) instead, please provide a
+	 * {@link org.springframework.integration.channel.NullChannel}.
 	 * @param defaultOutputChannel The default output channel.
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {

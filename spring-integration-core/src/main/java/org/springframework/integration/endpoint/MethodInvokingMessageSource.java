@@ -20,14 +20,13 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * A {@link MessageSource} implementation that invokes a no-argument method so
- * that its return value may be sent to a channel.
+ * A {@link org.springframework.integration.core.MessageSource} implementation that
+ * invokes a no-argument method so that its return value may be sent to a channel.
  *
  * @author Mark Fisher
  * @author Gary Russell

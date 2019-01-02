@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,14 +25,14 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.ProxyMethodInvocation;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 
 /**
- * Base class for {@link MessageHandler} advice classes. Subclasses should provide
- * an implementation for {@link #doInvoke(ExecutionCallback, Object, Message)}.
- * Used to advise the handleRequestMessage method for {@link AbstractReplyProducingMessageHandler} or
+ * Base class for {@link MessageHandler} advice classes. Subclasses should provide an
+ * implementation for {@link #doInvoke(ExecutionCallback, Object, Message)}. Used to
+ * advise the handleRequestMessage method for
+ * {@link org.springframework.integration.handler.AbstractReplyProducingMessageHandler} or
  * {@link MessageHandler#handleMessage(Message)} for other message handlers.
  *
  * @author Gary Russell

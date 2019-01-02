@@ -19,7 +19,6 @@ package org.springframework.integration.amqp.dsl;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
-import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -149,7 +148,8 @@ public class AmqpPollableMessageChannelSpec<S extends AmqpPollableMessageChannel
 
 	/**
 	 * Configure the delivery mode for messages that don't have an
-	 * {@link AmqpHeaders#DELIVERY_MODE} header. Default is {@link MessageDeliveryMode#PERSISTENT}.
+	 * {@link org.springframework.amqp.support.AmqpHeaders#DELIVERY_MODE} header.
+	 * Default is {@link MessageDeliveryMode#PERSISTENT}.
 	 * @param mode the mode.
 	 * @return the spec.
 	 */

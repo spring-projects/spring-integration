@@ -20,14 +20,14 @@ import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * {@link MessageSource} implementation that delegates to a
+ * {@link org.springframework.integration.core.MessageSource} implementation that
+ * delegates to a
  * {@link MailReceiver} to poll a mailbox. Each poll of the mailbox may
  * return more than one message which will then be stored in a queue.
  *

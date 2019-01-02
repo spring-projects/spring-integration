@@ -16,9 +16,6 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import java.net.Socket;
-import java.nio.channels.SocketChannel;
-
 import javax.net.ssl.SSLSession;
 
 import org.springframework.core.serializer.Deserializer;
@@ -27,10 +24,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
- * An abstraction over {@link Socket} and {@link SocketChannel} that
- * sends {@link Message} objects by serializing the payload
- * and streaming it to the destination. Requires a {@link TcpListener}
- * to receive incoming messages.
+ * An abstraction over {@link java.net.Socket} and {@link java.nio.channels.SocketChannel}
+ * that sends {@link Message} objects by serializing the payload and streaming it to the
+ * destination. Requires a {@link TcpListener} to receive incoming messages.
  *
  * @author Gary Russell
  * @since 2.0
@@ -131,7 +127,7 @@ public interface TcpConnection extends Runnable {
 	SSLSession getSslSession();
 
 	/**
-	 * Provides getters for {@link Socket} properties.
+	 * Provides getters for {@link java.net.Socket} properties.
 	 * @return the socketInfo - may be null, for example in interceptors; interceptors
 	 * should override and delegate to the actual TcpConnection.
 	 * @since 4.3

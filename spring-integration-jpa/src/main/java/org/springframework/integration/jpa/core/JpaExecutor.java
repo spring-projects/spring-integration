@@ -20,7 +20,6 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -327,7 +326,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * Set the expression that will be evaluated to get the first result in the query executed.
 	 * If a null expression is set, all the results in the result set will be retrieved
 	 * @param firstResultExpression The first result expression.
-	 * @see Query#setFirstResult(int)
+	 * @see javax.persistence.Query#setFirstResult(int)
 	 */
 	public void setFirstResultExpression(Expression firstResultExpression) {
 		this.firstResultExpression = firstResultExpression;
@@ -357,7 +356,7 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	 * Set the max number of results to retrieve from the database. Defaults to
 	 * 0, which means that all possible objects shall be retrieved.
 	 * @param maxNumberOfResults Must not be negative.
-	 * @see Query#setMaxResults(int)
+	 * @see javax.persistence.Query#setMaxResults(int)
 	 */
 	public void setMaxNumberOfResults(int maxNumberOfResults) {
 		this.setMaxResultsExpression(new LiteralExpression("" + maxNumberOfResults));

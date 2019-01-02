@@ -41,13 +41,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.integration.support.locks.ExpirableLockRegistry;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Implementation of {@link LockRegistry} providing a distributed lock using Redis.
+ * Implementation of {@link ExpirableLockRegistry} providing a distributed lock using Redis.
  * Locks are stored under the key {@code registryKey:lockKey}. Locks expire after
  * (default 60) seconds. Threads unlocking an
  * expired lock will get an {@link IllegalStateException}. This should be

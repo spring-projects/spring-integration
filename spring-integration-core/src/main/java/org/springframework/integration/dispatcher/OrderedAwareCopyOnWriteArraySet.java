@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -29,7 +28,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -37,9 +35,10 @@ import org.springframework.util.StringUtils;
 /**
  * Special Set that maintains the following semantics:
  * All elements that are un-ordered (do not implement {@link Ordered} interface or annotated
- * {@link Order} annotation) will be stored in the order in which they were added.
- * However, for all {@link Ordered} elements a
- * {@link Comparator} (instantiated by default) for this implementation of {@link Set}, will be
+ * {@link org.springframework.core.annotation.Order} annotation) will be stored in the order
+ * in which they were added. However, for all {@link Ordered} elements a
+ * {@link java.util.Comparator} (instantiated by default) for this implementation of
+ * {@link Set}, will be
  * used. Those elements will have precedence over un-ordered elements. If elements have the same
  * order but themselves do not equal to one another the more recent addition will be placed to the
  * right of (appended next to) the existing element with the same order, thus preserving the order

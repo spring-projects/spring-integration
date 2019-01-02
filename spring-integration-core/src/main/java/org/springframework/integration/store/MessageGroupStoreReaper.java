@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 
@@ -63,7 +62,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 
 	/**
 	 * Flag to indicate that the stores should be expired when this component is destroyed (i.e. usually when its
-	 * enclosing {@link ApplicationContext} is closed).
+	 * enclosing {@link org.springframework.context.ApplicationContext} is closed).
 	 *
 	 * @param expireOnDestroy the flag value to set
 	 */
@@ -90,10 +89,12 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		this.messageGroupStore = messageGroupStore;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.state(this.messageGroupStore != null, "A MessageGroupStore must be provided");
 	}
 
+	@Override
 	public void destroy() throws Exception {
 		if (this.expireOnDestroy) {
 			if (this.isRunning()) {
@@ -110,6 +111,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	 * Expire all message groups older than the {@link #setTimeout(long) timeout} provided. Normally this method would
 	 * be executed by a scheduled task.
 	 */
+	@Override
 	public void run() {
 		if (this.timeout >= 0 && this.isRunning()) {
 			if (logger.isDebugEnabled()) {
@@ -120,6 +122,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		}
 	}
 
+	@Override
 	public final void start() {
 		this.lifecycleLock.lock();
 		try {
@@ -135,6 +138,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		}
 	}
 
+	@Override
 	public void stop() {
 		this.lifecycleLock.lock();
 		try {
@@ -154,6 +158,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		}
 	}
 
+	@Override
 	public final boolean isRunning() {
 		this.lifecycleLock.lock();
 		try {
@@ -164,6 +169,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		}
 	}
 
+	@Override
 	public int getPhase() {
 		return this.phase;
 	}
@@ -172,6 +178,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		this.phase = phase;
 	}
 
+	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
@@ -180,6 +187,7 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		this.autoStartup = autoStartup;
 	}
 
+	@Override
 	public void stop(Runnable callback) {
 		this.lifecycleLock.lock();
 		try {

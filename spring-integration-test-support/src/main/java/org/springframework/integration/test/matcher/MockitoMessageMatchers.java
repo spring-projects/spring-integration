@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ package org.springframework.integration.test.matcher;
 import java.util.Map;
 
 import org.hamcrest.Matcher;
-import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 
 import org.springframework.messaging.Message;
@@ -32,11 +30,11 @@ import org.springframework.messaging.Message;
  * This class contains expressive factory methods for the most common Mockito
  * matchers needed when matching {@link Message}s. If you need a different
  * matching strategy, any Hamcrest matcher can be used in Mockito through
- * {@link Mockito#argThat(ArgumentMatcher)}.
+ * {@link org.mockito.Mockito#argThat(org.mockito.ArgumentMatcher)}.
  *
  * Example usage:
  * <p>
- * With {@link Mockito#verify(Object)}:
+ * With {@link org.mockito.Mockito#verify(Object)}:
  * </p>
  *
  * <pre class="code">
@@ -50,7 +48,7 @@ import org.springframework.messaging.Message;
  * }
  * </pre>
  * <p>
- * With {@link Mockito#when(Object)}:
+ * With {@link org.mockito.Mockito#when(Object)}:
  * </p>
  *
  * <pre class="code">

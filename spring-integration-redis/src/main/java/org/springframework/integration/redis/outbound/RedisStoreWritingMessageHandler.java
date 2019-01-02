@@ -28,7 +28,6 @@ import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -46,21 +45,20 @@ import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.redis.support.RedisHeaders;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 
 /**
- * Implementation of {@link MessageHandler} which writes Message data into a Redis store
- * identified by a key {@link String}.
+ * Implementation of {@link org.springframework.messaging.MessageHandler} which writes
+ * Message data into a Redis store identified by a key {@link String}.
  *
  * It supports the collection types identified by {@link CollectionType}.
  *
  * It supports batch updates or single item entry.
  *
- * "Batch updates" means that the payload of the Message may be a Map or Collection.
- * With such a payload, individual items from it are added to the corresponding Redis store.
+ * "Batch updates" means that the payload of the Message may be a Map or Collection. With
+ * such a payload, individual items from it are added to the corresponding Redis store.
  * See {@link #handleMessageInternal(Message)} for more details.
  *
  * You can instead choose to persist such a payload as a single item if the
@@ -119,7 +117,9 @@ public class RedisStoreWritingMessageHandler extends AbstractMessageHandler {
 	 * Constructs an instance using the provided {@link RedisConnectionFactory}.
 	 * It will use either a {@link StringRedisTemplate} if {@link #extractPayloadElements} is
 	 * true (default) or a {@link RedisTemplate} with {@link StringRedisSerializer}s for
-	 * keys and hash keys and {@link JdkSerializationRedisSerializer}s for values and
+	 * keys and hash keys and
+	 * {@link org.springframework.data.redis.serializer.JdkSerializationRedisSerializer}s
+	 * for values and
 	 * hash values, when it is false.
 	 * @param connectionFactory The connection factory.
 	 * @see #setExtractPayloadElements(boolean)

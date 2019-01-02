@@ -21,19 +21,18 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 /**
  * The {@link JpaOutboundGatewayFactoryBean} creates instances of the
- * {@link JpaOutboundGateway}. Optionally this {@link FactoryBean} will add Aop
- * Advices (e.g. {@link TransactionInterceptor} to the {@link JpaOutboundGateway}
- * instance.
+ * {@link JpaOutboundGateway}. Optionally this
+ * {@link org.springframework.beans.factory.FactoryBean} will add Aop Advices (e.g.
+ * {@link org.springframework.transaction.interceptor.TransactionInterceptor} to the
+ * {@link JpaOutboundGateway} instance.
  *
  * @author Amol Nayak
  * @author Gunnar Hillert

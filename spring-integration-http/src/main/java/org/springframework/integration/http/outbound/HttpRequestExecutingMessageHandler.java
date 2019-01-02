@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,16 @@ import java.net.URI;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -41,14 +37,18 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * A {@link MessageHandler} implementation that executes HTTP requests by delegating
+ * A {@link org.springframework.messaging.MessageHandler}
+ * implementation that executes HTTP requests by delegating
  * to a {@link RestTemplate} instance. If the 'expectReply' flag is set to true (the default)
  * then a reply Message will be generated from the HTTP response. If that response contains
  * a body, it will be used as the reply Message's payload. Otherwise the reply Message's
- * payload will contain the response status as an instance of the {@link HttpStatus} enum.
- * When there is a response body, the {@link HttpStatus} enum instance will instead be
+ * payload will contain the response status as an instance of the
+ * {@link org.springframework.http.HttpStatus} enum.
+ * When there is a response body, the {@link org.springframework.http.HttpStatus} enum
+ * instance will instead be
  * copied to the MessageHeaders of the reply. In both cases, the response headers will
- * be mapped to the reply Message's headers by this handler's {@link HeaderMapper} instance.
+ * be mapped to the reply Message's headers by this handler's
+ * {@link org.springframework.integration.mapping.HeaderMapper} instance.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -108,7 +108,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractHttpRequestExecu
 	/**
 	 * Create a handler that will send requests to the provided URI using a provided RestTemplate
 	 * @param uriExpression A SpEL Expression that can be resolved against the message object and
-	 * {@link BeanFactory}.
+	 * {@link org.springframework.beans.factory.BeanFactory}.
 	 * @param restTemplate The rest template.
 	 */
 	public HttpRequestExecutingMessageHandler(Expression uriExpression, RestTemplate restTemplate) {

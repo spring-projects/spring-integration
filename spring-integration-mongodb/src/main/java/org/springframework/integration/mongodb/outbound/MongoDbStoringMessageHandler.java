@@ -26,10 +26,10 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.util.Assert;
 /**
- * Implementation of {@link MessageHandler} which writes Message payload into a MongoDb collection
+ * Implementation of {@link org.springframework.messaging.MessageHandler}
+ * which writes Message payload into a MongoDb collection
  * identified by evaluation of the {@link #collectionNameExpression}.
  *
  * @author Amol Nayak

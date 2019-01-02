@@ -26,8 +26,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.http.config.HttpContextUtils;
 import org.springframework.integration.http.inbound.BaseHttpInboundEndpoint;
 import org.springframework.integration.http.inbound.CrossOrigin;
-import org.springframework.integration.http.inbound.RequestMapping;
-import org.springframework.integration.webflux.support.WebFluxContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -51,15 +49,15 @@ import org.springframework.web.server.WebHandler;
  * bean with appropriate configuration for
  * {@link org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping}.
  * It is recommended to have only one similar bean in the application context using the 'id'
- * {@link WebFluxContextUtils#HANDLER_MAPPING_BEAN_NAME}.
+ * {@link org.springframework.integration.webflux.support.WebFluxContextUtils#HANDLER_MAPPING_BEAN_NAME}.
  * <p>
  * In most cases, Spring MVC offers to configure Request Mapping via
  * {@code org.springframework.stereotype.Controller} and
- * {@link org.springframework.web.bind.annotation.RequestMapping}.
+ * {@link org.springframework.integration.http.inbound.RequestMapping}.
  * That's why Spring MVC's Handler Mapping infrastructure relies on
  * {@link org.springframework.web.method.HandlerMethod}, as different methods at the same
  * {@code org.springframework.stereotype.Controller} user-class may have their own
- * {@link org.springframework.web.bind.annotation.RequestMapping}.
+ * {@link org.springframework.integration.http.inbound.RequestMapping}.
  * On the other side, all Spring Integration HTTP Inbound Endpoints are configured on
  * the basis of the same {@link org.springframework.integration.http.inbound.HttpRequestHandlingEndpointSupport}
  * class and there is no single {@link org.springframework.web.reactive.result.method.RequestMappingInfo}
@@ -75,10 +73,11 @@ import org.springframework.web.server.WebHandler;
  * them during the {@link WebFluxInboundEndpoint} destruction.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  *
- * @see RequestMapping
+ * @see org.springframework.integration.http.inbound.RequestMapping
  * @see RequestMappingHandlerMapping
  */
 public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappingHandlerMapping
@@ -129,7 +128,8 @@ public class WebFluxIntegrationRequestMappingHandlerMapping extends RequestMappi
 
 	/**
 	 * Create a {@link RequestMappingInfo} from
-	 * a Spring Integration Reactive HTTP Inbound Endpoint {@link RequestMapping}.
+	 * a Spring Integration Reactive HTTP Inbound Endpoint
+	 * {@link org.springframework.integration.http.inbound.RequestMapping}.
 	 * @see RequestMappingHandlerMapping#getMappingForMethod
 	 */
 	private RequestMappingInfo getMappingForEndpoint(WebFluxInboundEndpoint endpoint) {

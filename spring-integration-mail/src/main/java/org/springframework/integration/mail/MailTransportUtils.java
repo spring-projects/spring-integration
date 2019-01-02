@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2014 the original author or authors.
+ * Copyright 2007-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package org.springframework.integration.mail;
 import javax.mail.Folder;
 import javax.mail.MessagingException;
 import javax.mail.Service;
-import javax.mail.Store;
-import javax.mail.Transport;
 import javax.mail.URLName;
 
 import org.apache.commons.logging.Log;
@@ -44,8 +42,8 @@ public abstract class MailTransportUtils {
 	 * blocks in manual JavaMail code.
 	 *
 	 * @param service the JavaMail Service to close (may be <code>null</code>)
-	 * @see Transport
-	 * @see Store
+	 * @see javax.mail.Transport
+	 * @see javax.mail.Store
 	 */
 	public static void closeService(Service service) {
 		if (service != null) {

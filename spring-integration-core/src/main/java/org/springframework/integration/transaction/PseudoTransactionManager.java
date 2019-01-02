@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package org.springframework.integration.transaction;
 
-import org.springframework.integration.core.MessageSource;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionStatus;
 /**
- * An implementation of {@link PlatformTransactionManager} that provides transaction-like semantics to
- * {@link MessageSource}s that are not inherently transactional. It does <b>not</b> make such
+ * An implementation of {@link org.springframework.transaction.PlatformTransactionManager}
+ * that provides transaction-like semantics to
+ * {@link org.springframework.integration.core.MessageSource}s that are not inherently
+ * transactional. It does <b>not</b> make such
  * sources transactional; rather, together with a {@link TransactionSynchronizationFactory}, it provides
  * the ability to synchronize operations after a flow completes, via beforeCommit, afterCommit and
  * afterRollback operations.

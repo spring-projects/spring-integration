@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.integration.jpa.core;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 
 /**
@@ -28,6 +26,7 @@ import org.springframework.integration.jpa.support.parametersource.ParameterSour
  *
  * @author Amol Nayak
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.2
  *
  */
@@ -149,9 +148,11 @@ public interface JpaOperations {
 	Object getSingleResultForQuery(String query, ParameterSource source);
 
 	/**
-	 * The entity to be merged with the {@link EntityManager}. The provided object can
+	 * The entity to be merged with the {@link javax.persistence.EntityManager}.
+	 * The provided object can
 	 * also be an {@link Iterable} in which case each object of the {@link Iterable}
-	 * is treated as an entity and merged with the {@link EntityManager}. {@code Null}
+	 * is treated as an entity and merged with the
+	 * {@link javax.persistence.EntityManager}. {@code Null}
 	 * values returned while iterating over the {@link Iterable} are ignored.
 	 *
 	 * @param entity Must not be null.
@@ -160,9 +161,11 @@ public interface JpaOperations {
 	Object merge(Object entity);
 
 	/**
-	 * The entity to be merged with the {@link EntityManager}. The provided object can
+	 * The entity to be merged with the {@link javax.persistence.EntityManager}.
+	 * The provided object can
 	 * also be an {@link Iterable} in which case each object of the {@link Iterable}
-	 * is treated as an entity and merged with the {@link EntityManager}.
+	 * is treated as an entity and merged with the
+	 * {@link javax.persistence.EntityManager}.
 	 * In addition the {@link javax.persistence.EntityManager#flush()} is called after the merge
 	 * and after each batch, as it is specified using {@code flushSize} parameter and if
 	 * provided object is {@link Iterable}.
@@ -180,7 +183,8 @@ public interface JpaOperations {
 	/**
 	 * Persists the entity. The provided object can also be an {@link Iterable}
 	 * in which case each object of the {@link Iterable} is treated as an entity
-	 * and persisted with the {@link EntityManager}. {@code Null} values returned
+	 * and persisted with the {@link javax.persistence.EntityManager}.
+	 * {@code Null} values returned
 	 * while iterating over the {@link Iterable} are ignored.
 	 *
 	 * @param entity Must not be null
@@ -191,7 +195,8 @@ public interface JpaOperations {
 	/**
 	 * Persists the entity. The provided object can also be an {@link Iterable}
 	 * in which case each object of the {@link Iterable} is treated as an entity
-	 * and persisted with the {@link EntityManager}. {@code Null} values returned
+	 * and persisted with the {@link javax.persistence.EntityManager}.
+	 * {@code Null} values returned
 	 * while iterating over the {@link Iterable} are ignored.
 	 * In addition the {@link javax.persistence.EntityManager#flush()} is called after the persist
 	 * and after each batch, as it is specified using {@code flushSize} parameter and if

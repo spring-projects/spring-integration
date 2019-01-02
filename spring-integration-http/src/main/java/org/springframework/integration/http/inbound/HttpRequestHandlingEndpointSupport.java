@@ -53,7 +53,6 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
 import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.json.JacksonPresent;
 import org.springframework.messaging.Message;
@@ -81,8 +80,8 @@ import org.springframework.web.servlet.HandlerMapping;
  * {@link #setMessageConverters(List)}.
  * <p>
  * To customize the mapping of request headers to the MessageHeaders, provide a
- * reference to a {@code HeaderMapper<HttpHeaders>} implementation
- * to the {@link #setHeaderMapper(HeaderMapper)} method.
+ * reference to a {@code org.springframework.integration.mapping.HeaderMapper<HttpHeaders>} implementation
+ * to the {@link #setHeaderMapper(org.springframework.integration.mapping.HeaderMapper)} method.
  * <p>
  * The behavior is "request/reply" by default. Pass {@code false} to the constructor
  * to force send-only as opposed to sendAndReceive. Send-only means that as soon as

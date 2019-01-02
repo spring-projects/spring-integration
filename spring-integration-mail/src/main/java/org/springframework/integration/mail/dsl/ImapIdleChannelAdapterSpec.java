@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
@@ -46,7 +44,6 @@ import org.springframework.integration.support.PropertiesBuilder;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
 import org.springframework.integration.transaction.TransactionSynchronizationFactory;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 
@@ -253,9 +250,10 @@ public class ImapIdleChannelAdapterSpec
 	}
 
 	/**
-	 * When a header mapper is provided determine whether an embedded {@link Part} (e.g
-	 * {@link Message} or {@link javax.mail.Multipart} content is rendered as a byte[] in
-	 * the payload. Otherwise, leave as a {@link Part}. These objects are not suitable for
+	 * When a header mapper is provided determine whether an embedded
+	 * {@link javax.mail.Part} (e.g {@link javax.mail.Message} or
+	 * {@link javax.mail.Multipart} content is rendered as a byte[] in the payload.
+	 * Otherwise, leave as a {@link javax.mail.Part}. These objects are not suitable for
 	 * downstream serialization. Default: true.
 	 * <p>
 	 * This has no effect if there is no header mapper, in that case the payload is the
@@ -296,7 +294,8 @@ public class ImapIdleChannelAdapterSpec
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with the provided
-	 * {@code PlatformTransactionManager} and default {@link DefaultTransactionAttribute}
+	 * {@code PlatformTransactionManager} and default
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute}
 	 * for the downstream flow.
 	 * @param transactionManager the {@link PlatformTransactionManager} to use.
 	 * @return the spec.
@@ -320,7 +319,8 @@ public class ImapIdleChannelAdapterSpec
 
 	/**
 	 * Specify a {@link TransactionInterceptor} {@link Advice} with default
-	 * {@code PlatformTransactionManager} and {@link DefaultTransactionAttribute} for the
+	 * {@code PlatformTransactionManager} and
+	 * {@link org.springframework.transaction.interceptor.DefaultTransactionAttribute} for the
 	 * downstream flow.
 	 * @return the spec.
 	 */

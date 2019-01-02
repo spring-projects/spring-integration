@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * Copyright 2014-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.support;
 import java.util.Arrays;
 
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 
 /**
  * @author Gary Russell
@@ -35,7 +34,8 @@ public class DefaultMessageBuilderFactory implements MessageBuilderFactory {
 	 * Specify a list of headers which should be considered as a read only
 	 * and prohibited from the population to the message.
 	 * @param readOnlyHeaders the list of headers for {@code readOnly} mode.
-	 * Defaults to {@link MessageHeaders#ID} and {@link MessageHeaders#TIMESTAMP}.
+	 * Defaults to {@link org.springframework.messaging.MessageHeaders#ID}
+	 * and {@link org.springframework.messaging.MessageHeaders#TIMESTAMP}.
 	 * @since 4.3.2
 	 */
 	public void setReadOnlyHeaders(String... readOnlyHeaders) {

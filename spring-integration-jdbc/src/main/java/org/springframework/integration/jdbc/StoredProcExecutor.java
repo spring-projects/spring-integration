@@ -16,7 +16,6 @@
 
 package org.springframework.integration.jdbc;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,17 +29,12 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.expression.BeanResolver;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.ExpressionUtils;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlInOutParameter;
-import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
@@ -50,7 +44,6 @@ import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -106,7 +99,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * If this variable is set to true then all results from a stored procedure call
 	 * that don't have a corresponding SqlOutParameter declaration will be bypassed.
 	 *
-	 * The value is set on the underlying {@link JdbcTemplate}.
+	 * The value is set on the underlying {@link org.springframework.jdbc.core.JdbcTemplate}.
 	 *
 	 * Value defaults to <code>true</code>.
 	 */
@@ -115,8 +108,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	/**
 	 * If your database system is not fully supported by Spring and thus obtaining
 	 * parameter definitions from the JDBC Meta-data is not possible, you must define
-	 * the {@link SqlParameter} explicitly. See also {@link SqlOutParameter} and
-	 * {@link SqlInOutParameter}.
+	 * the {@link SqlParameter} explicitly. See also
+	 * {@link org.springframework.jdbc.core.SqlOutParameter} and
+	 * {@link org.springframework.jdbc.core.SqlInOutParameter}.
 	 */
 	private volatile List<SqlParameter> sqlParameters = new ArrayList<SqlParameter>(0);
 
@@ -457,7 +451,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 	 * {@link StoredProcExecutor#setStoredProcedureNameExpression(Expression)}.
 	 *
 	 * E.g., that way you can specify the name of the Stored Procedure or Stored Function
-	 * through {@link MessageHeaders}.
+	 * through {@link org.springframework.messaging.MessageHeaders}.
 	 *
 	 * @param storedProcedureName Must not be null and must not be empty
 	 *
@@ -545,14 +539,15 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	/**
 	 * If this variable is set to <code>true</code> then all results from a stored
-	 * procedure call that don't have a corresponding {@link SqlOutParameter}
+	 * procedure call that don't have a corresponding
+	 * {@link org.springframework.jdbc.core.SqlOutParameter}
 	 * declaration will be bypassed.
 	 *
 	 * E.g. Stored Procedures may return an update count value, even though your
 	 * Stored Procedure only declared a single result parameter. The exact behavior
 	 * depends on the used database.
 	 *
-	 * The value is set on the underlying {@link JdbcTemplate}.
+	 * The value is set on the underlying {@link org.springframework.jdbc.core.JdbcTemplate}.
 	 *
 	 * Only few developers will probably ever like to process update counts, thus
 	 * the value defaults to <code>true</code>.
@@ -566,7 +561,7 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	/**
 	 * If the Stored Procedure returns ResultSets you may provide a map of
-	 * {@link RowMapper} to convert the {@link ResultSet} to meaningful objects.
+	 * {@link RowMapper} to convert the {@link java.sql.ResultSet} to meaningful objects.
 	 *
 	 * @param returningResultSetRowMappers The map may not be null and must not contain null values.
 	 */
@@ -647,8 +642,9 @@ public class StoredProcExecutor implements BeanFactoryAware, InitializingBean {
 
 	/**
 	 * Allows to set the optional {@link BeanFactory} which is used to add a
-	 * {@link BeanResolver} to the {@link StandardEvaluationContext}. If not set
-	 * this property defaults to null.
+	 * {@link org.springframework.expression.BeanResolver} to the
+	 * {@link org.springframework.expression.spel.support.StandardEvaluationContext}.
+	 * If not set this property defaults to null.
 	 *
 	 * @param beanFactory If set must not be null.
 	 */

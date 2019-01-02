@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.HeaderChannelRegistry;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageChannel;
@@ -36,7 +35,9 @@ import org.springframework.util.Assert;
 
 /**
  * Converts a channel to a name, retaining a reference to the channel keyed by the name.
- * Allows a downstream {@link BeanFactoryChannelResolver} to find the channel by name
+ * Allows a downstream
+ * {@link org.springframework.integration.support.channel.BeanFactoryChannelResolver}
+ * to find the channel by name
  * in the event that the flow serialized the message at some point.
  * Channels are expired after a configurable delay (60 seconds by default).
  * The actual average expiry time will be 1.5x the delay.

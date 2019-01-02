@@ -24,10 +24,10 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.AliasFor;
-import org.springframework.integration.http.management.IntegrationGraphController;
 
 /**
- * Enables the {@link IntegrationGraphController} if
+ * Enables the
+ * {@link org.springframework.integration.http.management.IntegrationGraphController} if
  * {@code org.springframework.web.servlet.DispatcherServlet} or
  * {@code org.springframework.web.reactive.DispatcherHandler} is present in the classpath.
  *
@@ -35,7 +35,7 @@ import org.springframework.integration.http.management.IntegrationGraphControlle
  *
  * @since 4.3
  *
- * @see IntegrationGraphController
+ * @see org.springframework.integration.http.management.IntegrationGraphController
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -44,17 +44,21 @@ import org.springframework.integration.http.management.IntegrationGraphControlle
 public @interface EnableIntegrationGraphController {
 
 	/**
-	 * Specify the Request Mapping path for the {@link IntegrationGraphController}.
+	 * Specify the Request Mapping path for the
+	 * {@link org.springframework.integration.http.management.IntegrationGraphController}.
 	 * Defaults to {@value HttpContextUtils#GRAPH_CONTROLLER_DEFAULT_PATH}.
-	 * @return The Request Mapping path for the {@link IntegrationGraphController}
+	 * @return The Request Mapping path for the
+	 * {@link org.springframework.integration.http.management.IntegrationGraphController}
 	 */
 	@AliasFor("path")
 	String value() default HttpContextUtils.GRAPH_CONTROLLER_DEFAULT_PATH;
 
 	/**
-	 * Specify the Request Mapping path for the {@link IntegrationGraphController}.
+	 * Specify the Request Mapping path for the
+	 * {@link org.springframework.integration.http.management.IntegrationGraphController}.
 	 * Defaults to {@value HttpContextUtils#GRAPH_CONTROLLER_DEFAULT_PATH}.
-	 * @return The Request Mapping path for the {@link IntegrationGraphController}
+	 * @return The Request Mapping path for the
+	 * {@link org.springframework.integration.http.management.IntegrationGraphController}
 	 */
 	@AliasFor("value")
 	String path() default HttpContextUtils.GRAPH_CONTROLLER_DEFAULT_PATH;

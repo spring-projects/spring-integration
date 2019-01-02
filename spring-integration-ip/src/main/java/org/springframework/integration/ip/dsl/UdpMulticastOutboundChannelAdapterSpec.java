@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package org.springframework.integration.ip.dsl;
 
 import java.util.function.Function;
 
-import org.springframework.integration.dsl.MessageHandlerSpec;
 import org.springframework.integration.expression.FunctionExpression;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.messaging.Message;
 
 /**
- * A {@link MessageHandlerSpec} for {@link MulticastSendingMessageHandler}s.
+ * A {@link org.springframework.integration.dsl.MessageHandlerSpec} for
+ * {@link MulticastSendingMessageHandler}s.
  *
  * @author Gary Russell
  * @since 5.0

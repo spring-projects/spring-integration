@@ -23,15 +23,15 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.config.IntegrationConfigurationInitializer;
-import org.springframework.integration.dsl.IntegrationComponentSpec;
 import org.springframework.integration.dsl.IntegrationFlowDefinition;
 import org.springframework.util.Assert;
 
 /**
  * The Java DSL Integration infrastructure {@code beanFactory} initializer.
  * Registers {@link IntegrationFlowBeanPostProcessor} and checks if all
- * {@link IntegrationComponentSpec} are extracted to the target object using
- * {@link IntegrationComponentSpec#get()}.
+ * {@link org.springframework.integration.dsl.IntegrationComponentSpec} are extracted to
+ * the target object using
+ * {@link org.springframework.integration.dsl.IntegrationComponentSpec#get()}.
  *
  * @author Artem Bilan
  * @author Gary Russell
