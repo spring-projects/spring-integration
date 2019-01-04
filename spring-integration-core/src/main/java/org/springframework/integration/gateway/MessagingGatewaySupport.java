@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -232,10 +232,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	 * from any object passed in a send or sendAndReceive operation.
 	 * @param requestMapper The request mapper.
 	 */
-	public void setRequestMapper(InboundMessageMapper<?> requestMapper) {
-		requestMapper = (requestMapper != null) ? requestMapper : new DefaultRequestMapper();
-		this.requestMapper = requestMapper;
-		this.messageConverter.setInboundMessageMapper(requestMapper);
+	public void setRequestMapper(@Nullable InboundMessageMapper<?> requestMapper) {
+		this.requestMapper = (requestMapper != null) ? requestMapper : new DefaultRequestMapper();
+		this.messageConverter.setInboundMessageMapper(this.requestMapper);
 	}
 
 	/**

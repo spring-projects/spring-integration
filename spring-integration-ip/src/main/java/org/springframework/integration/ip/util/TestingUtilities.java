@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.util;
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.lang.Nullable;
 
 /**
  * Convenience class providing methods for testing IP components.
@@ -39,11 +40,13 @@ public final class TestingUtilities {
 	 * Wait for a server connection factory to actually start listening before
 	 * starting a test. Waits for up to 10 seconds by default.
 	 * @param serverConnectionFactory The server connection factory.
-	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
+	 * @param delayArg How long to wait in milliseconds; default 10000 (10 seconds) if null.
 	 * @throws IllegalStateException If the server does not start listening in time.
 	 */
-	public static void waitListening(AbstractServerConnectionFactory serverConnectionFactory, Long delay)
-		throws IllegalStateException {
+	public static void waitListening(AbstractServerConnectionFactory serverConnectionFactory, @Nullable Long delayArg)
+			throws IllegalStateException {
+
+		Long delay = delayArg;
 		if (delay == null) {
 			delay = 100L;
 		}
@@ -70,11 +73,13 @@ public final class TestingUtilities {
 	 * Wait for a server connection factory to actually start listening before
 	 * starting a test. Waits for up to 10 seconds by default.
 	 * @param adapter The server connection factory.
-	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
+	 * @param delayArg How long to wait in milliseconds; default 10000 (10 seconds) if null.
 	 * @throws IllegalStateException If the server does not start listening in time.
 	 */
-	public static void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter, Long delay)
-		throws IllegalStateException {
+	public static void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter, @Nullable Long delayArg)
+			throws IllegalStateException {
+
+		Long delay = delayArg;
 		if (delay == null) {
 			delay = 100L;
 		}
@@ -101,11 +106,13 @@ public final class TestingUtilities {
 	 * Wait for a server connection factory to stop listening.
 	 * Waits for up to 10 seconds by default.
 	 * @param serverConnectionFactory The server connection factory.
-	 * @param delay How long to wait in milliseconds; default 10000 (10 seconds) if null.
+	 * @param delayArg How long to wait in milliseconds; default 10000 (10 seconds) if null.
 	 * @throws IllegalStateException If the server doesn't stop listening in time.
 	 */
-	public static void waitStopListening(AbstractServerConnectionFactory serverConnectionFactory, Long delay)
+	public static void waitStopListening(AbstractServerConnectionFactory serverConnectionFactory, @Nullable Long delayArg)
 			throws IllegalStateException {
+
+		Long delay = delayArg;
 		if (delay == null) {
 			delay = 100L;
 		}

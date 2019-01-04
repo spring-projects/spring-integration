@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
  * have a precedent.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.1
  * @see org.springframework.integration.websocket.inbound.WebSocketInboundChannelAdapter
  * @see org.springframework.integration.websocket.outbound.WebSocketOutboundMessageHandler
@@ -158,8 +159,8 @@ public abstract class IntegrationWebSocketContainer implements DisposableBean {
 		}
 
 		@Override
-		public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-			session = new ConcurrentWebSocketSessionDecorator(session,
+		public void afterConnectionEstablished(WebSocketSession sessionToDecorate) throws Exception { // NOSONAR SF ifce
+			WebSocketSession session = new ConcurrentWebSocketSessionDecorator(sessionToDecorate,
 					IntegrationWebSocketContainer.this.sendTimeLimit,
 					IntegrationWebSocketContainer.this.sendBufferSizeLimit);
 

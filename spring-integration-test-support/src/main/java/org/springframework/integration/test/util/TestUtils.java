@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -150,7 +151,8 @@ public abstract class TestUtils {
 			super();
 		}
 
-		public void registerChannel(String channelName, final MessageChannel channel) {
+		public void registerChannel(@Nullable String channelNameArg, final MessageChannel channel) {
+			String channelName = channelNameArg;
 			String componentName = getComponentNameIfNamed(channel);
 			if (componentName != null) {
 				if (channelName == null) {
