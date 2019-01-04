@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -536,11 +536,11 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 		}
 	}
 
-	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectory,
-			String remoteDirectory, String fileName, Session<F> session, FileExistsMode mode) throws IOException {
+	private void sendFileToRemoteDirectory(InputStream inputStream, String temporaryRemoteDirectoryArg,
+			String remoteDirectoryArg, String fileName, Session<F> session, FileExistsMode mode) throws IOException {
 
-		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
-		temporaryRemoteDirectory = this.normalizeDirectoryPath(temporaryRemoteDirectory);
+		String remoteDirectory = normalizeDirectoryPath(remoteDirectoryArg);
+		String temporaryRemoteDirectory = normalizeDirectoryPath(temporaryRemoteDirectoryArg);
 
 		String remoteFilePath = remoteDirectory + fileName;
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
@@ -598,12 +598,14 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	private String normalizeDirectoryPath(String directoryPath) {
 		if (!StringUtils.hasText(directoryPath)) {
-			directoryPath = "";
+			return "";
 		}
 		else if (!directoryPath.endsWith(this.remoteFileSeparator)) {
-			directoryPath += this.remoteFileSeparator;
+			return directoryPath + this.remoteFileSeparator;
 		}
-		return directoryPath;
+		else {
+			return directoryPath;
+		}
 	}
 
 	private static final class StreamHolder {

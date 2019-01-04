@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -407,16 +407,17 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 	 * is interrupted. If the specified timeout is 0, the method will return
 	 * immediately. If less than zero, it will block indefinitely (see
 	 * {@link #send(Message)}).
-	 * @param message the Message to send
+	 * @param messageArg the Message to send
 	 * @param timeout the timeout in milliseconds
 	 * @return <code>true</code> if the message is sent successfully,
 	 * <code>false</code> if the message cannot be sent within the allotted
 	 * time or the sending thread is interrupted.
 	 */
 	@Override
-	public boolean send(Message<?> message, long timeout) {
-		Assert.notNull(message, "message must not be null");
-		Assert.notNull(message.getPayload(), "message payload must not be null");
+	public boolean send(Message<?> messageArg, long timeout) {
+		Assert.notNull(messageArg, "message must not be null");
+		Assert.notNull(messageArg.getPayload(), "message payload must not be null");
+		Message<?> message = messageArg;
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this, this.getMessageBuilderFactory());
 		}
@@ -596,8 +597,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		@Nullable
-		public Message<?> preSend(Message<?> message, MessageChannel channel,
+		public Message<?> preSend(Message<?> messageArg, MessageChannel channel,
 				Deque<ChannelInterceptor> interceptorStack) {
+
+			Message<?> message = messageArg;
 			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : this.interceptors) {
 					Message<?> previous = message;
@@ -652,7 +655,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		}
 
 		@Nullable
-		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
+		public Message<?> postReceive(Message<?> messageArg, MessageChannel channel) {
+			Message<?> message = messageArg;
 			if (this.size > 0) {
 				for (ChannelInterceptor interceptor : this.interceptors) {
 					message = interceptor.postReceive(message, channel);

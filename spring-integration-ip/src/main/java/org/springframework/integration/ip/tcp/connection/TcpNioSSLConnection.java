@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -361,14 +361,15 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		 * Handles SSL handshaking; when network data is needed from the peer, suspends
 		 * until that data is received.
 		 */
-		private void doClientSideHandshake(ByteBuffer plainText, SSLEngineResult result) throws IOException {
+		private void doClientSideHandshake(ByteBuffer plainText, SSLEngineResult resultArg) throws IOException {
+			SSLEngineResult result = resultArg;
 			TcpNioSSLConnection.this.semaphore.drainPermits();
 			HandshakeStatus status = TcpNioSSLConnection.this.sslEngine.getHandshakeStatus();
 			while (status != HandshakeStatus.FINISHED) {
 				writeEncodedIfAny();
 				status = runTasksIfNeeded(result);
 				if (status == HandshakeStatus.NEED_UNWRAP) {
-					status = waitForHandshakeData(result, status);
+					status = waitForHandshakeData(result);
 				}
 				if (status == HandshakeStatus.NEED_WRAP ||
 						status == HandshakeStatus.NOT_HANDSHAKING ||
@@ -395,8 +396,8 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 		/**
 		 * Suspend processing until data is received from the peer.
 		 */
-		private HandshakeStatus waitForHandshakeData(SSLEngineResult result,
-				HandshakeStatus status) throws IOException {
+		private HandshakeStatus waitForHandshakeData(SSLEngineResult result) throws IOException {
+
 			try {
 				logger.trace("Writer waiting for handshake");
 				if (!TcpNioSSLConnection.this.semaphore.tryAcquire(TcpNioSSLConnection.this.handshakeTimeout,
@@ -412,13 +413,12 @@ public class TcpNioSSLConnection extends TcpNioConnection {
 					}
 				}
 				logger.trace("Writer resuming handshake");
-				status = runTasksIfNeeded(result);
+				return runTasksIfNeeded(result);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new MessagingException("Interrupted during SSL Handshaking");
 			}
-			return status;
 		}
 
 		/**

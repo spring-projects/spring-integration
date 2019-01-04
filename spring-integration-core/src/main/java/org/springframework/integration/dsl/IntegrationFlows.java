@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,13 +221,16 @@ public final class IntegrationFlows {
 	 * @see SourcePollingChannelAdapterSpec
 	 */
 	public static IntegrationFlowBuilder from(MessageSource<?> messageSource,
-			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+			@Nullable Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {
+
 		return from(messageSource, endpointConfigurer, null);
 	}
 
 	private static IntegrationFlowBuilder from(MessageSource<?> messageSource,
-			Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer,
-			IntegrationFlowBuilder integrationFlowBuilder) {
+			@Nullable Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer,
+			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
+
+		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
 		SourcePollingChannelAdapterSpec spec = new SourcePollingChannelAdapterSpec(messageSource);
 		if (endpointConfigurer != null) {
 			endpointConfigurer.accept(spec);
@@ -262,7 +265,9 @@ public final class IntegrationFlows {
 	}
 
 	private static IntegrationFlowBuilder from(MessageProducerSupport messageProducer,
-			IntegrationFlowBuilder integrationFlowBuilder) {
+			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
+
+		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
 		MessageChannel outputChannel = messageProducer.getOutputChannel();
 		if (outputChannel == null) {
 			outputChannel = new DirectChannel();
@@ -354,8 +359,9 @@ public final class IntegrationFlows {
 	}
 
 	private static IntegrationFlowBuilder from(MessagingGatewaySupport inboundGateway,
-			IntegrationFlowBuilder integrationFlowBuilder) {
+			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
 
+		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
 		MessageChannel outputChannel = inboundGateway.getRequestChannel();
 		if (outputChannel == null) {
 			outputChannel = new DirectChannel();

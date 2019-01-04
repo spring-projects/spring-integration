@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,8 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		return resultMap;
 	}
 
-	private void doFlatten(String propertyPrefix, Map<String, Object> inputMap, Map<String, Object> resultMap) {
+	private void doFlatten(String propertyPrefixArg, Map<String, Object> inputMap, Map<String, Object> resultMap) {
+		String propertyPrefix = propertyPrefixArg;
 		if (StringUtils.hasText(propertyPrefix)) {
 			propertyPrefix = propertyPrefix + ".";
 		}

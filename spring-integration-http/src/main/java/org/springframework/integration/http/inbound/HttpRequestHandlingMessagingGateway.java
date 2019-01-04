@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,9 +168,10 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes)
+	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypesArg)
 			throws IOException {
 
+		List<MediaType> acceptTypes = acceptTypesArg;
 		if (CollectionUtils.isEmpty(acceptTypes)) {
 			acceptTypes = Collections.singletonList(MediaType.ALL);
 		}

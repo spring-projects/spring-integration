@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.springframework.integration.config.FixedSubscriberChannelBeanFactoryP
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.transaction.TransactionHandleMessageAdvice;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
@@ -356,12 +357,14 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param rootBuilder The root builder.
 	 * @param parserContext The parser context.
 	 * @param headerMapperBuilder The header mapper builder.
-	 * @param replyHeaderValue The reply header value.
+	 * @param replyHeaderValueArg The reply header value.
 	 */
 	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder,
-			ParserContext parserContext, BeanDefinitionBuilder headerMapperBuilder, String replyHeaderValue) {
+			ParserContext parserContext, BeanDefinitionBuilder headerMapperBuilder,
+			@Nullable String replyHeaderValueArg) {
 
 		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
+		String replyHeaderValue = replyHeaderValueArg;
 		if (!StringUtils.hasText(replyHeaderValue)) {
 			replyHeaderValue = defaultMappedReplyHeadersAttributeName;
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,10 +57,11 @@ public class RFC5424SyslogParser {
 		this.retainOriginal = retainOriginal;
 	}
 
-	public Map<String, ?> parse(String line, int octetCount, boolean shortRead) {
+	public Map<String, ?> parse(String lineArg, int octetCount, boolean shortRead) { // NOSONAR NCSS line count
 
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
+		String line = lineArg;
 		Reader r = new Reader(line);
 
 		try {

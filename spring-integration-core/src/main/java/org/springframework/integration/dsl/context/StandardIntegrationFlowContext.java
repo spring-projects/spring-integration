@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.support.context.NamedComponent;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -124,7 +125,8 @@ public final class StandardIntegrationFlowContext implements IntegrationFlowCont
 	}
 
 	@SuppressWarnings("unchecked")
-	private Object registerBean(Object bean, String beanName, String parentName) {
+	private Object registerBean(Object bean, @Nullable String beanNameArg, String parentName) {
+		String beanName = beanNameArg;
 		if (beanName == null) {
 			beanName = generateBeanName(bean, parentName);
 		}

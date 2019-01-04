@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -408,9 +408,10 @@ public class ReloadableResourceBundleExpressionSource implements ExpressionSourc
 	 * The holder can be <code>null</code> if not cached before, or a timed-out cache entry
 	 * (potentially getting re-validated against the current last-modified timestamp).
 	 * @param filename the bundle filename (basename + Locale)
-	 * @param propHolder the current PropertiesHolder for the bundle
+	 * @param propHolderArg the current PropertiesHolder for the bundle
 	 */
-	private PropertiesHolder refreshProperties(String filename, PropertiesHolder propHolder) {
+	private PropertiesHolder refreshProperties(String filename, @Nullable PropertiesHolder propHolderArg) {
+		PropertiesHolder propHolder = propHolderArg;
 		long refreshTimestamp = (this.cacheMillis < 0) ? -1 : System.currentTimeMillis();
 
 		Resource resource = this.resourceLoader.getResource(filename + PROPERTIES_SUFFIX);

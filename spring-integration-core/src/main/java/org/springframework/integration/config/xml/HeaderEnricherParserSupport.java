@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.integration.transformer.support.ExpressionEvaluatingH
 import org.springframework.integration.transformer.support.MessageProcessingHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.RoutingSlipHeaderValueMessageProcessor;
 import org.springframework.integration.transformer.support.StaticHeaderValueMessageProcessor;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -148,11 +149,13 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	}
 
 	private void addHeader(Element element, ManagedMap<String, Object> headers, ParserContext parserContext,
-			String headerName, Element headerElement, String headerType, String expression, String overwrite) {
+			String headerName, Element headerElement, String headerType, @Nullable String expressionArg,
+			String overwrite) {
 
 		String value = headerElement.getAttribute("value");
 		String ref = headerElement.getAttribute(REF_ATTRIBUTE);
 		String method = headerElement.getAttribute(METHOD_ATTRIBUTE);
+		String expression = expressionArg;
 		if (expression == null) {
 			expression = headerElement.getAttribute(EXPRESSION_ATTRIBUTE);
 		}

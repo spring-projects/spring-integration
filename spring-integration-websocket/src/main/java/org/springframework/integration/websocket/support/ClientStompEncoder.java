@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
  * {@link org.springframework.web.socket.messaging.StompSubProtocolHandler}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 4.3.13
  */
@@ -40,9 +41,11 @@ public class ClientStompEncoder extends StompEncoder {
 		if (StompCommand.MESSAGE.equals(headers.get("stompCommand"))) {
 			StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.create(StompCommand.SEND);
 			stompHeaderAccessor.copyHeadersIfAbsent(headers);
-			headers = stompHeaderAccessor.getMessageHeaders();
+			return super.encode(stompHeaderAccessor.getMessageHeaders(), payload);
 		}
-		return super.encode(headers, payload);
+		else {
+			return super.encode(headers, payload);
+		}
 	}
 
 }

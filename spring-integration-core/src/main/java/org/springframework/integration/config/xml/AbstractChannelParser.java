@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Dave Syer
  * @author Artem Bilan
+ * @author Gary Russell
  */
 public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser {
 
@@ -86,10 +87,13 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 	@Override
 	protected void registerBeanDefinition(BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
 		String scope = definition.getBeanDefinition().getScope();
-		if (!AbstractBeanDefinition.SCOPE_DEFAULT.equals(scope) && !AbstractBeanDefinition.SCOPE_SINGLETON.equals(scope) && !AbstractBeanDefinition.SCOPE_PROTOTYPE.equals(scope)) {
-			definition = ScopedProxyUtils.createScopedProxy(definition, registry, false);
+		if (!AbstractBeanDefinition.SCOPE_DEFAULT.equals(scope) && !AbstractBeanDefinition.SCOPE_SINGLETON.equals(scope)
+				&& !AbstractBeanDefinition.SCOPE_PROTOTYPE.equals(scope)) {
+			super.registerBeanDefinition(ScopedProxyUtils.createScopedProxy(definition, registry, false), registry);
 		}
-		super.registerBeanDefinition(definition, registry);
+		else {
+			super.registerBeanDefinition(definition, registry);
+		}
 	}
 
 	/**
