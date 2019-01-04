@@ -102,7 +102,8 @@ subprojects { subproject ->
 		hibernateVersion = '5.1.0.Final'
 		hsqldbVersion = '2.3.3'
 		h2Version = '1.4.197'
-		jackson2Version = '2.8.10'
+		jackson2Version = '2.8.11'
+		jackson2DataBindVersion = '2.8.11.3'
 		javaxActivationVersion = '1.1.1'
 		javaxMailVersion = '1.5.6'
 		jedisVersion = '2.7.3'
@@ -309,13 +310,14 @@ project('spring-integration-core') {
 			optional it
 			exclude group: 'org.slf4j', module: 'slf4j-api'
 		}
-		compile("com.fasterxml.jackson.core:jackson-databind:$jackson2Version", optional)
-		compile("com.jayway.jsonpath:json-path:$jsonpathVersion") {
+		compile ("com.fasterxml.jackson.core:jackson-core:$jackson2Version", optional)
+		compile ("com.fasterxml.jackson.core:jackson-databind:$jackson2DataBindVersion", optional)
+		compile ("com.jayway.jsonpath:json-path:$jsonpathVersion") {
 			optional it
 			exclude group: 'org.slf4j', module: 'slf4j-api'
 		}
-		compile("io.fastjson:boon:$boonVersion", optional)
-		compile("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
+		compile ("io.fastjson:boon:$boonVersion", optional)
+		compile ("com.esotericsoftware:kryo-shaded:$kryoShadedVersion", optional)
 
 		testCompile ("org.aspectj:aspectjweaver:$aspectjVersion")
 		testCompile ("net.openhft:chronicle:$chronicleVersion")
