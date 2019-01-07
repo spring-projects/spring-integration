@@ -215,9 +215,9 @@ public class TestMailServer {
 
 	public static class ImapServer extends MailServer {
 
-		private boolean seen;
+		private volatile boolean seen;
 
-		private boolean idled;
+		private volatile boolean idled;
 
 		ImapServer(int port) throws IOException {
 			super(port);
