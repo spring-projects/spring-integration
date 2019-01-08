@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 
 	private volatile MBeanServerConnection server;
 
-	private volatile ObjectName objectName;
+	private volatile ObjectName defaultObjectName;
 
 	private volatile String operationName;
 
@@ -88,7 +88,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	public void setObjectName(String objectName) {
 		try {
 			if (objectName != null) {
-				this.objectName = ObjectNameManager.getInstance(objectName);
+				this.defaultObjectName = ObjectNameManager.getInstance(objectName);
 			}
 		}
 		catch (MalformedObjectNameException e) {
@@ -118,15 +118,15 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		ObjectName objectName = this.resolveObjectName(requestMessage);
-		String operationName = this.resolveOperationName(requestMessage);
+		ObjectName objectName = resolveObjectName(requestMessage);
+		String operation = resolveOperationName(requestMessage);
 		Map<String, Object> paramsFromMessage = this.resolveParameters(requestMessage);
 		try {
 			MBeanInfo mbeanInfo = this.server.getMBeanInfo(objectName);
 			MBeanOperationInfo[] opInfoArray = mbeanInfo.getOperations();
 			boolean hasNoArgOption = false;
 			for (MBeanOperationInfo opInfo : opInfoArray) {
-				if (operationName.equals(opInfo.getName())) {
+				if (operation.equals(opInfo.getName())) {
 					MBeanParameterInfo[] paramInfoArray = opInfo.getSignature();
 					if (paramInfoArray.length == 0) {
 						hasNoArgOption = true;
@@ -152,21 +152,21 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 							}
 						}
 						if (index == paramInfoArray.length) {
-							return this.server.invoke(objectName, operationName, values, signature);
+							return this.server.invoke(objectName, operation, values, signature);
 						}
 					}
 				}
 			}
 			if (hasNoArgOption) {
-				return this.server.invoke(objectName, operationName, null, null);
+				return this.server.invoke(objectName, operation, null, null);
 			}
 			throw new MessagingException(requestMessage, "failed to find JMX operation '"
-					+ operationName + "' on MBean [" + objectName + "] of type [" + mbeanInfo.getClassName()
+					+ operation + "' on MBean [" + objectName + "] of type [" + mbeanInfo.getClassName()
 					+ "] with " + paramsFromMessage.size() + " parameters: " + paramsFromMessage);
 		}
 		catch (JMException e) {
 			throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
-					operationName + "' on MBean [" + objectName + "]" + " with " +
+					operation + "' on MBean [" + objectName + "]" + " with " +
 					paramsFromMessage.size() + " parameters: " + paramsFromMessage, e);
 		}
 		catch (IOException e) {
@@ -189,7 +189,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	 * First checks if defaultObjectName is set, otherwise falls back on  {@link JmxHeaders#OBJECT_NAME} header.
 	 */
 	private ObjectName resolveObjectName(Message<?> message) {
-		ObjectName objectName = this.objectName;
+		ObjectName objectName = this.defaultObjectName;
 		if (objectName == null) {
 			Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
 			if (objectNameHeader instanceof ObjectName) {
@@ -212,12 +212,12 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	  * First checks if defaultOperationName is set, otherwise falls back on  {@link JmxHeaders#OPERATION_NAME} header.
 	 */
 	private String resolveOperationName(Message<?> message) {
-		String operationName = this.operationName;
-		if (operationName == null) {
-			operationName = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
+		String operation = this.operationName;
+		if (operation == null) {
+			operation = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
 		}
-		Assert.notNull(operationName, "Failed to resolve operation name.");
-		return operationName;
+		Assert.notNull(operation, "Failed to resolve operation name.");
+		return operation;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

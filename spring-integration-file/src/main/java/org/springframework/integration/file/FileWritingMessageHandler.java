@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -396,39 +396,39 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		 * representing the bits that were set in the chmod value.
 		 */
 		BitSet bits = BitSet.valueOf(new byte[] { (byte) chmod, (byte) (chmod >> 8) });
-		final Set<PosixFilePermission> permissions = new HashSet<>();
+		final Set<PosixFilePermission> posixPermissions = new HashSet<>();
 		bits.stream().forEach(b -> {
 			switch (b) {
 				case 0:
-					permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+					posixPermissions.add(PosixFilePermission.OTHERS_EXECUTE);
 					break;
 				case 1:
-					permissions.add(PosixFilePermission.OTHERS_WRITE);
+					posixPermissions.add(PosixFilePermission.OTHERS_WRITE);
 					break;
 				case 2:
-					permissions.add(PosixFilePermission.OTHERS_READ);
+					posixPermissions.add(PosixFilePermission.OTHERS_READ);
 					break;
 				case 3:
-					permissions.add(PosixFilePermission.GROUP_EXECUTE);
+					posixPermissions.add(PosixFilePermission.GROUP_EXECUTE);
 					break;
 				case 4:
-					permissions.add(PosixFilePermission.GROUP_WRITE);
+					posixPermissions.add(PosixFilePermission.GROUP_WRITE);
 					break;
 				case 5:
-					permissions.add(PosixFilePermission.GROUP_READ);
+					posixPermissions.add(PosixFilePermission.GROUP_READ);
 					break;
 				case 6:
-					permissions.add(PosixFilePermission.OWNER_EXECUTE);
+					posixPermissions.add(PosixFilePermission.OWNER_EXECUTE);
 					break;
 				case 7:
-					permissions.add(PosixFilePermission.OWNER_WRITE);
+					posixPermissions.add(PosixFilePermission.OWNER_WRITE);
 					break;
 				case 8:
-					permissions.add(PosixFilePermission.OWNER_READ);
+					posixPermissions.add(PosixFilePermission.OWNER_READ);
 					break;
 			}
 		});
-		this.permissions = permissions;
+		this.permissions = posixPermissions;
 	}
 
 	/**

@@ -418,9 +418,9 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 */
 	protected void sendOutput(Object output, @Nullable Object replyChannelArg, boolean useArgChannel) {
 		Object replyChannel = replyChannelArg;
-		MessageChannel outputChannel = getOutputChannel();
-		if (!useArgChannel && outputChannel != null) {
-			replyChannel = outputChannel;
+		MessageChannel outChannel = getOutputChannel();
+		if (!useArgChannel && outChannel != null) {
+			replyChannel = outChannel;
 		}
 		if (replyChannel == null) {
 			throw new DestinationResolutionException("no output-channel or replyChannel header available");

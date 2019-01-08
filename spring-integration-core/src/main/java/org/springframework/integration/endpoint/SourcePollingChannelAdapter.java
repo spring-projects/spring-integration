@@ -145,17 +145,13 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 	protected void applyReceiveOnlyAdviceChain(Collection<Advice> chain) {
 		if (!CollectionUtils.isEmpty(chain)) {
 			if (AopUtils.isAopProxy(this.source)) {
-				Advised source = (Advised) this.source;
-				this.appliedAdvices.forEach(source::removeAdvice);
-				for (Advice advice : chain) {
-					source.addAdvisor(adviceToReceiveAdvisor(advice));
-				}
+				Advised advised = (Advised) this.source;
+				this.appliedAdvices.forEach(advised::removeAdvice);
+				chain.stream().forEach(advice -> advised.addAdvisor(adviceToReceiveAdvisor(advice)));
 			}
 			else {
 				ProxyFactory proxyFactory = new ProxyFactory(this.source);
-				for (Advice advice : chain) {
-					proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice));
-				}
+				chain.stream().forEach(advice -> proxyFactory.addAdvisor(adviceToReceiveAdvisor(advice)));
 				this.source = (MessageSource<?>) proxyFactory.getProxy(getBeanClassLoader());
 			}
 			this.appliedAdvices.clear();

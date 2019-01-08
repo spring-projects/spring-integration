@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -354,6 +354,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
 			String methodName, Class<?> expectedType, boolean canProcessMessageList) {
+
 		this.annotationType = annotationType;
 		this.methodName = methodName;
 		this.canProcessMessageList = canProcessMessageList;
@@ -367,15 +368,15 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		this.targetObject = targetObject;
 		Map<String, Map<Class<?>, HandlerMethod>> handlerMethodsForTarget =
 				findHandlerMethodsForTarget(targetObject, annotationType, methodName, expectedType != null);
-		Map<Class<?>, HandlerMethod> handlerMethods = handlerMethodsForTarget.get(CANDIDATE_METHODS);
-		Map<Class<?>, HandlerMethod> handlerMessageMethods = handlerMethodsForTarget.get(CANDIDATE_MESSAGE_METHODS);
-		if ((handlerMethods.size() == 1 && handlerMessageMethods.isEmpty()) ||
-				(handlerMessageMethods.size() == 1 && handlerMethods.isEmpty())) {
-			if (handlerMethods.size() == 1) {
-				this.handlerMethod = handlerMethods.values().iterator().next();
+		Map<Class<?>, HandlerMethod> methods = handlerMethodsForTarget.get(CANDIDATE_METHODS);
+		Map<Class<?>, HandlerMethod> messageMethods = handlerMethodsForTarget.get(CANDIDATE_MESSAGE_METHODS);
+		if ((methods.size() == 1 && messageMethods.isEmpty()) ||
+				(messageMethods.size() == 1 && methods.isEmpty())) {
+			if (methods.size() == 1) {
+				this.handlerMethod = methods.values().iterator().next();
 			}
 			else {
-				this.handlerMethod = handlerMessageMethods.values().iterator().next();
+				this.handlerMethod = messageMethods.values().iterator().next();
 			}
 			this.handlerMethods = null;
 			this.handlerMessageMethods = null;
@@ -383,8 +384,8 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 		else {
 			this.handlerMethod = null;
-			this.handlerMethods = handlerMethods;
-			this.handlerMessageMethods = handlerMessageMethods;
+			this.handlerMethods = methods;
+			this.handlerMessageMethods = messageMethods;
 			this.handlerMethodsList = new LinkedList<>();
 
 			//TODO Consider to use global option to determine a precedence of methods
@@ -440,12 +441,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 	private boolean canReturnExpectedType(AnnotatedMethodFilter filter, Class<?> targetType,
 			TypeConverter typeConverter) {
+
 		if (this.expectedType == null) {
 			return true;
 		}
 		List<Method> methods = filter.filter(Arrays.asList(ReflectionUtils.getAllDeclaredMethods(targetType)));
-		for (Method method : methods) {
-			if (typeConverter.canConvert(TypeDescriptor.valueOf(method.getReturnType()), this.expectedType)) {
+		for (Method candidate : methods) {
+			if (typeConverter.canConvert(TypeDescriptor.valueOf(candidate.getReturnType()), this.expectedType)) {
 				return true;
 			}
 		}
@@ -687,10 +689,10 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private Map<String, Map<Class<?>, HandlerMethod>> findHandlerMethodsForTarget(final Object targetObject,
-			final Class<? extends Annotation> annotationType, final String methodNameToUse,
+			final Class<? extends Annotation> annotationType, final String methodNameArg,
 			final boolean requiresReply) {
 
-		Map<String, Map<Class<?>, HandlerMethod>> handlerMethods = new HashMap<>();
+		Map<String, Map<Class<?>, HandlerMethod>> methods = new HashMap<>();
 
 		final Map<Class<?>, HandlerMethod> candidateMethods = new HashMap<>();
 		final Map<Class<?>, HandlerMethod> candidateMessageMethods = new HashMap<>();
@@ -700,21 +702,21 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		final AtomicReference<Class<?>> ambiguousFallbackMessageGenericType = new AtomicReference<>();
 		final Class<?> targetClass = getTargetClass(targetObject);
 
-		final String methodName;
+		final String methodNameToUse;
 
-		if (methodNameToUse == null) {
+		if (methodNameArg == null) {
 			if (Function.class.isAssignableFrom(targetClass)) {
-				methodName = "apply";
+				methodNameToUse = "apply";
 			}
 			else if (Consumer.class.isAssignableFrom(targetClass)) {
-				methodName = "accept";
+				methodNameToUse = "accept";
 			}
 			else {
-				methodName = null;
+				methodNameToUse = null;
 			}
 		}
 		else {
-			methodName = methodNameToUse;
+			methodNameToUse = methodNameArg;
 		}
 
 
@@ -739,10 +741,10 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			if (requiresReply && void.class.equals(method1.getReturnType())) {
 				return;
 			}
-			if (methodName != null && !methodName.equals(method1.getName())) {
+			if (methodNameToUse != null && !methodNameToUse.equals(method1.getName())) {
 				return;
 			}
-			if (methodName == null
+			if (methodNameToUse == null
 					&& ObjectUtils.containsElement(new String[] { "start", "stop", "isRunning" }, method1.getName())) {
 				return;
 			}
@@ -820,14 +822,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		if (candidateMethods.isEmpty() && candidateMessageMethods.isEmpty() && fallbackMethods.isEmpty()
 				&& fallbackMessageMethods.isEmpty()) {
-			findSingleSpecifMethodOnInterfacesIfProxy(targetObject, methodName, candidateMessageMethods,
+			findSingleSpecifMethodOnInterfacesIfProxy(targetObject, methodNameToUse, candidateMessageMethods,
 					candidateMethods);
 		}
 
 		if (!candidateMethods.isEmpty() || !candidateMessageMethods.isEmpty()) {
-			handlerMethods.put(CANDIDATE_METHODS, candidateMethods);
-			handlerMethods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
-			return handlerMethods;
+			methods.put(CANDIDATE_METHODS, candidateMethods);
+			methods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
+			return methods;
 		}
 		if ((ambiguousFallbackType.get() != null
 				|| ambiguousFallbackMessageGenericType.get() != null)
@@ -855,16 +857,16 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 			}
 			if (frameworkMethods.size() == 1) {
-				Method method = org.springframework.util.ClassUtils.getMostSpecificMethod(frameworkMethods.get(0),
-						targetObject.getClass());
+				Method frameworkMethod = org.springframework.util.ClassUtils.getMostSpecificMethod(
+						frameworkMethods.get(0), targetObject.getClass());
 				InvocableHandlerMethod invocableHandlerMethod =
 						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject,
-								method);
-				HandlerMethod handlerMethod = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
-				checkSpelInvokerRequired(targetClass, method, handlerMethod);
-				handlerMethods.put(CANDIDATE_METHODS, Collections.singletonMap(Object.class, handlerMethod));
-				handlerMethods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
-				return handlerMethods;
+								frameworkMethod);
+				HandlerMethod theHandlerMethod = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
+				checkSpelInvokerRequired(targetClass, frameworkMethod, theHandlerMethod);
+				methods.put(CANDIDATE_METHODS, Collections.singletonMap(Object.class, theHandlerMethod));
+				methods.put(CANDIDATE_MESSAGE_METHODS, candidateMessageMethods);
+				return methods;
 			}
 		}
 
@@ -880,9 +882,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 						+ "] for method match: "
 						+ fallbackMethods.values());
 
-		handlerMethods.put(CANDIDATE_METHODS, fallbackMethods);
-		handlerMethods.put(CANDIDATE_MESSAGE_METHODS, fallbackMessageMethods);
-		return handlerMethods;
+		methods.put(CANDIDATE_METHODS, fallbackMethods);
+		methods.put(CANDIDATE_MESSAGE_METHODS, fallbackMessageMethods);
+		return methods;
 	}
 
 	private void findSingleSpecifMethodOnInterfacesIfProxy(final Object targetObject, final String methodName,
@@ -909,15 +911,15 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 						.getMostSpecificMethod(theMethod, targetObject.getClass());
 				InvocableHandlerMethod invocableHandlerMethod =
 						this.messageHandlerMethodFactory.createInvocableHandlerMethod(targetObject, theMethod);
-				HandlerMethod handlerMethod = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
-				checkSpelInvokerRequired(targetClass.get(), theMethod, handlerMethod);
-				Class<?> targetParameterType = handlerMethod.getTargetParameterType();
-				if (handlerMethod.isMessageMethod()) {
+				HandlerMethod theHandlerMethod = new HandlerMethod(invocableHandlerMethod, this.canProcessMessageList);
+				checkSpelInvokerRequired(targetClass.get(), theMethod, theHandlerMethod);
+				Class<?> targetParameterType = theHandlerMethod.getTargetParameterType();
+				if (theHandlerMethod.isMessageMethod()) {
 					if (candidateMessageMethods.containsKey(targetParameterType)) {
 						throw new IllegalArgumentException("Found more than one method match for type " +
 								"[Message<" + targetParameterType + ">]");
 					}
-					candidateMessageMethods.put(targetParameterType, handlerMethod);
+					candidateMessageMethods.put(targetParameterType, theHandlerMethod);
 				}
 				else {
 					if (candidateMethods.containsKey(targetParameterType)) {
@@ -930,15 +932,15 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 						}
 						throw new IllegalArgumentException(exceptionMessage);
 					}
-					candidateMethods.put(targetParameterType, handlerMethod);
+					candidateMethods.put(targetParameterType, theHandlerMethod);
 				}
 			}
 		}
 	}
 
 	private void checkSpelInvokerRequired(final Class<?> targetClass, Method methodArg, HandlerMethod handlerMethod) {
-		Method method = AopUtils.getMostSpecificMethod(methodArg, targetClass);
-		UseSpelInvoker useSpel = AnnotationUtils.findAnnotation(method, UseSpelInvoker.class);
+		UseSpelInvoker useSpel = AnnotationUtils.findAnnotation(AopUtils.getMostSpecificMethod(methodArg, targetClass),
+				UseSpelInvoker.class);
 		if (useSpel == null) {
 			useSpel = AnnotationUtils.findAnnotation(targetClass, UseSpelInvoker.class);
 		}
@@ -1019,14 +1021,14 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	private HandlerMethod findClosestMatch(Class<?> payloadType) {
-		for (Map<Class<?>, HandlerMethod> handlerMethods : this.handlerMethodsList) {
-			Set<Class<?>> candidates = handlerMethods.keySet();
+		for (Map<Class<?>, HandlerMethod> methods : this.handlerMethodsList) {
+			Set<Class<?>> candidates = methods.keySet();
 			Class<?> match = null;
 			if (!CollectionUtils.isEmpty(candidates)) {
 				match = ClassUtils.findClosestMatch(payloadType, candidates, true);
 			}
 			if (match != null) {
-				return handlerMethods.get(match);
+				return methods.get(match);
 			}
 		}
 		return null;

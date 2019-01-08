@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -316,17 +316,17 @@ public class ConsumerEndpointFactoryBean
 			if (this.autoStartup != null) {
 				this.endpoint.setAutoStartup(this.autoStartup);
 			}
-			int phase = this.phase;
+			int phaseToSet = this.phase;
 			if (!this.isPhaseSet) {
 				if (this.endpoint instanceof PollingConsumer) {
-					phase = Integer.MAX_VALUE / 2;
+					phaseToSet = Integer.MAX_VALUE / 2;
 				}
 				else {
-					phase = Integer.MIN_VALUE;
+					phaseToSet = Integer.MIN_VALUE;
 				}
 			}
 
-			this.endpoint.setPhase(phase);
+			this.endpoint.setPhase(phaseToSet);
 			this.endpoint.setRole(this.role);
 			if (this.taskScheduler != null) {
 				this.endpoint.setTaskScheduler(this.taskScheduler);

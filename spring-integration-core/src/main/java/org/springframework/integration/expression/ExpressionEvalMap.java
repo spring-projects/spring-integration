@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,16 +282,21 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 		private class ExpressionEvalMapFinalBuilderImpl implements ExpressionEvalMapFinalBuilder {
 
+			ExpressionEvalMapFinalBuilderImpl() {
+				super();
+			}
+
 			@Override
 			public ExpressionEvalMap build() {
 				if (ExpressionEvalMapBuilder.this.evaluationCallback != null) {
 					return new ExpressionEvalMap(ExpressionEvalMapBuilder.this.expressions,
 							ExpressionEvalMapBuilder.this.evaluationCallback);
 				}
-				ComponentsEvaluationCallback evaluationCallback =
-						new ComponentsEvaluationCallback(ExpressionEvalMapBuilder.this.context,
-								ExpressionEvalMapBuilder.this.root, ExpressionEvalMapBuilder.this.returnType);
-				return new ExpressionEvalMap(ExpressionEvalMapBuilder.this.expressions, evaluationCallback);
+				else {
+					return new ExpressionEvalMap(ExpressionEvalMapBuilder.this.expressions,
+							new ComponentsEvaluationCallback(ExpressionEvalMapBuilder.this.context,
+									ExpressionEvalMapBuilder.this.root, ExpressionEvalMapBuilder.this.returnType));
+				}
 			}
 
 		}
@@ -299,6 +304,10 @@ public final class ExpressionEvalMap extends AbstractMap<String, Object> {
 
 		private class ExpressionEvalMapComponentsBuilderImpl extends ExpressionEvalMapFinalBuilderImpl
 				implements ExpressionEvalMapComponentsBuilder {
+
+			ExpressionEvalMapComponentsBuilderImpl() {
+				super();
+			}
 
 			@Override
 			public ExpressionEvalMapComponentsBuilder usingEvaluationContext(EvaluationContext context) {

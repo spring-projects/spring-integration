@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
 public class OSDelegatingFileTailingMessageProducer extends FileTailingMessageProducerSupport
 		implements SchedulingAwareRunnable {
 
-	private volatile Process process;
+	private volatile Process nativeTailProcess;
 
 	private volatile String options = "-F -n 0";
 
@@ -47,7 +47,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 
 	private volatile boolean enableStatusReader = true;
 
-	private volatile BufferedReader reader;
+	private volatile BufferedReader stdOutReader;
 
 	public void setOptions(String options) {
 		if (options == null) {
@@ -103,10 +103,10 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	}
 
 	private void destroyProcess() {
-		Process process = this.process;
+		Process process = this.nativeTailProcess;
 		if (process != null) {
 			process.destroy();
-			this.process = null;
+			this.nativeTailProcess = null;
 		}
 	}
 
@@ -121,12 +121,12 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 		try {
 			Process process = Runtime.getRuntime().exec(this.command);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			this.process = process;
+			this.nativeTailProcess = process;
 			this.startProcessMonitor();
 			if (this.enableStatusReader) {
 				startStatusReader();
 			}
-			this.reader = reader;
+			this.stdOutReader = reader;
 			this.getTaskExecutor().execute(this);
 		}
 		catch (IOException e) {
@@ -140,7 +140,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 */
 	private void startProcessMonitor() {
 		this.getTaskExecutor().execute(() -> {
-			Process process = OSDelegatingFileTailingMessageProducer.this.process;
+			Process process = OSDelegatingFileTailingMessageProducer.this.nativeTailProcess;
 			if (process == null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Process destroyed before starting process monitor");
@@ -181,7 +181,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 	 * (file not available, rotations etc) are sent to stderr.
 	 */
 	private void startStatusReader() {
-		Process process = this.process;
+		Process process = this.nativeTailProcess;
 		if (process == null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Process destroyed before starting stderr reader");
@@ -230,7 +230,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 			if (logger.isDebugEnabled()) {
 				logger.debug("Reading stdout");
 			}
-			while ((line = this.reader.readLine()) != null) {
+			while ((line = this.stdOutReader.readLine()) != null) {
 				this.send(line);
 			}
 		}
@@ -239,7 +239,7 @@ public class OSDelegatingFileTailingMessageProducer extends FileTailingMessagePr
 				logger.debug("Exception on tail reader", e);
 			}
 			try {
-				this.reader.close();
+				this.stdOutReader.close();
 			}
 			catch (IOException e1) {
 				if (logger.isDebugEnabled()) {

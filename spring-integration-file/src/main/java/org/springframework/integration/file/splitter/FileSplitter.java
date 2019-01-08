@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 	private static final JsonObjectMapper<?, ?> objectMapper =
 			JsonObjectMapperProvider.jsonAvailable() ? JsonObjectMapperProvider.newInstance() : null;
 
-	private final boolean iterator;
+	private final boolean returnIterator;
 
 	private final boolean markers;
 
@@ -135,7 +135,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 	 * @since 4.2.7
 	 */
 	public FileSplitter(boolean iterator, boolean markers, boolean markersJson) {
-		this.iterator = iterator;
+		this.returnIterator = iterator;
 		this.markers = markers;
 		if (markers) {
 			setApplySequence(false);
@@ -359,7 +359,7 @@ public class FileSplitter extends AbstractMessageSplitter {
 
 		};
 
-		if (this.iterator) {
+		if (this.returnIterator) {
 			return iterator;
 		}
 		else {

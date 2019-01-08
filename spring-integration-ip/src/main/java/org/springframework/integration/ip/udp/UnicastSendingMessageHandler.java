@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2018 the original author or authors.
+ * Copyright 2001-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -266,13 +266,13 @@ public class UnicastSendingMessageHandler extends
 		}
 		String messageId = id.toString();
 		try {
-			boolean waitForAck = this.waitForAck;
-			if (waitForAck) {
+			boolean waitAck = this.waitForAck;
+			if (waitAck) {
 				countdownLatch = new CountDownLatch(this.ackCounter);
 				this.ackControl.put(messageId, countdownLatch);
 			}
 			convertAndSend(message);
-			if (waitForAck) {
+			if (waitAck) {
 				try {
 					if (!countdownLatch.await(this.ackTimeout, TimeUnit.MILLISECONDS)) {
 						throw new MessagingException(message, "Failed to receive UDP Ack in "
@@ -322,12 +322,12 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	protected void convertAndSend(Message<?> message) throws Exception {
-		DatagramSocket socket;
+		DatagramSocket datagramSocket;
 		if (this.socketExpression != null) {
-			socket = this.socketExpression.getValue(this.evaluationContext, message, DatagramSocket.class);
+			datagramSocket = this.socketExpression.getValue(this.evaluationContext, message, DatagramSocket.class);
 		}
 		else {
-			socket = getSocket();
+			datagramSocket = getSocket();
 		}
 		SocketAddress destinationAddress;
 		if (this.destinationExpression != null) {
@@ -353,7 +353,7 @@ public class UnicastSendingMessageHandler extends
 		DatagramPacket packet = this.mapper.fromMessage(message);
 		if (packet != null) {
 			packet.setSocketAddress(destinationAddress);
-			socket.send(packet);
+			datagramSocket.send(packet);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Sent packet for message " + message + " to " + packet.getSocketAddress());
 			}
@@ -463,9 +463,9 @@ public class UnicastSendingMessageHandler extends
 	 * @return the ackPort
 	 */
 	public int getAckPort() {
-		DatagramSocket socket = this.socket;
-		if (this.ackPort == 0 && socket != null) {
-			return socket.getLocalPort();
+		DatagramSocket datagramSocket = this.socket;
+		if (this.ackPort == 0 && datagramSocket != null) {
+			return datagramSocket.getLocalPort();
 		}
 		else {
 			return this.ackPort;

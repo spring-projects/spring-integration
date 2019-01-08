@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -891,11 +891,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 		File localFile =
 				new File(generateLocalDirectory(message, remoteDir), generateLocalFileName(message, remoteFilename));
-		FileExistsMode fileExistsMode = this.fileExistsMode;
-		boolean appending = FileExistsMode.APPEND.equals(fileExistsMode);
+		FileExistsMode existsMode = this.fileExistsMode;
+		boolean appending = FileExistsMode.APPEND.equals(existsMode);
 		boolean exists = localFile.exists();
-		boolean replacing = FileExistsMode.REPLACE.equals(fileExistsMode)
-				|| (exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)
+		boolean replacing = FileExistsMode.REPLACE.equals(existsMode)
+				|| (exists && FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode)
 				&& localFile.lastModified() != getModified(fileInfo));
 		if (!exists || appending || replacing) {
 			OutputStream outputStream;
@@ -939,7 +939,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				throw new MessagingException("Failed to rename local file");
 			}
 			if (this.options.contains(Option.PRESERVE_TIMESTAMP)
-					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)) {
+					|| FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode)) {
 				localFile.setLastModified(getModified(fileInfo));
 			}
 			if (this.options.contains(Option.DELETE)) {
@@ -952,7 +952,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				}
 			}
 		}
-		else if (FileExistsMode.REPLACE_IF_MODIFIED.equals(fileExistsMode)) {
+		else if (FileExistsMode.REPLACE_IF_MODIFIED.equals(existsMode)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Local file '" + localFile + "' has the same modified timestamp, ignored");
 			}
@@ -960,7 +960,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				localFile = null;
 			}
 		}
-		else if (!FileExistsMode.IGNORE.equals(fileExistsMode)) {
+		else if (!FileExistsMode.IGNORE.equals(existsMode)) {
 			throw new MessageHandlingException(message, "Local file " + localFile + " already exists");
 		}
 		else {

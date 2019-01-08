@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,12 +172,12 @@ public class JmsMessageDrivenEndpoint extends MessageProducerSupport implements 
 		if (!this.listenerContainer.isActive()) {
 			this.listenerContainer.afterPropertiesSet();
 		}
-		String sessionAcknowledgeMode = this.sessionAcknowledgeMode;
-		if (sessionAcknowledgeMode == null && !this.externalContainer
+		String sessionAckeMode = this.sessionAcknowledgeMode;
+		if (sessionAckeMode == null && !this.externalContainer
 				&& DefaultMessageListenerContainer.class.isAssignableFrom(this.listenerContainer.getClass())) {
-			sessionAcknowledgeMode = JmsAdapterUtils.SESSION_TRANSACTED_STRING;
+			sessionAckeMode = JmsAdapterUtils.SESSION_TRANSACTED_STRING;
 		}
-		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(sessionAcknowledgeMode);
+		Integer acknowledgeMode = JmsAdapterUtils.parseAcknowledgeMode(sessionAckeMode);
 		if (acknowledgeMode != null) {
 			if (JmsAdapterUtils.SESSION_TRANSACTED == acknowledgeMode) {
 				this.listenerContainer.setSessionTransacted(true);

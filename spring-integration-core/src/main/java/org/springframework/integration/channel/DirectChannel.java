@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,8 +85,9 @@ public class DirectChannel extends AbstractSubscribableChannel {
 	protected void onInit() {
 		super.onInit();
 		if (this.maxSubscribers == null) {
-			Integer maxSubscribers = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS, Integer.class);
-			this.setMaxSubscribers(maxSubscribers);
+			Integer max = this.getIntegrationProperty(IntegrationProperties.CHANNELS_MAX_UNICAST_SUBSCRIBERS,
+					Integer.class);
+			this.setMaxSubscribers(max);
 		}
 	}
 

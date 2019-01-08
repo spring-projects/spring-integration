@@ -411,19 +411,19 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	protected void send(Object object) {
 		this.initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");
-		MessageChannel requestChannel = getRequestChannel();
-		Assert.state(requestChannel != null,
+		MessageChannel channel = getRequestChannel();
+		Assert.state(channel != null,
 				"send is not supported, because no request channel has been configured");
 		try {
 			if (this.countsEnabled) {
 				this.messageCount.incrementAndGet();
 			}
-			this.messagingTemplate.convertAndSend(requestChannel, object, this.historyWritingPostProcessor);
+			this.messagingTemplate.convertAndSend(channel, object, this.historyWritingPostProcessor);
 		}
 		catch (Exception e) {
-			MessageChannel errorChannel = getErrorChannel();
-			if (errorChannel != null) {
-				this.messagingTemplate.send(errorChannel, new ErrorMessage(e));
+			MessageChannel errorChan = getErrorChannel();
+			if (errorChan != null) {
+				this.messagingTemplate.send(errorChan, new ErrorMessage(e));
 			}
 			else {
 				this.rethrow(e, "failed to send message");
@@ -434,37 +434,37 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	@Nullable
 	protected Object receive() {
 		this.initializeIfNecessary();
-		MessageChannel replyChannel = getReplyChannel();
-		Assert.state(replyChannel != null && (replyChannel instanceof PollableChannel),
+		MessageChannel channel = getReplyChannel();
+		Assert.state(channel != null && (channel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
-		return this.messagingTemplate.receiveAndConvert(replyChannel, Object.class);
+		return this.messagingTemplate.receiveAndConvert(channel, Object.class);
 	}
 
 	@Nullable
 	protected Message<?> receiveMessage() {
 		initializeIfNecessary();
-		MessageChannel replyChannel = getReplyChannel();
-		Assert.state(replyChannel instanceof PollableChannel,
+		MessageChannel channel = getReplyChannel();
+		Assert.state(channel instanceof PollableChannel,
 				"receive is not supported, because no pollable reply channel has been configured");
-		return this.messagingTemplate.receive(replyChannel);
+		return this.messagingTemplate.receive(channel);
 	}
 
 	@Nullable
 	protected Object receive(long timeout) {
 		this.initializeIfNecessary();
-		MessageChannel replyChannel = getReplyChannel();
-		Assert.state(replyChannel != null && (replyChannel instanceof PollableChannel),
+		MessageChannel channel = getReplyChannel();
+		Assert.state(channel != null && (channel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
-		return this.messagingTemplate.receiveAndConvert(replyChannel, timeout);
+		return this.messagingTemplate.receiveAndConvert(channel, timeout);
 	}
 
 	@Nullable
 	protected Message<?> receiveMessage(long timeout) {
 		initializeIfNecessary();
-		MessageChannel replyChannel = getReplyChannel();
-		Assert.state(replyChannel instanceof PollableChannel,
+		MessageChannel channel = getReplyChannel();
+		Assert.state(channel instanceof PollableChannel,
 				"receive is not supported, because no pollable reply channel has been configured");
-		return this.messagingTemplate.receive(replyChannel, timeout);
+		return this.messagingTemplate.receive(channel, timeout);
 	}
 
 	@Nullable
@@ -482,8 +482,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	private Object doSendAndReceive(Object object, boolean shouldConvert) {
 		this.initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");
-		MessageChannel requestChannel = getRequestChannel();
-		if (requestChannel == null) {
+		MessageChannel channel = getRequestChannel();
+		if (channel == null) {
 			throw new MessagingException("No request channel available. Cannot send request message.");
 		}
 
@@ -497,7 +497,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				this.messageCount.incrementAndGet();
 			}
 			if (shouldConvert) {
-				reply = this.messagingTemplate.convertSendAndReceive(requestChannel, object, Object.class,
+				reply = this.messagingTemplate.convertSendAndReceive(channel, object, Object.class,
 						this.historyWritingPostProcessor);
 				if (reply instanceof Throwable) {
 					error = (Throwable) reply;
@@ -508,7 +508,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 						? (Message<?>) object : this.requestMapper.toMessage(object);
 				Assert.state(requestMessage != null, () -> "request mapper resulted in no message for " + object);
 				requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
-				reply = this.messagingTemplate.sendAndReceive(requestChannel, requestMessage);
+				reply = this.messagingTemplate.sendAndReceive(channel, requestMessage);
 				if (reply instanceof ErrorMessage) {
 					error = ((ErrorMessage) reply).getPayload();
 				}
@@ -530,12 +530,12 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		}
 
 		if (error != null) {
-			MessageChannel errorChannel = getErrorChannel();
-			if (errorChannel != null) {
+			MessageChannel errorChan = getErrorChannel();
+			if (errorChan != null) {
 				ErrorMessage errorMessage = buildErrorMessage(requestMessage, error);
 				Message<?> errorFlowReply = null;
 				try {
-					errorFlowReply = this.messagingTemplate.sendAndReceive(errorChannel, errorMessage);
+					errorFlowReply = this.messagingTemplate.sendAndReceive(errorChan, errorMessage);
 				}
 				catch (Exception errorFlowFailure) {
 					throw new MessagingException(errorMessage, "failure occurred in error-handling flow",
@@ -572,14 +572,14 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	protected Mono<Message<?>> sendAndReceiveMessageReactive(Object object) {
 		initializeIfNecessary();
 		Assert.notNull(object, "request must not be null");
-		MessageChannel requestChannel = getRequestChannel();
-		if (requestChannel == null) {
+		MessageChannel channel = getRequestChannel();
+		if (channel == null) {
 			throw new MessagingException("No request channel available. Cannot send request message.");
 		}
 
 		registerReplyMessageCorrelatorIfNecessary();
 
-		return doSendAndReceiveMessageReactive(requestChannel, object, false);
+		return doSendAndReceiveMessageReactive(channel, object, false);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -603,13 +603,13 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 			Object originalReplyChannelHeader = message.getHeaders().getReplyChannel();
 			Object originalErrorChannelHeader = message.getHeaders().getErrorChannel();
 
-			FutureReplyChannel replyChannel = new FutureReplyChannel();
+			FutureReplyChannel replyChan = new FutureReplyChannel();
 
 			Message<?> requestMessage = MutableMessageBuilder.fromMessage(message)
-					.setReplyChannel(replyChannel)
+					.setReplyChannel(replyChan)
 					.setHeader(this.messagingTemplate.getSendTimeoutHeader(), null)
 					.setHeader(this.messagingTemplate.getReceiveTimeoutHeader(), null)
-					.setErrorChannel(replyChannel)
+					.setErrorChannel(replyChan)
 					.build();
 
 			if (requestChannel instanceof ReactiveStreamsSubscribableChannel) {
@@ -631,7 +631,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 				}
 			}
 
-			return Mono.fromFuture(replyChannel.messageFuture)
+			return Mono.fromFuture(replyChan.messageFuture)
 					.doOnSubscribe(s -> {
 						if (!error && this.countsEnabled) {
 							this.messageCount.incrementAndGet();
@@ -662,11 +662,11 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 		if (logger.isDebugEnabled()) {
 			logger.debug("failure occurred in gateway sendAndReceiveReactive: " + exception.getMessage());
 		}
-		MessageChannel errorChannel = getErrorChannel();
-		if (errorChannel != null) {
+		MessageChannel channel = getErrorChannel();
+		if (channel != null) {
 			ErrorMessage errorMessage = buildErrorMessage(requestMessage, exception);
 			try {
-				return doSendAndReceiveMessageReactive(errorChannel, errorMessage, true);
+				return doSendAndReceiveMessageReactive(channel, errorMessage, true);
 			}
 			catch (Exception errorFlowFailure) {
 				throw new MessagingException(errorMessage, "failure occurred in error-handling flow", errorFlowFailure);
@@ -741,8 +741,8 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 	}
 
 	protected void registerReplyMessageCorrelatorIfNecessary() {
-		MessageChannel replyChannel = getReplyChannel();
-		if (replyChannel != null && this.replyMessageCorrelator == null) {
+		MessageChannel replyChan = getReplyChannel();
+		if (replyChan != null && this.replyMessageCorrelator == null) {
 			boolean shouldStartCorrelator;
 			synchronized (this.replyMessageCorrelatorMonitor) {
 				if (this.replyMessageCorrelator != null) {
@@ -754,24 +754,24 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint
 					handler.setBeanFactory(getBeanFactory());
 				}
 				handler.afterPropertiesSet();
-				if (replyChannel instanceof SubscribableChannel) {
-					correlator = new EventDrivenConsumer((SubscribableChannel) replyChannel, handler);
+				if (replyChan instanceof SubscribableChannel) {
+					correlator = new EventDrivenConsumer((SubscribableChannel) replyChan, handler);
 				}
-				else if (replyChannel instanceof PollableChannel) {
-					PollingConsumer endpoint = new PollingConsumer((PollableChannel) replyChannel, handler);
+				else if (replyChan instanceof PollableChannel) {
+					PollingConsumer endpoint = new PollingConsumer((PollableChannel) replyChan, handler);
 					endpoint.setBeanFactory(getBeanFactory());
 					endpoint.setReceiveTimeout(this.replyTimeout);
 					endpoint.afterPropertiesSet();
 					correlator = endpoint;
 				}
-				else if (replyChannel instanceof ReactiveStreamsSubscribableChannel) {
+				else if (replyChan instanceof ReactiveStreamsSubscribableChannel) {
 					ReactiveStreamsConsumer endpoint =
-							new ReactiveStreamsConsumer(replyChannel, (Subscriber<Message<?>>) handler);
+							new ReactiveStreamsConsumer(replyChan, (Subscriber<Message<?>>) handler);
 					endpoint.afterPropertiesSet();
 					correlator = endpoint;
 				}
 				else {
-					throw new MessagingException("Unsupported 'replyChannel' type [" + replyChannel.getClass() + "]."
+					throw new MessagingException("Unsupported 'replyChannel' type [" + replyChan.getClass() + "]."
 							+ "SubscribableChannel or PollableChannel type are supported.");
 				}
 				this.replyMessageCorrelator = correlator;

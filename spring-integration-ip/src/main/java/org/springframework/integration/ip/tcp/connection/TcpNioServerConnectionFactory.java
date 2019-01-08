@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,10 +71,10 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	public int getPort() {
 		int port = super.getPort();
-		ServerSocketChannel serverChannel = this.serverChannel;
-		if (port == 0 && serverChannel != null) {
+		ServerSocketChannel channel = this.serverChannel;
+		if (port == 0 && channel != null) {
 			try {
-				SocketAddress address = serverChannel.getLocalAddress();
+				SocketAddress address = channel.getLocalAddress();
 				if (address instanceof InetSocketAddress) {
 					port = ((InetSocketAddress) address).getPort();
 				}
@@ -126,18 +126,18 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			if (logger.isInfoEnabled()) {
 				logger.info(this + " Listening");
 			}
-			final Selector selector = Selector.open();
+			final Selector theSelector = Selector.open();
 			if (this.serverChannel == null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug(this + " stopped before registering the server channel");
 				}
 			}
 			else {
-				this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+				this.serverChannel.register(theSelector, SelectionKey.OP_ACCEPT);
 				setListening(true);
 				publishServerListeningEvent(getPort());
-				this.selector = selector;
-				doSelect(this.serverChannel, selector);
+				this.selector = theSelector;
+				doSelect(this.serverChannel, theSelector);
 			}
 		}
 		catch (IOException e) {

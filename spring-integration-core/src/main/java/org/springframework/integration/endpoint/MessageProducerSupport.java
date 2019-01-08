@@ -219,9 +219,9 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 * @since 4.3.10
 	 */
 	protected final boolean sendErrorMessageIfNecessary(Message<?> message, RuntimeException exception) {
-		MessageChannel errorChannel = getErrorChannel();
-		if (errorChannel != null) {
-			this.messagingTemplate.send(errorChannel, buildErrorMessage(message, exception));
+		MessageChannel channel = getErrorChannel();
+		if (channel != null) {
+			this.messagingTemplate.send(channel, buildErrorMessage(message, exception));
 			return true;
 		}
 		return false;

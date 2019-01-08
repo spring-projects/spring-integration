@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,13 +145,13 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 			((ConfigurableListableBeanFactory) this.beanFactory).ignoreDependencyType(MetaClass.class);
 		}
 
-		CompilerConfiguration compilerConfiguration = this.compilerConfiguration;
-		if (compilerConfiguration == null && this.compileStatic) {
-			compilerConfiguration = new CompilerConfiguration();
-			compilerConfiguration.addCompilationCustomizers(new ASTTransformationCustomizer(CompileStatic.class));
+		CompilerConfiguration compilerConfig = this.compilerConfiguration;
+		if (compilerConfig == null && this.compileStatic) {
+			compilerConfig = new CompilerConfiguration();
+			compilerConfig.addCompilationCustomizers(new ASTTransformationCustomizer(CompileStatic.class));
 		}
 
-		this.groovyClassLoader = new GroovyClassLoader(this.beanClassLoader, compilerConfiguration);
+		this.groovyClassLoader = new GroovyClassLoader(this.beanClassLoader, compilerConfig);
 	}
 
 	@Override

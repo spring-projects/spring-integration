@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * Otherwise the default state is applied.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 5.0
  */
@@ -47,17 +48,17 @@ public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 
 	public AnnotationGatewayProxyFactoryBean(Class<?> serviceInterface) {
 		super(serviceInterface);
-		AnnotationAttributes gatewayAttributes =
+		AnnotationAttributes annotationAttributes =
 				AnnotatedElementUtils.getMergedAnnotationAttributes(serviceInterface,
 						MessagingGateway.class.getName(), false, true);
-		if (gatewayAttributes == null) {
-			gatewayAttributes = AnnotationUtils.getAnnotationAttributes(
+		if (annotationAttributes == null) {
+			annotationAttributes = AnnotationUtils.getAnnotationAttributes(
 					AnnotationUtils.synthesizeAnnotation(MessagingGateway.class), false, true);
 		}
 
-		this.gatewayAttributes = gatewayAttributes;
+		this.gatewayAttributes = annotationAttributes;
 
-		String id = gatewayAttributes.getString("name");
+		String id = annotationAttributes.getString("name");
 		if (StringUtils.hasText(id)) {
 			setBeanName(id);
 		}

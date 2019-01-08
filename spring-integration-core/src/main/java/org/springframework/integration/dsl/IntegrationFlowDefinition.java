@@ -3095,14 +3095,14 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	private boolean isOutputChannelRequired() {
 		if (this.currentComponent != null) {
-			Object currentComponent = this.currentComponent;
+			Object currentElement = this.currentComponent;
 
-			if (AopUtils.isAopProxy(currentComponent)) {
-				currentComponent = extractProxyTarget(currentComponent);
+			if (AopUtils.isAopProxy(currentElement)) {
+				currentElement = extractProxyTarget(currentElement);
 			}
 
-			return currentComponent instanceof AbstractMessageProducingHandler
-					|| currentComponent instanceof SourcePollingChannelAdapterSpec;
+			return currentElement instanceof AbstractMessageProducingHandler
+					|| currentElement instanceof SourcePollingChannelAdapterSpec;
 		}
 		return false;
 	}

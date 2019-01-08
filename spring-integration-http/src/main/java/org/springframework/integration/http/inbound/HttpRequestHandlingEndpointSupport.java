@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,12 +222,12 @@ public abstract class HttpRequestHandlingEndpointSupport extends BaseHttpInbound
 		BeanFactory beanFactory = getBeanFactory();
 		if (this.multipartResolver == null && beanFactory != null) {
 			try {
-				MultipartResolver multipartResolver = beanFactory.getBean(
+				MultipartResolver resolver = beanFactory.getBean(
 						DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
 				if (logger.isDebugEnabled()) {
-					logger.debug("Using MultipartResolver [" + multipartResolver + "]");
+					logger.debug("Using MultipartResolver [" + resolver + "]");
 				}
-				this.multipartResolver = multipartResolver;
+				this.multipartResolver = resolver;
 			}
 			catch (NoSuchBeanDefinitionException e) {
 				if (logger.isDebugEnabled()) {

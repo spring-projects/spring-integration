@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,16 +299,16 @@ public class DelayHandler extends AbstractReplyProducingMessageHandler implement
 	}
 
 	private MessageHandler createReleaseMessageTask() {
-		ReleaseMessageHandler releaseHandler = new ReleaseMessageHandler();
+		ReleaseMessageHandler handler = new ReleaseMessageHandler();
 
 		if (!CollectionUtils.isEmpty(this.delayedAdviceChain)) {
-			ProxyFactory proxyFactory = new ProxyFactory(releaseHandler);
+			ProxyFactory proxyFactory = new ProxyFactory(handler);
 			for (Advice advice : this.delayedAdviceChain) {
 				proxyFactory.addAdvice(advice);
 			}
 			return (MessageHandler) proxyFactory.getProxy(getApplicationContext().getClassLoader());
 		}
-		return releaseHandler;
+		return handler;
 	}
 
 	@Override

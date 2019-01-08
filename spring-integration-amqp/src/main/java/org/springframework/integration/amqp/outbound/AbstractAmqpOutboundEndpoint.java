@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -486,19 +486,19 @@ public abstract class AbstractAmqpOutboundEndpoint extends AbstractReplyProducin
 	}
 
 	protected String generateExchangeName(Message<?> requestMessage) {
-		String exchangeName = this.exchangeName;
+		String exchange = this.exchangeName;
 		if (this.exchangeNameGenerator != null) {
-			exchangeName = this.exchangeNameGenerator.processMessage(requestMessage);
+			exchange = this.exchangeNameGenerator.processMessage(requestMessage);
 		}
-		return exchangeName;
+		return exchange;
 	}
 
 	protected String generateRoutingKey(Message<?> requestMessage) {
-		String routingKey = this.routingKey;
+		String key = this.routingKey;
 		if (this.routingKeyGenerator != null) {
-			routingKey = this.routingKeyGenerator.processMessage(requestMessage);
+			key = this.routingKeyGenerator.processMessage(requestMessage);
 		}
-		return routingKey;
+		return key;
 	}
 
 	protected void addDelayProperty(Message<?> message, org.springframework.amqp.core.Message amqpMessage) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,11 +149,11 @@ public abstract class FileTailingMessageProducerSupport extends MessageProducerS
 			this.idleEventScheduledFuture = getTaskScheduler().scheduleWithFixedDelay(() -> {
 				long now = System.currentTimeMillis();
 				long lastAlertAt = this.lastNoMessageAlert.get();
-				long lastProduce = this.lastProduce;
-				if (now > lastProduce + this.idleEventInterval
+				long lastSend = this.lastProduce;
+				if (now > lastSend + this.idleEventInterval
 						&& now > lastAlertAt + this.idleEventInterval
 						&& this.lastNoMessageAlert.compareAndSet(lastAlertAt, now)) {
-					publishIdleEvent(now - lastProduce);
+					publishIdleEvent(now - lastSend);
 				}
 			}, this.idleEventInterval);
 		}
