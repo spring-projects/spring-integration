@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,29 @@ import org.springframework.messaging.MessageChannel;
 
 /**
  * Base interface for any component that is capable of sending
- * Messages to a {@link MessageChannel}.
+ * messages to a {@link MessageChannel}.
  *
  * @author Mark Fisher
+ * @author Artem Bilan
+ *
  * @since 2.0
  */
 public interface MessageProducer {
 
 	/**
-	 * Specify the MessageChannel to which produced Messages should be sent.
-	 *
+	 * Specify the {@link MessageChannel} to which produced Messages should be sent.
 	 * @param outputChannel The output channel.
 	 */
 	void setOutputChannel(MessageChannel outputChannel);
+
+	/**
+	 * Specify the bean name of the {@link MessageChannel} to which produced Messages should be sent.
+	 * @param outputChannel The output channel bean name.
+	 * @since 5.1.2
+	 */
+	default void setOutputChannelName(String outputChannel) {
+		throw new UnsupportedOperationException("This MessageProducer does not support setting the channel by name.");
+	}
 
 	/**
 	 * Return the the output channel.
