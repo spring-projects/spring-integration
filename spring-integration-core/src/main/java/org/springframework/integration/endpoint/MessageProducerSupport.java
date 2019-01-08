@@ -73,6 +73,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	 * @param outputChannelName the channel name.
 	 * @since 4.3
 	 */
+	@Override
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be null or empty");
 		this.outputChannelName = outputChannelName;

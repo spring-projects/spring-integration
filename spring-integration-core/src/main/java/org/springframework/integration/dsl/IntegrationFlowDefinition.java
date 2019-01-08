@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 
 	private static final Set<MessageProducer> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
 
-	protected final Map<Object, String> integrationComponents = new LinkedHashMap<>();
+	protected final Map<Object, String> integrationComponents = new LinkedHashMap<>(); //NOSONAR - final
 
 	private MessageChannel currentMessageChannel;
 
@@ -3062,36 +3062,19 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 					channelName = ((MessageChannelReference) outputChannel).getName();
 				}
 
-				Object currentComponent = this.currentComponent;
-
-				if (AopUtils.isAopProxy(currentComponent)) {
-					currentComponent = extractProxyTarget(currentComponent);
-				}
-
-				if (currentComponent instanceof MessageProducer) {
-					MessageProducer messageProducer =
-							(MessageProducer) currentComponent;
+				if (this.currentComponent instanceof MessageProducer) {
+					MessageProducer messageProducer = (MessageProducer) this.currentComponent;
 					checkReuse(messageProducer);
 					if (channelName != null) {
-						if (messageProducer instanceof AbstractMessageProducingHandler) {
-							((AbstractMessageProducingHandler) messageProducer).setOutputChannelName(channelName);
-						}
-						else {
-							throw new BeanCreationException("The 'currentComponent' (" + currentComponent
-									+ ") must extend 'AbstractMessageProducingHandler' "
-									+ "for message channel resolution by name.\n"
-									+ "Your handler should extend 'AbstractMessageProducingHandler', "
-									+ "its subclass 'AbstractReplyProducingMessageHandler', or you should "
-									+ "reference a 'MessageChannel' bean instead of its name.");
-						}
+						messageProducer.setOutputChannelName(channelName);
 					}
 					else {
 						messageProducer.setOutputChannel(outputChannel);
 					}
 				}
-				else if (currentComponent instanceof SourcePollingChannelAdapterSpec) {
+				else if (this.currentComponent instanceof SourcePollingChannelAdapterSpec) {
 					SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean =
-							((SourcePollingChannelAdapterSpec) currentComponent).get().getT1();
+							((SourcePollingChannelAdapterSpec) this.currentComponent).get().getT1();
 					if (channelName != null) {
 						pollingChannelAdapterFactoryBean.setOutputChannelName(channelName);
 					}
@@ -3100,7 +3083,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 					}
 				}
 				else {
-					throw new BeanCreationException("The 'currentComponent' (" + currentComponent +
+					throw new BeanCreationException("The 'currentComponent' (" + this.currentComponent +
 							") is a one-way 'MessageHandler' and it isn't appropriate to configure 'outputChannel'. " +
 							"This is the end of the integration flow.");
 				}

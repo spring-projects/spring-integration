@@ -91,6 +91,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		this.outputChannel = outputChannel;
 	}
 
+	@Override
 	public void setOutputChannelName(String outputChannelName) {
 		Assert.hasText(outputChannelName, "'outputChannelName' must not be empty");
 		this.outputChannelName = outputChannelName; //NOSONAR (inconsistent sync)
