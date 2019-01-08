@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,9 +71,9 @@ public class ApacheCommonsFileTailingMessageProducer extends FileTailingMessageP
 	@Override
 	protected void doStart() {
 		super.doStart();
-		Tailer tailer = new Tailer(this.getFile(), this, this.pollingDelay, this.end, this.reopen);
-		this.getTaskExecutor().execute(tailer);
-		this.tailer = tailer;
+		Tailer theTailer = new Tailer(this.getFile(), this, this.pollingDelay, this.end, this.reopen);
+		this.getTaskExecutor().execute(theTailer);
+		this.tailer = theTailer;
 	}
 
 	@Override

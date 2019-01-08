@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		if (this.isSharedSessionCapable && ((SharedSessionCapable) this.sessionFactory).isSharedSession()) {
 			((SharedSessionCapable) this.sessionFactory).resetSharedSession();
 		}
-		long sharedSessionEpoch = System.nanoTime();
+		long epoch = System.nanoTime();
 		/*
 		 * Spin until we get a new value - nano precision but may be lower resolution.
 		 * We reset the epoch AFTER resetting the shared session so there is no possibility
@@ -161,10 +161,10 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		 * that a "new" session might appear in the old epoch and thus be closed when returned to
 		 * the cache.
 		 */
-		while (sharedSessionEpoch == this.sharedSessionEpoch) {
-			sharedSessionEpoch = System.nanoTime();
+		while (epoch == this.sharedSessionEpoch) {
+			epoch = System.nanoTime();
 		}
-		this.sharedSessionEpoch = sharedSessionEpoch;
+		this.sharedSessionEpoch = epoch;
 		this.pool.removeAllIdleItems();
 	}
 

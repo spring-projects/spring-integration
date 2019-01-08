@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,11 +63,11 @@ public class DefaultTcpNetConnectionSupport extends AbstractTcpConnectionSupport
 
 		@Override
 		protected InputStream inputStream() throws IOException {
-			InputStream wrapped = super.inputStream();
+			InputStream wrappedStream = super.inputStream();
 			// It shouldn't be possible for the wrapped stream to change but, just in case...
-			if (this.pushbackStream == null || wrapped != this.wrapped) {
-				this.pushbackStream = new PushbackInputStream(wrapped, this.pushbackBufferSize);
-				this.wrapped = wrapped;
+			if (this.pushbackStream == null || !wrappedStream.equals(this.wrapped)) {
+				this.pushbackStream = new PushbackInputStream(wrappedStream, this.pushbackBufferSize);
+				this.wrapped = wrappedStream;
 			}
 			return this.pushbackStream;
 		}

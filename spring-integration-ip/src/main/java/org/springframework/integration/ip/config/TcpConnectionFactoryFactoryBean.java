@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,20 +157,19 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		}
 		if (this.usingNio) {
 			if (isServer()) {
-				TcpNioServerConnectionFactory connectionFactory = new TcpNioServerConnectionFactory(this.port);
-				this.setCommonAttributes(connectionFactory);
-				this.setServerAttributes(connectionFactory);
-				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
-				connectionFactory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
-				this.connectionFactory = connectionFactory;
+				TcpNioServerConnectionFactory factory = new TcpNioServerConnectionFactory(this.port);
+				this.setCommonAttributes(factory);
+				this.setServerAttributes(factory);
+				factory.setUsingDirectBuffers(this.usingDirectBuffers);
+				factory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
+				this.connectionFactory = factory;
 			}
 			else {
-				TcpNioClientConnectionFactory connectionFactory = new TcpNioClientConnectionFactory(
-						this.host, this.port);
-				this.setCommonAttributes(connectionFactory);
-				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
-				connectionFactory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
-				this.connectionFactory = connectionFactory;
+				TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory(this.host, this.port);
+				this.setCommonAttributes(factory);
+				factory.setUsingDirectBuffers(this.usingDirectBuffers);
+				factory.setTcpNioConnectionSupport(this.obtainNioConnectionSupport());
+				this.connectionFactory = factory;
 			}
 			if (this.sslHandshakeTimeout != null) {
 				this.connectionFactory.setSslHandshakeTimeout(this.sslHandshakeTimeout);
@@ -178,20 +177,20 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		}
 		else {
 			if (isServer()) {
-				TcpNetServerConnectionFactory connectionFactory = new TcpNetServerConnectionFactory(this.port);
-				this.setCommonAttributes(connectionFactory);
-				this.setServerAttributes(connectionFactory);
-				connectionFactory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
-				connectionFactory.setTcpNetConnectionSupport(this.obtainNetConnectionSupport());
-				this.connectionFactory = connectionFactory;
+				TcpNetServerConnectionFactory factory = new TcpNetServerConnectionFactory(this.port);
+				this.setCommonAttributes(factory);
+				this.setServerAttributes(factory);
+				factory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
+				factory.setTcpNetConnectionSupport(this.obtainNetConnectionSupport());
+				this.connectionFactory = factory;
 			}
 			else {
-				TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory(
+				TcpNetClientConnectionFactory factory = new TcpNetClientConnectionFactory(
 						this.host, this.port);
-				this.setCommonAttributes(connectionFactory);
-				connectionFactory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
-				connectionFactory.setTcpNetConnectionSupport(this.obtainNetConnectionSupport());
-				this.connectionFactory = connectionFactory;
+				this.setCommonAttributes(factory);
+				factory.setTcpSocketFactorySupport(this.obtainSocketFactorySupport());
+				factory.setTcpNetConnectionSupport(this.obtainNetConnectionSupport());
+				this.connectionFactory = factory;
 			}
 		}
 		return this.connectionFactory;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private final JmsTemplate jmsTemplate = new DynamicJmsTemplate();
 
-	private volatile AbstractMessageListenerContainer container;
+	private volatile AbstractMessageListenerContainer listenerContainer;
 
 	private volatile Class<? extends AbstractMessageListenerContainer> containerType;
 
@@ -375,8 +375,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	protected AbstractJmsChannel createInstance() throws Exception {
 		this.initializeJmsTemplate();
 		if (this.messageDriven) {
-			this.container = createContainer();
-			SubscribableJmsChannel subscribableJmsChannel = new SubscribableJmsChannel(this.container, this.jmsTemplate);
+			this.listenerContainer = createContainer();
+			SubscribableJmsChannel subscribableJmsChannel = new SubscribableJmsChannel(this.listenerContainer, this.jmsTemplate);
 			subscribableJmsChannel.setMaxSubscribers(this.maxSubscribers);
 			this.channel = subscribableJmsChannel;
 		}

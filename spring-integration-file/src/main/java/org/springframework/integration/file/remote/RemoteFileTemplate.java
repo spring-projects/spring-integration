@@ -239,19 +239,18 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 
 	@Override
 	public void afterPropertiesSet() {
-		BeanFactory beanFactory = this.beanFactory;
-		if (beanFactory != null) {
+		if (this.beanFactory != null) {
 			if (this.directoryExpressionProcessor != null) {
-				this.directoryExpressionProcessor.setBeanFactory(beanFactory);
+				this.directoryExpressionProcessor.setBeanFactory(this.beanFactory);
 			}
 			if (this.temporaryDirectoryExpressionProcessor != null) {
-				this.temporaryDirectoryExpressionProcessor.setBeanFactory(beanFactory);
+				this.temporaryDirectoryExpressionProcessor.setBeanFactory(this.beanFactory);
 			}
 			if (!this.fileNameGeneratorSet && this.fileNameGenerator instanceof BeanFactoryAware) {
-				((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(beanFactory);
+				((BeanFactoryAware) this.fileNameGenerator).setBeanFactory(this.beanFactory);
 			}
 			if (this.fileNameProcessor != null) {
-				this.fileNameProcessor.setBeanFactory(beanFactory);
+				this.fileNameProcessor.setBeanFactory(this.beanFactory);
 			}
 		}
 		if (this.autoCreateDirectory) {

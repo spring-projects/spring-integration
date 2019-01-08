@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private volatile long timeToLive = javax.jms.Message.DEFAULT_TIME_TO_LIVE;
 
-	private volatile int priority = javax.jms.Message.DEFAULT_PRIORITY;
+	private volatile int defaultPriority = javax.jms.Message.DEFAULT_PRIORITY;
 
 	private volatile boolean explicitQosEnabled;
 
@@ -302,13 +302,30 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
-	 * Specify the JMS priority to use when sending request Messages.
+	 * Specify the default JMS priority to use when sending request Messages with
+	 * no {@link IntegrationMessageHeaderAccessor#PRIORITY} header.
+	 *
 	 * The value should be within the range of 0-9.
 	 *
 	 * @param priority The priority.
+	 * @deprecated in favor of {@link #setDefaultPriority(int)}.
 	 */
+	@Deprecated
 	public void setPriority(int priority) {
-		this.priority = priority;
+		this.defaultPriority = priority;
+	}
+
+	/**
+	 * Specify the default JMS priority to use when sending request Messages with
+	 * no {@link IntegrationMessageHeaderAccessor#PRIORITY} header.
+	 *
+	 * The value should be within the range of 0-9.
+	 *
+	 * @param priority The priority.
+	 * @since 5.1.2
+	 */
+	public void setDefaultPriority(int priority) {
+		this.defaultPriority = priority;
 	}
 
 	/**
@@ -826,9 +843,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 			Integer priority = new IntegrationMessageHeaderAccessor(requestMessage).getPriority();
 			if (priority == null) {
-				priority = this.priority;
+				priority = this.defaultPriority;
 			}
-			Destination requestDestination = this.determineRequestDestination(requestMessage, session);
+			Destination destination = determineRequestDestination(requestMessage, session);
 
 			Object reply = null;
 			if (this.correlationKey == null) {
@@ -837,10 +854,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				 * (it will be restored in the reply by normal ARPMH header processing).
 				 */
 				jmsRequest.setJMSCorrelationID(null);
-				reply = doSendAndReceiveAsyncDefaultCorrelation(requestDestination, jmsRequest, session, priority);
+				reply = doSendAndReceiveAsyncDefaultCorrelation(destination, jmsRequest, session, priority);
 			}
 			else {
-				reply = doSendAndReceiveAsync(requestDestination, jmsRequest, session, priority);
+				reply = doSendAndReceiveAsync(destination, jmsRequest, session, priority);
 			}
 			/*
 			 * Remove the gateway's internal correlation Id to avoid conflicts with an upstream
@@ -883,20 +900,20 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 			Integer priority = new IntegrationMessageHeaderAccessor(requestMessage).getPriority();
 			if (priority == null) {
-				priority = this.priority;
+				priority = this.defaultPriority;
 			}
 			javax.jms.Message replyMessage = null;
-			Destination requestDestination = this.determineRequestDestination(requestMessage, session);
+			Destination destination = this.determineRequestDestination(requestMessage, session);
 			if (this.correlationKey != null) {
-				replyMessage = doSendAndReceiveWithGeneratedCorrelationId(requestDestination, jmsRequest, replyTo,
+				replyMessage = doSendAndReceiveWithGeneratedCorrelationId(destination, jmsRequest, replyTo,
 						session, priority);
 			}
 			else if (replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic) {
-				replyMessage = doSendAndReceiveWithTemporaryReplyToDestination(requestDestination, jmsRequest, replyTo,
+				replyMessage = doSendAndReceiveWithTemporaryReplyToDestination(destination, jmsRequest, replyTo,
 						session, priority);
 			}
 			else {
-				replyMessage = doSendAndReceiveWithMessageIdCorrelation(requestDestination, jmsRequest, replyTo,
+				replyMessage = doSendAndReceiveWithMessageIdCorrelation(destination, jmsRequest, replyTo,
 						session, priority);
 			}
 			return replyMessage;
@@ -920,15 +937,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			Assert.state(this.correlationKey != null, "correlationKey must not be null");
 			String messageSelector = null;
 			if (!this.correlationKey.equals("JMSCorrelationID*") || jmsRequest.getJMSCorrelationID() == null) {
-				String correlationId = UUID.randomUUID().toString().replaceAll("'", "''");
+				String correlation = UUID.randomUUID().toString().replaceAll("'", "''");
 				if (this.correlationKey.equals("JMSCorrelationID")) {
-					jmsRequest.setJMSCorrelationID(correlationId);
-					messageSelector = "JMSCorrelationID = '" + correlationId + "'";
+					jmsRequest.setJMSCorrelationID(correlation);
+					messageSelector = "JMSCorrelationID = '" + correlation + "'";
 				}
 				else {
-					jmsRequest.setStringProperty(this.correlationKey, correlationId);
+					jmsRequest.setStringProperty(this.correlationKey, correlation);
 					jmsRequest.setJMSCorrelationID(null);
-					messageSelector = this.correlationKey + " = '" + correlationId + "'";
+					messageSelector = this.correlationKey + " = '" + correlation + "'";
 				}
 			}
 			else {
@@ -1064,16 +1081,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private Object doSendAndReceiveAsync(Destination requestDestination, javax.jms.Message jmsRequest, Session session,
 			int priority) throws JMSException {
-		String correlationId = null;
+
+		String correlation = null;
 		MessageProducer messageProducer = null;
 		try {
 			messageProducer = session.createProducer(requestDestination);
-			correlationId = this.gatewayCorrelation + "_" + Long.toString(this.correlationId.incrementAndGet());
+			correlation = this.gatewayCorrelation + "_" + Long.toString(this.correlationId.incrementAndGet());
 			if (this.correlationKey.equals("JMSCorrelationID")) {
-				jmsRequest.setJMSCorrelationID(correlationId);
+				jmsRequest.setJMSCorrelationID(correlation);
 			}
 			else {
-				jmsRequest.setStringProperty(this.correlationKey, correlationId);
+				jmsRequest.setStringProperty(this.correlationKey, correlation);
 				/*
 				 * Remove any existing correlation id that was mapped from the inbound message
 				 * (it will be restored in the reply by normal ARPMH header processing).
@@ -1082,16 +1100,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			}
 			LinkedBlockingQueue<javax.jms.Message> replyQueue = null;
 			if (logger.isDebugEnabled()) {
-				logger.debug(this.getComponentName() + " Sending message with correlationId " + correlationId);
+				logger.debug(this.getComponentName() + " Sending message with correlationId " + correlation);
 			}
 			SettableListenableFuture<AbstractIntegrationMessageBuilder<?>> future = null;
 			boolean async = isAsync();
 			if (!async) {
 				replyQueue = new LinkedBlockingQueue<javax.jms.Message>(1);
-				this.replies.put(correlationId, replyQueue);
+				this.replies.put(correlation, replyQueue);
 			}
 			else {
-				future = createFuture(correlationId);
+				future = createFuture(correlation);
 			}
 
 			this.sendRequestMessage(jmsRequest, messageProducer, priority);
@@ -1100,20 +1118,21 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				return future;
 			}
 			else {
-				return obtainReplyFromContainer(correlationId, replyQueue);
+				return obtainReplyFromContainer(correlation, replyQueue);
 			}
 		}
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
-			if (correlationId != null && !isAsync()) {
-				this.replies.remove(correlationId);
+			if (correlation != null && !isAsync()) {
+				this.replies.remove(correlation);
 			}
 		}
 	}
 
 	private javax.jms.Message doSendAndReceiveAsyncDefaultCorrelation(Destination requestDestination,
 			javax.jms.Message jmsRequest, Session session, int priority) throws JMSException {
-		String correlationId = null;
+
+		String correlation = null;
 		MessageProducer messageProducer = null;
 
 		try {
@@ -1122,32 +1141,32 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 
-			correlationId = jmsRequest.getJMSMessageID();
+			correlation = jmsRequest.getJMSMessageID();
 
 			if (logger.isDebugEnabled()) {
-				logger.debug(this.getComponentName() + " Sent message with correlationId " + correlationId);
+				logger.debug(this.getComponentName() + " Sent message with correlationId " + correlation);
 			}
-			this.replies.put(correlationId, replyQueue);
+			this.replies.put(correlation, replyQueue);
 
 			/*
 			 * Check to see if the reply arrived before we obtained the correlationId
 			 */
 			synchronized (this.earlyOrLateReplies) {
-				TimedReply timedReply = this.earlyOrLateReplies.remove(correlationId);
+				TimedReply timedReply = this.earlyOrLateReplies.remove(correlation);
 				if (timedReply != null) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Found early reply with correlationId " + correlationId);
+						logger.debug("Found early reply with correlationId " + correlation);
 					}
 					replyQueue.add(timedReply.getReply());
 				}
 			}
 
-			return obtainReplyFromContainer(correlationId, replyQueue);
+			return obtainReplyFromContainer(correlation, replyQueue);
 		}
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
-			if (correlationId != null) {
-				this.replies.remove(correlationId);
+			if (correlation != null) {
+				this.replies.remove(correlation);
 			}
 		}
 	}
@@ -1266,7 +1285,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	@Override
 	public void onMessage(javax.jms.Message message) {
-		String correlationId = null;
+		String correlation = null;
 		try {
 			if (logger.isTraceEnabled()) {
 				logger.trace(this.getComponentName() + " Received " + message);
@@ -1274,22 +1293,22 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			if (this.correlationKey == null ||
 					this.correlationKey.equals("JMSCorrelationID") ||
 					this.correlationKey.equals("JMSCorrelationID*")) {
-				correlationId = message.getJMSCorrelationID();
+				correlation = message.getJMSCorrelationID();
 			}
 			else {
-				correlationId = message.getStringProperty(this.correlationKey);
+				correlation = message.getStringProperty(this.correlationKey);
 			}
-			Assert.state(correlationId != null, "Message with no correlationId received");
+			Assert.state(correlation != null, "Message with no correlationId received");
 			if (isAsync()) {
-				onMessageAsync(message, correlationId);
+				onMessageAsync(message, correlation);
 			}
 			else {
-				onMessageSync(message, correlationId);
+				onMessageSync(message, correlation);
 			}
 		}
 		catch (Exception e) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("Failed to consume reply with correlationId " + correlationId, e);
+				logger.warn("Failed to consume reply with correlationId " + correlation, e);
 			}
 		}
 	}

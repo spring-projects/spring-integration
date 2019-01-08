@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -429,18 +429,18 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 
 		final Object result;
 
-		ParameterSource parameterSource = null;
+		ParameterSource paramSource = null;
 		if (this.jpaQuery != null || this.nativeQuery != null || this.namedQuery != null) {
-			parameterSource = determineParameterSource(message);
+			paramSource = determineParameterSource(message);
 		}
 		if (this.jpaQuery != null) {
-			result = this.jpaOperations.executeUpdate(this.jpaQuery, parameterSource);
+			result = this.jpaOperations.executeUpdate(this.jpaQuery, paramSource);
 		}
 		else if (this.nativeQuery != null) {
-			result = this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, parameterSource);
+			result = this.jpaOperations.executeUpdateWithNativeQuery(this.nativeQuery, paramSource);
 		}
 		else if (this.namedQuery != null) {
-			result = this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, parameterSource);
+			result = this.jpaOperations.executeUpdateWithNamedQuery(this.namedQuery, paramSource);
 		}
 		else {
 			switch (this.persistMode) {
@@ -492,11 +492,11 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 		if (this.idExpression != null) {
 			Object id = this.idExpression.getValue(this.evaluationContext, requestMessage); // NOSONAR It can be null
 			Assert.state(id != null, "The 'idExpression' cannot evaluate to null.");
-			Class<?> entityClass = this.entityClass;
-			if (entityClass == null && requestMessage != null) {
-				entityClass = requestMessage.getPayload().getClass();
+			Class<?> entityClazz = this.entityClass;
+			if (entityClazz == null && requestMessage != null) {
+				entityClazz = requestMessage.getPayload().getClass();
 			}
-			payload = this.jpaOperations.find(entityClass, id);
+			payload = this.jpaOperations.find(entityClazz, id);
 		}
 		else {
 			final List<?> result;
@@ -624,14 +624,12 @@ public class JpaExecutor implements InitializingBean, BeanFactoryAware {
 	}
 
 	private ParameterSource determineParameterSource(final Message<?> requestMessage) {
-		ParameterSource parameterSource;
 		if (this.usePayloadAsParameterSource) {
-			parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
+			return this.parameterSourceFactory.createParameterSource(requestMessage.getPayload());
 		}
 		else {
-			parameterSource = this.parameterSourceFactory.createParameterSource(requestMessage);
+			return this.parameterSourceFactory.createParameterSource(requestMessage);
 		}
-		return parameterSource;
 	}
 
 }

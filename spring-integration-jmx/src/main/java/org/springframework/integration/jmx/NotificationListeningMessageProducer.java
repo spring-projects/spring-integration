@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	private volatile MBeanServerConnection server;
 
-	private volatile ObjectName[] objectNames;
+	private volatile ObjectName[] mBeanObjectNames;
 
 	private volatile NotificationFilter filter;
 
@@ -88,7 +88,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	public void setObjectName(ObjectName... objectNames) {
 		Assert.isTrue(!ObjectUtils.isEmpty(objectNames), "'objectNames' must contain at least one ObjectName");
-		this.objectNames = objectNames;
+		this.mBeanObjectNames = objectNames;
 	}
 
 	/**
@@ -158,11 +158,11 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 		this.logger.debug("Registering to receive notifications");
 		try {
 			Assert.notNull(this.server, "MBeanServer is required.");
-			Assert.notNull(this.objectNames, "An ObjectName is required.");
+			Assert.notNull(this.mBeanObjectNames, "An ObjectName is required.");
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
 			if (objectNames.size() < 1) {
 				this.logger.error("No MBeans found matching ObjectName pattern(s): " +
-						Arrays.asList(this.objectNames));
+						Arrays.asList(this.mBeanObjectNames));
 			}
 			for (ObjectName objectName : objectNames) {
 				this.server.addNotificationListener(objectName, this, this.filter, this.handback);
@@ -182,7 +182,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	@Override
 	protected void doStop() {
 		this.logger.debug("Unregistering notifications");
-		if (this.server != null && this.objectNames != null) {
+		if (this.server != null && this.mBeanObjectNames != null) {
 			Collection<ObjectName> objectNames = this.retrieveMBeanNames();
 			for (ObjectName objectName : objectNames) {
 				try {
@@ -203,7 +203,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	protected Collection<ObjectName> retrieveMBeanNames() {
 		List<ObjectName> objectNames = new ArrayList<ObjectName>();
-		for (ObjectName pattern : this.objectNames) {
+		for (ObjectName pattern : this.mBeanObjectNames) {
 			Set<ObjectInstance> mBeanInfos;
 			try {
 				mBeanInfos = this.server.queryMBeans(pattern, null);

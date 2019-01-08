@@ -425,10 +425,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 		Deque<ChannelInterceptor> interceptorStack = null;
 		boolean sent = false;
 		boolean metricsProcessed = false;
-		MetricsContext metrics = null;
-		boolean countsEnabled = this.countsEnabled;
-		ChannelInterceptorList interceptors = this.interceptors;
-		AbstractMessageChannelMetrics channelMetrics = this.channelMetrics;
+		MetricsContext metricsContext = null;
+		boolean countsAreEnabled = this.countsEnabled;
+		ChannelInterceptorList interceptorList = this.interceptors;
+		AbstractMessageChannelMetrics metrics = this.channelMetrics;
 		SampleFacade sample = null;
 		try {
 			if (this.datatypes.length > 0) {
@@ -438,15 +438,15 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 			if (debugEnabled) {
 				logger.debug("preSend on channel '" + this + "', message: " + message);
 			}
-			if (interceptors.getSize() > 0) {
+			if (interceptorList.getSize() > 0) {
 				interceptorStack = new ArrayDeque<>();
-				message = interceptors.preSend(message, this, interceptorStack);
+				message = interceptorList.preSend(message, this, interceptorStack);
 				if (message == null) {
 					return false;
 				}
 			}
-			if (countsEnabled) {
-				metrics = channelMetrics.beforeSend();
+			if (countsAreEnabled) {
+				metricsContext = metrics.beforeSend();
 				if (this.metricsCaptor != null) {
 					sample = this.metricsCaptor.start();
 				}
@@ -454,7 +454,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				if (sample != null) {
 					sample.stop(sendTimer(sent));
 				}
-				channelMetrics.afterSend(metrics, sent);
+				metrics.afterSend(metricsContext, sent);
 				metricsProcessed = true;
 			}
 			else {
@@ -465,20 +465,20 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport
 				logger.debug("postSend (sent=" + sent + ") on channel '" + this + "', message: " + message);
 			}
 			if (interceptorStack != null) {
-				interceptors.postSend(message, this, sent);
-				interceptors.afterSendCompletion(message, this, sent, null, interceptorStack);
+				interceptorList.postSend(message, this, sent);
+				interceptorList.afterSendCompletion(message, this, sent, null, interceptorStack);
 			}
 			return sent;
 		}
 		catch (Exception e) {
-			if (countsEnabled && !metricsProcessed) {
+			if (countsAreEnabled && !metricsProcessed) {
 				if (sample != null) {
 					sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
 				}
-				channelMetrics.afterSend(metrics, false);
+				metrics.afterSend(metricsContext, false);
 			}
 			if (interceptorStack != null) {
-				interceptors.afterSendCompletion(message, this, sent, e, interceptorStack);
+				interceptorList.afterSendCompletion(message, this, sent, e, interceptorStack);
 			}
 			throw IntegrationUtils.wrapInDeliveryExceptionIfNecessary(message,
 					() -> "failed to send Message to channel '" + this.getComponentName() + "'", e);

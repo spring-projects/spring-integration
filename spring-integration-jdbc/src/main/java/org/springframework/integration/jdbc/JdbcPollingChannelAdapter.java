@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,10 +101,14 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		};
 
 		this.selectQuery = selectQuery;
+		this.rowMapper = new ColumnMapRowMapper();
 	}
 
 	public void setRowMapper(RowMapper<?> rowMapper) {
 		this.rowMapper = rowMapper;
+		if (rowMapper == null) {
+			this.rowMapper = new ColumnMapRowMapper();
+		}
 	}
 
 	public void setUpdateSql(String updateSql) {
@@ -187,13 +191,11 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	}
 
 	protected List<?> doPoll(SqlParameterSource sqlQueryParameterSource) {
-		final RowMapper<?> rowMapper = this.rowMapper == null ? new ColumnMapRowMapper() : this.rowMapper;
-
 		if (sqlQueryParameterSource != null) {
-			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, rowMapper);
+			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, this.rowMapper);
 		}
 		else {
-			return this.jdbcOperations.query(this.selectQuery, rowMapper);
+			return this.jdbcOperations.query(this.selectQuery, this.rowMapper);
 		}
 	}
 

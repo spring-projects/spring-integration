@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,9 +63,9 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	@Override
 	public int getPort() {
 		int port = super.getPort();
-		ServerSocket serverSocket = this.serverSocket;
-		if (port == 0 && serverSocket != null) {
-			port = serverSocket.getLocalPort();
+		ServerSocket socket = this.serverSocket;
+		if (port == 0 && socket != null) {
+			port = socket.getLocalPort();
 		}
 		return port;
 	}

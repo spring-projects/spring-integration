@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -634,10 +634,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		}
 		Map<String, Object> headers = null;
 		// We don't want to eagerly resolve the error channel here
-		Object errorChannel = this.errorChannel == null ? this.errorChannelName : this.errorChannel;
-		if (errorChannel != null && method.getReturnType().equals(void.class)) {
+		Object errorChannelForVoidReturn = this.errorChannel == null ? this.errorChannelName : this.errorChannel;
+		if (errorChannelForVoidReturn != null && method.getReturnType().equals(void.class)) {
 			headers = new HashMap<>();
-			headers.put(MessageHeaders.ERROR_CHANNEL, errorChannel);
+			headers.put(MessageHeaders.ERROR_CHANNEL, errorChannelForVoidReturn);
 		}
 
 		if (getMessageBuilderFactory() instanceof DefaultMessageBuilderFactory) {

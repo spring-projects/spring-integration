@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -250,23 +250,23 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					.collect(Collectors.toList());
 		}
 
-		Callable<Message<?>> pollingTask = this::doPoll;
+		Callable<Message<?>> task = this::doPoll;
 
-		List<Advice> adviceChain = this.adviceChain;
-		if (!CollectionUtils.isEmpty(adviceChain)) {
-			ProxyFactory proxyFactory = new ProxyFactory(pollingTask);
-			if (!CollectionUtils.isEmpty(adviceChain)) {
-				adviceChain.stream()
+		List<Advice> advices = this.adviceChain;
+		if (!CollectionUtils.isEmpty(advices)) {
+			ProxyFactory proxyFactory = new ProxyFactory(task);
+			if (!CollectionUtils.isEmpty(advices)) {
+				advices.stream()
 						.filter(advice -> !isReceiveOnlyAdvice(advice))
 						.forEach(proxyFactory::addAdvice);
 			}
-			pollingTask = (Callable<Message<?>>) proxyFactory.getProxy(this.beanClassLoader);
+			task = (Callable<Message<?>>) proxyFactory.getProxy(this.beanClassLoader);
 		}
 		if (!CollectionUtils.isEmpty(receiveOnlyAdviceChain)) {
 			applyReceiveOnlyAdviceChain(receiveOnlyAdviceChain);
 		}
 
-		return pollingTask;
+		return task;
 	}
 
 	private Runnable createPoller() {

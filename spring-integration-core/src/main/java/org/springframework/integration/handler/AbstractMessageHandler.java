@@ -147,23 +147,23 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 			this.logger.debug(this + " received message: " + message);
 		}
 		MetricsContext start = null;
-		boolean countsEnabled = this.countsEnabled;
-		AbstractMessageHandlerMetrics handlerMetrics = this.handlerMetrics;
+		boolean countsAreEnabled = this.countsEnabled;
+		AbstractMessageHandlerMetrics metrics = this.handlerMetrics;
 		SampleFacade sample = null;
-		if (countsEnabled && this.metricsCaptor != null) {
+		if (countsAreEnabled && this.metricsCaptor != null) {
 			sample = this.metricsCaptor.start();
 		}
 		try {
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this, getMessageBuilderFactory());
 			}
-			if (countsEnabled) {
-				start = handlerMetrics.beforeHandle();
+			if (countsAreEnabled) {
+				start = metrics.beforeHandle();
 				handleMessageInternal(message);
 				if (sample != null) {
 					sample.stop(sendTimer());
 				}
-				handlerMetrics.afterHandle(start, true);
+				metrics.afterHandle(start, true);
 			}
 			else {
 				handleMessageInternal(message);
@@ -173,8 +173,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport
 			if (sample != null) {
 				sample.stop(buildSendTimer(false, e.getClass().getSimpleName()));
 			}
-			if (countsEnabled) {
-				handlerMetrics.afterHandle(start, false);
+			if (countsAreEnabled) {
+				metrics.afterHandle(start, false);
 			}
 			throw IntegrationUtils.wrapInHandlingExceptionIfNecessary(message,
 					() -> "error occurred in message handler [" + this + "]", e);

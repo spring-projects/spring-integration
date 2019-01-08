@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	private volatile Boolean reopen;
 
-	private volatile FileTailingMessageProducerSupport adapter;
+	private volatile FileTailingMessageProducerSupport tailAdapter;
 
 	private volatile String beanName;
 
@@ -158,40 +158,40 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public void start() {
-		if (this.adapter != null) {
-			this.adapter.start();
+		if (this.tailAdapter != null) {
+			this.tailAdapter.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.adapter != null) {
-			this.adapter.stop();
+		if (this.tailAdapter != null) {
+			this.tailAdapter.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return this.adapter != null && this.adapter.isRunning();
+		return this.tailAdapter != null && this.tailAdapter.isRunning();
 	}
 
 	@Override
 	public int getPhase() {
-		if (this.adapter != null) {
-			return this.adapter.getPhase();
+		if (this.tailAdapter != null) {
+			return this.tailAdapter.getPhase();
 		}
 		return 0;
 	}
 
 	@Override
 	public boolean isAutoStartup() {
-		return this.adapter != null && this.adapter.isAutoStartup();
+		return this.tailAdapter != null && this.tailAdapter.isAutoStartup();
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.adapter != null) {
-			this.adapter.stop(callback);
+		if (this.tailAdapter != null) {
+			this.tailAdapter.stop(callback);
 		}
 		else {
 			callback.run();
@@ -200,7 +200,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public Class<?> getObjectType() {
-		return this.adapter == null ? FileTailingMessageProducerSupport.class : this.adapter.getClass();
+		return this.tailAdapter == null ? FileTailingMessageProducerSupport.class : this.tailAdapter.getClass();
 	}
 
 	@Override
@@ -256,7 +256,7 @@ public class FileTailInboundChannelAdapterFactoryBean extends AbstractFactoryBea
 			adapter.setBeanFactory(getBeanFactory()); // NOSONAR never null
 		}
 		adapter.afterPropertiesSet();
-		this.adapter = adapter;
+		this.tailAdapter = adapter;
 		return adapter;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,24 +117,20 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		Assert.notNull(beanFactory, "'beanFactory' must not be null");
 		this.messageHandlerAttributes.add(SEND_TIMEOUT_ATTRIBUTE);
 		this.beanFactory = beanFactory;
-		ConversionService conversionService = this.beanFactory.getConversionService();
-		if (conversionService != null) {
-			this.conversionService = conversionService;
-		}
-		else {
-			this.conversionService = DefaultConversionService.getSharedInstance();
-		}
+		this.conversionService = this.beanFactory.getConversionService() != null
+				? this.beanFactory.getConversionService()
+				: DefaultConversionService.getSharedInstance();
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		this.annotationType = (Class<T>) GenericTypeResolver.resolveTypeArgument(this.getClass(),
 				MethodAnnotationPostProcessor.class);
-		Disposables disposables = null;
+		Disposables disposablesBean = null;
 		try {
-			disposables = beanFactory.getBean(Disposables.class);
+			disposablesBean = beanFactory.getBean(Disposables.class);
 		}
 		catch (Exception e) {
 			// NOSONAR - only for test cases
 		}
-		this.disposables = disposables;
+		this.disposables = disposablesBean;
 	}
 
 

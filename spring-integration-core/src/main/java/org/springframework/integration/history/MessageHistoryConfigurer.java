@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,16 +118,16 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 		Assert.notNull(componentNamePatternsSet, "'componentNamePatternsSet' must not be null");
 		Assert.state(!this.running, "'componentNamePatternsSet' cannot be changed without invoking stop() first");
 		for (String s : componentNamePatternsSet) {
-			String[] componentNamePatterns = StringUtils.delimitedListToStringArray(s, ",", " ");
-			Arrays.sort(componentNamePatterns);
+			String[] patterns = StringUtils.delimitedListToStringArray(s, ",", " ");
+			Arrays.sort(patterns);
 			if (this.componentNamePatternsExplicitlySet
-					&& !Arrays.equals(this.componentNamePatterns, componentNamePatterns)) {
+					&& !Arrays.equals(this.componentNamePatterns, patterns)) {
 				throw new BeanDefinitionValidationException("When more than one message history definition " +
 						"(@EnableMessageHistory or <message-history>)" +
 						" is found in the context, they all must have the same 'componentNamePatterns'");
 			}
 			else {
-				this.componentNamePatterns = componentNamePatterns;
+				this.componentNamePatterns = patterns;
 				this.componentNamePatternsExplicitlySet = true;
 			}
 		}

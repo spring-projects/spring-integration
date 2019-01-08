@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,10 +218,9 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	protected DatagramPacket receive() throws Exception {
-		DatagramSocket socket = this.getSocket();
 		final byte[] buffer = new byte[this.getReceiveBufferSize()];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-		socket.receive(packet);
+		getSocket().receive(packet);
 		return packet;
 	}
 
@@ -240,18 +239,18 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	public synchronized DatagramSocket getSocket() {
 		if (this.socket == null) {
 			try {
-				DatagramSocket socket = null;
+				DatagramSocket datagramSocket = null;
 				String localAddress = this.getLocalAddress();
 				int port = super.getPort();
 				if (localAddress == null) {
-					socket = port == 0 ? new DatagramSocket() : new DatagramSocket(port);
+					datagramSocket = port == 0 ? new DatagramSocket() : new DatagramSocket(port);
 				}
 				else {
 					InetAddress whichNic = InetAddress.getByName(localAddress);
-					socket = new DatagramSocket(new InetSocketAddress(whichNic, port));
+					datagramSocket = new DatagramSocket(new InetSocketAddress(whichNic, port));
 				}
-				setSocketAttributes(socket);
-				this.socket = socket;
+				setSocketAttributes(datagramSocket);
+				this.socket = datagramSocket;
 			}
 			catch (IOException e) {
 				throw new MessagingException("failed to create DatagramSocket", e);
@@ -279,9 +278,9 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	protected void doStop() {
 		super.doStop();
 		try {
-			DatagramSocket socket = this.socket;
+			DatagramSocket datagramSocket = this.socket;
 			this.socket = null;
-			socket.close();
+			datagramSocket.close();
 		}
 		catch (Exception e) {
 			// ignore
