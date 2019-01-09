@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,12 +102,12 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	 * @param lifecycle the {@link SmartLifecycle}.
 	 */
 	public final void addLifecycleToRole(String role, SmartLifecycle lifecycle) {
-		List<SmartLifecycle> lifecycles = this.lifecycles.get(role);
-		if (CollectionUtils.isEmpty(lifecycles)) {
+		List<SmartLifecycle> componentsInRole = this.lifecycles.get(role);
+		if (CollectionUtils.isEmpty(componentsInRole)) {
 			this.lifecycles.add(role, lifecycle);
 		}
 		else {
-			lifecycles
+			componentsInRole
 					.stream()
 					.filter(e ->
 							e == lifecycle ||
@@ -125,7 +125,7 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 								+ "' is already present.");
 					});
 
-			lifecycles.add(lifecycle);
+			componentsInRole.add(lifecycle);
 		}
 	}
 
@@ -157,15 +157,15 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		if (this.lazyLifecycles.size() > 0) {
 			addLazyLifecycles();
 		}
-		List<SmartLifecycle> lifecycles = this.lifecycles.get(role);
-		if (lifecycles != null) {
-			lifecycles = new ArrayList<>(lifecycles);
-			lifecycles.sort(Comparator.comparingInt(Phased::getPhase));
+		List<SmartLifecycle> componentsInRole = this.lifecycles.get(role);
+		if (componentsInRole != null) {
+			componentsInRole = new ArrayList<>(componentsInRole);
+			componentsInRole.sort(Comparator.comparingInt(Phased::getPhase));
 			if (logger.isDebugEnabled()) {
-				logger.debug("Starting " + lifecycles + " in role " + role);
+				logger.debug("Starting " + componentsInRole + " in role " + role);
 			}
 
-			lifecycles.forEach(lifecycle -> {
+			componentsInRole.forEach(lifecycle -> {
 				try {
 					lifecycle.start();
 				}
@@ -189,15 +189,15 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 		if (this.lazyLifecycles.size() > 0) {
 			addLazyLifecycles();
 		}
-		List<SmartLifecycle> lifecycles = this.lifecycles.get(role);
-		if (lifecycles != null) {
-			lifecycles = new ArrayList<>(lifecycles);
-			lifecycles.sort((o1, o2) -> Integer.compare(o2.getPhase(), o1.getPhase()));
+		List<SmartLifecycle> componentsInRole = this.lifecycles.get(role);
+		if (componentsInRole != null) {
+			componentsInRole = new ArrayList<>(componentsInRole);
+			componentsInRole.sort((o1, o2) -> Integer.compare(o2.getPhase(), o1.getPhase()));
 			if (logger.isDebugEnabled()) {
-				logger.debug("Stopping " + lifecycles + " in role " + role);
+				logger.debug("Stopping " + componentsInRole + " in role " + role);
 			}
 
-			lifecycles.forEach(lifecycle -> {
+			componentsInRole.forEach(lifecycle -> {
 				try {
 					lifecycle.stop();
 				}
@@ -312,10 +312,10 @@ public class SmartLifecycleRoleController implements ApplicationListener<Abstrac
 	public boolean removeLifecycle(SmartLifecycle lifecycle) {
 		boolean removed = false;
 
-		for (List<SmartLifecycle> lifecycles : this.lifecycles.values()) {
-			boolean actualRemoved = lifecycles.removeIf(Predicate.isEqual(lifecycle));
-			if (!removed) {
-				removed = actualRemoved;
+		for (List<SmartLifecycle> componentsInRole : this.lifecycles.values()) {
+			removed = componentsInRole.removeIf(Predicate.isEqual(lifecycle));
+			if (removed) {
+				break;
 			}
 		}
 

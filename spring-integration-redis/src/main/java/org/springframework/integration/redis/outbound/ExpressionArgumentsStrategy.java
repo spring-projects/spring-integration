@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Artem Bilan
+ * @author Gary Russell
  * @since 4.0
  */
 public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFactoryAware, InitializingBean {
@@ -81,16 +82,16 @@ public class ExpressionArgumentsStrategy implements ArgumentsStrategy, BeanFacto
 
 	@Override
 	public Object[] resolve(String command, Message<?> message) {
-		EvaluationContext evaluationContext = this.evaluationContext;
+		EvaluationContext evaluationContextToUse = this.evaluationContext;
 
 		if (this.useCommandVariable) {
-			evaluationContext = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
-			evaluationContext.setVariable("cmd", command);
+			evaluationContextToUse = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
+			evaluationContextToUse.setVariable("cmd", command);
 		}
 
 		List<Object> arguments = new ArrayList<Object>();
 		for (Expression argumentExpression : this.argumentExpressions) {
-			Object argument = argumentExpression.getValue(evaluationContext, message);
+			Object argument = argumentExpression.getValue(evaluationContextToUse, message);
 			if (argument != null) {
 				arguments.add(argument);
 			}

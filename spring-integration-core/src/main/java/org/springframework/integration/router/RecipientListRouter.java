@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,10 +84,9 @@ public class RecipientListRouter extends AbstractMessageRouter
 	 */
 	public void setChannels(List<MessageChannel> channels) {
 		Assert.notEmpty(channels, "'channels' must not be empty");
-		List<Recipient> recipients = channels.stream()
+		setRecipients(channels.stream()
 				.map(Recipient::new)
-				.collect(Collectors.toList());
-		setRecipients(recipients);
+				.collect(Collectors.toList()));
 	}
 
 	/**
@@ -300,11 +299,13 @@ public class RecipientListRouter extends AbstractMessageRouter
 		}
 
 		public MessageChannel getChannel() {
-			String channelName = this.channelName;
-			if (channelName != null) {
-				if (this.channelResolver != null) {
-					this.channel = this.channelResolver.resolveDestination(channelName);
-					this.channelName = null;
+			if (this.channel == null) {
+				String channelNameForInitialization = this.channelName;
+				if (channelNameForInitialization != null) {
+					if (this.channelResolver != null) {
+						this.channel = this.channelResolver.resolveDestination(channelNameForInitialization);
+						this.channelName = null;
+					}
 				}
 			}
 			return this.channel;

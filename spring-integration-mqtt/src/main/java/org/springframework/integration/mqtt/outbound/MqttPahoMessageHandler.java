@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,10 +146,10 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	protected void doStop() {
 		try {
-			IMqttAsyncClient client = this.client;
-			if (client != null) {
-				client.disconnect().waitForCompletion(this.completionTimeout);
-				client.close();
+			IMqttAsyncClient theClient = this.client;
+			if (theClient != null) {
+				theClient.disconnect().waitForCompletion(this.completionTimeout);
+				theClient.close();
 				this.client = null;
 			}
 		}
@@ -191,8 +191,8 @@ public class MqttPahoMessageHandler extends AbstractMqttMessageHandler
 	@Override
 	protected void publish(String topic, Object mqttMessage, Message<?> message) throws Exception {
 		Assert.isInstanceOf(MqttMessage.class, mqttMessage);
-		IMqttAsyncClient client = checkConnection();
-		IMqttDeliveryToken token = client.publish(topic, (MqttMessage) mqttMessage);
+		IMqttDeliveryToken token = checkConnection()
+				.publish(topic, (MqttMessage) mqttMessage);
 		if (!this.async) {
 			token.waitForCompletion(this.completionTimeout);
 		}

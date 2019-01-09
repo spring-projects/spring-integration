@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,7 +181,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			this.logger.debug("Aborting connect; another thread is connecting.");
 			return;
 		}
-		final int epoch = this.epoch.get();
+		final int currentEpoch = this.epoch.get();
 		this.connecting = true;
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Connecting " + this);
@@ -190,7 +190,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 			this.stompSessionListenableFuture = doConnect(this.compositeStompSessionHandler);
 		}
 		catch (Exception e) {
-			if (epoch == this.epoch.get()) {
+			if (currentEpoch == this.epoch.get()) {
 				scheduleReconnect(e);
 			}
 			else {
@@ -218,7 +218,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 				e -> {
 					AbstractStompSessionManager.this.logger.debug("onFailure", e);
 					connectLatch.countDown();
-					if (epoch == AbstractStompSessionManager.this.epoch.get()) {
+					if (currentEpoch == AbstractStompSessionManager.this.epoch.get()) {
 						scheduleReconnect(e);
 					}
 				});
@@ -226,7 +226,7 @@ public abstract class AbstractStompSessionManager implements StompSessionManager
 		try {
 			if (!connectLatch.await(30, TimeUnit.SECONDS)) {
 				this.logger.error("No response to connection attempt");
-				if (epoch == this.epoch.get()) {
+				if (currentEpoch == this.epoch.get()) {
 					scheduleReconnect(null);
 				}
 			}

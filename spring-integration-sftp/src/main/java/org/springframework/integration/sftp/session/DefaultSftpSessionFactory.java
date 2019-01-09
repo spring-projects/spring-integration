@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -417,9 +417,9 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry>, Share
 		if (this.sessionConfig != null) {
 			jschSession.setConfig(this.sessionConfig);
 		}
-		String password = this.userInfoWrapper.getPassword();
-		if (StringUtils.hasText(password)) {
-			jschSession.setPassword(password);
+		String pw = this.userInfoWrapper.getPassword();
+		if (StringUtils.hasText(pw)) {
+			jschSession.setPassword(pw);
 		}
 		jschSession.setUserInfo(this.userInfoWrapper);
 

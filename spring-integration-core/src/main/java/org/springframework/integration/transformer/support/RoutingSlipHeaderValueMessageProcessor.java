@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,14 +77,14 @@ public class RoutingSlipHeaderValueMessageProcessor
 	@Override
 	public Map<List<Object>, Integer> processMessage(Message<?> message) {
 		// use a local variable to avoid the second access to volatile field on the happy path
-		Map<List<Object>, Integer> routingSlip = this.routingSlip;
-		if (routingSlip == null) {
+		Map<List<Object>, Integer> slip = this.routingSlip;
+		if (slip == null) {
 			synchronized (this) {
-				routingSlip = this.routingSlip;
-				if (routingSlip == null) {
-					List<Object> routingSlipPath = this.routingSlipPath;
-					List<Object> routingSlipValues = new ArrayList<Object>(routingSlipPath.size());
-					for (Object path : routingSlipPath) {
+				slip = this.routingSlip;
+				if (slip == null) {
+					List<Object> slipPath = this.routingSlipPath;
+					List<Object> routingSlipValues = new ArrayList<Object>(slipPath.size());
+					for (Object path : slipPath) {
 						if (path instanceof String) {
 							String entry = (String) path;
 							if (this.beanFactory.containsBean(entry)) {
@@ -114,12 +114,12 @@ public class RoutingSlipHeaderValueMessageProcessor
 						}
 
 					}
-					routingSlip = Collections.singletonMap(Collections.unmodifiableList(routingSlipValues), 0);
-					this.routingSlip = routingSlip;
+					slip = Collections.singletonMap(Collections.unmodifiableList(routingSlipValues), 0);
+					this.routingSlip = slip;
 				}
 			}
 		}
-		return routingSlip;
+		return slip;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Florian Schmaus
  * @author Artem Bilan
  * @author Philipp Etschel
+ * @author Gary Russell
  *
  * @since 2.0
  *
@@ -68,8 +69,6 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	private volatile int phase = Integer.MIN_VALUE;
 
 	private volatile boolean running;
-
-	private volatile XMPPTCPConnection connection;
 
 
 	public XmppConnectionFactoryBean() {
@@ -136,8 +135,8 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	protected XMPPConnection createInstance() throws Exception {
-		XMPPTCPConnectionConfiguration connectionConfiguration = this.connectionConfiguration;
-		if (this.connectionConfiguration == null) {
+		XMPPTCPConnectionConfiguration connectionConfig = this.connectionConfiguration;
+		if (connectionConfig == null) {
 			XMPPTCPConnectionConfiguration.Builder builder =
 					XMPPTCPConnectionConfiguration.builder()
 							.setHost(this.host)
@@ -156,9 +155,9 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 						.setXmppDomain(this.user);
 			}
 
-			connectionConfiguration = builder.build();
+			connectionConfig = builder.build();
 		}
-		return new XMPPTCPConnection(connectionConfiguration);
+		return new XMPPTCPConnection(connectionConfig);
 	}
 
 	protected XMPPTCPConnection getConnection() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.util.IdGenerator;
  * Alternative {@link IdGenerator} implementations.
  *
  * @author Andy Wilkinson
+ * @author Gary Russell
  * @since 4.0
  *
  */
@@ -67,12 +68,12 @@ public class IdGenerators {
 
 		@Override
 		public UUID generateId() {
-			long bottomBits = this.bottomBits.incrementAndGet();
-			if (bottomBits == 0) {
-				return new UUID(this.topBits.incrementAndGet(), bottomBits);
+			long lowerBits = this.bottomBits.incrementAndGet();
+			if (lowerBits == 0) {
+				return new UUID(this.topBits.incrementAndGet(), lowerBits);
 			}
 			else {
-				return new UUID(this.topBits.get(), bottomBits);
+				return new UUID(this.topBits.get(), lowerBits);
 			}
 		}
 

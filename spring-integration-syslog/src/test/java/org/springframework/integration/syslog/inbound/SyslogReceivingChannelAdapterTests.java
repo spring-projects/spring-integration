@@ -73,7 +73,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		factory.start();
-		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "adapter.udpAdapter",
+		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
 				UnicastReceivingChannelAdapter.class);
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
@@ -106,7 +106,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		factory.start();
-		AbstractServerConnectionFactory server = TestUtils.getPropertyValue(factory, "adapter.connectionFactory",
+		AbstractServerConnectionFactory server = TestUtils.getPropertyValue(factory, "syslogAdapter.connectionFactory",
 				AbstractServerConnectionFactory.class);
 		TestingUtilities.waitListening(server, null);
 		TcpSyslogReceivingChannelAdapter adapter = (TcpSyslogReceivingChannelAdapter) factory.getObject();
@@ -144,7 +144,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setBeanFactory(mock(BeanFactory.class));
 		factory.afterPropertiesSet();
 		factory.start();
-		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "adapter.udpAdapter",
+		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
 				UnicastReceivingChannelAdapter.class);
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();
@@ -227,7 +227,7 @@ public class SyslogReceivingChannelAdapterTests {
 		factory.setConverter(new RFC5424MessageConverter());
 		factory.afterPropertiesSet();
 		factory.start();
-		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "adapter.udpAdapter",
+		UnicastReceivingChannelAdapter server = TestUtils.getPropertyValue(factory, "syslogAdapter.udpAdapter",
 				UnicastReceivingChannelAdapter.class);
 		TestingUtilities.waitListening(server, null);
 		UdpSyslogReceivingChannelAdapter adapter = (UdpSyslogReceivingChannelAdapter) factory.getObject();

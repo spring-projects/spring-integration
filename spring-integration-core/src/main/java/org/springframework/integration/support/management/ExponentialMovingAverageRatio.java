@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 the original author or authors.
+ * Copyright 2009-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,52 +140,52 @@ public class ExponentialMovingAverageRatio {
 	private Statistics calcStatic() {
 		List<Long> copyTimes;
 		List<Integer> copyValues;
-		long count;
+		long currentCount;
 		synchronized (this) {
 			copyTimes = new ArrayList<Long>(this.times);
 			copyValues = new ArrayList<Integer>(this.values);
-			count = this.count;
+			currentCount = this.count;
 		}
 		ExponentialMovingAverage cumulative = new ExponentialMovingAverage(this.window);
-		double t0 = 0;
+		double currentT0 = 0;
 		double sum = 0;
 		double weight = 0;
-		double min = this.min;
-		double max = this.max;
+		double currentMin = this.min;
+		double currentMax = this.max;
 		int size = copyTimes.size();
-		Iterator<Integer> values = copyValues.iterator();
+		Iterator<Integer> valuesIterator = copyValues.iterator();
 		for (Long time : copyTimes) {
 			double t = time / this.factor;
 			if (size == 1) {
-				t0 = this.t0;
+				currentT0 = this.t0;
 			}
-			else if (t0 == 0) {
-				t0 = t;
-				values.next();
+			else if (currentT0 == 0) {
+				currentT0 = t;
+				valuesIterator.next();
 				continue;
 			}
-			double alpha = Math.exp((t0 - t) * this.lapse);
-			t0 = t;
-			sum = alpha * sum + values.next();
+			double alpha = Math.exp((currentT0 - t) * this.lapse);
+			currentT0 = t;
+			sum = alpha * sum + valuesIterator.next();
 			weight = alpha * weight + 1;
 			double value = sum / weight;
-			if (value > max) {
-				max = value;
+			if (value > currentMax) {
+				currentMax = value;
 			}
-			if (value < min) {
-				min = value;
+			if (value < currentMin) {
+				currentMin = value;
 			}
 			cumulative.append(value);
 		}
 		synchronized (this) {
-			if (max > this.max) {
-				this.max = max;
+			if (currentMax > this.max) {
+				this.max = currentMax;
 			}
-			if (min < this.min) {
-				this.min = min;
+			if (currentMin < this.min) {
+				this.min = currentMin;
 			}
 		}
-		return new Statistics(count, min < Double.MAX_VALUE ? min : 0, max, cumulative.getMean(),
+		return new Statistics(currentCount, currentMin < Double.MAX_VALUE ? currentMin : 0, currentMax, cumulative.getMean(),
 				cumulative.getStandardDeviation());
 	}
 

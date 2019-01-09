@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -214,16 +214,14 @@ public class SubscribableRedisChannel extends AbstractMessageChannel
 				SubscribableRedisChannel.this.dispatcher.dispatch(siMessage);
 			}
 			catch (MessageDispatchingException e) {
-				String topicName =
-						StringUtils.hasText(SubscribableRedisChannel.this.topicName)
-								? SubscribableRedisChannel.this.topicName
-								: "unknown";
 				String exceptionMessage = e.getMessage();
 				throw new MessageDeliveryException(siMessage,
 						(exceptionMessage == null ? e.getClass().getSimpleName() : exceptionMessage)
 						+ " for redis-channel '"
-						+ topicName
-						+ "' (" + getFullChannelName() + ").", e); // NOSONAR false - never null
+						+ (StringUtils.hasText(SubscribableRedisChannel.this.topicName)
+								? SubscribableRedisChannel.this.topicName
+								: "unknown")
+						+ "' (" + getFullChannelName() + ").", e); // NOSONAR false positive - never null
 			}
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -393,7 +393,7 @@ public class TestMailServer {
 
 	public abstract static class MailServer implements Runnable {
 
-		private final ServerSocket socket;
+		private final ServerSocket serverSocket;
 
 		private final ExecutorService exec = Executors.newCachedThreadPool();
 
@@ -404,13 +404,13 @@ public class TestMailServer {
 		private volatile boolean listening;
 
 		MailServer(int port) throws IOException {
-			this.socket = ServerSocketFactory.getDefault().createServerSocket(port);
+			this.serverSocket = ServerSocketFactory.getDefault().createServerSocket(port);
 			this.listening = true;
 			exec.execute(this);
 		}
 
 		public int getPort() {
-			return this.socket.getLocalPort();
+			return this.serverSocket.getLocalPort();
 		}
 
 		public boolean isListening() {
@@ -432,8 +432,8 @@ public class TestMailServer {
 		@Override
 		public void run() {
 			try {
-				while (!socket.isClosed()) {
-					Socket socket = this.socket.accept();
+				while (!serverSocket.isClosed()) {
+					Socket socket = this.serverSocket.accept();
 					exec.execute(mailHandler(socket));
 				}
 			}
@@ -446,7 +446,7 @@ public class TestMailServer {
 
 		public void stop() {
 			try {
-				this.socket.close();
+				this.serverSocket.close();
 			}
 			catch (IOException e) {
 				e.printStackTrace();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ import org.springframework.util.Assert;
  * if provided {@link StompSessionManager} supports {@code autoReceiptEnabled}.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 4.2
  */
@@ -240,19 +241,19 @@ public class StompInboundChannelAdapter extends MessageProducerSupport implement
 					});
 
 			if (this.stompSessionManager.isAutoReceiptEnabled()) {
-				final ApplicationEventPublisher applicationEventPublisher = this.applicationEventPublisher;
-				if (applicationEventPublisher != null) {
+				final ApplicationEventPublisher eventPublisher = this.applicationEventPublisher;
+				if (eventPublisher != null) {
 					subscription.addReceiptTask(() -> {
 						StompReceiptEvent event = new StompReceiptEvent(StompInboundChannelAdapter.this,
 								destination, subscription.getReceiptId(), StompCommand.SUBSCRIBE, false);
-						applicationEventPublisher.publishEvent(event);
+						eventPublisher.publishEvent(event);
 					});
 				}
 				subscription.addReceiptLostTask(() -> {
-					if (applicationEventPublisher != null) {
+					if (eventPublisher != null) {
 						StompReceiptEvent event = new StompReceiptEvent(StompInboundChannelAdapter.this,
 								destination, subscription.getReceiptId(), StompCommand.SUBSCRIBE, true);
-						applicationEventPublisher.publishEvent(event);
+						eventPublisher.publishEvent(event);
 					}
 					else {
 						logger.error("The receipt [" + subscription.getReceiptId() + "] is lost for [" +

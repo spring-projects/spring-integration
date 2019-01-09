@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 the original author or authors.
+ * Copyright 2009-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,50 +120,50 @@ public class ExponentialMovingAverageRate {
 
 	private Statistics calcStatic() {
 		List<Long> copy;
-		long count;
+		long currentCount;
 		synchronized (this) {
 			copy = new ArrayList<Long>(this.times);
-			count = this.count;
+			currentCount = this.count;
 		}
 		ExponentialMovingAverage rates = new ExponentialMovingAverage(this.window);
-		double t0 = 0;
+		double currentT0 = 0;
 		double sum = 0;
 		double weight = 0;
-		double min = this.min;
-		double max = this.max;
+		double currentMin = this.min;
+		double currentMax = this.max;
 		int size = copy.size();
 		for (Long time : copy) {
 			double t = time / this.factor;
 			if (size == 1) {
-				t0 = this.t0;
+				currentT0 = this.t0;
 			}
-			else if (t0 == 0) {
-				t0 = t;
+			else if (currentT0 == 0) {
+				currentT0 = t;
 				continue;
 			}
-			double delta = t - t0;
+			double delta = t - currentT0;
 			double value = delta > 0 ? delta / this.period : 0;
-			if (value > max) {
-				max = value;
+			if (value > currentMax) {
+				currentMax = value;
 			}
-			if (value < min) {
-				min = value;
+			if (value < currentMin) {
+				currentMin = value;
 			}
 			double alpha = Math.exp(-delta * this.lapse);
-			t0 = t;
+			currentT0 = t;
 			sum = alpha * sum + value;
 			weight = alpha * weight + 1;
 			rates.append(sum > 0 ? weight / sum : 0);
 		}
 		synchronized (this) {
-			if (max > this.max) {
-				this.max = max;
+			if (currentMax > this.max) {
+				this.max = currentMax;
 			}
-			if (min < this.min) {
-				this.min = min;
+			if (currentMin < this.min) {
+				this.min = currentMin;
 			}
 		}
-		return new Statistics(count, min < Double.MAX_VALUE ? min : 0, max, rates.getMean(),
+		return new Statistics(currentCount, currentMin < Double.MAX_VALUE ? currentMin : 0, currentMax, rates.getMean(),
 				rates.getStandardDeviation());
 	}
 
@@ -189,8 +189,8 @@ public class ExponentialMovingAverageRate {
 		if (this.count == 0) {
 			return 0;
 		}
-		double t0 = lastTime();
-		return (System.nanoTime() / this.factor - t0);
+		double currentT0 = lastTime();
+		return (System.nanoTime() / this.factor - currentT0);
 	}
 
 	/**
@@ -206,15 +206,15 @@ public class ExponentialMovingAverageRate {
 	 * @return the new mean.
 	 */
 	private double recalcMean(Statistics staticStats) {
-		long count = this.count;
-		count = count > this.retention ? this.retention : count;
-		if (count == 0) {
+		long currentCount = this.count;
+		currentCount = currentCount > this.retention ? this.retention : currentCount;
+		if (currentCount == 0) {
 			return 0;
 		}
-		double t0 = lastTime();
+		double currentT0 = lastTime();
 		double t = System.nanoTime() / this.factor;
-		double value = t > t0 ? (t - t0) / this.period : 0;
-		return count / (count / staticStats.getMean() + value);
+		double value = t > currentT0 ? (t - currentT0) / this.period : 0;
+		return currentCount / (currentCount / staticStats.getMean() + value);
 	}
 
 	private synchronized double lastTime() {
@@ -237,16 +237,16 @@ public class ExponentialMovingAverageRate {
 	 * @return the maximum value recorded (not weighted)
 	 */
 	public double getMax() {
-		double min = calcStatic().getMin();
-		return min > 0 ? 1 / min : 0;
+		double currentMin = calcStatic().getMin();
+		return currentMin > 0 ? 1 / currentMin : 0;
 	}
 
 	/**
 	 * @return the minimum value recorded (not weighted)
 	 */
 	public double getMin() {
-		double max = calcStatic().getMax();
-		return max > 0 ? 1 / max : 0;
+		double currentMax = calcStatic().getMax();
+		return currentMax > 0 ? 1 / currentMax : 0;
 	}
 
 	/**

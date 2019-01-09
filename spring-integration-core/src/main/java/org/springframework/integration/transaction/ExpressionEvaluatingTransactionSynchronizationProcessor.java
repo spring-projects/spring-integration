@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,15 +201,15 @@ public class ExpressionEvaluatingTransactionSynchronizationProcessor extends Int
 	 */
 	private EvaluationContext prepareEvaluationContextToUse(Object resource) {
 		if (resource != null) {
-			EvaluationContext evaluationContext = createEvaluationContext();
+			EvaluationContext evaluationContextWithVariables = createEvaluationContext();
 			if (resource instanceof IntegrationResourceHolder) {
 				IntegrationResourceHolder holder = (IntegrationResourceHolder) resource;
 				for (Entry<String, Object> entry : holder.getAttributes().entrySet()) {
 					String key = entry.getKey();
-					evaluationContext.setVariable(key, entry.getValue());
+					evaluationContextWithVariables.setVariable(key, entry.getValue());
 				}
 			}
-			return evaluationContext;
+			return evaluationContextWithVariables;
 		}
 		else {
 			return this.evaluationContext;

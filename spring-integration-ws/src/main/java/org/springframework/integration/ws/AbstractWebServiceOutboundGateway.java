@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,18 +196,18 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	@Override
 	public final Object handleRequestMessage(Message<?> requestMessage) {
-		URI uri = null;
+		URI uriWithVariables = null;
 		try {
-			uri = this.prepareUri(requestMessage);
+			uriWithVariables = this.prepareUri(requestMessage);
 		}
 		catch (URISyntaxException e) {
 			throw new IllegalArgumentException(e);
 		}
-		if (uri == null) {
+		if (uriWithVariables == null) {
 			throw new MessageDeliveryException(requestMessage, "Failed to determine URI for " +
 					"Web Service request in outbound gateway: " + this.getComponentName());
 		}
-		Object responsePayload = this.doHandle(uri.toString(), requestMessage, this.requestCallback);
+		Object responsePayload = this.doHandle(uriWithVariables.toString(), requestMessage, this.requestCallback);
 		if (responsePayload != null) {
 			boolean shouldIgnore = (this.ignoreEmptyResponses
 					&& responsePayload instanceof String && !StringUtils.hasText((String) responsePayload));

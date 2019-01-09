@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2018 the original author or authors.
+ * Copyright 2001-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -163,12 +163,12 @@ public abstract class TcpConnectionSupport implements TcpConnection {
 	 * @param isException true when this call is the result of an Exception.
 	 */
 	protected void closeConnection(boolean isException) {
-		TcpListener listener = getListener();
-		if (!(listener instanceof TcpConnectionInterceptor)) {
+		TcpListener tcpListener = getListener();
+		if (!(tcpListener instanceof TcpConnectionInterceptor)) {
 			close();
 		}
 		else {
-			TcpConnectionInterceptor outerListener = (TcpConnectionInterceptor) listener;
+			TcpConnectionInterceptor outerListener = (TcpConnectionInterceptor) tcpListener;
 			while (outerListener.getListener() instanceof TcpConnectionInterceptor) {
 				TcpConnectionInterceptor nextListener = (TcpConnectionInterceptor) outerListener.getListener();
 				if (nextListener == null) {

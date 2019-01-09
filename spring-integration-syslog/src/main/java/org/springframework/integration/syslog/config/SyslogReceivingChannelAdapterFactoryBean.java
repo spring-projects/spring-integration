@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 		udp, tcp
 	}
 
-	private volatile SyslogReceivingChannelAdapterSupport adapter;
+	private volatile SyslogReceivingChannelAdapterSupport syslogAdapter;
 
 	private final Protocol protocol;
 
@@ -127,22 +127,22 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public void start() {
-		if (this.adapter != null) {
-			this.adapter.start();
+		if (this.syslogAdapter != null) {
+			this.syslogAdapter.start();
 		}
 	}
 
 	@Override
 	public void stop() {
-		if (this.adapter != null) {
-			this.adapter.stop();
+		if (this.syslogAdapter != null) {
+			this.syslogAdapter.stop();
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		if (this.adapter != null) {
-			return this.adapter.isRunning();
+		if (this.syslogAdapter != null) {
+			return this.syslogAdapter.isRunning();
 		}
 		return false;
 	}
@@ -164,8 +164,8 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public void stop(Runnable callback) {
-		if (this.adapter != null) {
-			this.adapter.stop(callback);
+		if (this.syslogAdapter != null) {
+			this.syslogAdapter.stop(callback);
 		}
 		else {
 			callback.run();
@@ -174,9 +174,9 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 
 	@Override
 	public Class<?> getObjectType() {
-		return this.adapter == null
+		return this.syslogAdapter == null
 				? SyslogReceivingChannelAdapterSupport.class
-				: this.adapter.getClass();
+				: this.syslogAdapter.getClass();
 	}
 
 	@Override
@@ -230,8 +230,8 @@ public class SyslogReceivingChannelAdapterFactoryBean extends AbstractFactoryBea
 			adapter.setBeanFactory(beanFactory);
 		}
 		adapter.afterPropertiesSet();
-		this.adapter = adapter;
-		return this.adapter;
+		this.syslogAdapter = adapter;
+		return this.syslogAdapter;
 	}
 
 }
