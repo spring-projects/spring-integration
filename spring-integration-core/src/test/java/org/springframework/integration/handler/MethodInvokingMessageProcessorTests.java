@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,9 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.MethodParameter;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelEvaluationException;
@@ -70,19 +72,26 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.support.MessagingMethodInvokerHelper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
+import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
 
@@ -106,6 +115,60 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
+
+	@Test
+	public void testMessageHandlerMethodFactoryOverride() {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyConfiguration.class)) {
+			MessageChannel channel = context.getBean("foo", MessageChannel.class);
+			channel.send(MessageBuilder.withPayload("Bob Smith").build());
+			PollableChannel out = context.getBean("out", PollableChannel.class);
+			assertEquals("Person: Bob Smith", out.receive().getPayload());
+		}
+	}
+
+	@EnableIntegration
+	public static class MyConfiguration {
+		@ServiceActivator(inputChannel = "foo", outputChannel = "out")
+		public String foo(Person person) {
+			return person.toString();
+		}
+
+		@Bean
+		public PollableChannel out() {
+			return new QueueChannel();
+		}
+
+		@Bean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME)
+		public MessageHandlerMethodFactory messageHandlerMethodFactory() {
+			DefaultMessageHandlerMethodFactory f = new DefaultMessageHandlerMethodFactory();
+			HandlerMethodArgumentResolver resolver = new HandlerMethodArgumentResolver() {
+
+				@Override
+				public boolean supportsParameter(MethodParameter parameter) {
+					return true;
+				}
+
+				@Override
+				public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+					String[] names = ((String) message.getPayload()).split(" ");
+					return new Person(names[0], names[1]);
+				}
+			};
+			f.setArgumentResolvers(Collections.singletonList(resolver));
+			f.afterPropertiesSet();
+			return f;
+		}
+
+		public static class Person {
+			private final String name;
+			public Person(String fname, String lname) {
+				this.name = fname + " " + lname;
+			}
+			public String toString() {
+				return "Person: " + name;
+			}
+		}
+	}
 
 	@Test
 	public void testHandlerInheritanceMethodImplInSuper() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Josh Long
  * @author Artem Bilan
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  */
 public abstract class IntegrationContextUtils {
 
@@ -104,6 +105,8 @@ public abstract class IntegrationContextUtils {
 	public static final String LIST_ARGUMENT_RESOLVERS_BEAN_NAME = "integrationListArgumentResolvers";
 
 	public static final String DISPOSABLES_BEAN_NAME = "integrationDisposableAutoCreatedBeans";
+
+	public static final String MESSAGE_HANDLER_FACTORY_BEAN_NAME = "integrationMessageHandlerMethodFactory";
 
 	/**
 	 * @param beanFactory BeanFactory for lookup, must not be null.
