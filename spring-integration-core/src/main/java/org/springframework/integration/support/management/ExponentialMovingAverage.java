@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 the original author or authors.
+ * Copyright 2009-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,41 +98,41 @@ public class ExponentialMovingAverage {
 
 	private Statistics calc() {
 		List<Double> copy;
-		long count;
+		long currentCount;
 		synchronized (this) {
 			copy = new ArrayList<Double>(this.samples);
-			count = this.count;
+			currentCount = this.count;
 		}
 		double sum = 0;
 		double decay = 1 - 1. / this.window;
 		double sumSquares = 0;
 		double weight = 0;
-		double min = this.min;
-		double max = this.max;
+		double currentMin = this.min;
+		double currentMax = this.max;
 		for (Double value : copy) {
 			value /= this.factor;
-			if (value > max) {
-				max = value;
+			if (value > currentMax) {
+				currentMax = value;
 			}
-			if (value < min) {
-				min = value;
+			if (value < currentMin) {
+				currentMin = value;
 			}
 			sum = decay * sum + value;
 			sumSquares = decay * sumSquares + value * value;
 			weight = decay * weight + 1;
 		}
 		synchronized (this) {
-			if (max > this.max) {
-				this.max = max;
+			if (currentMax > this.max) {
+				this.max = currentMax;
 			}
-			if (min < this.min) {
-				this.min = min;
+			if (currentMin < this.min) {
+				this.min = currentMin;
 			}
 		}
 		double mean = weight > 0 ? sum / weight : 0.;
 		double var = weight > 0 ? sumSquares / weight - mean * mean : 0.;
 		double standardDeviation =  var > 0 ? Math.sqrt(var) : 0;
-		return new Statistics(count, min == Double.MAX_VALUE ? 0 : min, max, mean, standardDeviation); //NOSONAR
+		return new Statistics(currentCount, currentMin == Double.MAX_VALUE ? 0 : currentMin, currentMax, mean, standardDeviation); //NOSONAR
 	}
 
 	/**

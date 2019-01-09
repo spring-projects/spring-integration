@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Artem Bilan
  * @author Liujiong
+ * @author Gary Russell
  */
 public abstract class AbstractXmlTransformer extends AbstractTransformer {
 
@@ -85,22 +86,22 @@ public abstract class AbstractXmlTransformer extends AbstractTransformer {
 	 */
 	private ResultFactory configureResultFactory(String resultType, String resultFactoryName, BeanFactory beanFactory) {
 		boolean bothHaveText = StringUtils.hasText(resultFactoryName) && StringUtils.hasText(resultType);
-		ResultFactory resultFactory = null;
+		ResultFactory configuredResultFactory = null;
 		Assert.state(!bothHaveText, "Only one of 'result-factory' or 'result-type' should be specified.");
 		if (StringUtils.hasText(resultType)) {
 			Assert.state(resultType.equals(DOM_RESULT) || resultType.equals(STRING_RESULT),
 					"Result type must be either 'DOMResult' or 'StringResult'");
 		}
 		if (StringUtils.hasText(resultFactoryName)) {
-			resultFactory = (ResultFactory) beanFactory.getBean(resultFactoryName);
+			configuredResultFactory = (ResultFactory) beanFactory.getBean(resultFactoryName);
 		}
 		else if (STRING_RESULT.equals(resultType)) {
-			resultFactory = new StringResultFactory();
+			configuredResultFactory = new StringResultFactory();
 		}
 		else if (DOM_RESULT.equals(resultType)) {
-			resultFactory = new DomResultFactory();
+			configuredResultFactory = new DomResultFactory();
 		}
-		return resultFactory;
+		return configuredResultFactory;
 	}
 
 }

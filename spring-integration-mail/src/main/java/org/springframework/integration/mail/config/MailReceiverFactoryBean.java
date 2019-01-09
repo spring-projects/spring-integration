@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,31 +192,33 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		boolean isPop3 = this.protocol.toLowerCase().startsWith("pop3");
 		boolean isImap = this.protocol.toLowerCase().startsWith("imap");
 		Assert.isTrue(isPop3 || isImap, "the store URI must begin with 'pop3' or 'imap'");
-		AbstractMailReceiver receiver = isPop3 ? new Pop3MailReceiver(this.storeUri) : new ImapMailReceiver(this.storeUri);
+		AbstractMailReceiver mailReceiver = isPop3
+				? new Pop3MailReceiver(this.storeUri)
+				: new ImapMailReceiver(this.storeUri);
 		if (this.session != null) {
 			Assert.isNull(this.javaMailProperties, "JavaMail Properties are not allowed when a Session has been provided.");
 			Assert.isNull(this.authenticator, "A JavaMail Authenticator is not allowed when a Session has been provided.");
-			receiver.setSession(this.session);
+			mailReceiver.setSession(this.session);
 		}
 		if (this.searchTermStrategy != null) {
 			Assert.isTrue(isImap, "searchTermStrategy is only allowed with imap");
-			((ImapMailReceiver) receiver).setSearchTermStrategy(this.searchTermStrategy);
+			((ImapMailReceiver) mailReceiver).setSearchTermStrategy(this.searchTermStrategy);
 		}
 		if (this.javaMailProperties != null) {
-			receiver.setJavaMailProperties(this.javaMailProperties);
+			mailReceiver.setJavaMailProperties(this.javaMailProperties);
 		}
 		if (this.authenticator != null) {
-			receiver.setJavaMailAuthenticator(this.authenticator);
+			mailReceiver.setJavaMailAuthenticator(this.authenticator);
 		}
 		if (this.shouldDeleteMessages != null) {
 			// always set the value if configured explicitly
 			// otherwise, the default is true for POP3 but false for IMAP
-			receiver.setShouldDeleteMessages(this.shouldDeleteMessages);
+			mailReceiver.setShouldDeleteMessages(this.shouldDeleteMessages);
 		}
-		receiver.setMaxFetchSize(this.maxFetchSize);
-		receiver.setSelectorExpression(this.selectorExpression);
+		mailReceiver.setMaxFetchSize(this.maxFetchSize);
+		mailReceiver.setSelectorExpression(this.selectorExpression);
 		if (StringUtils.hasText(this.userFlag)) {
-			receiver.setUserFlag(this.userFlag);
+			mailReceiver.setUserFlag(this.userFlag);
 		}
 
 		if (isPop3) {
@@ -225,22 +227,22 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			}
 		}
 		else if (isImap) {
-			((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
+			((ImapMailReceiver) mailReceiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
 		}
 		if (this.beanFactory != null) {
-			receiver.setBeanFactory(this.beanFactory);
+			mailReceiver.setBeanFactory(this.beanFactory);
 		}
 		if (this.headerMapper != null) {
-			receiver.setHeaderMapper(this.headerMapper);
+			mailReceiver.setHeaderMapper(this.headerMapper);
 		}
 		if (this.embeddedPartsAsBytes != null) {
-			receiver.setEmbeddedPartsAsBytes(this.embeddedPartsAsBytes);
+			mailReceiver.setEmbeddedPartsAsBytes(this.embeddedPartsAsBytes);
 		}
 		if (this.simpleContent != null) {
-			receiver.setSimpleContent(this.simpleContent);
+			mailReceiver.setSimpleContent(this.simpleContent);
 		}
-		receiver.afterPropertiesSet();
-		return receiver;
+		mailReceiver.afterPropertiesSet();
+		return mailReceiver;
 	}
 
 	@Override

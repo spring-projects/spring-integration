@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016 the original author or authors.
+ * Copyright 2014-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,13 +72,12 @@ public class DefaultDatatypeChannelMessageConverter implements MessageConverter,
 	 */
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
-		ConversionService conversionService = this.conversionService;
-		if (conversionService != null) {
-			if (conversionService.canConvert(message.getPayload().getClass(), targetClass)) {
-				return conversionService.convert(message.getPayload(), targetClass);
-			}
+		if (this.conversionService.canConvert(message.getPayload().getClass(), targetClass)) {
+			return this.conversionService.convert(message.getPayload(), targetClass);
 		}
-		return null;
+		else {
+			return null;
+		}
 	}
 
 	@Override

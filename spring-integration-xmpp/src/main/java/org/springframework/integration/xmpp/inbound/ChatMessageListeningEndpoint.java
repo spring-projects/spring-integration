@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 2.0
  */
@@ -130,17 +131,17 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 				Object messageBody = xmppMessage.getBody();
 
 				if (ChatMessageListeningEndpoint.this.payloadExpression != null) {
-					EvaluationContext evaluationContext = ChatMessageListeningEndpoint.this.evaluationContext;
+					EvaluationContext evaluationContextToUse = ChatMessageListeningEndpoint.this.evaluationContext;
 
 					List<ExtensionElement> extensions = xmppMessage.getExtensions();
 					if (extensions.size() == 1) {
 						ExtensionElement extension = extensions.get(0);
-						evaluationContext = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
-						evaluationContext.setVariable("extension", extension);
+						evaluationContextToUse = ExpressionUtils.createStandardEvaluationContext(getBeanFactory());
+						evaluationContextToUse.setVariable("extension", extension);
 					}
 
 					messageBody = ChatMessageListeningEndpoint.this.payloadExpression
-							.getValue(evaluationContext, xmppMessage);
+							.getValue(evaluationContextToUse, xmppMessage);
 				}
 
 				if (messageBody != null) {

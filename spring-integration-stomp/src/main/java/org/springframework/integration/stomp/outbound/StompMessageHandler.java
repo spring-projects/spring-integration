@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 the original author or authors.
+ * Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.springframework.util.Assert;
  * The {@link AbstractMessageHandler} implementation to send messages to STOMP destinations.
  *
  * @author Artem Bilan
+ * @author Gary Russell
  *
  * @since 4.2
  */
@@ -136,7 +137,7 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 		catch (Exception e) {
 			throw new MessageDeliveryException(message, "The '" + this + "' could not deliver message.", e);
 		}
-		StompSession stompSession = this.stompSession;
+		StompSession session = this.stompSession;
 
 		StompHeaders stompHeaders = new StompHeaders();
 		this.headerMapper.fromHeaders(message.getHeaders(), stompHeaders);
@@ -148,24 +149,24 @@ public class StompMessageHandler extends AbstractMessageHandler implements Appli
 			stompHeaders.setDestination(destination);
 		}
 
-		final StompSession.Receiptable receiptable = stompSession.send(stompHeaders, message.getPayload());
+		final StompSession.Receiptable receiptable = session.send(stompHeaders, message.getPayload());
 		if (receiptable.getReceiptId() != null) {
 			final String destination = stompHeaders.getDestination();
-			final ApplicationEventPublisher applicationEventPublisher = this.applicationEventPublisher;
-			if (applicationEventPublisher != null) {
+			final ApplicationEventPublisher eventPublisher = this.applicationEventPublisher;
+			if (eventPublisher != null) {
 				receiptable.addReceiptTask(() -> {
 					StompReceiptEvent event = new StompReceiptEvent(StompMessageHandler.this,
 							destination, receiptable.getReceiptId(), StompCommand.SEND, false);
 					event.setMessage(message);
-					applicationEventPublisher.publishEvent(event);
+					eventPublisher.publishEvent(event);
 				});
 			}
 			receiptable.addReceiptLostTask(() -> {
-				if (applicationEventPublisher != null) {
+				if (eventPublisher != null) {
 					StompReceiptEvent event = new StompReceiptEvent(StompMessageHandler.this,
 							destination, receiptable.getReceiptId(), StompCommand.SEND, true);
 					event.setMessage(message);
-					applicationEventPublisher.publishEvent(event);
+					eventPublisher.publishEvent(event);
 				}
 				else {
 					logger.error("The receipt [" + receiptable.getReceiptId() + "] is lost for [" +
