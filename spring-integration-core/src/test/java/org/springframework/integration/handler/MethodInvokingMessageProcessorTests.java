@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelCompilerMode;
 import org.springframework.expression.spel.SpelEvaluationException;
@@ -71,6 +72,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.UseSpelInvoker;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.handler.support.MessagingMethodInvokerHelper;
@@ -83,6 +85,8 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
+import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
 
@@ -106,6 +110,27 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
+
+	@Test
+	public void testHandlerMethodFactoryInjection() throws Exception {
+		SingleMethodJsonWithSpELMessageWildBean bean = new SingleMethodJsonWithSpELMessageWildBean();
+		MessagingMethodInvokerHelper<?> helper = new MessagingMethodInvokerHelper<>(bean,
+				SingleMethodJsonWithSpELMessageWildBean.class.getDeclaredMethod("foo", Message.class), false);
+		GenericApplicationContext context = new GenericApplicationContext();
+		DefaultMessageHandlerMethodFactory handlerMethodFactory = new DefaultMessageHandlerMethodFactory();
+		context.registerBean(IntegrationContextUtils.MESSAGE_HANDLER_FACTORY_BEAN_NAME,
+				MessageHandlerMethodFactory.class, () -> handlerMethodFactory);
+		context.refresh();
+		helper.setBeanFactory(context);
+
+		Object injectedHandlerMethodFactory = TestUtils.getPropertyValue(helper, "messageHandlerMethodFactory");
+		assertThat(injectedHandlerMethodFactory, equalTo(handlerMethodFactory));
+
+		Message<?> message = new GenericMessage<>("baz",
+				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "application/json"));
+		helper.process(message);
+		assertThat(bean.foo.getPayload(), equalTo("baz"));
+	}
 
 	@Test
 	public void testHandlerInheritanceMethodImplInSuper() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 the original author or authors.
+ * Copyright 2017-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
  * @author Gary Russell
  *
  * @since 5.0
- *
+ * @deprecated as of 5.1.2. Instead simply configure your own MessageHandlerMethodFactory as a bean.
  */
+@Deprecated
 public class HandlerMethodArgumentResolversHolder {
 
 	private final List<HandlerMethodArgumentResolver> resolvers;
