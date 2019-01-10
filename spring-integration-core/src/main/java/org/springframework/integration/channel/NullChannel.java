@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ import org.springframework.integration.support.management.MessageChannelMetrics;
 import org.springframework.integration.support.management.Statistics;
 import org.springframework.integration.support.management.metrics.MetricsCaptor;
 import org.springframework.integration.support.management.metrics.TimerFacade;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".
@@ -54,13 +54,13 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	private final ManagementOverrides managementOverrides = new ManagementOverrides();
 
-	private volatile AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics("nullChannel");
+	private AbstractMessageChannelMetrics channelMetrics = new DefaultMessageChannelMetrics("nullChannel");
 
-	private volatile boolean countsEnabled;
+	private boolean countsEnabled;
 
-	private volatile boolean statsEnabled;
+	private boolean statsEnabled;
 
-	private volatile boolean loggingEnabled = true;
+	private boolean loggingEnabled = true;
 
 	private String beanName;
 
@@ -71,7 +71,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	@Override
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
-		this.channelMetrics = new DefaultMessageChannelMetrics(getComponentName());
+		this.channelMetrics = new DefaultMessageChannelMetrics(this.beanName);
 	}
 
 	@Override
@@ -86,13 +86,14 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 	}
 
 	@Override
+	@Nullable
 	public String getComponentName() {
-		return StringUtils.hasText(this.beanName) ? this.beanName : "nullChannel";
+		return this.beanName;
 	}
 
 	@Override
 	public String getComponentType() {
-		return "channel";
+		return "null-channel";
 	}
 
 	@Override
@@ -246,7 +247,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 		if (this.successTimer == null) {
 			this.successTimer = this.metricsCaptor.timerBuilder(SEND_TIMER_NAME)
 					.tag("type", "channel")
-					.tag("name", getComponentName() == null ? "unknown" : getComponentName())
+					.tag("name", getComponentName() == null ? "nullChannel" : getComponentName())
 					.tag("result", "success")
 					.tag("exception", "none")
 					.description("Subflow process time")
@@ -257,7 +258,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	@Override
 	public Message<?> receive() {
-		if (this.loggingEnabled && this.logger.isDebugEnabled()) {
+		if (this.loggingEnabled) {
 			this.logger.debug("receive called on null channel");
 		}
 		return null;
@@ -265,7 +266,7 @@ public class NullChannel implements PollableChannel, MessageChannelMetrics,
 
 	@Override
 	public Message<?> receive(long timeout) {
-		return this.receive();
+		return receive();
 	}
 
 	@Override
