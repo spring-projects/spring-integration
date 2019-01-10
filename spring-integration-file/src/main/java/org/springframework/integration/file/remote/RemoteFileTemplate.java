@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author David Turanski
  * @author Gary Russell
  * @author Artem Bilan
+ * @author Alen Turkovic
  *
  * @since 3.0
  *
@@ -443,9 +444,7 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			return callback.doInSession(session);
 		}
 		catch (Exception e) {
-			if (session instanceof CachingSessionFactory<?>.CachedSession) {
-				((CachingSessionFactory.CachedSession) session).dirty();
-			}
+			session.dirty();
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}

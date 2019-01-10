@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Alen Turkovic
  * @since 2.0
  */
 public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBean {
@@ -273,6 +274,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 			return this.targetSession.finalizeRaw();
 		}
 
+		@Override
 		public void dirty() {
 			this.dirty = true;
 		}
