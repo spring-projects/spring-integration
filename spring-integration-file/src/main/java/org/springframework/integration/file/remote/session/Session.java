@@ -29,6 +29,7 @@ import java.io.OutputStream;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Alen Turkovic
  * @since 2.0
  */
 public interface Session<F> extends Closeable {
@@ -115,6 +116,16 @@ public interface Session<F> extends Closeable {
 	 */
 	default boolean test() {
 		return this.isOpen();
+	}
+
+	/**
+	 * Mark this session as dirty, indicating that it should not be reused and any
+	 * delegated sessions should be taken care of before closing.
+	 * @see CachingSessionFactory.CachedSession#close()
+	 * @since 5.1.2
+	 */
+	default void dirty() {
+		// NOOP
 	}
 
 }
