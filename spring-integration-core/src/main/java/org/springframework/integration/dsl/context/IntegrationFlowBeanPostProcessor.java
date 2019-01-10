@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.core.io.DescriptiveResource;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.FixedSubscriberChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.config.IntegrationConfigUtils;
 import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
@@ -175,8 +176,8 @@ public class IntegrationFlowBeanPostProcessor
 			}
 			else {
 				if (noBeanPresentForComponent(component, flowBeanName)) {
-					if (component instanceof AbstractMessageChannel) {
-						String channelBeanName = ((AbstractMessageChannel) component).getComponentName();
+					if (component instanceof AbstractMessageChannel || component instanceof NullChannel) {
+						String channelBeanName = ((NamedComponent) component).getComponentName();
 						if (channelBeanName == null) {
 							channelBeanName = entry.getValue();
 							if (channelBeanName == null) {
@@ -263,7 +264,7 @@ public class IntegrationFlowBeanPostProcessor
 						registerComponent(gateway, gatewayId, flowBeanName,
 								beanDefinition -> {
 									((AbstractBeanDefinition) beanDefinition)
-											.setSource(new DescriptiveResource(gateway.getObjectType().getName()));
+											.setSource(new DescriptiveResource("" + gateway.getObjectType()));
 								});
 
 						targetIntegrationComponents.put(component, gatewayId);
