@@ -35,7 +35,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.support.FileExistsMode;
@@ -444,14 +443,16 @@ public class RemoteFileTemplate<F> implements RemoteFileOperations<F>, Initializ
 			return callback.doInSession(session);
 		}
 		catch (Exception e) {
-			session.dirty();
+			if (session != null) {
+				session.dirty();
+			}
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
 			throw new MessagingException("Failed to execute on session", e);
 		}
 		finally {
-			if (!invokeScope) {
+			if (!invokeScope && session != null) {
 				try {
 					session.close();
 				}
